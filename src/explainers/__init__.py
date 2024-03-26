@@ -27,9 +27,7 @@ class Explainer(ABC):
 
 class FeatureKernelExplainer(Explainer):
     def __init__(
-            self, model: torch.nn.Module, feature_extractor: Union[str, torch.nn.Module],
-            classifier: Union[str, torch.nn.Module], dataset: torch.data.utils.Dataset,
-            device: Union[str, torch.device],
+            self, model: torch.nn.Module, dataset: torch.data.utils.Dataset, device: Union[str, torch.device],
             file: str, normalize: bool = True
     ):
         super().__init__(model, dataset, device)
@@ -97,44 +95,40 @@ class GradientProductExplainer(Explainer):
 
         return torch.squeeze(grads)
 
-    def __init__(
-            self, model: torch.nn.Module, dataset: torch.utils.data.Dataset, device: Union[str, torch.device], loss=None
-            ):
+    def __init__(self, model:torch.nn.Module, dataset:torch.utils.data.Dataset, device:Union[str, torch.device], loss=None):
         super().__init__(model, dataset, device)
         self.number_of_params = 0
-        self.loss = loss
+         self.loss = loss
+        for p in list(self.model.sim_parameters()):
+            nn = 1
+            for s in list(p.size()):
+                nn = nn * s
+            self.number_of_params += nn
+        # USE get_param_grad instead of grad_ds = GradientDataset(self.model, dataset)
+        self.dataset = dataset
 
-    for p in list(self.model.sim_parameters()):
-        nn = 1
-        for s in list(p.size()):
-            nn = nn * s
-        self.number_of_params += nn
-    # USE get_param_grad instead of grad_ds = GradientDataset(self.model, dataset)
-    self.dataset = dataset
-
-
-def explain(self, x, preds=None, targets=None):
-    assert not ((targets is None) and (self.loss is not None))
-    xpl = torch.zeros((x.shape[0], len(self.dataset)), dtype=torch.float)
-    xpl = xpl.to(self.device)
-    t = time.time()
-    for j in range(len(self.dataset)):
-        tr_sample, y = self.dataset[j]
-        train_grad = self.get_param_grad(tr_sample, y)
-        train_grad = train_grad / torch.norm(train_grad)
-        train_grad.to(self.device)
-        for i in range(x.shape[0]):
-            if self.loss is None:
-                test_grad = self.get_param_grad(x[i], preds[i])
-            else:
-                test_grad = self.get_param_grad(x[i], targets[i])
-            test_grad.to(self.device)
-            xpl[i, j] = torch.matmul(train_grad, test_grad)
-        if j % 1000 == 0:
-            tdiff = time.time() - t
-            mins = int(tdiff / 60)
-            print(
-                f'{int(j / 1000)}/{int(len(self.dataset) / 1000)}k- 1000 images done in {mins} minutes {tdiff - 60 * mins}'
-            )
-            t = time.time()
-    return xpl
+    def explain(self, x, preds=None, targets=None):
+        assert not ((targets is None) and (self.loss is not None))
+        xpl = torch.zeros((x.shape[0], len(self.dataset)), dtype=torch.float)
+        xpl = xpl.to(self.device)
+        t = time.time()
+        for j in range(len(self.dataset)):
+            tr_sample, y = self.dataset[j]
+            train_grad = self.get_param_grad(tr_sample, y)
+            train_grad = train_grad / torch.norm(train_grad)
+            train_grad.to(self.device)
+            for i in range(x.shape[0]):
+                if self.loss is None:
+                    test_grad = self.get_param_grad(x[i], preds[i])
+                else:
+                    test_grad = self.get_param_grad(x[i], targets[i])
+                test_grad.to(self.device)
+                xpl[i, j] = torch.matmul(train_grad, test_grad)
+            if j % 1000 == 0:
+                tdiff = time.time() - t
+                mins = int(tdiff / 60)
+                print(
+                    f'{int(j / 1000)}/{int(len(self.dataset) / 1000)}k- 1000 images done in {mins} minutes {tdiff - 60 * mins}'
+                )
+                t = time.time()
+        return xpl

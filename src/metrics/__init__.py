@@ -19,6 +19,10 @@ class Metric(ABC):
     def get_result(self, dir: str):
         pass
 
+    def write_result(self, result_dict: dict, dir: str, file_name: str) -> None:
+        with open(f"{dir}/{file_name}", 'w', encoding='utf-8') as f:
+            json.dump(self.to_float(result_dict), f, ensure_ascii=False, indent=4)
+        print(result_dict)
 
     @staticmethod
     def to_float(results: Union[dict, str, torch.Tensor]) -> Union[dict, str, torch.Tensor]:
