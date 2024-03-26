@@ -4,15 +4,13 @@ from typing import Union
 import torch
 
 from src.explainers.base import Explainer
-from src.utils.data.feature_dataset import FeatureDataset
+from src.utils.datasets.feature_dataset import FeatureDataset
 
 
 class FeatureKernelExplainer(Explainer):
     def __init__(
         self,
         model: torch.nn.Module,
-        feature_extractor: Union[str, torch.nn.Module],
-        classifier: Union[str, torch.nn.Module],
         dataset: torch.data.utils.Dataset,
         device: Union[str, torch.device],
         file: str,

@@ -20,7 +20,7 @@ include_trailing_comma = true
 
 # Black formatting
 [tool.black]
-line-length = 150
+line-length = 127
 include = '\.pyi?$'
 exclude = '''
 /(
