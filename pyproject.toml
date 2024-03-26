@@ -1,0 +1,54 @@
+[project]
+name = "data_attribution_evaluation"
+description = "data_attribution_evaluation"
+license = { file = "LICENSE" }
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["explainable ai", "xai", "machine learning", "deep learning"]
+
+dependencies = [
+    "numpy>=1.19.5",
+    "torch>=1.13.1",
+]
+dynamic = ["version"]
+
+[tool.isort]
+profile = "black"
+line_length = 79
+multi_line_output = 3
+include_trailing_comma = true
+
+# Black formatting
+[tool.black]
+line-length = 150
+include = '\.pyi?$'
+exclude = '''
+/(
+      .eggs         # exclude a few common directories in the
+    | .git          # root of the project
+    | .hg
+    | .mypy_cache
+    | .tox
+    | venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+'''
+
+# Pytest
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[project.optional-dependencies]
+tests = [
+    "coverage>=7.2.3",
+    "flake8>=6.0.0",
+    "pytest<=7.4.4",
+    "pytest-cov>=4.0.0",
+    "pytest-lazy-fixture>=0.6.3",
+    "pytest-mock==3.10.0",
+    "pytest_xdist",
+]

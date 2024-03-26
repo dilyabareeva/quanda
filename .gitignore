@@ -1,0 +1,10 @@
+*/*.egg-info/
+*.egg-info/
+
+/.idea/
+/.tox/
+/.coverage
+
+.pytest_cache
+*.DS_Store
+__pycache__/
