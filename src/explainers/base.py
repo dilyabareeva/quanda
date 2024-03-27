@@ -21,5 +21,5 @@ class Explainer(ABC):
     def train(self) -> None:
         pass
 
-    def save_coefs(self, dir: str) -> None:
+    def save_coefs(self, dir_path: str) -> None:
         pass

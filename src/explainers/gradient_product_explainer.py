@@ -9,6 +9,20 @@ from src.explainers.base import Explainer
 class GradientProductExplainer(Explainer):
     name = "GradientProductExplainer"
 
+    def __init__(
+        self, model: torch.nn.Module, dataset: torch.utils.data.Dataset, device: Union[str, torch.device], loss=None
+    ):
+        super().__init__(model, dataset, device)
+        self.number_of_params = 0
+        self.loss = loss
+        for p in list(self.model.sim_parameters()):
+            nn = 1
+            for s in list(p.size()):
+                nn = nn * s
+            self.number_of_params += nn
+        # USE get_param_grad instead of grad_ds = GradientDataset(self.model, dataset)
+        self.dataset = dataset
+
     def get_param_grad(self, x: torch.Tensor, index: int = None):
         x = x.to(self.device)
         out = self.model(x[None, :, :])
@@ -33,18 +47,6 @@ class GradientProductExplainer(Explainer):
             grads[i] = cumul
 
         return torch.squeeze(grads)
-
-    def __init__(self, model: torch.nn.Module, dataset: torch.utils.data.Dataset, device: Union[str, torch.device], loss=None):
-        super().__init__(model, dataset, device)
-        self.number_of_params = 0
-        self.loss = loss
-        for p in list(self.model.sim_parameters()):
-            nn = 1
-            for s in list(p.size()):
-                nn = nn * s
-            self.number_of_params += nn
-        # USE get_param_grad instead of grad_ds = GradientDataset(self.model, dataset)
-        self.dataset = dataset
 
     def explain(self, x, preds=None, targets=None):
         assert not ((targets is None) and (self.loss is not None))

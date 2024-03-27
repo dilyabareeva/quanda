@@ -13,15 +13,15 @@ class FeatureKernelExplainer(Explainer):
         model: torch.nn.Module,
         dataset: torch.data.utils.Dataset,
         device: Union[str, torch.device],
-        file: str,
+        file_path: str,
         normalize: bool = True,
     ):
         super().__init__(model, dataset, device)
         # self.sanity_check = sanity_check
-        if file is not None:
-            if not os.path.isfile(file) and not os.path.isdir(file):
-                file = None
-        feature_ds = FeatureDataset(self.model, dataset, device, file)
+        if file_path is not None:
+            if not os.path.isfile(file_path) and not os.path.isdir(file_path):
+                file_path = None
+        feature_ds = FeatureDataset(self.model, dataset, device, file_path)
         self.coefficients = None  # the coefficients for each training datapoint x class
         self.learned_weights = None
         self.normalize = normalize
