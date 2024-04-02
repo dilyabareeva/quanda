@@ -1,0 +1,29 @@
+# .github/workflows/tests.yml
+name: Tests
+on: push
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup python 3.10
+        uses: actions/setup-python@v4
+        with:
+          cache: 'pip'
+          python-version: "3.11"
+
+      - name: Install tox
+        run: pip install tox
+
+      - name: Setup test environment
+        run: tox run -e coverage --notest
+
+      - name: Measure coverage.
+        run: tox run -e coverage
+
+      - name: Upload
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml, coverage.xml
