@@ -5,18 +5,6 @@ from torch.utils.data.dataset import Dataset
 
 
 class MarkDataset(Dataset):
-    def get_mark_sample_ids(self):
-        indices = []
-        cls = self.cls_to_mark
-        prob = self.mark_prob
-        for i in range(len(self.dataset)):
-            x, y = self.dataset[i]
-            if y == cls:
-                rnd = torch.rand(1)
-                if rnd < prob:
-                    indices.append(i)
-        return torch.tensor(indices, dtype=torch.int)
-
     def __init__(self, dataset, p=0.3, cls_to_mark=2, only_train=False):
         super().__init__()
         self.class_labels = dataset.class_labels
@@ -53,6 +41,18 @@ class MarkDataset(Dataset):
                 return self.mark_image(x), y
             else:
                 return x, y
+
+    def get_mark_sample_ids(self):
+        indices = []
+        cls = self.cls_to_mark
+        prob = self.mark_prob
+        for i in range(len(self.dataset)):
+            x, y = self.dataset[i]
+            if y == cls:
+                rnd = torch.rand(1)
+                if rnd < prob:
+                    indices.append(i)
+        return torch.tensor(indices, dtype=torch.int)
 
     def mark_image_contour(self, x):
         x = self.dataset.inverse_transform(x)

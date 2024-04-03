@@ -5,5 +5,4 @@ SHELL = /bin/bash
 .PHONY: style
 style:
 	black .
-	flake8
 	python3 -m isort .

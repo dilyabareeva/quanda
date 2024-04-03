@@ -21,9 +21,3 @@ jobs:
 
       - name: Measure coverage.
         run: tox run -e coverage
-
-      - name: Upload
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.xml, coverage.xml

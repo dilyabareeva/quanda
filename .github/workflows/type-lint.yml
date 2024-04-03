@@ -1,4 +1,4 @@
-# .github/workflows/tests.yml
+# .github/workflows/type-lint.yml
 name: Type-lint
 on: push
 jobs:
@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup python 3.10
+      - name: Setup python 3.11
         uses: actions/setup-python@v4
         with:
           cache: 'pip'

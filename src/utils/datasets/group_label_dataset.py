@@ -4,15 +4,6 @@ from torch.utils.data.dataset import Dataset
 class GroupLabelDataset(Dataset):
     class_group_by2 = [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]]
 
-    @staticmethod
-    def check_class_groups(groups):
-        vals = [[] for _ in range(10)]
-        for g, group in enumerate(groups):
-            for i in group:
-                vals[i].append(g)
-        for v in vals:
-            assert len(v) == 1  # Check that this is the first time i is encountered
-
     def __init__(self, dataset, class_groups=None):
         self.dataset = dataset
         self.class_labels = [i for i in range(len(class_groups))]
@@ -33,3 +24,12 @@ class GroupLabelDataset(Dataset):
 
     def __len__(self):
         return len(self.dataset)
+
+    @staticmethod
+    def check_class_groups(groups):
+        vals = [[] for _ in range(10)]
+        for g, group in enumerate(groups):
+            for i in group:
+                vals[i].append(g)
+        for v in vals:
+            assert len(v) == 1  # Check that this is the first time i is encountered

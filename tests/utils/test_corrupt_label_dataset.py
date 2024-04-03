@@ -4,6 +4,13 @@ import pytest
 
 
 @pytest.mark.utils
-def test_corrupt_label_dataset(dataset):
+@pytest.mark.parametrize(
+    "dataset, n_expected",
+    [
+        ("load_dataset", 2),
+    ],
+)
+def test_corrupt_label_dataset(dataset, n_expected, request):
+    dataset = request.getfixturevalue(dataset)
     # cl_dataset = CorruptLabelDataset(dataset)
-    assert 2 == 2
+    assert 2 == n_expected

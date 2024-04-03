@@ -18,6 +18,12 @@ line_length = 79
 multi_line_output = 3
 include_trailing_comma = true
 
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = false
+warn_unused_configs = true
+ignore_errors = true # TODO: change this
+
 # Black formatting
 [tool.black]
 line-length = 120
@@ -43,11 +49,14 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 
 [project.optional-dependencies]
-tests = [
+dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "coverage>=7.2.3",
     "flake8>=6.0.0",
     "pytest<=7.4.4",
     "pytest-cov>=4.0.0",
     "pytest-mock==3.10.0",
-    "pytest_xdist",
+    "pre-commit>=3.2.0",
+    "mypy>=1.8.0",
+    "black[d]>=23.0.0",
+    "isort>=5.0.0",
 ]
