@@ -7,9 +7,6 @@ import torch
 
 
 class Metric(ABC):
-    name = "BaseMetricClass"
-
-    @abstractmethod
     def __init__(self, train: torch.utils.data.Dataset, test: torch.utils.data.Dataset):
         pass
 

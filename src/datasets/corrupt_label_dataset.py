@@ -5,12 +5,6 @@ from torch.utils.data.dataset import Dataset
 
 
 class CorruptLabelDataset(Dataset):
-    def corrupt_label(self, y):
-        ret = y
-        while ret == y:
-            ret = torch.randint(0, len(self.dataset.classes), (1,))
-        return ret
-
     def __init__(self, dataset, p=0.3):
         super().__init__()
         self.class_labels = dataset.class_labels
@@ -34,9 +28,6 @@ class CorruptLabelDataset(Dataset):
             self.corrupt_labels = torch.tensor(self.corrupt_labels)
             torch.save(self.corrupt_labels, f"datasets/{dataset.name}_corrupt_labels")
 
-    def __len__(self):
-        return len(self.dataset)
-
     def __getitem__(self, item):
         x, y_true = self.dataset[item]
         y = y_true
@@ -44,3 +35,12 @@ class CorruptLabelDataset(Dataset):
             if item in self.corrupt_samples:
                 y = int(self.corrupt_labels[torch.squeeze((self.corrupt_samples == item).nonzero())])
         return x, (y, y_true)
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def corrupt_label(self, y):
+        ret = y
+        while ret == y:
+            ret = torch.randint(0, len(self.dataset.classes), (1,))
+        return ret
