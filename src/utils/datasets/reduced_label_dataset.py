@@ -2,12 +2,11 @@ from torch.utils.data.dataset import Dataset
 
 
 class ReduceLabelDataset(Dataset):
-    def __init__(self, dataset, first=True):
+    def __init__(self, dataset, classes, class_groups, first=True):
         super().__init__()
         self.dataset = dataset
-        if hasattr(dataset, "class_groups"):
-            self.class_groups = dataset.class_groups
-        self.classes = dataset.classes
+        self.class_groups = class_groups
+        self.classes = classes
         self.first = first
 
     def __len__(self):

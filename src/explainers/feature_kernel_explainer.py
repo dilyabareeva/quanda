@@ -1,9 +1,8 @@
 import os
-from typing import List, Union
+from typing import Union
 
 import torch
 
-from datasets.activation_dataset import ActivationDataset
 from src.explainers.base import Explainer
 from utils.cache import ActivationsCache as AC
 

@@ -8,8 +8,8 @@ from captum.attr import LayerActivation
 from torch import Tensor
 from torch.utils.data import DataLoader
 
-from src.datasets.activation_dataset import ActivationDataset
 from utils.common import _get_module_from_name
+from utils.datasets.activation_dataset import ActivationDataset
 
 
 class Cache:
@@ -20,14 +20,37 @@ class Cache:
     def __init__(self):
         pass
 
-    def save(self, **kwargs) -> None:
+    @staticmethod
+    def save(**kwargs) -> None:
         raise NotImplementedError
 
-    def load(self, **kwargs) -> Any:
+    @staticmethod
+    def load(**kwargs) -> Any:
         raise NotImplementedError
 
-    def exists(self, **kwargs) -> bool:
+    @staticmethod
+    def exists(**kwargs) -> bool:
         raise NotImplementedError
+
+
+class IndicesCache(Cache):
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def save(path, file_id, indices) -> None:
+        file_path = os.path.join(path, file_id)
+        return torch.save(indices, file_path)
+
+    @staticmethod
+    def load(path, file_id) -> Tensor:
+        file_path = os.path.join(path, file_id)
+        return torch.load(file_path)
+
+    @staticmethod
+    def exists(path, file_id) -> bool:
+        file_path = os.path.join(path, file_id)
+        return os.path.isfile(file_path)
 
 
 class ActivationsCache(Cache):
