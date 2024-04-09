@@ -1,4 +1,3 @@
-import random
 from typing import Callable, List
 
 import torch

@@ -1,8 +1,5 @@
-import json
 from abc import ABC, abstractmethod
-from typing import Union
 
-import numpy as np
 import torch
 
 
@@ -15,16 +12,18 @@ class Metric(ABC):
         self,
         model: torch.nn.Module,
         model_id: str,
-        cache_dir: str,  # TODO: maybe cache is not the best notation? Used to save intermediary results that can be reused.
+        cache_dir: str,  # TODO: maybe cache is not the best notation?
         train_dataset: torch.utils.data.Dataset,
         test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,  # TODO: should it be a tensor or dataset? For large datasets, storing the whole thing in RAM might be difficult.
+        explanations: torch.utils.data.Dataset,
+        # TODO: should it be a tensor or dataset? For large datasets, storing the whole thing in RAM might be difficult.
         **kwargs,
     ):
         """
         Here include some general steps, incl.:
 
-        1) Universal assertions about the passed arguments, incl. checking that the length of train/test datset and explanations match.
+        1) Universal assertions about the passed arguments, incl. checking that the length of train/test datset and
+        explanations match.
         2) Call the _explain method.
         3) Format the output into a unified format for all metrics, possible using some arguments passed in kwargs.
 

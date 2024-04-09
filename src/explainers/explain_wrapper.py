@@ -13,7 +13,8 @@ def explain(
     **kwargs,
 ) -> torch.Tensor:
     """
-    Return influential examples for test_tensor retrieved from train_dataset  for each test example represented through a tensor.
+    Return influential examples for test_tensor retrieved from train_dataset  for each test example represented through
+    a tensor.
     :param model:
     :param model_id:
     :param cache_dir:
