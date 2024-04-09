@@ -34,6 +34,7 @@ class CorruptLabelDataset(Dataset):
             IC.save(path=cache_path, file_id=f"{dataset_id}_corrupt_labels", indices=self.corrupt_labels)
 
     def get_corrupt_sample_ids(self):
+        torch.manual_seed(27)
         corrupt = torch.rand(len(self.dataset))
         return torch.where(corrupt < self.p)[0]
 

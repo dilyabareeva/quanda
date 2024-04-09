@@ -45,10 +45,10 @@ class MarkDataset(Dataset):
             return x, y
 
     def get_mark_sample_ids(self):
-        cls_labels = [data[1] for data in self.dataset if data[1] in self.cls_to_mark]
-        n_marked = int(len(cls_labels) * self.mark_prob)
-        random.seed(27)  # TODO: check best practices for setting seed
-        indices = random.sample(cls_labels, n_marked)
+        in_cls = torch.tensor([data[1] in self.cls_to_mark for data in self.dataset])
+        torch.manual_seed(27)  # TODO: check best practices for setting seed
+        corrupt = torch.rand(len(self.dataset))
+        indices = torch.where((corrupt < self.mark_prob) & (in_cls))[0]
         return torch.tensor(indices, dtype=torch.int)
 
     def mark_image_contour(self, x):
