@@ -14,9 +14,11 @@ class Metric(ABC):
     def __call__(
         self,
         model: torch.nn.Module,
+        model_id: str,
+        cache_dir: str,  # TODO: maybe cache is not the best notation? Used to save intermediary results that can be reused.
         train_dataset: torch.utils.data.Dataset,
         test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,
+        explanations: torch.utils.data.Dataset,  # TODO: should it be a tensor or dataset? For large datasets, storing the whole thing in RAM might be difficult.
         **kwargs,
     ):
         """
@@ -27,6 +29,8 @@ class Metric(ABC):
         3) Format the output into a unified format for all metrics, possible using some arguments passed in kwargs.
 
         :param model:
+        :param model_id:
+        :param cache_dir:
         :param train_dataset:
         :param test_dataset:
         :param explanations:
