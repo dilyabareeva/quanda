@@ -7,27 +7,58 @@ import torch
 
 
 class Metric(ABC):
-    def __init__(self, train: torch.utils.data.Dataset, test: torch.utils.data.Dataset):
+    def __init__(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def __call__(self, *args, **kwargs):
-        pass
+    def __call__(
+        self,
+        model: torch.nn.Module,
+        train_dataset: torch.utils.data.Dataset,
+        test_dataset: torch.utils.data.Dataset,
+        explanations: torch.utils.data.Dataset,
+        **kwargs,
+    ):
+        """
+        Here include some general steps, incl.:
+
+        1) Universal assertions about the passed arguments, incl. checking that the length of train/test datset and explanations match.
+        2) Call the _explain method.
+        3) Format the output into a unified format for all metrics, possible using some arguments passed in kwargs.
+
+        :param model:
+        :param train_dataset:
+        :param test_dataset:
+        :param explanations:
+        :return:
+        """
+        raise NotImplementedError
 
     @abstractmethod
-    def get_result(self, dir: str):
-        pass
+    def _explain(
+        self,
+        model: torch.nn.Module,
+        train_dataset: torch.utils.data.Dataset,
+        test_dataset: torch.utils.data.Dataset,
+        explanations: torch.utils.data.Dataset,
+    ):
+        """
+        Used to implement metric-specific logic.
+        """
 
-    def write_result(self, result_dict: dict, dir: str, file_name: str) -> None:
-        with open(f"{dir}/{file_name}", "w", encoding="utf-8") as f:
-            json.dump(self.to_float(result_dict), f, ensure_ascii=False, indent=4)
-        print(result_dict)
+        raise NotImplementedError
 
     @staticmethod
-    def to_float(results: Union[dict, str, torch.Tensor]) -> Union[dict, str, torch.Tensor]:
-        if isinstance(results, dict):
-            return {key: Metric.to_float(r) for key, r in results.items()}
-        elif isinstance(results, str):
-            return results
-        else:
-            return np.array(results).astype(float).tolist()
+    @abstractmethod
+    def _format(
+        self,
+        model: torch.nn.Module,
+        train_dataset: torch.utils.data.Dataset,
+        test_dataset: torch.utils.data.Dataset,
+        explanations: torch.utils.data.Dataset,
+    ):
+        """
+        Format the output of the metric to a predefined format, maybe string?
+        """
+
+        raise NotImplementedError
