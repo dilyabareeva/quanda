@@ -16,8 +16,8 @@ class MarkDataset(Dataset):
         cache_path: str = "./datasets",
         p: float = 0.3,
         cls_to_mark: int = 2,
-        only_train: bool = False,
-        mark_fn: Optional[Union[Callable, str]]
+        mark_fn: Optional[Union[Callable, str]]=None,
+        only_train: bool = False
     ):
         super().__init__()
         self.dataset = dataset
@@ -31,7 +31,7 @@ class MarkDataset(Dataset):
             self.mark_image=mark_fn
         else:
             self.mark_image=self.mark_image_contour_and_square
-            
+
         if IC.exists(path=cache_path, file_id=f"{dataset_id}_mark_ids"):
             self.mark_indices = IC.load(path="./datasets", file_id=f"{dataset_id}_mark_ids")
         else:

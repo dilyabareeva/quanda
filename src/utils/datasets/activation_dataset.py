@@ -17,7 +17,7 @@ class ActivationDataset(Dataset):
     def __getitem__(self, idx: int) -> Union[Tensor, Tuple[Tensor, ...]]:
         assert idx < len(self.files), "Layer index is out of bounds!"
         fl = self.files[idx]
-        av = torch.load(fl)
+        av = torch.load(fl, map_location=self.device)
         return av
 
     def __len__(self) -> int:
