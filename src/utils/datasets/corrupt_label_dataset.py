@@ -24,8 +24,9 @@ class CorruptLabelDataset(Dataset):
         self.inverse_transform = inverse_transform
         self.p = p
 
-        if IC.exists(path=cache_path, file_id=f"{dataset_id}_corrupt_ids"):
+        if IC.exists(path=cache_path, file_id=f"{dataset_id}_corrupt_ids") and IC.exists(path=cache_path, file_id=f"{dataset_id}_corrupt_labels"):
             self.corrupt_indices = IC.load(path=cache_path, file_id=f"{dataset_id}_corrupt_ids")
+            self.corrupt_labels = IC.load(path=cache_path, file_id=f"{dataset_id}_corrupt_labels")
         else:
             self.corrupt_indices = self.get_corrupt_sample_ids()
             IC.save(path=cache_path, file_id=f"{dataset_id}_corrupt_ids", indices=self.corrupt_indices)
