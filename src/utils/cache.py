@@ -65,10 +65,10 @@ class ActivationsCache(Cache):
     def exists(
         path: str,
         layer: Optional[str] = None,
-        num_id: Optional[str] = None,
+        num_id: Optional[Union[str, int]] = None,
     ) -> bool:
         av_dir = os.path.join(path, layer)
-        av_filesearch = os.path.join(av_dir, "*.pt" if num_id is None else "%s.pt" % num_id)
+        av_filesearch = os.path.join(av_dir, "*.pt" if num_id is None else f"{num_id}.pt")
         return os.path.exists(av_dir) and len(glob.glob(av_filesearch)) > 0
 
     @staticmethod
@@ -77,7 +77,7 @@ class ActivationsCache(Cache):
         layers: List[str],
         act_tensors: List[Tensor],
         labels: Tensor,
-        num_id: str,
+        num_id: Union[str, int],
     ) -> None:
         if len(layers) != len(act_tensors):
             raise ValueError("The dimension of `layers` and `act_tensors` must match!")
@@ -85,7 +85,7 @@ class ActivationsCache(Cache):
         for i, layer in enumerate(layers):
             layer_dir = os.path.join(path, layer)
 
-            av_save_fl_path = os.path.join(layer_dir, "%s.pt" % num_id)
+            av_save_fl_path = os.path.join(layer_dir, f"{num_id}.pt")
 
             if not os.path.exists(layer_dir):
                 os.makedirs(layer_dir)
@@ -110,7 +110,7 @@ class ActivationsCache(Cache):
         path: str,
         layers: Union[str, List[str]],
         load_from_disk: bool = True,
-        num_id: Optional[str] = None,
+        num_id: Optional[Union[str, int]] = None,
     ) -> List[str]:
         unsaved_layers = []
 
@@ -139,7 +139,7 @@ class ActivationsCache(Cache):
         model: torch.nn.Module,
         layers: Union[str, List[str]],
         data: Tuple[Tensor, Tensor],
-        num_id: str,
+        num_id: Union[str, int],
         additional_forward_args: Any = None,
         load_from_disk: bool = True,
     ) -> None:
