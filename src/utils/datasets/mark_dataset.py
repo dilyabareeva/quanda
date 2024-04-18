@@ -1,4 +1,4 @@
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 import torch
 from torch.utils.data.dataset import Dataset
@@ -17,6 +17,7 @@ class MarkDataset(Dataset):
         p: float = 0.3,
         cls_to_mark: int = 2,
         only_train: bool = False,
+        mark_fn: Optional[Union[Callable, str]]
     ):
         super().__init__()
         self.dataset = dataset
@@ -26,7 +27,11 @@ class MarkDataset(Dataset):
         self.only_train = only_train
         self.cls_to_mark = cls_to_mark
         self.mark_prob = p
-
+        if mark_fn is not None:
+            self.mark_image=mark_fn
+        else:
+            self.mark_image=self.mark_image_contour_and_square
+            
         if IC.exists(path=cache_path, file_id=f"{dataset_id}_mark_ids"):
             self.mark_indices = IC.load(path="./datasets", file_id=f"{dataset_id}_mark_ids")
         else:
@@ -39,7 +44,8 @@ class MarkDataset(Dataset):
     def __getitem__(self, index):
         x, y = self.dataset[index]
         if index in self.mark_indices:
-            return self.mark_image(x), y
+            x=self.inverse_transform(x)
+            return self.dataset.transform(self.mark_image(x)), y
         else:
             return x, y
 
@@ -50,8 +56,8 @@ class MarkDataset(Dataset):
         indices = torch.where((corrupt < self.mark_prob) & (in_cls))[0]
         return torch.tensor(indices, dtype=torch.int)
 
-    def mark_image_contour(self, x):
-        x = self.inverse_transform(x)
+    @staticmethod
+    def mark_image_contour(x):
         # TODO: make controur, middle square and combined masks a constant somewhere else
         mask = torch.zeros_like(x[0])
         mask[:2, :] = 1.0
@@ -62,20 +68,20 @@ class MarkDataset(Dataset):
         if x.shape[0] > 1:
             x[1:] = torch.zeros_like(x[1:]) * mask + x[1:] * (1 - mask)
 
-        return self.dataset.transform(x.numpy().transpose(1, 2, 0))
+        return x.numpy().transpose(1, 2, 0)
 
-    def mark_image_middle_square(self, x):
-        x = self.inverse_transform(x)
+    @staticmethod
+    def mark_image_middle_square(x):
         mask = torch.zeros_like(x[0])
         mid = int(x.shape[-1] / 2)
         mask[(mid - 4) : (mid + 4), (mid - 4) : (mid + 4)] = 1.0
         x[0] = torch.ones_like(x[0]) * mask + x[0] * (1 - mask)
         if x.shape[0] > 1:
             x[1:] = torch.zeros_like(x[1:]) * mask + x[1:] * (1 - mask)
-        return self.dataset.transform(x.numpy().transpose(1, 2, 0))
+        return x.numpy().transpose(1, 2, 0)
 
-    def mark_image(self, x):
-        x = self.inverse_transform(x)
+    @staticmethod
+    def mark_image_contour_and_square(x):
         mask = torch.zeros_like(x[0])
         mid = int(x.shape[-1] / 2)
         mask[mid - 3 : mid + 3, mid - 3 : mid + 3] = 1.0
@@ -86,4 +92,4 @@ class MarkDataset(Dataset):
         x[0] = torch.ones_like(x[0]) * mask + x[0] * (1 - mask)
         if x.shape[0] > 1:
             x[1:] = torch.zeros_like(x[1:]) * mask + x[1:] * (1 - mask)
-        return self.dataset.transform(x.numpy().transpose(1, 2, 0))
+        return x.numpy().transpose(1, 2, 0)
