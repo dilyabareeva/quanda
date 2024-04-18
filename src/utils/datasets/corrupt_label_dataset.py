@@ -26,7 +26,8 @@ class CorruptLabelDataset(Dataset):
         assert hasattr(dataset, "device")
         self.device = dataset.device
 
-        if IC.exists(path=cache_path, file_id=f"{dataset_id}_corrupt_ids") and IC.exists(path=cache_path, file_id=f"{dataset_id}_corrupt_labels"):
+        if IC.exists(path=cache_path, file_id=f"{dataset_id}_corrupt_ids") and \
+            IC.exists(path=cache_path, file_id=f"{dataset_id}_corrupt_labels"):
             self.corrupt_indices = IC.load(path=cache_path, file_id=f"{dataset_id}_corrupt_ids")
             self.corrupt_labels = IC.load(path=cache_path, file_id=f"{dataset_id}_corrupt_labels", device=self.device)
         else:
