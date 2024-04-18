@@ -45,7 +45,7 @@ class IndicesCache(Cache):
     @staticmethod
     def load(path, file_id, device="cpu") -> Tensor:
         file_path = os.path.join(path, file_id)
-        return torch.load(file_path, map_location = device)
+        return torch.load(file_path, map_location=device)
 
     @staticmethod
     def exists(path, file_id) -> bool:
