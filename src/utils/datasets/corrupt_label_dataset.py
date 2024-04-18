@@ -23,13 +23,15 @@ class CorruptLabelDataset(Dataset):
         self.classes = classes
         self.inverse_transform = inverse_transform
         self.p = p
+        assert hasattr(dataset, "device")
+        self.device = dataset.device
 
         if IC.exists(path=cache_path, file_id=f"{dataset_id}_corrupt_ids") and IC.exists(path=cache_path, file_id=f"{dataset_id}_corrupt_labels"):
             self.corrupt_indices = IC.load(path=cache_path, file_id=f"{dataset_id}_corrupt_ids")
             self.corrupt_labels = IC.load(path=cache_path, file_id=f"{dataset_id}_corrupt_labels")
         else:
             self.corrupt_indices = self.get_corrupt_sample_ids()
-            IC.save(path=cache_path, file_id=f"{dataset_id}_corrupt_ids", indices=self.corrupt_indices)
+            IC.save(path=cache_path, file_id=f"{dataset_id}_corrupt_ids", indices=self.corrupt_indices, device=self.device)
 
             self.corrupt_labels = [self.corrupt_label(self.dataset[i][1]) for i in self.corrupt_indices]
             IC.save(path=cache_path, file_id=f"{dataset_id}_corrupt_labels", indices=self.corrupt_labels)
