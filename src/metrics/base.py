@@ -24,7 +24,7 @@ class Metric(ABC):
 
         1) Universal assertions about the passed arguments, incl. checking that the length of train/test datset and
         explanations match.
-        2) Call the _explain method.
+        2) Call the _evaluate method.
         3) Format the output into a unified format for all metrics, possible using some arguments passed in kwargs.
 
         :param model:
@@ -38,7 +38,7 @@ class Metric(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _explain(
+    def _evaluate(
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,

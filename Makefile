@@ -5,7 +5,7 @@ SHELL = /bin/bash
 .PHONY: style
 style:
 	black .
-	python3 -m isort .
+	python -m isort .
 	rm -f .coverage
 	rm -f .coverage.*
 	find . | grep -E "(__pycache__|\.pyc|\.pyo)" | xargs rm -rf

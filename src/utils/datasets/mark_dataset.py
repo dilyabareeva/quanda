@@ -17,7 +17,7 @@ class MarkDataset(Dataset):
         p: float = 0.3,
         cls_to_mark: int = 2,
         mark_fn: Optional[Union[Callable, str]] = None,
-        only_train: bool = False
+        only_train: bool = False,
     ):
         super().__init__()
         self.dataset = dataset
