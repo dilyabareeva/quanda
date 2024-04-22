@@ -1,65 +1,65 @@
-import os
+from typing import Callable, List, Optional, Union
 
 import torch
 from torch.utils.data.dataset import Dataset
 
+from utils.cache import IndicesCache as IC
+
 
 class MarkDataset(Dataset):
-    def __init__(self, dataset, p=0.3, cls_to_mark=2, only_train=False):
+    def __init__(
+        self,
+        dataset: torch.utils.data.Dataset,
+        dataset_id: str,
+        class_labels: List[int],
+        inverse_transform: Callable = lambda x: x,
+        cache_path: str = "./datasets",
+        p: float = 0.3,
+        cls_to_mark: int = 2,
+        mark_fn: Optional[Union[Callable, str]] = None,
+        only_train: bool = False,
+    ):
         super().__init__()
-        self.class_labels = dataset.class_labels
-        torch.manual_seed(420)  # THIS SHOULD NOT BE CHANGED BETWEEN TRAIN TIME AND TEST TIME
-        self.only_train = only_train
         self.dataset = dataset
-        self.inverse_transform = dataset.inverse_transform
+        self.dataset_id = dataset_id
+        self.inverse_transform = inverse_transform
+        self.class_labels = class_labels
+        self.only_train = only_train
         self.cls_to_mark = cls_to_mark
         self.mark_prob = p
-        if hasattr(dataset, "class_groups"):
-            self.class_groups = dataset.class_groups
-        self.classes = dataset.classes
-        if dataset.split == "train":
-            if os.path.isfile(f"datasets/{dataset.name}_mark_ids"):
-                self.mark_samples = torch.load(f"datasets/{dataset.name}_mark_ids")
-            else:
-                self.mark_samples = self.get_mark_sample_ids()
-                torch.save(self.mark_samples, f"datasets/{dataset.name}_mark_ids")
+        if mark_fn is not None:
+            self.mark_image = mark_fn
         else:
-            self.mark_samples = range(len(dataset))
+            self.mark_image = self.mark_image_contour_and_square
+
+        if IC.exists(path=cache_path, file_id=f"{dataset_id}_mark_ids"):
+            self.mark_indices = IC.load(path="./datasets", file_id=f"{dataset_id}_mark_ids")
+        else:
+            self.mark_indices = self.get_mark_sample_ids()
+            IC.save(path=cache_path, file_id=f"{dataset_id}_mark_ids")
 
     def __len__(self):
         return len(self.dataset)
 
-    def __getitem__(self, item):
-        x, y = self.dataset.__getitem__(item)
-        if not self.dataset.split == "train":
-            if self.only_train:
-                return x, y
-            else:
-                return self.mark_image(x), y
+    def __getitem__(self, index):
+        x, y = self.dataset[index]
+        if index in self.mark_indices:
+            x = self.inverse_transform(x)
+            return self.dataset.transform(self.mark_image(x)), y
         else:
-            if item in self.mark_samples:
-                return self.mark_image(x), y
-            else:
-                return x, y
+            return x, y
 
     def get_mark_sample_ids(self):
-        indices = []
-        cls = self.cls_to_mark
-        prob = self.mark_prob
-        for i in range(len(self.dataset)):
-            x, y = self.dataset[i]
-            if y == cls:
-                rnd = torch.rand(1)
-                if rnd < prob:
-                    indices.append(i)
+        in_cls = torch.tensor([data[1] in self.cls_to_mark for data in self.dataset])
+        torch.manual_seed(27)  # TODO: check best practices for setting seed
+        corrupt = torch.rand(len(self.dataset))
+        indices = torch.where((corrupt < self.mark_prob) & (in_cls))[0]
         return torch.tensor(indices, dtype=torch.int)
 
-    def mark_image_contour(self, x):
-        x = self.dataset.inverse_transform(x)
+    @staticmethod
+    def mark_image_contour(x):
+        # TODO: make controur, middle square and combined masks a constant somewhere else
         mask = torch.zeros_like(x[0])
-        # for j in range(int(x.shape[-1]/2)):
-        #    mask[2*(j):2*(j+1),2*(j):2*(j+1)]=1.
-        #    mask[2*j:2*(j+1),-2*(j+1):-2*(j)]=1.
         mask[:2, :] = 1.0
         mask[-2:, :] = 1.0
         mask[:, -2:] = 1.0
@@ -67,25 +67,21 @@ class MarkDataset(Dataset):
         x[0] = torch.ones_like(x[0]) * mask + x[0] * (1 - mask)
         if x.shape[0] > 1:
             x[1:] = torch.zeros_like(x[1:]) * mask + x[1:] * (1 - mask)
-        # plt.imshow(x.permute(1,2,0).squeeze())
-        # plt.show()
 
-        return self.dataset.transform(x.numpy().transpose(1, 2, 0))
+        return x.numpy().transpose(1, 2, 0)
 
-    def mark_image_middle_square(self, x):
-        x = self.dataset.inverse_transform(x)
+    @staticmethod
+    def mark_image_middle_square(x):
         mask = torch.zeros_like(x[0])
         mid = int(x.shape[-1] / 2)
         mask[(mid - 4) : (mid + 4), (mid - 4) : (mid + 4)] = 1.0
         x[0] = torch.ones_like(x[0]) * mask + x[0] * (1 - mask)
         if x.shape[0] > 1:
             x[1:] = torch.zeros_like(x[1:]) * mask + x[1:] * (1 - mask)
-        # plt.imshow(x.permute(1,2,0).squeeze())
-        # plt.show()
-        return self.dataset.transform(x.numpy().transpose(1, 2, 0))
+        return x.numpy().transpose(1, 2, 0)
 
-    def mark_image(self, x):
-        x = self.dataset.inverse_transform(x)
+    @staticmethod
+    def mark_image_contour_and_square(x):
         mask = torch.zeros_like(x[0])
         mid = int(x.shape[-1] / 2)
         mask[mid - 3 : mid + 3, mid - 3 : mid + 3] = 1.0
@@ -96,6 +92,4 @@ class MarkDataset(Dataset):
         x[0] = torch.ones_like(x[0]) * mask + x[0] * (1 - mask)
         if x.shape[0] > 1:
             x[1:] = torch.zeros_like(x[1:]) * mask + x[1:] * (1 - mask)
-        # plt.imshow(x.permute(1,2,0).squeeze())
-        # plt.show()
-        return self.dataset.transform(x.numpy().transpose(1, 2, 0))
+        return x.numpy().transpose(1, 2, 0)

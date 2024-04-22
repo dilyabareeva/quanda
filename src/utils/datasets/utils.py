@@ -1,14 +1,12 @@
 from torchvision.datasets import CIFAR10, MNIST, FashionMNIST
 
-from src.utils.datasets.corrupt_label_dataset import CorruptLabelDataset
-from src.utils.datasets.group_label_dataset import GroupLabelDataset
-from src.utils.datasets.mark_dataset import MarkDataset
-from src.utils.datasets.reduced_label_dataset import ReduceLabelDataset
+from utils.datasets.corrupt_label_dataset import CorruptLabelDataset
+from utils.datasets.group_label_dataset import GroupLabelDataset
+from utils.datasets.mark_dataset import MarkDataset
+from utils.datasets.reduced_label_dataset import ReduceLabelDataset
 
 
 def load_datasets(dataset_name, dataset_type, **kwparams):
-    ds = None
-    evalds = None
     ds_dict = {"MNIST": MNIST, "CIFAR": CIFAR10, "FashionMNIST": FashionMNIST}
     if "only_train" not in kwparams.keys():
         only_train = False

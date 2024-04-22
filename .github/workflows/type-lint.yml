@@ -2,7 +2,7 @@
 name: Type-lint
 on: push
 jobs:
-  tests:
+  type-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

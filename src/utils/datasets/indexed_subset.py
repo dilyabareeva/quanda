@@ -1,15 +1,12 @@
+import torch
 from torch.utils.data.dataset import Dataset
 
 
-class RestrictedDataset(Dataset):
-    def __init__(self, dataset, indices, return_indices=False):
+class IndexedSubset(Dataset):
+    def __init__(self, dataset: torch.utils.data.Dataset, indices, return_indices=False):
         self.dataset = dataset
         self.indices = indices
         self.return_indices = return_indices
-        if hasattr(dataset, "name"):
-            self.name = dataset.name
-        else:
-            self.name = dataset.dataset.name
 
     def __len__(self):
         return len(self.indices)
