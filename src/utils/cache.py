@@ -52,6 +52,12 @@ class IndicesCache(Cache):
         file_path = os.path.join(path, file_id)
         return os.path.isfile(file_path)
 
+class ExplanationsCache(Caches):
+    @staticmethod
+    def save(path, file_id, explanations, indices) -> None:
+        file_path = os.path.join(path, file_id)
+        return torch.save(indices, file_path)
+
 
 class ActivationsCache(Cache):
     """
