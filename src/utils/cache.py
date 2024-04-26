@@ -52,7 +52,7 @@ class IndicesCache(Cache):
         file_path = os.path.join(path, file_id)
         return os.path.isfile(file_path)
 
-class ExplanationsCache(Caches):
+class ExplanationsCache(Cache):
     @staticmethod
     def save(path, file_id, explanations, indices) -> None:
         file_path = os.path.join(path, file_id)
