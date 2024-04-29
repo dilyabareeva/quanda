@@ -4,6 +4,18 @@ from utils.cache import IndicesCache
 from typing import Callable, List, Optional, Union, Tuple
 
 class Explanations:
+    def __init__(self, explanations:torch.Tensor, explanation_targets=torch.Tensor):
+        # Allow construction from existing tensors?
+        self.cache=False
+        assert len(explanation_targets.shape)==1, f"Expected 1 dimensional explanation targets, got {len(explanation_targets.shape)}"
+        assert len(explanations.shape)==2, f"Expected 2 dimensional explanations, got {len(explanations.shape)}"
+        self.train_size=explanations.shape[-1]
+        self.test_size=explanations.shape[0]
+        self.explanation_targets=explanation_targets
+        self.cache_path=None
+        self.cache_file_count=0
+        self.index_count=self.test_size
+
     def __init__(self, train_size: int, test_size: int, cache:Optional[bool]=False, cache_batch_size:Optional[int]=32, cache_path:Optional[str]=None):
         assert not cache or (cache_batch_size is not None and cache_path is not None), "Either set cache=False or set positive integer cache_batch_size and a cache_path while constructing an Explanations object."
         self.train_size=train_size
@@ -18,19 +30,7 @@ class Explanations:
         self.index_count=0
         self.explanations=torch.tensor(shape=(0,train_size))
     
-    def __init__(self, explanations:torch.Tensor, explanation_targets=torch.Tensor):
-        # Allow construction from existing tensors?
-        self.cache=False
-        assert len(explanation_targets.shape)==1, f"Expected 1 dimensional explanation targets, got {len(explanation_targets.shape)}"
-        assert len(explanations.shape)==2, f"Expected 2 dimensional explanations, got {len(explanations.shape)}"
-        self.train_size=explanations.shape[-1]
-        self.test_size=explanations.shape[0]
-        self.explanation_targets=explanation_targets
-        self.cache_path=None
-        self.cache_file_count=0
-        self.index_count=self.test_size
-
-    def add(self, explanation_targets: torch.Tensor, explanations: torch.Tensor):
+    def add(self, explanations: torch.Tensor, explanation_targets: torch.Tensor):
         assert len(explanations.shape)==3, f"Explanations object has {len(explanations.shape)} dimensions, should be 2 (test_datapoints x training_datapoints)"
         assert explanations.shape[-1]==len(self.train_dataset), f"Given explanations are {explanations.shape[-1]} dimensional. This should be the number of training datapoints {len(self.train_dataset)} "
         assert not self.index_count==self.test_size, f"Whole {self.test_size} datapoint explanations are already added. Increase test_size to add new explanaitons."
@@ -125,7 +125,3 @@ class Explanations:
     def compute_indices_from_slice(indices, cache_batch_size):
         id_dict={id:[] for id in range(indices)}
         pass
-
-exp = Explanations(10,20,True, cache_batch_size=2, cache_path=os.path.join(os.getcwd(),"temp_cache"))
-pass
-#rand=torch.Tensor()
