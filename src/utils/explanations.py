@@ -4,7 +4,6 @@ from typing import Callable, List, Optional, Tuple, Union
 
 import torch
 
-from utils.cache import ExplanationsCache as EC
 from utils.cache import TensorCache as TC
 
 
@@ -29,6 +28,60 @@ class Explanations:
 
     def __len__(self) -> int:
         raise NotImplementedError
+
+
+class TensorExplanations(Explanations):
+    def __init__(
+        self,
+        dataset_id: str,
+        top_k: Optional[int],
+        cache_path: str,
+        device: str = "cpu",
+    ):
+        """
+        Returns explanations from cache saved as tensors. __getitem__ and __setitem__ methods are used to access the
+        explanations on per-sample basis.
+
+        :param dataset_id:
+        :param top_k:
+        :param cache_dir:
+        """
+        super().__init__(dataset_id, top_k)
+        self.dataset_id = dataset_id
+        self.top_k = top_k
+        self.cache_path = cache_path
+        self.device = device
+
+        # assertions to check if cache_path exists and is a tensor file
+        assert os.path.exists(cache_path), f"Cache path {cache_path} does not exist."
+        assert os.path.isfile(cache_path), f"Cache path {cache_path} is not a file."
+        assert cache_path.endswith(".pt"), f"Cache path {cache_path} is not a tensor file."
+
+        self.xpl = torch.load(cache_path, map_location=self.device)
+
+        # assertions that the explanations length matches top_k, if top_k is provided
+        assert top_k is None or top_k == self.xpl.shape[1], "Top_k does not match the number of explanations."
+
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+
+        :param idx:
+        :return:
+        """
+        return self.xpl[idx]
+
+    def __setitem__(self, idx: int, val: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+
+        :param idx:
+        :param val:
+        :return:
+        """
+        self.xpl[idx] = val
+        return val
+
+    def __len__(self) -> int:
+        return self.xpl.shape[0]
 
 
 class BatchedCachedExplanations(Explanations):
@@ -213,5 +266,5 @@ class CachedExplanations:
 
     @staticmethod
     def compute_indices_from_slice(indices, cache_batch_size):
-        id_dECt = {id: [] for id in range(indices)}
+        id_dict = {id: [] for id in range(indices)}
         pass

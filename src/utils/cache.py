@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 
 from utils.common import _get_module_from_name
 from utils.datasets.activation_dataset import ActivationDataset
+from utils.explanations import BatchedCachedExplanations
 
 
 class Cache:
@@ -78,9 +79,9 @@ class ExplanationsCache(Cache):
     def load(
         path: str,
         device: str = "cpu",
-    ) -> BatchWiseCachedExplanations:
+    ) -> BatchedCachedExplanations:
         if os.path.exists(path):
-            xpl_dataset = BatchWiseCachedExplanations(path, device)
+            xpl_dataset = BatchedCachedExplanations(path, device)
             return xpl_dataset
         else:
             raise RuntimeError(f"Activation vectors were not found at path {path}")
