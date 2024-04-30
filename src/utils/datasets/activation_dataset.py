@@ -1,5 +1,6 @@
 import glob
 import os
+import warnings
 from typing import Tuple, Union
 
 import torch
@@ -8,9 +9,9 @@ from torch.utils.data.dataset import Dataset
 
 
 class ActivationDataset(Dataset):
-    def __init__(self, layer_dir, device="cpu"):
+    def __init__(self, cache_dir, device="cpu"):
         self.device = device
-        self.av_filesearch = os.path.join(layer_dir, "*.pt")
+        self.av_filesearch = os.path.join(cache_dir, "*.pt")
 
         self.files = glob.glob(self.av_filesearch)
 
@@ -25,6 +26,10 @@ class ActivationDataset(Dataset):
 
     @property
     def samples_and_labels(self) -> Tuple[Tensor, Tensor]:
+        warnings.warn(
+            "This method is only a good idea for small datasets and small architectures. Otherwise, this will consume "
+            "a lot of memory."
+        )
         samples = []
         labels = []
 

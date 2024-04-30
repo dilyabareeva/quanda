@@ -2,8 +2,8 @@ from torchvision.datasets import CIFAR10, MNIST, FashionMNIST
 
 from utils.datasets.corrupt_label_dataset import CorruptLabelDataset
 from utils.datasets.group_label_dataset import GroupLabelDataset
-from utils.datasets.mark_dataset import MarkDataset
 from utils.datasets.reduced_label_dataset import ReduceLabelDataset
+from utils.datasets.sample_transform_dataset import MarkDataset
 
 
 def load_datasets(dataset_name, dataset_type, **kwparams):
