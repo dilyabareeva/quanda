@@ -1,6 +1,12 @@
 from abc import ABC, abstractmethod
+from typing import Union
 
 import torch
+
+from src.utils.explanations import (
+    BatchedCachedExplanations,
+    TensorExplanations,
+)
 
 
 class Metric(ABC):
@@ -10,8 +16,7 @@ class Metric(ABC):
     @abstractmethod
     def __call__(
         self,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,
+        *args,
         **kwargs,
     ):
         """
@@ -30,30 +35,13 @@ class Metric(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _evaluate(
+    def _evaluate_instance(
         self,
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,
+        *args,
+        **kwargs,
     ):
         """
         Used to implement metric-specific logic.
-        """
-
-        raise NotImplementedError
-
-    @staticmethod
-    @abstractmethod
-    def _format(
-        self,
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,
-    ):
-        """
-        Format the output of the metric to a predefined format, maybe string?
         """
 
         raise NotImplementedError

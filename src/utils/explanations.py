@@ -59,10 +59,14 @@ class TensorExplanations(Explanations):
 
         self.xpl = torch.load(cache_path, map_location=self.device)
 
-        # assertions that the explanations length matches top_k, if top_k is provided
-        assert top_k is None or top_k == self.xpl.shape[1], "Top_k does not match the number of explanations."
+        # assert the number of explanation dimensions is 2 and insert extra dimension to emulate batching
+        assert len(self.xpl.shape) == 2, "Explanations object has more than 2 dimensions."
+        self.xpl = self.xpl.unsqueeze(1)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+        # assertions that the explanations length matches top_k, if top_k is provided
+        assert top_k is None or top_k == self.xpl.shape[2], "Top_k does not match the number of explanations."
+
+    def __getitem__(self, idx: Union[int, slice]) -> Tuple[torch.Tensor, torch.Tensor]:
         """
 
         :param idx:
@@ -70,13 +74,16 @@ class TensorExplanations(Explanations):
         """
         return self.xpl[idx]
 
-    def __setitem__(self, idx: int, val: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __setitem__(
+        self, idx: Union[int, slice], val: Tuple[torch.Tensor, torch.Tensor]
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
 
         :param idx:
         :param val:
         :return:
         """
+
         self.xpl[idx] = val
         return val
 
@@ -88,6 +95,7 @@ class BatchedCachedExplanations(Explanations):
     def __init__(
         self,
         dataset_id: str,
+        batch_size: int,
         top_k: Optional[int],
         cache_dir: str = "./batch_wise_cached_explanations",
         device: str = "cpu",
@@ -102,6 +110,7 @@ class BatchedCachedExplanations(Explanations):
         """
         super().__init__(dataset_id, top_k)
         self.dataset_id = dataset_id
+        self.batch_size = batch_size
         self.top_k = top_k
         self.cache_dir = cache_dir
         self.device = device
@@ -120,6 +129,12 @@ class BatchedCachedExplanations(Explanations):
         assert idx < len(self.files), "Layer index is out of bounds!"
         fl = self.files[idx]
         xpl = torch.load(fl, map_location=self.device)
+
+        # assert the value's batch size matches the batch size of the class instance
+        assert (
+            xpl.shape[0] == self.batch_size
+        ), "Batch size of the value does not match the batch size of the class instance."
+
         return xpl
 
     def __setitem__(self, idx: int, val: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -129,6 +144,11 @@ class BatchedCachedExplanations(Explanations):
         :param val:
         :return:
         """
+
+        # assert the value's batch size matches the batch size of the class instance
+        assert (
+            val.shape[0] == self.batch_size
+        ), "Batch size of the value does not match the batch size of the class instance."
 
         fl = self.files[idx]
         torch.save(val, fl)

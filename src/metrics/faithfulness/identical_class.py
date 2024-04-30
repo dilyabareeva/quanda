@@ -1,6 +1,12 @@
+from typing import Optional, Union
+
 import torch
 
 from metrics.base import Metric
+from src.utils.explanations import (
+    BatchedCachedExplanations,
+    TensorExplanations,
+)
 
 
 class IdenticalClass(Metric):
@@ -10,33 +16,42 @@ class IdenticalClass(Metric):
     def __call__(
         self,
         test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,
+        explanations: Union[TensorExplanations, BatchedCachedExplanations],
+        batch_size: int = 1,
         **kwargs,
     ):
-        raise NotImplementedError
+        """
 
-    def _evaluate(
+        :param test_dataset:
+        :param explanations:
+        :param kwargs:
+        :return:
+        """
+
+        # assert len(test_dataset) == len(explanations)
+        assert len(test_dataset) == batch_size * len(
+            explanations
+        ), f"Length of test dataset {len(test_dataset)} and explanations {len(explanations)} do not match"
+
+        scores = []
+        for i in range(0, len(test_dataset), batch_size):
+            score = self._evaluate_instance(
+                test_labels=[test_dataset[i][1] for i in range(i, i + batch_size)],
+                xpl=explanations[i],
+            )
+            scores.append(score)
+
+        return torch.tensor(scores).mean()
+
+    def _evaluate_instance(
         self,
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,
+        test_labels: torch.Tensor,
+        xpl: torch.Tensor,
     ):
         """
         Used to implement metric-specific logic.
         """
 
-        raise NotImplementedError
+        top_one_xpl_labels = xpl.argmax(axis=-1)
 
-    @staticmethod
-    def _format(
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,
-    ):
-        """
-        Used to implement metric-specific logic.
-        """
-
-        raise NotImplementedError
+        return (test_labels == top_one_xpl_labels) * 1.0
