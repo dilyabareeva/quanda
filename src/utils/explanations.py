@@ -10,20 +10,15 @@ from utils.cache import TensorCache as TC
 class Explanations:
     def __init__(
         self,
-        dataset_id: str,
-        top_k: int,
         *args,
         **kwargs,
     ):
-        self.dataset_id = dataset_id
-        self.top_k = top_k
+        pass
 
-    def __getitem__(self, index: Union[int, slice]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, index: Union[int, slice]) -> torch.Tensor:
         raise NotImplementedError
 
-    def __setitem__(
-        self, index: Union[int, slice], val: Tuple[torch.Tensor, torch.Tensor]
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __setitem__(self, index: Union[int, slice], val: Tuple[torch.Tensor, torch.Tensor]):
         raise NotImplementedError
 
     def __len__(self) -> int:
@@ -33,9 +28,8 @@ class Explanations:
 class TensorExplanations(Explanations):
     def __init__(
         self,
-        dataset_id: str,
-        top_k: Optional[int],
-        cache_path: str,
+        tensor: torch.Tensor,
+        top_k: Optional[int] = None,
         device: str = "cpu",
     ):
         """
@@ -46,18 +40,10 @@ class TensorExplanations(Explanations):
         :param top_k:
         :param cache_dir:
         """
-        super().__init__(dataset_id, top_k)
-        self.dataset_id = dataset_id
+        super().__init__()
         self.top_k = top_k
-        self.cache_path = cache_path
         self.device = device
-
-        # assertions to check if cache_path exists and is a tensor file
-        assert os.path.exists(cache_path), f"Cache path {cache_path} does not exist."
-        assert os.path.isfile(cache_path), f"Cache path {cache_path} is not a file."
-        assert cache_path.endswith(".pt"), f"Cache path {cache_path} is not a tensor file."
-
-        self.xpl = torch.load(cache_path, map_location=self.device)
+        self.xpl = tensor.to(self.device)
 
         # assert the number of explanation dimensions is 2 and insert extra dimension to emulate batching
         assert len(self.xpl.shape) == 2, "Explanations object has more than 2 dimensions."
@@ -66,7 +52,7 @@ class TensorExplanations(Explanations):
         # assertions that the explanations length matches top_k, if top_k is provided
         assert top_k is None or top_k == self.xpl.shape[2], "Top_k does not match the number of explanations."
 
-    def __getitem__(self, idx: Union[int, slice]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: Union[int, slice]) -> torch.Tensor:
         """
 
         :param idx:
@@ -74,9 +60,7 @@ class TensorExplanations(Explanations):
         """
         return self.xpl[idx]
 
-    def __setitem__(
-        self, idx: Union[int, slice], val: Tuple[torch.Tensor, torch.Tensor]
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __setitem__(self, idx: Union[int, slice], val: Tuple[torch.Tensor, torch.Tensor]):
         """
 
         :param idx:
@@ -94,10 +78,9 @@ class TensorExplanations(Explanations):
 class BatchedCachedExplanations(Explanations):
     def __init__(
         self,
-        dataset_id: str,
-        batch_size: int,
-        top_k: Optional[int],
         cache_dir: str = "./batch_wise_cached_explanations",
+        batch_size: Optional[int] = None,
+        top_k: Optional[int] = None,
         device: str = "cpu",
     ):
         """
@@ -108,8 +91,7 @@ class BatchedCachedExplanations(Explanations):
         :param top_k:
         :param cache_dir:
         """
-        super().__init__(dataset_id, top_k)
-        self.dataset_id = dataset_id
+        super().__init__()
         self.batch_size = batch_size
         self.top_k = top_k
         self.cache_dir = cache_dir
@@ -118,7 +100,7 @@ class BatchedCachedExplanations(Explanations):
         self.av_filesearch = os.path.join(cache_dir, "*.pt")
         self.files = glob.glob(self.av_filesearch)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> torch.Tensor:
         """
         TODO: add idx type slice
 
@@ -137,7 +119,7 @@ class BatchedCachedExplanations(Explanations):
 
         return xpl
 
-    def __setitem__(self, idx: int, val: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __setitem__(self, idx: int, val: Tuple[torch.Tensor, torch.Tensor]):
         """
 
         :param idx:

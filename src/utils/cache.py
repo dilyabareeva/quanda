@@ -81,7 +81,7 @@ class ExplanationsCache(Cache):
         device: str = "cpu",
     ) -> BatchedCachedExplanations:
         if os.path.exists(path):
-            xpl_dataset = BatchedCachedExplanations(path, device)
+            xpl_dataset = BatchedCachedExplanations(cache_dir=path, device=device)
             return xpl_dataset
         else:
             raise RuntimeError(f"Activation vectors were not found at path {path}")

@@ -3,20 +3,17 @@ from typing import Union
 
 import torch
 
-from src.utils.explanations import (
-    BatchedCachedExplanations,
-    TensorExplanations,
-)
+from utils.explanations import BatchedCachedExplanations, TensorExplanations
 
 
 class Metric(ABC):
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, device, *args, **kwargs):
+        self.device = device
 
     @abstractmethod
     def __call__(
         self,
-        *args,
+        explanations: Union[str, torch.Tensor, TensorExplanations, BatchedCachedExplanations],
         **kwargs,
     ):
         """
@@ -27,7 +24,6 @@ class Metric(ABC):
         3) Format the output into a unified format for all metrics, possible using some arguments passed in kwargs.
 
 
-        :param test_dataset:
         :param explanations:
         :param kwargs:
         :return:

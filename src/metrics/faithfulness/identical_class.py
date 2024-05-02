@@ -7,36 +7,43 @@ from src.utils.explanations import (
     BatchedCachedExplanations,
     TensorExplanations,
 )
+from utils.cache import ExplanationsCache as EC
 
 
 class IdenticalClass(Metric):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, device, *args, **kwargs):
+        super().__init__(device, *args, **kwargs)
 
     def __call__(
         self,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: Union[TensorExplanations, BatchedCachedExplanations],
+        test_predictions: torch.Tensor,
         batch_size: int = 1,
+        explanations: Union[str, torch.Tensor, TensorExplanations, BatchedCachedExplanations] = "./",
         **kwargs,
     ):
         """
 
-        :param test_dataset:
+        :param test_predictions:
         :param explanations:
+        :param batch_size:
         :param kwargs:
         :return:
         """
 
+        if isinstance(explanations, str):
+            explanations = EC.load(path=explanations, device=self.device)
+        elif isinstance(explanations, torch.Tensor):
+            explanations = TensorExplanations(explanations)
+
         # assert len(test_dataset) == len(explanations)
-        assert len(test_dataset) == batch_size * len(
+        assert test_predictions.shape[0] == batch_size * len(
             explanations
-        ), f"Length of test dataset {len(test_dataset)} and explanations {len(explanations)} do not match"
+        ), f"Length of test dataset {test_predictions.shape[0]} and explanations {len(explanations)} do not match"
 
         scores = []
-        for i in range(0, len(test_dataset), batch_size):
+        for i in range(test_predictions.shape[0] // batch_size + 1):
             score = self._evaluate_instance(
-                test_labels=[test_dataset[i][1] for i in range(i, i + batch_size)],
+                test_labels=test_predictions[i * batch_size : i * batch_size + 1],
                 xpl=explanations[i],
             )
             scores.append(score)
@@ -52,6 +59,6 @@ class IdenticalClass(Metric):
         Used to implement metric-specific logic.
         """
 
-        top_one_xpl_labels = xpl.argmax(axis=-1)
+        top_one_xpl_labels = xpl.argmax(dim=1)
 
         return (test_labels == top_one_xpl_labels) * 1.0
