@@ -38,7 +38,7 @@ class IdenticalClass(Metric):
         # assert len(test_dataset) == len(explanations)
         assert test_predictions.shape[0] == batch_size * len(
             explanations
-        ), f"Length of test dataset {test_predictions.shape[0]} and explanations {len(explanations)} do not match"
+        ), f"Length of test predictions {test_predictions.shape[0]} and explanations {len(explanations)} do not match"
 
         scores = []
         for i in range(test_predictions.shape[0] // batch_size + 1):
@@ -48,7 +48,7 @@ class IdenticalClass(Metric):
             )
             scores.append(score)
 
-        return torch.tensor(scores).mean()
+        return {"score": torch.tensor(scores).mean()}
 
     def _evaluate_instance(
         self,

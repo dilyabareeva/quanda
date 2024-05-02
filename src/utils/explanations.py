@@ -29,7 +29,6 @@ class TensorExplanations(Explanations):
     def __init__(
         self,
         tensor: torch.Tensor,
-        top_k: Optional[int] = None,
         device: str = "cpu",
     ):
         """
@@ -41,16 +40,12 @@ class TensorExplanations(Explanations):
         :param cache_dir:
         """
         super().__init__()
-        self.top_k = top_k
         self.device = device
         self.xpl = tensor.to(self.device)
 
         # assert the number of explanation dimensions is 2 and insert extra dimension to emulate batching
         assert len(self.xpl.shape) == 2, "Explanations object has more than 2 dimensions."
         self.xpl = self.xpl.unsqueeze(1)
-
-        # assertions that the explanations length matches top_k, if top_k is provided
-        assert top_k is None or top_k == self.xpl.shape[2], "Top_k does not match the number of explanations."
 
     def __getitem__(self, idx: Union[int, slice]) -> torch.Tensor:
         """
@@ -80,7 +75,6 @@ class BatchedCachedExplanations(Explanations):
         self,
         cache_dir: str = "./batch_wise_cached_explanations",
         batch_size: Optional[int] = None,
-        top_k: Optional[int] = None,
         device: str = "cpu",
     ):
         """
@@ -93,7 +87,6 @@ class BatchedCachedExplanations(Explanations):
         """
         super().__init__()
         self.batch_size = batch_size
-        self.top_k = top_k
         self.cache_dir = cache_dir
         self.device = device
 
