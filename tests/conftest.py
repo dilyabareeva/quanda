@@ -58,6 +58,4 @@ def load_mnist_test_samples_1():
 
 @pytest.fixture()
 def load_mnist_explanations_1():
-    rankings = torch.load(f"tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_ranking.pt")
-    tda = torch.load(f"tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt")
-    return rankings, tda
+    return torch.load(f"tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt")

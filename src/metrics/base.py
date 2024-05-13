@@ -13,7 +13,7 @@ class Metric(ABC):
     @abstractmethod
     def __call__(
         self,
-        explanations: Union[str, torch.Tensor, TensorExplanations, BatchedCachedExplanations],
+        *args,
         **kwargs,
     ):
         """
