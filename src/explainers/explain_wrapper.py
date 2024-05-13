@@ -33,7 +33,7 @@ def explain(
 
         sim_influence = SimilarityInfluence(
             module=model,
-            layers=[layer],
+            layers=layer,
             influence_src_dataset=train_dataset,
             activation_dir=cache_dir,
             model_id=model_id,
