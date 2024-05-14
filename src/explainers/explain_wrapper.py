@@ -29,7 +29,6 @@ def explain(
         sim_metric = kwargs.get("similarity_metric", cosine_similarity)
         sim_direction = kwargs.get("similarity_direction", "max")
         batch_size = kwargs.get("batch_size", 1)
-        top_k = kwargs.get("top_k", test_tensor.shape[0])
 
         sim_influence = SimilarityInfluence(
             module=model,

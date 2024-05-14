@@ -1,9 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Union
-
-import torch
-
-from utils.explanations import BatchedCachedExplanations, TensorExplanations
 
 
 class Metric(ABC):

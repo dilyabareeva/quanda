@@ -5,6 +5,7 @@ SHELL = /bin/bash
 .PHONY: style
 style:
 	black .
+	flake8 .
 	python -m isort .
 	rm -f .coverage
 	rm -f .coverage.*

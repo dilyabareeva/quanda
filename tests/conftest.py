@@ -53,9 +53,9 @@ def load_mnist_dataset():
 
 @pytest.fixture()
 def load_mnist_test_samples_1():
-    return torch.load(f"tests/assets/mnist_test_suite_1/test_dataset.pt")
+    return torch.load("tests/assets/mnist_test_suite_1/test_dataset.pt")
 
 
 @pytest.fixture()
 def load_mnist_explanations_1():
-    return torch.load(f"tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt")
+    return torch.load("tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt")
