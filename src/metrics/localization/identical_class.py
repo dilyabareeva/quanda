@@ -45,7 +45,7 @@ class IdenticalClass(Metric):
                 test_dataset
             ), f"Number of explanations ({n_processed + explanations[i].shape[0]}) exceeds the number of test samples "
 
-            data = test_dataset[n_processed : n_processed + explanations[i].shape[0]][0]
+            data = test_dataset[n_processed : n_processed + explanations[i].shape[0]]
             n_processed += explanations[i].shape[0]
             if isinstance(data, tuple):
                 data = data[0]
