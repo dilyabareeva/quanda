@@ -1,6 +1,7 @@
 import torch
 from captum.influence import SimilarityInfluence
-from captum.influence._core.similarity_influence import cosine_similarity
+
+from utils.functions.similarities import cosine_similarity
 
 
 def explain(
