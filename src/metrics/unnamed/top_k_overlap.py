@@ -1,5 +1,4 @@
 import warnings
-from collections import Counter
 from typing import Optional, Union
 
 import torch
