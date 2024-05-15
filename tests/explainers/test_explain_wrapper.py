@@ -25,8 +25,8 @@ def test_explain(test_id, model, dataset, explanations, test_tensor, method, met
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
-    tda_exp = request.getfixturevalue(explanations)
-    tda = explain(
+    explanations_exp = request.getfixturevalue(explanations)
+    explanations = explain(
         model,
         test_id,
         os.path.join("./cache", "test_id"),
@@ -35,4 +35,4 @@ def test_explain(test_id, model, dataset, explanations, test_tensor, method, met
         method,
         **method_kwargs,
     )
-    assert torch.allclose(tda, tda_exp), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"

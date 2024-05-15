@@ -18,14 +18,14 @@ class IdenticalClass(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        test_dataset: torch.utils.data.Dataset,
+        test_labels: torch.Tensor,
         explanations: Union[str, torch.Tensor, TensorExplanations, BatchedCachedExplanations] = "./",
         batch_size: Optional[int] = 8,
         **kwargs,
     ):
         """
 
-        :param test_predictions:
+        :param test_labelsictions:
         :param explanations:
         :param saved_explanations_batch_size:
         :param kwargs:
@@ -41,20 +41,17 @@ class IdenticalClass(Metric):
         n_processed = 0
         for i in range(len(explanations)):
             assert n_processed + explanations[i].shape[0] <= len(
-                test_dataset
-            ), f"Number of explanations ({n_processed + explanations[i].shape[0]}) exceeds the number of test samples "
+                test_labels
+            ), f"Number of explanations ({n_processed + explanations[i].shape[0]}) exceeds the number of test labels."
 
-            data = test_dataset[n_processed : n_processed + explanations[i].shape[0]]
-            n_processed += explanations[i].shape[0]
-            if isinstance(data, tuple):
-                data = data[0]
             score = self._evaluate_instance(
                 model=model,
                 train_dataset=train_dataset,
-                x_batch=data,
+                test_labels=test_labels[n_processed : n_processed + explanations[i].shape[0]],
                 xpl=explanations[i],
             )
             scores.append(score)
+            n_processed += explanations[i].shape[0]
 
         return {"score": torch.cat(scores).mean()}
 
@@ -62,7 +59,7 @@ class IdenticalClass(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        x_batch: torch.Tensor,
+        test_labels: torch.Tensor,
         xpl: torch.Tensor,
     ):
         """
@@ -72,10 +69,7 @@ class IdenticalClass(Metric):
         top_one_xpl_indices = xpl.argmax(dim=1)
         top_one_xpl_samples = torch.stack([train_dataset[i][0] for i in top_one_xpl_indices])
 
-        test_output = model(x_batch.to(self.device))
-        test_pred = test_output.argmax(dim=1)
-
         top_one_xpl_output = model(top_one_xpl_samples.to(self.device))
         top_one_xpl_pred = top_one_xpl_output.argmax(dim=1)
 
-        return (test_pred == top_one_xpl_pred) * 1.0
+        return (test_labels == top_one_xpl_pred) * 1.0
