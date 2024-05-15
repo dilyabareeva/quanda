@@ -3,10 +3,11 @@ from typing import Callable, List, Optional, Union
 import torch
 from torch.utils.data.dataset import Dataset
 
-from utils.cache import IndicesCache as IC
+from utils.cache import TensorCache as IC
+from utils.transforms import mark_image_contour_and_square
 
 
-class MarkDataset(Dataset):
+class SampleTransformDataset(Dataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
@@ -30,7 +31,7 @@ class MarkDataset(Dataset):
         if mark_fn is not None:
             self.mark_image = mark_fn
         else:
-            self.mark_image = self.mark_image_contour_and_square
+            self.mark_image = mark_image_contour_and_square
 
         if IC.exists(path=cache_path, file_id=f"{dataset_id}_mark_ids"):
             self.mark_indices = IC.load(path="./datasets", file_id=f"{dataset_id}_mark_ids")
@@ -55,41 +56,3 @@ class MarkDataset(Dataset):
         corrupt = torch.rand(len(self.dataset))
         indices = torch.where((corrupt < self.mark_prob) & (in_cls))[0]
         return torch.tensor(indices, dtype=torch.int)
-
-    @staticmethod
-    def mark_image_contour(x):
-        # TODO: make controur, middle square and combined masks a constant somewhere else
-        mask = torch.zeros_like(x[0])
-        mask[:2, :] = 1.0
-        mask[-2:, :] = 1.0
-        mask[:, -2:] = 1.0
-        mask[:, :2] = 1.0
-        x[0] = torch.ones_like(x[0]) * mask + x[0] * (1 - mask)
-        if x.shape[0] > 1:
-            x[1:] = torch.zeros_like(x[1:]) * mask + x[1:] * (1 - mask)
-
-        return x.numpy().transpose(1, 2, 0)
-
-    @staticmethod
-    def mark_image_middle_square(x):
-        mask = torch.zeros_like(x[0])
-        mid = int(x.shape[-1] / 2)
-        mask[(mid - 4) : (mid + 4), (mid - 4) : (mid + 4)] = 1.0
-        x[0] = torch.ones_like(x[0]) * mask + x[0] * (1 - mask)
-        if x.shape[0] > 1:
-            x[1:] = torch.zeros_like(x[1:]) * mask + x[1:] * (1 - mask)
-        return x.numpy().transpose(1, 2, 0)
-
-    @staticmethod
-    def mark_image_contour_and_square(x):
-        mask = torch.zeros_like(x[0])
-        mid = int(x.shape[-1] / 2)
-        mask[mid - 3 : mid + 3, mid - 3 : mid + 3] = 1.0
-        mask[:2, :] = 1.0
-        mask[-2:, :] = 1.0
-        mask[:, -2:] = 1.0
-        mask[:, :2] = 1.0
-        x[0] = torch.ones_like(x[0]) * mask + x[0] * (1 - mask)
-        if x.shape[0] > 1:
-            x[1:] = torch.zeros_like(x[1:]) * mask + x[1:] * (1 - mask)
-        return x.numpy().transpose(1, 2, 0)
