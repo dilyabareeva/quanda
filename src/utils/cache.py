@@ -51,7 +51,7 @@ class IndicesCache(Cache):
     def exists(path, file_id) -> bool:
         file_path = os.path.join(path, file_id)
         return os.path.isfile(file_path)
-    
+
 
 class ActivationsCache(Cache):
     """
