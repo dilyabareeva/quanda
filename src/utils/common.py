@@ -4,9 +4,12 @@ from functools import reduce
 from typing import Any, Callable, Mapping
 =======
 from typing import Any
+<<<<<<< HEAD
 import torch
 
 >>>>>>> 2de78d5 (changes for flake8)
+=======
+>>>>>>> 1e37eae (first local pre-commit run)
 
 import torch
 
