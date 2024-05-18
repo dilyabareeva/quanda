@@ -1,8 +1,6 @@
 import functools
 from functools import reduce
 from typing import Any
-import torch
-
 
 import torch
 

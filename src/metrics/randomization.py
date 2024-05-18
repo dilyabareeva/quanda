@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 from metrics.base import Metric
->>>>>>> a3efef8 (changes for flake8)
 from types import Callable
 
 import torch
@@ -9,10 +6,7 @@ import torch
 from metrics.base import Metric
 from utils.explanations import Explanations
 
-<<<<<<< HEAD
 
-=======
->>>>>>> a3efef8 (changes for flake8)
 class RandomizationMetric(Metric):
     def __init__(self, seed=42, device: str = "cpu" if torch.cuda.is_available() else "cuda"):
         # we can move seed and device to __call__. Then we would need to set the seed per call of the metric function.
