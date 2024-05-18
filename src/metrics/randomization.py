@@ -1,7 +1,9 @@
-from metrics.base import Metric
 from types import Callable
-from utils.explanations import Explanations
+
 import torch
+
+from metrics.base import Metric
+from utils.explanations import Explanations
 
 
 class RandomizationMetric(Metric):

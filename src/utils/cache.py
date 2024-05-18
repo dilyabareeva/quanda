@@ -54,7 +54,6 @@ class TensorCache(Cache):
         return os.path.isfile(file_path)
 
 
-
 class ExplanationsCache(Cache):
     def __init__(self):
         super().__init__()
@@ -86,6 +85,7 @@ class ExplanationsCache(Cache):
             return xpl_dataset
         else:
             raise RuntimeError(f"Activation vectors were not found at path {path}")
+
 
 class ActivationsCache(Cache):
     """
