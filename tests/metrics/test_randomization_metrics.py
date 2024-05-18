@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from metrics.randomization import MPRTMetric
+from metrics.randomization.mprt import MPRTMetric
 
 
 @pytest.mark.parametrize(
