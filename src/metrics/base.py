@@ -1,67 +1,38 @@
 from abc import ABC, abstractmethod
 
-import torch
-
 
 class Metric(ABC):
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, device, *args, **kwargs):
+        self.device = device
 
     @abstractmethod
     def __call__(
         self,
-        model: torch.nn.Module,
-        model_id: str,
-        cache_dir: str,  # TODO: maybe cache is not the best notation?
-        train_dataset: torch.utils.data.Dataset,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,
-        # TODO: should it be a tensor or dataset? For large datasets, storing the whole thing in RAM might be difficult.
+        *args,
         **kwargs,
     ):
         """
-        Here include some general steps, incl.:
 
         1) Universal assertions about the passed arguments, incl. checking that the length of train/test datset and
         explanations match.
         2) Call the _evaluate method.
         3) Format the output into a unified format for all metrics, possible using some arguments passed in kwargs.
 
-        :param model:
-        :param model_id:
-        :param cache_dir:
-        :param train_dataset:
-        :param test_dataset:
+
         :param explanations:
+        :param kwargs:
         :return:
         """
         raise NotImplementedError
 
     @abstractmethod
-    def _evaluate(
+    def _evaluate_instance(
         self,
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,
+        *args,
+        **kwargs,
     ):
         """
         Used to implement metric-specific logic.
-        """
-
-        raise NotImplementedError
-
-    @staticmethod
-    @abstractmethod
-    def _format(
-        self,
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: torch.utils.data.Dataset,
-    ):
-        """
-        Format the output of the metric to a predefined format, maybe string?
         """
 
         raise NotImplementedError

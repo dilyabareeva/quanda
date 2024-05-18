@@ -1,6 +1,7 @@
 import torch
 from captum.influence import SimilarityInfluence
-from captum.influence._core.similarity_influence import cosine_similarity
+
+from utils.functions.similarities import cosine_similarity
 
 
 def explain(
@@ -29,11 +30,10 @@ def explain(
         sim_metric = kwargs.get("similarity_metric", cosine_similarity)
         sim_direction = kwargs.get("similarity_direction", "max")
         batch_size = kwargs.get("batch_size", 1)
-        top_k = kwargs.get("top_k", test_tensor.shape[0])
 
         sim_influence = SimilarityInfluence(
             module=model,
-            layers=[layer],
+            layers=layer,
             influence_src_dataset=train_dataset,
             activation_dir=cache_dir,
             model_id=model_id,
@@ -41,5 +41,7 @@ def explain(
             similarity_direction=sim_direction,
             batch_size=batch_size,
         )
+        topk_idx, topk_val = sim_influence.influence(test_tensor, len(train_dataset))[layer]
+        tda = torch.gather(topk_val, 1, topk_idx)
 
-        return sim_influence.influence(test_tensor, top_k)[layer]
+        return tda

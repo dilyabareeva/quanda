@@ -3,7 +3,7 @@ import random
 import torch
 from torch.utils.data.dataset import Dataset
 
-from utils.cache import IndicesCache as IC
+from utils.cache import TensorCache as IC
 
 
 class CorruptLabelDataset(Dataset):

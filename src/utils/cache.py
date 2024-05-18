@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 
 from utils.common import _get_module_from_name
 from utils.datasets.activation_dataset import ActivationDataset
+from utils.explanations import BatchedCachedExplanations
 
 
 class Cache:
@@ -33,25 +34,58 @@ class Cache:
         raise NotImplementedError
 
 
-class IndicesCache(Cache):
+class TensorCache(Cache):
     def __init__(self):
         super().__init__()
 
     @staticmethod
-    def save(path, file_id, indices) -> None:
+    def save(path: str, file_id: str, indices: Tensor) -> None:
         file_path = os.path.join(path, file_id)
         return torch.save(indices, file_path)
 
     @staticmethod
-    def load(path, file_id, device="cpu") -> Tensor:
+    def load(path: str, file_id: str, device: str = "cpu") -> Tensor:
         file_path = os.path.join(path, file_id)
         return torch.load(file_path, map_location=device)
 
     @staticmethod
-    def exists(path, file_id) -> bool:
+    def exists(path: str, file_id: str, num_id: int) -> bool:
         file_path = os.path.join(path, file_id)
         return os.path.isfile(file_path)
 
+
+
+class ExplanationsCache(Cache):
+    def __init__(self):
+        super().__init__()
+
+    @staticmethod
+    def exists(
+        path: str,
+        num_id: Optional[Union[str, int]] = None,
+    ) -> bool:
+        av_filesearch = os.path.join(path, "*.pt" if num_id is None else f"{num_id}.pt")
+        return os.path.exists(path) and len(glob.glob(av_filesearch)) > 0
+
+    @staticmethod
+    def save(
+        path: str,
+        exp_tensors: List[Tensor],
+        num_id: Union[str, int],
+    ) -> None:
+        av_save_fl_path = os.path.join(path, f"{num_id}.pt")
+        torch.save(exp_tensors, av_save_fl_path)
+
+    @staticmethod
+    def load(
+        path: str,
+        device: str = "cpu",
+    ) -> BatchedCachedExplanations:
+        if os.path.exists(path):
+            xpl_dataset = BatchedCachedExplanations(cache_dir=path, device=device)
+            return xpl_dataset
+        else:
+            raise RuntimeError(f"Activation vectors were not found at path {path}")
 
 class ActivationsCache(Cache):
     """
@@ -99,7 +133,7 @@ class ActivationsCache(Cache):
     ) -> ActivationDataset:
         layer_dir = os.path.join(path, layer)
 
-        if not os.path.exists(layer_dir):
+        if os.path.exists(layer_dir):
             av_dataset = ActivationDataset(layer_dir, device)
             return av_dataset
         else:
