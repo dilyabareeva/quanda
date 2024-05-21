@@ -1,4 +1,4 @@
-from types import Callable
+from typing import Callable
 
 import torch
 
