@@ -21,6 +21,7 @@ def parameter_randomization_test(model, request):
         assert torch.norm(param1.data - param2.data) > 1e3  # norm of the difference in parameters should be significant
 
 
+@pytest.mark.parametrize()
 def model_randomization_test():
     assert torch.__version__ == "2.0.0"
     gen = torch.Generator()
