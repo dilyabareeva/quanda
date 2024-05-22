@@ -4,7 +4,7 @@ import torch
 
 from metrics.base import Metric
 from utils.explanations import Explanations
-from utils.functions.correlations import explanation_spearman_rank_correlation
+from utils.functions.correlations import kendall_rank_corr, spearman_rank_corr
 
 
 class ModelRandomizationMetric(Metric):
@@ -21,7 +21,9 @@ class ModelRandomizationMetric(Metric):
         if isinstance(correlation_measure, str):
             assert correlation_measure in ["spearman"], f"Correlation measure {correlation_measure} is not implemented."
             if correlation_measure=="spearman":
-                correlation_measure=explanation_spearman_rank_correlation    
+                correlation_measure=spearman_rank_corr
+            elif correlation_measure=="kendall":
+                correlation_measure=kendall_rank_corr
         assert isinstance(Callable,correlation_measure) 
         self.correlation_measure=correlation_measure
 
