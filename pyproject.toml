@@ -10,8 +10,13 @@ dependencies = [
     "numpy>=1.19.5",
     "torch>=1.13.1",
     "captum>=0.6.0",
+<<<<<<< HEAD
     "torchmetrics>=1.4.0"
     "lighning>=1.4.0",
+=======
+    "lightning>=1.4.0",
+    "torchmetrics>=1.4.0"
+>>>>>>> 49e4d8b (add torchmetrics to pyproject.toml to attempt to pass tests)
 ]
 dynamic = ["version"]
 
