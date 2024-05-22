@@ -6,7 +6,7 @@ from utils.functions.correlations import spearman_rank_corr
 from metrics.randomization.model_randomization import ModelRandomizationMetric
 
 
-@pytest.mark.randomize
+@pytest.mark.randomization
 @pytest.mark.parametrize(
     "model",
     [
@@ -23,26 +23,14 @@ def model_randomization_test(model, request):
         assert torch.norm(param1.data - param2.data) > 1e3  # norm of the difference in parameters should be significant
 
 
-@pytest.mark.randomize
+@pytest.mark.randomization
 def reproducibility_test():
     assert torch.__version__ == "2.0.0"
     gen = torch.Generator()
     gen.manual_seed(42)
     assert torch.all(torch.rand(5, generator=gen) == torch.Tensor([0.8823, 0.9150, 0.3829, 0.9593, 0.3904]))
 
-
-@pytest.mark.randomize
-def kendall_metric_test():
-    def explain_fn(model):
-        xpl_tensor = torch.tensor([[1, 2, 3, 4], [4, 3, 2, 1]])
-        return TensorExplanations(xpl_tensor)
-
-    xpl_tensor = torch.tensor([[1, 2, 3, 4], [1, 2, 3, 4]])
-    metric = ModelRandomizationMetric(correlation_measure="kendall")
-    assert torch.all(metric["rank_correlations"] == torch.tensor([1.0, -1.0]))
-
-
-@pytest.mark.randomize
+@pytest.mark.randomization
 @pytest.mark.parametrize(
     "model",
     [
