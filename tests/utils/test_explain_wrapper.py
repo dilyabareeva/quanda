@@ -3,7 +3,11 @@ import os
 import pytest
 import torch
 
+<<<<<<< HEAD:tests/explainers/test_explain_wrapper.py
 from src.explainers.explain_wrapper import explain
+=======
+from utils.explain_wrapper import explain
+>>>>>>> 1eb46c6 (randomization metric changes + introducing new types):tests/utils/test_explain_wrapper.py
 
 
 @pytest.mark.explainers

@@ -1,6 +1,6 @@
 import functools
 from functools import reduce
-from typing import Any
+from typing import Any, Callable, Mapping
 
 import torch
 
