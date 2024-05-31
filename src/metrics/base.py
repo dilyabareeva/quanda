@@ -1,38 +1,56 @@
 from abc import ABC, abstractmethod
 
+import torch
+
 
 class Metric(ABC):
-    def __init__(self, device, *args, **kwargs):
+    def __init__(
+        self, model: torch.nn.Module, train_dataset: torch.utils.data.dataset, device: str = "cpu", *args, **kwargs
+    ):
+        self.model = model.to(device)
+        self.train_dataset = train_dataset
         self.device = device
 
     @abstractmethod
-    def __call__(
+    def update(
         self,
         *args,
         **kwargs,
     ):
         """
-
-        1) Universal assertions about the passed arguments, incl. checking that the length of train/test datset and
-        explanations match.
-        2) Call the _evaluate method.
-        3) Format the output into a unified format for all metrics, possible using some arguments passed in kwargs.
-
-
-        :param explanations:
-        :param kwargs:
-        :return:
+        Used to update the metric with new data.
         """
+
         raise NotImplementedError
 
     @abstractmethod
-    def _evaluate_instance(
-        self,
-        *args,
-        **kwargs,
-    ):
+    def compute(self, *args, **kwargs):
         """
-        Used to implement metric-specific logic.
+        Used to aggregate current results and return a metric score.
+        """
+
+        raise NotImplementedError
+
+    @abstractmethod
+    def reset(self, *args, **kwargs):
+        """
+        Used to reset the metric state.
+        """
+
+        raise NotImplementedError
+
+    @abstractmethod
+    def load_state_dict(self, state_dict: dict, *args, **kwargs):
+        """
+        Used to load the metric state.
+        """
+
+        raise NotImplementedError
+
+    @abstractmethod
+    def state_dict(self, *args, **kwargs):
+        """
+        Used to return the metric state.
         """
 
         raise NotImplementedError

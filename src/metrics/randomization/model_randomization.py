@@ -1,92 +1,102 @@
-from typing import Callable, Union
+import copy
+from typing import Callable, Optional, Union
 
 import torch
 
 from metrics.base import Metric
-from utils.explanations import Explanations
-from utils.functions.correlations import kendall_rank_corr, spearman_rank_corr
+from utils.common import _get_parent_module_from_name, make_func
+from utils.explain_wrapper import ExplainFunc
+from utils.functions.correlations import (
+    CorrelationFnLiterals,
+    correlation_functions,
+)
 
 
 class ModelRandomizationMetric(Metric):
+    """
+    Metric to evaluate the effect of randomizing a model. TBD
+    """
+
     def __init__(
         self,
-        correlation_measure: Union[Callable, str, None] = "spearman",
+        model: torch.nn.Module,
+        train_dataset: torch.utils.data.Dataset,
+        explain_fn: ExplainFunc,
+        explain_fn_kwargs: Optional[dict] = None,
+        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
+        model_id: str = "0",
+        cache_dir: str = "./cache",
         device: str = "cpu" if torch.cuda.is_available() else "cuda",
+        *args,
+        **kwargs,
     ):
+        super().__init__(
+            model=model,
+            train_dataset=train_dataset,
+            device=device,
+        )
+        self.model = model
+        self.train_dataset = train_dataset
+        self.explain_fn_kwargs = explain_fn_kwargs
+        self.seed = seed
+        self.model_id = model_id
+        self.cache_dir = cache_dir
+        self.device = device
+
         # we can move seed and device to __call__. Then we would need to set the seed per call of the metric function.
         # where does it make sense to do seeding?
         # for example, imagine the user doesn't bother giving a seed, so we use the default seed.
         # do we want the exact same random model to be attributed (keeping seed in the __call__ call)
         # or do we want genuinely random models for each call of the metric (keeping seed in the constructor)
         self.generator = torch.Generator(device=device)
-        if correlation_measure is None:
-            correlation_measure = "spearman"
-        if isinstance(correlation_measure, str):
-            assert correlation_measure in ["spearman"], f"Correlation measure {correlation_measure} is not implemented."
-            if correlation_measure == "spearman":
-                correlation_measure = spearman_rank_corr
-            elif correlation_measure == "kendall":
-                correlation_measure = kendall_rank_corr
-        assert isinstance(Callable, correlation_measure)
-        self.correlation_measure = correlation_measure
+        self.rand_model = self._randomize_model(model)
+        self.explain_fn = make_func(func=explain_fn, func_kwargs=explain_fn_kwargs, model=self.rand_model)
+        self.results = {"rank_correlations": []}
 
-    def __call__(
+        if isinstance(correlation_fn, str) and correlation_fn in correlation_functions:
+            self.correlation_measure = correlation_functions.get(correlation_fn)
+        elif callable(correlation_fn):
+            self.correlation_measure = correlation_fn
+        else:
+            raise ValueError(
+                f"Invalid correlation function: expected one of {list(correlation_functions.keys())} or"
+                f"a Callable, but got {self.correlation_measure}."
+            )
+
+    def update(
         self,
-        model: torch.nn.Module,
-        model_id: str,
-        cache_dir: str,
-        train_dataset: torch.utils.data.Dataset,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: Explanations,
-        explain_fn: Callable,
-        explain_fn_kwargs: dict,
+        test_data: torch.Tensor,
+        explanations: torch.Tensor,
     ):
-        # Allow for precomputed random explanations?
-        results = dict()
-        randomized_model = ModelRandomizationMetric._randomize_model(model, self.device, self.generator)
-        rand_explanations = explain_fn(model=randomized_model, **explain_fn_kwargs)
-        corrs = torch.empty(explanations[0].shape[-1])
-        for std_batch, rand_batch in zip(explanations, rand_explanations):
-            newcorrs = self.correlation_measure(std_batch.T, rand_batch.T)
-            corrs = torch.cat((corrs, newcorrs))
-        results["rank_correlations"] = corrs
-        results["score"] = corrs.mean()
-        return results
+        rand_explanations = self.explain_fn(
+            model=self.rand_model,
+            model_id=self.model_id,
+            cache_dir=self.cache_dir,
+            train_dataset=self.train_dataset,
+            test_tensor=test_data,
+        )
+        corrs = self.correlation_measure(explanations, rand_explanations)
+        self.results["rank_correlations"].append(corrs)
 
-    def _evaluate_instance(
+    def compute(
         self,
-        explanations: Explanations,
-        randomized_model: torch.nn.Module,
-        explain_fn: Callable,
-        explain_fn_kwargs: dict,
     ):
-        """
-        Used to implement metric-specific logic.
-        """
-        pass
+        return torch.cat(self.results["rank_correlations"]).mean()
 
-    @staticmethod
-    def _randomize_model(model: torch.nn.Module, generator: torch.Generator):
-        for name, param in list(model.named_parameters()):
-            random_parameter_tensor = torch.empty_like(param).normal_(generator=generator)
-            names = name.split(".")
-            param_obj = model
-            for n in names[: len(names) - 1]:
-                param_obj = param_obj.__getattr__(n)
-            assert isinstance(param_obj.__getattr__(names[-1]), torch.nn.Parameter)
-            param_obj.__setattr__(names[-1], torch.nn.Parameter(random_parameter_tensor))
-        return model
+    def reset(self):
+        self.results = {"rank_correlations": []}
 
-    @staticmethod
-    def _format(
-        self,
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        test_dataset: torch.utils.data.Dataset,
-        explanations: Explanations,
-    ):
-        # shouldn't we have a self.results to be able to do this? maybe just get results dict as format input?
-        # the metric summary should be a list of values for each test point and a mean score for most metrics
+    def state_dict(self):
+        return self.results
 
-        raise NotImplementedError
+    def load_state_dict(self, state_dict: dict):
+        self.results = state_dict
+
+    def _randomize_model(self, model: torch.nn.Module):
+        rand_model = copy.deepcopy(model)
+        for name, param in list(rand_model.named_parameters()):
+            random_param_tensor = torch.empty_like(param).normal_(generator=self.generator)
+            parent = _get_parent_module_from_name(rand_model, name)
+            parent.__setattr__(name.split(".")[-1], torch.nn.Parameter(random_param_tensor))
+        return rand_model

@@ -1,4 +1,16 @@
-from torchmetrics.functional.regression import kendall_rank_corrcoef, spearman_corrcoef
+from typing import Literal
+
+from torchmetrics.functional.regression import (
+    kendall_rank_corrcoef,
+    spearman_corrcoef,
+)
+
+CorrelationFnLiterals = Literal["kendall", "spearman"]
+
+correlation_functions = {
+    "kendall": kendall_rank_corrcoef,
+    "spearman": spearman_corrcoef,
+}
 
 
 # torchmetrics wants the independent realizations to be the final dimension

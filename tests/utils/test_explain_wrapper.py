@@ -3,7 +3,7 @@ import os
 import pytest
 import torch
 
-from explainers.explain_wrapper import explain
+from utils.explain_wrapper import explain
 
 
 @pytest.mark.explainers
