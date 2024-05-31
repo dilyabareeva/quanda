@@ -14,8 +14,7 @@ def test_top_k_overlap_metrics(test_id, model, dataset, top_k, batch_size, expla
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     explanations = request.getfixturevalue(explanations)
-    metric = TopKOverlap(device="cpu")
-    score = metric(model=model, train_dataset=dataset, top_k=top_k, explanations=explanations, batch_size=batch_size)[
-        "score"
-    ]
+    metric = TopKOverlap(model=model, train_dataset=dataset, top_k=top_k, device="cpu")
+    metric.update(explanations=explanations)
+    score = metric.compute()
     assert score == expected_score
