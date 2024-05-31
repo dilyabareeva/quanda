@@ -52,3 +52,5 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+/docs/_build/
+/docs/generated/
