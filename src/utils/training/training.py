@@ -1,19 +1,20 @@
-from typing import Optional
+from typing import Callable, Optional
 
+import numpy as np
 import torch
 
 
 def train_model(
     model: torch.nn.Module,
     train_loader: torch.utils.data.dataloader.DataLoader,
-    optimizer: torch.optim.Optimizer,
+    optimizer_fn: Callable,
     criterion: torch.nn.modules.loss._Loss,
-    device: str = "cpu",
     max_epochs: int = 100,
     val_loader: torch.utils.data.dataloader.DataLoader = None,
     early_stopping: bool = False,
     early_stopping_kwargs: Optional[dict] = {"patience": 10},
     verbose: bool = False,
+    device: str = "cpu",
     *args,
     **kwargs,
 ):
@@ -23,7 +24,7 @@ def train_model(
     Args:
         model: torch.nn.Module: Model to train.
         train_loader: torch.utils.data.dataloader.DataLoader: DataLoader for training data.
-        optimizer: torch.optim.Optimizer: Optimizer to use for training.
+        optimizer: a partial function that ONLY takes model parameters as inputs.
         criterion: torch.nn.modules.loss._Loss: Loss function to use for training.
         device: str: Device to use for training.
         max_epochs: int: Maximum number of epochs to train for.
@@ -39,6 +40,7 @@ def train_model(
         model: torch.nn.Module: Trained model.
     """
     model.to(device)
+    optimizer = optimizer_fn(model.parameters())
     if early_stopping:
         assert val_loader is not None, "Validation loader is required for early stopping."
         assert "metric" in early_stopping_kwargs, "Metric is required for early stopping."
@@ -46,7 +48,7 @@ def train_model(
         patience = early_stopping_kwargs["patience"]
 
     no_improvement = 0
-    best_metric = None
+    best_metric = np.Inf
 
     for epoch in range(max_epochs):
         model.train()
@@ -75,3 +77,5 @@ def train_model(
 
         if verbose:  # TODO: tqdm
             print(f"Epoch: {epoch}, Train Loss: {train_loss}")
+
+    return model
