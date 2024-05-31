@@ -25,6 +25,7 @@ class ModelRandomizationMetric(Metric):
         explain_fn_kwargs: Optional[dict] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
+        model_id: str = "0",
         cache_dir: str = "./cache",
         device: str = "cpu" if torch.cuda.is_available() else "cuda",
         *args,
@@ -39,6 +40,7 @@ class ModelRandomizationMetric(Metric):
         self.train_dataset = train_dataset
         self.explain_fn_kwargs = explain_fn_kwargs
         self.seed = seed
+        self.model_id = model_id
         self.cache_dir = cache_dir
         self.device = device
 
@@ -69,7 +71,7 @@ class ModelRandomizationMetric(Metric):
     ):
         rand_explanations = self.explain_fn(
             model=self.rand_model,
-            model_id="0",
+            model_id=self.model_id,
             cache_dir=self.cache_dir,
             train_dataset=self.train_dataset,
             test_tensor=test_data,
