@@ -10,7 +10,7 @@ dependencies = [
     "numpy>=1.19.5",
     "torch>=1.13.1",
     "captum>=0.6.0",
-    "lighning>=1.4.0",
+    "lightning>=1.4.0",
 ]
 dynamic = ["version"]
 
