@@ -15,7 +15,7 @@ class TopKOverlap(Metric):
     ):
         super().__init__(model, train_dataset, *args, **kwargs)
         self.top_k = top_k
-        self.all_top_k_examples = torch.empty(0,top_k)
+        self.all_top_k_examples = torch.empty(0, top_k)
 
     def update(
         self,
@@ -23,7 +23,7 @@ class TopKOverlap(Metric):
         **kwargs,
     ):
         top_k_indices = torch.topk(explanations, self.top_k).indices
-        self.all_top_k_examples=torch.concat((self.all_top_k_examples,top_k_indices), dim=0)
+        self.all_top_k_examples = torch.concat((self.all_top_k_examples, top_k_indices), dim=0)
 
     def compute(self, *args, **kwargs):
         return len(torch.unique(self.all_top_k_examples))
