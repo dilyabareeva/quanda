@@ -7,7 +7,7 @@ from src.metrics.unnamed.top_k_overlap import TopKOverlap
 @pytest.mark.parametrize(
     "test_id, model, dataset, top_k, batch_size, explanations, expected_score",
     [
-        ("mnist", "load_mnist_model", "load_mnist_dataset", 3, 8, "load_mnist_explanations_1", 10),
+        ("mnist", "load_mnist_model", "load_mnist_dataset", 3, 10, "load_mnist_explanations_1", 10),
     ],
 )
 def test_top_k_overlap_metrics(test_id, model, dataset, top_k, batch_size, explanations, expected_score, request):
