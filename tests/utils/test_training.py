@@ -3,7 +3,7 @@ import copy
 import pytest
 import torch
 
-from utils.training.training import train_model
+from src.utils.training.training import train_model
 
 
 @pytest.mark.utils
@@ -41,7 +41,13 @@ def test_train_model(
     criterion = request.getfixturevalue(criterion)
     old_model = copy.deepcopy(model)
     model = train_model(
-        model, dataloader, optimizer, criterion, max_epochs, val_loader, early_stopping, early_stopping_kwargs
+        model,
+        optimizer,
+        criterion,
+        dataloader,
+        dataloader,
+        max_epochs,
+        device="cpu",
     )
 
     for param1, param2 in zip(old_model.parameters(), model.parameters()):

@@ -3,7 +3,7 @@ from typing import Optional, Protocol
 import torch
 from captum.influence import SimilarityInfluence
 
-from utils.functions.similarities import cosine_similarity
+from src.utils.functions.similarities import cosine_similarity
 
 
 class ExplainFunc(Protocol):

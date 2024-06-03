@@ -2,8 +2,8 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 from torchvision.models import resnet18
 
-from explainers.base import Explainer
-from metrics.base import Metric
+from src.explainers.base import Explainer
+from src.metrics.base import Metric
 
 train_ds = MNIST(root="~/Documents/Code/Datasets", train=True)
 test_ds = MNIST(root="~/Documents/Code/Datasets", train=False)

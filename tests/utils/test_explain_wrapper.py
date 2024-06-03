@@ -3,7 +3,11 @@ import os
 import pytest
 import torch
 
+<<<<<<< HEAD:tests/utils/test_explain_wrapper.py
 from utils.explain_wrapper import explain
+=======
+from src.explainers.explain_wrapper import explain
+>>>>>>> 069458d (basic lightning set-up):tests/explainers/test_explain_wrapper.py
 
 
 @pytest.mark.explainers

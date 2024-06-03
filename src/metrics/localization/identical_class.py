@@ -1,6 +1,6 @@
 import torch
 
-from metrics.base import Metric
+from src.metrics.base import Metric
 
 
 class IdenticalClass(Metric):
