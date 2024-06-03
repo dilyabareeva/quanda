@@ -5,13 +5,6 @@ from torchmetrics.functional.regression import (
     spearman_corrcoef,
 )
 
-CorrelationFnLiterals = Literal["kendall", "spearman"]
-
-correlation_functions = {
-    "kendall": kendall_rank_corrcoef,
-    "spearman": spearman_corrcoef,
-}
-
 
 # torchmetrics wants the independent realizations to be the final dimension
 # we transpose inputs before passing so that it is straightforward to pass explanations
@@ -22,3 +15,11 @@ def kendall_rank_corr(tensor1, tensor2):
 
 def spearman_rank_corr(tensor1, tensor2):
     return spearman_corrcoef(tensor1.T, tensor2.T)
+
+
+CorrelationFnLiterals = Literal["kendall", "spearman"]
+
+correlation_functions = {
+    "kendall": kendall_rank_corr,
+    "spearman": spearman_rank_corr,
+}
