@@ -23,7 +23,7 @@ class TopKOverlap(Metric):
         **kwargs,
     ):
         top_k_indices = torch.topk(explanations, self.top_k).indices
-        self.all_top_k_examples += top_k_indices
+        self.all_top_k_examples.append(top_k_indices)
 
     def compute(self, *args, **kwargs):
         return len(set(self.all_top_k_examples))
