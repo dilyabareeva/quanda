@@ -4,7 +4,7 @@ from typing import Union
 import torch
 
 from src.explainers.base import Explainer
-from utils.cache import ActivationsCache as AC
+from src.utils.cache import ActivationsCache as AC
 
 
 class FeatureKernelExplainer(Explainer):

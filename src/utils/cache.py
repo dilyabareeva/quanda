@@ -8,9 +8,9 @@ from captum.attr import LayerActivation
 from torch import Tensor
 from torch.utils.data import DataLoader
 
-from utils.common import _get_module_from_name
-from utils.datasets.activation_dataset import ActivationDataset
-from utils.explanations import BatchedCachedExplanations
+from src.utils.common import _get_module_from_name
+from src.utils.datasets.activation_dataset import ActivationDataset
+from src.utils.explanations import BatchedCachedExplanations
 
 
 class Cache:

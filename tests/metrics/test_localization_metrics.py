@@ -1,6 +1,6 @@
 import pytest
 
-from metrics.localization.identical_class import IdenticalClass
+from src.metrics.localization.identical_class import IdenticalClass
 
 
 @pytest.mark.localization_metrics
@@ -25,7 +25,8 @@ def test_identical_class_metrics(
     test_labels = request.getfixturevalue(test_labels)
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
-    metric = IdenticalClass(device="cpu")
-    score = metric(model=model, train_dataset=dataset, test_labels=test_labels, explanations=tda)["score"]
+    metric = IdenticalClass(model=model, train_dataset=dataset, device="cpu")
+    metric.update(test_labels=test_labels, explanations=tda)
+    score = metric.compute()
     # TODO: introduce a more meaningfull test, where the score is not zero
     assert score == expected_score

@@ -3,8 +3,8 @@ from typing import Callable, List, Optional, Union
 import torch
 from torch.utils.data.dataset import Dataset
 
-from utils.cache import TensorCache as IC
-from utils.transforms import mark_image_contour_and_square
+from src.utils.cache import TensorCache as IC
+from src.utils.transforms import mark_image_contour_and_square
 
 
 class SampleTransformDataset(Dataset):
