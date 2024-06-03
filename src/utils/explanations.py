@@ -76,18 +76,6 @@ class TensorExplanations(Explanations):
     def __len__(self) -> int:
         return int(self.xpl.shape[0] // self.batch_size) + 1
 
-    def _setitem_single(
-        self, index: int, val: Tuple[torch.Tensor, Union[torch.Tensor, int]]
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        explanation, target = val
-        file_id = int(index / self.cache_batch_size)
-        leftover_indices = index - file_id * self.cache_batch_size
-        explanations = IndicesCache.load(self.cache_path, f"explanations_{file_id}")
-        targets = IndicesCache.load(self.cache_path, f"targets_{file_id}")
-        explanations[leftover_indices] = explanation
-        targets[leftover_indices] = target
-        IndicesCache.save(self.cache_path, f"explanations_{file_id}", explanations)
-        IndicesCache.save(self.cache_path, f"targets_{file_id}", targets)
 
 class BatchedCachedExplanations(Explanations):
     def __init__(
