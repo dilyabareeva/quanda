@@ -1,81 +1,66 @@
 from typing import Callable, Optional
 
-import numpy as np
 import torch
+from lightning import Trainer
+
+
+import lightning as L
+
+
+class BasicLightningModule(L.LightningModule):
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        optimizer_fn: Callable,
+        criterion: torch.nn.modules.loss._Loss,
+    ):
+        super().__init__()
+        self.model = model
+        self.optimizer_fn = optimizer_fn
+        self.criterion = criterion
+
+    def forward(self, inputs):
+        return self.model(inputs)
+
+    def training_step(self, batch, batch_idx):
+        inputs, target = batch
+        inputs, target = inputs.to(self.device), target.to(self.device)
+        output = self(inputs)
+        loss = self.criterion(output, target)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        inputs, target = batch
+        inputs, target = inputs.to(self.device), target.to(self.device)
+        output = self(inputs)
+        loss = self.criterion(output, target)
+        return loss
+
+    def configure_optimizers(self):
+        return self.optimizer_fn(self.model.parameters())
 
 
 def train_model(
     model: torch.nn.Module,
-    train_loader: torch.utils.data.dataloader.DataLoader,
     optimizer_fn: Callable,
     criterion: torch.nn.modules.loss._Loss,
+    train_loader: torch.utils.data.dataloader.DataLoader,
+    val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
     max_epochs: int = 100,
-    val_loader: torch.utils.data.dataloader.DataLoader = None,
-    early_stopping: bool = False,
-    early_stopping_kwargs: Optional[dict] = {"patience": 10},
-    verbose: bool = False,
+    lightning_module_kwargs: Optional[dict] = None,
+    trainer_kwargs: Optional[dict] = None,
     device: str = "cpu",
-    *args,
-    **kwargs,
 ):
     """
-    Function to train a model.
-
-    Args:
-        model: torch.nn.Module: Model to train.
-        train_loader: torch.utils.data.dataloader.DataLoader: DataLoader for training data.
-        optimizer: a partial function that ONLY takes model parameters as inputs.
-        criterion: torch.nn.modules.loss._Loss: Loss function to use for training.
-        device: str: Device to use for training.
-        max_epochs: int: Maximum number of epochs to train for.
-        val_loader: torch.utils.data.dataloader.DataLoader: DataLoader for validation data.
-        early_stopping: bool: Whether to use early stopping.
-        patience: int: Patience for early stopping.
-        metric: str: Metric to use for early stopping.
-        verbose: bool: Whether to print training information.
-        *args: Additional arguments.
-        **kwargs: Additional keyword arguments.
-
-    Returns:
-        model: torch.nn.Module: Trained model.
+    Function to train a model using PyTorch Lightning.
     """
-    model.to(device)
-    optimizer = optimizer_fn(model.parameters())
-    if early_stopping:
-        assert val_loader is not None, "Validation loader is required for early stopping."
-        assert "metric" in early_stopping_kwargs, "Metric is required for early stopping."
-        assert "patience" in early_stopping_kwargs, "Patience is required for early stopping."
-        patience = early_stopping_kwargs["patience"]
+    if lightning_module_kwargs is None:
+        lightning_module_kwargs = {}
+    if trainer_kwargs is None:
+        trainer_kwargs = {}
 
-    no_improvement = 0
-    best_metric = np.Inf
-
-    for epoch in range(max_epochs):
-        model.train()
-        train_loss = 0
-
-        for i, (x, y) in enumerate(train_loader):
-            x, y = x.to(device), y.to(device)
-            optimizer.zero_grad()
-            y_pred = model(x)
-            loss = criterion(y_pred, y)
-            loss.backward()
-            optimizer.step()
-
-            train_loss += loss.item()
-
-        if train_loss < best_metric:
-            best_metric = loss
-            no_improvement = 0
-        else:
-            no_improvement += 1
-
-        if early_stopping and no_improvement >= patience:
-            if verbose:
-                print(f"Early stopping at epoch {epoch}.")
-            break
-
-        if verbose:  # TODO: tqdm
-            print(f"Epoch: {epoch}, Train Loss: {train_loss}")
-
+    model = model.to(device)
+    lightning_module = BasicLightningModule(model, optimizer_fn, criterion, **lightning_module_kwargs)
+    trainer = Trainer(max_epochs=max_epochs, logger=False, **trainer_kwargs)
+    trainer.fit(lightning_module, train_loader, val_loader)
     return model

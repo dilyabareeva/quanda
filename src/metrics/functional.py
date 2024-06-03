@@ -2,6 +2,7 @@
 
 WORK IN PROGRESS!!!
 """
+
 import warnings
 from typing import Optional, Union
 
@@ -11,7 +12,7 @@ from src.utils.explanations import (
     BatchedCachedExplanations,
     TensorExplanations,
 )
-from utils.cache import ExplanationsCache as EC
+from src.utils.cache import ExplanationsCache as EC
 
 
 def function_example(

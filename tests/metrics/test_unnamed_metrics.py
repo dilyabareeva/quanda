@@ -1,6 +1,6 @@
 import pytest
 
-from metrics.unnamed.top_k_overlap import TopKOverlap
+from src.metrics.unnamed.top_k_overlap import TopKOverlap
 
 
 @pytest.mark.unnamed_metrics

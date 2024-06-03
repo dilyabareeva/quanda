@@ -1,6 +1,6 @@
 import pytest
 
-from metrics.localization.identical_class import IdenticalClass
+from src.metrics.localization.identical_class import IdenticalClass
 
 
 @pytest.mark.localization_metrics
