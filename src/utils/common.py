@@ -1,12 +1,6 @@
 import functools
 from functools import reduce
-<<<<<<< HEAD
 from typing import Any, Callable, Mapping
-=======
-from typing import Any
-import torch
-
->>>>>>> 2de78d5 (changes for flake8)
 
 import torch
 
