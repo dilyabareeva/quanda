@@ -29,7 +29,7 @@ class TopKOverlap(Metric):
         return len(torch.unique(self.all_top_k_examples))
 
     def reset(self, *args, **kwargs):
-        self.all_top_k_examples = []
+        self.all_top_k_examples = torch.empty(0, top_k)
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         self.all_top_k_examples = state_dict["all_top_k_examples"]
