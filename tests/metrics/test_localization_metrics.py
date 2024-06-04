@@ -26,7 +26,7 @@ def test_identical_class_metrics(
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
     metric = IdenticalClass(model=model, train_dataset=dataset, device="cpu")
-    metric.update(test_labels=test_labels, explanations=tda)
+    metric.update(test_labels=test_labels, explanations=tda, train_dataset=dataset)
     score = metric.compute()
     # TODO: introduce a more meaningfull test, where the score is not zero
     assert score == expected_score

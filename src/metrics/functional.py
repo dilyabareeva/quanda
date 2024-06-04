@@ -8,11 +8,11 @@ from typing import Optional, Union
 
 import torch
 
+from src.utils.cache import ExplanationsCache as EC
 from src.utils.explanations import (
     BatchedCachedExplanations,
     TensorExplanations,
 )
-from src.utils.cache import ExplanationsCache as EC
 
 
 def function_example(
