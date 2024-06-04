@@ -5,7 +5,7 @@ class GlobalizationFromSingleImageAttributor(Globalization):
     def __init__(self, training_dataset, model, attributor_fn, attributor_fn_kwargs):
         # why is it called attributor
         super().__init__(training_dataset=training_dataset)
-        self.attributor_fn = make_func(func=attributor_fn, func_kwargs=explain_fn_kwargs, model=self.model)
+        self.attributor_fn = make_func(func=attributor_fn, func_kwargs=attributor_fn_kwargs, model=self.model)
 
         self.model=model
     
