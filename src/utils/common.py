@@ -39,5 +39,5 @@ def get_self_influence_ranking(
     size = len(training_data)
     self_inf = torch.zeros((size,))
     for i, (x, y) in enumerate(training_data):
-        self_inf[i] = self_influence_fn(model, model_id, cache_dir, training_data, i)
+        self_inf[i] = self_influence_fn(model, model_id, cache_dir, training_data, i, **self_influence_fn_kwargs)
     return self_inf.argsort()
