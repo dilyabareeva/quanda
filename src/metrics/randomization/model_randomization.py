@@ -4,7 +4,7 @@ from typing import Callable, Optional, Union
 import torch
 
 from metrics.base import Metric
-from utils.common import _get_parent_module_from_name
+from utils.common import _get_parent_module_from_name, make_func
 from utils.explain_wrapper import ExplainFunc
 from utils.functions.correlations import (
     CorrelationFnLiterals,
@@ -50,8 +50,15 @@ class ModelRandomizationMetric(Metric):
         # do we want the exact same random model to be attributed (keeping seed in the __call__ call)
         # or do we want genuinely random models for each call of the metric (keeping seed in the constructor)
         self.generator = torch.Generator(device=device)
+        self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
-        self.explain_fn = explain_fn
+        self.explain_fn = make_func(
+            func=explain_fn,
+            func_kwargs=explain_fn_kwargs,
+            model_id=self.model_id,
+            cache_dir=self.cache_dir,
+            train_dataset=self.train_dataset,
+        )
 
         self.results = {"rank_correlations": []}
 
@@ -70,14 +77,7 @@ class ModelRandomizationMetric(Metric):
         test_data: torch.Tensor,
         explanations: torch.Tensor,
     ):
-        rand_explanations = self.explain_fn(
-            model=self.rand_model,
-            model_id=self.model_id,
-            cache_dir=self.cache_dir,
-            train_dataset=self.train_dataset,
-            test_tensor=test_data,
-            **self.explain_fn_kwargs,
-        )
+        rand_explanations = self.explain_fn(model=self.rand_model, test_tensor=test_data)
         corrs = self.correlation_measure(explanations, rand_explanations)
         self.results["rank_correlations"].append(corrs)
 
@@ -88,18 +88,25 @@ class ModelRandomizationMetric(Metric):
 
     def reset(self):
         self.results = {"rank_correlations": []}
+        self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(self.model)
 
     def state_dict(self):
-        state_dict = {}
-        state_dict.update(self.results)
-        state_dict["random_model_state_dict"] = self.model.state_dict()
+        state_dict = {
+            "results_dict": self.results,
+            "random_model_state_dict": self.model.state_dict(),
+            "seed": self.seed,
+            "generator_state": self.generator.get_state(),
+            "explain_fn": self.explain_fn,
+        }
         return state_dict
 
     def load_state_dict(self, state_dict: dict):
+        self.results = state_dict["results_dict"]
+        self.seed = state_dict["seed"]
+        self.explain_fn = state_dict["explain_fn"]
         self.rand_model.load_state_dict(state_dict["random_model_state_dict"])
-        state_dict.pop("random_model_state_dict", None)
-        self.results.update(state_dict)
+        self.generator.set_state(state_dict["generator_state"])
 
     def _randomize_model(self, model: torch.nn.Module):
         rand_model = copy.deepcopy(model)

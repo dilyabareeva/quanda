@@ -19,6 +19,6 @@ def make_func(func: Callable, func_kwargs: Mapping[str, ...] | None, **kwargs) -
         _func_kwargs = kwargs.copy()
         _func_kwargs.update(func_kwargs)
     else:
-        func_kwargs = kwargs
+        _func_kwargs = kwargs
 
-    return functools.partial(func, **func_kwargs)
+    return functools.partial(func, **_func_kwargs)
