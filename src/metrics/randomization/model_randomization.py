@@ -87,12 +87,18 @@ class ModelRandomizationMetric(Metric):
 
     def reset(self):
         self.results = {"rank_correlations": []}
+        self.rand_model = self._randomize_model(self.model)
 
     def state_dict(self):
-        return self.results
+        state_dict = {}
+        state_dict.update(self.results)
+        state_dict["random_model_state_dict"] = self.model.state_dict()
+        return state_dict
 
     def load_state_dict(self, state_dict: dict):
-        self.results = state_dict
+        self.rand_model.load_state_dict(state_dict["random_model_state_dict"])
+        state_dict.pop("random_model_state_dict", None)
+        self.results.update(state_dict)
 
     def _randomize_model(self, model: torch.nn.Module):
         rand_model = copy.deepcopy(model)
