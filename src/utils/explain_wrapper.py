@@ -16,7 +16,7 @@ class ExplainFunc(Protocol):
         test_tensor: torch.Tensor,
         method: str,
     ) -> torch.Tensor:
-        ...
+        pass
 
 
 def explain(
