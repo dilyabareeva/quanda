@@ -22,7 +22,14 @@ from src.metrics.localization.identical_class import (
     ],
 )
 def test_identical_class_metrics(
-    test_id, model, dataset, test_labels, batch_size, explanations, expected_score, request
+    test_id,
+    model,
+    dataset,
+    test_labels,
+    batch_size,
+    explanations,
+    expected_score,
+    request,
 ):
     model = request.getfixturevalue(model)
     test_labels = request.getfixturevalue(test_labels)
@@ -56,14 +63,27 @@ def test_identical_class_metrics(
     ],
 )
 def test_identical_subclass_metrics(
-    test_id, model, dataset, subclass_labels, test_labels, batch_size, explanations, expected_score, request
+    test_id,
+    model,
+    dataset,
+    subclass_labels,
+    test_labels,
+    batch_size,
+    explanations,
+    expected_score,
+    request,
 ):
     model = request.getfixturevalue(model)
     test_labels = request.getfixturevalue(test_labels)
     subclass_labels = request.getfixturevalue(subclass_labels)
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
-    metric = IdenticalSubclass(model=model, train_dataset=dataset, subclass_labels=subclass_labels, device="cpu")
-    metric.update(test_labels=test_labels, explanations=tda)
+    metric = IdenticalSubclass(
+        model=model,
+        train_dataset=dataset,
+        subclass_labels=subclass_labels,
+        device="cpu",
+    )
+    metric.update(test_subclasses=test_labels, explanations=tda)
     score = metric.compute()
     assert score == expected_score

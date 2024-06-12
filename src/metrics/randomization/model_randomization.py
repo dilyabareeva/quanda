@@ -51,7 +51,11 @@ class ModelRandomizationMetric(Metric):
         # or do we want genuinely random models for each call of the metric (keeping seed in the constructor)
         self.generator = torch.Generator(device=device)
         self.rand_model = self._randomize_model(model)
-        self.explain_fn = make_func(func=explain_fn, func_kwargs=explain_fn_kwargs, model=self.rand_model)
+        self.explain_fn = make_func(
+            func=explain_fn,
+            func_kwargs=explain_fn_kwargs,
+            model=self.rand_model,
+        )
         self.results = {"rank_correlations": []}
 
         if isinstance(correlation_fn, str) and correlation_fn in correlation_functions:

@@ -73,7 +73,14 @@ def load_grouped_mnist_dataset():
     )[:MINI_BATCH_SIZE]
     y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
     dataset = TensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
-    return GroupLabelDataset(dataset, n_classes=10, n_groups=2, class_to_group="random", seed=27, device="cpu")
+    return GroupLabelDataset(
+        dataset,
+        n_classes=10,
+        n_groups=2,
+        class_to_group="random",
+        seed=27,
+        device="cpu",
+    )
 
 
 @pytest.fixture()

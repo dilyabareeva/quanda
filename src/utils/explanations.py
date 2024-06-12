@@ -112,9 +112,7 @@ class BatchedCachedExplanations(Explanations):
         xpl = torch.load(fl, map_location=self.device)
 
         # assert the value's batch size matches the batch size of the class instance
-        assert (
-            xpl.shape[0] == self.batch_size
-        ), "Batch size of the value does not match the batch size of the class instance."
+        assert xpl.shape[0] == self.batch_size, "Batch size of the value does not match the batch size of the class instance."
 
         return xpl
 
@@ -127,9 +125,7 @@ class BatchedCachedExplanations(Explanations):
         """
 
         # assert the value's batch size matches the batch size of the class instance
-        assert (
-            val.shape[0] == self.batch_size
-        ), "Batch size of the value does not match the batch size of the class instance."
+        assert val.shape[0] == self.batch_size, "Batch size of the value does not match the batch size of the class instance."
 
         fl = self.files[idx]
         torch.save(val, fl)

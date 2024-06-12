@@ -39,7 +39,7 @@ class GroupLabelDataset:
 
     def __getitem__(self, index):
         x, y = self.dataset[index]
-        g = self.class_to_group[y]
+        g = self.class_to_group[y.item()]
         return x, g
 
     def get_subclass_label(self, index):

@@ -10,7 +10,11 @@ class GradientProductExplainer(Explainer):
     name = "GradientProductExplainer"
 
     def __init__(
-        self, model: torch.nn.Module, dataset: torch.utils.data.Dataset, device: Union[str, torch.device], loss=None
+        self,
+        model: torch.nn.Module,
+        dataset: torch.utils.data.Dataset,
+        device: Union[str, torch.device],
+        loss=None,
     ):
         super().__init__(model, dataset, device)
         self.number_of_params = 0

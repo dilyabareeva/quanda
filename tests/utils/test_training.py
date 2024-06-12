@@ -3,7 +3,7 @@ import copy
 import pytest
 import torch
 
-from src.utils.training.pl_trainer import EasyTrainer
+from utils.training.trainer import Trainer
 
 
 @pytest.mark.utils
@@ -42,7 +42,8 @@ def test_easy_trainer(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     old_model = copy.deepcopy(model)
-    model = EasyTrainer(
+    trainer = Trainer()
+    model = trainer.from_train_arguments(
         model=model,
         optimizer=optimizer,
         lr=lr,
