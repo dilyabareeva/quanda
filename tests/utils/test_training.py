@@ -3,18 +3,19 @@ import copy
 import pytest
 import torch
 
-from src.utils.training.training import train_model
+from src.utils.training.pl_trainer import EasyTrainer
 
 
 @pytest.mark.utils
 @pytest.mark.parametrize(
-    "test_id, init_model, dataloader, optimizer, criterion, max_epochs, val_loader, early_stopping, early_stopping_kwargs",
+    "test_id, init_model, dataloader, optimizer, lr, criterion, max_epochs, val_loader, early_stopping, early_stopping_kwargs",
     [
         (
             "mnist",
             "load_init_mnist_model",
             "load_mnist_dataloader",
             "torch_sgd_optimizer",
+            0.01,
             "torch_cross_entropy_loss_object",
             3,
             "load_mnist_dataloader",
@@ -23,11 +24,12 @@ from src.utils.training.training import train_model
         ),
     ],
 )
-def test_train_model(
+def test_easy_trainer(
     test_id,
     init_model,
     dataloader,
     optimizer,
+    lr,
     criterion,
     max_epochs,
     val_loader,
@@ -40,14 +42,15 @@ def test_train_model(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     old_model = copy.deepcopy(model)
-    model = train_model(
-        model,
-        optimizer,
-        criterion,
+    model = EasyTrainer(
+        model=model,
+        optimizer=optimizer,
+        lr=lr,
+        criterion=criterion,
+    ).fit(
         dataloader,
         dataloader,
-        max_epochs,
-        device="cpu",
+        trainer_kwargs={"max_epochs": max_epochs},
     )
 
     for param1, param2 in zip(old_model.parameters(), model.parameters()):

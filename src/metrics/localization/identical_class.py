@@ -15,11 +15,7 @@ class IdenticalClass(Metric):
         super().__init__(model, train_dataset, device, *args, **kwargs)
         self.scores = []
 
-    def update(
-        self,
-        test_labels: torch.Tensor,
-        explanations: torch.Tensor
-    ):
+    def update(self, test_labels: torch.Tensor, explanations: torch.Tensor):
         """
         Used to implement metric-specific logic.
         """

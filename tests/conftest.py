@@ -1,4 +1,3 @@
-import functools
 import pickle
 
 import numpy as np
@@ -94,4 +93,4 @@ def torch_cross_entropy_loss_object():
 
 @pytest.fixture()
 def torch_sgd_optimizer():
-    return functools.partial(torch.optim.SGD, lr=0.01, momentum=0.9)
+    return torch.optim.SGD
