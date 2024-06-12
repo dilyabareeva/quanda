@@ -1,32 +1,50 @@
-from torch.utils.data.dataset import Dataset
+import random
+from typing import Dict, Literal, Optional, Union
 
-CLASS_GROUP_BY = [[0, 1], [2, 3], [4, 5], [6, 7], [8, 9]]
+import torch
+from torch.utils.data import Dataset
+
+ClassToGroupLiterals = Literal["random"]
 
 
-class GroupLabelDataset(Dataset):
-    def __init__(self, dataset, class_groups=None):
+class GroupLabelDataset:
+    def __init__(
+        self,
+        dataset: Dataset,
+        n_classes: int = 10,
+        n_groups: int = 2,
+        class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
+        seed: Optional[int] = 27,
+        device: int = "cpu",
+    ):
         self.dataset = dataset
-        self.class_labels = [i for i in range(len(class_groups))]
-        self.inverse_transform = dataset.inverse_transform
-        if class_groups is None:
-            class_groups = CLASS_GROUP_BY
-        self.class_groups = class_groups
-        self.inverted_class_groups = self.invert_class_groups(class_groups)
+        self.n_classes = n_classes
+        self.classes = list(range(n_classes))
+        self.n_groups = n_groups
+        self.groups = list(range(n_groups))
+        self.generator = torch.Generator(device=device)
+        if class_to_group == "random":
+            # create a dictionary of class groups that assigns each class to a group
+            random.seed(seed)
+            self.class_to_group = {i: random.choice(self.groups) for i in range(n_classes)}
+        elif isinstance(class_to_group, dict):
+            self.validate_class_to_group(class_to_group)
+            self.class_to_group = class_to_group
+        else:
+            raise ValueError(f"Invalid class_to_group value: {class_to_group}")
+
+    def validate_class_to_group(self, class_to_group):
+        assert len(class_to_group) == self.n_classes
+        assert all([g in self.groups for g in self.class_to_group.values()])
 
     def __getitem__(self, index):
         x, y = self.dataset[index]
-        g = self.inverted_class_groups[y]
-        return x, (g, y)
+        g = self.class_to_group[y]
+        return x, g
+
+    def get_subclass_label(self, index):
+        _, y = self.dataset[index]
+        return y
 
     def __len__(self):
         return len(self.dataset)
-
-    @staticmethod
-    def invert_class_groups(groups):
-        inverted_class_groups = {}
-        for g, group in enumerate(groups):
-            intersection = inverted_class_groups.keys() & group
-            if len(intersection) > 0:
-                raise ValueError("Class indices %s are present in multiple groups." % (str(intersection)))
-            inverted_class_groups.update({cls: g for cls in group})
-        return inverted_class_groups
