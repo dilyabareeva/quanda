@@ -19,18 +19,6 @@ class ExplainFunc(Protocol):
         pass
 
 
-class SelfInfluenceFunction(Protocol):
-    def __call__(
-        self,
-        model: torch.nn.Module,
-        model_id: str,
-        cache_dir: Optional[str],
-        train_dataset: torch.utils.data.Dataset,
-        id: int,
-    ) -> torch.Tensor:
-        pass
-
-
 def explain(
     model: torch.nn.Module,
     model_id: str,
