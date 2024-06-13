@@ -26,8 +26,9 @@ def explain(
     model_id: str,
     cache_dir: str,
     method: str,
-    test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
+    test_tensor: torch.Tensor,
+    test_target: Optional[torch.Tensor] = None,
     train_ids: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs,
 ) -> torch.Tensor:
