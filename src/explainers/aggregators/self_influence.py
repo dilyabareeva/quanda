@@ -9,7 +9,7 @@ from utils.explain_wrapper import ExplainFunc
 def get_self_influence_ranking(
     model: torch.nn.Module,
     model_id: str,
-    cache_dir: Optional[str],
+    cache_dir: str,
     training_data: torch.utils.data.Dataset,
     explain_fn: ExplainFunc,
     explain_fn_kwargs: Optional[dict] = None,
