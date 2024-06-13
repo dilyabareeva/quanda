@@ -3,7 +3,6 @@ from warnings import warn
 
 import torch
 
-from utils.common import make_func
 from utils.explain_wrapper import ExplainFunc
 
 
@@ -19,7 +18,6 @@ def get_self_influence_ranking(
         warn("train_id is supplied to compute self-influences. Supplied indices will be ignored.")
     size = len(training_data)
     self_inf = torch.zeros((size,))
-    self_influence_fn = make_func
     for i, (x, y) in enumerate(training_data):
-        self_inf[i] = self_influence_fn(model, model_id, cache_dir, training_data, i, **explain_fn_kwargs)
+        self_inf[i] = explain_fn(model, model_id, cache_dir, training_data, i, **explain_fn_kwargs)
     return self_inf.argsort()
