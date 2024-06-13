@@ -29,3 +29,4 @@ def get_self_influence_ranking(
             train_ids=[i],
             **explain_fn_kwargs,
         )
+    return self_inf.argsort()
