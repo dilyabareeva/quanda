@@ -1,20 +1,10 @@
-from typing import Optional, Protocol
+from typing import Optional
+from warnings import warn
 
 import torch
 
 from utils.common import make_func
-
-
-class SelfInfluenceFunction(Protocol):
-    def __call__(
-        self,
-        model: torch.nn.Module,
-        model_id: str,
-        cache_dir: Optional[str],
-        train_dataset: torch.utils.data.Dataset,
-        id: int,
-    ) -> torch.Tensor:
-        pass
+from utils.explain_wrapper import ExplainFunc
 
 
 def get_self_influence_ranking(
@@ -22,12 +12,14 @@ def get_self_influence_ranking(
     model_id: str,
     cache_dir: Optional[str],
     training_data: torch.utils.data.Dataset,
-    self_influence_fn: SelfInfluenceFunction,
-    self_influence_fn_kwargs: Optional[dict] = None,
+    explain_fn: ExplainFunc,
+    explain_fn_kwargs: Optional[dict] = None,
 ) -> torch.Tensor:
+    if "train_ids" not in explain_fn_kwargs:
+        warn("train_id is supplied to compute self-influences. Supplied indices will be ignored.")
     size = len(training_data)
     self_inf = torch.zeros((size,))
     self_influence_fn = make_func
     for i, (x, y) in enumerate(training_data):
-        self_inf[i] = self_influence_fn(model, model_id, cache_dir, training_data, i, **self_influence_fn_kwargs)
+        self_inf[i] = self_influence_fn(model, model_id, cache_dir, training_data, i, **explain_fn_kwargs)
     return self_inf.argsort()

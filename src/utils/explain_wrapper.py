@@ -1,8 +1,9 @@
-from typing import Optional, Protocol
+from typing import List, Optional, Protocol, Union
 
 import torch
 from captum.influence import SimilarityInfluence
 
+from src.utils.datasets.indexed_subset import IndexedSubset
 from src.utils.functions.similarities import cosine_similarity
 
 
@@ -12,9 +13,10 @@ class ExplainFunc(Protocol):
         model: torch.nn.Module,
         model_id: str,
         cache_dir: Optional[str],
-        train_dataset: torch.utils.data.Dataset,
-        test_tensor: torch.Tensor,
         method: str,
+        test_tensor: torch.Tensor,
+        train_dataset: torch.utils.data.Dataset,
+        train_ids: Optional[Union[List[int], torch.Tensor]] = None,
     ) -> torch.Tensor:
         pass
 
@@ -23,9 +25,10 @@ def explain(
     model: torch.nn.Module,
     model_id: str,
     cache_dir: str,
-    train_dataset: torch.utils.data.Dataset,
-    test_tensor: torch.Tensor,
     method: str,
+    test_tensor: torch.Tensor,
+    train_dataset: torch.utils.data.Dataset,
+    train_ids: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs,
 ) -> torch.Tensor:
     """
@@ -40,6 +43,9 @@ def explain(
     :param kwargs:
     :return:
     """
+    if train_ids is not None:
+        train_dataset = IndexedSubset(dataset=train_dataset, indices=train_ids)
+
     if method == "SimilarityInfluence":
         layer = kwargs.get("layer", "features")
         sim_metric = kwargs.get("similarity_metric", cosine_similarity)
