@@ -1,3 +1,4 @@
+import functools
 import pickle
 
 import numpy as np
@@ -39,6 +40,12 @@ def load_mnist_model():
 
 
 @pytest.fixture()
+def load_init_mnist_model():
+    """Load a not trained LeNet classification model (architecture at quantus/helpers/models)."""
+    return LeNet()
+
+
+@pytest.fixture()
 def load_mnist_dataset():
     """Load a batch of MNIST digits: inputs and outputs to use for testing."""
     x_batch = (
@@ -47,8 +54,22 @@ def load_mnist_dataset():
         .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
     )[:MINI_BATCH_SIZE]
     y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
-    dataset = TensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).float())
+    dataset = TensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
     return dataset
+
+
+@pytest.fixture()
+def load_mnist_dataloader():
+    """Load a batch of MNIST digits: inputs and outputs to use for testing."""
+    x_batch = (
+        np.loadtxt("tests/assets/mnist_test_suite_1/mnist_x")
+        .astype(float)
+        .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
+    )[:MINI_BATCH_SIZE]
+    y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
+    dataset = TensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=MINI_BATCH_SIZE, shuffle=False)
+    return dataloader
 
 
 @pytest.fixture()
@@ -64,3 +85,13 @@ def load_mnist_test_labels_1():
 @pytest.fixture()
 def load_mnist_explanations_1():
     return torch.load("tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt")
+
+
+@pytest.fixture()
+def torch_cross_entropy_loss_object():
+    return torch.nn.CrossEntropyLoss()
+
+
+@pytest.fixture()
+def torch_sgd_optimizer():
+    return functools.partial(torch.optim.SGD, lr=0.01, momentum=0.9)

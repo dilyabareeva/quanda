@@ -1,7 +1,22 @@
+from typing import Optional, Protocol
+
 import torch
 from captum.influence import SimilarityInfluence
 
-from utils.functions.similarities import cosine_similarity
+from src.utils.functions.similarities import cosine_similarity
+
+
+class ExplainFunc(Protocol):
+    def __call__(
+        self,
+        model: torch.nn.Module,
+        model_id: str,
+        cache_dir: Optional[str],
+        train_dataset: torch.utils.data.Dataset,
+        test_tensor: torch.Tensor,
+        method: str,
+    ) -> torch.Tensor:
+        ...
 
 
 def explain(
