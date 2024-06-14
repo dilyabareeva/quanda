@@ -30,9 +30,9 @@ def test_explain(test_id, model, dataset, explanations, test_tensor, method, met
         model,
         test_id,
         os.path.join("./cache", "test_id"),
+        method,
         dataset,
         test_tensor,
-        method,
         **method_kwargs,
     )
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"

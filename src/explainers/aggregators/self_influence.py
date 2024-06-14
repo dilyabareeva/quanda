@@ -1,5 +1,4 @@
 from typing import Optional
-from warnings import warn
 
 import torch
 
@@ -14,8 +13,6 @@ def get_self_influence_ranking(
     explain_fn: ExplainFunc,
     explain_fn_kwargs: Optional[dict] = None,
 ) -> torch.Tensor:
-    if "train_ids" not in explain_fn_kwargs:
-        warn("train_id is supplied to compute self-influences. Supplied indices will be ignored.")
     size = len(training_data)
     self_inf = torch.zeros((size,))
 
