@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import torch
 
@@ -23,7 +23,7 @@ class Explainer(ABC):
         self.model.to(dev)
 
     @abstractmethod
-    def explain(self, test: torch.Tensor, **kwargs):
+    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor, None], **kwargs):
         raise NotImplementedError
 
     @abstractmethod
