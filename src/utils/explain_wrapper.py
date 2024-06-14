@@ -44,10 +44,9 @@ def explain(
     :param kwargs:
     :return:
     """
-    if train_ids is not None:
-        train_dataset = IndexedSubset(dataset=train_dataset, indices=train_ids)
-
     if method == "SimilarityInfluence":
+        if train_ids is not None:
+            train_dataset = IndexedSubset(dataset=train_dataset, indices=train_ids)
         layer = kwargs.get("layer", "features")
         sim_metric = kwargs.get("similarity_metric", cosine_similarity)
         sim_direction = kwargs.get("similarity_direction", "max")

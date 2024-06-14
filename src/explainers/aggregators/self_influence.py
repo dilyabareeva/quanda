@@ -18,10 +18,11 @@ def get_self_influence_ranking(
         warn("train_id is supplied to compute self-influences. Supplied indices will be ignored.")
     size = len(training_data)
     self_inf = torch.zeros((size,))
+
     for i, (x, y) in enumerate(training_data):
         self_inf[i] = explain_fn(
             model=model,
-            model_id=model_id,
+            model_id=f"{model_id}_id_{i}",
             cache_dir=cache_dir,
             test_tensor=x[None],
             test_label=y[None],

@@ -25,3 +25,23 @@ def cosine_similarity(test, train, replace_nan=0) -> Tensor:
 
     similarity = torch.mm(test, train)
     return similarity
+
+
+def dot_product_similarity(test, train, replace_nan=0) -> Tensor:
+    """
+    Compute cosine similarity between test and train activations.
+
+    :param test:
+    :param train:
+    :param replace_nan:
+    :return:
+    """
+    # TODO: I don't know why Captum return test activations as a list
+    if isinstance(test, list):
+        test = torch.cat(test)
+    assert torch.all(test == train)
+    test = test.view(test.shape[0], -1)
+    train = train.view(train.shape[0], -1)
+
+    similarity = torch.mm(test, train.T)
+    return similarity
