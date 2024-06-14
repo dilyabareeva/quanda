@@ -81,9 +81,7 @@ class ModelRandomizationMetric(Metric):
         corrs = self.correlation_measure(explanations, rand_explanations)
         self.results["rank_correlations"].append(corrs)
 
-    def compute(
-        self,
-    ):
+    def compute(self):
         return torch.cat(self.results["rank_correlations"]).mean()
 
     def reset(self):

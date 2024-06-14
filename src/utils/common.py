@@ -3,6 +3,8 @@ from functools import reduce
 from typing import Any, Callable, Mapping
 
 import torch
+import torch.utils
+import torch.utils.data
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
