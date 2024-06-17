@@ -1,3 +1,5 @@
+import os
+import shutil
 from collections import OrderedDict
 
 import pytest
@@ -29,10 +31,14 @@ def test_self_influence_ranking(test_id, explain_kwargs, request):
     self_influence_rank = get_self_influence_ranking(
         model=model,
         model_id="0",
-        cache_dir="temp_captum",
+        cache_dir="./test_cache",
         training_data=rand_dataset,
         explain_fn=explain,
         explain_fn_kwargs=explain_kwargs,
     )
+
+    # remove cache directory if it exists
+    if os.path.exists("./test_cache"):
+        shutil.rmtree("./test_cache")
 
     assert torch.allclose(self_influence_rank, torch.linalg.norm(X, dim=-1).argsort())
