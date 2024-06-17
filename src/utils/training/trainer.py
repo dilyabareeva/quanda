@@ -23,30 +23,37 @@ class BaseTrainer(metaclass=abc.ABCMeta):
 
 class Trainer(BaseTrainer):
     def __init__(self):
-        pass
+        self.model: Optional[torch.nn.Module] = None
+        self.module: Optional[L.LightningModule] = None
 
-    def from_train_arguments(
-        self,
+    @classmethod
+    def from_arguments(
+        cls,
         model: torch.nn.Module,
         optimizer: Callable,
         lr: float,
         criterion: torch.nn.modules.loss._Loss,
         optimizer_kwargs: Optional[dict] = None,
     ):
-        self.model = model
+        obj = cls.__new__(cls)
+        super(Trainer, obj).__init__()
+        obj.model = model
         if optimizer_kwargs is None:
             optimizer_kwargs = {}
-        self.module = BasicLightningModule(model, optimizer, lr, criterion, optimizer_kwargs)
-        return self
+        obj.module = BasicLightningModule(model, optimizer, lr, criterion, optimizer_kwargs)
+        return obj
 
+    @classmethod
     def from_lightning_module(
-        self,
+        cls,
         model: torch.nn.Module,
         pl_module: L.LightningModule,
     ):
-        self.model = model
-        self.module = pl_module
-        return self
+        obj = cls.__new__(cls)
+        super(Trainer, obj).__init__()
+        obj.model = model
+        obj.module = pl_module
+        return obj
 
     def fit(
         self,

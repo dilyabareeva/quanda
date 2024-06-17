@@ -50,8 +50,7 @@ def test_identical_subclass_metrics(
     test_labels = request.getfixturevalue(test_labels)
     dataset = request.getfixturevalue(dataset)
 
-    dst_eval = SubclassIdentification()
-    dst_eval.init_trainer_from_train_arguments(
+    dst_eval = SubclassIdentification(
         model=model,
         optimizer=optimizer,
         lr=lr,

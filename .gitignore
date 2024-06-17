@@ -53,3 +53,10 @@ coverage.xml
 .pytest_cache/
 cover/
 /scratch.py
+
+# Lightning
+lightning_logs/
+checkpoints/
+
+# data_attribution_evaluation
+cache/

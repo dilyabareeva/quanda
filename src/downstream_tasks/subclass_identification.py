@@ -1,6 +1,7 @@
 import os
 from typing import Callable, Dict, Optional, Union
 
+import lightning as L
 import torch
 
 from metrics.localization.identical_class import IdenticalClass
@@ -13,26 +14,27 @@ from utils.training.trainer import BaseTrainer, Trainer
 
 
 class SubclassIdentification:
-    def __init__(self, device: str = "cpu", *args, **kwargs):
-        self.device = device
-        self.trainer: Optional[BaseTrainer] = None
-
-    def init_trainer_from_lightning_module(self, pl_module):
-        trainer = Trainer()
-        trainer.from_lightning_module(pl_module)
-        self.trainer = trainer
-
-    def init_trainer_from_train_arguments(
+    def __init__(
         self,
         model: torch.nn.Module,
         optimizer: Callable,
         lr: float,
         criterion: torch.nn.modules.loss._Loss,
         optimizer_kwargs: Optional[dict] = None,
+        device: str = "cpu",
+        *args,
+        **kwargs,
     ):
-        trainer = Trainer()
-        trainer.from_train_arguments(model, optimizer, lr, criterion, optimizer_kwargs)
-        self.trainer = trainer
+        self.device = device
+        self.trainer: Optional[BaseTrainer] = Trainer.from_arguments(model, optimizer, lr, criterion, optimizer_kwargs)
+
+    @classmethod
+    def from_lightning_module(cls, model: torch.nn.Module, pl_module: L.LightningModule, device: str = "cpu", *args, **kwargs):
+        obj = cls.__new__(cls)
+        super(SubclassIdentification, obj).__init__()
+        obj.device = device
+        obj.trainer = Trainer.from_lightning_module(model, pl_module)
+        return obj
 
     def evaluate(
         self,
