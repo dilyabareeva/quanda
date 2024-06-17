@@ -5,7 +5,12 @@ import torch
 
 
 class Explainer(ABC):
-    def __init__(self, model: torch.nn.Module, dataset: torch.data.utils.Dataset, device: Union[str, torch.device]):
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        dataset: torch.data.utils.Dataset,
+        device: Union[str, torch.device],
+    ):
         self.model = model
         self.device = torch.device(device) if isinstance(device, str) else device
         self.images = dataset

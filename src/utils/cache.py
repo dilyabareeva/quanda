@@ -186,12 +186,8 @@ class ActivationsCache(Cache):
         )
         layer_modules = [_get_module_from_name(model, layer) for layer in unsaved_layers]
         if len(unsaved_layers) > 0:
-            layer_act = LayerActivation(
-                model, layer_modules
-            )  # TODO: replace LayerActivation with generic LayerAttibution
-            new_activations = layer_act.attribute.__wrapped__(  # type: ignore
-                layer_act, inputs, additional_forward_args
-            )
+            layer_act = LayerActivation(model, layer_modules)  # TODO: replace LayerActivation with generic LayerAttibution
+            new_activations = layer_act.attribute.__wrapped__(layer_act, inputs, additional_forward_args)  # type: ignore
             ActivationsCache.save(path, unsaved_layers, new_activations, labels, num_id)
 
     @staticmethod

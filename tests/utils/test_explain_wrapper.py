@@ -21,7 +21,16 @@ from src.utils.explain_wrapper import explain
         ),
     ],
 )
-def test_explain(test_id, model, dataset, explanations, test_tensor, method, method_kwargs, request):
+def test_explain(
+    test_id,
+    model,
+    dataset,
+    explanations,
+    test_tensor,
+    method,
+    method_kwargs,
+    request,
+):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
