@@ -12,10 +12,12 @@ class CaptumSimilarityExplainer(CaptumExplainerWrapper):
         model: torch.nn.Module,
         model_id: str,
         cache_dir: str,
-        train_dataset: torch.data.utils.Dataset,
+        train_dataset: torch.utils.data.Dataset,
         device: Union[str, torch.device],
+        layer: str,
         **explainer_init_kwargs,
     ):
+        self.layer = layer
         super().__init__(
             model=model,
             model_id=model_id,
@@ -23,8 +25,26 @@ class CaptumSimilarityExplainer(CaptumExplainerWrapper):
             train_dataset=train_dataset,
             device=device,
             explainer_cls=SimilarityInfluence,
+            layers=[layer],
             **explainer_init_kwargs,
         )
 
+    def initialize_captum(self, cls, **init_kwargs):
+        self.captum_explainer = cls(
+            module=self.model,
+            influence_src_dataset=self.train_dataset,
+            activation_dir=self.cache_dir,
+            model_id=self.model_id,
+            **init_kwargs,
+        )
+
+    def load_state_dict(self, path):
+        return
+
+    def reset(self):
+        return
+
     def explain(self, test: torch.Tensor) -> torch.Tensor:
-        return super().explain(test=test, targets=None)
+        topk_idx, topk_val = super().explain(test=test, targets=None, top_k=len(self.train_dataset))[self.layer]
+        tda = torch.gather(topk_val, 1, topk_idx)
+        return tda

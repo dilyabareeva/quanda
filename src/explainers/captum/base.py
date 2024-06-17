@@ -12,7 +12,7 @@ class CaptumExplainerWrapper(Explainer):
         model: torch.nn.Module,
         model_id: str,
         cache_dir: Optional[str],
-        train_dataset: torch.data.utils.Dataset,
+        train_dataset: torch.utils.data.Dataset,
         device: Union[str, torch.device],
         explainer_cls: DataInfluence,
         **explainer_init_kwargs,
@@ -26,7 +26,10 @@ class CaptumExplainerWrapper(Explainer):
                 "it must not be repeated in the explainer_init_kwargs"
             )
 
-        self.captum_explainer = explainer_cls(model=model, train_dataset=train_dataset, **explainer_init_kwargs)
+        self.initialize_captum(explainer_cls, **explainer_init_kwargs)
+
+    def initialize_captum(self, cls, **init_kwargs):
+        self.captum_explainer = cls(model=self.model, train_dataset=self.train_dataset, **init_kwargs)
 
     def explain(
         self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]], **explain_fn_kwargs
