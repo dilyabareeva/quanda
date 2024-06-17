@@ -39,7 +39,6 @@ def dot_product_similarity(test, train, replace_nan=0) -> Tensor:
     # TODO: I don't know why Captum return test activations as a list
     if isinstance(test, list):
         test = torch.cat(test)
-    assert torch.all(test == train)
     test = test.view(test.shape[0], -1)
     train = train.view(train.shape[0], -1)
 
