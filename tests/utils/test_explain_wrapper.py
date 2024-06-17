@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import pytest
 import torch
@@ -36,12 +37,15 @@ def test_explain(
     test_tensor = request.getfixturevalue(test_tensor)
     explanations_exp = request.getfixturevalue(explanations)
     explanations = explain(
-        model,
-        test_id,
-        os.path.join("./cache", "test_id"),
-        method,
-        dataset,
-        test_tensor,
+        model=model,
+        model_id=test_id,
+        cache_dir="./test_cache",
+        method=method,
+        train_dataset=dataset,
+        test_tensor=test_tensor,
         **method_kwargs,
     )
+    # remove cache directory if it exists
+    if os.path.exists("./test_cache"):
+        shutil.rmtree("./test_cache")
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"

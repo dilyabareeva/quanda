@@ -1,3 +1,6 @@
+import os
+import shutil
+
 import pytest
 import torch
 
@@ -41,12 +44,18 @@ def test_randomization_metric(
         train_dataset=dataset,
         explain_fn=explain,
         explain_fn_kwargs={**explain_kwargs, "layer": "fc_2"},
+        cache_dir="./test_cache",
         correlation_fn="spearman",
         seed=42,
         device="cpu",
     )
     metric.update(test_data, tda)
     out = metric.compute()
+
+    # remove cache directory if it exists
+    if os.path.exists("./test_cache"):
+        shutil.rmtree("./test_cache")
+
     assert (out.item() >= -1.0) and (out.item() <= 1.0), "Test failed."
     assert isinstance(out, torch.Tensor), "Output is not a tensor."
 

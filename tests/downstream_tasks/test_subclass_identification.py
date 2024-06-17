@@ -1,3 +1,6 @@
+import os
+import shutil
+
 import pytest
 
 from downstream_tasks.subclass_identification import SubclassIdentification
@@ -65,11 +68,15 @@ def test_identical_subclass_metrics(
         explain_fn=explain,
         explain_kwargs=explain_kwargs,
         trainer_kwargs={"max_epochs": max_epochs},
-        cache_dir="./cache",
+        cache_dir="./test_cache",
         model_id="default_model_id",
         run_id="default_subclass_identification",
         seed=seed,
         batch_size=batch_size,
         device="cpu",
     )
+
+    # remove cache directory if it exists
+    if os.path.exists("./test_cache"):
+        shutil.rmtree("./test_cache")
     assert score == expected_score

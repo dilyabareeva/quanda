@@ -33,14 +33,24 @@ class Trainer(BaseTrainer):
         optimizer: Callable,
         lr: float,
         criterion: torch.nn.modules.loss._Loss,
+        scheduler: Optional[Callable] = None,
         optimizer_kwargs: Optional[dict] = None,
+        scheduler_kwargs: Optional[dict] = None,
     ):
         obj = cls.__new__(cls)
         super(Trainer, obj).__init__()
         obj.model = model
         if optimizer_kwargs is None:
             optimizer_kwargs = {}
-        obj.module = BasicLightningModule(model, optimizer, lr, criterion, optimizer_kwargs)
+        obj.module = BasicLightningModule(
+            model=model,
+            optimizer=optimizer,
+            lr=lr,
+            criterion=criterion,
+            optimizer_kwargs=optimizer_kwargs,
+            scheduler=scheduler,
+            scheduler_kwargs=scheduler_kwargs,
+        )
         return obj
 
     @classmethod
