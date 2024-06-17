@@ -1,8 +1,10 @@
 import pytest
 import torch
 
-from metrics.randomization.model_randomization import ModelRandomizationMetric
-from utils.explain_wrapper import explain
+from src.metrics.randomization.model_randomization import (
+    ModelRandomizationMetric,
+)
+from src.utils.explain_wrapper import explain
 
 
 @pytest.mark.randomization_metrics
@@ -15,13 +17,13 @@ from utils.explain_wrapper import explain
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             8,
-            {"method": "SimilarityInfluence", "layer": "fc_2"},
+            {"layer": "fc_2"},
             "load_mnist_explanations_1",
             "spearman",
         ),
     ],
 )
-def test_randomization_metric(
+def test_randomization_metric_functional(
     test_id, model, dataset, test_data, batch_size, explain_kwargs, explanations, corr_measure, request
 ):
     model = request.getfixturevalue(model)
@@ -32,11 +34,13 @@ def test_randomization_metric(
         model=model,
         train_dataset=dataset,
         explain_fn=explain,
-        explain_fn_kwargs={**explain_kwargs, "layer": "fc_2"},
+        explain_fn_kwargs=explain_kwargs,
         correlation_fn="spearman",
         seed=42,
         device="cpu",
     )
+    # TODO: introduce a more meaningful test
+    # Can we come up with a special attributor that gets exactly 0 score?
     metric.update(test_data, tda)
     out = metric.compute()
     assert (out.item() >= -1.0) and (out.item() <= 1.0), "Test failed."

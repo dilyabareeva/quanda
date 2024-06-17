@@ -11,17 +11,19 @@ class CaptumSimilarityExplainer(CaptumExplainerWrapper):
         self,
         model: torch.nn.Module,
         model_id: str,
+        cache_dir: str,
         train_dataset: torch.data.utils.Dataset,
         device: Union[str, torch.device],
-        **explainer_kwargs,
+        **explainer_init_kwargs,
     ):
         super().__init__(
             model=model,
             model_id=model_id,
+            cache_dir=cache_dir,
             train_dataset=train_dataset,
             device=device,
             explainer_cls=SimilarityInfluence,
-            **explainer_kwargs,
+            **explainer_init_kwargs,
         )
 
     def explain(self, test: torch.Tensor) -> torch.Tensor:

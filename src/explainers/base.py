@@ -9,21 +9,20 @@ class Explainer(ABC):
         self,
         model: torch.nn.Module,
         model_id: str,
+        cache_dir: Optional[str],
         train_dataset: torch.data.utils.Dataset,
         device: Union[str, torch.device],
         **kwargs,
     ):
-        self.model = model
         self.device = torch.device(device) if isinstance(device, str) else device
         self.train_dataset = train_dataset
-        self.samples = []
-        self.labels = []
         self._self_influences = None
-        dev = torch.device(device)
-        self.model.to(dev)
+        self.model.to(self.device)
+        self.model_id = model_id
+        self.cache_dir = cache_dir
 
     @abstractmethod
-    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor, None], **kwargs):
+    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]], **kwargs):
         raise NotImplementedError
 
     @abstractmethod

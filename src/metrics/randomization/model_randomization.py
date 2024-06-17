@@ -3,10 +3,11 @@ from typing import Callable, Optional, Union
 
 import torch
 
-from metrics.base import Metric
-from utils.common import _get_parent_module_from_name, make_func
-from utils.explain_wrapper import ExplainFunc
-from utils.functions.correlations import (
+from src.explainers.base import Explainer
+from src.explainers.functional import ExplainFunc
+from src.metrics.base import Metric
+from src.utils.common import _get_parent_module_from_name, make_func
+from src.utils.functions.correlations import (
     CorrelationFnLiterals,
     correlation_functions,
 )
@@ -21,7 +22,8 @@ class ModelRandomizationMetric(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        explain_fn: ExplainFunc,
+        explainer: Union[ExplainFunc, Explainer],
+        explainer_init_kwargs: Optional[dict] = None,
         explain_fn_kwargs: Optional[dict] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
@@ -52,6 +54,16 @@ class ModelRandomizationMetric(Metric):
         self.generator = torch.Generator(device=device)
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
+
+        explain_fn = explainer
+        self.explainer = None
+        if isinstance(explainer, Explainer):
+            self.explainer = explainer
+            explain_fn = explainer.explain
+        elif not callable(explainer):
+            raise TypeError(
+                f"Parameter 'explainer' should be of type Explainer of Callable. Got {type(explainer)} instead."
+            )
         self.explain_fn = make_func(
             func=explain_fn,
             func_kwargs=explain_fn_kwargs,
@@ -95,6 +107,7 @@ class ModelRandomizationMetric(Metric):
             "random_model_state_dict": self.model.state_dict(),
             "seed": self.seed,
             "generator_state": self.generator.get_state(),
+            "explainer": self.explainer,
             "explain_fn": self.explain_fn,
         }
         return state_dict
@@ -102,6 +115,7 @@ class ModelRandomizationMetric(Metric):
     def load_state_dict(self, state_dict: dict):
         self.results = state_dict["results_dict"]
         self.seed = state_dict["seed"]
+        self.explainer = state_dict["explainer"]
         self.explain_fn = state_dict["explain_fn"]
         self.rand_model.load_state_dict(state_dict["random_model_state_dict"])
         self.generator.set_state(state_dict["generator_state"])

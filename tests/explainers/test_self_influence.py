@@ -4,9 +4,7 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
-from src.explainers.aggregators.self_influence import (
-    get_self_influence_ranking,
-)
+from src.explainers.self_influence import get_self_influence_ranking
 from src.utils.explain_wrapper import explain
 from src.utils.functions.similarities import dot_product_similarity
 
