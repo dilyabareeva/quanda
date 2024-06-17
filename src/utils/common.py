@@ -3,6 +3,8 @@ from functools import reduce
 from typing import Any, Callable, Mapping
 
 import torch
+import torch.utils
+import torch.utils.data
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
@@ -19,6 +21,6 @@ def make_func(func: Callable, func_kwargs: Mapping[str, ...] | None, **kwargs) -
         _func_kwargs = kwargs.copy()
         _func_kwargs.update(func_kwargs)
     else:
-        func_kwargs = kwargs
+        _func_kwargs = kwargs
 
-    return functools.partial(func, **func_kwargs)
+    return functools.partial(func, **_func_kwargs)
