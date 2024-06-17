@@ -62,7 +62,11 @@ def explain(
             similarity_direction=sim_direction,
             batch_size=batch_size,
         )
-        topk_idx, topk_val = sim_influence.influence(test_tensor, len(train_dataset))[layer]
+        topk_idx, topk_val = sim_influence.influence(
+            inputs=test_tensor,
+            top_k=len(train_dataset),
+            # load_src_from_disk=False
+        )[layer]
         tda = torch.gather(topk_val, 1, topk_idx)
 
         return tda

@@ -3,10 +3,10 @@ from typing import Callable, Optional, Union
 
 import torch
 
-from metrics.base import Metric
-from utils.common import _get_parent_module_from_name, make_func
-from utils.explain_wrapper import ExplainFunc
-from utils.functions.correlations import (
+from src.metrics.base import Metric
+from src.utils.common import _get_parent_module_from_name, make_func
+from src.utils.explain_wrapper import ExplainFunc
+from src.utils.functions.correlations import (
     CorrelationFnLiterals,
     correlation_functions,
 )
