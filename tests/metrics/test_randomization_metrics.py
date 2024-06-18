@@ -22,7 +22,6 @@ from src.metrics.randomization.model_randomization import (
             },
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",
-            "spearman",
         ),
     ],
 )
