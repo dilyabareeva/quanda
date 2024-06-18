@@ -3,8 +3,8 @@ import os
 import pytest
 import torch
 
-from src.explainers.captum.similarity import CaptumSimilarityExplainer
 from src.explainers.functional import captum_similarity_explain
+from src.explainers.wrappers.similarity import CaptumSimilarityExplainer
 from src.utils.functions.similarities import cosine_similarity
 
 
@@ -18,7 +18,7 @@ from src.utils.functions.similarities import cosine_similarity
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"layer": "relu_4"},
+            {"layer": "relu_4", "similarity_metric": cosine_similarity},
             "load_mnist_explanations_1",
         ),
     ],
@@ -71,5 +71,5 @@ def test_explain_stateful(test_id, model, dataset, explanations, test_tensor, te
         device="cpu",
         **method_kwargs,
     )
-    explanations = explainer.explain(test_tensor, test_labels)
+    explanations = explainer.explain(test_tensor)
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"

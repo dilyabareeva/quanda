@@ -3,10 +3,10 @@ from typing import List, Optional, Union
 import torch
 from captum.influence import DataInfluence
 
-from src.explainers.base import Explainer
+from src.explainers.base_explainer import BaseExplainer
 
 
-class CaptumExplainerWrapper(Explainer):
+class CaptumExplainerWrapper(BaseExplainer):
     def __init__(
         self,
         model: torch.nn.Module,
@@ -32,7 +32,7 @@ class CaptumExplainerWrapper(Explainer):
         self.captum_explainer = cls(model=self.model, train_dataset=self.train_dataset, **init_kwargs)
 
     def explain(
-        self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]], **explain_fn_kwargs
+        self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None, **explain_fn_kwargs
     ) -> torch.Tensor:
         test = test.to(self.device)
         if targets is not None:
