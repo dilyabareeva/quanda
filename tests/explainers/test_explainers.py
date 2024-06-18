@@ -44,7 +44,7 @@ def test_explain_functional(test_id, model, dataset, test_tensor, test_labels, m
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, method, method_kwargs, explanations",
+    "test_id, model, dataset,  explanations, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist",
