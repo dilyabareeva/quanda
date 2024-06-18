@@ -9,7 +9,7 @@ from src.metrics.randomization.model_randomization import (
 
 @pytest.mark.randomization_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_data, batch_size, explain_kwargs, explanations, corr_measure",
+    "test_id, model, dataset, test_data, batch_size, explain_init_kwargs, explanations, test_labels",
     [
         (
             "mnist",

@@ -11,7 +11,7 @@ from src.utils.functions.similarities import dot_product_similarity
 
 @pytest.mark.self_influence
 @pytest.mark.parametrize(
-    "test_id, explain_kwargs",
+    "test_id, init_kwargs",
     [
         (
             "random_data",

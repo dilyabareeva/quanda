@@ -10,7 +10,7 @@ from src.utils.functions.similarities import cosine_similarity
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, method, method_kwargs, explanations",
+    "test_id, model, dataset, test_tensor, test_labels, method_kwargs, explanations",
     [
         (
             "mnist",
@@ -18,13 +18,12 @@ from src.utils.functions.similarities import cosine_similarity
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            "SimilarityInfluence",
             {"layer": "relu_4"},
             "load_mnist_explanations_1",
         ),
     ],
 )
-def test_explain_functional(test_id, model, dataset, explanations, test_tensor, test_labels, method_kwargs, request):
+def test_explain_functional(test_id, model, dataset, test_tensor, test_labels, method_kwargs, explanations, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
