@@ -37,14 +37,14 @@ class Explainer(ABC):
     def reset(self):
         raise NotImplementedError
 
-    def self_influences(self, batch_size: Optional[int] = 32, **kwargs) -> torch.Tensor:
+    def self_influence_ranking(self, batch_size: Optional[int] = 32, **kwargs) -> torch.Tensor:
         # Base class implements computing self influences by explaining the train dataset one by one
         if self._self_influences is None:
             self._self_influences = torch.empty((len(self.train_dataset),), device=self.device)
-            ldr = torch.nn.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)
-            for i, (x, y) in iter(ldr):
+            ldr = torch.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)
+            for i, (x, y) in enumerate(iter(ldr)):
                 upper_index = i * batch_size + x.shape[0]
                 explanations = self.explain(test=x.to(self.device), **kwargs)
-                explanations = explanations[:, i:upper_index]
-                self._self_influences[i:upper_index] = torch.diag(explanations)
-        return self._self_influences
+                explanations = explanations[:, i * batch_size : upper_index]
+                self._self_influences[i * batch_size : upper_index] = explanations.diag()
+        return self._self_influences.argsort()

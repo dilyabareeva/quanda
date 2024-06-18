@@ -35,6 +35,7 @@ class CaptumSimilarityExplainer(CaptumExplainerWrapper):
             influence_src_dataset=self.train_dataset,
             activation_dir=self.cache_dir,
             model_id=self.model_id,
+            similarity_direction="max",
             **init_kwargs,
         )
 
@@ -46,5 +47,6 @@ class CaptumSimilarityExplainer(CaptumExplainerWrapper):
 
     def explain(self, test: torch.Tensor) -> torch.Tensor:
         topk_idx, topk_val = super().explain(test=test, targets=None, top_k=len(self.train_dataset))[self.layer]
-        tda = torch.gather(topk_val, 1, topk_idx)
+        inverted_idx = topk_idx.argsort()
+        tda = torch.cat([topk_val[None, i, inverted_idx[i]] for i in range(topk_idx.shape[0])], dim=0)
         return tda
