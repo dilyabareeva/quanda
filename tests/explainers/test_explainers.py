@@ -50,11 +50,10 @@ def test_explain_functional(test_id, model, dataset, test_tensor, test_labels, m
             "mnist",
             "load_mnist_model",
             "load_mnist_dataset",
+            "load_mnist_explanations_1",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            "SimilarityInfluence",
             {"layer": "relu_4", "similarity_metric": cosine_similarity},
-            "load_mnist_explanations_1",
         ),
     ],
 )
