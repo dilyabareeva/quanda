@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from src.explainers.functional import captum_similarity_explain
+from src.explainers.wrappers.captum_influence import captum_similarity_explain
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )

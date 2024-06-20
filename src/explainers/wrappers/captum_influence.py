@@ -1,9 +1,13 @@
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import torch
 from captum.influence import SimilarityInfluence
 
 from src.explainers.base_explainer import BaseExplainer
+from src.explainers.utils import (
+    explain_fn_from_explainer,
+    self_influence_fn_from_explainer,
+)
 from src.utils.validation import validate_1d_tensor_or_int_list
 
 
@@ -123,3 +127,54 @@ class CaptumSimilarity(CaptumInfluence):
         tda = torch.gather(topk_val, 1, inverted_idx)
 
         return tda
+
+
+def captum_similarity_explain(
+    model: torch.nn.Module,
+    model_id: str,
+    cache_dir: Optional[str],
+    test_tensor: torch.Tensor,
+    explanation_targets: Optional[Union[List[int], torch.Tensor]],
+    train_dataset: torch.utils.data.Dataset,
+    device: Union[str, torch.device],
+    init_kwargs: Optional[Dict] = None,
+    explain_kwargs: Optional[Dict] = None,
+) -> torch.Tensor:
+
+    init_kwargs = init_kwargs or {}
+    explain_kwargs = explain_kwargs or {}
+
+    return explain_fn_from_explainer(
+        explainer_cls=CaptumSimilarity,
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        test_tensor=test_tensor,
+        targets=explanation_targets,
+        train_dataset=train_dataset,
+        device=device,
+        init_kwargs=init_kwargs,
+        explain_kwargs=explain_kwargs,
+    )
+
+
+def captum_similarity_self_influence(
+    model: torch.nn.Module,
+    model_id: str,
+    cache_dir: Optional[str],
+    train_dataset: torch.utils.data.Dataset,
+    init_kwargs: Dict,
+    device: Union[str, torch.device],
+) -> torch.Tensor:
+
+    init_kwargs = init_kwargs or {}
+
+    return self_influence_fn_from_explainer(
+        explainer_cls=CaptumSimilarity,
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        train_dataset=train_dataset,
+        device=device,
+        init_kwargs=init_kwargs,
+    )

@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 import torch
 
 
 class BaseAggregator(ABC):
     def __init__(self):
-        self.scores: torch.Tensor = None
+        self.scores: Optional[torch.Tensor] = None
 
     @abstractmethod
     def update(self, explanations: torch.Tensor):

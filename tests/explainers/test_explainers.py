@@ -3,8 +3,10 @@ import os
 import pytest
 import torch
 
-from src.explainers.functional import captum_similarity_explain
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
+from src.explainers.wrappers.captum_influence import (
+    CaptumSimilarity,
+    captum_similarity_explain,
+)
 from src.utils.functions.similarities import cosine_similarity
 
 

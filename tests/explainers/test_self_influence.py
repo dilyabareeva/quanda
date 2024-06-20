@@ -6,8 +6,10 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
-from src.explainers.functional import captum_similarity_self_influence_ranking
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
+from src.explainers.wrappers.captum_influence import (
+    CaptumSimilarity,
+    captum_similarity_self_influence,
+)
 from src.utils.functions.similarities import dot_product_similarity
 
 
@@ -29,7 +31,7 @@ def test_self_influence(test_id, init_kwargs, request):
     y = torch.randint(0, 10, (100,))
     rand_dataset = TensorDataset(X, y)
 
-    self_influence_rank_functional = captum_similarity_self_influence_ranking(
+    self_influence_rank_functional = captum_similarity_self_influence(
         model=model,
         model_id="0",
         cache_dir="temp_captum",
