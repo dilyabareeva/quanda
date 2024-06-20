@@ -19,7 +19,8 @@ from src.utils.functions.similarities import cosine_similarity
             "load_mnist_test_samples_1",
             8,
             {
-                "layer": "fc_2", "similarity_metric": cosine_similarity,
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
             },
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",

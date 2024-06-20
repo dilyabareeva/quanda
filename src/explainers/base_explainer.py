@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 
 import torch
 
@@ -25,23 +25,11 @@ class BaseExplainer(ABC):
         self.device = torch.device(device) if isinstance(device, str) else device
 
     @abstractmethod
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None, **kwargs):
-        raise NotImplementedError
-
-    @abstractmethod
-    def load_state_dict(self, path):
-        raise NotImplementedError
-
-    @abstractmethod
-    def state_dict(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def reset(self):
+    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None, **kwargs: Any):
         raise NotImplementedError
 
     @cache_result
-    def self_influence(self, batch_size: Optional[int] = 32, **kwargs) -> torch.Tensor:
+    def self_influence(self, batch_size: Optional[int] = 32, **kwargs: Any) -> torch.Tensor:
         # Base class implements computing self influences by explaining the train dataset one by one
         influences = torch.empty((len(self.train_dataset),), device=self.device)
         ldr = torch.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)

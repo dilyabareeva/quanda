@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Protocol, Union
 import torch
 
 from src.explainers.base_explainer import BaseExplainer
-from src.explainers.wrappers.similarity import CaptumSimilarityExplainer
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
 
 
 class ExplainFunc(Protocol):
@@ -22,8 +22,8 @@ class ExplainFunc(Protocol):
         pass
 
 
-def explainer_functional_interface(
-    explainer_cls: BaseExplainer,
+def explain_fn_from_explainer(
+    explainer_cls: type,
     model: torch.nn.Module,
     model_id: str,
     cache_dir: Optional[str],
@@ -34,19 +34,19 @@ def explainer_functional_interface(
     init_kwargs: Optional[Dict] = {},
     explain_kwargs: Optional[Dict] = {},
 ) -> torch.Tensor:
-    explainer = explainer_cls(
-        model=model,
-        model_id=model_id,
-        cache_dir=cache_dir,
-        train_dataset=train_dataset,
-        device=device,
-        **init_kwargs,
-    )
-    return explainer.explain(test=test_tensor, **explain_kwargs)
+        explainer = explainer_cls(
+            model=model,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            train_dataset=train_dataset,
+            device=device,
+            explainer_kwargs=init_kwargs,
+        )
+        return explainer.explain(test=test_tensor, **explain_kwargs)
 
 
 def explainer_self_influence_interface(
-    explainer_cls: BaseExplainer,
+    explainer_cls: type,
     model: torch.nn.Module,
     model_id: str,
     cache_dir: Optional[str],
@@ -60,7 +60,7 @@ def explainer_self_influence_interface(
         cache_dir=cache_dir,
         train_dataset=train_dataset,
         device=device,
-        **init_kwargs,
+        explainer_kwargs=init_kwargs,
     )
     return explainer.self_influence()
 
@@ -76,8 +76,8 @@ def captum_similarity_explain(
     init_kwargs: Optional[Dict] = {},
     explain_kwargs: Optional[Dict] = {},
 ) -> torch.Tensor:
-    return explainer_functional_interface(
-        explainer_cls=CaptumSimilarityExplainer,
+    return explain_fn_from_explainer(
+        explainer_cls=CaptumSimilarity,
         model=model,
         model_id=model_id,
         cache_dir=cache_dir,
@@ -99,7 +99,7 @@ def captum_similarity_self_influence_ranking(
     device: Union[str, torch.device],
 ) -> torch.Tensor:
     return explainer_self_influence_interface(
-        explainer_cls=CaptumSimilarityExplainer,
+        explainer_cls=CaptumSimilarity,
         model=model,
         model_id=model_id,
         cache_dir=cache_dir,

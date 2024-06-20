@@ -4,7 +4,7 @@ import pytest
 import torch
 
 from src.explainers.functional import captum_similarity_explain
-from src.explainers.wrappers.similarity import CaptumSimilarityExplainer
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.utils.functions.similarities import cosine_similarity
 
 
@@ -18,7 +18,7 @@ from src.utils.functions.similarities import cosine_similarity
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"layer": "relu_4", "similarity_metric": cosine_similarity},
+            {"layers": "relu_4", "similarity_metric": cosine_similarity},
             "load_mnist_explanations_1",
         ),
     ],
@@ -53,7 +53,7 @@ def test_explain_functional(test_id, model, dataset, test_tensor, test_labels, m
             "load_mnist_explanations_1",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"layer": "relu_4", "similarity_metric": cosine_similarity},
+            {"layers": "relu_4", "similarity_metric": cosine_similarity},
         ),
     ],
 )
@@ -63,13 +63,13 @@ def test_explain_stateful(test_id, model, dataset, explanations, test_tensor, te
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
     explanations_exp = request.getfixturevalue(explanations)
-    explainer = CaptumSimilarityExplainer(
+    explainer = CaptumSimilarity(
         model=model,
         model_id="test_id",
         cache_dir=os.path.join("./cache", "test_id"),
         train_dataset=dataset,
         device="cpu",
-        **method_kwargs,
+        explainer_kwargs=method_kwargs,
     )
     explanations = explainer.explain(test_tensor)
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"

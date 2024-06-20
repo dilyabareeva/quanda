@@ -16,7 +16,7 @@ from src.utils.functions.similarities import cosine_similarity
             "mnist",
             "load_mnist_model",
             "load_mnist_dataset",
-            {"layer": "relu_4", "similarity_metric": cosine_similarity},
+            {"layers": "relu_4", "similarity_metric": cosine_similarity},
         ),
     ],
 )
