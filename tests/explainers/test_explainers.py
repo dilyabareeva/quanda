@@ -69,7 +69,7 @@ def test_explain_stateful(test_id, model, dataset, explanations, test_tensor, te
         cache_dir=os.path.join("./cache", "test_id"),
         train_dataset=dataset,
         device="cpu",
-        explainer_kwargs=method_kwargs,
+        **method_kwargs,
     )
     explanations = explainer.explain(test_tensor)
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"

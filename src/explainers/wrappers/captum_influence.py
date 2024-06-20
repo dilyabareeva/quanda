@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, Any, Dict
+from typing import Any, List, Optional, Union
 
 import torch
 from captum.influence import SimilarityInfluence
@@ -21,11 +21,14 @@ class CaptumInfluence(BaseExplainer):
         train_dataset: torch.utils.data.Dataset,
         device: Union[str, torch.device],
         explainer_cls: type,
-        explain_kwargs: Dict[str, Any],
-        **kwargs,
+        **explain_kwargs: Any,
     ):
         super().__init__(
-            model=model, model_id=model_id, cache_dir=cache_dir, train_dataset=train_dataset, device=device,
+            model=model,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            train_dataset=train_dataset,
+            device=device,
         )
         self.explainer_cls = explainer_cls
         self.explain_kwargs = explain_kwargs
@@ -66,29 +69,31 @@ class CaptumSimilarity(CaptumInfluence):
         cache_dir: str,
         train_dataset: torch.utils.data.Dataset,
         device: Union[str, torch.device],
-        explainer_kwargs: Dict[str, Any],
+        **explainer_kwargs: Any,
     ):
         # extract and validate layer from kwargs
-        self._layer: Union[List[str], str] = None
+        self._layer: Optional[Union[List[str], str]] = None
         self.layer = explainer_kwargs.get("layers", [])
 
-        explainer_kwargs = {
-            "module": model,
-            "influence_src_dataset": train_dataset,
-            "activation_dir": cache_dir,
-            "model_id": model_id,
-            "similarity_direction": "max",
-            **explainer_kwargs,
-        }
+        # TODO: validate SimilarityInfluence kwargs
+        explainer_kwargs.update(
+            {
+                "module": model,
+                "influence_src_dataset": train_dataset,
+                "activation_dir": cache_dir,
+                "model_id": model_id,
+                "similarity_direction": "max",
+                **explainer_kwargs,
+            }
+        )
 
         super().__init__(
             model=model,
-            model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
             device=device,
             explainer_cls=SimilarityInfluence,
-            explain_kwargs=explainer_kwargs,
+            **explainer_kwargs,
         )
 
     @property

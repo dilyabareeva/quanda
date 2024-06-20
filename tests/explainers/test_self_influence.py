@@ -39,7 +39,12 @@ def test_self_influence(test_id, init_kwargs, request):
     )
 
     explainer_obj = CaptumSimilarity(
-        model=model, model_id="1", cache_dir="temp_captum2", train_dataset=rand_dataset, device="cpu", explainer_kwargs=init_kwargs
+        model=model,
+        model_id="1",
+        cache_dir="temp_captum2",
+        train_dataset=rand_dataset,
+        device="cpu",
+        **init_kwargs,
     )
     self_influence_rank_stateful = explainer_obj.self_influence()
 

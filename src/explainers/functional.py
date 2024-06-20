@@ -2,7 +2,6 @@ from typing import Dict, List, Optional, Protocol, Union
 
 import torch
 
-from src.explainers.base_explainer import BaseExplainer
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
 
 
@@ -34,15 +33,15 @@ def explain_fn_from_explainer(
     init_kwargs: Optional[Dict] = {},
     explain_kwargs: Optional[Dict] = {},
 ) -> torch.Tensor:
-        explainer = explainer_cls(
-            model=model,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            train_dataset=train_dataset,
-            device=device,
-            explainer_kwargs=init_kwargs,
-        )
-        return explainer.explain(test=test_tensor, **explain_kwargs)
+    explainer = explainer_cls(
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        train_dataset=train_dataset,
+        device=device,
+        **init_kwargs,
+    )
+    return explainer.explain(test=test_tensor, **explain_kwargs)
 
 
 def explainer_self_influence_interface(
@@ -60,7 +59,7 @@ def explainer_self_influence_interface(
         cache_dir=cache_dir,
         train_dataset=train_dataset,
         device=device,
-        explainer_kwargs=init_kwargs,
+        **init_kwargs,
     )
     return explainer.self_influence()
 

@@ -1,10 +1,8 @@
 import torch
 
 """
-This is a Python module that contains helper functions for validating input arguments.
-The plan is to collect them here and then create a universal validation decorator @validate_args 
-to check all the input arguments against the expected types specified e.g.
-as class attributes.
+This module contains utility functions for validation. The plan is to
+move the validation logic into a validation decorator at a later point.
 """
 
 
