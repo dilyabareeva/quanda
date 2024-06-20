@@ -5,7 +5,7 @@ from src.metrics.localization.identical_class import IdenticalClass
 
 @pytest.mark.localization_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_labels, batch_size, explanations, expected_score",
+    "test_id,model,dataset,test_labels,batch_size,explanations,expected_score",
     [
         (
             "mnist",

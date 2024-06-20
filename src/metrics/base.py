@@ -40,7 +40,7 @@ class Metric(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def load_state_dict(self, state_dict: dict, *args, **kwargs):
+    def load_state_dict(self, state_dict: dict):
         """
         Used to load the metric state.
         """

@@ -8,11 +8,11 @@ class IdenticalClass(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device,
+        device: str,
         *args,
         **kwargs,
     ):
-        super().__init__(model, train_dataset, device, *args, **kwargs)
+        super().__init__(model=model, train_dataset=train_dataset, device=device, *args, **kwargs)
         self.scores = []
 
     def update(self, test_labels: torch.Tensor, explanations: torch.Tensor):
@@ -27,8 +27,8 @@ class IdenticalClass(Metric):
         top_one_xpl_indices = explanations.argmax(dim=1)
         top_one_xpl_targets = torch.stack([self.train_dataset[i][1] for i in top_one_xpl_indices])
 
-        score = (test_labels == top_one_xpl_targets) * 1.0
-        self.scores.append(score)
+        scores = (test_labels == top_one_xpl_targets) * 1.0
+        self.scores.append(scores)
 
     def compute(self):
         """

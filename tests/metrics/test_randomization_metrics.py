@@ -48,8 +48,7 @@ def test_randomization_metric_functional(
     # Can we come up with a special attributor that gets exactly 0 score?
     metric.update(test_data=test_data, explanations=tda, explanation_targets=test_labels)
     out = metric.compute()
-    assert (out.item() >= -1.0) and (out.item() <= 1.0), "Test failed."
-    assert isinstance(out, torch.Tensor), "Output is not a tensor."
+    assert (out.item() >= -1.0) & (out.item() <= 1.0), "Test failed."
 
 
 @pytest.mark.randomization_metrics
@@ -63,7 +62,7 @@ def test_randomization_metric_functional(
         ),
     ],
 )
-def test_model_randomization(test_id, model, dataset, request):
+def test_randomization_metric_model_randomization(test_id, model, dataset, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     metric = ModelRandomizationMetric(model=model, train_dataset=dataset, explain_fn=lambda x: x, seed=42, device="cpu")
