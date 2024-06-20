@@ -2,8 +2,8 @@ from typing import Dict, List, Optional, Protocol, Union
 
 import torch
 
-from src.explainers.base_explainer import BaseExplainer
-from src.explainers.wrappers.similarity import CaptumSimilarityExplainer
+from src.explainers.base import Explainer
+from src.explainers.captum.similarity import CaptumSimilarityExplainer
 
 
 class ExplainFunc(Protocol):
@@ -23,7 +23,7 @@ class ExplainFunc(Protocol):
 
 
 def explainer_functional_interface(
-    explainer_cls: BaseExplainer,
+    explainer_cls: Explainer,
     model: torch.nn.Module,
     model_id: str,
     cache_dir: Optional[str],
@@ -46,7 +46,7 @@ def explainer_functional_interface(
 
 
 def explainer_self_influence_interface(
-    explainer_cls: BaseExplainer,
+    explainer_cls: Explainer,
     model: torch.nn.Module,
     model_id: str,
     cache_dir: Optional[str],

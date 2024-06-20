@@ -3,28 +3,19 @@ from abc import ABC, abstractmethod
 import torch
 
 
-class BaseAggregator(ABC):
-    def __init__(self):
-        self.scores: torch.Tensor = None
+class ExplanationsAggregator(ABC):
+    def __init__(self, training_size: int, *args, **kwargs):
+        self.scores = torch.zeros(training_size)
 
     @abstractmethod
     def update(self, explanations: torch.Tensor):
         raise NotImplementedError
 
-    def _validate_explanations(self, explanations: torch.Tensor):
-        if self.scores is None:
-            self.scores = torch.zeros(explanations.shape[1])
-
-        if explanations.shape[1] != self.scores.shape[0]:
-            raise ValueError(
-                f"Explanations shape {explanations.shape} does not match the expected shape {self.scores.shape}"
-            )
-
     def reset(self, *args, **kwargs):
         """
         Used to reset the aggregator state.
         """
-        self.scores: torch.Tensor = None
+        self.scores = torch.zeros_like(self.scores)
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
@@ -42,13 +33,11 @@ class BaseAggregator(ABC):
         return self.scores.argsort()
 
 
-class SumAggregator(BaseAggregator):
-    def update(self, explanations: torch.Tensor):
-        self._validate_explanations(explanations)
+class SumAggregator(ExplanationsAggregator):
+    def update(self, explanations: torch.Tensor) -> torch.Tensor:
         self.scores += explanations.sum(dim=0)
 
 
-class AbsSumAggregator(BaseAggregator):
-    def update(self, explanations: torch.Tensor):
-        self._validate_explanations(explanations)
+class AbsSumAggregator(ExplanationsAggregator):
+    def update(self, explanations: torch.Tensor) -> torch.Tensor:
         self.scores += explanations.abs().sum(dim=0)

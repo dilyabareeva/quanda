@@ -3,7 +3,7 @@ from typing import Union
 import torch
 from captum.influence import SimilarityInfluence
 
-from src.explainers.wrappers.base import CaptumExplainerWrapper
+from src.explainers.captum.base import CaptumExplainerWrapper
 
 
 class CaptumSimilarityExplainer(CaptumExplainerWrapper):
@@ -40,9 +40,6 @@ class CaptumSimilarityExplainer(CaptumExplainerWrapper):
         )
 
     def load_state_dict(self, path):
-        return
-
-    def state_dict(self):
         return
 
     def reset(self):

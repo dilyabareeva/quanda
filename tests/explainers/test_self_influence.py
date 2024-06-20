@@ -4,8 +4,8 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
+from src.explainers.captum.similarity import CaptumSimilarityExplainer
 from src.explainers.functional import captum_similarity_self_influence_ranking
-from src.explainers.wrappers.similarity import CaptumSimilarityExplainer
 from src.utils.functions.similarities import dot_product_similarity
 
 
