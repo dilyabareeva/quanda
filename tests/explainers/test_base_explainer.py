@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 import pytest
 import torch
 
-from explainers.base_explainer import BaseExplainer
+from src.explainers.base_explainer import BaseExplainer
 from src.utils.functions.similarities import cosine_similarity
 
 

@@ -5,6 +5,7 @@ from src.explainers.functional import captum_similarity_explain
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
+from src.utils.functions.similarities import cosine_similarity
 
 
 @pytest.mark.randomization_metrics
@@ -18,7 +19,7 @@ from src.metrics.randomization.model_randomization import (
             "load_mnist_test_samples_1",
             8,
             {
-                "layer": "fc_2",
+                "layer": "fc_2", "similarity_metric": cosine_similarity,
             },
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",
@@ -31,7 +32,6 @@ def test_randomization_metric_functional(
     model = request.getfixturevalue(model)
     test_data = request.getfixturevalue(test_data)
     dataset = request.getfixturevalue(dataset)
-    explain_init_kwargs = request.getfixturevalue(explain_init_kwargs)
     test_labels = request.getfixturevalue(test_labels)
     tda = request.getfixturevalue(explanations)
     metric = ModelRandomizationMetric(

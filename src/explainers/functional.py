@@ -62,7 +62,7 @@ def explainer_self_influence_interface(
         device=device,
         **init_kwargs,
     )
-    return explainer.self_influence_ranking()
+    return explainer.self_influence()
 
 
 def captum_similarity_explain(
