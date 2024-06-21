@@ -15,7 +15,6 @@ def explain_fn_from_explainer(
     init_kwargs: Optional[Dict] = None,
     explain_kwargs: Optional[Dict] = None,
 ) -> torch.Tensor:
-
     init_kwargs = init_kwargs or {}
     explain_kwargs = explain_kwargs or {}
 
@@ -41,7 +40,6 @@ def self_influence_fn_from_explainer(
     init_kwargs: Optional[Dict] = None,
     explain_kwargs: Optional[Dict] = None,
 ) -> torch.Tensor:
-
     init_kwargs = init_kwargs or {}
     explain_kwargs = explain_kwargs or {}
 

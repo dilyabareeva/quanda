@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 import torch
 from captum.influence import SimilarityInfluence
 
-from src.explainers.base_explainer import BaseExplainer
+from src.explainers.base import BaseExplainer
 from src.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
@@ -140,7 +140,6 @@ def captum_similarity_explain(
     init_kwargs: Optional[Dict] = None,
     explain_kwargs: Optional[Dict] = None,
 ) -> torch.Tensor:
-
     init_kwargs = init_kwargs or {}
     explain_kwargs = explain_kwargs or {}
 
@@ -166,7 +165,6 @@ def captum_similarity_self_influence(
     init_kwargs: Dict,
     device: Union[str, torch.device],
 ) -> torch.Tensor:
-
     init_kwargs = init_kwargs or {}
 
     return self_influence_fn_from_explainer(
