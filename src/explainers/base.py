@@ -30,12 +30,21 @@ class BaseExplainer(ABC):
 
     @cache_result
     def self_influence(self, batch_size: Optional[int] = 32, **kwargs: Any) -> torch.Tensor:
-        # Base class implements computing self influences by explaining the train dataset one by one
+        """
+        Base class implements computing self influences by explaining the train dataset one by one
+
+        :param batch_size:
+        :param kwargs:
+        :return:
+        """
+
+        # Pre-allcate memory for influences, because torch.cat is slow
         influences = torch.empty((len(self.train_dataset),), device=self.device)
         ldr = torch.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)
-        for i, (x, y) in enumerate(iter(ldr)):
-            upper_index = i * batch_size + x.shape[0]
+
+        for i, (x, y) in zip(range(0, len(self.train_dataset), batch_size), ldr):
             explanations = self.explain(test=x.to(self.device), **kwargs)
-            explanations = explanations[:, i * batch_size : upper_index]
-            influences[i * batch_size : upper_index] = explanations.diag()
+            influences[i : i + batch_size] = explanations.diag(diagonal=i)
+
+        # TODO: should we return just the ifnluences and not argsort?
         return influences.argsort()

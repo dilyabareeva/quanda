@@ -88,6 +88,11 @@ def load_mnist_explanations_1():
 
 
 @pytest.fixture
+def load_mnist_dataset_explanations():
+    return torch.rand((MINI_BATCH_SIZE, MINI_BATCH_SIZE))
+
+
+@pytest.fixture
 def torch_cross_entropy_loss_object():
     return torch.nn.CrossEntropyLoss()
 
