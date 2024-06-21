@@ -1,4 +1,3 @@
-import os
 from collections import OrderedDict
 
 import pytest
@@ -106,7 +105,6 @@ def test_explain_stateful(
         device="cpu",
         **method_kwargs,
     )
-    # TODO: activations folder clean-up
 
     explanations = explainer.explain(test_tensor)
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
@@ -127,7 +125,9 @@ def test_explain_stateful(
         ),
     ],
 )
-def test_explain_functional(test_id, model, dataset, test_tensor, test_labels, method_kwargs, explanations, request):
+def test_explain_functional(
+    test_id, model, dataset, test_tensor, test_labels, method_kwargs, explanations, request, tmp_path
+):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
@@ -136,7 +136,7 @@ def test_explain_functional(test_id, model, dataset, test_tensor, test_labels, m
     explanations = captum_similarity_explain(
         model,
         "test_id",
-        os.path.join("./cache", "test_id"),
+        str(tmp_path),
         test_tensor,
         test_labels,
         dataset,
