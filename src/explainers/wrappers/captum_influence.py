@@ -36,12 +36,10 @@ class CaptumInfluence(BaseExplainer):
         )
         self.explainer_cls = explainer_cls
         self.explain_kwargs = explain_kwargs
-        self._init_explainer(explainer_cls, **explain_kwargs)
+        self._init_explainer(**explain_kwargs)
 
-    def _init_explainer(self, cls: type, **explain_kwargs: Any):
-        self.captum_explainer = cls(**explain_kwargs)
-        if not isinstance(self.captum_explainer, self.explainer_cls):
-            raise ValueError(f"Expected {self.explainer_cls}, but got {type(self.captum_explainer)}")
+    def _init_explainer(self, **explain_kwargs: Any):
+        self.captum_explainer = self.explainer_cls(**explain_kwargs)
 
     def _process_targets(self, targets: Optional[Union[List[int], torch.Tensor]]):
         if targets is not None:

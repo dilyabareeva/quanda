@@ -46,5 +46,4 @@ class BaseExplainer(ABC):
             explanations = self.explain(test=x.to(self.device), **kwargs)
             influences[i : i + batch_size] = explanations.diag(diagonal=i)
 
-        # TODO: should we return just the ifnluences and not argsort?
-        return influences.argsort()
+        return influences

@@ -45,7 +45,7 @@ def test_self_influence(test_id, init_kwargs, tmp_path):
         train_dataset=rand_dataset,
         init_kwargs=init_kwargs,
         device="cpu",
-    )
+    ).argsort()
 
     # TODO: ...this is test 2, unless we want to compare that the outputs are the same.
     # TODO: If we want to test that the outputs are the same, we should have a separate test for that.
@@ -60,7 +60,7 @@ def test_self_influence(test_id, init_kwargs, tmp_path):
 
     # TODO: self_influence is defined in BaseExplainer - there is a test in test_base_explainer for that.
     # TODO: here we then specifically test self_influence for CaptumSimilarity and should make it explicit in the name.
-    self_influence_rank_stateful = explainer_obj.self_influence()
+    self_influence_rank_stateful = explainer_obj.self_influence().argsort()
 
     # TODO: what if we pass a non-identity model? Then we don't expect torch.linalg.norm(X, dim=-1).argsort()
     # TODO: let's put expectations in the parametrisation of tests. We want to test different scenarios,
