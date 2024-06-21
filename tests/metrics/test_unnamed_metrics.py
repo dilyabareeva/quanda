@@ -14,7 +14,7 @@ from src.metrics.unnamed.top_k_overlap import TopKOverlap
             3,
             8,
             "load_mnist_explanations_1",
-            8,
+            7,
         ),
     ],
 )

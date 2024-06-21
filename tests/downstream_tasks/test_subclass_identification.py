@@ -1,13 +1,14 @@
 import pytest
 
 from downstream_tasks.subclass_identification import SubclassIdentification
-from utils.explain_wrapper import explain
+from explainers.wrappers.captum_influence import captum_similarity_explain
+from utils.functions.similarities import cosine_similarity
 
 
 @pytest.mark.downstream_tasks
 @pytest.mark.parametrize(
     "test_id, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, test_labels, "
-    "batch_size, explain_kwargs, expected_score",
+    "batch_size, explain, explain_kwargs, expected_score",
     [
         (
             "mnist",
@@ -22,8 +23,12 @@ from utils.explain_wrapper import explain
             27,
             "load_mnist_test_labels_1",
             8,
-            {"method": "SimilarityInfluence", "layer": "fc_2"},
-            0.375,
+            captum_similarity_explain,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            1.0,
         ),
     ],
 )
@@ -40,6 +45,7 @@ def test_identical_subclass_metrics(
     seed,
     test_labels,
     batch_size,
+    explain,
     explain_kwargs,
     expected_score,
     request,
@@ -47,7 +53,6 @@ def test_identical_subclass_metrics(
     model = request.getfixturevalue(model)
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
-    test_labels = request.getfixturevalue(test_labels)
     dataset = request.getfixturevalue(dataset)
 
     dst_eval = SubclassIdentification()
