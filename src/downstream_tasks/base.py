@@ -23,7 +23,7 @@ class DownstreamTaskEval(ABC):
     def evaluate(
         self,
         model: torch.nn.Module,
-        dataset: torch.utils.data.dataset,
+        dataset: torch.utils.data.Dataset,
         *args,
         **kwargs,
     ):

@@ -5,7 +5,7 @@ from typing import Callable, Optional
 import lightning as L
 import torch
 
-from utils.training.base_pl_module import BasicLightningModule
+from src.utils.training.base_pl_module import BasicLightningModule
 
 
 class BaseTrainer(metaclass=abc.ABCMeta):
@@ -13,7 +13,7 @@ class BaseTrainer(metaclass=abc.ABCMeta):
     def fit(
         self,
         train_loader: torch.utils.data.dataloader.DataLoader,
-        val_loader: torch.utils.data.dataloader.DataLoader,
+        val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
         trainer_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
@@ -68,11 +68,18 @@ class Trainer(BaseTrainer):
     def fit(
         self,
         train_loader: torch.utils.data.dataloader.DataLoader,
-        val_loader: torch.utils.data.dataloader.DataLoader,
+        val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
         trainer_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
     ):
+        if self.model is None:
+            raise ValueError(
+                "Lightning module not initialized. Please initialize using from_arguments or from_lightning_module"
+            )
+        if self.module is None:
+            raise ValueError("Model not initialized. Please initialize using from_arguments or from_lightning_module")
+
         if trainer_kwargs is None:
             trainer_kwargs = {}
         trainer = L.Trainer(**trainer_kwargs)

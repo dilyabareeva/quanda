@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Sized
 
 import torch
 
@@ -7,14 +8,14 @@ class Metric(ABC):
     def __init__(
         self,
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.dataset,
+        train_dataset: torch.utils.data.Dataset,
         device: str = "cpu",
         *args,
         **kwargs,
     ):
-        self.model = model.to(device)
-        self.train_dataset = train_dataset
-        self.device = device
+        self.model: torch.nn.Module = model.to(device)
+        self.train_dataset: torch.utils.data.Dataset = train_dataset
+        self.device: str = device
 
     @abstractmethod
     def update(
@@ -59,3 +60,14 @@ class Metric(ABC):
         """
 
         raise NotImplementedError
+
+    @property
+    def dataset_length(self) -> int:
+        """
+        By default, the Dataset class does not always have a __len__ method.
+        :return:
+        """
+        if isinstance(self.train_dataset, Sized):
+            return len(self.train_dataset)
+        dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=1)
+        return len(dl)

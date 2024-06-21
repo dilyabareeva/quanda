@@ -4,7 +4,7 @@ import warnings
 from typing import Any, List, Optional, Tuple, Union
 
 import torch
-from captum.attr import LayerActivation
+from captum.attr import LayerActivation  # type: ignore
 from torch import Tensor
 from torch.utils.data import DataLoader
 
@@ -22,15 +22,15 @@ class Cache:
         pass
 
     @staticmethod
-    def save(**kwargs) -> None:
+    def save(*args, **kwargs) -> None:
         raise NotImplementedError
 
     @staticmethod
-    def load(**kwargs) -> Any:
+    def load(*args, **kwargs) -> Any:
         raise NotImplementedError
 
     @staticmethod
-    def exists(**kwargs) -> bool:
+    def exists(*args, **kwargs) -> bool:
         raise NotImplementedError
 
 
@@ -49,7 +49,7 @@ class TensorCache(Cache):
         return torch.load(file_path, map_location=device)
 
     @staticmethod
-    def exists(path: str, file_id: str, num_id: int) -> bool:
+    def exists(path: str, file_id: str) -> bool:
         file_path = os.path.join(path, file_id)
         return os.path.isfile(file_path)
 
@@ -98,7 +98,7 @@ class ActivationsCache(Cache):
     @staticmethod
     def exists(
         path: str,
-        layer: Optional[str] = None,
+        layer: str,
         num_id: Optional[Union[str, int]] = None,
     ) -> bool:
         av_dir = os.path.join(path, layer)
@@ -108,7 +108,7 @@ class ActivationsCache(Cache):
     @staticmethod
     def save(
         path: str,
-        layers: List[str],
+        layers: str | List[str],
         act_tensors: List[Tensor],
         labels: Tensor,
         num_id: Union[str, int],
@@ -128,8 +128,9 @@ class ActivationsCache(Cache):
     @staticmethod
     def load(
         path: str,
-        layer: Optional[str] = None,
+        layer: str,
         device: str = "cpu",
+        **kwargs,
     ) -> ActivationDataset:
         layer_dir = os.path.join(path, layer)
 
@@ -145,15 +146,15 @@ class ActivationsCache(Cache):
         layers: Union[str, List[str]],
         load_from_disk: bool = True,
         num_id: Optional[Union[str, int]] = None,
-    ) -> List[str]:
-        unsaved_layers = []
+    ) -> str | List[str]:
+        unsaved_layers: List[str] = []
 
         if load_from_disk:
             for layer in layers:
                 if not ActivationsCache.exists(path, layer, num_id):
                     unsaved_layers.append(layer)
         else:
-            unsaved_layers = layers
+            unsaved_layers = [layers] if isinstance(layers, str) else layers
             warnings.warn(
                 "Overwriting activations: load_from_disk is set to False. Removing all "
                 f"activations matching specified parameters {{path: {path}, "

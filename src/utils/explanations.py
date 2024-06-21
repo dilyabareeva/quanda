@@ -1,6 +1,5 @@
 import glob
 import os
-from typing import Optional, Tuple, Union
 
 import torch
 
@@ -21,10 +20,10 @@ class Explanations:
         """
         pass
 
-    def __getitem__(self, index: Union[int, slice]) -> torch.Tensor:
+    def __getitem__(self, index: int) -> torch.Tensor:
         raise NotImplementedError
 
-    def __setitem__(self, index: Union[int, slice], val: Tuple[torch.Tensor, torch.Tensor]):
+    def __setitem__(self, index: int, val: torch.Tensor):
         raise NotImplementedError
 
     def __len__(self) -> int:
@@ -35,7 +34,7 @@ class TensorExplanations(Explanations):
     def __init__(
         self,
         tensor: torch.Tensor,
-        batch_size: Optional[int] = 8,
+        batch_size: int = 8,
         device: str = "cpu",
     ):
         """
@@ -54,7 +53,7 @@ class TensorExplanations(Explanations):
         # assert the number of explanation dimensions is 2 and insert extra dimension to emulate batching
         assert len(self.xpl.shape) == 2, "Explanations object has more than 2 dimensions."
 
-    def __getitem__(self, idx: Union[int, slice]) -> torch.Tensor:
+    def __getitem__(self, idx: int) -> torch.Tensor:
         """
 
         :param idx:
@@ -62,7 +61,7 @@ class TensorExplanations(Explanations):
         """
         return self.xpl[idx * self.batch_size : min((idx + 1) * self.batch_size, self.xpl.shape[0])]
 
-    def __setitem__(self, idx: Union[int, slice], val: Tuple[torch.Tensor, torch.Tensor]):
+    def __setitem__(self, idx: int, val: torch.Tensor):
         """
 
         :param idx:
@@ -116,7 +115,7 @@ class BatchedCachedExplanations(Explanations):
 
         return xpl
 
-    def __setitem__(self, idx: int, val: Tuple[torch.Tensor, torch.Tensor]):
+    def __setitem__(self, idx: int, val: torch.Tensor):
         """
 
         :param idx:
