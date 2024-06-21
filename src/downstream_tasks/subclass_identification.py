@@ -4,12 +4,13 @@ from typing import Callable, Dict, Optional, Union
 import lightning as L
 import torch
 
+from explainers.functional import ExplainFunc
+from explainers.wrappers.captum_influence import captum_similarity_explain
 from metrics.localization.identical_class import IdenticalClass
 from utils.datasets.group_label_dataset import (
     ClassToGroupLiterals,
     GroupLabelDataset,
 )
-from utils.explain_wrapper import explain
 from utils.training.trainer import BaseTrainer, Trainer
 
 
@@ -43,7 +44,7 @@ class SubclassIdentification:
         n_classes: int = 10,
         n_groups: int = 2,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
-        explain_fn: Callable = explain,
+        explain_fn: ExplainFunc = captum_similarity_explain,
         explain_kwargs: Optional[dict] = None,
         trainer_kwargs: Optional[dict] = None,
         cache_dir: str = "./cache",
@@ -101,7 +102,8 @@ class SubclassIdentification:
                 cache_dir=os.path.join(cache_dir, run_id),
                 train_dataset=train_dataset,
                 test_tensor=input,
-                **explain_kwargs,
+                init_kwargs=explain_kwargs,
+                device=device,
             )
             metric.update(labels, explanations)
 
