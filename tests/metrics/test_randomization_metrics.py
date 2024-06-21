@@ -10,7 +10,7 @@ from src.utils.functions.similarities import cosine_similarity
 
 @pytest.mark.randomization_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_data, batch_size, explain_init_kwargs, explanations, test_labels",
+    "test_id, model, dataset, test_data, batch_size, explain, explain_init_kwargs, explanations, test_labels",
     [
         (
             "mnist",
@@ -18,6 +18,7 @@ from src.utils.functions.similarities import cosine_similarity
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             8,
+            captum_similarity_explain,
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
@@ -27,8 +28,8 @@ from src.utils.functions.similarities import cosine_similarity
         ),
     ],
 )
-def test_randomization_metric_functional(
-    test_id, model, dataset, test_data, batch_size, explain_init_kwargs, explanations, test_labels, request
+def test_randomization_metric(
+    test_id, model, dataset, test_data, batch_size, explain, explain_init_kwargs, explanations, test_labels, request
 ):
     model = request.getfixturevalue(model)
     test_data = request.getfixturevalue(test_data)
@@ -38,7 +39,7 @@ def test_randomization_metric_functional(
     metric = ModelRandomizationMetric(
         model=model,
         train_dataset=dataset,
-        explain_fn=captum_similarity_explain,
+        explain_fn=explain,
         explain_init_kwargs=explain_init_kwargs,
         correlation_fn="spearman",
         seed=42,

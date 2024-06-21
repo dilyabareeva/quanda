@@ -88,9 +88,7 @@ def test_self_influence(test_id, init_kwargs, tmp_path):
 # TODO: I think a good naming convention is "test_<function_name>..." or "test_<class_name>...".
 # TODO: I would call it test_captum_similarity, because it is a test for the CaptumSimilarity class.
 # TODO: We could also make the explainer type (e.g. CaptumSimilarity) a param, then it would be test_explainer or something.
-def test_explain_stateful(
-    test_id, model, dataset, explanations, test_tensor, test_labels, method_kwargs, request, tmp_path
-):
+def test_explain_stateful(test_id, model, dataset, explanations, test_tensor, test_labels, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
@@ -125,22 +123,20 @@ def test_explain_stateful(
         ),
     ],
 )
-def test_explain_functional(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs, explanations, request, tmp_path
-):
+def test_explain_functional(test_id, model, dataset, test_tensor, test_labels, method_kwargs, explanations, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
     explanations_exp = request.getfixturevalue(explanations)
     explanations = captum_similarity_explain(
-        model,
-        "test_id",
-        str(tmp_path),
-        test_tensor,
-        test_labels,
-        dataset,
-        device="cpu",
+        model=model,
+        model_id="test_id",
+        cache_dir=str(tmp_path),
+        test_tensor=test_tensor,
+        explanation_targets=test_labels,
+        train_dataset=dataset,
         init_kwargs=method_kwargs,
+        device="cpu",
     )
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"

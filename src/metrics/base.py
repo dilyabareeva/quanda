@@ -5,7 +5,12 @@ import torch
 
 class Metric(ABC):
     def __init__(
-        self, model: torch.nn.Module, train_dataset: torch.utils.data.dataset, device: str = "cpu", *args, **kwargs
+        self,
+        model: torch.nn.Module,
+        train_dataset: torch.utils.data.dataset,
+        device: str = "cpu",
+        *args,
+        **kwargs,
     ):
         self.model = model.to(device)
         self.train_dataset = train_dataset

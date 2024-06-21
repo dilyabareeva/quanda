@@ -17,9 +17,7 @@ class BaseAggregator(ABC):
             self.scores = torch.zeros(explanations.shape[1])
 
         if explanations.shape[1] != self.scores.shape[0]:
-            raise ValueError(
-                f"Explanations shape {explanations.shape} does not match the expected shape {self.scores.shape}"
-            )
+            raise ValueError(f"Explanations shape {explanations.shape} does not match the expected shape {self.scores.shape}")
 
     def reset(self, *args, **kwargs):
         """

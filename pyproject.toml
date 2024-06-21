@@ -29,7 +29,7 @@ ignore_errors = true # TODO: change this
 
 # Black formatting
 [tool.black]
-line-length = 120
+line-length = 127
 include = '\.pyi?$'
 exclude = '''
 /(

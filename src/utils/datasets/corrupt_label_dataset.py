@@ -29,13 +29,25 @@ class CorruptLabelDataset(Dataset):
         labels_exist = IC.exists(path=cache_path, file_id=f"{dataset_id}_corrupt_labels")
         if ids_exist and labels_exist:
             self.corrupt_indices = IC.load(path=cache_path, file_id=f"{dataset_id}_corrupt_ids")
-            self.corrupt_labels = IC.load(path=cache_path, file_id=f"{dataset_id}_corrupt_labels", device=self.device)
+            self.corrupt_labels = IC.load(
+                path=cache_path,
+                file_id=f"{dataset_id}_corrupt_labels",
+                device=self.device,
+            )
         else:
             self.corrupt_indices = self.get_corrupt_sample_ids()
-            IC.save(path=cache_path, file_id=f"{dataset_id}_corrupt_ids", indices=self.corrupt_indices)
+            IC.save(
+                path=cache_path,
+                file_id=f"{dataset_id}_corrupt_ids",
+                indices=self.corrupt_indices,
+            )
 
             self.corrupt_labels = [self.corrupt_label(self.dataset[i][1]) for i in self.corrupt_indices]
-            IC.save(path=cache_path, file_id=f"{dataset_id}_corrupt_labels", indices=self.corrupt_labels)
+            IC.save(
+                path=cache_path,
+                file_id=f"{dataset_id}_corrupt_labels",
+                indices=self.corrupt_labels,
+            )
 
     def get_corrupt_sample_ids(self):
         torch.manual_seed(27)
