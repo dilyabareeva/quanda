@@ -64,16 +64,17 @@ class ModelRandomizationMetric(Metric):
             train_dataset=self.train_dataset,
         )
 
-        self.results = {"rank_correlations": []}
+        self.results = {"scores": []}
 
+        # TODO: create a validation utility function
         if isinstance(correlation_fn, str) and correlation_fn in correlation_functions:
-            self.correlation_measure = correlation_functions.get(correlation_fn)
+            self.corr_measure = correlation_functions.get(correlation_fn)
         elif callable(correlation_fn):
-            self.correlation_measure = correlation_fn
+            self.corr_measure = correlation_fn
         else:
             raise ValueError(
                 f"Invalid correlation function: expected one of {list(correlation_functions.keys())} or"
-                f"a Callable, but got {self.correlation_measure}."
+                f"a Callable, but got {self.corr_measure}."
             )
 
     def update(
@@ -82,37 +83,39 @@ class ModelRandomizationMetric(Metric):
         explanations: torch.Tensor,
         explanation_targets: torch.Tensor,
     ):
-        device = "cuda" if torch.cuda.is_available() else "cpu"
         rand_explanations = self.explain_fn(
-            model=self.rand_model, test_tensor=test_data, explanation_targets=explanation_targets, device=device
+            model=self.rand_model, test_tensor=test_data, explanation_targets=explanation_targets, device=self.device
         )
-        corrs = self.correlation_measure(explanations, rand_explanations)
-        self.results["rank_correlations"].append(corrs)
+        corrs = self.corr_measure(explanations, rand_explanations)
+        self.results["scores"].append(corrs)
 
     def compute(self):
-        return torch.cat(self.results["rank_correlations"]).mean()
+        return torch.cat(self.results["scores"]).mean()
 
     def reset(self):
-        self.results = {"rank_correlations": []}
+        self.results = {"scores": []}
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(self.model)
 
     def state_dict(self):
         state_dict = {
             "results_dict": self.results,
-            "random_model_state_dict": self.model.state_dict(),
-            "seed": self.seed,
-            "generator_state": self.generator.get_state(),
-            "explain_fn": self.explain_fn,
+            "rnd_model": self.model.state_dict(),
+            # Note to Galip: I suggest removing this, because those are explicitly passed
+            # as init arguments and this is an unexpected side effect if we overwrite them.
+            # Plus, we only ever use seed to randomize the model once.
+            # "seed": self.seed,
+            # "generator_state": self.generator.get_state(),
+            # "explain_fn": self.explain_fn,
         }
         return state_dict
 
     def load_state_dict(self, state_dict: dict):
         self.results = state_dict["results_dict"]
-        self.seed = state_dict["seed"]
-        self.explain_fn = state_dict["explain_fn"]
-        self.rand_model.load_state_dict(state_dict["random_model_state_dict"])
-        self.generator.set_state(state_dict["generator_state"])
+        self.rand_model.load_state_dict(state_dict["rnd_model"])
+        # self.seed = state_dict["seed"]
+        # self.explain_fn = state_dict["explain_fn"]
+        # self.generator.set_state(state_dict["generator_state"])
 
     def _randomize_model(self, model: torch.nn.Module):
         rand_model = copy.deepcopy(model)

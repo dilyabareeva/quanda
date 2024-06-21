@@ -5,7 +5,7 @@ SHELL = /bin/bash
 .PHONY: style
 style:
 	black .
-	flake8 .
+	flake8 . --pytest-parametrize-names-type=csv
 	python -m isort .
 	rm -f .coverage
 	rm -f .coverage.*

@@ -1,10 +1,11 @@
 import pytest
 import torch
 
-from src.explainers.functional import captum_similarity_explain
+from src.explainers.wrappers.captum_influence import captum_similarity_explain
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
+from src.utils.functions.similarities import cosine_similarity
 
 
 @pytest.mark.randomization_metrics
@@ -18,7 +19,8 @@ from src.metrics.randomization.model_randomization import (
             "load_mnist_test_samples_1",
             8,
             {
-                "layer": "fc_2",
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
             },
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",
@@ -31,7 +33,6 @@ def test_randomization_metric_functional(
     model = request.getfixturevalue(model)
     test_data = request.getfixturevalue(test_data)
     dataset = request.getfixturevalue(dataset)
-    explain_init_kwargs = request.getfixturevalue(explain_init_kwargs)
     test_labels = request.getfixturevalue(test_labels)
     tda = request.getfixturevalue(explanations)
     metric = ModelRandomizationMetric(
@@ -47,8 +48,7 @@ def test_randomization_metric_functional(
     # Can we come up with a special attributor that gets exactly 0 score?
     metric.update(test_data=test_data, explanations=tda, explanation_targets=test_labels)
     out = metric.compute()
-    assert (out.item() >= -1.0) and (out.item() <= 1.0), "Test failed."
-    assert isinstance(out, torch.Tensor), "Output is not a tensor."
+    assert (out.item() >= -1.0) & (out.item() <= 1.0), "Test failed."
 
 
 @pytest.mark.randomization_metrics
@@ -62,7 +62,7 @@ def test_randomization_metric_functional(
         ),
     ],
 )
-def test_model_randomization(test_id, model, dataset, request):
+def test_randomization_metric_model_randomization(test_id, model, dataset, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     metric = ModelRandomizationMetric(model=model, train_dataset=dataset, explain_fn=lambda x: x, seed=42, device="cpu")

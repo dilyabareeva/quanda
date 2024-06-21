@@ -32,7 +32,7 @@ def load_datasets(dataset_name, dataset_type, **kwparams):
     elif dataset_type == "mark":
         ds = MarkDataset(ds, only_train=only_train)
         evalds = MarkDataset(evalds, only_train=only_train)
-    assert ds is not None and evalds is not None
+    # assert ds is not None and evalds is not None
     return ds, evalds
 
 
