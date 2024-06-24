@@ -26,7 +26,7 @@ class CaptumInfluence(BaseExplainer):
         train_dataset: torch.utils.data.Dataset,
         device: Union[str, torch.device],
         explainer_cls: type,
-        **explain_kwargs: Any,
+        explain_kwargs: Any,
     ):
         super().__init__(
             model=model,
@@ -109,11 +109,12 @@ class CaptumSimilarity(CaptumInfluence):
 
         super().__init__(
             model=model,
+            model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
             device=device,
             explainer_cls=SimilarityInfluence,
-            **explainer_kwargs,
+            explain_kwargs=explainer_kwargs,
         )
 
     @property
