@@ -21,14 +21,22 @@ class SubclassIdentification:
         optimizer: Callable,
         lr: float,
         criterion: torch.nn.modules.loss._Loss,
+        scheduler: Optional[Callable] = None,
         optimizer_kwargs: Optional[dict] = None,
+        scheduler_kwargs: Optional[dict] = None,
         device: str = "cpu",
         *args,
         **kwargs,
     ):
         self.device = device
         self.trainer: Optional[BaseTrainer] = Trainer.from_arguments(
-            model=model, optimizer=optimizer, lr=lr, criterion=criterion, optimizer_kwargs=optimizer_kwargs
+            model=model,
+            optimizer=optimizer,
+            lr=lr,
+            scheduler=scheduler,
+            criterion=criterion,
+            optimizer_kwargs=optimizer_kwargs,
+            scheduler_kwargs=scheduler_kwargs,
         )
 
     @classmethod
@@ -37,6 +45,17 @@ class SubclassIdentification:
         super(SubclassIdentification, obj).__init__()
         obj.device = device
         obj.trainer = Trainer.from_lightning_module(model, pl_module)
+        return obj
+
+    @classmethod
+    def from_trainer(cls, trainer: BaseTrainer, device: str = "cpu", *args, **kwargs):
+        obj = cls.__new__(cls)
+        super(SubclassIdentification, obj).__init__()
+        if isinstance(trainer, BaseTrainer):
+            obj.trainer = trainer
+            obj.device = device
+        else:
+            raise ValueError("trainer must be an instance of BaseTrainer")
         return obj
 
     def evaluate(
@@ -106,8 +125,8 @@ class SubclassIdentification:
                 cache_dir=os.path.join(cache_dir, run_id),
                 train_dataset=train_dataset,
                 test_tensor=input,
-                init_kwargs=explain_kwargs,
                 device=device,
+                **explain_kwargs,
             )
             metric.update(labels, explanations)
 

@@ -29,6 +29,18 @@ class Metric(ABC):
 
         raise NotImplementedError
 
+    def explain_update(
+        self,
+        *args,
+        **kwargs,
+    ):
+        """
+        Used to update the metric with new data.
+        """
+        if hasattr(self, "explain_fn"):
+            raise NotImplementedError
+        raise RuntimeError("Explain function not found in explainer.")
+
     @abstractmethod
     def compute(self, *args, **kwargs):
         """
