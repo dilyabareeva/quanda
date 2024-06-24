@@ -5,7 +5,7 @@ import torch
 
 from src.explainers.functional import ExplainFunc
 from src.metrics.base import Metric
-from src.utils.common import _get_parent_module_from_name, make_func
+from src.utils.common import get_parent_module_from_name, make_func
 from src.utils.functions.correlations import (
     CorrelationFnLiterals,
     correlation_functions,
@@ -22,7 +22,6 @@ class ModelRandomizationMetric(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         explain_fn: ExplainFunc,
-        explain_init_kwargs: Optional[dict] = None,
         explain_fn_kwargs: Optional[dict] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
@@ -40,7 +39,6 @@ class ModelRandomizationMetric(Metric):
         self.model = model
         self.train_dataset = train_dataset
         self.explain_fn_kwargs = explain_fn_kwargs or {}
-        self.explain_init_kwargs = explain_init_kwargs or {}
         self.seed = seed
         self.model_id = model_id
         self.cache_dir = cache_dir
@@ -57,11 +55,10 @@ class ModelRandomizationMetric(Metric):
 
         self.explain_fn = make_func(
             func=explain_fn,
-            init_kwargs=explain_init_kwargs,
-            explain_kwargs=explain_fn_kwargs,
             model_id=self.model_id,
             cache_dir=self.cache_dir,
             train_dataset=self.train_dataset,
+            **self.explain_fn_kwargs,
         )
 
         self.results: Dict[str, List] = {"scores": []}
@@ -81,8 +78,23 @@ class ModelRandomizationMetric(Metric):
         self,
         test_data: torch.Tensor,
         explanations: torch.Tensor,
-        explanation_targets: torch.Tensor,
+        explanation_targets: Optional[torch.Tensor] = None,
     ):
+        rand_explanations = self.explain_fn(
+            model=self.rand_model, test_tensor=test_data, explanation_targets=explanation_targets, device=self.device
+        )
+        corrs = self.corr_measure(explanations, rand_explanations)
+        self.results["scores"].append(corrs)
+
+    def explain_update(
+        self,
+        test_data: torch.Tensor,
+        explanation_targets: Optional[torch.Tensor] = None,
+    ):
+        # TODO: add a test
+        explanations = self.explain_fn(
+            model=self.model, test_tensor=test_data, explanation_targets=explanation_targets, device=self.device
+        )
         rand_explanations = self.explain_fn(
             model=self.rand_model, test_tensor=test_data, explanation_targets=explanation_targets, device=self.device
         )
@@ -121,6 +133,6 @@ class ModelRandomizationMetric(Metric):
         rand_model = copy.deepcopy(model)
         for name, param in list(rand_model.named_parameters()):
             random_param_tensor = torch.empty_like(param).normal_(generator=self.generator)
-            parent = _get_parent_module_from_name(rand_model, name)
+            parent = get_parent_module_from_name(rand_model, name)
             parent.__setattr__(name.split(".")[-1], torch.nn.Parameter(random_param_tensor))
         return rand_model

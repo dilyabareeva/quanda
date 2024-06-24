@@ -43,8 +43,8 @@ def test_self_influence(test_id, init_kwargs, tmp_path):
         model_id="0",
         cache_dir=str(tmp_path),
         train_dataset=rand_dataset,
-        init_kwargs=init_kwargs,
         device="cpu",
+        **init_kwargs,
     ).argsort()
 
     # TODO: ...this is test 2, unless we want to compare that the outputs are the same.
@@ -136,7 +136,7 @@ def test_explain_functional(test_id, model, dataset, test_tensor, test_labels, m
         test_tensor=test_tensor,
         explanation_targets=test_labels,
         train_dataset=dataset,
-        init_kwargs=method_kwargs,
         device="cpu",
+        **method_kwargs,
     )
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"

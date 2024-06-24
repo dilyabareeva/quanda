@@ -1,6 +1,22 @@
-from typing import Dict, List, Optional, Union
+from inspect import signature
+from typing import Any, List, Optional, Union
 
 import torch
+
+
+def _init_explainer(explainer_cls, model, model_id, cache_dir, train_dataset, device, **kwargs):
+    # Python get explainer_cls expected init keyword arguments
+    exp_init_kwargs = signature(explainer_cls.__init__)
+    init_kwargs = {k: v for k, v in kwargs.items() if k in exp_init_kwargs.parameters}
+    explainer = explainer_cls(
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        train_dataset=train_dataset,
+        device=device,
+        **init_kwargs,
+    )
+    return explainer
 
 
 def explain_fn_from_explainer(
@@ -12,20 +28,22 @@ def explain_fn_from_explainer(
     train_dataset: torch.utils.data.Dataset,
     device: Union[str, torch.device],
     targets: Optional[Union[List[int], torch.Tensor]] = None,
-    init_kwargs: Optional[Dict] = None,
-    explain_kwargs: Optional[Dict] = None,
+    **kwargs: Any,
 ) -> torch.Tensor:
-    init_kwargs = init_kwargs or {}
-    explain_kwargs = explain_kwargs or {}
-
-    explainer = explainer_cls(
+    explainer = _init_explainer(
+        explainer_cls=explainer_cls,
         model=model,
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
         device=device,
-        **init_kwargs,
+        **kwargs,
     )
+
+    # Python get explainer_cls expected explain keyword arguments
+    exp_explain_kwargs = signature(explainer.explain)
+    explain_kwargs = {k: v for k, v in kwargs.items() if k in exp_explain_kwargs.parameters}
+
     return explainer.explain(test=test_tensor, targets=targets, **explain_kwargs)
 
 
@@ -37,18 +55,20 @@ def self_influence_fn_from_explainer(
     train_dataset: torch.utils.data.Dataset,
     device: Union[str, torch.device],
     batch_size: Optional[int] = 32,
-    init_kwargs: Optional[Dict] = None,
-    explain_kwargs: Optional[Dict] = None,
+    **kwargs: Any,
 ) -> torch.Tensor:
-    init_kwargs = init_kwargs or {}
-    explain_kwargs = explain_kwargs or {}
-
-    explainer = explainer_cls(
+    explainer = _init_explainer(
+        explainer_cls=explainer_cls,
         model=model,
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
         device=device,
-        **init_kwargs,
+        **kwargs,
     )
-    return explainer.self_influence(batch_size=batch_size, **explain_kwargs)
+
+    # Python get explainer_cls expected explain keyword arguments
+    exp_si_kwargs = signature(explainer.self_influence)
+    si_kwargs = {k: v for k, v in kwargs.items() if k in exp_si_kwargs.parameters}
+
+    return explainer.self_influence(batch_size=batch_size, **si_kwargs)

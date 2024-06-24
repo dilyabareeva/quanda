@@ -11,7 +11,7 @@ def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
     return reduce(getattr, layer_name.split("."), model)
 
 
-def _get_parent_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
+def get_parent_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
     return reduce(getattr, layer_name.split(".")[:-1], model)
 
 
