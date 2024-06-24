@@ -33,7 +33,7 @@ class ActivationDataset(Dataset):
         samples = []
         labels = []
 
-        for sample, label in self:
+        for sample, label in self:  # type: ignore
             samples.append(sample)
             labels.append(label)
 

@@ -1,3 +1,5 @@
+from typing import List
+
 import torch
 
 from src.metrics.base import Metric
@@ -12,8 +14,8 @@ class IdenticalClass(Metric):
         *args,
         **kwargs,
     ):
-        super().__init__(model=model, train_dataset=train_dataset, device=device, *args, **kwargs)
-        self.scores = []
+        super().__init__(model=model, train_dataset=train_dataset, device=device)
+        self.scores: List[torch.Tensor] = []
 
     def update(self, test_labels: torch.Tensor, explanations: torch.Tensor):
         """
@@ -65,11 +67,11 @@ class IdenticalSubclass(IdenticalClass):
         *args,
         **kwargs,
     ):
-        assert len(subclass_labels) == len(train_dataset), (
-            f"Number of subclass labels ({len(subclass_labels)}) "
-            f"does not match the number of train dataset samples ({len(train_dataset)})."
-        )
         super().__init__(model, train_dataset, device, *args, **kwargs)
+        assert len(subclass_labels) == self.dataset_length, (
+            f"Number of subclass labels ({len(subclass_labels)}) "
+            f"does not match the number of train dataset samples ({self.dataset_length})."
+        )
         self.subclass_labels = subclass_labels
 
     def update(self, test_subclasses: torch.Tensor, explanations: torch.Tensor):

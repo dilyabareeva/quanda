@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#  type: ignore
+
 from typing import Callable, List, Optional, Union
 
 import torch
@@ -37,7 +40,7 @@ class SampleTransformDataset(Dataset):
             self.mark_indices = IC.load(path="./datasets", file_id=f"{dataset_id}_mark_ids")
         else:
             self.mark_indices = self.get_mark_sample_ids()
-            IC.save(path=cache_path, file_id=f"{dataset_id}_mark_ids")
+            IC.save(path=cache_path, file_id=f"{dataset_id}_mark_ids", indices=self.mark_indices)
 
     def __len__(self):
         return len(self.dataset)

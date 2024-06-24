@@ -23,7 +23,7 @@ class BaseAggregator(ABC):
         """
         Used to reset the aggregator state.
         """
-        self.scores: torch.Tensor = None
+        self.scores = None
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
@@ -38,7 +38,9 @@ class BaseAggregator(ABC):
         return {"scores": self.scores}
 
     def compute(self) -> torch.Tensor:
-        return self.scores.argsort()
+        if self.scores is None:
+            raise ValueError("No scores to aggregate.")
+        return self.scores
 
 
 class SumAggregator(BaseAggregator):

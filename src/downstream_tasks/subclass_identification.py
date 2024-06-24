@@ -1,44 +1,48 @@
 import os
 from typing import Callable, Dict, Optional, Union
 
+import lightning as L
 import torch
 
-from explainers.functional import ExplainFunc
-from explainers.wrappers.captum_influence import captum_similarity_explain
-from metrics.localization.identical_class import IdenticalClass
-from utils.datasets.group_label_dataset import (
+from src.explainers.functional import ExplainFunc
+from src.explainers.wrappers.captum_influence import captum_similarity_explain
+from src.metrics.localization.identical_class import IdenticalClass
+from src.utils.datasets.group_label_dataset import (
     ClassToGroupLiterals,
     GroupLabelDataset,
 )
-from utils.training.trainer import BaseTrainer, Trainer
+from src.utils.training.trainer import BaseTrainer, Trainer
 
 
 class SubclassIdentification:
-    def __init__(self, device: str = "cpu", *args, **kwargs):
-        self.device = device
-        self.trainer: Optional[BaseTrainer] = None
-
-    def init_trainer_from_lightning_module(self, pl_module):
-        trainer = Trainer()
-        trainer.from_lightning_module(pl_module)
-        self.trainer = trainer
-
-    def init_trainer_from_train_arguments(
+    def __init__(
         self,
         model: torch.nn.Module,
         optimizer: Callable,
         lr: float,
         criterion: torch.nn.modules.loss._Loss,
         optimizer_kwargs: Optional[dict] = None,
+        device: str = "cpu",
+        *args,
+        **kwargs,
     ):
-        trainer = Trainer()
-        trainer.from_train_arguments(model, optimizer, lr, criterion, optimizer_kwargs)
-        self.trainer = trainer
+        self.device = device
+        self.trainer: Optional[BaseTrainer] = Trainer.from_arguments(
+            model=model, optimizer=optimizer, lr=lr, criterion=criterion, optimizer_kwargs=optimizer_kwargs
+        )
+
+    @classmethod
+    def from_pl_module(cls, model: torch.nn.Module, pl_module: L.LightningModule, device: str = "cpu", *args, **kwargs):
+        obj = cls.__new__(cls)
+        super(SubclassIdentification, obj).__init__()
+        obj.device = device
+        obj.trainer = Trainer.from_lightning_module(model, pl_module)
+        return obj
 
     def evaluate(
         self,
-        train_dataset: torch.utils.data.dataset,
-        val_dataset: Optional[torch.utils.data.dataset] = None,
+        train_dataset: torch.utils.data.Dataset,
+        val_dataset: Optional[torch.utils.data.Dataset] = None,
         n_classes: int = 10,
         n_groups: int = 2,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
@@ -81,13 +85,15 @@ class SubclassIdentification:
                 class_to_group=grouped_dataset.class_to_group,
                 seed=seed,
             )
-            val_loader = torch.utils.data.DataLoader(grouped_val_dataset, batch_size=batch_size)
+            val_loader: Optional[torch.utils.data.DataLoader] = torch.utils.data.DataLoader(
+                grouped_val_dataset, batch_size=batch_size
+            )
         else:
             val_loader = None
 
         model = self.trainer.fit(
-            grouped_train_loader,
-            val_loader,
+            train_loader=grouped_train_loader,
+            val_loader=val_loader,
             trainer_kwargs=trainer_kwargs,
         )
         metric = IdenticalClass(model=model, train_dataset=train_dataset, device="cpu")

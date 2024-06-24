@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+#  type: ignore
+
 import random
 
 import torch

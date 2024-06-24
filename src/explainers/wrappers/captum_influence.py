@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional, Union
 
 import torch
-from captum.influence import SimilarityInfluence
+from captum.influence import SimilarityInfluence  # type: ignore
 
 from src.explainers.base import BaseExplainer
 from src.explainers.utils import (
@@ -117,7 +117,7 @@ class CaptumSimilarity(CaptumInfluence):
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None, **kwargs: Any):
         # We might want to pass the top_k as an argument in some scenarios
-        top_k = kwargs.get("top_k", len(self.train_dataset))
+        top_k = kwargs.get("top_k", self.dataset_length)
 
         topk_idx, topk_val = super().explain(test=test, top_k=top_k, **kwargs)[self.layer]
         inverted_idx = topk_idx.argsort()

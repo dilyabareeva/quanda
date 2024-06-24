@@ -1,5 +1,5 @@
 import random
-from typing import Dict, Literal, Optional, Union
+from typing import Dict, Literal, Optional, Sized, Union
 
 import torch
 from torch.utils.data import Dataset
@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 ClassToGroupLiterals = Literal["random"]
 
 
-class GroupLabelDataset:
+class GroupLabelDataset(Dataset):
     def __init__(
         self,
         dataset: Dataset,
@@ -15,7 +15,7 @@ class GroupLabelDataset:
         n_groups: int = 2,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
         seed: Optional[int] = 27,
-        device: int = "cpu",
+        device: str = "cpu",
     ):
         self.dataset = dataset
         self.n_classes = n_classes
@@ -47,4 +47,7 @@ class GroupLabelDataset:
         return y
 
     def __len__(self):
-        return len(self.dataset)
+        if isinstance(self.dataset, Sized):
+            return len(self.dataset)
+        dl = torch.utils.data.DataLoader(self.dataset, batch_size=1)
+        return len(dl)

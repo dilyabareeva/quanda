@@ -25,7 +25,8 @@ include_trailing_comma = true
 python_version = "3.11"
 warn_return_any = false
 warn_unused_configs = true
-ignore_errors = true # TODO: change this
+check_untyped_defs = true
+#ignore_errors = true # TODO: change this
 
 # Black formatting
 [tool.black]

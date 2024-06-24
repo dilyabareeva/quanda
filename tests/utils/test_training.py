@@ -43,7 +43,7 @@ def test_easy_trainer(
     criterion = request.getfixturevalue(criterion)
     old_model = copy.deepcopy(model)
     trainer = Trainer()
-    model = trainer.from_train_arguments(
+    model = trainer.from_arguments(
         model=model,
         optimizer=optimizer,
         lr=lr,

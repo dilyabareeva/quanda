@@ -1,5 +1,5 @@
 import copy
-from typing import Callable, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import torch
 
@@ -22,8 +22,8 @@ class ModelRandomizationMetric(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         explain_fn: ExplainFunc,
-        explain_init_kwargs: Optional[dict] = {},
-        explain_fn_kwargs: Optional[dict] = {},
+        explain_init_kwargs: Optional[dict] = None,
+        explain_fn_kwargs: Optional[dict] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         model_id: str = "0",
@@ -39,8 +39,8 @@ class ModelRandomizationMetric(Metric):
         )
         self.model = model
         self.train_dataset = train_dataset
-        self.explain_fn_kwargs = explain_fn_kwargs
-        self.explain_init_kwargs = explain_init_kwargs
+        self.explain_fn_kwargs = explain_fn_kwargs or {}
+        self.explain_init_kwargs = explain_init_kwargs or {}
         self.seed = seed
         self.model_id = model_id
         self.cache_dir = cache_dir
@@ -64,11 +64,11 @@ class ModelRandomizationMetric(Metric):
             train_dataset=self.train_dataset,
         )
 
-        self.results = {"scores": []}
+        self.results: Dict[str, List] = {"scores": []}
 
         # TODO: create a validation utility function
         if isinstance(correlation_fn, str) and correlation_fn in correlation_functions:
-            self.corr_measure = correlation_functions.get(correlation_fn)
+            self.corr_measure = correlation_functions[correlation_fn]
         elif callable(correlation_fn):
             self.corr_measure = correlation_fn
         else:
