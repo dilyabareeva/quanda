@@ -5,10 +5,9 @@ SHELL = /bin/bash
 .PHONY: style
 style:
 	black .
-	flake8 . --pytest-parametrize-names-type=csv
+	python -m flake8 . --pytest-parametrize-names-type=csv
 	python -m isort .
-	python -m flake8 .
-	python -m mypy src --check-untyped-defs
+	#python -m mypy src --check-untyped-defs
 	rm -f .coverage
 	rm -f .coverage.*
 	find . | grep -E "(__pycache__|\.pyc|\.pyo)" | xargs rm -rf

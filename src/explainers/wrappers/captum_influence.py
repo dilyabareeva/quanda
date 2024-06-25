@@ -1,3 +1,5 @@
+import copy
+import warnings
 from typing import Any, Callable, List, Optional, Union
 
 import torch
@@ -135,12 +137,13 @@ class CaptumSimilarity(CaptumInfluence):
         self._layer = layers[0]
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None, **kwargs: Any):
-        # We might want to pass the top_k as an argument in some scenarios
-        top_k = kwargs.get("top_k", self.dataset_length)
+        if "top_k" in kwargs:
+            kwargs = copy.deepcopy(kwargs)
+            kwargs["top_k"] = self.dataset_length
+            warnings.warn("top_k is not supported by CaptumSimilarity explainer. Ignoring the argument.")
 
-        topk_idx, topk_val = super().explain(test=test, top_k=top_k, **kwargs)[self.layer]
-        inverted_idx = topk_idx.argsort()
-        # Note to Galip: this is equivalent to your implementation (I checked the values)
+        topk_idx, topk_val = super().explain(test=test, top_k=self.dataset_length, **kwargs)[self.layer]
+        _, inverted_idx = topk_idx.sort()
         tda = torch.gather(topk_val, 1, inverted_idx)
 
         return tda

@@ -5,8 +5,8 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
+from src.utils.datasets.group_label_dataset import GroupLabelDataset
 from tests.models import LeNet
-from utils.datasets.group_label_dataset import GroupLabelDataset
 
 MNIST_IMAGE_SIZE = 28
 BATCH_SIZE = 124

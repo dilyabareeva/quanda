@@ -16,11 +16,12 @@ from torchvision.models import resnet18
 from torchvision.utils import make_grid
 from tqdm import tqdm
 
+from src.explainers.wrappers.captum_influence import captum_similarity_explain
+from src.metrics.localization.identical_class import IdenticalClass
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
-from src.utils.explain_wrapper import explain
-from src.utils.functions.similarities import cosine_similarity
+from src.metrics.unnamed.top_k_overlap import TopKOverlap
 
 DEVICE = "cpu"  # "cuda" if torch.cuda.is_available() else "cpu"
 print("Running on device:", DEVICE.upper())
@@ -111,36 +112,43 @@ def main():
     # Computing metrics while generating explanations
     # ++++++++++++++++++++++++++++++++++++++++++
 
-    metric = ModelRandomizationMetric(
+    explain = captum_similarity_explain
+    explain_fn_kwargs = {"layers": "avgpool"}
+    model_id = "default_model_id"
+    cache_dir = "./cache"
+    model_rand = ModelRandomizationMetric(
         model=model,
         train_dataset=train_set,
         explain_fn=explain,
-        explain_fn_kwargs={"method": "SimilarityInfluence", "layer": "avgpool"},
-        model_id="default_model_id",
-        cache_dir="./cache",
+        explain_fn_kwargs=explain_fn_kwargs,
+        model_id=model_id,
+        cache_dir=cache_dir,
         correlation_fn="spearman",
         seed=42,
-        device="cpu",
+        device=DEVICE,
     )
+
+    id_class = IdenticalClass(model=model, train_dataset=train_set, device=DEVICE)
+
+    top_k = TopKOverlap(model=model, train_dataset=train_set, top_k=1, device="cpu")
 
     # iterate over test set and feed tensor batches first to explain, then to metric
     for i, (data, target) in enumerate(tqdm(test_loader)):
         data, target = data.to(DEVICE), target.to(DEVICE)
         tda = explain(
             model=model,
-            model_id="default_model_id",
-            cache_dir="./cache",
-            method="SimilarityInfluence",
-            train_dataset=train_set,
+            model_id=model_id,
+            cache_dir=cache_dir,
             test_tensor=data,
-            layer="avgpool",
-            similarity_metric=cosine_similarity,
-            similarity_direction="max",
-            batch_size=1,
+            train_dataset=train_set,
+            device=DEVICE,
+            **explain_fn_kwargs,
         )
-        metric.update(data, tda)
+        model_rand.update(data, tda)
+        id_class.update(target, tda)
+        top_k.update(target)
 
-    print("Model randomization metric output:", metric.compute().item())
+    print("Model randomization metric output:", model_rand.compute().item())
     print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
 
 

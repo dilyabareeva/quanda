@@ -3,9 +3,9 @@ import shutil
 
 import pytest
 
-from downstream_tasks.subclass_identification import SubclassIdentification
-from explainers.wrappers.captum_influence import captum_similarity_explain
-from utils.functions.similarities import cosine_similarity
+from src.downstream_tasks.subclass_identification import SubclassIdentification
+from src.explainers.wrappers.captum_influence import captum_similarity_explain
+from src.utils.functions.similarities import cosine_similarity
 
 
 @pytest.mark.downstream_tasks
@@ -51,6 +51,7 @@ def test_identical_subclass_metrics(
     explain,
     explain_kwargs,
     expected_score,
+    tmp_path,
     request,
 ):
     model = request.getfixturevalue(model)
@@ -73,7 +74,7 @@ def test_identical_subclass_metrics(
         explain_fn=explain,
         explain_kwargs=explain_kwargs,
         trainer_kwargs={"max_epochs": max_epochs},
-        cache_dir="./test_cache",
+        cache_dir=str(tmp_path),
         model_id="default_model_id",
         run_id="default_subclass_identification",
         seed=seed,

@@ -3,7 +3,7 @@ import copy
 import pytest
 import torch
 
-from utils.training.trainer import Trainer
+from src.utils.training.trainer import Trainer
 
 
 @pytest.mark.utils
