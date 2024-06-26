@@ -1,14 +1,11 @@
-import os
-import shutil
-
 import pytest
 
-from src.downstream_tasks.subclass_identification import SubclassIdentification
 from src.explainers.wrappers.captum_influence import captum_similarity_explain
+from src.toy_benchmarks.subclass_detection import SubclassDetection
 from src.utils.functions.similarities import cosine_similarity
 
 
-@pytest.mark.downstream_tasks
+@pytest.mark.toy_benchmarks
 @pytest.mark.parametrize(
     "test_id, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, test_labels, "
     "batch_size, explain, explain_kwargs, expected_score",
@@ -59,30 +56,29 @@ def test_identical_subclass_metrics(
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
 
-    dst_eval = SubclassIdentification(
+    dst_eval = SubclassDetection.generate(
         model=model,
-        optimizer=optimizer,
-        lr=lr,
-        criterion=criterion,
-    )
-    score = dst_eval.evaluate(
         train_dataset=dataset,
+        optimizer=optimizer,
+        criterion=criterion,
+        lr=lr,
         val_dataset=None,
         n_classes=n_classes,
         n_groups=n_groups,
         class_to_group="random",
-        explain_fn=explain,
-        explain_kwargs=explain_kwargs,
         trainer_kwargs={"max_epochs": max_epochs},
-        cache_dir=str(tmp_path),
-        model_id="default_model_id",
-        run_id="default_subclass_identification",
         seed=seed,
         batch_size=batch_size,
         device="cpu",
     )
+    score = dst_eval.evaluate(
+        expl_dataset=dataset,
+        explain_fn=explain,
+        explain_kwargs=explain_kwargs,
+        cache_dir=str(tmp_path),
+        model_id="default_model_id",
+        batch_size=batch_size,
+        device="cpu",
+    )
 
-    # remove cache directory if it exists
-    if os.path.exists("./test_cache"):
-        shutil.rmtree("./test_cache")
     assert score == expected_score
