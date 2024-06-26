@@ -1,6 +1,6 @@
 [project]
-name = "data_attribution_evaluation"
-description = "data_attribution_evaluation"
+name = "quanda"
+description = "quanda"
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.11"
