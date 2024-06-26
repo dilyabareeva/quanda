@@ -14,7 +14,7 @@ class BaseTrainer(metaclass=abc.ABCMeta):
         self,
         train_loader: torch.utils.data.dataloader.DataLoader,
         val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
-        trainer_kwargs: Optional[dict] = None,
+        trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
     ) -> torch.nn.Module:
@@ -69,7 +69,7 @@ class Trainer(BaseTrainer):
         self,
         train_loader: torch.utils.data.dataloader.DataLoader,
         val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
-        trainer_kwargs: Optional[dict] = None,
+        trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
     ):
@@ -80,9 +80,9 @@ class Trainer(BaseTrainer):
         if self.module is None:
             raise ValueError("Model not initialized. Please initialize using from_arguments or from_lightning_module")
 
-        if trainer_kwargs is None:
-            trainer_kwargs = {}
-        trainer = L.Trainer(**trainer_kwargs)
+        if trainer_fit_kwargs is None:
+            trainer_fit_kwargs = {}
+        trainer = L.Trainer(**trainer_fit_kwargs)
         trainer.fit(self.module, train_loader, val_loader)
 
         self.model.load_state_dict(self.module.model.state_dict())

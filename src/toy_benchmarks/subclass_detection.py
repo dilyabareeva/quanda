@@ -1,6 +1,7 @@
 import os
 from typing import Any, Callable, Dict, Optional, Union
 
+import lightning as L
 import torch
 
 from src.explainers.functional import ExplainFunc
@@ -24,7 +25,7 @@ class SubclassDetection(ToyBenchmark):
     ):
         super().__init__(device=device)
 
-        self.trainer: BaseTrainer
+        self.trainer: Optional[BaseTrainer] = None
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
         self.dataset_transform: Callable
@@ -49,7 +50,7 @@ class SubclassDetection(ToyBenchmark):
         n_classes: int = 10,
         n_groups: int = 2,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
-        trainer_kwargs: Optional[dict] = None,
+        trainer_fit_kwargs: Optional[dict] = None,
         seed: Optional[int] = 27,
         batch_size: int = 8,
         device: str = "cpu",
@@ -62,6 +63,7 @@ class SubclassDetection(ToyBenchmark):
 
         obj = cls(device=device)
 
+        obj.model = model
         obj.trainer = Trainer.from_arguments(
             model=model,
             optimizer=optimizer,
@@ -71,14 +73,113 @@ class SubclassDetection(ToyBenchmark):
             optimizer_kwargs=optimizer_kwargs,
             scheduler_kwargs=scheduler_kwargs,
         )
+        obj._generate(
+            train_dataset=train_dataset,
+            val_dataset=val_dataset,
+            n_classes=n_classes,
+            n_groups=n_groups,
+            class_to_group=class_to_group,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            seed=seed,
+            batch_size=batch_size,
+        )
+        return obj
 
-        if obj.trainer is None:
+    @classmethod
+    def generate_from_pl(
+        cls,
+        model: torch.nn.Module,
+        pl_module: L.LightningModule,
+        train_dataset: torch.utils.data.Dataset,
+        val_dataset: Optional[torch.utils.data.Dataset] = None,
+        n_classes: int = 10,
+        n_groups: int = 2,
+        class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
+        trainer_fit_kwargs: Optional[dict] = None,
+        seed: Optional[int] = 27,
+        batch_size: int = 8,
+        device: str = "cpu",
+        *args,
+        **kwargs,
+    ):
+
+        obj = cls(device=device)
+
+        obj.model = model
+        obj.trainer = Trainer.from_lightning_module(model, pl_module)
+
+        obj._generate(
+            train_dataset=train_dataset,
+            val_dataset=val_dataset,
+            n_classes=n_classes,
+            n_groups=n_groups,
+            class_to_group=class_to_group,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            seed=seed,
+            batch_size=batch_size,
+        )
+        return obj
+
+    @classmethod
+    def generate_from_trainer(
+        cls,
+        model: torch.nn.Module,
+        trainer: BaseTrainer,
+        train_dataset: torch.utils.data.Dataset,
+        val_dataset: Optional[torch.utils.data.Dataset] = None,
+        n_classes: int = 10,
+        n_groups: int = 2,
+        class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
+        trainer_fit_kwargs: Optional[dict] = None,
+        seed: Optional[int] = 27,
+        batch_size: int = 8,
+        device: str = "cpu",
+        *args,
+        **kwargs,
+    ):
+
+        obj = cls(device=device)
+
+        obj.model = model
+
+        if isinstance(trainer, BaseTrainer):
+            obj.trainer = trainer
+            obj.device = device
+        else:
+            raise ValueError("trainer must be an instance of BaseTrainer")
+
+        obj._generate(
+            train_dataset=train_dataset,
+            val_dataset=val_dataset,
+            n_classes=n_classes,
+            n_groups=n_groups,
+            class_to_group=class_to_group,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            seed=seed,
+            batch_size=batch_size,
+        )
+        return obj
+
+    def _generate(
+        self,
+        train_dataset: torch.utils.data.Dataset,
+        val_dataset: Optional[torch.utils.data.Dataset] = None,
+        n_classes: int = 10,
+        n_groups: int = 2,
+        class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
+        trainer_fit_kwargs: Optional[dict] = None,
+        seed: Optional[int] = 27,
+        batch_size: int = 8,
+        *args,
+        **kwargs,
+    ):
+        if self.trainer is None:
             raise ValueError(
                 "Trainer not initialized. Please initialize trainer using init_trainer_from_lightning_module or "
                 "init_trainer_from_train_arguments"
             )
 
-        obj.train_dataset = train_dataset
+        self.train_dataset = train_dataset
         grouped_dataset = GroupLabelDataset(
             dataset=train_dataset,
             n_classes=n_classes,
@@ -86,31 +187,29 @@ class SubclassDetection(ToyBenchmark):
             class_to_group=class_to_group,
             seed=seed,
         )
-        obj.class_to_group = grouped_dataset.class_to_group
-        obj.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
-        obj.original_train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
+        self.class_to_group = grouped_dataset.class_to_group
+        self.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
+        self.original_train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
         if val_dataset:
             grouped_val_dataset = GroupLabelDataset(
                 dataset=train_dataset,
-                class_to_group=obj.class_to_group,
+                class_to_group=self.class_to_group,
             )
-            obj.grouped_val_dl = torch.utils.data.DataLoader(grouped_val_dataset, batch_size=batch_size)
+            self.grouped_val_dl = torch.utils.data.DataLoader(grouped_val_dataset, batch_size=batch_size)
         else:
-            obj.grouped_val_dl = None
+            self.grouped_val_dl = None
 
-        obj.model = obj.trainer.fit(
-            train_loader=obj.grouped_train_dl,
-            val_loader=obj.grouped_val_dl,
-            trainer_kwargs=trainer_kwargs,
+        self.model = self.trainer.fit(
+            train_loader=self.grouped_train_dl,
+            val_loader=self.grouped_val_dl,
+            trainer_fit_kwargs=trainer_fit_kwargs,
         )
 
-        obj.bench_state = {
-            "model": obj.model,
-            "train_dataset": obj.train_dataset,  # ok this probably won't work, but that's the idea
+        self.bench_state = {
+            "model": self.model,
+            "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
             "class_to_group": class_to_group,
         }
-
-        return obj
 
     @classmethod
     def load(cls, path: str, device: str = "cpu", batch_size: int = 8, *args, **kwargs):
@@ -161,27 +260,6 @@ class SubclassDetection(ToyBenchmark):
         This method should save the benchmark components to a file/folder.
         """
         torch.save(self.bench_state, path)
-
-    """
-    @classmethod
-    def generate_from_pl(cls, model: torch.nn.Module, pl_module: L.LightningModule, device: str = "cpu", *args, **kwargs):
-        obj = cls.__new__(cls)
-        super(SubclassDetection, obj).__init__()
-        obj.device = device
-        obj.trainer = Trainer.from_lightning_module(model, pl_module)
-        return obj
-
-    @classmethod
-    def generate_from_trainer(cls, trainer: BaseTrainer, device: str = "cpu", *args, **kwargs):
-        obj = cls.__new__(cls)
-        super(SubclassDetection, obj).__init__()
-        if isinstance(trainer, BaseTrainer):
-            obj.trainer = trainer
-            obj.device = device
-        else:
-            raise ValueError("trainer must be an instance of BaseTrainer")
-        return obj
-    """
 
     def evaluate(
         self,
