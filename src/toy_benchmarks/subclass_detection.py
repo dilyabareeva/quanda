@@ -75,6 +75,7 @@ class SubclassDetection(ToyBenchmark):
                 "init_trainer_from_train_arguments"
             )
 
+        obj.train_dataset = train_dataset
         grouped_dataset = GroupLabelDataset(
             dataset=train_dataset,
             n_classes=n_classes,

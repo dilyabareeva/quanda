@@ -28,11 +28,11 @@ from src.utils.functions.similarities import cosine_similarity
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
-            1.0,
+            0.25,
         ),
     ],
 )
-def test_identical_subclass_metrics(
+def test_subclass_detection(
     test_id,
     model,
     optimizer,
