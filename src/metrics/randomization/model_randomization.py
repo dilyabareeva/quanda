@@ -27,7 +27,7 @@ class ModelRandomizationMetric(Metric):
         seed: int = 42,
         model_id: str = "0",
         cache_dir: str = "./cache",
-        device: str = "cpu" if torch.cuda.is_available() else "cuda",
+        device: str = "cpu",
         *args,
         **kwargs,
     ):
@@ -101,7 +101,7 @@ class ModelRandomizationMetric(Metric):
         corrs = self.corr_measure(explanations, rand_explanations)
         self.results["scores"].append(corrs)
 
-    def compute(self):
+    def compute(self) -> torch.Tensor:
         return torch.cat(self.results["scores"]).mean()
 
     def reset(self):
@@ -109,7 +109,7 @@ class ModelRandomizationMetric(Metric):
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(self.model)
 
-    def state_dict(self):
+    def state_dict(self) -> Dict:
         state_dict = {
             "results_dict": self.results,
             "rnd_model": self.model.state_dict(),
@@ -129,7 +129,7 @@ class ModelRandomizationMetric(Metric):
         # self.explain_fn = state_dict["explain_fn"]
         # self.generator.set_state(state_dict["generator_state"])
 
-    def _randomize_model(self, model: torch.nn.Module):
+    def _randomize_model(self, model: torch.nn.Module) -> torch.nn.Module:
         rand_model = copy.deepcopy(model)
         for name, param in list(rand_model.named_parameters()):
             random_param_tensor = torch.empty_like(param).normal_(generator=self.generator)
