@@ -1,5 +1,5 @@
 import os
-from typing import Callable, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 import torch
 
@@ -11,7 +11,7 @@ from src.utils.datasets.group_label_dataset import (
     ClassToGroupLiterals,
     GroupLabelDataset,
 )
-from src.utils.training.trainer import Trainer
+from src.utils.training.trainer import BaseTrainer, Trainer
 
 
 class SubclassDetection(ToyBenchmark):
@@ -23,13 +23,16 @@ class SubclassDetection(ToyBenchmark):
         **kwargs,
     ):
         super().__init__(device=device)
-        self.trainer = None
-        self.model = None
-        self.train_dataset = None
-        self.dataset_transform = None
-        self.grouped_train_dl = None
-        self.original_train_dl = None
-        self.bench_state = None
+
+        self.trainer: BaseTrainer
+        self.model: torch.nn.Module
+        self.train_dataset: torch.utils.data.Dataset
+        self.dataset_transform: Callable
+        self.grouped_train_dl: torch.utils.data.DataLoader
+        self.grouped_val_dl: Optional[torch.utils.data.DataLoader]
+        self.original_train_dl: torch.utils.data.DataLoader
+        self.bench_state: Dict[str, Any]
+        self.class_to_group: Dict[int, int]
 
     @classmethod
     def generate(
@@ -91,13 +94,13 @@ class SubclassDetection(ToyBenchmark):
                 dataset=train_dataset,
                 class_to_group=obj.class_to_group,
             )
-            obj.val_loader = torch.utils.data.DataLoader(grouped_val_dataset, batch_size=batch_size)
+            obj.grouped_val_dl = torch.utils.data.DataLoader(grouped_val_dataset, batch_size=batch_size)
         else:
-            obj.val_loader = None
+            obj.grouped_val_dl = None
 
         obj.model = obj.trainer.fit(
             train_loader=obj.grouped_train_dl,
-            val_loader=obj.val_loader,
+            val_loader=obj.grouped_val_dl,
             trainer_kwargs=trainer_kwargs,
         )
 
@@ -192,6 +195,8 @@ class SubclassDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
+        explain_kwargs = explain_kwargs or {}
+
         grouped_expl_ds = GroupLabelDataset(
             dataset=expl_dataset,
             class_to_group=self.class_to_group,

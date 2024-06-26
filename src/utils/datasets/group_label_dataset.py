@@ -20,14 +20,15 @@ class GroupLabelDataset(Dataset):
         device: str = "cpu",
     ):
         self.dataset = dataset
-        self.n_classes = n_classes
-        self.n_groups = n_groups
         self.generator = torch.Generator(device=device)
 
         if class_to_group == "random":
 
             if (n_classes is None) or (n_groups is None):
                 raise ValueError("n_classes and n_groups must be specified when class_to_group is 'random'")
+
+            self.n_classes = n_classes
+            self.n_groups = n_groups
 
             # create a dictionary of class groups that assigns each class to a group
             random.seed(seed)
