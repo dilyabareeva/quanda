@@ -7,7 +7,7 @@ import torch
 from src.explainers.functional import ExplainFunc
 from src.explainers.wrappers.captum_influence import captum_similarity_explain
 from src.metrics.localization.identical_class import IdenticalClass
-from src.utils.datasets.group_label_dataset import (
+from src.utils.toy_datasets.group_label_dataset import (
     ClassToGroupLiterals,
     GroupLabelDataset,
 )
