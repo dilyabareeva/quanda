@@ -9,8 +9,8 @@ from torch import Tensor
 from torch.utils.data import DataLoader
 
 from src.utils.common import _get_module_from_name
+from src.utils.datasets.activation_dataset import ActivationDataset
 from src.utils.explanations import BatchedCachedExplanations
-from src.utils.toy_datasets.activation_dataset import ActivationDataset
 
 
 class Cache:

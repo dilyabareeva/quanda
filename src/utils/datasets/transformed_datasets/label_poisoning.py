@@ -1,19 +1,16 @@
-#!/usr/bin/env python
-#  type: ignore
-
 from typing import List, Optional, Union
 
 import torch
 
-from src.utils.toy_datasets.base import ToyDataset
+from src.utils.datasets.transformed_datasets.base import TransformedDataset
 
 
-class LabelPoisoningDataset(ToyDataset):
+class LabelPoisoningDataset(TransformedDataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
-        subset_idx: Optional[Union[List[int], torch.Tensor[int]]] = None,
+        subset_idx: Optional[Union[List[int], torch.Tensor]] = None,
         p: int = 1.0,  # TODO: decide on default value vis-à-vis subset_idx
         seed: int = 42,
         device: str = "cpu",

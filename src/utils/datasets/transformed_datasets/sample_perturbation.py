@@ -2,17 +2,17 @@ from typing import Callable, List, Literal, Optional, Union
 
 import torch
 
-from src.utils.datasets.toy_datasets.base import ToyDataset
+from src.utils.datasets.transformed_datasets.base import TransformedDataset
 
 ClassToGroupLiterals = Literal["random"]
 
 
-class SamplePerturbationDataset(ToyDataset):
+class SamplePerturbationDataset(TransformedDataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
-        subset_idx: Optional[Union[int, List[int], torch.Tensor[int]]] = None,
+        subset_idx: Optional[Union[int, List[int], torch.Tensor]] = None,
         p: float = 1.0,
         seed: int = 42,
         device: str = "cpu",

@@ -1,19 +1,17 @@
-#!/usr/bin/env python
-#  type: ignore
-
 from typing import Callable, List, Optional, Union
 
 import torch
 from torch.utils.data.dataset import Dataset
 
 
-class PerturbedDataset(Dataset):
+class TransformedDataset(Dataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
         cache_path: str = "./cache",
-        subset_idx=Optional[int, List[int], torch.Tensor[int]],
+        subset_idx: Optional[Union[List[int], torch.Tensor]] = None,
+        cls_idx: Optional[int] = None,
         # If isinstance(subset_idx,int): perturb this class with probability p,
         # if isinstance(subset_idx,List[int]): perturb datapoints with these indices with probability p
         p: float = 1.0,
@@ -25,7 +23,17 @@ class PerturbedDataset(Dataset):
         super().__init__()
         self.dataset = dataset
         self.n_classes = n_classes
-        self.subset_idx = subset_idx
+        if (cls_idx is not None) and (subset_idx is not None):
+            raise ValueError("At least one of cls_idx or subset_idx has to be None")
+        if cls_idx is not None:
+            subset_idx = []
+            for i, (x, y) in enumerate(dataset):
+                if y == cls_idx:
+                    self.subset_idx.append(i)
+            self.subset_idx = torch.tensor(self.subset_idx, device=device)
+        else:
+            self.subset_idx = subset_idx
+
         self.p = p
         self.sample_fn = sample_fn if sample_fn is not None else lambda x: x
         self.label_fn = label_fn if label_fn is not None else lambda x: x
@@ -33,7 +41,7 @@ class PerturbedDataset(Dataset):
         self.generator = torch.Generator(device=device)
         self.generator.manual_seed(self.seed)
         self.samples_to_perturb = []
-        for i in range(len(dataset)):
+        for i in range(dataset.__len__()):
             x, y = dataset[i]
             condition1 = self.subset_idx is None
             condition2 = isinstance(self.subset_idx, int) and y == self.subset_idx

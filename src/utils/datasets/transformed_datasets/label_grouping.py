@@ -2,12 +2,12 @@ from typing import Dict, Literal, Union
 
 import torch
 
-from src.utils.toy_datasets.base import ToyDataset
+from src.utils.datasets.transformed_datasets.base import TransformedDataset
 
 ClassToGroupLiterals = Literal["random"]
 
 
-class GroupLabelDataset(ToyDataset):
+class GroupLabelDataset(TransformedDataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
@@ -34,7 +34,8 @@ class GroupLabelDataset(ToyDataset):
         self.groups = list(range(n_groups))
         if class_to_group == "random":
             # create a dictionary of class groups that assigns each class to a group
-            self.class_to_group = {i: torch.randint(low=0, high=n_groups, generator=self.generator) for i in range(n_classes)}
+            group_assignments = torch.randint(low=0, high=n_groups, size=(n_classes,), generator=self.generator)
+            self.class_to_group = {i: group_assignments[i] for i in range(n_classes)}
         elif isinstance(class_to_group, dict):
             self._validate_class_to_group(class_to_group)
             self.class_to_group = class_to_group
