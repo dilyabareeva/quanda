@@ -24,7 +24,6 @@ class PerturbedDataset(Dataset):
     ):
         super().__init__()
         self.dataset = dataset
-        self.dataset_id = dataset_id
         self.n_classes = n_classes
         self.subset_idx = subset_idx
         self.p = p
@@ -33,12 +32,13 @@ class PerturbedDataset(Dataset):
         self.seed = seed
         self.generator = torch.Generator(device=device)
         self.generator.manual_seed(self.seed)
-        self.samples_to_perturb=[]
+        self.samples_to_perturb = []
         for i in range(len(dataset)):
+            x, y = dataset[i]
             condition1 = self.subset_idx is None
             condition2 = isinstance(self.subset_idx, int) and y == self.subset_idx
-            condition3 = isinstance(self.subset_idx, list) and index in self.subset_idx
-            condition4 = isinstance(self.subset_idx, torch.Tensor) and index in self.subset_idx
+            condition3 = isinstance(self.subset_idx, list) and i in self.subset_idx
+            condition4 = isinstance(self.subset_idx, torch.Tensor) and i in self.subset_idx
             p_condition = (torch.rand(1, generator=self.generator) <= self.p) if self.p < 1.0 else True
             perturb_sample = condition1 or condition2 or condition3 or condition4
             perturb_sample = p_condition and perturb_sample

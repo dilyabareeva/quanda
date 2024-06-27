@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #  type: ignore
 
-from typing import Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import torch
 
