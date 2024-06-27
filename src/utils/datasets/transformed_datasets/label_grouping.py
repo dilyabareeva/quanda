@@ -27,6 +27,7 @@ class GroupLabelDataset(TransformedDataset):
             device=device,
             p=1.0,
             subset_idx=None,  # apply with certainty, to all datapoints
+            cls_idx=None,
         )
         self.n_classes = n_classes
         self.classes = list(range(n_classes))

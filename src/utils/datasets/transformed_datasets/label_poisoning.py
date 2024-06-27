@@ -11,18 +11,14 @@ class LabelPoisoningDataset(TransformedDataset):
         dataset: torch.utils.data.Dataset,
         n_classes: int,
         subset_idx: Optional[Union[List[int], torch.Tensor]] = None,
+        cls_idx: Optional[int] = None,
         p: int = 1.0,  # TODO: decide on default value vis-à-vis subset_idx
         seed: int = 42,
         device: str = "cpu",
     ):
 
         super().__init__(
-            dataset=dataset,
-            n_classes=n_classes,
-            seed=seed,
-            device=device,
-            p=p,
-            subset_idx=subset_idx,
+            dataset=dataset, n_classes=n_classes, seed=seed, device=device, p=p, subset_idx=subset_idx, cls_idx=cls_idx
         )
         self.poisoned_labels = {}
         for idx in range(self.perturbed_indices):

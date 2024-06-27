@@ -12,7 +12,8 @@ class SamplePerturbationDataset(TransformedDataset):
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
-        subset_idx: Optional[Union[int, List[int], torch.Tensor]] = None,
+        subset_idx: Optional[Union[List[int], torch.Tensor]] = None,
+        cls_idx: Optional[int] = None,
         p: float = 1.0,
         seed: int = 42,
         device: str = "cpu",
@@ -25,6 +26,8 @@ class SamplePerturbationDataset(TransformedDataset):
             seed=seed,
             device=device,
             p=p,
-            subset_idx=subset_idx,  # apply with certainty, to all datapoints
+            cls_idx=cls_idx,
+            subset_idx=subset_idx,
             sample_fn=sample_fn,
+            cls_idx=cls_idx,
         )
