@@ -38,6 +38,7 @@ from src.metrics.randomization.model_randomization import (
 )
 from src.metrics.unnamed.top_k_overlap import TopKOverlap
 ```
+</details>
 
 <details>
 
@@ -49,6 +50,7 @@ explain_fn_kwargs = {"layers": "avgpool"}
 model_id = "default_model_id"
 cache_dir = "./cache"
 ```
+</details>
 
 <details>
 
@@ -71,6 +73,7 @@ id_class = IdenticalClass(model=model, train_dataset=train_set, device=DEVICE)
 
 top_k = TopKOverlap(model=model, train_dataset=train_set, top_k=1, device="cpu")
 ```
+</details>
 
 <details>
 <summary><b><big>Step 4. Iterate over test set and feed tensor batches first to explain, then to metric</big></b></summary>
@@ -96,3 +99,4 @@ for i, (data, target) in enumerate(tqdm(test_loader)):
     id_class.update(target, tda)
     top_k.update(target)
 ```
+</details>
