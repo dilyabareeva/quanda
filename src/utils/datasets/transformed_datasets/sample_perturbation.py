@@ -1,4 +1,4 @@
-from typing import Callable, List, Literal, Optional, Union
+from typing import Callable, Literal, Optional
 
 import torch
 
@@ -12,12 +12,11 @@ class SamplePerturbationDataset(TransformedDataset):
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
-        subset_idx: Optional[Union[List[int], torch.Tensor]] = None,
         cls_idx: Optional[int] = None,
         p: float = 1.0,
-        seed: int = 42,
+        seed: Optional[int] = None,
         device: str = "cpu",
-        sample_fn: Optional[Union[Callable, str]] = None,
+        sample_fn: Optional[Callable] = None,
     ):
 
         super().__init__(
@@ -27,7 +26,5 @@ class SamplePerturbationDataset(TransformedDataset):
             device=device,
             p=p,
             cls_idx=cls_idx,
-            subset_idx=subset_idx,
             sample_fn=sample_fn,
-            cls_idx=cls_idx,
         )

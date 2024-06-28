@@ -1,4 +1,5 @@
-from typing import Dict, Literal, Union
+import random
+from typing import Dict, Literal, Optional, Union, cast
 
 import torch
 
@@ -12,9 +13,7 @@ class GroupLabelDataset(TransformedDataset):
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
-        # If isinstance(subset_idx,int): perturb this class with probability p,
-        # if isinstance(subset_idx,List[int]): perturb datapoints with these indices with probability p
-        seed: int = 42,
+        seed: Optional[int] = None,
         device: str = "cpu",
         n_groups: int = 2,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
@@ -26,8 +25,7 @@ class GroupLabelDataset(TransformedDataset):
             seed=seed,
             device=device,
             p=1.0,
-            subset_idx=None,  # apply with certainty, to all datapoints
-            cls_idx=None,
+            cls_idx=None,  # apply to all datapoints with certainty
         )
         self.n_classes = n_classes
         self.classes = list(range(n_classes))
@@ -35,8 +33,11 @@ class GroupLabelDataset(TransformedDataset):
         self.groups = list(range(n_groups))
         if class_to_group == "random":
             # create a dictionary of class groups that assigns each class to a group
-            group_assignments = torch.randint(low=0, high=n_groups, size=(n_classes,), generator=self.generator)
-            self.class_to_group = {i: group_assignments[i] for i in range(n_classes)}
+            group_assignments = [random.randint(0, n_groups - 1) for _ in range(n_classes)]
+            self.class_to_group = {}
+            for i in range(n_classes):
+                self.class_to_group[i] = cast("int", group_assignments[i].item())
+
         elif isinstance(class_to_group, dict):
             self._validate_class_to_group(class_to_group)
             self.class_to_group = class_to_group
