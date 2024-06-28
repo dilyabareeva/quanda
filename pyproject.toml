@@ -64,4 +64,5 @@ dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "mypy>=1.8.0",
     "black[d]>=23.0.0",
     "isort>=5.0.0",
+    "types-tqdm",
 ]

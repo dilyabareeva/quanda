@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict, Optional, Union
 
 import lightning as L
 import torch
+from tqdm import tqdm
 
 from src.explainers.functional import ExplainFunc
 from src.explainers.wrappers.captum_influence import captum_similarity_explain
@@ -63,7 +64,7 @@ class SubclassDetection(ToyBenchmark):
 
         obj = cls(device=device)
 
-        obj.model = model
+        obj.model = model.to(device)
         obj.trainer = Trainer.from_arguments(
             model=model,
             optimizer=optimizer,
@@ -283,7 +284,12 @@ class SubclassDetection(ToyBenchmark):
 
         metric = IdenticalClass(model=self.model, train_dataset=self.train_dataset, device="cpu")
 
-        for input, labels in expl_dl:
+        pbar = tqdm(expl_dl)
+        n_batches = len(expl_dl)
+
+        for i, (input, labels) in enumerate(pbar):
+            pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
+
             input, labels = input.to(device), labels.to(device)
             explanations = explain_fn(
                 model=self.model,
