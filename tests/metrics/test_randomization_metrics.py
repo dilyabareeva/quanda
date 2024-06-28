@@ -66,7 +66,7 @@ def test_randomization_metric(
 def test_randomization_metric_model_randomization(test_id, model, dataset, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
-    metric = ModelRandomizationMetric(model=model, train_dataset=dataset, explain_fn=lambda x: x, seed=42, device="cpu")
+    metric = ModelRandomizationMetric(model=model, train_dataset=dataset, explain_fn=lambda *x: x, seed=42, device="cpu")
     rand_model = metric.rand_model
     for param1, param2 in zip(model.parameters(), rand_model.parameters()):
         assert not torch.allclose(param1.data, param2.data), "Test failed."

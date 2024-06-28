@@ -1,6 +1,6 @@
 import pytest
 
-from src.utils.datasets.group_label_dataset import GroupLabelDataset
+from src.utils.datasets.transformed.label_grouping import LabelGroupingDataset
 
 
 @pytest.mark.utils
@@ -17,7 +17,7 @@ from src.utils.datasets.group_label_dataset import GroupLabelDataset
         ),
     ],
 )
-def test_identical_subclass_metrics(
+def test_label_grouping(
     dataset,
     n_classes,
     n_groups,
@@ -28,7 +28,7 @@ def test_identical_subclass_metrics(
 ):
     dataset = request.getfixturevalue(dataset)
 
-    grouped_dataset = GroupLabelDataset(
+    grouped_dataset = LabelGroupingDataset(
         dataset=dataset,
         n_classes=n_classes,
         n_groups=n_groups,
@@ -40,7 +40,7 @@ def test_identical_subclass_metrics(
 
     for i in range(len(grouped_dataset)):
         x, g = grouped_dataset[i]
-        y = grouped_dataset.get_subclass_label(i)
-        assertions.append((g in range(n_groups)) & (g == grouped_dataset.class_to_group[y]))
+        y = grouped_dataset._get_original_label(i)
+        assertions.append((i not in grouped_dataset.samples_to_perturb) or (g == grouped_dataset.class_to_group[y]))
 
     assert all(assertions)
