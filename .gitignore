@@ -58,5 +58,5 @@ cover/
 lightning_logs/
 checkpoints/
 
-# data_attribution_evaluation
+# quanda
 cache/

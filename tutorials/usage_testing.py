@@ -16,25 +16,30 @@ from torchvision.models import resnet18
 from torchvision.utils import make_grid
 from tqdm import tqdm
 
+from src.explainers.wrappers.captum_influence import captum_similarity_explain
+from src.metrics.localization.identical_class import IdenticalClass
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
-from src.utils.explain_wrapper import explain
-from src.utils.functions.similarities import cosine_similarity
+from src.metrics.unnamed.top_k_overlap import TopKOverlap
+from src.toy_benchmarks.subclass_detection import SubclassDetection
 
-DEVICE = "cpu"  # "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"
+torch.set_float32_matmul_precision("medium")
+
 print("Running on device:", DEVICE.upper())
 
 # manual random seed is used for dataset partitioning
 # to ensure reproducible results across runs
 RNG = torch.Generator().manual_seed(42)
 
-# ++++++++++++++++++++++++++++++++++++++++++
-# #Download dataset and pre-trained model
-# ++++++++++++++++++++++++++++++++++++++++++
-
 
 def main():
+
+    # ++++++++++++++++++++++++++++++++++++++++++
+    # #Download dataset and pre-trained model
+    # ++++++++++++++++++++++++++++++++++++++++++
+
     # download and pre-process CIFAR10
     normalize = transforms.Compose(
         [
@@ -44,13 +49,13 @@ def main():
     )
 
     train_set = torchvision.datasets.CIFAR10(root="./tutorials/data", train=True, download=True, transform=normalize)
-    train_loader = DataLoader(train_set, batch_size=128, shuffle=True, num_workers=2)
+    train_loader = DataLoader(train_set, batch_size=100, shuffle=True, num_workers=8)
 
     # we split held out data into test and validation set
     held_out = torchvision.datasets.CIFAR10(root="./tutorials/data", train=False, download=True, transform=normalize)
-    test_set, val_set = torch.utils.data.random_split(held_out, [0.5, 0.5], generator=RNG)
-    test_loader = DataLoader(test_set, batch_size=128, shuffle=False, num_workers=2)
-    # val_loader = DataLoader(val_set, batch_size=128, shuffle=False, num_workers=2)
+    test_set, val_set = torch.utils.data.random_split(held_out, [0.1, 0.9], generator=RNG)
+    test_loader = DataLoader(test_set, batch_size=100, shuffle=False, num_workers=8)
+    # val_loader = DataLoader(val_set, batch_size=100, shuffle=False, num_workers=8)
 
     # download pre-trained weights
     local_path = "./tutorials/model_weights_resnet18_cifar10.pth"
@@ -97,51 +102,91 @@ def main():
     print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
 
     # ++++++++++++++++++++++++++++++++++++++++++
-    # Training configuration
-    # ++++++++++++++++++++++++++++++++++++++++++
-    """
-    max_epochs = 5
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD
-    optimizer_kwargs = {"lr": 0.1, "momentum": 0.9, "weight_decay": 5e-4}
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR
-    scheduler_kwargs = {"T_max": max_epochs}
-    """
-    # ++++++++++++++++++++++++++++++++++++++++++
     # Computing metrics while generating explanations
     # ++++++++++++++++++++++++++++++++++++++++++
 
-    metric = ModelRandomizationMetric(
+    explain = captum_similarity_explain
+    explain_fn_kwargs = {"layers": "avgpool", "batch_size": 100}
+    model_id = "default_model_id"
+    cache_dir = "./cache"
+    model_rand = ModelRandomizationMetric(
         model=model,
         train_dataset=train_set,
         explain_fn=explain,
-        explain_fn_kwargs={"method": "SimilarityInfluence", "layer": "avgpool"},
-        model_id="default_model_id",
-        cache_dir="./cache",
+        explain_fn_kwargs=explain_fn_kwargs,
+        model_id=model_id,
+        cache_dir=cache_dir,
         correlation_fn="spearman",
         seed=42,
-        device="cpu",
+        device=DEVICE,
     )
+
+    id_class = IdenticalClass(model=model, train_dataset=train_set, device=DEVICE)
+
+    top_k = TopKOverlap(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
 
     # iterate over test set and feed tensor batches first to explain, then to metric
     for i, (data, target) in enumerate(tqdm(test_loader)):
         data, target = data.to(DEVICE), target.to(DEVICE)
         tda = explain(
             model=model,
-            model_id="default_model_id",
-            cache_dir="./cache",
-            method="SimilarityInfluence",
-            train_dataset=train_set,
+            model_id=model_id,
+            cache_dir=cache_dir,
             test_tensor=data,
-            layer="avgpool",
-            similarity_metric=cosine_similarity,
-            similarity_direction="max",
-            batch_size=1,
+            train_dataset=train_set,
+            device=DEVICE,
+            **explain_fn_kwargs,
         )
-        metric.update(data, tda)
+        model_rand.update(data, tda)
+        id_class.update(target, tda)
+        top_k.update(tda)
 
-    print("Model randomization metric output:", metric.compute().item())
+    print("Model randomization metric output:", model_rand.compute())
+    print("Identical class metric output:", id_class.compute())
+    print("Top-k overlap metric output:", top_k.compute())
+
     print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
+
+    # ++++++++++++++++++++++++++++++++++++++++++
+    # Subclass Detection Benchmark Generation and Evaluation
+    # ++++++++++++++++++++++++++++++++++++++++++
+
+    max_epochs = 10
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD
+    lr = 0.1
+    optimizer_kwargs = {"momentum": 0.9, "weight_decay": 5e-4}
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR
+    scheduler_kwargs = {"T_max": max_epochs}
+
+    bench = SubclassDetection.generate(
+        model=model,
+        train_dataset=train_set,
+        optimizer=optimizer,
+        lr=lr,
+        optimizer_kwargs=optimizer_kwargs,
+        criterion=criterion,
+        scheduler=scheduler,
+        scheduler_kwargs=scheduler_kwargs,
+        val_dataset=val_set,
+        n_classes=10,
+        n_groups=2,
+        class_to_group="random",
+        trainer_fit_kwargs={"max_epochs": max_epochs},
+        seed=42,
+        batch_size=100,
+        device=DEVICE,
+    )
+
+    score = bench.evaluate(
+        expl_dataset=test_set,
+        explain_fn=captum_similarity_explain,
+        explain_kwargs={"layers": "avgpool", "batch_size": 100},
+        cache_dir="./cache",
+        model_id="default_model_id",
+    )
+
+    print("Subclass Detection Benchmark Score:", score)
 
 
 if __name__ == "__main__":

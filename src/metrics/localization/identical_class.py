@@ -26,8 +26,11 @@ class IdenticalClass(Metric):
             test_labels.shape[0] == explanations.shape[0]
         ), f"Number of explanations ({explanations.shape[0]}) exceeds the number of test labels ({test_labels.shape[0]})."
 
+        test_labels = test_labels.to(self.device)
+        explanations = explanations.to(self.device)
+
         top_one_xpl_indices = explanations.argmax(dim=1)
-        top_one_xpl_targets = torch.stack([self.train_dataset[i][1] for i in top_one_xpl_indices])
+        top_one_xpl_targets = torch.tensor([self.train_dataset[i][1] for i in top_one_xpl_indices]).to(self.device)
 
         scores = (test_labels == top_one_xpl_targets) * 1.0
         self.scores.append(scores)

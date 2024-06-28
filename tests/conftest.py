@@ -5,13 +5,24 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
+from src.utils.datasets.group_label_dataset import GroupLabelDataset
 from tests.models import LeNet
-from utils.datasets.group_label_dataset import GroupLabelDataset
 
 MNIST_IMAGE_SIZE = 28
 BATCH_SIZE = 124
 MINI_BATCH_SIZE = 8
 RANDOM_SEED = 42
+
+
+class TestTensorDataset(TensorDataset):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._data = self.tensors[0]
+        self._targets = self.tensors[1]
+
+    def __getitem__(self, index):
+        return self._data[index], self._targets[index].item()
 
 
 @pytest.fixture
@@ -54,7 +65,7 @@ def load_mnist_dataset():
         .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
     )[:MINI_BATCH_SIZE]
     y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
-    dataset = TensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
+    dataset = TestTensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
     return dataset
 
 
@@ -72,7 +83,7 @@ def load_grouped_mnist_dataset():
         .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
     )[:MINI_BATCH_SIZE]
     y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
-    dataset = TensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
+    dataset = TestTensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
     return GroupLabelDataset(
         dataset,
         n_classes=10,

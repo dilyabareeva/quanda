@@ -1,6 +1,6 @@
 [project]
-name = "data_attribution_evaluation"
-description = "data_attribution_evaluation"
+name = "quanda"
+description = "quanda"
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.11"
@@ -64,4 +64,5 @@ dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "mypy>=1.8.0",
     "black[d]>=23.0.0",
     "isort>=5.0.0",
+    "types-tqdm",
 ]
