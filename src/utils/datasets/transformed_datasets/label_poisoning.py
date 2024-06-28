@@ -1,4 +1,3 @@
-import random
 from typing import Optional
 
 import torch
@@ -13,7 +12,7 @@ class LabelPoisoningDataset(TransformedDataset):
         n_classes: int,
         cls_idx: Optional[int] = None,
         p: float = 1.0,  # TODO: decide on default value vis-à-vis subset_idx
-        seed: Optional[int] = None,
+        seed: int = 42,
         device: str = "cpu",
     ):
 
@@ -25,7 +24,7 @@ class LabelPoisoningDataset(TransformedDataset):
 
     def _poison(self, original_label):
         label_arr = [i for i in range(self.n_classes) if original_label != i]
-        label_idx = random.randint(0, len(label_arr))
+        label_idx = self.rng.randint(0, len(label_arr))
         return label_arr[label_idx]
 
     def __getitem__(self, index):

@@ -1,5 +1,4 @@
-import random
-from typing import Dict, Literal, Optional, Union, cast
+from typing import Dict, Literal, Union
 
 import torch
 
@@ -13,7 +12,7 @@ class GroupLabelDataset(TransformedDataset):
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
-        seed: Optional[int] = None,
+        seed: int = 42,
         device: str = "cpu",
         n_groups: int = 2,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
@@ -33,7 +32,7 @@ class GroupLabelDataset(TransformedDataset):
         self.groups = list(range(n_groups))
         if class_to_group == "random":
             # create a dictionary of class groups that assigns each class to a group
-            group_assignments = [random.randint(0, n_groups - 1) for _ in range(n_classes)]
+            group_assignments = [self.rng.randint(0, n_groups - 1) for _ in range(n_classes)]
             self.class_to_group = {}
             for i in range(n_classes):
                 self.class_to_group[i] = group_assignments[i]
