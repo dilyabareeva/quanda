@@ -9,7 +9,7 @@ from src.explainers.wrappers.captum_influence import captum_similarity_explain
 from src.metrics.localization.identical_class import IdenticalClass
 from src.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
-    GroupLabelDataset,
+    LabelGroupingDataset,
 )
 from src.utils.training.trainer import BaseTrainer, Trainer
 
@@ -87,7 +87,7 @@ class SubclassIdentification:
         if trainer_kwargs is None:
             trainer_kwargs = {}
 
-        grouped_dataset = GroupLabelDataset(
+        grouped_dataset = LabelGroupingDataset(
             dataset=train_dataset,
             n_classes=n_classes,
             n_groups=n_groups,
@@ -97,7 +97,7 @@ class SubclassIdentification:
         grouped_train_loader = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
         original_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
         if val_dataset:
-            grouped_val_dataset = GroupLabelDataset(
+            grouped_val_dataset = LabelGroupingDataset(
                 dataset=train_dataset,
                 n_classes=n_classes,
                 n_groups=n_groups,

@@ -41,9 +41,10 @@ class TransformedDataset(Dataset):
         self.torch_rng.manual_seed(seed)
 
         self.samples_to_perturb = torch.rand(len(self), generator=self.torch_rng) <= self.p
-        self.samples_to_perturb *= torch.tensor(
-            [self.dataset[s][1] == self.cls_idx for s in range(len(self))], dtype=torch.bool
-        )
+        if self.cls_idx is not None:
+            self.samples_to_perturb *= torch.tensor(
+                [self.dataset[s][1] == self.cls_idx for s in range(len(self))], dtype=torch.bool
+            )
 
     def __len__(self) -> int:
         if isinstance(self.dataset, Sized):
@@ -56,7 +57,7 @@ class TransformedDataset(Dataset):
         xx = self.sample_fn(x)
         yy = self.label_fn(y)
 
-        return xx, yy if index in self.samples_to_perturb else x, y
+        return (xx, yy) if index in self.samples_to_perturb else (x, y)
 
     def _get_original_label(self, index) -> int:
         _, y = self.dataset[index]

@@ -7,7 +7,7 @@ from src.utils.datasets.transformed.base import TransformedDataset
 ClassToGroupLiterals = Literal["random"]
 
 
-class GroupLabelDataset(TransformedDataset):
+class LabelGroupingDataset(TransformedDataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
@@ -30,6 +30,7 @@ class GroupLabelDataset(TransformedDataset):
         self.classes = list(range(n_classes))
         self.n_groups = n_groups
         self.groups = list(range(n_groups))
+
         if class_to_group == "random":
             # create a dictionary of class groups that assigns each class to a group
             group_assignments = [self.rng.randint(0, n_groups - 1) for _ in range(n_classes)]
