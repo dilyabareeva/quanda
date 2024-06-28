@@ -80,9 +80,12 @@ class ModelRandomizationMetric(Metric):
         explanations: torch.Tensor,
         explanation_targets: Optional[torch.Tensor] = None,
     ):
+        explanations = explanations.to(self.device)
+
         rand_explanations = self.explain_fn(
             model=self.rand_model, test_tensor=test_data, explanation_targets=explanation_targets, device=self.device
-        )
+        ).to(self.device)
+
         corrs = self.corr_measure(explanations, rand_explanations)
         self.results["scores"].append(corrs)
 

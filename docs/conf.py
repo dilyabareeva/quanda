@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "data_attribution_evaluation"
+project = "quanda"
 copyright = "2024, Dilya, Galip"
 author = "Dilya, Galip"
 release = "01.01.2050"

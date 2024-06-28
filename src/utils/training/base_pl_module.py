@@ -50,7 +50,7 @@ class BasicLightningModule(L.LightningModule):
             raise ValueError("optimizer must be an instance of torch.optim.Optimizer")
         if self.scheduler is not None:
             scheduler = self.scheduler(optimizer, **self.scheduler_kwargs)
-            if not isinstance(scheduler, torch.optim.lr_scheduler._LRScheduler):
-                raise ValueError("scheduler must be an instance of torch.optim.lr_scheduler._LRScheduler")
+            if not isinstance(scheduler, torch.optim.lr_scheduler.LRScheduler):
+                raise ValueError("scheduler must be an instance of torch.optim.lr_scheduler.LRScheduler")
             return {"optimizer": optimizer, "lr_scheduler": scheduler}
         return optimizer

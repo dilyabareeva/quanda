@@ -51,7 +51,7 @@ def test_easy_trainer(
     ).fit(
         dataloader,
         dataloader,
-        trainer_kwargs={"max_epochs": max_epochs},
+        trainer_fit_kwargs={"max_epochs": max_epochs},
     )
 
     for param1, param2 in zip(old_model.parameters(), model.parameters()):
