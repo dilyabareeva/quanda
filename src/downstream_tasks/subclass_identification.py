@@ -7,7 +7,7 @@ import torch
 from src.explainers.functional import ExplainFunc
 from src.explainers.wrappers.captum_influence import captum_similarity_explain
 from src.metrics.localization.identical_class import IdenticalClass
-from src.utils.datasets.transformed_datasets.label_grouping import (
+from src.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     GroupLabelDataset,
 )
@@ -71,7 +71,7 @@ class SubclassIdentification:
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         run_id: str = "default_subclass_identification",
-        seed: Optional[int] = 27,
+        seed: int = 27,
         batch_size: int = 8,
         device: str = "cpu",
         *args,

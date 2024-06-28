@@ -34,23 +34,16 @@ class TransformedDataset(Dataset):
             self.label_fn = label_fn
         else:
             self.label_fn = self._identity
-        self.seed = seed
-        self.rng = random.Random()
-        self.rng.seed(self.seed)
 
-        # self.samples_to_perturb = [
-        #     i
-        #     for i in range(self.__len__())
-        #     if (self.rng.random() <= self.p if self.p < 1.0 else True)
-        #     and ((self.cls_idx is None) or (dataset[i][1] == self.cls_idx))
-        # ]
-        for i in range(self.__len__()):
-            x, y = dataset[i]
-            perturb_sample = (self.cls_idx is None) or (y == self.cls_idx)
-            p_condition = (self.rng.random() <= self.p) if self.p < 1.0 else True
-            perturb_sample = p_condition and perturb_sample
-            if perturb_sample:
-                self.samples_to_perturb.append(i)
+        self.seed = seed
+        self.rng = random.Random(seed)
+        self.torch_rng = torch.Generator()
+        self.torch_rng.manual_seed(seed)
+
+        self.samples_to_perturb = torch.rand(len(self), generator=self.torch_rng) <= self.p
+        self.samples_to_perturb *= torch.tensor(
+            [self.dataset[s][1] == self.cls_idx for s in range(len(self))], dtype=torch.bool
+        )
 
     def __len__(self) -> int:
         if isinstance(self.dataset, Sized):

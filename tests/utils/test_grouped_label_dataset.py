@@ -1,8 +1,6 @@
 import pytest
 
-from src.utils.datasets.transformed_datasets.label_grouping import (
-    GroupLabelDataset,
-)
+from src.utils.datasets.transformed.label_grouping import GroupLabelDataset
 
 
 @pytest.mark.utils

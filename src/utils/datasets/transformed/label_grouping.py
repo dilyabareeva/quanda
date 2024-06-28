@@ -2,7 +2,7 @@ from typing import Dict, Literal, Union
 
 import torch
 
-from src.utils.datasets.transformed_datasets.base import TransformedDataset
+from src.utils.datasets.transformed.base import TransformedDataset
 
 ClassToGroupLiterals = Literal["random"]
 

@@ -5,9 +5,7 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
-from src.utils.datasets.transformed_datasets.label_grouping import (
-    GroupLabelDataset,
-)
+from src.utils.datasets.transformed.label_grouping import GroupLabelDataset
 from tests.models import LeNet
 
 MNIST_IMAGE_SIZE = 28
