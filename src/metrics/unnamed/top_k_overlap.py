@@ -22,6 +22,9 @@ class TopKOverlap(Metric):
         explanations: torch.Tensor,
         **kwargs,
     ):
+
+        explanations = explanations.to(self.device)
+
         top_k_indices = torch.topk(explanations, self.top_k).indices
         self.all_top_k_examples = torch.concat((self.all_top_k_examples, top_k_indices), dim=0)
 

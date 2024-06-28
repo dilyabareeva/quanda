@@ -93,6 +93,10 @@ class CaptumSimilarity(CaptumInfluence):
         self._layer: Optional[Union[List[str], str]] = None
         self.layer = layers
 
+        if device != "cpu":
+            warnings.warn("CaptumSimilarity explainer only supports CPU devices. Setting device to 'cpu'.")
+            device = "cpu"
+
         # TODO: validate SimilarityInfluence kwargs
         explainer_kwargs.update(
             {

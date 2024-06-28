@@ -23,7 +23,7 @@ from src.metrics.randomization.model_randomization import (
 )
 from src.metrics.unnamed.top_k_overlap import TopKOverlap
 
-DEVICE = "cpu"  # "cuda" if torch.cuda.is_available() else "cpu"
+DEVICE = "cuda"  # "cuda" if torch.cuda.is_available() else "cpu"
 print("Running on device:", DEVICE.upper())
 
 # manual random seed is used for dataset partitioning
@@ -45,13 +45,13 @@ def main():
     )
 
     train_set = torchvision.datasets.CIFAR10(root="./tutorials/data", train=True, download=True, transform=normalize)
-    train_loader = DataLoader(train_set, batch_size=128, shuffle=True, num_workers=2)
+    train_loader = DataLoader(train_set, batch_size=100, shuffle=True, num_workers=2)
 
     # we split held out data into test and validation set
     held_out = torchvision.datasets.CIFAR10(root="./tutorials/data", train=False, download=True, transform=normalize)
-    test_set, val_set = torch.utils.data.random_split(held_out, [0.5, 0.5], generator=RNG)
-    test_loader = DataLoader(test_set, batch_size=128, shuffle=False, num_workers=2)
-    # val_loader = DataLoader(val_set, batch_size=128, shuffle=False, num_workers=2)
+    test_set, val_set = torch.utils.data.random_split(held_out, [0.1, 0.9], generator=RNG)
+    test_loader = DataLoader(test_set, batch_size=100, shuffle=False, num_workers=2)
+    # val_loader = DataLoader(val_set, batch_size=100, shuffle=False, num_workers=2)
 
     # download pre-trained weights
     local_path = "./tutorials/model_weights_resnet18_cifar10.pth"
@@ -113,7 +113,7 @@ def main():
     # ++++++++++++++++++++++++++++++++++++++++++
 
     explain = captum_similarity_explain
-    explain_fn_kwargs = {"layers": "avgpool"}
+    explain_fn_kwargs = {"layers": "avgpool", "batch_size": 100}
     model_id = "default_model_id"
     cache_dir = "./cache"
     model_rand = ModelRandomizationMetric(
@@ -130,7 +130,7 @@ def main():
 
     id_class = IdenticalClass(model=model, train_dataset=train_set, device=DEVICE)
 
-    top_k = TopKOverlap(model=model, train_dataset=train_set, top_k=1, device="cpu")
+    top_k = TopKOverlap(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
 
     # iterate over test set and feed tensor batches first to explain, then to metric
     for i, (data, target) in enumerate(tqdm(test_loader)):
@@ -146,9 +146,12 @@ def main():
         )
         model_rand.update(data, tda)
         id_class.update(target, tda)
-        top_k.update(target)
+        top_k.update(tda)
 
-    print("Model randomization metric output:", model_rand.compute().item())
+    print("Model randomization metric output:", model_rand.compute())
+    print("Identical class metric output:", id_class.compute())
+    print("Top-k overlap metric output:", top_k.compute())
+
     print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
 
 
