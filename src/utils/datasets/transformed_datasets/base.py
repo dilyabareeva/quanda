@@ -37,7 +37,13 @@ class TransformedDataset(Dataset):
         self.seed = seed
         self.rng = random.Random()
         self.rng.seed(self.seed)
-        self.samples_to_perturb = []
+
+        # self.samples_to_perturb = [
+        #     i
+        #     for i in range(self.__len__())
+        #     if (self.rng.random() <= self.p if self.p < 1.0 else True)
+        #     and ((self.cls_idx is None) or (dataset[i][1] == self.cls_idx))
+        # ]
         for i in range(self.__len__()):
             x, y = dataset[i]
             perturb_sample = (self.cls_idx is None) or (y == self.cls_idx)

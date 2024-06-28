@@ -7,7 +7,7 @@ from src.utils.datasets.transformed_datasets.base import TransformedDataset
 ClassToGroupLiterals = Literal["random"]
 
 
-class SamplePerturbationDataset(TransformedDataset):
+class SampleTransformationDataset(TransformedDataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
