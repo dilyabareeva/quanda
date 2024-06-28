@@ -42,7 +42,7 @@ def test_identical_subclass_metrics(
 
     for i in range(len(grouped_dataset)):
         x, g = grouped_dataset[i]
-        y = grouped_dataset.get_subclass_label(i)
+        y = grouped_dataset._get_original_label(i)
         assertions.append((g in range(n_groups)) & (g == grouped_dataset.class_to_group[y.item()]))
 
     assert all(assertions)

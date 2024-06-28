@@ -36,7 +36,7 @@ class GroupLabelDataset(TransformedDataset):
             group_assignments = [random.randint(0, n_groups - 1) for _ in range(n_classes)]
             self.class_to_group = {}
             for i in range(n_classes):
-                self.class_to_group[i] = cast("int", group_assignments[i].item())
+                self.class_to_group[i] = group_assignments[i]
 
         elif isinstance(class_to_group, dict):
             self._validate_class_to_group(class_to_group)
