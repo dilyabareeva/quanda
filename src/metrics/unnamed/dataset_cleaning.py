@@ -32,30 +32,27 @@ class DatasetCleaningSI:
 
         self.global_rank: torch.Tensor = self.si_fn()
 
+    def _si_warning(self, method_name: str):
+        warnings.warn(
+            f"{method_name} method is not supported for DatasetCleaning metric with global method "
+            "'self-influence'. Method call will be ignored."
+        )
+
     def update(
         self,
         explanations: torch.Tensor,
         **kwargs,
     ):
-        warnings.warn(
-            "update method is not supported for DatasetCleaning metric with global method "
-            "'self-influence'. Method call will be ignored."
-        )
+        self._si_warning("update")
 
     def reset(self, *args, **kwargs):
         pass
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
-        warnings.warn(
-            "load_state_dict method is not supported for DatasetCleaning metric with global "
-            "method 'self-influence'.Method call will be ignored."
-        )
+        self._si_warning("load_state_dict")
 
     def state_dict(self, *args, **kwargs):
-        warnings.warn(
-            "state_dict method is not supported for DatasetCleaning metric with global method "
-            "'self-influence'. Method call will be ignored."
-        )
+        self._si_warning("state_dict")
 
 
 class DatasetCleaningAggr:
@@ -119,8 +116,6 @@ class DatasetCleaning(Metric):
         global_method: Union[str, BaseAggregator] = "self-influence",
         si_fn: Optional[Callable] = None,
         si_fn_kwargs: Optional[dict] = None,
-        explain_fn: Optional[Callable] = None,
-        explain_fn_kwargs: Optional[dict] = None,
         batch_size: int = 32,
         model_id: str = "0",
         cache_dir: str = "./cache",
@@ -131,7 +126,6 @@ class DatasetCleaning(Metric):
     ):
         super().__init__(model=model, train_dataset=train_dataset, device=device)
         self.top_k = top_k
-        self.explain_fn_kwargs = explain_fn_kwargs or {}
         self.si_fn_kwargs = si_fn_kwargs or {}
         self.model_id = model_id
         self.cache_dir = cache_dir
@@ -139,22 +133,7 @@ class DatasetCleaning(Metric):
 
         self.clean_accuracy: int
         self.original_accuracy: int
-        self.explain_fn: Optional[Callable]
         self.si_fn: Optional[Callable]
-
-        if explain_fn is not None:
-            self.explain_fn = make_func(
-                func=explain_fn,
-                model=self.model,
-                model_id=self.model_id,
-                cache_dir=self.cache_dir,
-                train_dataset=self.train_dataset,
-                device=self.device,
-                batch_size=self.batch_size,
-                **self.explain_fn_kwargs,
-            )
-        else:
-            self.explain_fn = None
 
         if si_fn is not None:
             self.si_fn = make_func(
@@ -197,18 +176,6 @@ class DatasetCleaning(Metric):
                 "it should be an instance of BaseAggregator. When passing a string, it should be one of "
                 f"{list(aggr_types.keys())}."
             )
-
-    def explain_update(
-        self,
-        data: torch.Tensor,
-        *args,
-        **kwargs,
-    ):
-        if self.explain_fn is not None:
-            explanations = self.explain_fn(data, *args, **kwargs)
-            self.update(explanations, **kwargs)
-        else:
-            raise RuntimeError("Explain function not found in explainer.")
 
     def update(
         self,
