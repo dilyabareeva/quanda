@@ -12,9 +12,9 @@ class LabelGroupingDataset(TransformedDataset):
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
+        n_groups: int,
         seed: int = 42,
         device: str = "cpu",
-        n_groups: int = 2,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
     ):
 
@@ -47,4 +47,4 @@ class LabelGroupingDataset(TransformedDataset):
 
     def _validate_class_to_group(self, class_to_group):
         assert len(class_to_group) == self.n_classes
-        assert all([g in self.groups for g in self.class_to_group.values()])
+        assert all([g in self.groups for g in class_to_group.values()])
