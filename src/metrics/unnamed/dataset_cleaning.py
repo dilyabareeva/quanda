@@ -50,6 +50,53 @@ class DatasetCleaning(GlobalMetric):
         self.clean_accuracy: int
         self.original_accuracy: int
 
+    @classmethod
+    def self_influence_based(
+        cls,
+        explainer: BaseExplainer,
+        trainer: BaseTrainer,
+        top_k: int = 50,
+        trainer_fit_kwargs: Optional[dict] = None,
+        expl_kwargs: Optional[dict] = None,
+        device: str = "cpu",
+        *args,
+        **kwargs,
+    ):
+        return cls(
+            model=explainer.model,
+            train_dataset=explainer.train_dataset,
+            trainer=trainer,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            global_method="self-influence",
+            top_k=top_k,
+            explainer=explainer,
+            expl_kwargs=expl_kwargs,
+            device=device,
+        )
+
+    @classmethod
+    def aggr_based(
+        cls,
+        model: torch.nn.Module,
+        train_dataset: torch.utils.data.Dataset,
+        trainer: BaseTrainer,
+        aggregator: Union[str, BaseAggregator],
+        top_k: int = 50,
+        trainer_fit_kwargs: Optional[dict] = None,
+        device: str = "cpu",
+        *args,
+        **kwargs,
+    ):
+        return cls(
+            model=model,
+            train_dataset=train_dataset,
+            trainer=trainer,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            global_method=aggregator,
+            top_k=top_k,
+            device=device,
+        )
+
     def update(
         self,
         explanations: torch.Tensor,
