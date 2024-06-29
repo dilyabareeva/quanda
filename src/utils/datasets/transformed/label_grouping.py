@@ -13,7 +13,7 @@ class LabelGroupingDataset(TransformedDataset):
         dataset: torch.utils.data.Dataset,
         n_classes: int,
         n_groups: int,
-        seed: int = 42,
+        seed: int = 27,
         device: str = "cpu",
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
     ):
@@ -33,14 +33,13 @@ class LabelGroupingDataset(TransformedDataset):
 
         if class_to_group == "random":
             # create a dictionary of class groups that assigns each class to a group
-            group_assignments = [self.rng.randint(0, n_groups - 1) for _ in range(n_classes)]
-            self.class_to_group = {}
-            for i in range(n_classes):
-                self.class_to_group[i] = group_assignments[i]
+            self.class_to_group = {i: self.rng.randint(0, self.n_groups - 1) for i in range(self.n_classes)}
 
         elif isinstance(class_to_group, dict):
             self._validate_class_to_group(class_to_group)
             self.class_to_group = class_to_group
+            self.n_classes = len(self.class_to_group)
+            self.n_groups = len(set(self.class_to_group.values()))
         else:
             raise ValueError(f"Invalid class_to_group value: {class_to_group}")
         self.label_fn = lambda x: self.class_to_group[x]

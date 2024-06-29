@@ -39,8 +39,10 @@ class TransformedDataset(Dataset):
         self.rng = random.Random(seed)
         self.torch_rng = torch.Generator()
         self.torch_rng.manual_seed(seed)
-
-        self.samples_to_perturb = torch.rand(len(self), generator=self.torch_rng) <= self.p
+        if self.p < 1.0:
+            self.samples_to_perturb = torch.rand(len(self), generator=self.torch_rng) <= self.p
+        else:
+            self.samples_to_perturb = torch.tensor(list(range(len(self))))
         if self.cls_idx is not None:
             self.samples_to_perturb *= torch.tensor(
                 [self.dataset[s][1] == self.cls_idx for s in range(len(self))], dtype=torch.bool

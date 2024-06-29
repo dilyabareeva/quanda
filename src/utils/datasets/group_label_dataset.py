@@ -21,7 +21,7 @@ class GroupLabelDataset(Dataset):
     ):
         self.dataset = dataset
         self.generator = torch.Generator(device=device)
-
+        self.rng = random.Random(seed)
         if class_to_group == "random":
 
             if (n_classes is None) or (n_groups is None):
@@ -31,9 +31,8 @@ class GroupLabelDataset(Dataset):
             self.n_groups = n_groups
 
             # create a dictionary of class groups that assigns each class to a group
-            random.seed(seed)
 
-            self.class_to_group = {i: random.randrange(self.n_groups) for i in range(self.n_classes)}
+            self.class_to_group = {i: self.rng.randint(0, self.n_groups - 1) for i in range(self.n_classes)}
 
         elif isinstance(class_to_group, dict):
 
