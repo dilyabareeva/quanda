@@ -7,7 +7,7 @@ import torch
 from src.explainers.aggregators import BaseAggregator
 
 
-class GlobalSIStrategy:
+class GlobalSelfInfluenceStrategy:
 
     def __init__(
         self,
@@ -26,7 +26,8 @@ class GlobalSIStrategy:
     def get_global_rank(self):
         return self.si_fn().argsort()
 
-    def _si_warning(self, method_name: str):
+    @staticmethod
+    def _si_warning(method_name: str):
         warnings.warn(
             f"{method_name} method is not supported for a metric with global method "
             "'self-influence'. Method call will be ignored. Call 'compute' method to get the final result."

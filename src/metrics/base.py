@@ -4,7 +4,10 @@ from typing import Callable, Optional, Sized, Union
 import torch
 
 from src.explainers.aggregators import BaseAggregator, aggr_types
-from src.metrics.aggr_strategies import GlobalAggrStrategy, GlobalSIStrategy
+from src.metrics.aggr_strategies import (
+    GlobalAggrStrategy,
+    GlobalSelfInfluenceStrategy,
+)
 from src.utils.common import make_func
 
 
@@ -92,7 +95,7 @@ class Metric(ABC):
 class GlobalMetric(Metric, ABC):
 
     strategies = {
-        "self-influence": GlobalSIStrategy,
+        "self-influence": GlobalSelfInfluenceStrategy,
         "aggr": GlobalAggrStrategy,
     }
 
