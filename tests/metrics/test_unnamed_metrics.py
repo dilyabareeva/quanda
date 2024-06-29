@@ -4,6 +4,8 @@ from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.metrics.unnamed.dataset_cleaning import DatasetCleaning
 from src.metrics.unnamed.top_k_overlap import TopKOverlap
 from src.utils.functions.similarities import cosine_similarity
+from src.utils.training.base_pl_module import BasicLightningModule
+from src.utils.training.trainer import Trainer
 
 
 @pytest.mark.unnamed_metrics
@@ -42,11 +44,16 @@ def test_top_k_overlap_metrics(
 
 @pytest.mark.unnamed_metrics
 @pytest.mark.parametrize(
-    "test_id,model,dataset,explanations,global_method,top_k,explainer_kwargs," "batch_size,expected_score",
+    "test_id,model,optimizer, lr, criterion, max_epochs,dataset,explanations,global_method,top_k,explainer_kwargs,"
+    "batch_size,expected_score",
     [
         (
             "mnist",
             "load_mnist_model",
+            "torch_sgd_optimizer",
+            0.01,
+            "torch_cross_entropy_loss_object",
+            3,
             "load_mnist_dataset",
             "load_mnist_explanations_1",
             "sum_abs",
@@ -58,6 +65,10 @@ def test_top_k_overlap_metrics(
         (
             "mnist",
             "load_mnist_model",
+            "torch_sgd_optimizer",
+            0.01,
+            "torch_cross_entropy_loss_object",
+            3,
             "load_mnist_dataset",
             "load_mnist_explanations_1",
             "self-influence",
@@ -71,6 +82,10 @@ def test_top_k_overlap_metrics(
 def test_dataset_cleaning(
     test_id,
     model,
+    optimizer,
+    lr,
+    criterion,
+    max_epochs,
     dataset,
     explanations,
     global_method,
@@ -84,6 +99,16 @@ def test_dataset_cleaning(
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     explanations = request.getfixturevalue(explanations)
+    optimizer = request.getfixturevalue(optimizer)
+    criterion = request.getfixturevalue(criterion)
+
+    pl_module = BasicLightningModule(
+        model=model,
+        optimizer=optimizer,
+        lr=lr,
+        criterion=criterion,
+    )
+    trainer = Trainer.from_lightning_module(model, pl_module)
 
     if global_method != "self-influence":
 
@@ -91,6 +116,8 @@ def test_dataset_cleaning(
             model=model,
             train_dataset=dataset,
             global_method=global_method,
+            trainer=trainer,
+            trainer_fit_kwargs={"max_epochs": max_epochs},
             top_k=top_k,
             device="cpu",
         )
@@ -114,6 +141,8 @@ def test_dataset_cleaning(
             model=model,
             train_dataset=dataset,
             global_method=global_method,
+            trainer=trainer,
+            trainer_fit_kwargs={"max_epochs": max_epochs},
             top_k=top_k,
             explainer=explainer,
             expplainer_kwargs={"batch_size": batch_size},
