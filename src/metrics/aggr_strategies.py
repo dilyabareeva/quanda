@@ -1,30 +1,34 @@
 import warnings
 from functools import lru_cache
-from typing import Callable, Optional
+from typing import Optional
 
 import torch
 
 from src.explainers.aggregators import BaseAggregator
+from src.explainers.base import BaseExplainer
 
 
 class GlobalSelfInfluenceStrategy:
 
     def __init__(
         self,
-        si_fn: Optional[Callable] = None,
+        explainer: Optional[BaseExplainer] = None,
+        expl_kwargs: Optional[dict] = None,
     ):
-        # TODO: right now si_fn is a Callable that takes no argument and outputs self-influence values
-        # TODO: it's not very clear design, can we improve it?
 
-        if si_fn is None:
+        if explainer is None:
             raise ValueError(
-                "Self-influence function (si_fn) is required for a metric " "with global method 'self-influence'."
+                "An explainer of type BaseExplainer is required for a metric with global method 'self-influence'."
             )
-        self.si_fn = si_fn
+        self.explainer = explainer
+        self.expl_kwargs = expl_kwargs or {}
+
+    def get_self_influence(self):
+        return self.explainer.self_influence(**self.expl_kwargs)
 
     @lru_cache(maxsize=1)
     def get_global_rank(self):
-        return self.si_fn().argsort()
+        return self.get_self_influence().argsort()
 
     @staticmethod
     def _si_warning(method_name: str):

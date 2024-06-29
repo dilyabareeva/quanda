@@ -1,8 +1,9 @@
-from typing import Callable, Optional, Union
+from typing import Optional, Union
 
 import torch
 
 from src.explainers.aggregators import BaseAggregator
+from src.explainers.base import BaseExplainer
 from src.metrics.base import GlobalMetric
 from src.utils.common import class_accuracy
 
@@ -24,11 +25,8 @@ class DatasetCleaning(GlobalMetric):
         train_dataset: torch.utils.data.Dataset,
         global_method: Union[str, BaseAggregator] = "self-influence",
         top_k: int = 50,
-        si_fn: Optional[Callable] = None,
-        si_fn_kwargs: Optional[dict] = None,
-        batch_size: int = 32,
-        model_id: str = "0",
-        cache_dir: str = "./cache",
+        explainer: Optional[BaseExplainer] = None,
+        expl_kwargs: Optional[dict] = None,
         device: str = "cpu",
         *args,
         **kwargs,
@@ -37,11 +35,8 @@ class DatasetCleaning(GlobalMetric):
             model=model,
             train_dataset=train_dataset,
             global_method=global_method,
-            si_fn=si_fn,
-            si_fn_kwargs=si_fn_kwargs,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            batch_size=batch_size,
+            explainer=explainer,
+            expl_kwargs=expl_kwargs,
             device=device,
         )
         self.top_k = min(top_k, self.dataset_length - 1)

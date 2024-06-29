@@ -1,8 +1,6 @@
 import pytest
 
-from src.explainers.wrappers.captum_influence import (
-    captum_similarity_self_influence,
-)
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.metrics.unnamed.dataset_cleaning import DatasetCleaning
 from src.metrics.unnamed.top_k_overlap import TopKOverlap
 from src.utils.functions.similarities import cosine_similarity
@@ -44,7 +42,7 @@ def test_top_k_overlap_metrics(
 
 @pytest.mark.unnamed_metrics
 @pytest.mark.parametrize(
-    "test_id,model,dataset,explanations,global_method,top_k,si_fn,si_fn_kwargs," "batch_size,expected_score",
+    "test_id,model,dataset,explanations,global_method,top_k,explainer_kwargs," "batch_size,expected_score",
     [
         (
             "mnist",
@@ -53,7 +51,6 @@ def test_top_k_overlap_metrics(
             "load_mnist_explanations_1",
             "sum_abs",
             50,
-            None,
             None,
             None,
             0.0,
@@ -65,7 +62,6 @@ def test_top_k_overlap_metrics(
             "load_mnist_explanations_1",
             "self-influence",
             50,
-            captum_similarity_self_influence,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             8,
             0.0,
@@ -79,8 +75,7 @@ def test_dataset_cleaning(
     explanations,
     global_method,
     top_k,
-    si_fn,
-    si_fn_kwargs,
+    explainer_kwargs,
     batch_size,
     expected_score,
     tmp_path,
@@ -91,6 +86,7 @@ def test_dataset_cleaning(
     explanations = request.getfixturevalue(explanations)
 
     if global_method != "self-influence":
+
         metric = DatasetCleaning(
             model=model,
             train_dataset=dataset,
@@ -98,19 +94,32 @@ def test_dataset_cleaning(
             top_k=top_k,
             device="cpu",
         )
+
         metric.update(explanations=explanations)
+
     else:
-        metric = DatasetCleaning(
+
+        explainer_kwargs = explainer_kwargs or {}
+
+        explainer = CaptumSimilarity(
             model=model,
-            train_dataset=dataset,
-            global_method=global_method,
-            top_k=top_k,
-            si_fn=si_fn,
-            si_fn_kwargs=si_fn_kwargs,
             model_id=test_id,
             cache_dir=str(tmp_path),
-            batch_size=batch_size,
+            train_dataset=dataset,
+            device="cpu",
+            **explainer_kwargs,
+        )
+
+        metric = DatasetCleaning(
+            model=model,
+            train_dataset=dataset,
+            global_method=global_method,
+            top_k=top_k,
+            explainer=explainer,
+            expplainer_kwargs={"batch_size": batch_size},
             device="cpu",
         )
+
     score = metric.compute()
+
     assert score == expected_score
