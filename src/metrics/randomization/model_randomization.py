@@ -44,11 +44,6 @@ class ModelRandomizationMetric(Metric):
         self.cache_dir = cache_dir
         self.device = device
 
-        # we can move seed and device to __call__. Then we would need to set the seed per call of the metric function.
-        # where does it make sense to do seeding?
-        # for example, imagine the user doesn't bother giving a seed, so we use the default seed.
-        # do we want the exact same random model to be attributed (keeping seed in the __call__ call)
-        # or do we want genuinely random models for each call of the metric (keeping seed in the constructor)
         self.generator = torch.Generator(device=device)
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)

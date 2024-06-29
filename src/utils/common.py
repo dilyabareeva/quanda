@@ -36,3 +36,16 @@ def cache_result(method):
         return self.__dict__[cache_attr]
 
     return wrapper
+
+
+def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, device: str = "cpu"):
+    """Return accuracy on a dataset given by the data loader."""
+    correct = 0
+    total = 0
+    for inputs, targets in loader:
+        inputs, targets = inputs.to(device), targets.to(device)
+        outputs = net(inputs)
+        _, predicted = outputs.max(1)
+        total += targets.size(0)
+        correct += predicted.eq(targets).sum().item()
+    return correct / total
