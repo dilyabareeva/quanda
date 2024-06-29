@@ -1,105 +1,13 @@
-import warnings
-from functools import lru_cache
 from typing import Callable, Optional, Union
 
 import torch
 
-from src.explainers.aggregators import BaseAggregator, aggr_types
-from src.metrics.base import Metric
-from src.utils.common import class_accuracy, make_func
+from src.explainers.aggregators import BaseAggregator
+from src.metrics.base import GlobalMetric
+from src.utils.common import class_accuracy
 
 
-class DatasetCleaningSI:
-
-    def __init__(
-        self,
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        si_fn: Optional[Callable] = None,
-        top_k: int = 50,
-        device: str = "cpu",
-    ):
-        if si_fn is None:
-            raise ValueError(
-                "Self-influence function (si_fn) is required for DatasetCleaning metric "
-                "with global method 'self-influence'."
-            )
-
-        self.model = model
-        self.train_dataset = train_dataset
-        self.top_k = top_k
-        self.si_fn = si_fn
-        self.device = device
-
-    @lru_cache(maxsize=1)
-    def get_global_rank(self):
-        return self.si_fn()
-
-    @staticmethod
-    def _si_warning(method_name: str):
-        warnings.warn(
-            f"{method_name} method is not supported for DatasetCleaning metric with global method "
-            "'self-influence'. Method call will be ignored. Call 'compute' method to get the final result."
-        )
-
-    def update(
-        self,
-        explanations: torch.Tensor,
-        **kwargs,
-    ):
-        self._si_warning("update")
-
-    def reset(self, *args, **kwargs):
-        pass
-
-    def load_state_dict(self, state_dict: dict, *args, **kwargs):
-        self._si_warning("load_state_dict")
-
-    def state_dict(self, *args, **kwargs):
-        self._si_warning("state_dict")
-
-
-class DatasetCleaningAggr:
-    def __init__(
-        self,
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        aggr_type: type,
-        top_k: int = 50,
-        device: str = "cpu",
-    ):
-        self.aggregator = aggr_type()
-        self.global_rank: torch.Tensor
-
-        if not isinstance(self.aggregator, BaseAggregator):
-            raise ValueError(f"Aggregator type {aggr_type} is not supported.")
-
-        self.model = model
-        self.train_dataset = train_dataset
-        self.top_k = top_k
-        self.device = device
-
-    def update(
-        self,
-        explanations: torch.Tensor,
-        **kwargs,
-    ):
-        self.aggregator.update(explanations)
-
-    def get_global_rank(self, *args, **kwargs):
-        return self.aggregator.compute()
-
-    def reset(self, *args, **kwargs):
-        self.aggregator.reset()
-
-    def load_state_dict(self, state_dict: dict, *args, **kwargs):
-        self.aggregator.load_state_dict(state_dict)
-
-    def state_dict(self, *args, **kwargs):
-        return self.aggregator.state_dict()
-
-
-class DatasetCleaning(Metric):
+class DatasetCleaning(GlobalMetric):
     """
     Quote from https://proceedings.mlr.press/v89/khanna19a.html:
 
@@ -109,11 +17,6 @@ class DatasetCleaning(Metric):
     by our model, and then select the training data points responsible for those misclassifications.'
 
     """
-
-    strategies = {
-        "self-influence": DatasetCleaningSI,
-        "aggr": DatasetCleaningAggr,
-    }
 
     def __init__(
         self,
@@ -130,58 +33,21 @@ class DatasetCleaning(Metric):
         *args,
         **kwargs,
     ):
-        super().__init__(model=model, train_dataset=train_dataset, device=device)
+        super().__init__(
+            model=model,
+            train_dataset=train_dataset,
+            global_method=global_method,
+            si_fn=si_fn,
+            si_fn_kwargs=si_fn_kwargs,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            batch_size=batch_size,
+            device=device,
+        )
         self.top_k = min(top_k, self.dataset_length - 1)
-        self.si_fn_kwargs = si_fn_kwargs or {}
-        self.model_id = model_id
-        self.cache_dir = cache_dir
-        self.batch_size = batch_size
 
         self.clean_accuracy: int
         self.original_accuracy: int
-        self.si_fn: Optional[Callable]
-
-        if si_fn is not None:
-            self.si_fn = make_func(
-                func=si_fn,
-                model=self.model,
-                model_id=self.model_id,
-                cache_dir=self.cache_dir,
-                train_dataset=self.train_dataset,
-                device=self.device,
-                batch_size=self.batch_size,
-                **self.si_fn_kwargs,
-            )
-        else:
-            self.si_fn = None
-
-        if isinstance(global_method, str):
-
-            if global_method == "self-influence":
-                self.strategy = self.strategies[global_method](
-                    model=model, train_dataset=train_dataset, si_fn=self.si_fn, top_k=top_k, device=device
-                )
-
-            elif global_method in aggr_types:
-                aggr_type = aggr_types[global_method]
-                self.strategy = self.strategies["aggr"](
-                    model=model, train_dataset=train_dataset, aggr_type=aggr_type, top_k=top_k, device=device
-                )
-
-            else:
-                raise ValueError(f"Global method {global_method} is not supported.")
-
-        elif isinstance(global_method, type):
-            self.strategy = self.strategies["aggr"](
-                model=model, train_dataset=train_dataset, aggr_type=global_method, top_k=top_k, device=device
-            )
-
-        else:
-            raise ValueError(
-                f"Global method {global_method} is not supported. When passing a custom aggregator, "
-                "it should be an instance of BaseAggregator. When passing a string, it should be one of "
-                f"{list(aggr_types.keys())}."
-            )
 
     def update(
         self,
