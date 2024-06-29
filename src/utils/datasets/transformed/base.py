@@ -12,8 +12,6 @@ class TransformedDataset(Dataset):
         n_classes: int,
         cache_path: str = "./cache",
         cls_idx: Optional[int] = None,
-        # If isinstance(subset_idx,int): perturb this class with probability p,
-        # if isinstance(subset_idx,List[int]): perturb datapoints with these indices with probability p
         p: float = 1.0,
         seed: int = 42,
         device: str = "cpu",
@@ -26,6 +24,8 @@ class TransformedDataset(Dataset):
         self.cls_idx = cls_idx
         self.cache_path = cache_path
         self.p = p
+        self.device = device
+
         if sample_fn is not None:
             self.sample_fn = sample_fn
         else:
