@@ -1,4 +1,5 @@
 import warnings
+from functools import lru_cache
 from typing import Callable, Optional, Union
 
 import torch
@@ -30,12 +31,15 @@ class DatasetCleaningSI:
         self.si_fn = si_fn
         self.device = device
 
-        self.global_rank: torch.Tensor = self.si_fn()
+    @lru_cache(maxsize=1)
+    def get_global_rank(self):
+        return self.si_fn()
 
-    def _si_warning(self, method_name: str):
+    @staticmethod
+    def _si_warning(method_name: str):
         warnings.warn(
             f"{method_name} method is not supported for DatasetCleaning metric with global method "
-            "'self-influence'. Method call will be ignored."
+            "'self-influence'. Method call will be ignored. Call 'compute' method to get the final result."
         )
 
     def update(
@@ -80,8 +84,10 @@ class DatasetCleaningAggr:
         explanations: torch.Tensor,
         **kwargs,
     ):
-
         self.aggregator.update(explanations)
+
+    def get_global_rank(self, *args, **kwargs):
+        return self.aggregator.compute()
 
     def reset(self, *args, **kwargs):
         self.aggregator.reset()
@@ -114,18 +120,18 @@ class DatasetCleaning(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         global_method: Union[str, BaseAggregator] = "self-influence",
+        top_k: int = 50,
         si_fn: Optional[Callable] = None,
         si_fn_kwargs: Optional[dict] = None,
         batch_size: int = 32,
         model_id: str = "0",
         cache_dir: str = "./cache",
-        top_k: int = 50,
         device: str = "cpu",
         *args,
         **kwargs,
     ):
         super().__init__(model=model, train_dataset=train_dataset, device=device)
-        self.top_k = top_k
+        self.top_k = min(top_k, self.dataset_length - 1)
         self.si_fn_kwargs = si_fn_kwargs or {}
         self.model_id = model_id
         self.cache_dir = cache_dir
@@ -153,7 +159,7 @@ class DatasetCleaning(Metric):
 
             if global_method == "self-influence":
                 self.strategy = self.strategies[global_method](
-                    model=model, train_dataset=train_dataset, explain_fn=si_fn, top_k=top_k, device=device
+                    model=model, train_dataset=train_dataset, si_fn=self.si_fn, top_k=top_k, device=device
                 )
 
             elif global_method in aggr_types:
@@ -194,7 +200,7 @@ class DatasetCleaning(Metric):
         return self.strategy.state_dict()
 
     def compute(self, *args, **kwargs):
-        top_k_indices = torch.topk(self.strategy.global_rank, self.top_k).indices
+        top_k_indices = torch.topk(self.strategy.get_global_rank(), self.top_k).indices
         clean_indices = [i for i in range(self.dataset_length) if i not in top_k_indices]
         clean_subset = torch.utils.data.Subset(self.train_dataset, clean_indices)
 
