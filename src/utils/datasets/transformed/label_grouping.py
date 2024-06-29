@@ -1,4 +1,5 @@
-from typing import Dict, Literal, Union
+import warnings
+from typing import Dict, Literal, Optional, Union
 
 import torch
 
@@ -14,7 +15,7 @@ class LabelGroupingDataset(TransformedDataset):
         n_classes: int,
         seed: int = 42,
         device: str = "cpu",
-        n_groups: int = 2,
+        n_groups: Optional[int] = None,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
     ):
 
@@ -24,27 +25,42 @@ class LabelGroupingDataset(TransformedDataset):
             seed=seed,
             device=device,
             p=1.0,
-            cls_idx=None,  # apply to all datapoints with certainty
+            cls_idx=None,
         )
-        self.n_classes = n_classes
-        self.classes = list(range(n_classes))
-        self.n_groups = n_groups
-        self.groups = list(range(n_groups))
 
         if class_to_group == "random":
-            # create a dictionary of class groups that assigns each class to a group
-            group_assignments = [self.rng.randint(0, n_groups - 1) for _ in range(n_classes)]
-            self.class_to_group = {}
-            for i in range(n_classes):
-                self.class_to_group[i] = group_assignments[i]
+
+            if n_groups is None:
+                raise ValueError("n_classes and n_groups must be specified when class_to_group is 'random'")
+
+            self.n_classes = n_classes
+            self.n_groups = n_groups
+
+            self.class_to_group = {i: self.rng.randrange(self.n_groups) for i in range(self.n_classes)}
 
         elif isinstance(class_to_group, dict):
-            self._validate_class_to_group(class_to_group)
+
+            if n_groups is not None:
+                warnings.warn("Class-to-group assignment is used. n_groups parameter is ignored.")
+
             self.class_to_group = class_to_group
+            self.n_classes = len(self.class_to_group)
+            self.n_groups = len(set(self.class_to_group))
+
         else:
+
             raise ValueError(f"Invalid class_to_group value: {class_to_group}")
+
+        self.classes = list(range(self.n_classes))
+        self.groups = list(range(self.n_groups))
+        self._validate_class_to_group()
         self.label_fn = lambda x: self.class_to_group[x]
 
-    def _validate_class_to_group(self, class_to_group):
-        assert len(class_to_group) == self.n_classes
-        assert all([g in self.groups for g in self.class_to_group.values()])
+    def _validate_class_to_group(self):
+        if not len(self.class_to_group) == self.n_classes:
+            raise ValueError(
+                f"Length of class_to_group dictionary ({len(self.class_to_group)}) "
+                f"does not match number of classes ({self.n_classes})"
+            )
+        if not all([g in self.groups for g in self.class_to_group.values()]):
+            raise ValueError(f"Invalid group assignment in class_to_group: {self.class_to_group.values()}")

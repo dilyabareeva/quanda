@@ -31,7 +31,7 @@ from src.utils.training.trainer import Trainer
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
-            0.25,
+            0.8750,
         ),
         (
             "mnist",
@@ -52,7 +52,7 @@ from src.utils.training.trainer import Trainer
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
-            0.25,
+            0.8750,
         ),
         (
             "mnist",
@@ -73,7 +73,7 @@ from src.utils.training.trainer import Trainer
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
-            0.25,
+            0.8750,
         ),
     ],
 )
