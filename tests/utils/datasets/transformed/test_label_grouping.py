@@ -41,6 +41,6 @@ def test_label_grouping(
     for i in range(len(grouped_dataset)):
         x, g = grouped_dataset[i]
         y = grouped_dataset._get_original_label(i)
-        assertions.append((i not in grouped_dataset.samples_to_perturb) or (g == grouped_dataset.class_to_group[y]))
+        assertions.append((i not in grouped_dataset.transform_indices) or (g == grouped_dataset.class_to_group[y]))
 
     assert all(assertions)
