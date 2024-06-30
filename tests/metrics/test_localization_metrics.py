@@ -4,8 +4,8 @@ from src.explainers.aggregators import SumAggregator
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.metrics.localization.identical_class import IdenticalClass
 from src.metrics.localization.identical_subclass import IdenticalSubclass
-from src.metrics.localization.mislabelling_detection import (
-    MislabelingDetection,
+from src.metrics.localization.mislabeling_detection import (
+    MislabelingDetectionMetric,
 )
 from src.utils.functions.similarities import cosine_similarity
 
@@ -144,7 +144,7 @@ def test_poisoning_detection_metric(
     tda = request.getfixturevalue(explanations)
     model = request.getfixturevalue(model)
     if global_method != "self-influence":
-        metric = MislabelingDetection(
+        metric = MislabelingDetectionMetric(
             model=model,
             train_dataset=dataset,
             poisoned_indices=dataset.transform_indices,
@@ -162,7 +162,7 @@ def test_poisoning_detection_metric(
             **explainer_kwargs,
         )
 
-        metric = MislabelingDetection(
+        metric = MislabelingDetectionMetric(
             model=model,
             train_dataset=dataset,
             global_method=global_method,

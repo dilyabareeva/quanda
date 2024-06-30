@@ -12,7 +12,7 @@ class PoisoningLocalDetection:
     pass
 
 
-class MislabelingDetection(GlobalMetric):
+class MislabelingDetectionMetric(GlobalMetric):
     """
     Quote from https://proceedings.mlr.press/v89/khanna19a.html:
 
