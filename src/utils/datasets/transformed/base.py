@@ -1,5 +1,5 @@
 import random
-from typing import Any, Callable, Optional, Sized
+from typing import Any, Callable, List, Optional, Sized
 
 import torch
 from torch.utils.data.dataset import Dataset
@@ -11,6 +11,7 @@ class TransformedDataset(Dataset):
         dataset: torch.utils.data.Dataset,
         n_classes: int,
         dataset_transform: Optional[Callable] = None,
+        transform_indices: Optional[List] = None,
         cache_path: str = "./cache",
         cls_idx: Optional[int] = None,
         p: float = 1.0,
@@ -45,10 +46,13 @@ class TransformedDataset(Dataset):
         self.torch_rng = torch.Generator()
         self.torch_rng.manual_seed(seed)
 
-        trans_idx = torch.rand(len(self), generator=self.torch_rng) <= self.p
-        if self.cls_idx is not None:
-            trans_idx *= torch.tensor([self.dataset[s][1] == self.cls_idx for s in range(len(self))], dtype=torch.bool)
-        self.transform_indices = torch.where(trans_idx)[0].tolist()
+        if transform_indices is None:
+            trans_idx = torch.rand(len(self), generator=self.torch_rng) <= self.p
+            if self.cls_idx is not None:
+                trans_idx *= torch.tensor([self.dataset[s][1] == self.cls_idx for s in range(len(self))], dtype=torch.bool)
+            self.transform_indices = torch.where(trans_idx)[0].tolist()
+        else:
+            self.transform_indices = transform_indices
 
     def __len__(self) -> int:
         if isinstance(self.dataset, Sized):
