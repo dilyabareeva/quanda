@@ -1,22 +1,18 @@
-from typing import Any, Callable, Dict, List, Optional, Union
+import os
+from typing import Any, Callable, Dict, List, Optional
 
 import lightning as L
 import torch
 from tqdm import tqdm
 
-from src.explainers.aggregators import BaseAggregator
 from src.explainers.base import BaseExplainer
-from src.metrics.localization.mislabeling_detection import (
-    MislabelingDetectionMetric,
-)
+from src.metrics.localization.backdoor_detection import BackdoorDetectionMetric
 from src.toy_benchmarks.base import ToyBenchmark
-from src.utils.datasets.transformed.label_poisoning import (
-    LabelPoisoningDataset,
-)
+from src.utils.datasets.transformed.sample import SampleTransformationDataset
 from src.utils.training.trainer import BaseTrainer, Trainer
 
 
-class MislabelingDetection(ToyBenchmark):
+class BackdoorDetection(ToyBenchmark):
 
     def __init__(
         self,
@@ -29,16 +25,15 @@ class MislabelingDetection(ToyBenchmark):
         self.trainer: Optional[BaseTrainer] = None
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
-        self.poisoned_dataset: LabelPoisoningDataset
+        self.backdoor_dataset: SampleTransformationDataset
+        self.backdoor_indices: List[int]
         self.dataset_transform: Optional[Callable]
-        self.poisoned_indices: List[int]
-        self.poisoned_labels: Dict[int, int]
-        self.poisoned_train_dl: torch.utils.data.DataLoader
-        self.poisoned_val_dl: Optional[torch.utils.data.DataLoader]
+        self.backdoor_train_dl: torch.utils.data.DataLoader
+        self.backdoor_val_dl: Optional[torch.utils.data.DataLoader]
         self.original_train_dl: torch.utils.data.DataLoader
         self.bench_state: Dict[str, Any]
+        self.backdoor_cls: int
         self.p: float
-        self.global_method: Union[str, BaseAggregator] = "self-influence"
         self.n_classes: int
 
     @classmethod
@@ -50,12 +45,11 @@ class MislabelingDetection(ToyBenchmark):
         optimizer: Callable,
         lr: float,
         criterion: torch.nn.modules.loss._Loss,
-        dataset_transform: Optional[Callable] = None,
+        backdoor_cls: int,
         scheduler: Optional[Callable] = None,
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
-        global_method: Union[str, BaseAggregator] = "self-influence",
         p: float = 0.3,
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
@@ -84,8 +78,7 @@ class MislabelingDetection(ToyBenchmark):
             train_dataset=train_dataset,
             val_dataset=val_dataset,
             p=p,
-            global_method=global_method,
-            dataset_transform=dataset_transform,
+            backdoor_cls=backdoor_cls,
             n_classes=n_classes,
             trainer_fit_kwargs=trainer_fit_kwargs,
             seed=seed,
@@ -100,10 +93,9 @@ class MislabelingDetection(ToyBenchmark):
         pl_module: L.LightningModule,
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
-        dataset_transform: Optional[Callable] = None,
+        backdoor_cls: int,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         p: float = 0.3,
-        global_method: Union[str, BaseAggregator] = "self-influence",
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
@@ -121,8 +113,7 @@ class MislabelingDetection(ToyBenchmark):
             train_dataset=train_dataset,
             val_dataset=val_dataset,
             p=p,
-            dataset_transform=dataset_transform,
-            global_method=global_method,
+            backdoor_cls=backdoor_cls,
             n_classes=n_classes,
             trainer_fit_kwargs=trainer_fit_kwargs,
             seed=seed,
@@ -137,10 +128,9 @@ class MislabelingDetection(ToyBenchmark):
         trainer: BaseTrainer,
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
-        dataset_transform: Optional[Callable] = None,
+        backdoor_cls: int,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         p: float = 0.3,
-        global_method: Union[str, BaseAggregator] = "self-influence",
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
@@ -163,8 +153,7 @@ class MislabelingDetection(ToyBenchmark):
             train_dataset=train_dataset,
             val_dataset=val_dataset,
             p=p,
-            global_method=global_method,
-            dataset_transform=dataset_transform,
+            backdoor_cls=backdoor_cls,
             n_classes=n_classes,
             trainer_fit_kwargs=trainer_fit_kwargs,
             seed=seed,
@@ -176,12 +165,10 @@ class MislabelingDetection(ToyBenchmark):
         self,
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
-        dataset_transform: Optional[Callable],
-        poisoned_indices: Optional[List[int]] = None,
-        poisoned_labels: Optional[Dict[int, int]] = None,
+        backdoor_cls: int,
+        backdoor_indices: Optional[List[int]] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         p: float = 0.3,
-        global_method: Union[str, BaseAggregator] = "self-influence",
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
@@ -196,33 +183,30 @@ class MislabelingDetection(ToyBenchmark):
 
         self.train_dataset = train_dataset
         self.p = p
-        self.global_method = global_method
+        self.backdoor_cls = backdoor_cls
         self.n_classes = n_classes
-        self.dataset_transform = dataset_transform
-        self.poisoned_dataset = LabelPoisoningDataset(
+        self.backdoor_dataset = SampleTransformationDataset(
             dataset=train_dataset,
             p=p,
-            transform_indices=poisoned_indices,
-            dataset_transform=dataset_transform,
-            poisoned_labels=poisoned_labels,
             n_classes=n_classes,
             seed=seed,
+            cls_idx=backdoor_cls,
+            transform_indices=backdoor_indices,
         )
-        self.poisoned_indices = self.poisoned_dataset.transform_indices
-        self.poisoned_labels = self.poisoned_dataset.poisoned_labels
-        self.poisoned_train_dl = torch.utils.data.DataLoader(self.poisoned_dataset, batch_size=batch_size)
+        self.backdoor_indices = self.backdoor_dataset.transform_indices
+        self.backdoor_train_dl = torch.utils.data.DataLoader(self.backdoor_dataset, batch_size=batch_size)
         self.original_train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
         if val_dataset:
-            poisoned_val_dataset = LabelPoisoningDataset(
-                dataset=train_dataset, dataset_transform=self.dataset_transform, p=self.p, n_classes=self.n_classes
+            backdoor_val_dataset = SampleTransformationDataset(
+                dataset=train_dataset, p=0, cls_idx=self.backdoor_cls, n_classes=self.n_classes
             )
-            self.poisoned_val_dl = torch.utils.data.DataLoader(poisoned_val_dataset, batch_size=batch_size)
+            self.backdoor_val_dl = torch.utils.data.DataLoader(backdoor_val_dataset, batch_size=batch_size)
         else:
-            self.poisoned_val_dl = None
+            self.backdoor_val_dl = None
 
         self.model = self.trainer.fit(
-            train_loader=self.poisoned_train_dl,
-            val_loader=self.poisoned_val_dl,
+            train_loader=self.backdoor_train_dl,
+            val_loader=self.backdoor_val_dl,
             trainer_fit_kwargs=trainer_fit_kwargs,
         )
 
@@ -230,10 +214,8 @@ class MislabelingDetection(ToyBenchmark):
             "model": self.model,
             "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
             "p": self.p,
-            "dataset_transform": self.dataset_transform,
-            "poisoned_indices": self.poisoned_indices,
-            "poisoned_labels": self.poisoned_labels,
-            "global_method": global_method,
+            "backdoor_indices": self.backdoor_indices,
+            "backdoor_cls": self.backdoor_cls,
         }
 
     @classmethod
@@ -246,20 +228,17 @@ class MislabelingDetection(ToyBenchmark):
         obj.model = obj.bench_state["model"]
         obj.train_dataset = obj.bench_state["train_dataset"]
         obj.p = obj.bench_state["p"]
-        obj.global_method = obj.bench_state["global_method"]
-        obj.poisoned_labels = obj.bench_state["poisoned_labels"]
-        obj.dataset_transform = obj.bench_state["dataset_transform"]
-        obj.poisoned_indices = obj.bench_state["poisoned_indices"]
+        obj.backdoor_indices = obj.bench_state["backdoor_indices"]
+        obj.backdoor_cls = obj.bench_state["backdoor_cls"]
 
-        obj.poisoned_dataset = LabelPoisoningDataset(
+        obj.backdoor_dataset = SampleTransformationDataset(
             dataset=obj.train_dataset,
             p=obj.p,
-            transform_indices=obj.poisoned_indices,
-            dataset_transform=obj.dataset_transform,
-            poisoned_labels=obj.poisoned_labels,
             n_classes=obj.n_classes,
+            cls_idx=obj.backdoor_cls,
+            transform_indices=obj.backdoor_indices,
         )
-        obj.poisoned_train_dl = torch.utils.data.DataLoader(obj.poisoned_dataset, batch_size=batch_size)
+        obj.backdoor_train_dl = torch.utils.data.DataLoader(obj.backdoor_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
 
     @classmethod
@@ -268,11 +247,9 @@ class MislabelingDetection(ToyBenchmark):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
-        poisoned_indices: Optional[List[int]] = None,
-        poisoned_labels: Optional[Dict[int, int]] = None,
-        dataset_transform: Optional[Callable] = None,
+        backdoor_cls: int,
+        backdoor_indices: Optional[List[int]],
         p: float = 0.3,  # TODO: type specification
-        global_method: Union[str, BaseAggregator] = "self-influence",
         batch_size: int = 8,
         device: str = "cpu",
         *args,
@@ -285,21 +262,12 @@ class MislabelingDetection(ToyBenchmark):
         obj.model = model
         obj.train_dataset = train_dataset
         obj.p = p
-        obj.dataset_transform = dataset_transform
-        obj.global_method = global_method
-
-        obj.poisoned_dataset = LabelPoisoningDataset(
-            dataset=train_dataset,
-            p=p,
-            dataset_transform=dataset_transform,
-            n_classes=n_classes,
-            transform_indices=poisoned_indices,
-            poisoned_labels=poisoned_labels,
+        obj.backdoor_cls = backdoor_cls
+        obj.backdoor_dataset = SampleTransformationDataset(
+            dataset=train_dataset, cls_idx=backdoor_cls, transform_indices=backdoor_indices, p=p, n_classes=n_classes
         )
-        obj.poisoned_indices = obj.poisoned_dataset.transform_indices
-        obj.poisoned_labels = obj.poisoned_dataset.poisoned_labels
-
-        obj.poisoned_train_dl = torch.utils.data.DataLoader(obj.poisoned_dataset, batch_size=batch_size)
+        obj.backdoor_indices = obj.backdoor_dataset.transform_indices
+        obj.backdoor_train_dl = torch.utils.data.DataLoader(obj.backdoor_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
 
     def save(self, path: str, *args, **kwargs):
@@ -313,6 +281,8 @@ class MislabelingDetection(ToyBenchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer: BaseExplainer,
         expl_kwargs: Optional[dict] = None,
+        cache_dir: str = "./cache",
+        model_id: str = "default_model_id",
         batch_size: int = 8,
         device: str = "cpu",
         *args,
@@ -320,43 +290,32 @@ class MislabelingDetection(ToyBenchmark):
     ):
         expl_kwargs = expl_kwargs or {}
 
-        poisoned_expl_ds = LabelPoisoningDataset(
-            dataset=expl_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
+        backdoor_expl_ds = SampleTransformationDataset(dataset=expl_dataset, n_classes=self.n_classes, p=1.0)
+
+        expl_dl = torch.utils.data.DataLoader(backdoor_expl_ds, batch_size=batch_size)
+        metric = BackdoorDetectionMetric(
+            model=self.model,
+            train_dataset=self.backdoor_dataset,
+            backdoor_indices=self.backdoor_indices,
+            device="cpu",
         )
-        expl_dl = torch.utils.data.DataLoader(poisoned_expl_ds, batch_size=batch_size)
-        if self.global_method != "self-influence":
-            metric = MislabelingDetectionMetric(
+        # TODO: limit dataset only to indices that are misclassified as the self.backdoor_cls
+        pbar = tqdm(expl_dl)
+        n_batches = len(expl_dl)
+
+        for i, (input, labels) in enumerate(pbar):
+            pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
+
+            input, labels = input.to(device), labels.to(device)
+            explanations = explainer.explain(
                 model=self.model,
-                train_dataset=self.poisoned_dataset,
-                poisoned_indices=self.poisoned_indices,
-                device="cpu",
-                global_method=self.global_method,
+                model_id=model_id,
+                cache_dir=os.path.join(cache_dir),
+                train_dataset=self.train_dataset,
+                test_tensor=input,
+                device=device,
+                **expl_kwargs,
             )
-
-            pbar = tqdm(expl_dl)
-            n_batches = len(expl_dl)
-
-            for i, (input, labels) in enumerate(pbar):
-                pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
-
-                input, labels = input.to(device), labels.to(device)
-                explanations = explainer.explain(
-                    model=self.model,
-                    train_dataset=self.train_dataset,
-                    test_tensor=input,
-                    device=device,
-                    **expl_kwargs,
-                )
-                metric.update(explanations)
-        else:
-            metric = MislabelingDetectionMetric(
-                model=self.model,
-                train_dataset=self.poisoned_dataset,
-                poisoned_indices=self.poisoned_indices,
-                device="cpu",
-                global_method="self-influence",
-                explainer=explainer,
-                expl_kwargs=expl_kwargs,
-            )
+            metric.update(explanations)
 
         return metric.compute()

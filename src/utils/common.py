@@ -55,7 +55,3 @@ def auc(x: torch.Tensor, max: Optional[Union[int, torch.Tensor]] = None) -> torc
     if max is None:
         max = x.max()
     return x.mean() / max
-
-
-def cumsum(x: torch.Tensor) -> torch.Tensor:
-    return torch.tensor([x[:i].sum() for i in range(x.shape[0])])

@@ -5,7 +5,7 @@ import torch
 from src.explainers.aggregators import BaseAggregator
 from src.explainers.base import BaseExplainer
 from src.metrics.base import GlobalMetric
-from src.utils.common import auc, cumsum
+from src.utils.common import auc
 
 
 class MislabelingDetectionMetric(GlobalMetric):
@@ -93,9 +93,9 @@ class MislabelingDetectionMetric(GlobalMetric):
 
         global_ranking = self.strategy.get_global_rank()
         success_arr = torch.tensor([elem in self.poisoned_indices for elem in global_ranking])
-        unnormalized_curve = cumsum(success_arr * 1.0)
+        unnormalized_curve = torch.cumsum(success_arr * 1.0, dim=0)
         return {
             "success_arr": success_arr,
-            "score": auc(cumsum(success_arr * 1.0), max=len(self.poisoned_indices)),
+            "score": auc(torch.cumsum(success_arr * 1.0, dim=0), max=len(self.poisoned_indices)),
             "curve": unnormalized_curve / len(self.poisoned_indices),
         }
