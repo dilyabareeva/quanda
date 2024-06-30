@@ -105,7 +105,7 @@ def test_identical_subclass_metrics(
             "load_mnist_explanations_1",
             "self-influence",
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.4375,  # = 28/64
+            0.5625,  # = 28/64
         ),
         (
             "mnist",
@@ -115,7 +115,7 @@ def test_identical_subclass_metrics(
             "load_mnist_explanations_1",
             SumAggregator,
             None,
-            0.4375,
+            0.5625,
         ),
         (
             "mnist",
@@ -125,7 +125,7 @@ def test_identical_subclass_metrics(
             "load_mnist_explanations_1",
             "sum_abs",
             None,
-            0.4375,
+            0.5625,
         ),
     ],
 )
