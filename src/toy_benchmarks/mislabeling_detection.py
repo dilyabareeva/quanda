@@ -311,7 +311,7 @@ class MislabelingDetection(ToyBenchmark):
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_dataset.transform_indices,
                 device="cpu",
-                global_method=self.global_method,
+                global_method="self-influence",
             )
 
         return metric.compute()

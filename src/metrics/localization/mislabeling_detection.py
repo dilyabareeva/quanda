@@ -8,10 +8,6 @@ from src.metrics.base import GlobalMetric
 from src.utils.common import auc, cumsum
 
 
-class PoisoningLocalDetection:
-    pass
-
-
 class MislabelingDetectionMetric(GlobalMetric):
     """
     Quote from https://proceedings.mlr.press/v89/khanna19a.html:
