@@ -31,7 +31,7 @@ class MislabelingDetection(ToyBenchmark):
         self.train_dataset: torch.utils.data.Dataset
         self.poisoned_dataset: LabelPoisoningDataset
         self.dataset_transform: Optional[Callable]
-        self.poisoned_indices: List
+        self.poisoned_indices: List[int]
         self.poisoned_labels: Dict[int, int]
         self.poisoned_train_dl: torch.utils.data.DataLoader
         self.poisoned_val_dl: Optional[torch.utils.data.DataLoader]
@@ -177,7 +177,7 @@ class MislabelingDetection(ToyBenchmark):
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
         dataset_transform: Optional[Callable],
-        poisoned_indices: Optional[List] = None,
+        poisoned_indices: Optional[List[int]] = None,
         poisoned_labels: Optional[Dict[int, int]] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         p: float = 0.3,
@@ -268,7 +268,7 @@ class MislabelingDetection(ToyBenchmark):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
-        poisoned_indices: Optional[List] = None,
+        poisoned_indices: Optional[List[int]] = None,
         poisoned_labels: Optional[Dict[int, int]] = None,
         dataset_transform: Optional[Callable] = None,
         p: float = 0.3,  # TODO: type specification
