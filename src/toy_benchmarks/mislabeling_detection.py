@@ -32,6 +32,7 @@ class MislabelingDetection(ToyBenchmark):
         self.poisoned_dataset: LabelPoisoningDataset
         self.dataset_transform: Optional[Callable]
         self.poisoned_indices: List
+        self.poisoned_labels: Dict[int, int]
         self.poisoned_train_dl: torch.utils.data.DataLoader
         self.poisoned_val_dl: Optional[torch.utils.data.DataLoader]
         self.original_train_dl: torch.utils.data.DataLoader
