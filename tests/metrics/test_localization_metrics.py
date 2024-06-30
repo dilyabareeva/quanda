@@ -1,7 +1,13 @@
 import pytest
 
+from src.explainers.aggregators import SumAggregator
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.metrics.localization.identical_class import IdenticalClass
 from src.metrics.localization.identical_subclass import IdenticalSubclass
+from src.metrics.localization.mislabelling_detection import (
+    MislabelingDetection,
+)
+from src.utils.functions.similarities import cosine_similarity
 
 
 @pytest.mark.localization_metrics
@@ -85,3 +91,86 @@ def test_identical_subclass_metrics(
     metric.update(test_subclasses=test_labels, explanations=tda)
     score = metric.compute()
     assert score == expected_score
+
+
+@pytest.mark.localization_metrics
+@pytest.mark.parametrize(
+    "test_id, model, dataset, batch_size, explanations, global_method, explainer_kwargs, expected_score",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_poisoned_mnist_dataset",
+            8,
+            "load_mnist_explanations_1",
+            "self-influence",
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.4375,  # = 28/64
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_poisoned_mnist_dataset",
+            8,
+            "load_mnist_explanations_1",
+            SumAggregator,
+            None,
+            0.4375,
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_poisoned_mnist_dataset",
+            8,
+            "load_mnist_explanations_1",
+            "sum_abs",
+            None,
+            0.4375,
+        ),
+    ],
+)
+def test_poisoning_detection_metric(
+    test_id,
+    model,
+    dataset,
+    batch_size,
+    explanations,
+    global_method,
+    explainer_kwargs,
+    expected_score,
+    request,
+):
+    dataset = request.getfixturevalue(dataset)
+    tda = request.getfixturevalue(explanations)
+    model = request.getfixturevalue(model)
+    if global_method != "self-influence":
+        metric = MislabelingDetection(
+            model=model,
+            train_dataset=dataset,
+            poisoned_indices=dataset.transform_indices,
+            global_method=global_method,
+            device="cpu",
+        )
+        metric.update(explanations=tda)
+    else:
+        explainer = CaptumSimilarity(
+            model=model,
+            model_id=test_id,
+            cache_dir=str(0),
+            train_dataset=dataset,
+            device="cpu",
+            **explainer_kwargs,
+        )
+
+        metric = MislabelingDetection(
+            model=model,
+            train_dataset=dataset,
+            global_method=global_method,
+            poisoned_indices=dataset.transform_indices,
+            explainer=explainer,
+            expl_kwargs={"batch_size": batch_size},
+            device="cpu",
+        )
+    score = metric.compute()
+
+    assert score["score"] == expected_score

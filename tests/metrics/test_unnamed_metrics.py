@@ -145,7 +145,7 @@ def test_dataset_cleaning(
             trainer_fit_kwargs={"max_epochs": max_epochs},
             top_k=top_k,
             explainer=explainer,
-            expplainer_kwargs={"batch_size": batch_size},
+            expl_kwargs={"batch_size": batch_size},
             device="cpu",
         )
 

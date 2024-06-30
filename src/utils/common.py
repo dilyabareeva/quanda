@@ -51,11 +51,11 @@ def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, de
     return correct / total
 
 
-def auc(x: torch.Tensor, max: Optional[Union[int, torch.Tensor]] = None):
+def auc(x: torch.Tensor, max: Optional[Union[int, torch.Tensor]] = None) -> torch.Tensor:
     if max is None:
         max = x.max()
     return x.mean() / max
 
 
-def cumsum(x: torch.Tensor):
-    return [x[:i].sum() for i in range(x.shape[0])]
+def cumsum(x: torch.Tensor) -> torch.Tensor:
+    return torch.tensor([x[:i].sum() for i in range(x.shape[0])])
