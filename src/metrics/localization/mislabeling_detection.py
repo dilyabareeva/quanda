@@ -9,15 +9,6 @@ from src.utils.common import auc, cumsum
 
 
 class MislabelingDetectionMetric(GlobalMetric):
-    """
-    Quote from https://proceedings.mlr.press/v89/khanna19a.html:
-
-    'Our goal in this experiment is to try to identify some such misleading training data points,
-    and remove them to see if it improves predictive accuracy. To illustrate the flexibility of
-    our approach, we focus only on the digits 4 and 9 in the test data which were misclassified
-    by our model, and then select the training data points responsible for those misclassifications.'
-
-    """
 
     def __init__(
         self,

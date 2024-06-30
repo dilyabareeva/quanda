@@ -1,5 +1,5 @@
 import warnings
-from typing import Dict, Literal, Optional, Union
+from typing import Callable, Dict, Literal, Optional, Union
 
 import torch
 
@@ -13,6 +13,7 @@ class LabelGroupingDataset(TransformedDataset):
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
+        dataset_transform: Optional[Callable] = None,
         seed: int = 42,
         device: str = "cpu",
         n_groups: Optional[int] = None,
@@ -22,6 +23,7 @@ class LabelGroupingDataset(TransformedDataset):
         super().__init__(
             dataset=dataset,
             n_classes=n_classes,
+            dataset_transform=dataset_transform,
             seed=seed,
             device=device,
             p=1.0,

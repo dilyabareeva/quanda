@@ -10,6 +10,7 @@ class TransformedDataset(Dataset):
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
+        dataset_transform: Optional[Callable] = None,
         cache_path: str = "./cache",
         cls_idx: Optional[int] = None,
         p: float = 1.0,
@@ -26,6 +27,10 @@ class TransformedDataset(Dataset):
         self.p = p
         self.device = device
 
+        if dataset_transform is not None:
+            self.dataset_transform = dataset_transform
+        else:
+            self.dataset_transform = self._identity
         if sample_fn is not None:
             self.sample_fn = sample_fn
         else:
@@ -56,7 +61,7 @@ class TransformedDataset(Dataset):
         xx = self.sample_fn(x)
         yy = self.label_fn(y)
 
-        return (xx, yy) if index in self.transform_indices else (x, y)
+        return (self.dataset_transform(xx), yy) if index in self.transform_indices else (self.dataset_transform(x), y)
 
     def _get_original_label(self, index) -> int:
         _, y = self.dataset[index]

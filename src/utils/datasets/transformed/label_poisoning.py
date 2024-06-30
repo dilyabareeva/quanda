@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Callable, Optional
 
 import torch
 
@@ -10,13 +10,22 @@ class LabelPoisoningDataset(TransformedDataset):
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
+        dataset_transform: Optional[Callable] = None,
         cls_idx: Optional[int] = None,
         p: float = 1.0,  # TODO: decide on default value vis-à-vis subset_idx
         seed: int = 42,
         device: str = "cpu",
     ):
 
-        super().__init__(dataset=dataset, n_classes=n_classes, seed=seed, device=device, p=p, cls_idx=cls_idx)
+        super().__init__(
+            dataset=dataset,
+            n_classes=n_classes,
+            dataset_transform=dataset_transform,
+            seed=seed,
+            device=device,
+            p=p,
+            cls_idx=cls_idx,
+        )
         self.poisoned_labels = {i: self._poison(self.dataset[i][1]) for i in range(len(self)) if i in self.transform_indices}
 
     def _poison(self, original_label):
@@ -28,4 +37,4 @@ class LabelPoisoningDataset(TransformedDataset):
         x, y = self.dataset[index]
         if index in self.transform_indices:
             y = self.poisoned_labels[index]
-        return x, y
+        return self.dataset_transform(x), y
