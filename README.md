@@ -105,7 +105,7 @@ for i, (data, target) in enumerate(tqdm(test_loader)):
 Clone the repository and run the following inside the repo root to install the dependencies:
 
 ```bash
-pip install '.[dev]'
+pip install -e '.[dev]'
 pip uninstall quanda
 ```
 
