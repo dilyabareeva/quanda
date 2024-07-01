@@ -53,3 +53,9 @@ class AbsSumAggregator(BaseAggregator):
     def update(self, explanations: torch.Tensor):
         self._validate_explanations(explanations)
         self.scores += explanations.abs().sum(dim=0)
+
+
+aggr_types = {
+    "sum": SumAggregator,
+    "sum_abs": AbsSumAggregator,
+}

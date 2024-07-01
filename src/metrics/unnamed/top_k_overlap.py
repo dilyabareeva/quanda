@@ -13,7 +13,7 @@ class TopKOverlap(Metric):
         *args,
         **kwargs,
     ):
-        super().__init__(model, train_dataset, *args, **kwargs)
+        super().__init__(model=model, train_dataset=train_dataset, device=device)
         self.top_k = top_k
         self.all_top_k_examples = torch.empty(0, top_k)
 

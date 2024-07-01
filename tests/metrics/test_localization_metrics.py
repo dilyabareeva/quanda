@@ -1,9 +1,7 @@
 import pytest
 
-from src.metrics.localization.identical_class import (
-    IdenticalClass,
-    IdenticalSubclass,
-)
+from src.metrics.localization.identical_class import IdenticalClass
+from src.metrics.localization.identical_subclass import IdenticalSubclass
 
 
 @pytest.mark.localization_metrics

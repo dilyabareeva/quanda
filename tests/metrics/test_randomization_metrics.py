@@ -29,7 +29,7 @@ from src.utils.functions.similarities import cosine_similarity
     ],
 )
 def test_randomization_metric(
-    test_id, model, dataset, test_data, batch_size, explain, explain_fn_kwargs, explanations, test_labels, request
+    test_id, model, dataset, test_data, batch_size, explain, explain_fn_kwargs, explanations, test_labels, tmp_path, request
 ):
     model = request.getfixturevalue(model)
     test_data = request.getfixturevalue(test_data)
@@ -42,6 +42,7 @@ def test_randomization_metric(
         explain_fn=explain,
         explain_fn_kwargs=explain_fn_kwargs,
         correlation_fn="spearman",
+        cache_dir=str(tmp_path),
         seed=42,
         device="cpu",
     )

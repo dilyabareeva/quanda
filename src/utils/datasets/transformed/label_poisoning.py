@@ -17,7 +17,7 @@ class LabelPoisoningDataset(TransformedDataset):
     ):
 
         super().__init__(dataset=dataset, n_classes=n_classes, seed=seed, device=device, p=p, cls_idx=cls_idx)
-        self.poisoned_labels = {i: self._poison(self.dataset[i][1]) for i in range(len(self))}
+        self.poisoned_labels = {i: self._poison(self.dataset[i][1]) for i in range(len(self)) if i in self.transform_indices}
 
     def _poison(self, original_label):
         label_arr = [i for i in range(self.n_classes) if original_label != i]
@@ -26,6 +26,6 @@ class LabelPoisoningDataset(TransformedDataset):
 
     def __getitem__(self, index):
         x, y = self.dataset[index]
-        if index in self.samples_to_perturb:
+        if index in self.transform_indices:
             y = self.poisoned_labels[index]
         return x, y
