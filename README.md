@@ -100,3 +100,16 @@ for i, (data, target) in enumerate(tqdm(test_loader)):
     top_k.update(target)
 ```
 </details>
+
+## Contribution
+Clone the repository and run the following inside the repo root to install the dependencies:
+
+```bash
+pip install '.[dev]'
+pip uninstall quanda
+```
+
+Install the pre-commit hooks:
+```bash
+pre-commit install
+```
