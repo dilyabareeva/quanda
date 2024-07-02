@@ -21,20 +21,18 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Setup python for test ${{ matrix.py }}
+
+      - name: Setup Python ${{ matrix.py }}
         uses: actions/setup-python@v4
         with:
           cache: 'pip'
           python-version: ${{ matrix.py }}
 
+      - name: Verify Python Installation
+        run: python --version
+
       - name: Install tox-gh
         run: python -m pip install tox-gh>=1.2
-
-      - name: Setup test suite
-        run: tox -vv --notest
-
-      - name: Run test suite
-        run: tox --skip-pkg-install
 
       - name: Setup test environment
         run: tox run -e coverage --notest
