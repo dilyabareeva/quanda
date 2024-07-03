@@ -10,7 +10,7 @@ from src.utils.functions.similarities import cosine_similarity
 
 @pytest.mark.randomization_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_data, batch_size, explainer_cls, explainer_kwargs, explanations, test_labels",
+    "test_id, model, dataset, test_data, batch_size, explainer_cls, expl_kwargs, explanations, test_labels",
     [
         (
             "mnist",
@@ -35,7 +35,7 @@ def test_randomization_metric(
     test_data,
     batch_size,
     explainer_cls,
-    explainer_kwargs,
+    expl_kwargs,
     explanations,
     test_labels,
     tmp_path,
@@ -50,7 +50,7 @@ def test_randomization_metric(
         model=model,
         train_dataset=dataset,
         explainer_cls=explainer_cls,
-        explainer_kwargs=explainer_kwargs,
+        expl_kwargs=expl_kwargs,
         correlation_fn="spearman",
         cache_dir=str(tmp_path),
         seed=42,
@@ -65,7 +65,7 @@ def test_randomization_metric(
 
 @pytest.mark.randomization_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, explainer_cls, explainer_kwargs",
+    "test_id, model, dataset, explainer_cls, expl_kwargs",
     [
         (
             "mnist",
@@ -79,14 +79,14 @@ def test_randomization_metric(
         ),
     ],
 )
-def test_randomization_metric_model_randomization(test_id, model, dataset, explainer_cls, explainer_kwargs, request):
+def test_randomization_metric_model_randomization(test_id, model, dataset, explainer_cls, expl_kwargs, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     metric = ModelRandomizationMetric(
         model=model,
         train_dataset=dataset,
         explainer_cls=explainer_cls,
-        explainer_kwargs=explainer_kwargs,
+        expl_kwargs=expl_kwargs,
         seed=42,
         device="cpu",
     )

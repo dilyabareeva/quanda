@@ -1,4 +1,3 @@
-from inspect import signature
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import lightning as L
@@ -318,8 +317,6 @@ class MislabelingDetection(ToyBenchmark):
     ):
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, device=device, **expl_kwargs)
-        exp_expl_kwargs = signature(explainer.explain)
-        expl_fn_kwargs = {k: v for k, v in kwargs.items() if k in exp_expl_kwargs.parameters}
 
         poisoned_expl_ds = LabelFlippingDataset(
             dataset=expl_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
@@ -345,8 +342,7 @@ class MislabelingDetection(ToyBenchmark):
                     model=self.model,
                     train_dataset=self.train_dataset,
                     test_tensor=input,
-                    device=device,
-                    **expl_fn_kwargs,
+                    device=device
                 )
                 metric.update(explanations)
         else:
@@ -356,8 +352,8 @@ class MislabelingDetection(ToyBenchmark):
                 poisoned_indices=self.poisoned_indices,
                 device="cpu",
                 global_method="self-influence",
-                explainer=explainer,
-                expl_kwargs=expl_fn_kwargs,
+                explainer_cls=explainer_cls,
+                expl_kwargs=expl_kwargs,
             )
 
         return metric.compute()

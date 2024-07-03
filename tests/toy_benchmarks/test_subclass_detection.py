@@ -1,6 +1,6 @@
 import pytest
 
-from src.explainers.wrappers.captum_influence import captum_similarity_explain
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.toy_benchmarks.subclass_detection import SubclassDetection
 from src.utils.functions.similarities import cosine_similarity
 from src.utils.training.base_pl_module import BasicLightningModule
@@ -10,7 +10,7 @@ from src.utils.training.trainer import Trainer
 @pytest.mark.toy_benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, test_labels, "
-    "batch_size, explainer, explain_kwargs, expected_score",
+    "batch_size, explainer_cls, expl_kwargs, expected_score",
     [
         (
             "mnist",
@@ -26,7 +26,7 @@ from src.utils.training.trainer import Trainer
             27,
             "load_mnist_test_labels_1",
             8,
-            captum_similarity_explain,
+            CaptumSimilarity,
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
@@ -47,7 +47,7 @@ from src.utils.training.trainer import Trainer
             27,
             "load_mnist_test_labels_1",
             8,
-            captum_similarity_explain,
+            CaptumSimilarity,
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
@@ -68,7 +68,7 @@ from src.utils.training.trainer import Trainer
             27,
             "load_mnist_test_labels_1",
             8,
-            captum_similarity_explain,
+            CaptumSimilarity,
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
@@ -91,8 +91,8 @@ def test_subclass_detection(
     seed,
     test_labels,
     batch_size,
-    explainer,
-    explain_kwargs,
+    explainer_cls,
+    expl_kwargs,
     expected_score,
     tmp_path,
     request,
@@ -166,8 +166,8 @@ def test_subclass_detection(
 
     score = dst_eval.evaluate(
         expl_dataset=dataset,
-        explainer=explainer,
-        explain_kwargs=explain_kwargs,
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),
         model_id="default_model_id",
         batch_size=batch_size,

@@ -322,9 +322,8 @@ class SubclassDetection(ToyBenchmark):
 
             input, labels = input.to(device), labels.to(device)
             explanations = explainer.explain(
-                model=self.model,
-                test_tensor=input,
-                device=device,
+                test=input,
+                targets=labels,
                 **expl_fn_kwargs,
             )
             metric.update(labels, explanations)

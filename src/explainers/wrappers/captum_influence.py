@@ -1,4 +1,4 @@
-import copy
+from inspect import signature
 import warnings
 from typing import Any, Callable, List, Optional, Union
 
@@ -59,12 +59,17 @@ class CaptumInfluence(BaseExplainer):
         # Process inputs
         test = test.to(self.device)
         targets = self._process_targets(targets)
-
-        if targets is not None:
-            return self.captum_explainer.influence(inputs=(test, targets))
+        extra_kwargs={}
+        sig=signature(self.captum_explainer.influence).parameters.keys()
         ## TODO:HANDLE CASES WHERE WE MIGHT WANT TO PASS EXTRA PARAMETERS. THESE SHOULD BE TAKEN IN __init__, NOT AS EXTRA PARAMETERS TO THE .explain CALL. 
+
+        if "top_k" in sig:
+            extra_kwargs["top_k"]=len(self.train_dataset)
+  
+        if targets is not None:
+            return self.captum_explainer.influence(inputs=(test, targets), **extra_kwargs)
         else:
-            return self.captum_explainer.influence(inputs=test)
+            return self.captum_explainer.influence(inputs=test, **extra_kwargs )
 
 
 class CaptumSimilarity(CaptumInfluence):
@@ -143,7 +148,7 @@ class CaptumSimilarity(CaptumInfluence):
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
 
-        topk_idx, topk_val = super().explain(test=test, top_k=self.dataset_length, top_k=len(self.train_dataset))[self.layer]
+        topk_idx, topk_val = super().explain(test=test, targets=targets)[self.layer]
         _, inverted_idx = topk_idx.sort()
         tda = torch.gather(topk_val, 1, inverted_idx)
 
