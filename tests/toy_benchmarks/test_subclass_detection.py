@@ -10,7 +10,7 @@ from src.utils.training.trainer import Trainer
 @pytest.mark.toy_benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, test_labels, "
-    "batch_size, explain, explain_kwargs, expected_score",
+    "batch_size, explainer, explain_kwargs, expected_score",
     [
         (
             "mnist",
@@ -91,7 +91,7 @@ def test_subclass_detection(
     seed,
     test_labels,
     batch_size,
-    explain,
+    explainer,
     explain_kwargs,
     expected_score,
     tmp_path,
@@ -166,7 +166,7 @@ def test_subclass_detection(
 
     score = dst_eval.evaluate(
         expl_dataset=dataset,
-        explain_fn=explain,
+        explainer=explainer,
         explain_kwargs=explain_kwargs,
         cache_dir=str(tmp_path),
         model_id="default_model_id",

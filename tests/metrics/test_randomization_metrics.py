@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from src.explainers.wrappers.captum_influence import captum_similarity_explain
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
@@ -10,7 +10,7 @@ from src.utils.functions.similarities import cosine_similarity
 
 @pytest.mark.randomization_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_data, batch_size, explain, explain_fn_kwargs, explanations, test_labels",
+    "test_id, model, dataset, test_data, batch_size, explainer_cls, explainer_kwargs, explanations, test_labels",
     [
         (
             "mnist",
@@ -18,7 +18,7 @@ from src.utils.functions.similarities import cosine_similarity
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             8,
-            captum_similarity_explain,
+            CaptumSimilarity,
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
@@ -29,7 +29,17 @@ from src.utils.functions.similarities import cosine_similarity
     ],
 )
 def test_randomization_metric(
-    test_id, model, dataset, test_data, batch_size, explain, explain_fn_kwargs, explanations, test_labels, tmp_path, request
+    test_id,
+    model,
+    dataset,
+    test_data,
+    batch_size,
+    explainer_cls,
+    explainer_kwargs,
+    explanations,
+    test_labels,
+    tmp_path,
+    request,
 ):
     model = request.getfixturevalue(model)
     test_data = request.getfixturevalue(test_data)
@@ -39,8 +49,8 @@ def test_randomization_metric(
     metric = ModelRandomizationMetric(
         model=model,
         train_dataset=dataset,
-        explain_fn=explain,
-        explain_fn_kwargs=explain_fn_kwargs,
+        explainer_cls=explainer_cls,
+        explainer_kwargs=explainer_kwargs,
         correlation_fn="spearman",
         cache_dir=str(tmp_path),
         seed=42,
@@ -55,19 +65,31 @@ def test_randomization_metric(
 
 @pytest.mark.randomization_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset,",
+    "test_id, model, dataset, explainer_cls, explainer_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
             "load_mnist_dataset",
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
         ),
     ],
 )
-def test_randomization_metric_model_randomization(test_id, model, dataset, request):
+def test_randomization_metric_model_randomization(test_id, model, dataset, explainer_cls, explainer_kwargs, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
-    metric = ModelRandomizationMetric(model=model, train_dataset=dataset, explain_fn=lambda *x: x, seed=42, device="cpu")
+    metric = ModelRandomizationMetric(
+        model=model,
+        train_dataset=dataset,
+        explainer_cls=explainer_cls,
+        explainer_kwargs=explainer_kwargs,
+        seed=42,
+        device="cpu",
+    )
     rand_model = metric.rand_model
     for param1, param2 in zip(model.parameters(), rand_model.parameters()):
         assert not torch.allclose(param1.data, param2.data), "Test failed."

@@ -1,10 +1,10 @@
+from inspect import signature
 from typing import Any, Callable, Dict, Optional, Union
 
 import lightning as L
 import torch
 from tqdm import tqdm
 
-from src.explainers.base import BaseExplainer
 from src.metrics.localization.identical_class import IdenticalClass
 from src.toy_benchmarks.base import ToyBenchmark
 from src.utils.datasets.transformed.label_grouping import (
@@ -288,7 +288,7 @@ class SubclassDetection(ToyBenchmark):
     def evaluate(
         self,
         expl_dataset: torch.utils.data.Dataset,
-        explainer: BaseExplainer,
+        explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
@@ -298,6 +298,11 @@ class SubclassDetection(ToyBenchmark):
         **kwargs,
     ):
         expl_kwargs = expl_kwargs or {}
+        explainer = explainer_cls(
+            model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
+        )
+        exp_expl_kwargs = signature(explainer.explain)
+        expl_fn_kwargs = {k: v for k, v in kwargs.items() if k in exp_expl_kwargs.parameters}
 
         grouped_expl_ds = LabelGroupingDataset(
             dataset=expl_dataset,
@@ -320,7 +325,7 @@ class SubclassDetection(ToyBenchmark):
                 model=self.model,
                 test_tensor=input,
                 device=device,
-                **expl_kwargs,
+                **expl_fn_kwargs,
             )
             metric.update(labels, explanations)
 

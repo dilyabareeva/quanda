@@ -1,3 +1,4 @@
+from inspect import signature
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import lightning as L
@@ -5,14 +6,11 @@ import torch
 from tqdm import tqdm
 
 from src.explainers.aggregators import BaseAggregator
-from src.explainers.base import BaseExplainer
 from src.metrics.localization.mislabeling_detection import (
     MislabelingDetectionMetric,
 )
 from src.toy_benchmarks.base import ToyBenchmark
-from src.utils.datasets.transformed.label_poisoning import (
-    LabelPoisoningDataset,
-)
+from src.utils.datasets.transformed.label_flipping import LabelFlippingDataset
 from src.utils.training.trainer import BaseTrainer, Trainer
 
 
@@ -29,7 +27,7 @@ class MislabelingDetection(ToyBenchmark):
         self.trainer: Optional[BaseTrainer] = None
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
-        self.poisoned_dataset: LabelPoisoningDataset
+        self.poisoned_dataset: LabelFlippingDataset
         self.dataset_transform: Optional[Callable]
         self.poisoned_indices: List[int]
         self.poisoned_labels: Dict[int, int]
@@ -199,7 +197,7 @@ class MislabelingDetection(ToyBenchmark):
         self.global_method = global_method
         self.n_classes = n_classes
         self.dataset_transform = dataset_transform
-        self.poisoned_dataset = LabelPoisoningDataset(
+        self.poisoned_dataset = LabelFlippingDataset(
             dataset=train_dataset,
             p=p,
             transform_indices=poisoned_indices,
@@ -213,7 +211,7 @@ class MislabelingDetection(ToyBenchmark):
         self.poisoned_train_dl = torch.utils.data.DataLoader(self.poisoned_dataset, batch_size=batch_size)
         self.original_train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
         if val_dataset:
-            poisoned_val_dataset = LabelPoisoningDataset(
+            poisoned_val_dataset = LabelFlippingDataset(
                 dataset=train_dataset, dataset_transform=self.dataset_transform, p=self.p, n_classes=self.n_classes
             )
             self.poisoned_val_dl = torch.utils.data.DataLoader(poisoned_val_dataset, batch_size=batch_size)
@@ -251,7 +249,7 @@ class MislabelingDetection(ToyBenchmark):
         obj.dataset_transform = obj.bench_state["dataset_transform"]
         obj.poisoned_indices = obj.bench_state["poisoned_indices"]
 
-        obj.poisoned_dataset = LabelPoisoningDataset(
+        obj.poisoned_dataset = LabelFlippingDataset(
             dataset=obj.train_dataset,
             p=obj.p,
             transform_indices=obj.poisoned_indices,
@@ -288,7 +286,7 @@ class MislabelingDetection(ToyBenchmark):
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
 
-        obj.poisoned_dataset = LabelPoisoningDataset(
+        obj.poisoned_dataset = LabelFlippingDataset(
             dataset=train_dataset,
             p=p,
             dataset_transform=dataset_transform,
@@ -311,7 +309,7 @@ class MislabelingDetection(ToyBenchmark):
     def evaluate(
         self,
         expl_dataset: torch.utils.data.Dataset,
-        explainer: BaseExplainer,
+        explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
         device: str = "cpu",
@@ -319,8 +317,11 @@ class MislabelingDetection(ToyBenchmark):
         **kwargs,
     ):
         expl_kwargs = expl_kwargs or {}
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, device=device, **expl_kwargs)
+        exp_expl_kwargs = signature(explainer.explain)
+        expl_fn_kwargs = {k: v for k, v in kwargs.items() if k in exp_expl_kwargs.parameters}
 
-        poisoned_expl_ds = LabelPoisoningDataset(
+        poisoned_expl_ds = LabelFlippingDataset(
             dataset=expl_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
         )
         expl_dl = torch.utils.data.DataLoader(poisoned_expl_ds, batch_size=batch_size)
@@ -345,7 +346,7 @@ class MislabelingDetection(ToyBenchmark):
                     train_dataset=self.train_dataset,
                     test_tensor=input,
                     device=device,
-                    **expl_kwargs,
+                    **expl_fn_kwargs,
                 )
                 metric.update(explanations)
         else:
@@ -356,7 +357,7 @@ class MislabelingDetection(ToyBenchmark):
                 device="cpu",
                 global_method="self-influence",
                 explainer=explainer,
-                expl_kwargs=expl_kwargs,
+                expl_kwargs=expl_fn_kwargs,
             )
 
         return metric.compute()

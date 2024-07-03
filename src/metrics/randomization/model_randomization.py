@@ -3,9 +3,8 @@ from typing import Callable, Dict, List, Optional, Union
 
 import torch
 
-from src.explainers.functional import ExplainFunc
 from src.metrics.base import Metric
-from src.utils.common import get_parent_module_from_name, make_func
+from src.utils.common import get_parent_module_from_name
 from src.utils.functions.correlations import (
     CorrelationFnLiterals,
     correlation_functions,
@@ -21,8 +20,8 @@ class ModelRandomizationMetric(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        explain_fn: ExplainFunc,
-        explain_fn_kwargs: Optional[dict] = None,
+        explainer_cls: type,
+        expl_kwargs: Optional[dict] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         model_id: str = "0",
@@ -38,7 +37,10 @@ class ModelRandomizationMetric(Metric):
         )
         self.model = model
         self.train_dataset = train_dataset
-        self.explain_fn_kwargs = explain_fn_kwargs or {}
+        self.expl_kwargs = expl_kwargs or {}
+        self.orig_explainer = explainer_cls(
+            model=self.model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
+        )
         self.seed = seed
         self.model_id = model_id
         self.cache_dir = cache_dir
@@ -47,15 +49,9 @@ class ModelRandomizationMetric(Metric):
         self.generator = torch.Generator(device=device)
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
-
-        self.explain_fn = make_func(
-            func=explain_fn,
-            model_id=self.model_id,
-            cache_dir=self.cache_dir,
-            train_dataset=self.train_dataset,
-            **self.explain_fn_kwargs,
+        self.explainer = explainer_cls(
+            model=self.rand_model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
         )
-
         self.results: Dict[str, List] = {"scores": []}
 
         # TODO: create a validation utility function
@@ -77,9 +73,7 @@ class ModelRandomizationMetric(Metric):
     ):
         explanations = explanations.to(self.device)
 
-        rand_explanations = self.explain_fn(
-            model=self.rand_model, test_tensor=test_data, explanation_targets=explanation_targets, device=self.device
-        ).to(self.device)
+        rand_explanations = self.explainer.explain(test=test_data, targets=explanation_targets).to(self.device)
 
         corrs = self.corr_measure(explanations, rand_explanations)
         self.results["scores"].append(corrs)
@@ -90,11 +84,15 @@ class ModelRandomizationMetric(Metric):
         explanation_targets: Optional[torch.Tensor] = None,
     ):
         # TODO: add a test
-        explanations = self.explain_fn(
-            model=self.model, test_tensor=test_data, explanation_targets=explanation_targets, device=self.device
+        explanations = self.orig_explainer.explain(
+            test_tensor=test_data,
+            explanation_targets=explanation_targets,
+            device=self.device,
         )
-        rand_explanations = self.explain_fn(
-            model=self.rand_model, test_tensor=test_data, explanation_targets=explanation_targets, device=self.device
+        rand_explanations = self.explainer.explain(
+            test_tensor=test_data,
+            explanation_targets=explanation_targets,
+            device=self.device,
         )
         corrs = self.corr_measure(explanations, rand_explanations)
         self.results["scores"].append(corrs)
@@ -110,13 +108,7 @@ class ModelRandomizationMetric(Metric):
     def state_dict(self) -> Dict:
         state_dict = {
             "results_dict": self.results,
-            "rnd_model": self.model.state_dict(),
-            # Note to Galip: I suggest removing this, because those are explicitly passed
-            # as init arguments and this is an unexpected side effect if we overwrite them.
-            # Plus, we only ever use seed to randomize the model once.
-            # "seed": self.seed,
-            # "generator_state": self.generator.get_state(),
-            # "explain_fn": self.explain_fn,
+            "rnd_model": self.rand_model.state_dict(),
         }
         return state_dict
 

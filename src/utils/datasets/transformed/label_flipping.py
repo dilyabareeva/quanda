@@ -5,7 +5,7 @@ import torch
 from src.utils.datasets.transformed.base import TransformedDataset
 
 
-class LabelPoisoningDataset(TransformedDataset):
+class LabelFlippingDataset(TransformedDataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
