@@ -40,7 +40,6 @@ def explain_fn_from_explainer(
         **kwargs,
     )
 
-
     return explainer.explain(test=test_tensor, targets=targets)
 
 

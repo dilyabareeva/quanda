@@ -103,7 +103,7 @@ def test_identical_subclass_metrics(
             "load_poisoned_mnist_dataset",
             "load_mnist_explanations_1",
             "self-influence",
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "model_id": "test", "cache_dir": "cache"},
             0.5625,
         ),
         (
@@ -149,7 +149,6 @@ def test_poisoning_detection_metric(
         )
         metric.update(explanations=tda)
     else:
-
 
         metric = MislabelingDetectionMetric(
             model=model,

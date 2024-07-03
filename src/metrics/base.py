@@ -111,7 +111,9 @@ class GlobalMetric(Metric, ABC):
     ):
         super().__init__(model, train_dataset, device, *args, **kwargs)
         self.expl_kwargs = expl_kwargs or {}
-        self.explainer = explainer_cls(model=model,train_dataset=train_dataset, **expl_kwargs)
+        self.explainer = (
+            None if explainer_cls is None else explainer_cls(model=model, train_dataset=train_dataset, **self.expl_kwargs)
+        )
 
         if isinstance(global_method, str):
 

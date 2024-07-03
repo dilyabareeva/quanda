@@ -44,7 +44,7 @@ def test_top_k_overlap_metrics(
 
 @pytest.mark.unnamed_metrics
 @pytest.mark.parametrize(
-    "test_id,model,optimizer, lr, criterion, max_epochs,dataset,explanations,global_method,top_k,explainer_kwargs,"
+    "test_id,model,optimizer, lr, criterion, max_epochs,dataset,explanations,global_method,top_k,expl_kwargs,"
     "batch_size,expected_score",
     [
         (
@@ -73,7 +73,7 @@ def test_top_k_overlap_metrics(
             "load_mnist_explanations_1",
             "self-influence",
             50,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
             8,
             0.0,
         ),
@@ -90,7 +90,7 @@ def test_dataset_cleaning(
     explanations,
     global_method,
     top_k,
-    explainer_kwargs,
+    expl_kwargs,
     batch_size,
     expected_score,
     tmp_path,
@@ -126,16 +126,7 @@ def test_dataset_cleaning(
 
     else:
 
-        explainer_kwargs = explainer_kwargs or {}
-
-        explainer = CaptumSimilarity(
-            model=model,
-            model_id=test_id,
-            cache_dir=str(tmp_path),
-            train_dataset=dataset,
-            device="cpu",
-            **explainer_kwargs,
-        )
+        expl_kwargs = expl_kwargs or {}
 
         metric = DatasetCleaning(
             model=model,
@@ -144,8 +135,8 @@ def test_dataset_cleaning(
             trainer=trainer,
             trainer_fit_kwargs={"max_epochs": max_epochs},
             top_k=top_k,
-            explainer=explainer,
-            expl_kwargs={"batch_size": batch_size},
+            explainer_cls=CaptumSimilarity,
+            expl_kwargs=expl_kwargs,
             device="cpu",
         )
 
@@ -156,8 +147,7 @@ def test_dataset_cleaning(
 
 @pytest.mark.unnamed_metrics
 @pytest.mark.parametrize(
-    "test_id,model,optimizer, lr, criterion, max_epochs,dataset,explanations,top_k,explainer_kwargs,"
-    "batch_size,expected_score",
+    "test_id,model,optimizer, lr, criterion, max_epochs,dataset,explanations,top_k,expl_kwargs," "batch_size,expected_score",
     [
         (
             "mnist",
@@ -169,7 +159,7 @@ def test_dataset_cleaning(
             "load_mnist_dataset",
             "load_mnist_explanations_1",
             50,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
             8,
             0.0,
         ),
@@ -185,7 +175,7 @@ def test_dataset_cleaning_self_influence_based(
     dataset,
     explanations,
     top_k,
-    explainer_kwargs,
+    expl_kwargs,
     batch_size,
     expected_score,
     tmp_path,
@@ -205,22 +195,16 @@ def test_dataset_cleaning_self_influence_based(
     )
     trainer = Trainer.from_lightning_module(model, pl_module)
 
-    explainer_kwargs = explainer_kwargs or {}
-
-    explainer = CaptumSimilarity(
-        model=model,
-        model_id=test_id,
-        cache_dir=str(tmp_path),
-        train_dataset=dataset,
-        device="cpu",
-        **explainer_kwargs,
-    )
+    expl_kwargs = expl_kwargs or {}
 
     metric = DatasetCleaning.self_influence_based(
+        model=model,
+        train_dataset=dataset,
         trainer=trainer,
         trainer_fit_kwargs={"max_epochs": max_epochs},
         top_k=top_k,
-        explainer=explainer,
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs=expl_kwargs,
         expplainer_kwargs={"batch_size": batch_size},
         device="cpu",
     )

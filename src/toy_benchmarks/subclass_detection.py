@@ -301,8 +301,6 @@ class SubclassDetection(ToyBenchmark):
         explainer = explainer_cls(
             model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
         )
-        exp_expl_kwargs = signature(explainer.explain)
-        expl_fn_kwargs = {k: v for k, v in kwargs.items() if k in exp_expl_kwargs.parameters}
 
         grouped_expl_ds = LabelGroupingDataset(
             dataset=expl_dataset,
@@ -324,7 +322,6 @@ class SubclassDetection(ToyBenchmark):
             explanations = explainer.explain(
                 test=input,
                 targets=labels,
-                **expl_fn_kwargs,
             )
             metric.update(labels, explanations)
 

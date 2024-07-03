@@ -3,7 +3,6 @@ from typing import List, Optional, Union
 import torch
 
 from src.explainers.aggregators import BaseAggregator
-from src.explainers.base import BaseExplainer
 from src.metrics.base import GlobalMetric
 from src.utils.common import auc
 
@@ -28,6 +27,7 @@ class MislabelingDetectionMetric(GlobalMetric):
             global_method=global_method,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
+            model_id="test",
             device=device,
         )
         self.poisoned_indices = poisoned_indices

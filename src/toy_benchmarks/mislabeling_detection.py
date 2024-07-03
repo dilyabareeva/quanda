@@ -339,10 +339,7 @@ class MislabelingDetection(ToyBenchmark):
 
                 input, labels = input.to(device), labels.to(device)
                 explanations = explainer.explain(
-                    model=self.model,
-                    train_dataset=self.train_dataset,
-                    test_tensor=input,
-                    device=device
+                    model=self.model, train_dataset=self.train_dataset, test_tensor=input, device=device
                 )
                 metric.update(explanations)
         else:
