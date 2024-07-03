@@ -54,16 +54,17 @@ class CaptumInfluence(BaseExplainer):
         return targets
 
     def explain(
-        self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None, **explain_fn_kwargs
+        self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None
     ) -> torch.Tensor:
         # Process inputs
         test = test.to(self.device)
         targets = self._process_targets(targets)
 
         if targets is not None:
-            return self.captum_explainer.influence(inputs=(test, targets), **explain_fn_kwargs)
+            return self.captum_explainer.influence(inputs=(test, targets))
+        ## TODO:HANDLE CASES WHERE WE MIGHT WANT TO PASS EXTRA PARAMETERS. THESE SHOULD BE TAKEN IN __init__, NOT AS EXTRA PARAMETERS TO THE .explain CALL. 
         else:
-            return self.captum_explainer.influence(inputs=test, **explain_fn_kwargs)
+            return self.captum_explainer.influence(inputs=test)
 
 
 class CaptumSimilarity(CaptumInfluence):
@@ -140,13 +141,9 @@ class CaptumSimilarity(CaptumInfluence):
             raise ValueError("A single layer shall be passed to the CaptumSimilarity explainer.")
         self._layer = layers[0]
 
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None, **kwargs: Any):
-        if "top_k" in kwargs:
-            kwargs = copy.deepcopy(kwargs)
-            kwargs["top_k"] = self.dataset_length
-            warnings.warn("top_k is not supported by CaptumSimilarity explainer. Ignoring the argument.")
+    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
 
-        topk_idx, topk_val = super().explain(test=test, top_k=self.dataset_length, **kwargs)[self.layer]
+        topk_idx, topk_val = super().explain(test=test, top_k=self.dataset_length, top_k=len(self.train_dataset))[self.layer]
         _, inverted_idx = topk_idx.sort()
         tda = torch.gather(topk_val, 1, inverted_idx)
 

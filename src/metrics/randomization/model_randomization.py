@@ -38,7 +38,7 @@ class ModelRandomizationMetric(Metric):
         self.model = model
         self.train_dataset = train_dataset
         self.expl_kwargs = expl_kwargs or {}
-        self.orig_explainer = explainer_cls(
+        self.explainer = explainer_cls(
             model=self.model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
         )
         self.seed = seed
@@ -49,7 +49,7 @@ class ModelRandomizationMetric(Metric):
         self.generator = torch.Generator(device=device)
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
-        self.explainer = explainer_cls(
+        self.rand_explainer = explainer_cls(
             model=self.rand_model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
         )
         self.results: Dict[str, List] = {"scores": []}
@@ -73,7 +73,7 @@ class ModelRandomizationMetric(Metric):
     ):
         explanations = explanations.to(self.device)
 
-        rand_explanations = self.explainer.explain(test=test_data, targets=explanation_targets).to(self.device)
+        rand_explanations = self.rand_explainer.explain(test=test_data, targets=explanation_targets).to(self.device)
 
         corrs = self.corr_measure(explanations, rand_explanations)
         self.results["scores"].append(corrs)
@@ -84,18 +84,11 @@ class ModelRandomizationMetric(Metric):
         explanation_targets: Optional[torch.Tensor] = None,
     ):
         # TODO: add a test
-        explanations = self.orig_explainer.explain(
+        explanations = self.explainer.explain(
             test_tensor=test_data,
             explanation_targets=explanation_targets,
-            device=self.device,
         )
-        rand_explanations = self.explainer.explain(
-            test_tensor=test_data,
-            explanation_targets=explanation_targets,
-            device=self.device,
-        )
-        corrs = self.corr_measure(explanations, rand_explanations)
-        self.results["scores"].append(corrs)
+        self.update(test_data=test_data, explanations=explanations, explanation_targets=explanation_targets)
 
     def compute(self) -> torch.Tensor:
         return torch.cat(self.results["scores"]).mean()

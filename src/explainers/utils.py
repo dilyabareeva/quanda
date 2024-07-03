@@ -40,11 +40,8 @@ def explain_fn_from_explainer(
         **kwargs,
     )
 
-    # Python get explainer_cls expected explain keyword arguments
-    exp_explain_kwargs = signature(explainer.explain)
-    explain_kwargs = {k: v for k, v in kwargs.items() if k in exp_explain_kwargs.parameters}
 
-    return explainer.explain(test=test_tensor, targets=targets, **explain_kwargs)
+    return explainer.explain(test=test_tensor, targets=targets)
 
 
 def self_influence_fn_from_explainer(
@@ -67,8 +64,4 @@ def self_influence_fn_from_explainer(
         **kwargs,
     )
 
-    # Python get explainer_cls expected explain keyword arguments
-    exp_si_kwargs = signature(explainer.self_influence)
-    si_kwargs = {k: v for k, v in kwargs.items() if k in exp_si_kwargs.parameters}
-
-    return explainer.self_influence(batch_size=batch_size, **si_kwargs)
+    return explainer.self_influence(batch_size=batch_size)

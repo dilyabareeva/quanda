@@ -4,7 +4,6 @@ from typing import Optional, Sized, Union
 import torch
 
 from src.explainers.aggregators import BaseAggregator, aggr_types
-from src.explainers.base import BaseExplainer
 from src.metrics.aggr_strategies import (
     GlobalAggrStrategy,
     GlobalSelfInfluenceStrategy,
@@ -44,9 +43,9 @@ class Metric(ABC):
         """
         Used to update the metric with new data.
         """
-        if hasattr(self, "explain_fn"):
+        if hasattr(self, "explainer"):
             raise NotImplementedError
-        raise RuntimeError("Explain function not found in explainer.")
+        raise RuntimeError("No explainer is supplied to the metric.")
 
     @abstractmethod
     def compute(self, *args, **kwargs):
@@ -104,16 +103,15 @@ class GlobalMetric(Metric, ABC):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         global_method: Union[str, BaseAggregator] = "self-influence",
-        explainer: Optional[BaseExplainer] = None,
+        explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
         device: str = "cpu",
         *args,
         **kwargs,
     ):
         super().__init__(model, train_dataset, device, *args, **kwargs)
-
         self.expl_kwargs = expl_kwargs or {}
-        self.explainer: Optional[BaseExplainer] = explainer
+        self.explainer = explainer_cls(model=model,train_dataset=train_dataset, **expl_kwargs)
 
         if isinstance(global_method, str):
 

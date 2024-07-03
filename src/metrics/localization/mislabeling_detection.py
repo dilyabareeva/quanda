@@ -16,7 +16,7 @@ class MislabelingDetectionMetric(GlobalMetric):
         train_dataset: torch.utils.data.Dataset,
         poisoned_indices: List[int],
         global_method: Union[str, BaseAggregator] = "self-influence",
-        explainer: Optional[BaseExplainer] = None,
+        explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
         device: str = "cpu",
         *args,
@@ -26,7 +26,7 @@ class MislabelingDetectionMetric(GlobalMetric):
             model=model,
             train_dataset=train_dataset,
             global_method=global_method,
-            explainer=explainer,
+            explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
             device=device,
         )
@@ -35,20 +35,21 @@ class MislabelingDetectionMetric(GlobalMetric):
     @classmethod
     def self_influence_based(
         cls,
+        model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
+        explainer_cls: type,
         poisoned_indices: List[int],
-        explainer: BaseExplainer,
         expl_kwargs: Optional[dict] = None,
         device: str = "cpu",
         *args,
         **kwargs,
     ):
         return cls(
-            model=explainer.model,
+            model=model,
             poisoned_indices=poisoned_indices,
             train_dataset=train_dataset,
             global_method="self-influence",
-            explainer=explainer,
+            explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
             device=device,
         )

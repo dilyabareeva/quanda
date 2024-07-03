@@ -25,7 +25,7 @@ class BaseExplainer(ABC):
         self.device = torch.device(device) if isinstance(device, str) else device
 
     @abstractmethod
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None, **kwargs: Any):
+    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
         raise NotImplementedError
 
     @property
