@@ -1,4 +1,4 @@
-Usage
+Getting Started
 =====
 
 Installation
