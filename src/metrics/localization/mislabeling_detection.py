@@ -93,9 +93,10 @@ class MislabelingDetectionMetric(GlobalMetric):
 
         global_ranking = self.strategy.get_global_rank()
         success_arr = torch.tensor([elem in self.poisoned_indices for elem in global_ranking])
-        unnormalized_curve = torch.cumsum(success_arr * 1.0, dim=0)
+        normalized_curve = torch.cumsum(success_arr * 1.0, dim=0)/len(self.poisoned_indices)
+        score=torch.trapezoid(normalized_curve/len(self.poisoned_indices))
         return {
             "success_arr": success_arr,
-            "score": auc(torch.cumsum(success_arr * 1.0, dim=0), max=len(self.poisoned_indices)),
-            "curve": unnormalized_curve / len(self.poisoned_indices),
+            "score": score.item(),
+            "curve": normalized_curve / len(self.poisoned_indices),
         }

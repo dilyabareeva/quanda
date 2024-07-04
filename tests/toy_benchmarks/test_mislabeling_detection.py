@@ -30,7 +30,7 @@ from src.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
-            0.5625,
+            0.4921875,
         ),
         (
             "mnist",
@@ -49,7 +49,7 @@ from src.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
-            0.5625,
+            0.4921875,
         ),
         (
             "mnist",
@@ -68,7 +68,7 @@ from src.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
-            0.5625,
+            0.4921875,
         ),
     ],
 )
