@@ -4,7 +4,6 @@ import lightning as L
 import torch
 from tqdm import tqdm
 
-from src.explainers.aggregators import BaseAggregator
 from src.metrics.localization.mislabeling_detection import (
     MislabelingDetectionMetric,
 )
@@ -35,7 +34,7 @@ class MislabelingDetection(ToyBenchmark):
         self.original_train_dl: torch.utils.data.DataLoader
         self.bench_state: Dict[str, Any]
         self.p: float
-        self.global_method: Union[str, BaseAggregator] = "self-influence"
+        self.global_method: Union[str, type] = "self-influence"
         self.n_classes: int
 
     @classmethod
@@ -52,7 +51,7 @@ class MislabelingDetection(ToyBenchmark):
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
-        global_method: Union[str, BaseAggregator] = "self-influence",
+        global_method: Union[str, type] = "self-influence",
         p: float = 0.3,
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
@@ -100,7 +99,7 @@ class MislabelingDetection(ToyBenchmark):
         dataset_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         p: float = 0.3,
-        global_method: Union[str, BaseAggregator] = "self-influence",
+        global_method: Union[str, type] = "self-influence",
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
@@ -137,7 +136,7 @@ class MislabelingDetection(ToyBenchmark):
         dataset_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         p: float = 0.3,
-        global_method: Union[str, BaseAggregator] = "self-influence",
+        global_method: Union[str, type] = "self-influence",
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
@@ -178,7 +177,7 @@ class MislabelingDetection(ToyBenchmark):
         poisoned_labels: Optional[Dict[int, int]] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         p: float = 0.3,
-        global_method: Union[str, BaseAggregator] = "self-influence",
+        global_method: Union[str, type] = "self-influence",
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
@@ -269,7 +268,7 @@ class MislabelingDetection(ToyBenchmark):
         poisoned_labels: Optional[Dict[int, int]] = None,
         dataset_transform: Optional[Callable] = None,
         p: float = 0.3,  # TODO: type specification
-        global_method: Union[str, BaseAggregator] = "self-influence",
+        global_method: Union[str, type] = "self-influence",
         batch_size: int = 8,
         device: str = "cpu",
         *args,
@@ -338,9 +337,7 @@ class MislabelingDetection(ToyBenchmark):
                 pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
                 input, labels = input.to(device), labels.to(device)
-                explanations = explainer.explain(
-                    model=self.model, train_dataset=self.train_dataset, test_tensor=input, device=device
-                )
+                explanations = explainer.explain(test=input, targets=labels)
                 metric.update(explanations)
         else:
             metric = MislabelingDetectionMetric(

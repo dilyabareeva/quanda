@@ -2,7 +2,6 @@ from typing import List, Optional, Union
 
 import torch
 
-from src.explainers.aggregators import BaseAggregator
 from src.metrics.base import GlobalMetric
 from src.utils.common import auc
 
@@ -14,7 +13,7 @@ class MislabelingDetectionMetric(GlobalMetric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         poisoned_indices: List[int],
-        global_method: Union[str, BaseAggregator] = "self-influence",
+        global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
         device: str = "cpu",
@@ -60,7 +59,7 @@ class MislabelingDetectionMetric(GlobalMetric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         poisoned_indices: List[int],
-        aggregator: Union[str, BaseAggregator],
+        aggregator_cls: Union[str, type],
         trainer_fit_kwargs: Optional[dict] = None,
         device: str = "cpu",
         *args,
@@ -68,7 +67,7 @@ class MislabelingDetectionMetric(GlobalMetric):
     ):
         return cls(
             model=model,
-            global_method=aggregator,
+            global_method=aggregator_cls,
             poisoned_indices=poisoned_indices,
             train_dataset=train_dataset,
             device=device,

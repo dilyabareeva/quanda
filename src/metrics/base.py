@@ -3,7 +3,7 @@ from typing import Optional, Sized, Union
 
 import torch
 
-from src.explainers.aggregators import BaseAggregator, aggr_types
+from src.explainers.aggregators import aggr_types
 from src.metrics.aggr_strategies import (
     GlobalAggrStrategy,
     GlobalSelfInfluenceStrategy,
@@ -102,7 +102,7 @@ class GlobalMetric(Metric, ABC):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        global_method: Union[str, BaseAggregator] = "self-influence",
+        global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
         device: str = "cpu",
@@ -135,6 +135,6 @@ class GlobalMetric(Metric, ABC):
         else:
             raise ValueError(
                 f"Global method {global_method} is not supported. When passing a custom aggregator, "
-                "it should be an instance of BaseAggregator. When passing a string, it should be one of "
-                f"{list(aggr_types.keys())}."
+                "it should be a subclass of BaseAggregator. When passing a string, it should be one of "
+                f"{list(aggr_types.keys()+ 'self-influence')}."
             )

@@ -2,7 +2,6 @@ from typing import Optional, Union
 
 import torch
 
-from src.explainers.aggregators import BaseAggregator
 from src.metrics.base import GlobalMetric
 from src.utils.common import class_accuracy
 from src.utils.training.trainer import BaseTrainer
@@ -25,7 +24,7 @@ class DatasetCleaning(GlobalMetric):
         train_dataset: torch.utils.data.Dataset,
         trainer: BaseTrainer,
         trainer_fit_kwargs: Optional[dict] = None,
-        global_method: Union[str, BaseAggregator] = "self-influence",
+        global_method: Union[str, type] = "self-influence",
         top_k: int = 50,
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
@@ -81,7 +80,7 @@ class DatasetCleaning(GlobalMetric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         trainer: BaseTrainer,
-        aggregator: Union[str, BaseAggregator],
+        aggregator_cls: Union[str, type],
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
         device: str = "cpu",
@@ -93,7 +92,7 @@ class DatasetCleaning(GlobalMetric):
             train_dataset=train_dataset,
             trainer=trainer,
             trainer_fit_kwargs=trainer_fit_kwargs,
-            global_method=aggregator,
+            global_method=aggregator_cls,
             top_k=top_k,
             device=device,
         )
