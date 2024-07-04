@@ -1,6 +1,6 @@
 import warnings
 from inspect import signature
-from typing import Any, Callable, List, Optional, Union, Sized
+from typing import Any, Callable, List, Optional, Sized, Union
 
 import torch
 from captum.influence import SimilarityInfluence  # type: ignore
@@ -62,9 +62,9 @@ class CaptumInfluence(BaseExplainer):
         # TODO:HANDLE CASES WHERE WE MIGHT WANT TO PASS EXTRA PARAMETERS.
         # THESE SHOULD BE TAKEN IN __init__, NOT AS EXTRA PARAMETERS TO THE .explain CALL.
         dataset_size = (
-            len(self.dataset)
-            if isinstance(self.dataset, Sized)
-            else len(torch.utils.data.DataLoader(self.dataset, batch_size=1))
+            len(self.training_dataset)
+            if isinstance(self.training_dataset, Sized)
+            else len(torch.utils.data.DataLoader(self.training_dataset, batch_size=1))
         )
 
         if "top_k" in sig:
