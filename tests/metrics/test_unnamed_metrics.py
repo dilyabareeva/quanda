@@ -264,7 +264,7 @@ def test_dataset_cleaning_aggr_based(
         model=model,
         train_dataset=dataset,
         trainer=trainer,
-        aggregator="sum_abs",
+        aggregator_cls="sum_abs",
         trainer_fit_kwargs={"max_epochs": max_epochs},
         top_k=top_k,
         device="cpu",
