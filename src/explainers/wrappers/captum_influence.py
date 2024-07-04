@@ -61,9 +61,10 @@ class CaptumInfluence(BaseExplainer):
         sig = signature(self.captum_explainer.influence).parameters.keys()
         # TODO:HANDLE CASES WHERE WE MIGHT WANT TO PASS EXTRA PARAMETERS.
         # THESE SHOULD BE TAKEN IN __init__, NOT AS EXTRA PARAMETERS TO THE .explain CALL.
-
+        dataset_size =len(self.dataset) if isinstance(self.dataset, Sized) else len(torch.utils.data.DataLoader(self.dataset, batch_size=1))
+            
         if "top_k" in sig:
-            extra_kwargs["top_k"] = len(self.train_dataset)
+            extra_kwargs["top_k"] = dataset_size
 
         if targets is not None:
             return self.captum_explainer.influence(inputs=(test, targets), **extra_kwargs)
