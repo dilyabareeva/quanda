@@ -1,4 +1,3 @@
-from inspect import signature
 from typing import Any, Callable, Dict, Optional, Union
 
 import lightning as L

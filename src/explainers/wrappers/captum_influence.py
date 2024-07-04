@@ -1,5 +1,5 @@
-from inspect import signature
 import warnings
+from inspect import signature
 from typing import Any, Callable, List, Optional, Union
 
 import torch
@@ -59,7 +59,8 @@ class CaptumInfluence(BaseExplainer):
         targets = self._process_targets(targets)
         extra_kwargs = {}
         sig = signature(self.captum_explainer.influence).parameters.keys()
-        ## TODO:HANDLE CASES WHERE WE MIGHT WANT TO PASS EXTRA PARAMETERS. THESE SHOULD BE TAKEN IN __init__, NOT AS EXTRA PARAMETERS TO THE .explain CALL.
+        # TODO:HANDLE CASES WHERE WE MIGHT WANT TO PASS EXTRA PARAMETERS.
+        # THESE SHOULD BE TAKEN IN __init__, NOT AS EXTRA PARAMETERS TO THE .explain CALL.
 
         if "top_k" in sig:
             extra_kwargs["top_k"] = len(self.train_dataset)
