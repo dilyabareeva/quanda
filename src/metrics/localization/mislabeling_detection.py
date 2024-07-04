@@ -3,7 +3,6 @@ from typing import List, Optional, Union
 import torch
 
 from src.metrics.base import GlobalMetric
-from src.utils.common import auc
 
 
 class MislabelingDetectionMetric(GlobalMetric):
@@ -93,8 +92,8 @@ class MislabelingDetectionMetric(GlobalMetric):
 
         global_ranking = self.strategy.get_global_rank()
         success_arr = torch.tensor([elem in self.poisoned_indices for elem in global_ranking])
-        normalized_curve = torch.cumsum(success_arr * 1.0, dim=0)/len(self.poisoned_indices)
-        score=torch.trapezoid(normalized_curve/len(self.poisoned_indices))
+        normalized_curve = torch.cumsum(success_arr * 1.0, dim=0) / len(self.poisoned_indices)
+        score = torch.trapezoid(normalized_curve / len(self.poisoned_indices))
         return {
             "success_arr": success_arr,
             "score": score.item(),
