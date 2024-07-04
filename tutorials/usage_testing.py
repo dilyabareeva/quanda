@@ -1,5 +1,5 @@
 "Larhe chunks of code borrowed from https://github.com/unlearning-challenge/starting-kit/blob/main/unlearning-CIFAR10.ipynb"
-
+import copy
 import os
 from multiprocessing import freeze_support
 
@@ -21,8 +21,11 @@ from src.metrics.localization.identical_class import IdenticalClass
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
+from src.metrics.unnamed.dataset_cleaning import DatasetCleaning
 from src.metrics.unnamed.top_k_overlap import TopKOverlap
 from src.toy_benchmarks.subclass_detection import SubclassDetection
+from src.utils.training.base_pl_module import BasicLightningModule
+from src.utils.training.trainer import Trainer
 
 DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"
 torch.set_float32_matmul_precision("medium")
@@ -125,6 +128,25 @@ def main():
 
     top_k = TopKOverlap(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
 
+    # dataset cleaning
+    pl_module = BasicLightningModule(
+        model=copy.deepcopy(model),
+        optimizer=torch.optim.SGD,
+        lr=0.01,
+        criterion=torch.nn.CrossEntropyLoss(),
+    )
+    trainer = Trainer.from_lightning_module(model, pl_module)
+
+    data_clean = DatasetCleaning(
+        model=model,
+        train_dataset=train_set,
+        global_method="sum_abs",
+        trainer=trainer,
+        trainer_fit_kwargs={"max_epochs": 3},
+        top_k=50,
+        device=DEVICE,
+    )
+
     # iterate over test set and feed tensor batches first to explain, then to metric
     for i, (data, target) in enumerate(tqdm(test_loader)):
         data, target = data.to(DEVICE), target.to(DEVICE)
@@ -140,10 +162,14 @@ def main():
         model_rand.update(data, tda)
         id_class.update(target, tda)
         top_k.update(tda)
+        data_clean.update(tda)
 
     print("Model randomization metric output:", model_rand.compute())
     print("Identical class metric output:", id_class.compute())
     print("Top-k overlap metric output:", top_k.compute())
+
+    print("Dataset cleaning metric computation started...")
+    print("Dataset cleaning metric output:", data_clean.compute())
 
     print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
 

@@ -3,7 +3,7 @@ name = "quanda"
 description = "quanda"
 license = { file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 keywords = ["explainable ai", "xai", "machine learning", "deep learning"]
 
 dependencies = [
@@ -11,7 +11,8 @@ dependencies = [
     "torch>=1.13.1",
     "captum>=0.6.0",
     "lightning>=1.4.0",
-    "torchmetrics>=1.4.0"
+    "torchmetrics>=1.4.0",
+    "tqdm>=4.0.0",
 ]
 dynamic = ["version"]
 
@@ -64,5 +65,8 @@ dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "mypy>=1.8.0",
     "black[d]>=23.0.0",
     "isort>=5.0.0",
-    "types-tqdm",
+    "types-tqdm>=4.0.0",
+    "sphinx-rtd-theme>=1.0.0",
+    "sphinx>=7.0.0",
+    "numpydoc",
 ]

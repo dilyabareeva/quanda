@@ -6,6 +6,7 @@
 <p align="center">
   PyTorch
 
+![py_versions](https://github.com/dilyabareeva/quanda/assets/44092813/36499a1d-aefb-455f-b73a-57ca4794f31f)<p align="center">
 
 ## Table of contents
 
@@ -100,3 +101,16 @@ for i, (data, target) in enumerate(tqdm(test_loader)):
     top_k.update(target)
 ```
 </details>
+
+## Contribution
+Clone the repository and run the following inside the repo root to install the dependencies:
+
+```bash
+pip install -e '.[dev]'
+pip uninstall quanda
+```
+
+Install the pre-commit hooks:
+```bash
+pre-commit install
+```

@@ -13,8 +13,8 @@ jobs:
           cache: 'pip'
           python-version: "3.11"
 
-      - name: Install tox
-        run: pip install tox
+      - name: Install tox-gh
+        run: pip install tox-gh
 
       - name: Run flake8
         run: tox run -e lint
