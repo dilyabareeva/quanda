@@ -32,10 +32,12 @@ class TransformedDataset(Dataset):
             self.dataset_transform = dataset_transform
         else:
             self.dataset_transform = self._identity
+
         if sample_fn is not None:
             self.sample_fn = sample_fn
         else:
             self.sample_fn = self._identity
+
         if label_fn is not None:
             self.label_fn = label_fn
         else:

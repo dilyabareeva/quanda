@@ -1,8 +1,7 @@
 import functools
 from functools import reduce
-from typing import Any, Callable, Mapping, Optional, Union
+from typing import Any, Callable, Mapping, Optional
 
-import torch
 import torch.utils
 import torch.utils.data
 
@@ -49,9 +48,3 @@ def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, de
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
     return correct / total
-
-
-def auc(x: torch.Tensor, max: Optional[Union[int, torch.Tensor]] = None) -> torch.Tensor:
-    if max is None:
-        max = x.max()
-    return x.mean() / max

@@ -1,6 +1,6 @@
 import warnings
-from inspect import signature
-from typing import Any, Callable, List, Optional, Sized, Union
+from abc import ABC, abstractmethod
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 from captum.influence import SimilarityInfluence  # type: ignore
@@ -14,11 +14,7 @@ from src.utils.functions.similarities import cosine_similarity
 from src.utils.validation import validate_1d_tensor_or_int_list
 
 
-class CaptumInfluence(BaseExplainer):
-    """
-    TODO: should this inherit from BaseExplainer?
-    Or should it just follow the same protocol?
-    """
+class CaptumInfluence(BaseExplainer, ABC):
 
     def __init__(
         self,
@@ -53,27 +49,13 @@ class CaptumInfluence(BaseExplainer):
             targets = targets.to(self.device)
         return targets
 
+    @abstractmethod
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
-        # Process inputs
-        test = test.to(self.device)
-        targets = self._process_targets(targets)
-        extra_kwargs = {}
-        sig = signature(self.captum_explainer.influence).parameters.keys()
-        # TODO:HANDLE CASES WHERE WE MIGHT WANT TO PASS EXTRA PARAMETERS.
-        # THESE SHOULD BE TAKEN IN __init__, NOT AS EXTRA PARAMETERS TO THE .explain CALL.
-        dataset_size = (
-            len(self.train_dataset)
-            if isinstance(self.train_dataset, Sized)
-            else len(torch.utils.data.DataLoader(self.train_dataset, batch_size=1))
-        )
-
-        if "top_k" in sig:
-            extra_kwargs["top_k"] = dataset_size
-
-        if targets is not None:
-            return self.captum_explainer.influence(inputs=(test, targets), **extra_kwargs)
-        else:
-            return self.captum_explainer.influence(inputs=test, **extra_kwargs)
+        """Comment for Galip and Niklas: We are now expecting explicit declaration of
+        explain method keyword arguments in specific explainer class __init__ methods.
+        Right now the only such keyword argument is `top_k` for CaptumSimilarity, which we
+        anyway overwrite with the dataset length."""
+        raise NotImplementedError
 
 
 class CaptumSimilarity(CaptumInfluence):
@@ -133,6 +115,12 @@ class CaptumSimilarity(CaptumInfluence):
             explain_kwargs=explainer_kwargs,
         )
 
+        # explicitly specifying explain method kwargs as instance attributes
+        self.top_k = self.dataset_length
+
+        if "top_k" in explainer_kwargs:
+            warnings.warn("top_k is not supported by CaptumSimilarity explainer. Ignoring the argument.")
+
     @property
     def layer(self):
         return self._layer
@@ -152,11 +140,14 @@ class CaptumSimilarity(CaptumInfluence):
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
 
-        topk_idx, topk_val = super().explain(test=test, targets=None)[self.layer]
-        _, inverted_idx = topk_idx.sort()
-        tda = torch.gather(topk_val, 1, inverted_idx)
+        test = test.to(self.device)
 
-        return tda
+        if targets is not None:
+            warnings.warn("CaptumSimilarity explainer does not support target indices. Ignoring the argument.")
+
+        topk_idx, topk_val = self.captum_explainer.influence(inputs=test, top_k=self.top_k)[self.layer]
+        _, inverted_idx = topk_idx.sort()
+        return torch.gather(topk_val, 1, inverted_idx)
 
 
 def captum_similarity_explain(
