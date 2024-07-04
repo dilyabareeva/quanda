@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Sized, Union
+from typing import Any, Optional, Sized, Union
 
 import torch
 
@@ -11,14 +11,35 @@ from src.metrics.aggr_strategies import (
 
 
 class Metric(ABC):
+    """
+    Base class for metrics.
+    """
+
     def __init__(
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         device: str = "cpu",
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ):
+        """
+        Base class for metrics.
+
+        Parameters
+        ----------
+        model: torch.nn.Module
+            A PyTorch model.
+        train_dataset: torch.utils.data.Dataset
+            A PyTorch dataset.
+        device: str
+            Device to use.
+        *args: Any
+            Additional arguments.
+        **kwargs: Any
+            Additional keyword arguments.
+        """
+
         self.model: torch.nn.Module = model.to(device)
         self.train_dataset: torch.utils.data.Dataset = train_dataset
         self.device: str = device
@@ -26,13 +47,23 @@ class Metric(ABC):
     @abstractmethod
     def update(
         self,
-        *args,
-        **kwargs,
+        *args: Any,
+        **kwargs: Any,
     ):
         """
         Used to update the metric with new data.
-        """
 
+        Parameters
+        ----------
+        *args: Any
+            Additional arguments.
+        **kwargs: Any
+            Additional keyword arguments.
+
+        Returns
+        -------
+        None
+        """
         raise NotImplementedError
 
     def explain_update(
@@ -42,39 +73,93 @@ class Metric(ABC):
     ):
         """
         Used to update the metric with new data.
+
+        Parameters
+        ----------
+        *args: Any
+            Additional arguments.
+        **kwargs: Any
+            Additional keyword arguments.
+
+        Returns
+        -------
+        None
         """
         if hasattr(self, "explainer"):
             raise NotImplementedError
         raise RuntimeError("No explainer is supplied to the metric.")
 
     @abstractmethod
-    def compute(self, *args, **kwargs):
+    def compute(self, *args: Any, **kwargs: Any) -> Any:
         """
-        Used to aggregate current results and return a metric score.
+        Used to compute the metric.
+
+        Parameters
+        ----------
+        *args: Any
+            Additional arguments.
+        **kwargs: Any
+            Additional keyword arguments.
+
+        Returns
+        -------
+        Any
+            The computed metric result dictionary.
         """
 
         raise NotImplementedError
 
     @abstractmethod
-    def reset(self, *args, **kwargs):
+    def reset(self, *args: Any, **kwargs: Any):
         """
-        Used to reset the metric state.
-        """
+        Used to reset the metric.
 
+        Parameters
+        ----------
+        *args: Any
+            Additional arguments.
+        **kwargs: Any
+            Additional keyword arguments.
+
+        Returns
+        -------
+        None
+        """
         raise NotImplementedError
 
     @abstractmethod
     def load_state_dict(self, state_dict: dict):
         """
         Used to load the metric state.
+
+        Parameters
+        ----------
+        state_dict: dict
+            The metric state dictionary.
+
+        Returns
+        -------
+        None
         """
 
         raise NotImplementedError
 
     @abstractmethod
-    def state_dict(self, *args, **kwargs):
+    def state_dict(self, *args: Any, **kwargs: Any) -> dict:
         """
-        Used to return the metric state.
+        Used to get the metric state.
+
+        Parameters
+        ----------
+        *args: Any
+            Additional arguments.
+        **kwargs: Any
+            Additional keyword arguments.
+
+        Returns
+        -------
+        dict
+            The metric state dictionary.
         """
 
         raise NotImplementedError
@@ -82,8 +167,12 @@ class Metric(ABC):
     @property
     def dataset_length(self) -> int:
         """
-        By default, the Dataset class does not always have a __len__ method.
-        :return:
+        Get the length of the dataset.
+
+        Returns
+        -------
+        int
+            The length of the dataset.
         """
         if isinstance(self.train_dataset, Sized):
             return len(self.train_dataset)
@@ -92,6 +181,9 @@ class Metric(ABC):
 
 
 class GlobalMetric(Metric, ABC):
+    """
+    Base class for global metrics.
+    """
 
     strategies = {
         "self-influence": GlobalSelfInfluenceStrategy,
@@ -109,7 +201,29 @@ class GlobalMetric(Metric, ABC):
         *args,
         **kwargs,
     ):
-        super().__init__(model, train_dataset, device, *args, **kwargs)
+        """
+        Base class for global metrics.
+
+        Parameters
+        ----------
+        model: torch.nn.Module
+            A PyTorch model.
+        train_dataset: torch.utils.data.Dataset
+            A PyTorch dataset.
+        global_method: Union[str, BaseAggregator]
+            The global method to use. It can be a string "sum", "sum_abs", "self-influence", or a custom aggregator.
+        explainer: Optional[BaseExplainer]
+            An explainer object.
+        expl_kwargs: Optional[dict]
+            Keyword arguments for the explainer.
+        device: str
+            Device to use.
+        *args: Any
+            Additional arguments.
+        **kwargs: Any
+            Additional keyword arguments.
+        """
+        super().__init__(model, train_dataset, device)
         self.expl_kwargs = expl_kwargs or {}
         self.explainer = (
             None if explainer_cls is None else explainer_cls(model=model, train_dataset=train_dataset, **self.expl_kwargs)
