@@ -3,8 +3,7 @@ from typing import Any, Optional, Sized, Union
 
 import torch
 
-from src.explainers.aggregators import BaseAggregator, aggr_types
-from src.explainers.base import BaseExplainer
+from src.explainers.aggregators import aggr_types
 from src.metrics.aggr_strategies import (
     GlobalAggrStrategy,
     GlobalSelfInfluenceStrategy,
@@ -86,9 +85,9 @@ class Metric(ABC):
         -------
         None
         """
-        if hasattr(self, "explain_fn"):
+        if hasattr(self, "explainer"):
             raise NotImplementedError
-        raise RuntimeError("Explain function not found in explainer.")
+        raise RuntimeError("No explainer is supplied to the metric.")
 
     @abstractmethod
     def compute(self, *args: Any, **kwargs: Any) -> Any:
@@ -195,8 +194,8 @@ class GlobalMetric(Metric, ABC):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        global_method: Union[str, BaseAggregator] = "self-influence",
-        explainer: Optional[BaseExplainer] = None,
+        global_method: Union[str, type] = "self-influence",
+        explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
         device: str = "cpu",
         *args,
@@ -225,9 +224,10 @@ class GlobalMetric(Metric, ABC):
             Additional keyword arguments.
         """
         super().__init__(model, train_dataset, device)
-
         self.expl_kwargs = expl_kwargs or {}
-        self.explainer: Optional[BaseExplainer] = explainer
+        self.explainer = (
+            None if explainer_cls is None else explainer_cls(model=model, train_dataset=train_dataset, **self.expl_kwargs)
+        )
 
         if isinstance(global_method, str):
 
@@ -249,6 +249,6 @@ class GlobalMetric(Metric, ABC):
         else:
             raise ValueError(
                 f"Global method {global_method} is not supported. When passing a custom aggregator, "
-                "it should be an instance of BaseAggregator. When passing a string, it should be one of "
-                f"{list(aggr_types.keys())}."
+                "it should be a subclass of BaseAggregator. When passing a string, it should be one of "
+                f"{list(aggr_types.keys()+ 'self-influence')}."
             )

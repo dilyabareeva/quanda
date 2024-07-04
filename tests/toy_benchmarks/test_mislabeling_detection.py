@@ -1,7 +1,8 @@
 import pytest
 
+from src.explainers.aggregators import SumAggregator
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.subclass_detection import SubclassDetection
+from src.toy_benchmarks.mislabeling_detection import MislabelingDetection
 from src.utils.functions.similarities import cosine_similarity
 from src.utils.training.base_pl_module import BasicLightningModule
 from src.utils.training.trainer import Trainer
@@ -9,8 +10,8 @@ from src.utils.training.trainer import Trainer
 
 @pytest.mark.toy_benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, test_labels, "
-    "batch_size, explainer_cls, expl_kwargs, expected_score",
+    "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, p, seed, test_labels, "
+    "global_method, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
         (
             "mnist",
@@ -22,16 +23,14 @@ from src.utils.training.trainer import Trainer
             3,
             "load_mnist_dataset",
             10,
-            2,
+            1.0,
             27,
             "load_mnist_test_labels_1",
+            "self-influence",
             8,
             CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            0.250,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            0.4921875,
         ),
         (
             "mnist",
@@ -43,16 +42,14 @@ from src.utils.training.trainer import Trainer
             3,
             "load_mnist_dataset",
             10,
-            2,
+            1.0,
             27,
             "load_mnist_test_labels_1",
+            "sum_abs",
             8,
             CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            0.250,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            0.4921875,
         ),
         (
             "mnist",
@@ -64,20 +61,18 @@ from src.utils.training.trainer import Trainer
             3,
             "load_mnist_dataset",
             10,
-            2,
+            1.0,
             27,
             "load_mnist_test_labels_1",
+            SumAggregator,
             8,
             CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            0.250,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            0.4921875,
         ),
     ],
 )
-def test_subclass_detection(
+def test_mislabeling_detection(
     test_id,
     init_method,
     model,
@@ -87,10 +82,11 @@ def test_subclass_detection(
     max_epochs,
     dataset,
     n_classes,
-    n_groups,
+    p,
     seed,
     test_labels,
     batch_size,
+    global_method,
     explainer_cls,
     expl_kwargs,
     expected_score,
@@ -104,7 +100,7 @@ def test_subclass_detection(
 
     if init_method == "from_arguments":
 
-        dst_eval = SubclassDetection.generate(
+        dst_eval = MislabelingDetection.generate(
             model=model,
             train_dataset=dataset,
             optimizer=optimizer,
@@ -112,7 +108,8 @@ def test_subclass_detection(
             lr=lr,
             val_dataset=None,
             n_classes=n_classes,
-            n_groups=n_groups,
+            p=p,
+            global_method=global_method,
             class_to_group="random",
             trainer_fit_kwargs={"max_epochs": max_epochs},
             seed=seed,
@@ -130,13 +127,14 @@ def test_subclass_detection(
 
         if init_method == "from_pl":
 
-            dst_eval = SubclassDetection.generate_from_pl(
+            dst_eval = MislabelingDetection.generate_from_pl(
                 model=model,
                 pl_module=pl_module,
                 train_dataset=dataset,
                 val_dataset=None,
                 n_classes=n_classes,
-                n_groups=n_groups,
+                p=p,
+                global_method=global_method,
                 class_to_group="random",
                 trainer_fit_kwargs={"max_epochs": max_epochs},
                 seed=seed,
@@ -148,12 +146,13 @@ def test_subclass_detection(
 
             trainer = Trainer.from_lightning_module(model, pl_module)
 
-            dst_eval = SubclassDetection.generate_from_trainer(
+            dst_eval = MislabelingDetection.generate_from_trainer(
                 model=model,
                 trainer=trainer,
                 train_dataset=dataset,
                 n_classes=n_classes,
-                n_groups=n_groups,
+                p=p,
+                global_method=global_method,
                 class_to_group="random",
                 trainer_fit_kwargs={"max_epochs": max_epochs},
                 seed=seed,
@@ -172,6 +171,6 @@ def test_subclass_detection(
         model_id="default_model_id",
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
     assert score == expected_score

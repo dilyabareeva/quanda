@@ -134,7 +134,6 @@ def test_explain_functional(test_id, model, dataset, test_tensor, test_labels, m
         model_id="test_id",
         cache_dir=str(tmp_path),
         test_tensor=test_tensor,
-        explanation_targets=test_labels,
         train_dataset=dataset,
         device="cpu",
         **method_kwargs,

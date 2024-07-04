@@ -5,6 +5,7 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
+from src.utils.datasets.transformed.label_flipping import LabelFlippingDataset
 from src.utils.datasets.transformed.label_grouping import LabelGroupingDataset
 from tests.models import LeNet
 
@@ -89,6 +90,24 @@ def load_grouped_mnist_dataset():
         n_classes=10,
         n_groups=2,
         class_to_group="random",
+        seed=27,
+        device="cpu",
+    )
+
+
+@pytest.fixture
+def load_poisoned_mnist_dataset():
+    x_batch = (
+        np.loadtxt("tests/assets/mnist_test_suite_1/mnist_x")
+        .astype(float)
+        .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
+    )[:MINI_BATCH_SIZE]
+    y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
+    dataset = TestTensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
+    return LabelFlippingDataset(
+        dataset,
+        n_classes=10,
+        p=1.0,
         seed=27,
         device="cpu",
     )
