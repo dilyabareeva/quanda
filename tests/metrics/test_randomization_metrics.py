@@ -5,6 +5,7 @@ from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
+from src.utils.functions.correlations import correlation_functions
 from src.utils.functions.similarities import cosine_similarity
 
 
@@ -65,7 +66,7 @@ def test_randomization_metric(
 
 @pytest.mark.randomization_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, explainer_cls, expl_kwargs",
+    "test_id, model, dataset, explainer_cls, expl_kwargs, corr_fn",
     [
         (
             "mnist",
@@ -76,10 +77,22 @@ def test_randomization_metric(
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
+            "spearman",
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            correlation_functions["spearman"],
         ),
     ],
 )
-def test_randomization_metric_model_randomization(test_id, model, dataset, explainer_cls, expl_kwargs, request):
+def test_randomization_metric_model_randomization(test_id, model, dataset, explainer_cls, expl_kwargs, corr_fn, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     metric = ModelRandomizationMetric(
@@ -89,6 +102,7 @@ def test_randomization_metric_model_randomization(test_id, model, dataset, expla
         expl_kwargs=expl_kwargs,
         seed=42,
         device="cpu",
+        correlation_fn=corr_fn,
     )
     rand_model = metric.rand_model
     for param1, param2 in zip(model.parameters(), rand_model.parameters()):
