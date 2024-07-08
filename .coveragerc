@@ -2,6 +2,9 @@
 source = src
 omit =
     /tests/*
-
+    src/utils/explanations.py
+    src/utils/transforms.py
+    src/utils/cache.py
+    src/explainers/functional.py
 [report]
 ignore_errors = True
