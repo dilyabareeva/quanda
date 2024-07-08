@@ -322,12 +322,12 @@ class MislabelingDetection(ToyBenchmark):
         )
         expl_dl = torch.utils.data.DataLoader(poisoned_expl_ds, batch_size=batch_size)
         if self.global_method != "self-influence":
-            metric = MislabelingDetectionMetric(
+            metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
                 device="cpu",
-                global_method=self.global_method,
+                aggregator_cls=self.global_method,
             )
 
             pbar = tqdm(expl_dl)
@@ -340,7 +340,7 @@ class MislabelingDetection(ToyBenchmark):
                 explanations = explainer.explain(test=input, targets=labels)
                 metric.update(explanations)
         else:
-            metric = MislabelingDetectionMetric(
+            metric = MislabelingDetectionMetric.self_influence_based(
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
