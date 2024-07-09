@@ -1,3 +1,4 @@
+import json
 import pickle
 
 import numpy as np
@@ -41,6 +42,12 @@ def load_rand_tensor():
 @pytest.fixture
 def load_rand_test_predictions():
     return torch.randint(0, 10, (10000,))
+
+
+@pytest.fixture
+def mnist_seed_27_poisoned_labels():
+    with open("tests/assets/mnist_seed_27_poisoned_labels.json", "r") as f:
+        return json.load(f)
 
 
 @pytest.fixture

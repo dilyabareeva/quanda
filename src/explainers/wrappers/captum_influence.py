@@ -11,7 +11,6 @@ from src.explainers.utils import (
     self_influence_fn_from_explainer,
 )
 from src.utils.functions.similarities import cosine_similarity
-from src.utils.validation import validate_1d_tensor_or_int_list
 
 
 class CaptumInfluence(BaseExplainer, ABC):
@@ -39,15 +38,6 @@ class CaptumInfluence(BaseExplainer, ABC):
 
     def _init_explainer(self, **explain_kwargs: Any):
         self.captum_explainer = self.explainer_cls(**explain_kwargs)
-
-    def _process_targets(self, targets: Optional[Union[List[int], torch.Tensor]]):
-        if targets is not None:
-            # TODO: move validation logic outside at a later point
-            validate_1d_tensor_or_int_list(targets)
-            if isinstance(targets, list):
-                targets = torch.tensor(targets)
-            targets = targets.to(self.device)
-        return targets
 
     @abstractmethod
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
@@ -143,6 +133,7 @@ class CaptumSimilarity(CaptumInfluence):
         test = test.to(self.device)
 
         if targets is not None:
+            self._process_targets(targets=targets)
             warnings.warn("CaptumSimilarity explainer does not support target indices. Ignoring the argument.")
 
         topk_idx, topk_val = self.captum_explainer.influence(inputs=test, top_k=self.top_k)[self.layer]

@@ -4,7 +4,10 @@ omit =
     /tests/*
     src/utils/explanations.py
     src/utils/transforms.py
+    src/utils/datasets/transformed/sample.py
     src/utils/cache.py
+    src/utils/datasets/activation_dataset.py
+    src/utils/datasets/indexed_subset.py
     src/explainers/functional.py
 [report]
 ignore_errors = True
