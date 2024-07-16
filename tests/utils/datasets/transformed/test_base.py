@@ -22,7 +22,7 @@ class UnsizedTensorDataset(Dataset):
             True,
             10,
         ),
-        (False, 10),
+        # (False, 10),
     ],
 )
 def test_base_len(

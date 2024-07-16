@@ -11,7 +11,7 @@ from src.utils.functions.similarities import cosine_similarity
 
 @pytest.mark.randomization_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_data, batch_size, explainer_cls, expl_kwargs, explanations, test_labels",
+    "test_id, model, dataset, test_data, batch_size, explainer_cls, expl_kwargs, explanations, test_labels, tmp_path",
     [
         (
             "mnist_update_only",
@@ -26,6 +26,7 @@ from src.utils.functions.similarities import cosine_similarity
             },
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",
+            "tmp_path",
         ),
         (
             "mnist_explain_update",
@@ -40,6 +41,7 @@ from src.utils.functions.similarities import cosine_similarity
             },
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",
+            "tmp_path",
         ),
     ],
 )
