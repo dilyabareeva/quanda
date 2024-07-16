@@ -9,8 +9,8 @@ from src.utils.training.trainer import Trainer
 
 @pytest.mark.utils
 @pytest.mark.parametrize(
-    "test_id, init_model, dataloader, optimizer, lr, criterion, max_epochs, \
-    val_loader, early_stopping, early_stopping_kwargs, mode",
+    "test_id, init_model, dataloader, optimizer, lr, criterion, scheduler, scheduler_kwargs, \
+    max_epochs, val_loader, early_stopping, early_stopping_kwargs, mode",
     [
         (
             "mnist",
@@ -19,6 +19,8 @@ from src.utils.training.trainer import Trainer
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
+            "torch_constant_lr_scheduler_type",
+            {"last_epoch": -1},
             3,
             "load_mnist_dataloader",
             False,
@@ -32,6 +34,8 @@ from src.utils.training.trainer import Trainer
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
+            "torch_constant_lr_scheduler_type",
+            {"last_epoch": -1},
             3,
             "load_mnist_dataloader",
             False,
@@ -47,6 +51,8 @@ def test_from_arguments(
     optimizer,
     lr,
     criterion,
+    scheduler,
+    scheduler_kwargs,
     max_epochs,
     val_loader,
     early_stopping,
@@ -57,6 +63,7 @@ def test_from_arguments(
     model = request.getfixturevalue(init_model)
     dataloader = request.getfixturevalue(dataloader)
     optimizer = request.getfixturevalue(optimizer)
+    scheduler = request.getfixturevalue(scheduler)
     criterion = request.getfixturevalue(criterion)
     old_model = copy.deepcopy(model)
     trainer = Trainer()
@@ -66,6 +73,8 @@ def test_from_arguments(
             optimizer=optimizer,
             lr=lr,
             criterion=criterion,
+            scheduler=scheduler,
+            scheduler_kwargs=scheduler_kwargs,
         )
     else:
         pl_module = BasicLightningModule(

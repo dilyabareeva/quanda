@@ -172,5 +172,10 @@ def torch_cross_entropy_loss_object():
 
 
 @pytest.fixture
+def torch_constant_lr_scheduler_type():
+    return torch.optim.lr_scheduler.ConstantLR
+
+
+@pytest.fixture
 def torch_sgd_optimizer():
     return torch.optim.SGD

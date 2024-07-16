@@ -1,5 +1,5 @@
 import random
-from typing import Any, Callable, List, Optional, Sized
+from typing import Any, Callable, List, Optional
 
 import torch
 from torch.utils.data.dataset import Dataset
@@ -56,12 +56,6 @@ class TransformedDataset(Dataset):
         else:
             self.transform_indices = transform_indices
 
-    def __len__(self) -> int:
-        if isinstance(self.dataset, Sized):
-            return len(self.dataset)
-        dl = torch.utils.data.DataLoader(self.dataset, batch_size=1)
-        return len(dl)
-
     def __getitem__(self, index) -> Any:
         x, y = self.dataset[index]
         xx = self.sample_fn(x)
@@ -72,6 +66,12 @@ class TransformedDataset(Dataset):
     def _get_original_label(self, index) -> int:
         _, y = self.dataset[index]
         return y
+
+    def __len__(self):
+        if not hasattr(self.dataset, "__len__"):
+            raise ValueError("Dataset needs to implement __len__ to use the TransformedDataset class.")
+        else:
+            return len(self.dataset)
 
     @staticmethod
     def _identity(x: Any) -> Any:

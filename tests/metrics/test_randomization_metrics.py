@@ -11,10 +11,11 @@ from src.utils.functions.similarities import cosine_similarity
 
 @pytest.mark.randomization_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_data, batch_size, explainer_cls, expl_kwargs, explanations, test_labels, tmp_path",
+    "test_id, model, dataset, test_data, batch_size, explainer_cls, \
+    expl_kwargs, explanations, test_labels, correlation_fn, tmp_path",
     [
         (
-            "mnist_update_only",
+            "mnist_update_only_spearman",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
@@ -26,6 +27,23 @@ from src.utils.functions.similarities import cosine_similarity
             },
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",
+            "spearman",
+            "tmp_path",
+        ),
+        (
+            "mnist_update_only_kendall",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            8,
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            "load_mnist_explanations_1",
+            "load_mnist_test_labels_1",
+            "kendall",
             "tmp_path",
         ),
         (
@@ -41,6 +59,7 @@ from src.utils.functions.similarities import cosine_similarity
             },
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",
+            "spearman",
             "tmp_path",
         ),
     ],
@@ -55,6 +74,7 @@ def test_randomization_metric(
     expl_kwargs,
     explanations,
     test_labels,
+    correlation_fn,
     tmp_path,
     request,
 ):
@@ -68,7 +88,7 @@ def test_randomization_metric(
         train_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
-        correlation_fn="spearman",
+        correlation_fn=correlation_fn,
         cache_dir=str(tmp_path),
         seed=42,
         device="cpu",
