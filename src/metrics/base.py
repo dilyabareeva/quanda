@@ -245,7 +245,6 @@ class GlobalMetric(Metric, ABC):
             self.strategy = self.strategies["aggr"](
                 aggr_type=global_method,
             )
-
         else:
             raise ValueError(
                 f"Global method {global_method} is not supported. When passing a custom aggregator, "

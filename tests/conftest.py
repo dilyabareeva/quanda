@@ -45,6 +45,18 @@ def load_rand_test_predictions():
 
 
 @pytest.fixture
+def mnist_range_explanations():
+    return torch.tensor(
+        [[i * 1.0 for i in range(8)], [i * 1.0 for i in range(8)], [i * 1.0 for i in range(8)]], dtype=torch.float
+    )
+
+
+@pytest.fixture
+def range_ranking():
+    return torch.tensor([i for i in range(8)])
+
+
+@pytest.fixture
 def mnist_seed_27_poisoned_labels():
     with open("tests/assets/mnist_seed_27_poisoned_labels.json", "r") as f:
         return json.load(f)

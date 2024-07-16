@@ -59,10 +59,8 @@ def test_self_influence(
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
-            torch.tensor(
-                [[i * 1.0 for i in range(8)], [i * 1.0 for i in range(8)], [i * 1.0 for i in range(8)]], dtype=torch.float
-            ),
-            torch.tensor([i for i in range(8)]),
+            "mnist_range_explanations",
+            "range_ranking",
         ),
     ],
 )
@@ -78,6 +76,8 @@ def test_aggregation(
     model = request.getfixturevalue(model)
     test_data = request.getfixturevalue(test_data)
     dataset = request.getfixturevalue(dataset)
+    explanations = request.getfixturevalue(explanations)
+    expected = request.getfixturevalue(expected)
 
     aggr_strat = GlobalAggrStrategy(aggr_type=AbsSumAggregator)
     aggr_strat.update(explanations=explanations)
