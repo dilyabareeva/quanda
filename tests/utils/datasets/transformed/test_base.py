@@ -16,7 +16,7 @@ class UnsizedTensorDataset(Dataset):
 
 @pytest.mark.utils
 @pytest.mark.parametrize(
-    "sized, length",
+    "sized, length, err",
     [
         (True, 10, None),
         (False, 10, ValueError),
