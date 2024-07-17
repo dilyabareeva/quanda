@@ -1,9 +1,10 @@
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import torch
 from captum.influence import SimilarityInfluence  # type: ignore
+from captum.influence._core.arnoldi_influence_function import ArnoldiInfluenceFunction  # TODO Should be imported directly from captum.influence once available
 
 from src.explainers.base import BaseExplainer
 from src.explainers.utils import (
@@ -12,6 +13,7 @@ from src.explainers.utils import (
 )
 from src.utils.functions.similarities import cosine_similarity
 from src.utils.validation import validate_1d_tensor_or_int_list
+from src.utils.common import get_load_state_dict_func
 
 
 class CaptumInfluence(BaseExplainer, ABC):
@@ -187,6 +189,132 @@ def captum_similarity_self_influence(
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
+        device=device,
+        **kwargs,
+    )
+
+
+class CaptumArnoldi(CaptumInfluence):
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        model_id: str,                                              # TODO Make optional
+        train_dataset: torch.utils.data.Dataset,
+        checkpoint: str,
+        cache_dir: str,                                             # TODO Make optional 
+        loss_fn: Union[torch.nn.Module, Callable],                  # TODO Should be optional, but Captum's Arnoldi Function crashes if not specified
+        checkpoints_load_func: Callable = None,
+        layers: Optional[List[str]] = None,
+        batch_size: int = 1,
+        hessian_dataset: Optional[Union[torch.utils.data.Dataset, torch.utils.data.DataLoader]] = None,
+        test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
+        sample_wise_grads_per_batch: bool = False,
+        projection_dim: int = 50,
+        seed: int = 0,
+        arnoldi_dim: int = 200,
+        arnoldi_tol: float = 1e-1,
+        hessian_reg: float = 1e-3,
+        hessian_inverse_tol: float = 1e-4,
+        projection_on_cpu: bool = True,
+        show_progress: bool = False,
+        device: Union[str, torch.device] = "cpu",                   # TODO Check if gpu works
+        **explainer_kwargs: Any,
+    ):
+        if not checkpoints_load_func:
+            checkpoints_load_func = get_load_state_dict_func(device)
+        
+        self.k = explainer_kwargs.pop("k", None)
+        self.proponents = explainer_kwargs.pop("proponents", True)
+
+        explainer_kwargs.update(
+            {
+                "model": model,
+                "train_dataset": train_dataset,
+                "checkpoint": checkpoint,
+                "checkpoints_load_func": checkpoints_load_func,
+                "layers": layers,
+                "loss_fn": loss_fn,
+                "batch_size": batch_size,
+                "hessian_dataset": hessian_dataset,
+                "test_loss_fn": test_loss_fn,
+                "sample_wise_grads_per_batch": sample_wise_grads_per_batch,
+                "projection_dim": projection_dim,
+                "seed": seed,
+                "arnoldi_dim": arnoldi_dim,
+                "arnoldi_tol": arnoldi_tol,
+                "hessian_reg": hessian_reg,
+                "hessian_inverse_tol": hessian_inverse_tol,
+                "projection_on_cpu": projection_on_cpu,
+                "show_progress": show_progress,
+                **explainer_kwargs,
+            }
+        )
+
+        super().__init__(
+            model=model,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            train_dataset=train_dataset,
+            device=device,
+            explainer_cls=ArnoldiInfluenceFunction,
+            explain_kwargs=explainer_kwargs,
+        )
+
+    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
+        test = test.to(self.device)
+
+        if targets is not None:
+            targets = targets.to(self.device)
+
+        influence_scores = self.captum_explainer.influence(inputs=(test,targets), k=self.k, proponents=self.proponents)
+        return influence_scores
+
+    def self_influence(self, inputs_dataset: Optional[Union[Tuple[Any, ...], torch.utils.data.DataLoader]] = None, **kwargs: Any) -> torch.Tensor:
+        influence_scores = self.captum_explainer.self_influence(inputs_dataset)
+        return influence_scores
+    
+
+def captum_arnoldi_explain(
+    model: torch.nn.Module,
+    model_id: str,
+    cache_dir: str,
+    test_tensor: torch.Tensor,
+    train_dataset: torch.utils.data.Dataset,
+    loss_fn: Union[torch.nn.Module, Callable],
+    device: Union[str, torch.device],
+    explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
+    **kwargs: Any,
+) -> torch.Tensor:
+    return explain_fn_from_explainer(
+        explainer_cls=CaptumArnoldi,
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        test_tensor=test_tensor,
+        targets=explanation_targets,
+        train_dataset=train_dataset,
+        loss_fn=loss_fn,
+        device=device,
+        **kwargs,
+    )
+
+
+def captum_arnoldi_self_influence(
+    model: torch.nn.Module,
+    model_id: str,
+    cache_dir: str,
+    train_dataset: torch.utils.data.Dataset,
+    loss_fn: Union[torch.nn.Module, Callable],
+    device: Union[str, torch.device],
+    **kwargs: Any,
+) -> torch.Tensor:
+    return self_influence_fn_from_explainer(
+        explainer_cls=CaptumArnoldi,
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        train_dataset=train_dataset,
+        loss_fn=loss_fn,
         device=device,
         **kwargs,
     )
