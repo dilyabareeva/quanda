@@ -44,7 +44,7 @@ from src.utils.training.trainer import Trainer
         ),
     ],
 )
-def test_from_arguments(
+def test_trainer(
     test_id,
     init_model,
     dataloader,

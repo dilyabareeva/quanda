@@ -12,7 +12,7 @@ from src.utils.datasets.transformed.label_flipping import LabelFlippingDataset
         ("load_mnist_dataset", 10, 27, [], None, ValueError),
     ],
 )
-def test_label_flipping(
+def test_label_flipping_dataset(
     dataset,
     n_classes,
     seed,

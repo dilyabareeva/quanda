@@ -22,7 +22,7 @@ class UnsizedTensorDataset(Dataset):
         (False, 10, ValueError),
     ],
 )
-def test_base_len(
+def test_transformed_dataset_len(
     sized,
     length,
     err,
@@ -40,16 +40,16 @@ def test_base_len(
 
 @pytest.mark.utils
 @pytest.mark.parametrize(
-    "dataset, n_classes",
+    "dataset, n_classes, sample_fn, label_fn",
     [
-        ("load_mnist_dataset", 10),
+        ("load_mnist_dataset", 10, lambda x: torch.zeros_like(x), lambda x: 0),
     ],
 )
-def test_base_transformed(dataset, n_classes, request):
+def test_transformed_dataset(dataset, n_classes, sample_fn, label_fn, request):
     dataset = request.getfixturevalue(dataset)
-    trans_ds = TransformedDataset(
-        dataset=dataset, n_classes=n_classes, sample_fn=lambda x: torch.zeros_like(x), label_fn=lambda x: 0
-    )
-    assert torch.all(trans_ds[0][0] == 0.0)
-    assert trans_ds[0][1] == 0.0
-    assert not torch.allclose(trans_ds[0][0], dataset[0][0])
+    trans_ds = TransformedDataset(dataset=dataset, n_classes=n_classes, sample_fn=sample_fn, label_fn=label_fn)
+    cond1 = torch.all(trans_ds[0][0] == 0.0)
+    cond2 = trans_ds[0][1] == 0.0
+    cond3 = not torch.allclose(trans_ds[0][0], dataset[0][0])
+    final_cond = cond1 and cond2 and cond3
+    assert all(final_cond)

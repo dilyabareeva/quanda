@@ -28,7 +28,7 @@ from src.utils.functions.similarities import cosine_similarity
         ),
     ],
 )
-def test_self_influence(
+def test_global_self_influence_strategy(
     test_id,
     model,
     dataset,
@@ -64,7 +64,7 @@ def test_self_influence(
         ),
     ],
 )
-def test_aggregation(
+def test_global_aggr_strategy(
     test_id,
     model,
     dataset,

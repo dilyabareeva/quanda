@@ -126,7 +126,7 @@ from src.utils.training.trainer import Trainer
         ),
     ],
 )
-def test_mislabeling_detection(
+def test_subclass_detection(
     test_id,
     init_method,
     model,
