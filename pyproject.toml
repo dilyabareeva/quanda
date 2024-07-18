@@ -9,7 +9,7 @@ keywords = ["explainable ai", "xai", "machine learning", "deep learning"]
 dependencies = [
     "numpy>=1.19.5",
     "torch>=1.13.1",
-    "captum>=0.6.0",
+    "captum@git+https://github.com/pytorch/captum",
     "lightning>=1.4.0",
     "torchmetrics>=1.4.0",
     "tqdm>=4.0.0",
