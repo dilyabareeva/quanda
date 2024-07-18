@@ -4,7 +4,9 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
-from captum.influence._core.arnoldi_influence_function import ArnoldiInfluenceFunction  # TODO Should be imported directly from captum.influence once available
+from captum.influence._core.arnoldi_influence_function import (
+    ArnoldiInfluenceFunction,
+)  # TODO Should be imported directly from captum.influence once available
 from src.explainers.wrappers.captum_influence import (
     CaptumSimilarity,
     captum_similarity_explain,
@@ -198,7 +200,17 @@ def test_arnoldi_explain_stateful_simple(test_id, model, dataset, test_tensor, m
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"batch_size": 1, "projection_dim": 10, "arnoldi_dim": 20, "arnoldi_tol": 2e-1, "hessian_reg": 2e-3, "hessian_inverse_tol": 2e-4, "projection_on_cpu": True, "k": 2, "proponents": False},
+            {
+                "batch_size": 1,
+                "projection_dim": 10,
+                "arnoldi_dim": 20,
+                "arnoldi_tol": 2e-1,
+                "hessian_reg": 2e-3,
+                "hessian_inverse_tol": 2e-4,
+                "projection_on_cpu": True,
+                "k": 2,
+                "proponents": False,
+            },
         ),
     ],
 )
@@ -207,7 +219,7 @@ def test_arnoldi_explain_stateful_complex(test_id, model, dataset, test_tensor, 
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
-    
+
     explainer = CaptumArnoldi(
         model=model,
         model_id="test_id",
@@ -231,8 +243,10 @@ def test_arnoldi_explain_stateful_complex(test_id, model, dataset, test_tensor, 
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
     )
-    explanations_captum = explainer_captum.influence(inputs=(test_tensor,test_labels), k=k, proponents=proponents)
-    assert torch.allclose(explanations.influence_scores, explanations_captum.influence_scores), "Training data attributions are not as expected"
+    explanations_captum = explainer_captum.influence(inputs=(test_tensor, test_labels), k=k, proponents=proponents)
+    assert torch.allclose(
+        explanations.influence_scores, explanations_captum.influence_scores
+    ), "Training data attributions are not as expected"
 
 
 @pytest.mark.explainers
@@ -244,7 +258,15 @@ def test_arnoldi_explain_stateful_complex(test_id, model, dataset, test_tensor, 
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
-            {"batch_size": 1, "projection_dim": 10, "arnoldi_dim": 20, "arnoldi_tol": 1e-1, "hessian_reg": 1e-3, "hessian_inverse_tol": 1e-4, "projection_on_cpu": True},
+            {
+                "batch_size": 1,
+                "projection_dim": 10,
+                "arnoldi_dim": 20,
+                "arnoldi_tol": 1e-1,
+                "hessian_reg": 1e-3,
+                "hessian_inverse_tol": 1e-4,
+                "projection_on_cpu": True,
+            },
         ),
     ],
 )
@@ -262,7 +284,7 @@ def test_arnoldi_explain_functional_simple(test_id, model, dataset, test_tensor,
         sample_wise_grads_per_batch=False,
         **method_kwargs,
     )
-    explanations_exp = explainer_captum.influence(inputs=(test_tensor,None))
+    explanations_exp = explainer_captum.influence(inputs=(test_tensor, None))
 
     explanations = captum_arnoldi_explain(
         model=model,
@@ -289,16 +311,27 @@ def test_arnoldi_explain_functional_simple(test_id, model, dataset, test_tensor,
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"batch_size": 1, "seed": 42, "projection_dim": 10, "arnoldi_dim": 20, "arnoldi_tol": 1e-1, "hessian_reg": 1e-3, "hessian_inverse_tol": 1e-4, "projection_on_cpu": True},
+            {
+                "batch_size": 1,
+                "seed": 42,
+                "projection_dim": 10,
+                "arnoldi_dim": 20,
+                "arnoldi_tol": 1e-1,
+                "hessian_reg": 1e-3,
+                "hessian_inverse_tol": 1e-4,
+                "projection_on_cpu": True,
+            },
         ),
     ],
 )
-def test_arnoldi_explain_functional_complex(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
+def test_arnoldi_explain_functional_complex(
+    test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
+):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
-    hessian_dataset = torch.utils.data.Subset(dataset, [0,1])
+    hessian_dataset = torch.utils.data.Subset(dataset, [0, 1])
 
     explainer_captum = ArnoldiInfluenceFunction(
         model=model,
@@ -311,7 +344,7 @@ def test_arnoldi_explain_functional_complex(test_id, model, dataset, test_tensor
         sample_wise_grads_per_batch=True,
         **method_kwargs,
     )
-    explanations_exp = explainer_captum.influence(inputs=(test_tensor,test_labels))
+    explanations_exp = explainer_captum.influence(inputs=(test_tensor, test_labels))
 
     explanations = captum_arnoldi_explain(
         model=model,
@@ -339,7 +372,16 @@ def test_arnoldi_explain_functional_complex(test_id, model, dataset, test_tensor
             "mnist",
             "load_mnist_model",
             "load_mnist_dataset",
-            {"batch_size": 1, "seed": 42, "projection_dim": 10, "arnoldi_dim": 20, "arnoldi_tol": 1e-1, "hessian_reg": 1e-3, "hessian_inverse_tol": 1e-4, "projection_on_cpu": True},
+            {
+                "batch_size": 1,
+                "seed": 42,
+                "projection_dim": 10,
+                "arnoldi_dim": 20,
+                "arnoldi_tol": 1e-1,
+                "hessian_reg": 1e-3,
+                "hessian_inverse_tol": 1e-4,
+                "projection_on_cpu": True,
+            },
         ),
     ],
 )

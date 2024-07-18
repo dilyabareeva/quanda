@@ -96,4 +96,5 @@ def _load_flexible_state_dict(model: torch.nn.Module, path: str, device: Union[s
 def get_load_state_dict_func(device: Union[str, torch.device]):
     def load_state_dict(model: torch.nn.Module, path: str) -> float:
         return _load_flexible_state_dict(model, path, device)
+
     return load_state_dict

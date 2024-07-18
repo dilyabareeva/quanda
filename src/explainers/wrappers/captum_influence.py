@@ -4,7 +4,9 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 import torch
 from captum.influence import SimilarityInfluence  # type: ignore
-from captum.influence._core.arnoldi_influence_function import ArnoldiInfluenceFunction  # TODO Should be imported directly from captum.influence once available
+from captum.influence._core.arnoldi_influence_function import (
+    ArnoldiInfluenceFunction,
+)  # TODO Should be imported directly from captum.influence once available
 
 from src.explainers.base import BaseExplainer
 from src.explainers.utils import (
@@ -198,11 +200,13 @@ class CaptumArnoldi(CaptumInfluence):
     def __init__(
         self,
         model: torch.nn.Module,
-        model_id: str,                                              # TODO Make optional
+        model_id: str,  # TODO Make optional
         train_dataset: torch.utils.data.Dataset,
         checkpoint: str,
-        cache_dir: str,                                             # TODO Make optional 
-        loss_fn: Union[torch.nn.Module, Callable],                  # TODO Should be optional, but Captum's Arnoldi Function crashes if not specified
+        cache_dir: str,  # TODO Make optional
+        loss_fn: Union[
+            torch.nn.Module, Callable
+        ],  # TODO Should be optional, but Captum's Arnoldi Function crashes if not specified
         checkpoints_load_func: Callable = None,
         layers: Optional[List[str]] = None,
         batch_size: int = 1,
@@ -217,12 +221,12 @@ class CaptumArnoldi(CaptumInfluence):
         hessian_inverse_tol: float = 1e-4,
         projection_on_cpu: bool = True,
         show_progress: bool = False,
-        device: Union[str, torch.device] = "cpu",                   # TODO Check if gpu works
+        device: Union[str, torch.device] = "cpu",  # TODO Check if gpu works
         **explainer_kwargs: Any,
     ):
         if not checkpoints_load_func:
             checkpoints_load_func = get_load_state_dict_func(device)
-        
+
         self.k = explainer_kwargs.pop("k", None)
         self.proponents = explainer_kwargs.pop("proponents", True)
 
@@ -266,13 +270,15 @@ class CaptumArnoldi(CaptumInfluence):
         if targets is not None:
             targets = targets.to(self.device)
 
-        influence_scores = self.captum_explainer.influence(inputs=(test,targets), k=self.k, proponents=self.proponents)
+        influence_scores = self.captum_explainer.influence(inputs=(test, targets), k=self.k, proponents=self.proponents)
         return influence_scores
 
-    def self_influence(self, inputs_dataset: Optional[Union[Tuple[Any, ...], torch.utils.data.DataLoader]] = None, **kwargs: Any) -> torch.Tensor:
+    def self_influence(
+        self, inputs_dataset: Optional[Union[Tuple[Any, ...], torch.utils.data.DataLoader]] = None, **kwargs: Any
+    ) -> torch.Tensor:
         influence_scores = self.captum_explainer.self_influence(inputs_dataset)
         return influence_scores
-    
+
 
 def captum_arnoldi_explain(
     model: torch.nn.Module,
