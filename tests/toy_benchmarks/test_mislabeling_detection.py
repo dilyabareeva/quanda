@@ -134,6 +134,7 @@ def test_mislabeling_detection(
     expl_kwargs,
     load_path,
     expected_score,
+    tmp_path,
     request,
 ):
     model = request.getfixturevalue(model)
@@ -219,7 +220,7 @@ def test_mislabeling_detection(
         expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
-        cache_dir=str("temp"),
+        cache_dir=str(tmp_path),
         model_id="default_model_id",
         batch_size=batch_size,
         device="cpu",
