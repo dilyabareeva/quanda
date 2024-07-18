@@ -2,18 +2,20 @@ from collections import OrderedDict
 
 import pytest
 import torch
+
+# TODO Should be imported directly from captum.influence once available
+from captum.influence._core.arnoldi_influence_function import (  # type: ignore
+    ArnoldiInfluenceFunction,
+)
 from torch.utils.data import TensorDataset
 
-from captum.influence._core.arnoldi_influence_function import (
-    ArnoldiInfluenceFunction,
-)  # TODO Should be imported directly from captum.influence once available
 from src.explainers.wrappers.captum_influence import (
-    CaptumSimilarity,
-    captum_similarity_explain,
-    captum_similarity_self_influence,
     CaptumArnoldi,
+    CaptumSimilarity,
     captum_arnoldi_explain,
     captum_arnoldi_self_influence,
+    captum_similarity_explain,
+    captum_similarity_self_influence,
 )
 from src.utils.common import get_load_state_dict_func
 from src.utils.functions.similarities import (

@@ -4,18 +4,20 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 import torch
 from captum.influence import SimilarityInfluence  # type: ignore
-from captum.influence._core.arnoldi_influence_function import (
+
+# TODO Should be imported directly from captum.influence once available
+from captum.influence._core.arnoldi_influence_function import (  # type: ignore
     ArnoldiInfluenceFunction,
-)  # TODO Should be imported directly from captum.influence once available
+)
 
 from src.explainers.base import BaseExplainer
 from src.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
+from src.utils.common import get_load_state_dict_func
 from src.utils.functions.similarities import cosine_similarity
 from src.utils.validation import validate_1d_tensor_or_int_list
-from src.utils.common import get_load_state_dict_func
 
 
 class CaptumInfluence(BaseExplainer, ABC):
@@ -207,7 +209,7 @@ class CaptumArnoldi(CaptumInfluence):
         loss_fn: Union[
             torch.nn.Module, Callable
         ],  # TODO Should be optional, but Captum's Arnoldi Function crashes if not specified
-        checkpoints_load_func: Callable = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
         batch_size: int = 1,
         hessian_dataset: Optional[Union[torch.utils.data.Dataset, torch.utils.data.DataLoader]] = None,
@@ -224,7 +226,7 @@ class CaptumArnoldi(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",  # TODO Check if gpu works
         **explainer_kwargs: Any,
     ):
-        if not checkpoints_load_func:
+        if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
 
         self.k = explainer_kwargs.pop("k", None)
@@ -268,7 +270,10 @@ class CaptumArnoldi(CaptumInfluence):
         test = test.to(self.device)
 
         if targets is not None:
-            targets = targets.to(self.device)
+            if isinstance(targets, list):
+                targets = torch.tensor(targets).to(self.device)
+            else:
+                targets = targets.to(self.device)
 
         influence_scores = self.captum_explainer.influence(inputs=(test, targets), k=self.k, proponents=self.proponents)
         return influence_scores

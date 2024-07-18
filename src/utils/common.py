@@ -50,7 +50,8 @@ def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, de
     return correct / total
 
 
-# Taken directly from Captum with minor changes (required because Captum's Arnoldi Influence Function does not allow to specify device)
+# Taken directly from Captum with minor changes
+# (required because Captum's Arnoldi Influence Function does not allow to specify device)
 def _load_flexible_state_dict(model: torch.nn.Module, path: str, device: Union[str, torch.device]) -> float:
     r"""
     Helper to load pytorch models. This function attempts to find compatibility for
