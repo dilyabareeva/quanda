@@ -52,4 +52,4 @@ def test_transformed_dataset(dataset, n_classes, sample_fn, label_fn, request):
     cond2 = trans_ds[0][1] == 0.0
     cond3 = not torch.allclose(trans_ds[0][0], dataset[0][0])
     final_cond = cond1 and cond2 and cond3
-    assert all(final_cond)
+    assert final_cond
