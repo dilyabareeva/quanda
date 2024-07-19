@@ -13,7 +13,6 @@ class GlobalSelfInfluenceStrategy:
     def __init__(
         self,
         explainer: Optional[BaseExplainer] = None,
-        expl_kwargs: Optional[dict] = None,
     ):
 
         if explainer is None:
@@ -21,10 +20,9 @@ class GlobalSelfInfluenceStrategy:
                 "An explainer of type BaseExplainer is required for a metric with global method 'self-influence'."
             )
         self.explainer = explainer
-        self.expl_kwargs = expl_kwargs or {}
 
     def get_self_influence(self):
-        return self.explainer.self_influence(**self.expl_kwargs)
+        return self.explainer.self_influence()
 
     @lru_cache(maxsize=1)
     def get_global_rank(self):

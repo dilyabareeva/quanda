@@ -17,7 +17,7 @@ from src.utils.datasets.transformed.label_grouping import LabelGroupingDataset
         ),
     ],
 )
-def test_label_grouping(
+def test_label_grouping_dataset(
     dataset,
     n_classes,
     n_groups,

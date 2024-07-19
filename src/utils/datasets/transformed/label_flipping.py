@@ -30,6 +30,8 @@ class LabelFlippingDataset(TransformedDataset):
             cls_idx=cls_idx,
         )
         if poisoned_labels is not None:
+            self._validate_poisoned_labels(poisoned_labels)
+            self.transform_indices = list(poisoned_labels.keys())
             self.poisoned_labels = poisoned_labels
         else:
             self.poisoned_labels = {
@@ -40,6 +42,12 @@ class LabelFlippingDataset(TransformedDataset):
         label_arr = [i for i in range(self.n_classes) if original_label != i]
         label_idx = self.rng.randint(0, len(label_arr))
         return label_arr[label_idx]
+
+    def _validate_poisoned_labels(self, poisoned_labels: Dict[int, int]):
+        if not isinstance(poisoned_labels, dict):
+            raise ValueError(
+                f"poisoned_labels should be a dictionary of integer keys and values, received {type(poisoned_labels)}"
+            )
 
     def __getitem__(self, index):
         x, y = self.dataset[index]

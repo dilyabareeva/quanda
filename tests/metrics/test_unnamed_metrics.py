@@ -93,7 +93,6 @@ def test_dataset_cleaning(
     expl_kwargs,
     batch_size,
     expected_score,
-    tmp_path,
     request,
 ):
     model = request.getfixturevalue(model)
@@ -178,7 +177,6 @@ def test_dataset_cleaning_self_influence_based(
     expl_kwargs,
     batch_size,
     expected_score,
-    tmp_path,
     request,
 ):
     model = request.getfixturevalue(model)
@@ -243,7 +241,6 @@ def test_dataset_cleaning_aggr_based(
     explanations,
     top_k,
     expected_score,
-    tmp_path,
     request,
 ):
     model = request.getfixturevalue(model)

@@ -85,8 +85,8 @@ class ModelRandomizationMetric(Metric):
     ):
         # TODO: add a test
         explanations = self.explainer.explain(
-            test_tensor=test_data,
-            explanation_targets=explanation_targets,
+            test=test_data,
+            targets=explanation_targets,
         )
         self.update(test_data=test_data, explanations=explanations, explanation_targets=explanation_targets)
 

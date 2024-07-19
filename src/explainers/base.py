@@ -4,6 +4,7 @@ from typing import Any, List, Optional, Sized, Union
 import torch
 
 from src.utils.common import cache_result
+from src.utils.validation import validate_1d_tensor_or_int_list
 
 
 class BaseExplainer(ABC):
@@ -38,6 +39,15 @@ class BaseExplainer(ABC):
             return len(self.train_dataset)
         dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=1)
         return len(dl)
+
+    def _process_targets(self, targets: Optional[Union[List[int], torch.Tensor]]):
+        if targets is not None:
+            # TODO: move validation logic outside at a later point
+            validate_1d_tensor_or_int_list(targets)
+            if isinstance(targets, list):
+                targets = torch.tensor(targets)
+            targets = targets.to(self.device)
+        return targets
 
     @cache_result
     def self_influence(self, batch_size: int = 32, **kwargs: Any) -> torch.Tensor:
