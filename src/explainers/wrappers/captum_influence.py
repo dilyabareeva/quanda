@@ -1,3 +1,4 @@
+import copy
 import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Callable, List, Optional, Union
@@ -89,10 +90,12 @@ class CaptumSimilarity(CaptumInfluence):
             warnings.warn("CaptumSimilarity explainer only supports CPU devices. Setting device to 'cpu'.")
             device = "cpu"
 
+        model_passed = copy.deepcopy(model)  # CaptumSimilarity only does cuda,
+        # we still want to keep the model on cuda for the metrics
         # TODO: validate SimilarityInfluence kwargs
         explainer_kwargs.update(
             {
-                "module": model,
+                "module": model_passed,
                 "influence_src_dataset": train_dataset,
                 "activation_dir": cache_dir,
                 "model_id": model_id,
@@ -106,7 +109,7 @@ class CaptumSimilarity(CaptumInfluence):
         )
 
         super().__init__(
-            model=model,
+            model=model_passed,
             model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,

@@ -120,7 +120,7 @@ class DatasetCleaning(GlobalMetric):
         clean_subset = torch.utils.data.Subset(self.train_dataset, clean_indices)
 
         train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=32, shuffle=True)
-        self.original_accuracy = class_accuracy(self.model, train_dl)
+        self.original_accuracy = class_accuracy(self.model, train_dl, self.device)
 
         clean_dl = torch.utils.data.DataLoader(clean_subset, batch_size=32, shuffle=True)
 
@@ -129,6 +129,6 @@ class DatasetCleaning(GlobalMetric):
             trainer_fit_kwargs=self.trainer_fit_kwargs,
         )
 
-        self.clean_accuracy = class_accuracy(self.model, clean_dl)
+        self.clean_accuracy = class_accuracy(self.model, clean_dl, self.device)
 
         return self.original_accuracy - self.clean_accuracy
