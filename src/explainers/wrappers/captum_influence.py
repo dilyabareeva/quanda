@@ -90,7 +90,7 @@ class CaptumSimilarity(CaptumInfluence):
             warnings.warn("CaptumSimilarity explainer only supports CPU devices. Setting device to 'cpu'.")
             device = "cpu"
 
-        model_passed = copy.deepcopy(model)  # CaptumSimilarity only does cuda,
+        model_passed = copy.deepcopy(model)  # CaptumSimilarity only does cpu,
         # we still want to keep the model on cuda for the metrics
         # TODO: validate SimilarityInfluence kwargs
         explainer_kwargs.update(
