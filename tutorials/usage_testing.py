@@ -16,7 +16,10 @@ from torchvision.models import resnet18
 from torchvision.utils import make_grid
 from tqdm import tqdm
 
-from src.explainers.wrappers.captum_influence import captum_similarity_explain
+from src.explainers.wrappers.captum_influence import (
+    CaptumSimilarity,
+    captum_similarity_explain,
+)
 from src.metrics.localization.identical_class import IdenticalClass
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
@@ -115,8 +118,8 @@ def main():
     model_rand = ModelRandomizationMetric(
         model=model,
         train_dataset=train_set,
-        explain_fn=explain,
-        explain_fn_kwargs=explain_fn_kwargs,
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs=explain_fn_kwargs,
         model_id=model_id,
         cache_dir=cache_dir,
         correlation_fn="spearman",
@@ -177,7 +180,7 @@ def main():
     # Subclass Detection Benchmark Generation and Evaluation
     # ++++++++++++++++++++++++++++++++++++++++++
 
-    max_epochs = 10
+    max_epochs = 1
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD
     lr = 0.1
@@ -206,8 +209,8 @@ def main():
 
     score = bench.evaluate(
         expl_dataset=test_set,
-        explain_fn=captum_similarity_explain,
-        explain_kwargs={"layers": "avgpool", "batch_size": 100},
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs={"layers": "avgpool", "batch_size": 100},
         cache_dir="./cache",
         model_id="default_model_id",
     )
