@@ -17,7 +17,10 @@ from src.explainers.utils import (
 )
 from src.utils.common import get_load_state_dict_func
 from src.utils.functions.similarities import cosine_similarity
-from src.utils.validation import validate_1d_tensor_or_int_list
+from src.utils.validation import (
+    validate_1d_tensor_or_int_list,
+    validate_checkpoints_load_func,
+)
 
 
 class CaptumInfluence(BaseExplainer, ABC):
@@ -206,9 +209,7 @@ class CaptumArnoldi(CaptumInfluence):
         train_dataset: torch.utils.data.Dataset,
         checkpoint: str,
         cache_dir: str,  # TODO Make optional
-        loss_fn: Union[
-            torch.nn.Module, Callable
-        ],  # TODO Should be optional, but Captum's Arnoldi Function crashes if not specified
+        loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(),
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
         batch_size: int = 1,
@@ -228,9 +229,14 @@ class CaptumArnoldi(CaptumInfluence):
     ):
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
+        else:
+            validate_checkpoints_load_func(checkpoints_load_func)
 
-        self.k = explainer_kwargs.pop("k", None)
-        self.proponents = explainer_kwargs.pop("proponents", True)
+        unsupported_args = ["k", "proponents"]
+        for arg in unsupported_args:
+            if arg in explainer_kwargs:
+                explainer_kwargs.pop(arg)
+                warnings.warn(f"{arg} is not supported by CaptumArnoldi explainer. Ignoring the argument.")
 
         explainer_kwargs.update(
             {
@@ -275,7 +281,7 @@ class CaptumArnoldi(CaptumInfluence):
             else:
                 targets = targets.to(self.device)
 
-        influence_scores = self.captum_explainer.influence(inputs=(test, targets), k=self.k, proponents=self.proponents)
+        influence_scores = self.captum_explainer.influence(inputs=(test, targets))
         return influence_scores
 
     def self_influence(
