@@ -1,5 +1,3 @@
-from random import Random
-
 import pytest
 
 from src.explainers.wrappers.captum_influence import CaptumSimilarity

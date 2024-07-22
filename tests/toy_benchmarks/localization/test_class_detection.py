@@ -1,5 +1,3 @@
-from random import Random
-
 import pytest
 
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
@@ -7,8 +5,6 @@ from src.toy_benchmarks.localization.class_detection import (
     ClassDetection,
 )
 from src.utils.functions.similarities import cosine_similarity
-from src.utils.training.base_pl_module import BasicLightningModule
-from src.utils.training.trainer import Trainer
 
 
 @pytest.mark.toy_benchmarks
@@ -93,7 +89,6 @@ def test_class_detection(
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "generate":
-
         dst_eval = ClassDetection.generate(
             model=model,
             train_dataset=dataset,
@@ -104,9 +99,9 @@ def test_class_detection(
         dst_eval = ClassDetection.load(path=load_path)
 
     elif init_method == "assemble":
-
         dst_eval = ClassDetection.assemble(
-            model=model, train_dataset=dataset,
+            model=model,
+            train_dataset=dataset,
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")

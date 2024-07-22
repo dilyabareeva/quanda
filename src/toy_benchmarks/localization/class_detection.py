@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 import torch
 from tqdm import tqdm
