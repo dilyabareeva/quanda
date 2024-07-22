@@ -1,9 +1,9 @@
 import torch
 
-from src.metrics.localization.identical_class import IdenticalClass
+from src.metrics.localization.class_detection import ClassDetection
 
 
-class IdenticalSubclass(IdenticalClass):
+class SubclassDetection(ClassDetection):
     def __init__(
         self,
         model: torch.nn.Module,

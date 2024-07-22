@@ -20,7 +20,7 @@ from src.explainers.wrappers.captum_influence import (
     CaptumSimilarity,
     captum_similarity_explain,
 )
-from src.metrics.localization.identical_class import IdenticalClass
+from src.metrics.localization.class_detection import ClassDetection
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
@@ -126,7 +126,7 @@ def main():
         device=DEVICE,
     )
 
-    id_class = IdenticalClass(model=model, train_dataset=train_set, device=DEVICE)
+    id_class = ClassDetection(model=model, train_dataset=train_set, device=DEVICE)
 
     top_k = TopKOverlap(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
 
@@ -134,7 +134,7 @@ def main():
     pl_module = BasicLightningModule(
         model=copy.deepcopy(model),
         optimizer=torch.optim.SGD,
-        lr=0.01,
+        lr=0.1,
         criterion=torch.nn.CrossEntropyLoss(),
     )
     trainer = Trainer.from_lightning_module(model, pl_module)
@@ -187,15 +187,20 @@ def main():
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR
     scheduler_kwargs = {"T_max": max_epochs}
 
+    trainer = BasicLightningModule(
+        model=model,
+        optimizer=optimizer,
+        optimizer_kwargs=optimizer_kwargs,
+        scheduler=scheduler,
+        scheduler_kwargs=scheduler_kwargs,
+        lr=lr,
+        criterion=criterion,
+    )
+
     bench = SubclassDetection.generate(
         model=model,
         train_dataset=train_set,
-        optimizer=optimizer,
-        lr=lr,
-        optimizer_kwargs=optimizer_kwargs,
-        criterion=criterion,
-        scheduler=scheduler,
-        scheduler_kwargs=scheduler_kwargs,
+        trainer=trainer,
         val_dataset=val_set,
         n_classes=10,
         n_groups=2,

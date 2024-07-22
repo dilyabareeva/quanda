@@ -1,6 +1,5 @@
 from typing import Any, Callable, Dict, List, Optional, Union
 
-import lightning as L
 import torch
 from tqdm import tqdm
 
@@ -42,13 +41,8 @@ class MislabelingDetection(ToyBenchmark):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
-        optimizer: Callable,
-        lr: float,
-        criterion: torch.nn.modules.loss._Loss,
+        trainer: Trainer,
         dataset_transform: Optional[Callable] = None,
-        scheduler: Optional[Callable] = None,
-        optimizer_kwargs: Optional[dict] = None,
-        scheduler_kwargs: Optional[dict] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         global_method: Union[str, type] = "self-influence",
         p: float = 0.3,
@@ -66,92 +60,7 @@ class MislabelingDetection(ToyBenchmark):
         obj = cls(device=device)
 
         obj.model = model.to(device)
-        obj.trainer = Trainer.from_arguments(
-            model=model,
-            optimizer=optimizer,
-            lr=lr,
-            scheduler=scheduler,
-            criterion=criterion,
-            optimizer_kwargs=optimizer_kwargs,
-            scheduler_kwargs=scheduler_kwargs,
-        )
-        obj._generate(
-            train_dataset=train_dataset,
-            val_dataset=val_dataset,
-            p=p,
-            global_method=global_method,
-            dataset_transform=dataset_transform,
-            n_classes=n_classes,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-            seed=seed,
-            batch_size=batch_size,
-        )
-        return obj
-
-    @classmethod
-    def generate_from_pl(
-        cls,
-        model: torch.nn.Module,
-        pl_module: L.LightningModule,
-        train_dataset: torch.utils.data.Dataset,
-        n_classes: int,
-        dataset_transform: Optional[Callable] = None,
-        val_dataset: Optional[torch.utils.data.Dataset] = None,
-        p: float = 0.3,
-        global_method: Union[str, type] = "self-influence",
-        trainer_fit_kwargs: Optional[dict] = None,
-        seed: int = 27,
-        batch_size: int = 8,
-        device: str = "cpu",
-        *args,
-        **kwargs,
-    ):
-        obj = cls(device=device)
-
-        obj.model = model
-        obj.trainer = Trainer.from_lightning_module(model, pl_module)
-
-        obj._generate(
-            train_dataset=train_dataset,
-            val_dataset=val_dataset,
-            p=p,
-            dataset_transform=dataset_transform,
-            global_method=global_method,
-            n_classes=n_classes,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-            seed=seed,
-            batch_size=batch_size,
-        )
-        return obj
-
-    @classmethod
-    def generate_from_trainer(
-        cls,
-        model: torch.nn.Module,
-        trainer: BaseTrainer,
-        train_dataset: torch.utils.data.Dataset,
-        n_classes: int,
-        dataset_transform: Optional[Callable] = None,
-        val_dataset: Optional[torch.utils.data.Dataset] = None,
-        p: float = 0.3,
-        global_method: Union[str, type] = "self-influence",
-        trainer_fit_kwargs: Optional[dict] = None,
-        seed: int = 27,
-        batch_size: int = 8,
-        device: str = "cpu",
-        *args,
-        **kwargs,
-    ):
-        obj = cls(device=device)
-
-        obj.model = model
-
-        if isinstance(trainer, BaseTrainer):
-            obj.trainer = trainer
-            obj.device = device
-        else:
-            raise ValueError("trainer must be an instance of BaseTrainer")
-
+        obj.trainer = trainer
         obj._generate(
             train_dataset=train_dataset,
             val_dataset=val_dataset,
@@ -178,8 +87,6 @@ class MislabelingDetection(ToyBenchmark):
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
-        *args,
-        **kwargs,
     ):
         if self.trainer is None:
             raise ValueError(

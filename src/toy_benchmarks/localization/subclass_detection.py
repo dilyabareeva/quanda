@@ -1,10 +1,9 @@
 from typing import Any, Callable, Dict, Optional, Union
 
-import lightning as L
 import torch
 from tqdm import tqdm
 
-from src.metrics.localization.identical_class import IdenticalClass
+from src.metrics.localization.class_detection import ClassDetection
 from src.toy_benchmarks.base import ToyBenchmark
 from src.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
@@ -38,12 +37,7 @@ class SubclassDetection(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        optimizer: Callable,
-        lr: float,
-        criterion: torch.nn.modules.loss._Loss,
-        scheduler: Optional[Callable] = None,
-        optimizer_kwargs: Optional[dict] = None,
-        scheduler_kwargs: Optional[dict] = None,
+        trainer: Trainer,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
         n_classes: int = 10,
@@ -63,98 +57,13 @@ class SubclassDetection(ToyBenchmark):
         obj = cls(device=device)
 
         obj.model = model.to(device)
-        obj.trainer = Trainer.from_arguments(
-            model=model,
-            optimizer=optimizer,
-            lr=lr,
-            scheduler=scheduler,
-            criterion=criterion,
-            optimizer_kwargs=optimizer_kwargs,
-            scheduler_kwargs=scheduler_kwargs,
-        )
+        obj.trainer = trainer
         obj._generate(
             train_dataset=train_dataset,
             dataset_transform=dataset_transform,
             val_dataset=val_dataset,
             n_classes=n_classes,
             n_groups=n_groups,
-            class_to_group=class_to_group,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-            seed=seed,
-            batch_size=batch_size,
-        )
-        return obj
-
-    @classmethod
-    def generate_from_pl(
-        cls,
-        model: torch.nn.Module,
-        pl_module: L.LightningModule,
-        train_dataset: torch.utils.data.Dataset,
-        val_dataset: Optional[torch.utils.data.Dataset] = None,
-        dataset_transform: Optional[Callable] = None,
-        n_classes: int = 10,
-        n_groups: int = 2,
-        class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
-        trainer_fit_kwargs: Optional[dict] = None,
-        seed: int = 27,
-        batch_size: int = 8,
-        device: str = "cpu",
-        *args,
-        **kwargs,
-    ):
-        obj = cls(device=device)
-
-        obj.model = model
-        obj.trainer = Trainer.from_lightning_module(model, pl_module)
-
-        obj._generate(
-            train_dataset=train_dataset,
-            val_dataset=val_dataset,
-            dataset_transform=dataset_transform,
-            n_classes=n_classes,
-            n_groups=n_groups,
-            class_to_group=class_to_group,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-            seed=seed,
-            batch_size=batch_size,
-        )
-        return obj
-
-    @classmethod
-    def generate_from_trainer(
-        cls,
-        model: torch.nn.Module,
-        trainer: BaseTrainer,
-        train_dataset: torch.utils.data.Dataset,
-        val_dataset: Optional[torch.utils.data.Dataset] = None,
-        dataset_transform: Optional[Callable] = None,
-        n_classes: int = 10,
-        n_groups: int = 2,
-        class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
-        trainer_fit_kwargs: Optional[dict] = None,
-        seed: int = 27,
-        batch_size: int = 8,
-        device: str = "cpu",
-        *args,
-        **kwargs,
-    ):
-        obj = cls(device=device)
-
-        obj.model = model
-
-        if isinstance(trainer, BaseTrainer):
-            obj.trainer = trainer
-            obj.device = device
-        else:
-            raise ValueError("trainer must be an instance of BaseTrainer")
-
-        obj._generate(
-            train_dataset=train_dataset,
-            val_dataset=val_dataset,
-            n_classes=n_classes,
-            n_groups=n_groups,
-            dataset_transform=dataset_transform,
             class_to_group=class_to_group,
             trainer_fit_kwargs=trainer_fit_kwargs,
             seed=seed,
@@ -308,7 +217,7 @@ class SubclassDetection(ToyBenchmark):
         )  # TODO: change to class_to_group
         expl_dl = torch.utils.data.DataLoader(grouped_expl_ds, batch_size=batch_size)
 
-        metric = IdenticalClass(model=self.model, train_dataset=self.train_dataset, device="cpu")
+        metric = ClassDetection(model=self.model, train_dataset=self.train_dataset, device="cpu")
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)

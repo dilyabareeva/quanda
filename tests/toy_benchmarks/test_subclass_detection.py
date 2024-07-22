@@ -3,7 +3,9 @@ from random import Random
 import pytest
 
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.subclass_detection import SubclassDetection
+from src.toy_benchmarks.localization.subclass_detection import (
+    SubclassDetection,
+)
 from src.utils.functions.similarities import cosine_similarity
 from src.utils.training.base_pl_module import BasicLightningModule
 from src.utils.training.trainer import Trainer
@@ -16,51 +18,7 @@ from src.utils.training.trainer import Trainer
     [
         (
             "mnist",
-            "from_arguments",
-            "load_mnist_model",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            None,
-            0.250,
-        ),
-        (
-            "mnist",
-            "from_pl",
-            "load_mnist_model",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            None,
-            0.250,
-        ),
-        (
-            "mnist",
-            "from_trainer",
+            "generate",
             "load_mnist_model",
             "torch_sgd_optimizer",
             0.01,
@@ -152,14 +110,20 @@ def test_subclass_detection(
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
 
-    if init_method == "from_arguments":
+    if init_method == "generate":
+        pl_module = BasicLightningModule(
+            model=model,
+            optimizer=optimizer,
+            lr=lr,
+            criterion=criterion,
+        )
+
+        trainer = Trainer.from_lightning_module(model, pl_module)
+
         dst_eval = SubclassDetection.generate(
             model=model,
+            trainer=trainer,
             train_dataset=dataset,
-            optimizer=optimizer,
-            criterion=criterion,
-            lr=lr,
-            val_dataset=None,
             n_classes=n_classes,
             n_groups=n_groups,
             class_to_group="random",
@@ -168,50 +132,10 @@ def test_subclass_detection(
             batch_size=batch_size,
             device="cpu",
         )
-        # dst_eval.save("tests/assets/mnist_subclass_detection_state_dict")
-    elif "from" in init_method:
-        pl_module = BasicLightningModule(
-            model=model,
-            optimizer=optimizer,
-            lr=lr,
-            criterion=criterion,
-        )
 
-        if init_method == "from_pl":
-            dst_eval = SubclassDetection.generate_from_pl(
-                model=model,
-                pl_module=pl_module,
-                train_dataset=dataset,
-                val_dataset=None,
-                n_classes=n_classes,
-                n_groups=n_groups,
-                class_to_group="random",
-                trainer_fit_kwargs={"max_epochs": max_epochs},
-                seed=seed,
-                batch_size=batch_size,
-                device="cpu",
-            )
-
-        elif init_method == "from_trainer":
-            trainer = Trainer.from_lightning_module(model, pl_module)
-
-            dst_eval = SubclassDetection.generate_from_trainer(
-                model=model,
-                trainer=trainer,
-                train_dataset=dataset,
-                n_classes=n_classes,
-                n_groups=n_groups,
-                class_to_group="random",
-                trainer_fit_kwargs={"max_epochs": max_epochs},
-                seed=seed,
-                batch_size=batch_size,
-                device="cpu",
-            )
-
-        else:
-            raise ValueError(f"Invalid init_method: {init_method}")
     elif init_method == "load":
         dst_eval = SubclassDetection.load(path=load_path)
+
     elif init_method == "assemble":
         rng = Random(seed)
         rnd_cls_to_group = {i: rng.randrange(n_groups) for i in range(n_classes)}
