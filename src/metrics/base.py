@@ -230,7 +230,6 @@ class GlobalMetric(Metric, ABC):
         )
 
         if isinstance(global_method, str):
-
             if global_method == "self-influence":
                 self.strategy = self.strategies[global_method](explainer=self.explainer)
 

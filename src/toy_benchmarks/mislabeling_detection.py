@@ -13,7 +13,6 @@ from src.utils.training.trainer import BaseTrainer, Trainer
 
 
 class MislabelingDetection(ToyBenchmark):
-
     def __init__(
         self,
         device: str = "cpu",
@@ -107,7 +106,6 @@ class MislabelingDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
-
         obj = cls(device=device)
 
         obj.model = model
@@ -144,7 +142,6 @@ class MislabelingDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
-
         obj = cls(device=device)
 
         obj.model = model

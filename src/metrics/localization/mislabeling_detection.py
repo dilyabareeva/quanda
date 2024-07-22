@@ -6,7 +6,6 @@ from src.metrics.base import GlobalMetric
 
 
 class MislabelingDetectionMetric(GlobalMetric):
-
     def __init__(
         self,
         model: torch.nn.Module,
@@ -89,7 +88,6 @@ class MislabelingDetectionMetric(GlobalMetric):
         return self.strategy.state_dict()
 
     def compute(self, *args, **kwargs):
-
         global_ranking = self.strategy.get_global_rank()
         success_arr = torch.tensor([elem in self.poisoned_indices for elem in global_ranking])
         normalized_curve = torch.cumsum(success_arr * 1.0, dim=0) / len(self.poisoned_indices)

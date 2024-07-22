@@ -20,7 +20,6 @@ class SampleTransformationDataset(TransformedDataset):
         device: str = "cpu",
         sample_fn: Optional[Callable] = None,
     ):
-
         super().__init__(
             dataset=dataset,
             n_classes=n_classes,

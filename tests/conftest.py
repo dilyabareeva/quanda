@@ -17,7 +17,6 @@ RANDOM_SEED = 42
 
 
 class TestTensorDataset(TensorDataset):
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._data = self.tensors[0]

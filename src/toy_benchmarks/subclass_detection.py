@@ -14,7 +14,6 @@ from src.utils.training.trainer import BaseTrainer, Trainer
 
 
 class SubclassDetection(ToyBenchmark):
-
     def __init__(
         self,
         device: str = "cpu",
@@ -104,7 +103,6 @@ class SubclassDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
-
         obj = cls(device=device)
 
         obj.model = model
@@ -141,7 +139,6 @@ class SubclassDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
-
         obj = cls(device=device)
 
         obj.model = model

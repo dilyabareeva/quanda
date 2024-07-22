@@ -2,13 +2,22 @@ from collections import OrderedDict
 
 import pytest
 import torch
+
+# TODO Should be imported directly from captum.influence once available
+from captum.influence._core.arnoldi_influence_function import (  # type: ignore
+    ArnoldiInfluenceFunction,
+)
 from torch.utils.data import TensorDataset
 
 from src.explainers.wrappers.captum_influence import (
+    CaptumArnoldi,
     CaptumSimilarity,
+    captum_arnoldi_explain,
+    captum_arnoldi_self_influence,
     captum_similarity_explain,
     captum_similarity_self_influence,
 )
+from src.utils.common import get_load_state_dict_func
 from src.utils.functions.similarities import (
     cosine_similarity,
     dot_product_similarity,
@@ -140,6 +149,229 @@ def test_captum_influence_explain_functional(
         test_tensor=test_tensor,
         train_dataset=dataset,
         device="cpu",
+        **method_kwargs,
+    )
+    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {"batch_size": 1, "projection_dim": 10, "arnoldi_dim": 10},
+            {
+                "batch_size": 1,
+                "projection_dim": 10,
+                "arnoldi_dim": 20,
+                "arnoldi_tol": 2e-1,
+                "hessian_reg": 2e-3,
+                "hessian_inverse_tol": 2e-4,
+                "projection_on_cpu": True,
+            },
+        ),
+    ],
+)
+def test_captum_arnoldi(
+    test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex, request, tmp_path
+):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    test_tensor = request.getfixturevalue(test_tensor)
+    test_labels = request.getfixturevalue(test_labels)
+
+    explainer_simple = CaptumArnoldi(
+        model=model,
+        model_id="test_id",
+        cache_dir=str(tmp_path),
+        train_dataset=dataset,
+        checkpoint="tests/assets/mnist",
+        device="cpu",
+        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
+        **method_kwargs_simple,
+    )
+    explanations_simple = explainer_simple.explain(test_tensor)
+
+    explainer_captum_simple = ArnoldiInfluenceFunction(
+        model=model,
+        train_dataset=dataset,
+        checkpoint="tests/assets/mnist",
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
+        **method_kwargs_simple,
+    )
+    explanations_captum_simple = explainer_captum_simple.influence(inputs=(test_tensor, None))
+    assert torch.allclose(explanations_simple, explanations_captum_simple), "Training data attributions are not as expected"
+
+    explainer_complex = CaptumArnoldi(
+        model=model,
+        model_id="test_id",
+        cache_dir=str(tmp_path),
+        train_dataset=dataset,
+        checkpoint="tests/assets/mnist",
+        device="cpu",
+        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
+        **method_kwargs_complex,
+    )
+    explanations_complex = explainer_complex.explain(test_tensor, test_labels)
+
+    explainer_captum_complex = ArnoldiInfluenceFunction(
+        model=model,
+        train_dataset=dataset,
+        checkpoint="tests/assets/mnist",
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
+        **method_kwargs_complex,
+    )
+    explanations_captum_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels))
+    assert torch.allclose(explanations_complex, explanations_captum_complex), "Training data attributions are not as expected"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "batch_size": 1,
+                "projection_dim": 10,
+                "arnoldi_dim": 20,
+                "arnoldi_tol": 1e-1,
+                "hessian_reg": 1e-3,
+                "hessian_inverse_tol": 1e-4,
+                "projection_on_cpu": True,
+            },
+            {
+                "batch_size": 1,
+                "seed": 42,
+                "projection_dim": 10,
+                "arnoldi_dim": 20,
+                "arnoldi_tol": 1e-1,
+                "hessian_reg": 1e-3,
+                "hessian_inverse_tol": 1e-4,
+                "projection_on_cpu": True,
+            },
+        ),
+    ],
+)
+def test_captum_arnoldi_explain_functional(
+    test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex, request, tmp_path
+):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    test_tensor = request.getfixturevalue(test_tensor)
+    test_labels = request.getfixturevalue(test_labels)
+    hessian_dataset = torch.utils.data.Subset(dataset, [0, 1])
+
+    explainer_captum_simple = ArnoldiInfluenceFunction(
+        model=model,
+        train_dataset=dataset,
+        checkpoint="tests/assets/mnist",
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
+        sample_wise_grads_per_batch=False,
+        **method_kwargs_simple,
+    )
+    explanations_exp_simple = explainer_captum_simple.influence(inputs=(test_tensor, None))
+
+    explanations_simple = captum_arnoldi_explain(
+        model=model,
+        model_id="test_id",
+        cache_dir=str(tmp_path),
+        test_tensor=test_tensor,
+        train_dataset=dataset,
+        device="cpu",
+        checkpoint="tests/assets/mnist",
+        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
+        sample_wise_grads_per_batch=False,
+        **method_kwargs_simple,
+    )
+    assert torch.allclose(explanations_simple, explanations_exp_simple), "Training data attributions are not as expected"
+
+    explainer_captum_complex = ArnoldiInfluenceFunction(
+        model=model,
+        train_dataset=dataset,
+        checkpoint="tests/assets/mnist",
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        loss_fn=torch.nn.CrossEntropyLoss(),
+        test_loss_fn=torch.nn.NLLLoss(),
+        hessian_dataset=hessian_dataset,
+        sample_wise_grads_per_batch=True,
+        **method_kwargs_complex,
+    )
+    explanations_exp_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels))
+
+    explanations_complex = captum_arnoldi_explain(
+        model=model,
+        model_id="test_id",
+        cache_dir=str(tmp_path),
+        test_tensor=test_tensor,
+        train_dataset=dataset,
+        explanation_targets=test_labels,
+        device="cpu",
+        checkpoint="tests/assets/mnist",
+        loss_fn=torch.nn.CrossEntropyLoss(),
+        test_loss_fn=torch.nn.NLLLoss(),
+        hessian_dataset=hessian_dataset,
+        sample_wise_grads_per_batch=True,
+        **method_kwargs_complex,
+    )
+    assert torch.allclose(explanations_complex, explanations_exp_complex), "Training data attributions are not as expected"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, method_kwargs",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            {
+                "batch_size": 1,
+                "seed": 42,
+                "projection_dim": 10,
+                "arnoldi_dim": 20,
+                "arnoldi_tol": 1e-1,
+                "hessian_reg": 1e-3,
+                "hessian_inverse_tol": 1e-4,
+                "projection_on_cpu": True,
+            },
+        ),
+    ],
+)
+def test_captum_arnoldi_self_influence(test_id, model, dataset, method_kwargs, request, tmp_path):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+
+    explainer_captum = ArnoldiInfluenceFunction(
+        model=model,
+        train_dataset=dataset,
+        checkpoint="tests/assets/mnist",
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
+        **method_kwargs,
+    )
+    explanations_exp = explainer_captum.self_influence()
+
+    explanations = captum_arnoldi_self_influence(
+        model=model,
+        model_id="test_id",
+        cache_dir=str(tmp_path),
+        train_dataset=dataset,
+        device="cpu",
+        checkpoint="tests/assets/mnist",
+        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
     )
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"

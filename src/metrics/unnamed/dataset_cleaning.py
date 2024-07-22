@@ -114,7 +114,6 @@ class DatasetCleaning(GlobalMetric):
         return self.strategy.state_dict()
 
     def compute(self, *args, **kwargs):
-
         top_k_indices = torch.topk(self.strategy.get_global_rank(), self.top_k).indices
         clean_indices = [i for i in range(self.dataset_length) if i not in top_k_indices]
         clean_subset = torch.utils.data.Subset(self.train_dataset, clean_indices)

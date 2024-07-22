@@ -9,12 +9,10 @@ from src.explainers.base import BaseExplainer
 
 
 class GlobalSelfInfluenceStrategy:
-
     def __init__(
         self,
         explainer: Optional[BaseExplainer] = None,
     ):
-
         if explainer is None:
             raise ValueError(
                 "An explainer of type BaseExplainer is required for a metric with global method 'self-influence'."

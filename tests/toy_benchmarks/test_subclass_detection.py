@@ -153,7 +153,6 @@ def test_subclass_detection(
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "from_arguments":
-
         dst_eval = SubclassDetection.generate(
             model=model,
             train_dataset=dataset,
@@ -171,7 +170,6 @@ def test_subclass_detection(
         )
         # dst_eval.save("tests/assets/mnist_subclass_detection_state_dict")
     elif "from" in init_method:
-
         pl_module = BasicLightningModule(
             model=model,
             optimizer=optimizer,
@@ -180,7 +178,6 @@ def test_subclass_detection(
         )
 
         if init_method == "from_pl":
-
             dst_eval = SubclassDetection.generate_from_pl(
                 model=model,
                 pl_module=pl_module,
@@ -196,7 +193,6 @@ def test_subclass_detection(
             )
 
         elif init_method == "from_trainer":
-
             trainer = Trainer.from_lightning_module(model, pl_module)
 
             dst_eval = SubclassDetection.generate_from_trainer(

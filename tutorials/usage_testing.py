@@ -41,7 +41,6 @@ RNG = torch.Generator().manual_seed(42)
 
 
 def main():
-
     # ++++++++++++++++++++++++++++++++++++++++++
     # #Download dataset and pre-trained model
     # ++++++++++++++++++++++++++++++++++++++++++

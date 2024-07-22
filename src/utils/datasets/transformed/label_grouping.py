@@ -20,7 +20,6 @@ class LabelGroupingDataset(TransformedDataset):
         n_groups: Optional[int] = None,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
     ):
-
         super().__init__(
             dataset=dataset,
             n_classes=n_classes,
@@ -33,7 +32,6 @@ class LabelGroupingDataset(TransformedDataset):
         )
 
         if class_to_group == "random":
-
             if n_groups is None:
                 raise ValueError("n_classes and n_groups must be specified when class_to_group is 'random'")
 
@@ -43,7 +41,6 @@ class LabelGroupingDataset(TransformedDataset):
             self.class_to_group = {i: self.rng.randrange(self.n_groups) for i in range(self.n_classes)}
 
         elif isinstance(class_to_group, dict):
-
             if n_groups is not None:
                 warnings.warn("Class-to-group assignment is used. n_groups parameter is ignored.")
 
@@ -52,7 +49,6 @@ class LabelGroupingDataset(TransformedDataset):
             self.n_groups = len(set(self.class_to_group))
 
         else:
-
             raise ValueError(f"Invalid class_to_group value: {class_to_group}")
 
         self.classes = list(range(self.n_classes))

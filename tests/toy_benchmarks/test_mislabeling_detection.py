@@ -143,7 +143,6 @@ def test_mislabeling_detection(
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "from_arguments":
-
         dst_eval = MislabelingDetection.generate(
             model=model,
             train_dataset=dataset,
@@ -163,7 +162,6 @@ def test_mislabeling_detection(
         # dst_eval.save("tests/assets/mnist_mislabeling_detection_state_dict")
 
     elif "from" in init_method:
-
         pl_module = BasicLightningModule(
             model=model,
             optimizer=optimizer,
@@ -172,7 +170,6 @@ def test_mislabeling_detection(
         )
 
         if init_method == "from_pl":
-
             dst_eval = MislabelingDetection.generate_from_pl(
                 model=model,
                 pl_module=pl_module,
@@ -189,7 +186,6 @@ def test_mislabeling_detection(
             )
 
         elif init_method == "from_trainer":
-
             trainer = Trainer.from_lightning_module(model, pl_module)
 
             dst_eval = MislabelingDetection.generate_from_trainer(

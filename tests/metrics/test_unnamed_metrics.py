@@ -110,7 +110,6 @@ def test_dataset_cleaning(
     trainer = Trainer.from_lightning_module(model, pl_module)
 
     if global_method != "self-influence":
-
         metric = DatasetCleaning(
             model=model,
             train_dataset=dataset,
@@ -124,7 +123,6 @@ def test_dataset_cleaning(
         metric.update(explanations=explanations)
 
     else:
-
         expl_kwargs = expl_kwargs or {}
 
         metric = DatasetCleaning(

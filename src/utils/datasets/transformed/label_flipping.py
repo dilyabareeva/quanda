@@ -18,7 +18,6 @@ class LabelFlippingDataset(TransformedDataset):
         seed: int = 42,
         device: str = "cpu",
     ):
-
         super().__init__(
             dataset=dataset,
             n_classes=n_classes,
