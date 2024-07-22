@@ -11,7 +11,7 @@ from src.utils.training.trainer import Trainer
 @pytest.mark.toy_benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, p, seed, test_labels, "
-    "global_method, batch_size, explainer_cls, expl_kwargs, expected_score",
+    "global_method, batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
             "mnist",
@@ -30,6 +30,7 @@ from src.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            None,
             0.4921875,
         ),
         (
@@ -49,6 +50,7 @@ from src.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            None,
             0.4921875,
         ),
         (
@@ -68,6 +70,47 @@ from src.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            None,
+            0.4921875,
+        ),
+        (
+            "mnist",
+            "assemble",
+            "load_mnist_model",
+            "torch_sgd_optimizer",
+            0.01,
+            "torch_cross_entropy_loss_object",
+            3,
+            "load_mnist_dataset",
+            10,
+            1.0,
+            27,
+            "load_mnist_test_labels_1",
+            SumAggregator,
+            8,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            None,
+            0.4921875,
+        ),
+        (
+            "mnist",
+            "load",
+            "load_mnist_model",
+            "torch_sgd_optimizer",
+            0.01,
+            "torch_cross_entropy_loss_object",
+            3,
+            "load_mnist_dataset",
+            10,
+            1.0,
+            27,
+            "load_mnist_test_labels_1",
+            SumAggregator,
+            8,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            "tests/assets/mnist_mislabeling_detection_state_dict",
             0.4921875,
         ),
     ],
@@ -89,6 +132,7 @@ def test_mislabeling_detection(
     global_method,
     explainer_cls,
     expl_kwargs,
+    load_path,
     expected_score,
     tmp_path,
     request,
@@ -99,7 +143,6 @@ def test_mislabeling_detection(
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "from_arguments":
-
         dst_eval = MislabelingDetection.generate(
             model=model,
             train_dataset=dataset,
@@ -116,8 +159,9 @@ def test_mislabeling_detection(
             batch_size=batch_size,
             device="cpu",
         )
-    else:
+        # dst_eval.save("tests/assets/mnist_mislabeling_detection_state_dict")
 
+    elif "from" in init_method:
         pl_module = BasicLightningModule(
             model=model,
             optimizer=optimizer,
@@ -126,7 +170,6 @@ def test_mislabeling_detection(
         )
 
         if init_method == "from_pl":
-
             dst_eval = MislabelingDetection.generate_from_pl(
                 model=model,
                 pl_module=pl_module,
@@ -143,7 +186,6 @@ def test_mislabeling_detection(
             )
 
         elif init_method == "from_trainer":
-
             trainer = Trainer.from_lightning_module(model, pl_module)
 
             dst_eval = MislabelingDetection.generate_from_trainer(
@@ -159,9 +201,16 @@ def test_mislabeling_detection(
                 batch_size=batch_size,
                 device="cpu",
             )
-
         else:
             raise ValueError(f"Invalid init_method: {init_method}")
+    elif init_method == "load":
+        dst_eval = MislabelingDetection.load(path=load_path)
+    elif init_method == "assemble":
+        dst_eval = MislabelingDetection.assemble(
+            model=model, train_dataset=dataset, n_classes=n_classes, p=p, global_method=global_method, batch_size=batch_size
+        )
+    else:
+        raise ValueError(f"Invalid init_method: {init_method}")
 
     score = dst_eval.evaluate(
         expl_dataset=dataset,

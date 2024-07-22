@@ -21,7 +21,7 @@ from src.utils.functions.similarities import cosine_similarity
         ),
     ],
 )
-def test_base_explain_self_influence(test_id, model, dataset, dataset_xpl, method_kwargs, mocker, request):
+def test_base_explainer_self_influence(test_id, model, dataset, dataset_xpl, method_kwargs, mocker, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     dataset_xpl = request.getfixturevalue(dataset_xpl)

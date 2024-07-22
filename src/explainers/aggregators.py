@@ -31,6 +31,7 @@ class BaseAggregator(ABC):
         """
         self.scores = state_dict["scores"]
 
+    @property
     def state_dict(self, *args, **kwargs):
         """
         Used to return the metric state.

@@ -149,7 +149,6 @@ def test_poisoning_detection_metric(
         )
         metric.update(explanations=tda)
     else:
-
         metric = MislabelingDetectionMetric(
             model=model,
             train_dataset=dataset,

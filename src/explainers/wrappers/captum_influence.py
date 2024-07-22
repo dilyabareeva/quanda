@@ -1,3 +1,4 @@
+import copy
 import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Callable, List, Optional, Tuple, Union
@@ -17,14 +18,10 @@ from src.explainers.utils import (
 )
 from src.utils.common import get_load_state_dict_func
 from src.utils.functions.similarities import cosine_similarity
-from src.utils.validation import (
-    validate_1d_tensor_or_int_list,
-    validate_checkpoints_load_func,
-)
+from src.utils.validation import validate_checkpoints_load_func
 
 
 class CaptumInfluence(BaseExplainer, ABC):
-
     def __init__(
         self,
         model: torch.nn.Module,
@@ -48,15 +45,6 @@ class CaptumInfluence(BaseExplainer, ABC):
 
     def _init_explainer(self, **explain_kwargs: Any):
         self.captum_explainer = self.explainer_cls(**explain_kwargs)
-
-    def _process_targets(self, targets: Optional[Union[List[int], torch.Tensor]]):
-        if targets is not None:
-            # TODO: move validation logic outside at a later point
-            validate_1d_tensor_or_int_list(targets)
-            if isinstance(targets, list):
-                targets = torch.tensor(targets)
-            targets = targets.to(self.device)
-        return targets
 
     @abstractmethod
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
@@ -98,10 +86,12 @@ class CaptumSimilarity(CaptumInfluence):
             warnings.warn("CaptumSimilarity explainer only supports CPU devices. Setting device to 'cpu'.")
             device = "cpu"
 
+        model_passed = copy.deepcopy(model)  # CaptumSimilarity only does cpu,
+        # we still want to keep the model on cuda for the metrics
         # TODO: validate SimilarityInfluence kwargs
         explainer_kwargs.update(
             {
-                "module": model,
+                "module": model_passed,
                 "influence_src_dataset": train_dataset,
                 "activation_dir": cache_dir,
                 "model_id": model_id,
@@ -115,7 +105,7 @@ class CaptumSimilarity(CaptumInfluence):
         )
 
         super().__init__(
-            model=model,
+            model=model_passed,
             model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
@@ -148,10 +138,10 @@ class CaptumSimilarity(CaptumInfluence):
         self._layer = layers[0]
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
-
         test = test.to(self.device)
 
         if targets is not None:
+            self._process_targets(targets=targets)
             warnings.warn("CaptumSimilarity explainer does not support target indices. Ignoring the argument.")
 
         topk_idx, topk_val = self.captum_explainer.influence(inputs=test, top_k=self.top_k)[self.layer]

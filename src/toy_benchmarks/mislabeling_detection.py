@@ -13,7 +13,6 @@ from src.utils.training.trainer import BaseTrainer, Trainer
 
 
 class MislabelingDetection(ToyBenchmark):
-
     def __init__(
         self,
         device: str = "cpu",
@@ -107,7 +106,6 @@ class MislabelingDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
-
         obj = cls(device=device)
 
         obj.model = model
@@ -144,7 +142,6 @@ class MislabelingDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
-
         obj = cls(device=device)
 
         obj.model = model
@@ -226,10 +223,11 @@ class MislabelingDetection(ToyBenchmark):
             "model": self.model,
             "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
             "p": self.p,
+            "n_classes": self.n_classes,
             "dataset_transform": self.dataset_transform,
             "poisoned_indices": self.poisoned_indices,
             "poisoned_labels": self.poisoned_labels,
-            "global_method": global_method,
+            "global_method": self.global_method,
         }
 
     @classmethod
@@ -243,6 +241,7 @@ class MislabelingDetection(ToyBenchmark):
         obj.train_dataset = obj.bench_state["train_dataset"]
         obj.p = obj.bench_state["p"]
         obj.global_method = obj.bench_state["global_method"]
+        obj.n_classes = obj.bench_state["n_classes"]
         obj.poisoned_labels = obj.bench_state["poisoned_labels"]
         obj.dataset_transform = obj.bench_state["dataset_transform"]
         obj.poisoned_indices = obj.bench_state["poisoned_indices"]
@@ -257,6 +256,7 @@ class MislabelingDetection(ToyBenchmark):
         )
         obj.poisoned_train_dl = torch.utils.data.DataLoader(obj.poisoned_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
+        return obj
 
     @classmethod
     def assemble(
@@ -283,6 +283,7 @@ class MislabelingDetection(ToyBenchmark):
         obj.p = p
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
+        obj.n_classes = n_classes
 
         obj.poisoned_dataset = LabelFlippingDataset(
             dataset=train_dataset,
@@ -297,6 +298,7 @@ class MislabelingDetection(ToyBenchmark):
 
         obj.poisoned_train_dl = torch.utils.data.DataLoader(obj.poisoned_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
+        return obj
 
     def save(self, path: str, *args, **kwargs):
         """
@@ -322,12 +324,12 @@ class MislabelingDetection(ToyBenchmark):
         )
         expl_dl = torch.utils.data.DataLoader(poisoned_expl_ds, batch_size=batch_size)
         if self.global_method != "self-influence":
-            metric = MislabelingDetectionMetric(
+            metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
                 device="cpu",
-                global_method=self.global_method,
+                aggregator_cls=self.global_method,
             )
 
             pbar = tqdm(expl_dl)
@@ -340,7 +342,7 @@ class MislabelingDetection(ToyBenchmark):
                 explanations = explainer.explain(test=input, targets=labels)
                 metric.update(explanations)
         else:
-            metric = MislabelingDetectionMetric(
+            metric = MislabelingDetectionMetric.self_influence_based(
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,

@@ -230,7 +230,6 @@ class GlobalMetric(Metric, ABC):
         )
 
         if isinstance(global_method, str):
-
             if global_method == "self-influence":
                 self.strategy = self.strategies[global_method](explainer=self.explainer)
 
@@ -245,7 +244,6 @@ class GlobalMetric(Metric, ABC):
             self.strategy = self.strategies["aggr"](
                 aggr_type=global_method,
             )
-
         else:
             raise ValueError(
                 f"Global method {global_method} is not supported. When passing a custom aggregator, "

@@ -14,7 +14,6 @@ from src.utils.training.trainer import BaseTrainer, Trainer
 
 
 class SubclassDetection(ToyBenchmark):
-
     def __init__(
         self,
         device: str = "cpu",
@@ -104,7 +103,6 @@ class SubclassDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
-
         obj = cls(device=device)
 
         obj.model = model
@@ -141,7 +139,6 @@ class SubclassDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
-
         obj = cls(device=device)
 
         obj.model = model
@@ -219,9 +216,9 @@ class SubclassDetection(ToyBenchmark):
         self.bench_state = {
             "model": self.model,
             "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
-            "n_classes": n_classes,
-            "class_to_group": class_to_group,
-            "dataset_transform": dataset_transform,
+            "n_classes": self.n_classes,
+            "class_to_group": self.class_to_group,
+            "dataset_transform": self.dataset_transform,
         }
 
     @classmethod
@@ -245,6 +242,7 @@ class SubclassDetection(ToyBenchmark):
         )
         obj.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
+        return obj
 
     @classmethod
     def assemble(
@@ -277,6 +275,7 @@ class SubclassDetection(ToyBenchmark):
         )
         obj.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
+        return obj
 
     def save(self, path: str, *args, **kwargs):
         """
