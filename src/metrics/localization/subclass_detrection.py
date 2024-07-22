@@ -1,9 +1,9 @@
 import torch
 
-from src.metrics.localization.class_detection import ClassDetection
+from src.metrics.localization.class_detection import ClassDetectionMetric
 
 
-class SubclassDetection(ClassDetection):
+class SubclassDetectionMetric(ClassDetectionMetric):
     def __init__(
         self,
         model: torch.nn.Module,

@@ -20,7 +20,7 @@ from src.explainers.wrappers.captum_influence import (
     CaptumSimilarity,
     captum_similarity_explain,
 )
-from src.metrics.localization.class_detection import ClassDetection
+from src.metrics.localization.class_detection import ClassDetectionMetric
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
@@ -126,7 +126,7 @@ def main():
         device=DEVICE,
     )
 
-    id_class = ClassDetection(model=model, train_dataset=train_set, device=DEVICE)
+    id_class = ClassDetectionMetric(model=model, train_dataset=train_set, device=DEVICE)
 
     top_k = TopKOverlap(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
 

@@ -33,7 +33,7 @@ Excerpts from `tutorials/usage_testing.py`:
 
 ```python
 from src.explainers.wrappers.captum_influence import captum_similarity_explain, CaptumSimilarity
-from src.metrics.localization.class_detection import ClassDetection
+from src.metrics.localization.class_detection import ClassDetectionMetric
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )

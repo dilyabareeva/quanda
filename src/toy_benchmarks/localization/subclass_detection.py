@@ -3,7 +3,7 @@ from typing import Any, Callable, Dict, Optional, Union
 import torch
 from tqdm import tqdm
 
-from src.metrics.localization.class_detection import ClassDetection
+from src.metrics.localization.class_detection import ClassDetectionMetric
 from src.toy_benchmarks.base import ToyBenchmark
 from src.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
@@ -217,7 +217,7 @@ class SubclassDetection(ToyBenchmark):
         )  # TODO: change to class_to_group
         expl_dl = torch.utils.data.DataLoader(grouped_expl_ds, batch_size=batch_size)
 
-        metric = ClassDetection(model=self.model, train_dataset=self.train_dataset, device="cpu")
+        metric = ClassDetectionMetric(model=self.model, train_dataset=self.train_dataset, device="cpu")
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
