@@ -47,7 +47,7 @@ class CaptumInfluence(BaseExplainer, ABC):
         self.captum_explainer = self.explainer_cls(**explain_kwargs)
 
     @abstractmethod
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
+    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
         """Comment for Galip and Niklas: We are now expecting explicit declaration of
         explain method keyword arguments in specific explainer class __init__ methods.
         Right now the only such keyword argument is `top_k` for CaptumSimilarity, which we
