@@ -36,6 +36,7 @@ def test_global_self_influence_strategy(
     explainer_cls,
     expl_kwargs,
     expected,
+    tmp_path,
     request,
 ):
     model = request.getfixturevalue(model)
@@ -43,7 +44,7 @@ def test_global_self_influence_strategy(
     dataset = request.getfixturevalue(dataset)
 
     explainer = explainer_cls(
-        model=model, train_dataset=dataset, cache_dir="cache_dir_aggr_strat_test", model_id="mnist_model", **expl_kwargs
+        model=model, train_dataset=dataset, cache_dir=str(tmp_path), model_id="mnist_model", **expl_kwargs
     )
     aggr_strat = GlobalSelfInfluenceStrategy(explainer=explainer)
     si = aggr_strat.get_self_influence()

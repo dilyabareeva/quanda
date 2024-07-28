@@ -64,7 +64,8 @@ class BaseExplainer(ABC):
         ldr = torch.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)
 
         for i, (x, y) in zip(range(0, self.dataset_length, batch_size), ldr):
-            explanations = self.explain(test=x.to(self.device), **kwargs)
+            print(i)
+            explanations = self.explain(test=x.to(self.device), targets=y.to(self.device), **kwargs)
             influences[i : i + batch_size] = explanations.diag(diagonal=i)
 
         return influences
