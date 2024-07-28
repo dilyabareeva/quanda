@@ -311,6 +311,7 @@ class MislabelingDetection(ToyBenchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
+        use_predictions: bool = False,
         batch_size: int = 8,
         device: str = "cpu",
         *args,
@@ -339,7 +340,12 @@ class MislabelingDetection(ToyBenchmark):
                 pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
                 input, labels = input.to(device), labels.to(device)
-                explanations = explainer.explain(test=input, targets=labels)
+                if use_predictions:
+                    with torch.no_grad():
+                        targets = self.model(input).argmax(dim=-1)
+                else:
+                    targets = labels
+                explanations = explainer.explain(test=input, targets=targets)
                 metric.update(explanations)
         else:
             metric = MislabelingDetectionMetric.self_influence_based(
