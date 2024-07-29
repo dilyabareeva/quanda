@@ -190,7 +190,7 @@ def test_subclass_detection(
             batch_size=batch_size,
             device="cpu",
         )
-        dst_eval.save("tests/assets/mnist_subclass_detection_state_dict")
+
     elif "from" in init_method:
         pl_module = BasicLightningModule(
             model=model,

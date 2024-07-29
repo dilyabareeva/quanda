@@ -53,7 +53,7 @@ def test_global_self_influence_strategy(
 
 @pytest.mark.aggr_strategies
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_data, explanations, expected",
+    "test_id, explanations, expected",
     [
         (
             "mnist_aggr",
