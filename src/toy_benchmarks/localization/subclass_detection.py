@@ -217,7 +217,7 @@ class SubclassDetection(ToyBenchmark):
         )  # TODO: change to class_to_group
         expl_dl = torch.utils.data.DataLoader(grouped_expl_ds, batch_size=batch_size)
 
-        metric = ClassDetectionMetric(model=self.model, train_dataset=self.train_dataset, device="cpu")
+        metric = ClassDetectionMetric(model=self.model, train_dataset=self.train_dataset, device=device)
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
