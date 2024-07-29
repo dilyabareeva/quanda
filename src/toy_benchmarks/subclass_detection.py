@@ -24,6 +24,7 @@ class SubclassDetection(ToyBenchmark):
 
         self.trainer: Optional[BaseTrainer] = None
         self.model: torch.nn.Module
+        self.group_model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
         self.grouped_train_dl: torch.utils.data.DataLoader
@@ -32,6 +33,7 @@ class SubclassDetection(ToyBenchmark):
         self.bench_state: Dict[str, Any]
         self.class_to_group: Dict[int, int]
         self.n_classes: int
+        self.n_groups: int
 
     @classmethod
     def generate(
@@ -191,11 +193,15 @@ class SubclassDetection(ToyBenchmark):
             class_to_group=class_to_group,
             seed=seed,
         )
+
         self.class_to_group = grouped_dataset.class_to_group
         self.n_classes = n_classes
+        self.n_groups = n_groups
         self.dataset_transform = dataset_transform
+
         self.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
         self.original_train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
+
         if val_dataset:
             grouped_val_dataset = LabelGroupingDataset(
                 dataset=train_dataset,
@@ -207,7 +213,7 @@ class SubclassDetection(ToyBenchmark):
         else:
             self.grouped_val_dl = None
 
-        self.model = self.trainer.fit(
+        self.group_model = self.trainer.fit(
             train_loader=self.grouped_train_dl,
             val_loader=self.grouped_val_dl,
             trainer_fit_kwargs=trainer_fit_kwargs,
@@ -217,6 +223,7 @@ class SubclassDetection(ToyBenchmark):
             "model": self.model,
             "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
             "n_classes": self.n_classes,
+            "n_groups": self.n_groups,
             "class_to_group": self.class_to_group,
             "dataset_transform": self.dataset_transform,
         }
@@ -233,6 +240,7 @@ class SubclassDetection(ToyBenchmark):
         obj.class_to_group = obj.bench_state["class_to_group"]
         obj.dataset_transform = obj.bench_state["dataset_transform"]
         obj.n_classes = obj.bench_state["n_classes"]
+        obj.n_groups = obj.bench_state["n_groups"]
 
         grouped_dataset = LabelGroupingDataset(
             dataset=obj.train_dataset,
@@ -240,8 +248,10 @@ class SubclassDetection(ToyBenchmark):
             n_classes=obj.n_classes,
             class_to_group=obj.class_to_group,
         )
+
         obj.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
+
         return obj
 
     @classmethod
@@ -250,6 +260,7 @@ class SubclassDetection(ToyBenchmark):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
+        n_groups: int,
         class_to_group: Dict[int, int],  # TODO: type specification
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
@@ -266,11 +277,13 @@ class SubclassDetection(ToyBenchmark):
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
+        obj.n_groups = n_groups
 
         grouped_dataset = LabelGroupingDataset(
             dataset=train_dataset,
             dataset_transform=dataset_transform,
             n_classes=obj.n_classes,
+            n_groups=obj.n_groups,
             class_to_group=class_to_group,
         )
         obj.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
@@ -288,6 +301,7 @@ class SubclassDetection(ToyBenchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
+        use_predictions: bool = False,
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
@@ -305,7 +319,7 @@ class SubclassDetection(ToyBenchmark):
             dataset_transform=self.dataset_transform,
             n_classes=self.n_classes,
             class_to_group=self.class_to_group,
-        )  # TODO: change to class_to_group
+        )
         expl_dl = torch.utils.data.DataLoader(grouped_expl_ds, batch_size=batch_size)
 
         metric = IdenticalClass(model=self.model, train_dataset=self.train_dataset, device="cpu")
@@ -317,10 +331,18 @@ class SubclassDetection(ToyBenchmark):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
             input, labels = input.to(device), labels.to(device)
+
+            if use_predictions:
+                with torch.no_grad():
+                    output = self.group_model(input)
+                    targets = output.argmax(dim=-1)
+            else:
+                targets = labels
             explanations = explainer.explain(
                 test=input,
-                targets=labels,
+                targets=targets,
             )
-            metric.update(labels, explanations)
+
+            metric.update(targets, explanations)
 
         return metric.compute()
