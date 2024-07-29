@@ -90,6 +90,7 @@ class TopKOverlap(ToyBenchmark):
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
+        top_k: int = 1,
         device: str = "cpu",
         *args,
         **kwargs,
@@ -101,7 +102,7 @@ class TopKOverlap(ToyBenchmark):
 
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
-        metric = TopKOverlapMetric(model=self.model, train_dataset=self.train_dataset, device="cpu")
+        metric = TopKOverlapMetric(model=self.model, train_dataset=self.train_dataset, top_k=top_k, device="cpu")
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
