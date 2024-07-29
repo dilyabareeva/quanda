@@ -3,12 +3,13 @@ from typing import Any, Dict, Optional, Union, Callable
 import torch
 from tqdm import tqdm
 
-from src.metrics.randomization.model_randomization import ModelRandomizationMetric
+from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
 from src.toy_benchmarks.base import ToyBenchmark
 from src.utils.functions.correlations import CorrelationFnLiterals
+from src.utils.training.trainer import Trainer
 
 
-class ModelRandomization(ToyBenchmark):
+class DatasetCleaning(ToyBenchmark):
     def __init__(
         self,
         device: str = "cpu",
@@ -86,30 +87,35 @@ class ModelRandomization(ToyBenchmark):
         self,
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
-        expl_kwargs: Optional[dict] = None,
+        trainer: Trainer,
         use_predictions: bool = False,
-        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-        seed: int = 42,
+        expl_kwargs: Optional[dict] = None,
+        trainer_fit_kwargs: Optional[dict] = None,
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
         device: str = "cpu",
+        global_method: Union[str, type] = "self-influence",
+        top_k: int = 50,
         *args,
         **kwargs,
     ):
         expl_kwargs = expl_kwargs or {}
+        explainer = explainer_cls(
+            model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
+        )
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
-        metric = ModelRandomizationMetric(
+        metric = DatasetCleaningMetric(
             model=self.model,
             train_dataset=self.train_dataset,
+            global_method=global_method,
+            trainer=trainer,
+            trainer_fit_kwargs=trainer_fit_kwargs,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
-            correlation_fn=correlation_fn,
-            seed=seed,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            device=device,
+            top_k=top_k,
+            device="cpu",
         )
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
@@ -121,11 +127,15 @@ class ModelRandomization(ToyBenchmark):
 
             if use_predictions:
                 with torch.no_grad():
-                    output = self.group_model(input)
+                    output = self.model(input)
                     targets = output.argmax(dim=-1)
             else:
                 targets = labels
 
-            metric.explain_update(test_data=input, explanation_targets=targets)
+            explanations = explainer.explain(
+                test=input,
+                targets=targets,
+            )
+            metric.update(explanations)
 
         return metric.compute()

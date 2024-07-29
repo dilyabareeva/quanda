@@ -57,6 +57,7 @@ class SubclassDetection(ToyBenchmark):
         """
 
         obj = cls(device=device)
+        trainer_fit_kwargs = trainer_fit_kwargs or {"max_epochs": 5}
 
         obj.model = model.to(device)
         obj.trainer = trainer

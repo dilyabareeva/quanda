@@ -24,7 +24,7 @@ from src.metrics.localization.class_detection import ClassDetectionMetric
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
-from src.metrics.unnamed.dataset_cleaning import DatasetCleaning
+from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
 from src.metrics.unnamed.top_k_overlap import TopKOverlap
 from src.toy_benchmarks.subclass_detection import SubclassDetection
 from src.utils.training.base_pl_module import BasicLightningModule
@@ -139,7 +139,7 @@ def main():
     )
     trainer = Trainer.from_lightning_module(model, pl_module)
 
-    data_clean = DatasetCleaning(
+    data_clean = DatasetCleaningMetric(
         model=model,
         train_dataset=train_set,
         global_method="sum_abs",
