@@ -104,37 +104,45 @@ class DatasetCleaning(ToyBenchmark):
             model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
         )
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
-
-        metric = DatasetCleaningMetric(
-            model=self.model,
-            train_dataset=self.train_dataset,
-            global_method=global_method,
-            trainer=trainer,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
-            top_k=top_k,
-            device="cpu",
-        )
-        pbar = tqdm(expl_dl)
-        n_batches = len(expl_dl)
-
-        for i, (input, labels) in enumerate(pbar):
-            pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
-
-            input, labels = input.to(device), labels.to(device)
-
-            if use_predictions:
-                with torch.no_grad():
-                    output = self.model(input)
-                    targets = output.argmax(dim=-1)
-            else:
-                targets = labels
-
-            explanations = explainer.explain(
-                test=input,
-                targets=targets,
+        if global_method != "self-influence":
+            metric = DatasetCleaningMetric.aggr_based(
+                model=self.model,
+                train_dataset=self.train_dataset,
+                aggregator_cls=global_method,
+                trainer=trainer,
+                trainer_fit_kwargs=trainer_fit_kwargs,
+                top_k=top_k,
+                device=device,
             )
-            metric.update(explanations)
+            pbar = tqdm(expl_dl)
+            n_batches = len(expl_dl)
 
+            for i, (input, labels) in enumerate(pbar):
+                pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
+
+                input, labels = input.to(device), labels.to(device)
+
+                if use_predictions:
+                    with torch.no_grad():
+                        output = self.model(input)
+                        targets = output.argmax(dim=-1)
+                else:
+                    targets = labels
+
+                explanations = explainer.explain(
+                    test=input,
+                    targets=targets,
+                )
+                metric.update(explanations)
+        else:
+            metric = DatasetCleaningMetric.self_influence_based(
+                model=self.model,
+                train_dataset=self.train_dataset,
+                trainer=trainer,
+                trainer_fit_kwargs=trainer_fit_kwargs,
+                explainer_cls=explainer_cls,
+                expl_kwargs=expl_kwargs,
+                top_k=top_k,
+                device=device,
+            )
         return metric.compute()

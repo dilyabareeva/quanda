@@ -236,7 +236,7 @@ class MislabelingDetection(ToyBenchmark):
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
-                device="cpu",
+                device=device,
                 aggregator_cls=self.global_method,
             )
 
@@ -259,7 +259,7 @@ class MislabelingDetection(ToyBenchmark):
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
-                device="cpu",
+                device=device,
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
             )
