@@ -115,7 +115,7 @@ from src.utils.training.trainer import Trainer
         ),
         (
             "mnist",
-            "load",
+            "assemble",
             "load_mnist_model",
             "torch_sgd_optimizer",
             0.01,
@@ -130,7 +130,7 @@ from src.utils.training.trainer import Trainer
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
             True,
-            "tests/assets/mnist_mislabeling_detection_state_dict",
+            None,
             0.4921875,
         ),
     ],
