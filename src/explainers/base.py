@@ -50,21 +50,22 @@ class BaseExplainer(ABC):
         return targets
 
     @cache_result
-    def self_influence(self, batch_size: int = 32, **kwargs: Any) -> torch.Tensor:
+    def self_influence(self, **kwargs: Any) -> torch.Tensor:
         """
         Base class implements computing self influences by explaining the train dataset one by one
 
-        :param batch_size:
         :param kwargs:
         :return:
         """
+        batch_size = kwargs.get("batch_size", 32)
+        targets = kwargs.get("targets", None)
 
         # Pre-allcate memory for influences, because torch.cat is slow
         influences = torch.empty((self.dataset_length,), device=self.device)
         ldr = torch.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)
 
         for i, (x, y) in zip(range(0, self.dataset_length, batch_size), ldr):
-            explanations = self.explain(test=x.to(self.device), **kwargs)
+            explanations = self.explain(test=x.to(self.device), targets=targets)
             influences[i : i + batch_size] = explanations.diag(diagonal=i)
 
         return influences
