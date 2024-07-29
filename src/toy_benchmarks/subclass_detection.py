@@ -32,6 +32,7 @@ class SubclassDetection(ToyBenchmark):
         self.bench_state: Dict[str, Any]
         self.class_to_group: Dict[int, int]
         self.n_classes: int
+        self.n_groups: int
 
     @classmethod
     def generate(
@@ -191,11 +192,14 @@ class SubclassDetection(ToyBenchmark):
             class_to_group=class_to_group,
             seed=seed,
         )
+        self._validate_model(self.trainer.get_model(), grouped_dataset[0][0], n_groups)
         self.class_to_group = grouped_dataset.class_to_group
         self.n_classes = n_classes
+        self.n_groups = n_groups
         self.dataset_transform = dataset_transform
         self.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
         self.original_train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
+
         if val_dataset:
             grouped_val_dataset = LabelGroupingDataset(
                 dataset=train_dataset,
@@ -217,6 +221,7 @@ class SubclassDetection(ToyBenchmark):
             "model": self.model,
             "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
             "n_classes": self.n_classes,
+            "n_groups": self.n_groups,
             "class_to_group": self.class_to_group,
             "dataset_transform": self.dataset_transform,
         }
@@ -233,6 +238,7 @@ class SubclassDetection(ToyBenchmark):
         obj.class_to_group = obj.bench_state["class_to_group"]
         obj.dataset_transform = obj.bench_state["dataset_transform"]
         obj.n_classes = obj.bench_state["n_classes"]
+        obj.n_groups = obj.bench_state["n_groups"]
 
         grouped_dataset = LabelGroupingDataset(
             dataset=obj.train_dataset,
@@ -240,6 +246,7 @@ class SubclassDetection(ToyBenchmark):
             n_classes=obj.n_classes,
             class_to_group=obj.class_to_group,
         )
+        obj._validate_model(obj.model, grouped_dataset[0][0], obj.n_groups)
         obj.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
         return obj
@@ -250,6 +257,7 @@ class SubclassDetection(ToyBenchmark):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
+        n_groups: int,
         class_to_group: Dict[int, int],  # TODO: type specification
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
@@ -266,16 +274,23 @@ class SubclassDetection(ToyBenchmark):
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
+        obj.n_groups = n_groups
 
         grouped_dataset = LabelGroupingDataset(
             dataset=train_dataset,
             dataset_transform=dataset_transform,
             n_classes=obj.n_classes,
+            n_groups=obj.n_groups,
             class_to_group=class_to_group,
         )
         obj.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
         return obj
+
+    @staticmethod
+    def _validate_model(model: torch.nn.Module, input: torch.Tensor, n_groups: int):
+        n_outputs = model(input[None]).shape[-1]
+        assert n_outputs == n_groups, f"Model output has {n_outputs} but n_groups = {n_groups}"
 
     def save(self, path: str, *args, **kwargs):
         """
@@ -320,7 +335,8 @@ class SubclassDetection(ToyBenchmark):
             input, labels = input.to(device), labels.to(device)
             if use_predictions:
                 with torch.no_grad():
-                    targets = self.model(input).argmax(dim=-1)
+                    output = self.model(input)
+                    targets = output.argmax(dim=-1)
             else:
                 targets = labels
             explanations = explainer.explain(
