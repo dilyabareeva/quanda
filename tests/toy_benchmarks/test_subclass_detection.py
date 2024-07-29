@@ -234,7 +234,6 @@ def test_subclass_detection(
             raise ValueError(f"Invalid init_method: {init_method}")
     elif init_method == "load":
         dst_eval = SubclassDetection.load(path=load_path)
-        # raise Exception(dst_eval.bench_state)
     elif init_method == "assemble":
         rng = Random(seed)
         rnd_cls_to_group = {i: rng.randrange(n_groups) for i in range(n_classes)}
