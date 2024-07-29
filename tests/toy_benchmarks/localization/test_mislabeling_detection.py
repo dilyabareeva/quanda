@@ -72,7 +72,7 @@ from src.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
-            "tests/assets/mnist_mislabeling_detection_state_dict",
+            "tests/assets/mnist_mislabel_detection_state_dict",
             0.4921875,
         ),
     ],

@@ -63,7 +63,7 @@ from src.utils.functions.similarities import cosine_similarity
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
-            "tests/assets/mnist_subclass_detection_state_dict",
+            "tests/assets/mnist_class_detection_state_dict",
             1.0,
         ),
     ],
