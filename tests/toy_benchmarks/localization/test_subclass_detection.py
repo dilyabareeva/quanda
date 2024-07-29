@@ -11,8 +11,8 @@ from src.utils.training.trainer import Trainer
 
 @pytest.mark.toy_benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, test_labels, "
-    "class_to_group, batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
+    "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, "
+    "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
     [
         (
             "mnist",
@@ -26,7 +26,6 @@ from src.utils.training.trainer import Trainer
             10,
             2,
             27,
-            "load_mnist_test_labels_1",
             {i: i % 2 for i in range(10)},
             8,
             CaptumSimilarity,
@@ -34,13 +33,14 @@ from src.utils.training.trainer import Trainer
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
+            False,
             None,
             0.3750,
         ),
         (
             "mnist",
             "assemble",
-            "load_mnist_model",
+            "load_mnist_grouped_model",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -49,7 +49,6 @@ from src.utils.training.trainer import Trainer
             10,
             2,
             27,
-            "load_mnist_test_labels_1",
             {i: i % 2 for i in range(10)},
             8,
             CaptumSimilarity,
@@ -57,13 +56,14 @@ from src.utils.training.trainer import Trainer
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
+            False,
             None,
             0.3750,
         ),
         (
             "mnist",
             "load",
-            "load_mnist_model",
+            "load_mnist_grouped_model",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -72,7 +72,6 @@ from src.utils.training.trainer import Trainer
             10,
             2,
             27,
-            "load_mnist_test_labels_1",
             {i: i % 2 for i in range(10)},
             8,
             CaptumSimilarity,
@@ -80,6 +79,7 @@ from src.utils.training.trainer import Trainer
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
+            False,
             "tests/assets/mnist_subclass_detection_state_dict",
             0.250,
         ),
@@ -97,11 +97,11 @@ def test_subclass_detection(
     n_classes,
     n_groups,
     seed,
-    test_labels,
     class_to_group,
     batch_size,
     explainer_cls,
     expl_kwargs,
+    use_pred,
     load_path,
     expected_score,
     tmp_path,
@@ -140,7 +140,7 @@ def test_subclass_detection(
 
     elif init_method == "assemble":
         dst_eval = SubclassDetection.assemble(
-            model=model, train_dataset=dataset, n_classes=n_classes, class_to_group=class_to_group
+            model=model, train_dataset=dataset, n_classes=n_classes, n_groups=n_groups, class_to_group=class_to_group
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
@@ -151,6 +151,7 @@ def test_subclass_detection(
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),
         model_id="default_model_id",
+        use_predictions=use_pred,
         batch_size=batch_size,
         device="cpu",
     )
