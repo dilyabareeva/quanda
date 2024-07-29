@@ -1,19 +1,17 @@
 import pytest
 
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.randomization.model_randomization import (
-    ModelRandomization,
-)
+from src.toy_benchmarks.unnamed.top_k_overlap import TopKOverlap
 from src.utils.functions.similarities import cosine_similarity
 
 
 @pytest.mark.toy_benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, dataset, n_classes, n_groups, seed, test_labels, "
-    "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
+    "batch_size, use_predictions, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
-            "mnist",
+            "mnist1",
             "generate",
             "load_mnist_model",
             "load_mnist_dataset",
@@ -22,13 +20,14 @@ from src.utils.functions.similarities import cosine_similarity
             27,
             "load_mnist_test_labels_1",
             8,
+            False,
             CaptumSimilarity,
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
             None,
-            -0.1369047462940216,
+            8,
         ),
         (
             "mnist2",
@@ -40,13 +39,14 @@ from src.utils.functions.similarities import cosine_similarity
             27,
             "load_mnist_test_labels_1",
             8,
+            False,
             CaptumSimilarity,
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
             None,
-            -0.1369047462940216,
+            8,
         ),
         (
             "mnist3",
@@ -58,17 +58,37 @@ from src.utils.functions.similarities import cosine_similarity
             27,
             "load_mnist_test_labels_1",
             8,
+            False,
             CaptumSimilarity,
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
-            "tests/assets/mnist_model_randomization_state_dict",
-            -0.1369047462940216,
+            "tests/assets/mnist_class_detection_state_dict",
+            8,
+        ),
+        (
+            "mnist4",
+            "load",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            10,
+            2,
+            27,
+            "load_mnist_test_labels_1",
+            8,
+            True,
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            "tests/assets/mnist_class_detection_state_dict",
+            8,
         ),
     ],
 )
-def test_model_randomization(
+def test_class_detection(
     test_id,
     init_method,
     model,
@@ -78,6 +98,7 @@ def test_model_randomization(
     seed,
     test_labels,
     batch_size,
+    use_predictions,
     explainer_cls,
     expl_kwargs,
     load_path,
@@ -89,17 +110,17 @@ def test_model_randomization(
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "generate":
-        dst_eval = ModelRandomization.generate(
+        dst_eval = TopKOverlap.generate(
             model=model,
             train_dataset=dataset,
             device="cpu",
         )
 
     elif init_method == "load":
-        dst_eval = ModelRandomization.load(path=load_path)
+        dst_eval = TopKOverlap.load(path=load_path)
 
     elif init_method == "assemble":
-        dst_eval = ModelRandomization.assemble(
+        dst_eval = TopKOverlap.assemble(
             model=model,
             train_dataset=dataset,
         )
@@ -110,6 +131,7 @@ def test_model_randomization(
         expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
+        use_predictions=use_predictions,
         cache_dir=str(tmp_path),
         model_id="default_model_id",
         batch_size=batch_size,

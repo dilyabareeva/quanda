@@ -113,7 +113,7 @@ class ClassDetection(ToyBenchmark):
 
             if use_predictions:
                 with torch.no_grad():
-                    output = self.group_model(input)
+                    output = self.model(input)
                     targets = output.argmax(dim=-1)
             else:
                 targets = labels

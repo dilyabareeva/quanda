@@ -1,9 +1,11 @@
-from typing import Any, Dict, Optional, Union, Callable
+from typing import Any, Callable, Dict, Optional, Union
 
 import torch
 from tqdm import tqdm
 
-from src.metrics.randomization.model_randomization import ModelRandomizationMetric
+from src.metrics.randomization.model_randomization import (
+    ModelRandomizationMetric,
+)
 from src.toy_benchmarks.base import ToyBenchmark
 from src.utils.functions.correlations import CorrelationFnLiterals
 
@@ -121,7 +123,7 @@ class ModelRandomization(ToyBenchmark):
 
             if use_predictions:
                 with torch.no_grad():
-                    output = self.group_model(input)
+                    output = self.model(input)
                     targets = output.argmax(dim=-1)
             else:
                 targets = labels

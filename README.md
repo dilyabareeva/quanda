@@ -37,7 +37,7 @@ from src.metrics.localization.class_detection import ClassDetectionMetric
 from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
-from src.metrics.unnamed.top_k_overlap import TopKOverlap
+from src.metrics.unnamed.top_k_overlap import TopKOverlapMetric
 ```
 </details>
 

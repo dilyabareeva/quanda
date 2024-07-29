@@ -1,9 +1,7 @@
 import pytest
 
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.localization.class_detection import (
-    ClassDetection,
-)
+from src.toy_benchmarks.localization.class_detection import ClassDetection
 from src.utils.functions.similarities import cosine_similarity
 
 

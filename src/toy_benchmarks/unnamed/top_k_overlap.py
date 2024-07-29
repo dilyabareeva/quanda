@@ -1,14 +1,13 @@
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Optional
 
 import torch
 from tqdm import tqdm
 
-from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
+from src.metrics.unnamed.top_k_overlap import TopKOverlapMetric
 from src.toy_benchmarks.base import ToyBenchmark
-from src.utils.training.trainer import Trainer
 
 
-class DatasetCleaning(ToyBenchmark):
+class TopKOverlap(ToyBenchmark):
     def __init__(
         self,
         device: str = "cpu",
@@ -86,16 +85,12 @@ class DatasetCleaning(ToyBenchmark):
         self,
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
-        trainer: Trainer,
-        use_predictions: bool = False,
         expl_kwargs: Optional[dict] = None,
-        trainer_fit_kwargs: Optional[dict] = None,
+        use_predictions: bool = False,
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
         device: str = "cpu",
-        global_method: Union[str, type] = "self-influence",
-        top_k: int = 50,
         *args,
         **kwargs,
     ):
@@ -103,19 +98,11 @@ class DatasetCleaning(ToyBenchmark):
         explainer = explainer_cls(
             model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
         )
+
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
-        metric = DatasetCleaningMetric(
-            model=self.model,
-            train_dataset=self.train_dataset,
-            global_method=global_method,
-            trainer=trainer,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
-            top_k=top_k,
-            device="cpu",
-        )
+        metric = TopKOverlapMetric(model=self.model, train_dataset=self.train_dataset, device="cpu")
+
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
 

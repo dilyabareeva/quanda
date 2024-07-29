@@ -25,7 +25,7 @@ from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
 from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
-from src.metrics.unnamed.top_k_overlap import TopKOverlap
+from src.metrics.unnamed.top_k_overlap import TopKOverlapMetric
 from src.toy_benchmarks.subclass_detection import SubclassDetection
 from src.utils.training.base_pl_module import BasicLightningModule
 from src.utils.training.trainer import Trainer
@@ -128,7 +128,7 @@ def main():
 
     id_class = ClassDetectionMetric(model=model, train_dataset=train_set, device=DEVICE)
 
-    top_k = TopKOverlap(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
+    top_k = TopKOverlapMetric(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
 
     # dataset cleaning
     pl_module = BasicLightningModule(
