@@ -260,7 +260,6 @@ class MislabelingDetection(ToyBenchmark):
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
                 device="cpu",
-                global_method="self-influence",
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
             )
