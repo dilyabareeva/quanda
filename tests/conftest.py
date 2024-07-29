@@ -70,6 +70,14 @@ def load_mnist_model():
 
 
 @pytest.fixture
+def load_mnist_grouped_model():
+    """Load a pre-trained LeNet classification model (architecture at quantus/helpers/models)."""
+    model = LeNet(num_outputs=2)
+    model.load_state_dict(torch.load("tests/assets/mnist_grouped_model", map_location="cpu", pickle_module=pickle))
+    return model
+
+
+@pytest.fixture
 def load_init_mnist_model():
     """Load a not trained LeNet classification model (architecture at quantus/helpers/models)."""
     return LeNet()

@@ -17,7 +17,7 @@ from src.utils.training.trainer import Trainer
         (
             "mnist",
             "from_arguments",
-            "load_mnist_model",
+            "load_mnist_grouped_model",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -39,7 +39,7 @@ from src.utils.training.trainer import Trainer
         (
             "mnist",
             "from_pl",
-            "load_mnist_model",
+            "load_mnist_grouped_model",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -61,7 +61,7 @@ from src.utils.training.trainer import Trainer
         (
             "mnist",
             "from_trainer",
-            "load_mnist_model",
+            "load_mnist_grouped_model",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -83,7 +83,7 @@ from src.utils.training.trainer import Trainer
         (
             "mnist",
             "assemble",
-            "load_mnist_model",
+            "load_mnist_grouped_model",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -105,7 +105,7 @@ from src.utils.training.trainer import Trainer
         (
             "mnist",
             "load",
-            "load_mnist_model",
+            "load_mnist_grouped_model",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -126,8 +126,8 @@ from src.utils.training.trainer import Trainer
         ),
         (
             "mnist",
-            "load",
-            "load_mnist_model",
+            "from_trainer",
+            "load_mnist_grouped_model",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -143,7 +143,7 @@ from src.utils.training.trainer import Trainer
                 "similarity_metric": cosine_similarity,
             },
             True,
-            "tests/assets/mnist_subclass_detection_state_dict",
+            None,
             0.250,
         ),
     ],
@@ -190,7 +190,7 @@ def test_subclass_detection(
             batch_size=batch_size,
             device="cpu",
         )
-        # dst_eval.save("tests/assets/mnist_subclass_detection_state_dict")
+        dst_eval.save("tests/assets/mnist_subclass_detection_state_dict")
     elif "from" in init_method:
         pl_module = BasicLightningModule(
             model=model,
@@ -234,11 +234,12 @@ def test_subclass_detection(
             raise ValueError(f"Invalid init_method: {init_method}")
     elif init_method == "load":
         dst_eval = SubclassDetection.load(path=load_path)
+        # raise Exception(dst_eval.bench_state)
     elif init_method == "assemble":
         rng = Random(seed)
         rnd_cls_to_group = {i: rng.randrange(n_groups) for i in range(n_classes)}
         dst_eval = SubclassDetection.assemble(
-            model=model, train_dataset=dataset, n_classes=n_classes, class_to_group=rnd_cls_to_group
+            model=model, train_dataset=dataset, n_classes=n_classes, n_groups=n_groups, class_to_group=rnd_cls_to_group
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
