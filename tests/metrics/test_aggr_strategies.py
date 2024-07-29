@@ -57,9 +57,6 @@ def test_global_self_influence_strategy(
     [
         (
             "mnist_aggr",
-            "load_mnist_model",
-            "load_mnist_dataset",
-            "load_mnist_test_samples_1",
             "mnist_range_explanations",
             "range_ranking",
         ),
@@ -67,16 +64,10 @@ def test_global_self_influence_strategy(
 )
 def test_global_aggr_strategy(
     test_id,
-    model,
-    dataset,
-    test_data,
     explanations,
     expected,
     request,
 ):
-    model = request.getfixturevalue(model)
-    test_data = request.getfixturevalue(test_data)
-    dataset = request.getfixturevalue(dataset)
     explanations = request.getfixturevalue(explanations)
     expected = request.getfixturevalue(expected)
 

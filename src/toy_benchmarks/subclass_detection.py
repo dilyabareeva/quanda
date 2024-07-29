@@ -24,6 +24,7 @@ class SubclassDetection(ToyBenchmark):
 
         self.trainer: Optional[BaseTrainer] = None
         self.model: torch.nn.Module
+        self.group_model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
         self.grouped_train_dl: torch.utils.data.DataLoader
@@ -192,11 +193,12 @@ class SubclassDetection(ToyBenchmark):
             class_to_group=class_to_group,
             seed=seed,
         )
-        self._validate_model(self.trainer.get_model(), grouped_dataset[0][0], n_groups)
+
         self.class_to_group = grouped_dataset.class_to_group
         self.n_classes = n_classes
         self.n_groups = n_groups
         self.dataset_transform = dataset_transform
+
         self.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
         self.original_train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
 
@@ -211,7 +213,7 @@ class SubclassDetection(ToyBenchmark):
         else:
             self.grouped_val_dl = None
 
-        self.model = self.trainer.fit(
+        self.group_model = self.trainer.fit(
             train_loader=self.grouped_train_dl,
             val_loader=self.grouped_val_dl,
             trainer_fit_kwargs=trainer_fit_kwargs,
@@ -246,9 +248,10 @@ class SubclassDetection(ToyBenchmark):
             n_classes=obj.n_classes,
             class_to_group=obj.class_to_group,
         )
-        obj._validate_model(obj.model, grouped_dataset[0][0], obj.n_groups)
+
         obj.grouped_train_dl = torch.utils.data.DataLoader(grouped_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
+
         return obj
 
     @classmethod
@@ -287,11 +290,6 @@ class SubclassDetection(ToyBenchmark):
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
         return obj
 
-    @staticmethod
-    def _validate_model(model: torch.nn.Module, input: torch.Tensor, n_groups: int):
-        n_outputs = model(input[None]).shape[-1]
-        assert n_outputs == n_groups, f"Model output has {n_outputs} but n_groups = {n_groups}"
-
     def save(self, path: str, *args, **kwargs):
         """
         This method should save the benchmark components to a file/folder.
@@ -321,7 +319,7 @@ class SubclassDetection(ToyBenchmark):
             dataset_transform=self.dataset_transform,
             n_classes=self.n_classes,
             class_to_group=self.class_to_group,
-        )  # TODO: change to class_to_group
+        )
         expl_dl = torch.utils.data.DataLoader(grouped_expl_ds, batch_size=batch_size)
 
         metric = IdenticalClass(model=self.model, train_dataset=self.train_dataset, device="cpu")
@@ -333,9 +331,10 @@ class SubclassDetection(ToyBenchmark):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
             input, labels = input.to(device), labels.to(device)
+
             if use_predictions:
                 with torch.no_grad():
-                    output = self.model(input)
+                    output = self.group_model(input)
                     targets = output.argmax(dim=-1)
             else:
                 targets = labels
@@ -343,7 +342,7 @@ class SubclassDetection(ToyBenchmark):
                 test=input,
                 targets=targets,
             )
-            # CHECK AGAINST THE LABELS THAT WERE USED TO SELECT OUTPUT NEURONS TO EXPLAIN
+
             metric.update(targets, explanations)
 
         return metric.compute()
