@@ -206,6 +206,8 @@ def main():
         device=DEVICE,
     )
 
+    # TODO. Note in usage_testing, batch_size is duplicated with args:
+    # expl_kwargs={"layers": "avgpool", "batch_size": 100}. Intentional?
     score = bench.evaluate(
         expl_dataset=test_set,
         explainer_cls=CaptumSimilarity,

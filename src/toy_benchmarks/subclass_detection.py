@@ -302,10 +302,10 @@ class SubclassDetection(ToyBenchmark):
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         use_predictions: bool = False,
-        cache_dir: str = "./cache",
-        model_id: str = "default_model_id",
         batch_size: int = 8,
         device: str = "cpu",
+        cache_dir: str = "./cache",
+        model_id: str = "default_model_id",
         *args,
         **kwargs,
     ):
