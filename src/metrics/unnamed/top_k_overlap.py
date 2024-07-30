@@ -3,7 +3,7 @@ import torch
 from src.metrics.base import Metric
 
 
-class TopKOverlap(Metric):
+class TopKOverlapMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,

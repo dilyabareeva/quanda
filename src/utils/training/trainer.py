@@ -20,10 +20,13 @@ class BaseTrainer(metaclass=abc.ABCMeta):
     ) -> torch.nn.Module:
         raise NotImplementedError
 
+    def get_model(self) -> torch.nn.Module:
+        raise NotImplementedError
+
 
 class Trainer(BaseTrainer):
     def __init__(self):
-        self.model: Optional[torch.nn.Module] = None
+        self.model: torch.nn.Module
         self.module: Optional[L.LightningModule] = None
 
     @classmethod
@@ -86,4 +89,7 @@ class Trainer(BaseTrainer):
         trainer.fit(self.module, train_loader, val_loader)
 
         self.model.load_state_dict(self.module.model.state_dict())
+        return self.model
+
+    def get_model(self) -> torch.nn.Module:
         return self.model

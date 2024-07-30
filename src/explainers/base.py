@@ -26,7 +26,7 @@ class BaseExplainer(ABC):
         self.device = torch.device(device) if isinstance(device, str) else device
 
     @abstractmethod
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
+    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
         raise NotImplementedError
 
     @property
@@ -54,18 +54,18 @@ class BaseExplainer(ABC):
         """
         Base class implements computing self influences by explaining the train dataset one by one
 
+        :param batch_size:
         :param kwargs:
         :return:
         """
         batch_size = kwargs.get("batch_size", 32)
-        targets = kwargs.get("targets", None)
 
         # Pre-allcate memory for influences, because torch.cat is slow
         influences = torch.empty((self.dataset_length,), device=self.device)
         ldr = torch.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)
 
         for i, (x, y) in zip(range(0, self.dataset_length, batch_size), ldr):
-            explanations = self.explain(test=x.to(self.device), targets=targets)
+            explanations = self.explain(test=x.to(self.device), targets=y.to(self.device))
             influences[i : i + batch_size] = explanations.diag(diagonal=i)
 
         return influences

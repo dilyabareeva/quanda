@@ -5,7 +5,7 @@ import torch
 from src.metrics.base import Metric
 
 
-class IdenticalClass(Metric):
+class ClassDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,

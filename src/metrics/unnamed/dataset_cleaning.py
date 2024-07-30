@@ -7,7 +7,7 @@ from src.utils.common import class_accuracy
 from src.utils.training.trainer import BaseTrainer
 
 
-class DatasetCleaning(GlobalMetric):
+class DatasetCleaningMetric(GlobalMetric):
     """
     Quote from https://proceedings.mlr.press/v89/khanna19a.html:
 
@@ -28,16 +28,20 @@ class DatasetCleaning(GlobalMetric):
         top_k: int = 50,
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
+        model_id: str = "0",
+        cache_dir: str = "./cache",
         device: str = "cpu",
         *args,
         **kwargs,
     ):
+        expl_kwargs = expl_kwargs or {}
+
         super().__init__(
             model=model,
             train_dataset=train_dataset,
             global_method=global_method,
             explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
+            expl_kwargs={**expl_kwargs, "model_id": model_id, "cache_dir": cache_dir},
             device=device,
         )
         self.top_k = min(top_k, self.dataset_length - 1)
