@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import torch
 from tqdm import tqdm
@@ -30,7 +30,6 @@ class MislabelingDetection(ToyBenchmark):
         self.poisoned_train_dl: torch.utils.data.DataLoader
         self.poisoned_val_dl: Optional[torch.utils.data.DataLoader]
         self.original_train_dl: torch.utils.data.DataLoader
-        self.bench_state: Dict[str, Any]
         self.p: float
         self.global_method: Union[str, type] = "self-influence"
         self.n_classes: int
@@ -126,7 +125,9 @@ class MislabelingDetection(ToyBenchmark):
             trainer_fit_kwargs=trainer_fit_kwargs,
         )
 
-        self.bench_state = {
+    @property
+    def bench_state(self):
+        return {
             "model": self.model,
             "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
             "p": self.p,
@@ -143,15 +144,15 @@ class MislabelingDetection(ToyBenchmark):
         This method should load the benchmark components from a file and persist them in the instance.
         """
         obj = cls(device=device)
-        obj.bench_state = torch.load(path)
-        obj.model = obj.bench_state["model"]
-        obj.train_dataset = obj.bench_state["train_dataset"]
-        obj.p = obj.bench_state["p"]
-        obj.global_method = obj.bench_state["global_method"]
-        obj.n_classes = obj.bench_state["n_classes"]
-        obj.poisoned_labels = obj.bench_state["poisoned_labels"]
-        obj.dataset_transform = obj.bench_state["dataset_transform"]
-        obj.poisoned_indices = obj.bench_state["poisoned_indices"]
+        bench_state = torch.load(path)
+        obj.model = bench_state["model"]
+        obj.train_dataset = bench_state["train_dataset"]
+        obj.p = bench_state["p"]
+        obj.global_method = bench_state["global_method"]
+        obj.n_classes = bench_state["n_classes"]
+        obj.poisoned_labels = bench_state["poisoned_labels"]
+        obj.dataset_transform = bench_state["dataset_transform"]
+        obj.poisoned_indices = bench_state["poisoned_indices"]
 
         obj.poisoned_dataset = LabelFlippingDataset(
             dataset=obj.train_dataset,

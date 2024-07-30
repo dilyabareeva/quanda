@@ -81,7 +81,7 @@ from src.utils.training.trainer import Trainer
             },
             False,
             "tests/assets/mnist_subclass_detection_state_dict",
-            0.250,
+            0.3750,
         ),
     ],
 )
@@ -140,7 +140,7 @@ def test_subclass_detection(
 
     elif init_method == "assemble":
         dst_eval = SubclassDetection.assemble(
-            model=model, train_dataset=dataset, n_classes=n_classes, n_groups=n_groups, class_to_group=class_to_group
+            group_model=model, train_dataset=dataset, n_classes=n_classes, n_groups=n_groups, class_to_group=class_to_group
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")

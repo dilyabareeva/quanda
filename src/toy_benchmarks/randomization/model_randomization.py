@@ -1,4 +1,4 @@
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Callable, Optional, Union
 
 import torch
 from tqdm import tqdm
@@ -21,7 +21,6 @@ class ModelRandomization(ToyBenchmark):
 
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
-        self.bench_state: Dict[str, Any]
 
     @classmethod
     def generate(
@@ -42,11 +41,14 @@ class ModelRandomization(ToyBenchmark):
         obj.train_dataset = train_dataset
         obj.device = device
 
-        obj.bench_state = {
-            "model": obj.model,
-            "train_dataset": obj.train_dataset,  # ok this probably won't work, but that's the idea
-        }
         return obj
+
+    @property
+    def bench_state(self):
+        return {
+            "model": self.model,
+            "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
+        }
 
     @classmethod
     def load(cls, path: str, device: str = "cpu", batch_size: int = 8, *args, **kwargs):
@@ -54,9 +56,9 @@ class ModelRandomization(ToyBenchmark):
         This method should load the benchmark components from a file and persist them in the instance.
         """
         obj = cls(device=device)
-        obj.bench_state = torch.load(path)
-        obj.model = obj.bench_state["model"]
-        obj.train_dataset = obj.bench_state["train_dataset"]
+        bench_state = torch.load(path)
+        obj.model = bench_state["model"]
+        obj.train_dataset = bench_state["train_dataset"]
         return obj
 
     @classmethod

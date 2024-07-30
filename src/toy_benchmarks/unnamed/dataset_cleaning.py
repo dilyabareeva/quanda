@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Optional, Union
 
 import torch
 from tqdm import tqdm
@@ -19,7 +19,6 @@ class DatasetCleaning(ToyBenchmark):
 
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
-        self.bench_state: Dict[str, Any]
 
     @classmethod
     def generate(
@@ -40,11 +39,14 @@ class DatasetCleaning(ToyBenchmark):
         obj.train_dataset = train_dataset
         obj.device = device
 
-        obj.bench_state = {
-            "model": obj.model,
-            "train_dataset": obj.train_dataset,  # ok this probably won't work, but that's the idea
-        }
         return obj
+
+    @property
+    def bench_state(self):
+        return {
+            "model": self.model,
+            "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
+        }
 
     @classmethod
     def load(cls, path: str, device: str = "cpu", batch_size: int = 8, *args, **kwargs):
@@ -52,9 +54,9 @@ class DatasetCleaning(ToyBenchmark):
         This method should load the benchmark components from a file and persist them in the instance.
         """
         obj = cls(device=device)
-        obj.bench_state = torch.load(path)
-        obj.model = obj.bench_state["model"]
-        obj.train_dataset = obj.bench_state["train_dataset"]
+        bench_state = torch.load(path)
+        obj.model = bench_state["model"]
+        obj.train_dataset = bench_state["train_dataset"]
         return obj
 
     @classmethod
@@ -104,6 +106,7 @@ class DatasetCleaning(ToyBenchmark):
             model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
         )
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
+
         if global_method != "self-influence":
             metric = DatasetCleaningMetric.aggr_based(
                 model=self.model,
@@ -134,6 +137,7 @@ class DatasetCleaning(ToyBenchmark):
                     targets=targets,
                 )
                 metric.update(explanations)
+
         else:
             metric = DatasetCleaningMetric.self_influence_based(
                 model=self.model,
@@ -145,4 +149,5 @@ class DatasetCleaning(ToyBenchmark):
                 top_k=top_k,
                 device=device,
             )
+
         return metric.compute()
