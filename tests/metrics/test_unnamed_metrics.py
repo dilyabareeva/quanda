@@ -1,8 +1,8 @@
 import pytest
 
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.metrics.unnamed.dataset_cleaning import DatasetCleaning
-from src.metrics.unnamed.top_k_overlap import TopKOverlap
+from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
+from src.metrics.unnamed.top_k_overlap import TopKOverlapMetric
 from src.utils.functions.similarities import cosine_similarity
 from src.utils.training.base_pl_module import BasicLightningModule
 from src.utils.training.trainer import Trainer
@@ -36,7 +36,7 @@ def test_top_k_overlap_metrics(
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     explanations = request.getfixturevalue(explanations)
-    metric = TopKOverlap(model=model, train_dataset=dataset, top_k=top_k, device="cpu")
+    metric = TopKOverlapMetric(model=model, train_dataset=dataset, top_k=top_k, device="cpu")
     metric.update(explanations=explanations)
     score = metric.compute()
     assert score == expected_score
@@ -110,7 +110,7 @@ def test_dataset_cleaning(
     trainer = Trainer.from_lightning_module(model, pl_module)
 
     if global_method != "self-influence":
-        metric = DatasetCleaning(
+        metric = DatasetCleaningMetric(
             model=model,
             train_dataset=dataset,
             global_method=global_method,
@@ -125,7 +125,7 @@ def test_dataset_cleaning(
     else:
         expl_kwargs = expl_kwargs or {}
 
-        metric = DatasetCleaning(
+        metric = DatasetCleaningMetric(
             model=model,
             train_dataset=dataset,
             global_method=global_method,
@@ -193,7 +193,7 @@ def test_dataset_cleaning_self_influence_based(
 
     expl_kwargs = expl_kwargs or {}
 
-    metric = DatasetCleaning.self_influence_based(
+    metric = DatasetCleaningMetric.self_influence_based(
         model=model,
         train_dataset=dataset,
         trainer=trainer,
@@ -255,7 +255,7 @@ def test_dataset_cleaning_aggr_based(
     )
     trainer = Trainer.from_lightning_module(model, pl_module)
 
-    metric = DatasetCleaning.aggr_based(
+    metric = DatasetCleaningMetric.aggr_based(
         model=model,
         train_dataset=dataset,
         trainer=trainer,

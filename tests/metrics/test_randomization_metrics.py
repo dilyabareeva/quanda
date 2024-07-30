@@ -101,7 +101,7 @@ def test_randomization_metric(
         metric.update(test_data=test_data, explanations=tda, explanation_targets=test_labels)
 
     out = metric.compute()
-    assert (out.item() >= -1.0) & (out.item() <= 1.0), "Test failed."
+    assert (out >= -1.0) & (out <= 1.0), "Test failed."
 
 
 @pytest.mark.randomization_metrics

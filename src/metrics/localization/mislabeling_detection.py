@@ -58,7 +58,6 @@ class MislabelingDetectionMetric(GlobalMetric):
         train_dataset: torch.utils.data.Dataset,
         poisoned_indices: List[int],
         aggregator_cls: Union[str, type],
-        trainer_fit_kwargs: Optional[dict] = None,
         device: str = "cpu",
         *args,
         **kwargs,

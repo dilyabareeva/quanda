@@ -2,11 +2,11 @@ import pytest
 
 from src.explainers.aggregators import SumAggregator
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.metrics.localization.identical_class import IdenticalClass
-from src.metrics.localization.identical_subclass import IdenticalSubclass
+from src.metrics.localization.class_detection import ClassDetectionMetric
 from src.metrics.localization.mislabeling_detection import (
     MislabelingDetectionMetric,
 )
+from src.metrics.localization.subclass_detection import SubclassDetectionMetric
 from src.utils.functions.similarities import cosine_similarity
 
 
@@ -39,7 +39,7 @@ def test_identical_class_metrics(
     test_labels = request.getfixturevalue(test_labels)
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
-    metric = IdenticalClass(model=model, train_dataset=dataset, device="cpu")
+    metric = ClassDetectionMetric(model=model, train_dataset=dataset, device="cpu")
     metric.update(test_labels=test_labels, explanations=tda)
     score = metric.compute()
     # TODO: introduce a more meaningfull test, where the score is not zero
@@ -82,7 +82,7 @@ def test_identical_subclass_metrics(
     subclass_labels = request.getfixturevalue(subclass_labels)
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
-    metric = IdenticalSubclass(
+    metric = SubclassDetectionMetric(
         model=model,
         train_dataset=dataset,
         subclass_labels=subclass_labels,
