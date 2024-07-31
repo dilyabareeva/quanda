@@ -202,16 +202,10 @@ class SubclassDetection(ToyBenchmark):
     ):
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(
-            model=self.group_model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
+            model=self.group_model, train_dataset=self.grouped_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
         )
 
-        grouped_expl_ds = LabelGroupingDataset(
-            dataset=expl_dataset,
-            dataset_transform=self.dataset_transform,
-            n_classes=self.n_classes,
-            class_to_group=self.class_to_group,
-        )
-        expl_dl = torch.utils.data.DataLoader(grouped_expl_ds, batch_size=batch_size)
+        expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
         metric = ClassDetectionMetric(model=self.group_model, train_dataset=self.train_dataset, device=device)
 
@@ -222,13 +216,13 @@ class SubclassDetection(ToyBenchmark):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
             input, labels = input.to(device), labels.to(device)
-
+            grouped_labels=torch.tensor([self.class_to_group[i] for i in labels], device=labels.device)
             if use_predictions:
                 with torch.no_grad():
                     output = self.group_model(input)
                     targets = output.argmax(dim=-1)
             else:
-                targets = labels
+                targets = grouped_labels
             explanations = explainer.explain(
                 test=input,
                 targets=targets,
