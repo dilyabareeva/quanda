@@ -35,7 +35,6 @@ class SubclassDetection(ToyBenchmark):
     @classmethod
     def generate(
         cls,
-        model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         trainer: Trainer,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
