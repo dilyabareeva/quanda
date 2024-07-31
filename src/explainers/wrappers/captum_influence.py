@@ -1,10 +1,10 @@
 import copy
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 
 import torch
-from captum.influence import SimilarityInfluence  # type: ignore
+from captum.influence import SimilarityInfluence, TracInCP  # type: ignore
 
 # TODO Should be imported directly from captum.influence once available
 from captum.influence._core.arnoldi_influence_function import (  # type: ignore
@@ -178,8 +178,12 @@ def captum_similarity_self_influence(
     cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
     device: Union[str, torch.device],
+    batch_size: Optional[int] = 32,
     **kwargs: Any,
 ) -> torch.Tensor:
+    self_influence_kwargs = {
+        "batch_size": batch_size,
+    }
     return self_influence_fn_from_explainer(
         explainer_cls=CaptumSimilarity,
         model=model,
@@ -187,6 +191,7 @@ def captum_similarity_self_influence(
         cache_dir=cache_dir,
         train_dataset=train_dataset,
         device=device,
+        self_influence_kwargs=self_influence_kwargs,
         **kwargs,
     )
 
@@ -274,10 +279,9 @@ class CaptumArnoldi(CaptumInfluence):
         influence_scores = self.captum_explainer.influence(inputs=(test, targets))
         return influence_scores
 
-    def self_influence(
-        self, inputs_dataset: Optional[Union[Tuple[Any, ...], torch.utils.data.DataLoader]] = None, **kwargs: Any
-    ) -> torch.Tensor:
-        influence_scores = self.captum_explainer.self_influence(inputs_dataset)
+    def self_influence(self, **kwargs: Any) -> torch.Tensor:
+        inputs_dataset = kwargs.get("inputs_dataset", None)
+        influence_scores = self.captum_explainer.self_influence(inputs_dataset=inputs_dataset)
         return influence_scores
 
 
@@ -313,8 +317,12 @@ def captum_arnoldi_self_influence(
     train_dataset: torch.utils.data.Dataset,
     loss_fn: Union[torch.nn.Module, Callable],
     device: Union[str, torch.device],
+    inputs_dataset: Optional[Union[Tuple[Any, ...], torch.utils.data.DataLoader]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
+    self_influence_kwargs = {
+        "inputs_dataset": inputs_dataset,
+    }
     return self_influence_fn_from_explainer(
         explainer_cls=CaptumArnoldi,
         model=model,
@@ -323,5 +331,128 @@ def captum_arnoldi_self_influence(
         train_dataset=train_dataset,
         loss_fn=loss_fn,
         device=device,
+        self_influence_kwargs=self_influence_kwargs,
+        **kwargs,
+    )
+
+
+class CaptumTracInCP(CaptumInfluence):
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        model_id: str,
+        train_dataset: torch.utils.data.Dataset,
+        checkpoints: Union[str, List[str], Iterator],
+        cache_dir: Optional[str],
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
+        batch_size: int = 1,
+        test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
+        sample_wise_grads_per_batch: bool = False,
+        device: Union[str, torch.device] = "cpu",
+        **explainer_kwargs: Any,
+    ):
+        if checkpoints_load_func is None:
+            checkpoints_load_func = get_load_state_dict_func(device)
+        else:
+            validate_checkpoints_load_func(checkpoints_load_func)
+
+        unsupported_args = ["k", "proponents", "aggregate"]
+        for arg in unsupported_args:
+            if arg in explainer_kwargs:
+                explainer_kwargs.pop(arg)
+                warnings.warn(f"{arg} is not supported by CaptumTraceInCP explainer. Ignoring the argument.")
+
+        explainer_kwargs.update(
+            {
+                "model": model,
+                "train_dataset": train_dataset,
+                "checkpoints": checkpoints,
+                "checkpoints_load_func": checkpoints_load_func,
+                "loss_fn": loss_fn,
+                "batch_size": batch_size,
+                "test_loss_fn": test_loss_fn,
+                "sample_wise_grads_per_batch": sample_wise_grads_per_batch,
+                **explainer_kwargs,
+            }
+        )
+
+        super().__init__(
+            model=model,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            train_dataset=train_dataset,
+            device=device,
+            explainer_cls=TracInCP,
+            explain_kwargs=explainer_kwargs,
+        )
+
+    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
+        test = test.to(self.device)
+
+        if targets is not None:
+            if isinstance(targets, list):
+                targets = torch.tensor(targets).to(self.device)
+            else:
+                targets = targets.to(self.device)
+
+        influence_scores = self.captum_explainer.influence(inputs=(test, targets))
+        return influence_scores
+
+    def self_influence(self, **kwargs: Any) -> torch.Tensor:
+        inputs = kwargs.get("inputs", None)
+        outer_loop_by_checkpoints = kwargs.get("outer_loop_by_checkpoints", False)
+        influence_scores = self.captum_explainer.self_influence(
+            inputs=inputs, outer_loop_by_checkpoints=outer_loop_by_checkpoints
+        )
+        return influence_scores
+
+
+def captum_tracincp_explain(
+    model: torch.nn.Module,
+    model_id: str,
+    cache_dir: Optional[str],
+    test_tensor: torch.Tensor,
+    train_dataset: torch.utils.data.Dataset,
+    checkpoints: Union[str, List[str], Iterator],
+    device: Union[str, torch.device],
+    explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
+    **kwargs: Any,
+) -> torch.Tensor:
+    return explain_fn_from_explainer(
+        explainer_cls=CaptumTracInCP,
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        test_tensor=test_tensor,
+        targets=explanation_targets,
+        train_dataset=train_dataset,
+        checkpoints=checkpoints,
+        device=device,
+        **kwargs,
+    )
+
+
+def captum_tracincp_self_influence(
+    model: torch.nn.Module,
+    model_id: str,
+    cache_dir: Optional[str],
+    train_dataset: torch.utils.data.Dataset,
+    checkpoints: Union[str, List[str], Iterator],
+    device: Union[str, torch.device],
+    inputs: Optional[Union[Tuple[Any, ...], torch.utils.data.DataLoader]] = None,
+    outer_loop_by_checkpoints: bool = False,
+    **kwargs: Any,
+) -> torch.Tensor:
+    self_influence_kwargs = {"inputs": inputs, "outer_loop_by_checkpoints": outer_loop_by_checkpoints}
+    return self_influence_fn_from_explainer(
+        explainer_cls=CaptumTracInCP,
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        train_dataset=train_dataset,
+        checkpoints=checkpoints,
+        device=device,
+        self_influence_kwargs=self_influence_kwargs,
         **kwargs,
     )

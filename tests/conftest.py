@@ -62,6 +62,22 @@ def mnist_seed_27_poisoned_labels():
 
 
 @pytest.fixture
+def get_mnist_checkpoints():
+    """Get paths to five checkpoints from a single training run."""
+    checkpoint_paths = [
+        "tests/assets/mnist_checkpoints/checkpoint-00",
+        "tests/assets/mnist_checkpoints/checkpoint-01",
+        "tests/assets/mnist_checkpoints/checkpoint-02",
+        "tests/assets/mnist_checkpoints/checkpoint-03",
+        "tests/assets/mnist_checkpoints/checkpoint-04",
+    ]
+    checkpoints = []
+    for path in checkpoint_paths:
+        checkpoints.append(path)
+    return checkpoints
+
+
+@pytest.fixture
 def load_mnist_model():
     """Load a pre-trained LeNet classification model (architecture at quantus/helpers/models)."""
     model = LeNet()
