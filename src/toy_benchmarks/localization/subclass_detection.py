@@ -133,17 +133,17 @@ class SubclassDetection(ToyBenchmark):
         bench_state = torch.load(path)
 
         return cls.assemble(
-                group_model=bench_state["group_model"],
-                train_dataset=bench_state["train_dataset"],
-                n_classes=bench_state["n_classes"],
-                n_groups=bench_state["n_groups"],
-                class_to_group=bench_state["class_to_group"],
-                dataset_transform=bench_state["dataset_transform"],
-                batch_size=batch_size ,
-                device=device,
-                *args,
-                **kwargs,
-            )
+            group_model=bench_state["group_model"],
+            train_dataset=bench_state["train_dataset"],
+            n_classes=bench_state["n_classes"],
+            n_groups=bench_state["n_groups"],
+            class_to_group=bench_state["class_to_group"],
+            dataset_transform=bench_state["dataset_transform"],
+            batch_size=batch_size,
+            device=device,
+            *args,
+            **kwargs,
+        )
 
     @classmethod
     def assemble(
@@ -216,7 +216,7 @@ class SubclassDetection(ToyBenchmark):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
             input, labels = input.to(device), labels.to(device)
-            grouped_labels=torch.tensor([self.class_to_group[i] for i in labels], device=labels.device)
+            grouped_labels = torch.tensor([self.class_to_group[i] for i in labels], device=labels.device)
             if use_predictions:
                 with torch.no_grad():
                     output = self.group_model(input)
