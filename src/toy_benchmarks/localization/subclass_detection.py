@@ -216,7 +216,7 @@ class SubclassDetection(ToyBenchmark):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
             input, labels = input.to(device), labels.to(device)
-            grouped_labels = torch.tensor([self.class_to_group[i] for i in labels], device=labels.device)
+            grouped_labels = torch.tensor([self.class_to_group[i.item()] for i in labels], device=labels.device)
             if use_predictions:
                 with torch.no_grad():
                     output = self.group_model(input)

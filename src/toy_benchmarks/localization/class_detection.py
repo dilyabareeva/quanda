@@ -53,7 +53,7 @@ class ClassDetection(ToyBenchmark):
         """
         bench_state = torch.load(path)
 
-        return cls.load(model=bench_state["model"], train_dataset=bench_state["train_dataset"], device=device)
+        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"], device=device)
 
     @classmethod
     def assemble(
