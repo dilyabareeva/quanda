@@ -143,28 +143,20 @@ class MislabelingDetection(ToyBenchmark):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        obj = cls(device=device)
         bench_state = torch.load(path)
-        obj.model = bench_state["model"]
-        obj.train_dataset = bench_state["train_dataset"]
-        obj.p = bench_state["p"]
-        obj.global_method = bench_state["global_method"]
-        obj.n_classes = bench_state["n_classes"]
-        obj.poisoned_labels = bench_state["poisoned_labels"]
-        obj.dataset_transform = bench_state["dataset_transform"]
-        obj.poisoned_indices = bench_state["poisoned_indices"]
-
-        obj.poisoned_dataset = LabelFlippingDataset(
-            dataset=obj.train_dataset,
-            p=obj.p,
-            transform_indices=obj.poisoned_indices,
-            dataset_transform=obj.dataset_transform,
-            poisoned_labels=obj.poisoned_labels,
-            n_classes=obj.n_classes,
+        
+        return cls.assemble(
+            model=bench_state["model"],
+            train_dataset=bench_state["train_dataset"],
+            n_classes=bench_state["n_classes"],
+            poisoned_indices=bench_state["poisoned_indices"],
+            poisoned_labels=bench_state["poisoned_labels"],
+            dataset_transform=bench_state["dataset_transform"],
+            p=bench_state["p"],
+            global_method=bench_state["global_method"],
+            batch_size=batch_size,
+            device=device,
         )
-        obj.poisoned_train_dl = torch.utils.data.DataLoader(obj.poisoned_dataset, batch_size=batch_size)
-        obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
-        return obj
 
     @classmethod
     def assemble(

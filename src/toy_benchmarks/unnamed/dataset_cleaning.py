@@ -53,11 +53,12 @@ class DatasetCleaning(ToyBenchmark):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        obj = cls(device=device)
         bench_state = torch.load(path)
-        obj.model = bench_state["model"]
-        obj.train_dataset = bench_state["train_dataset"]
-        return obj
+        return cls.assemble(
+            model=bench_state["model"],
+            train_dataset=bench_state["train_dataset"],
+            device=device
+        )
 
     @classmethod
     def assemble(
