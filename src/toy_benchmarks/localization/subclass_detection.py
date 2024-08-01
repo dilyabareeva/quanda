@@ -226,7 +226,7 @@ class SubclassDetection(ToyBenchmark):
                 targets=targets,
             )
 
-            metric.update(targets, explanations)
+            metric.update(labels, explanations)
 
         return metric.compute()
 
