@@ -141,8 +141,6 @@ class SubclassDetection(ToyBenchmark):
             dataset_transform=bench_state["dataset_transform"],
             batch_size=batch_size,
             device=device,
-            *args,
-            **kwargs,
         )
 
     @classmethod
