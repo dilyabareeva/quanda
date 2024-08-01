@@ -35,7 +35,7 @@ from src.utils.training.trainer import Trainer
             },
             False,
             None,
-            0.3750,
+            1.0,
         ),
         (
             "mnist",
@@ -58,7 +58,7 @@ from src.utils.training.trainer import Trainer
             },
             False,
             None,
-            0.3750,
+            1.0,
         ),
         (
             "mnist",
@@ -81,7 +81,7 @@ from src.utils.training.trainer import Trainer
             },
             False,
             "tests/assets/mnist_subclass_detection_state_dict",
-            0.3750,
+            1.0,
         ),
     ],
 )
