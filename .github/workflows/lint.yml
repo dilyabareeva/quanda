@@ -1,5 +1,5 @@
 # .github/workflows/type-lint.yml
-name: Type-lint
+name: lint
 on: push
 jobs:
   type-lint:
