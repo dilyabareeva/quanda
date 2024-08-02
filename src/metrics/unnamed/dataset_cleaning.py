@@ -22,7 +22,7 @@ class DatasetCleaningMetric(GlobalMetric):
 
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         trainer: Union[L.Trainer, BaseTrainer],
         init_model: Optional[torch.nn.Module] = None,
@@ -56,7 +56,7 @@ class DatasetCleaningMetric(GlobalMetric):
     @classmethod
     def self_influence_based(
         cls,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         trainer: Union[L.Trainer, BaseTrainer],
@@ -84,7 +84,7 @@ class DatasetCleaningMetric(GlobalMetric):
     @classmethod
     def aggr_based(
         cls,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         trainer: Union[L.Trainer, BaseTrainer],
         aggregator_cls: Union[str, type],
@@ -132,11 +132,28 @@ class DatasetCleaningMetric(GlobalMetric):
 
         clean_dl = torch.utils.data.DataLoader(clean_subset, batch_size=32, shuffle=True)
 
-        self.trainer.fit(
-            model=self.init_model,  # type: ignore
-            train_dataloaders=clean_dl,
-            **self.trainer_fit_kwargs,
-        )
+        if isinstance(self.trainer, L.Trainer):
+            if not isinstance(self.init_model, L.LightningModule):
+                raise ValueError("Model should be a LightningModule if Trainer is a Lightning Trainer")
+
+            self.trainer.fit(
+                model=self.init_model,
+                train_dataloaders=clean_dl,
+                **self.trainer_fit_kwargs,
+            )
+
+        elif isinstance(self.trainer, BaseTrainer):
+            if not isinstance(self.init_model, torch.nn.Module):
+                raise ValueError("Model should be a torch.nn.Module if Trainer is a BaseTrainer")
+
+            self.trainer.fit(
+                model=self.init_model,
+                train_dataloaders=clean_dl,
+                **self.trainer_fit_kwargs,
+            )
+
+        else:
+            raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
         clean_accuracy = class_accuracy(self.model, clean_dl, self.device)
 
