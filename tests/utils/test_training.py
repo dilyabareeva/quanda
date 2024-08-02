@@ -10,7 +10,7 @@ from src.utils.training.trainer import Trainer
 @pytest.mark.utils
 @pytest.mark.parametrize(
     "test_id, init_model, dataloader, optimizer, lr, criterion, scheduler, scheduler_kwargs, \
-    max_epochs, val_loader, early_stopping, early_stopping_kwargs, mode",
+    max_epochs, val_dataloaders, early_stopping, early_stopping_kwargs, mode",
     [
         (
             "mnist",
@@ -54,7 +54,7 @@ def test_trainer(
     scheduler,
     scheduler_kwargs,
     max_epochs,
-    val_loader,
+    val_dataloaders,
     early_stopping,
     early_stopping_kwargs,
     mode,
@@ -85,8 +85,8 @@ def test_trainer(
         trainer = trainer.from_lightning_module(pl_module=pl_module)
     model = trainer.fit(
         model=model,
-        train_loader=dataloader,
-        val_loader=dataloader,
+        train_dataloaders=dataloader,
+        val_dataloaders=dataloader,
         trainer_fit_kwargs={"max_epochs": max_epochs},
     )
 

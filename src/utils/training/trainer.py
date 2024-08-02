@@ -13,8 +13,8 @@ class BaseTrainer(metaclass=abc.ABCMeta):
     def fit(
         self,
         model: torch.nn.Module,
-        train_loader: torch.utils.data.dataloader.DataLoader,
-        val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
+        train_dataloaders: torch.utils.data.dataloader.DataLoader,
+        val_dataloaders: Optional[torch.utils.data.dataloader.DataLoader] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
@@ -71,8 +71,8 @@ class Trainer(BaseTrainer):
     def fit(
         self,
         model: torch.nn.Module,
-        train_loader: torch.utils.data.dataloader.DataLoader,
-        val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
+        train_dataloaders: torch.utils.data.dataloader.DataLoader,
+        val_dataloaders: Optional[torch.utils.data.dataloader.DataLoader] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
@@ -98,7 +98,7 @@ class Trainer(BaseTrainer):
         if trainer_fit_kwargs is None:
             trainer_fit_kwargs = {}
         trainer = L.Trainer(**trainer_fit_kwargs)
-        trainer.fit(self.module, train_loader, val_loader)
+        trainer.fit(self.module, train_dataloaders, val_dataloaders)
 
         model.load_state_dict(self.module.model.state_dict())
 

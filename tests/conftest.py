@@ -8,6 +8,7 @@ from torch.utils.data import TensorDataset
 
 from src.utils.datasets.transformed.label_flipping import LabelFlippingDataset
 from src.utils.datasets.transformed.label_grouping import LabelGroupingDataset
+from src.utils.training.base_pl_module import BasicLightningModule
 from tests.models import LeNet
 
 MNIST_IMAGE_SIZE = 28
@@ -83,6 +84,22 @@ def load_mnist_model():
     model = LeNet()
     model.load_state_dict(torch.load("tests/assets/mnist", map_location="cpu", pickle_module=pickle))
     return model
+
+
+@pytest.fixture
+def load_mnist_pl_module():
+    """Load a pre-trained LeNet classification model (architecture at quantus/helpers/models)."""
+    model = LeNet()
+    model.load_state_dict(torch.load("tests/assets/mnist", map_location="cpu", pickle_module=pickle))
+
+    pl_module = BasicLightningModule(
+        model=model,
+        optimizer=torch.optim.SGD,
+        lr=0.01,
+        criterion=torch.nn.CrossEntropyLoss(),
+    )
+
+    return pl_module
 
 
 @pytest.fixture

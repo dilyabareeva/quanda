@@ -3,13 +3,14 @@ from typing import Callable, Dict, List, Optional, Union
 
 import torch
 from tqdm import tqdm
+import lightning as L
 
 from src.metrics.localization.mislabeling_detection import (
     MislabelingDetectionMetric,
 )
 from src.toy_benchmarks.base import ToyBenchmark
 from src.utils.datasets.transformed.label_flipping import LabelFlippingDataset
-from src.utils.training.trainer import BaseTrainer, Trainer
+from src.utils.training.trainer import BaseTrainer
 
 
 class MislabelingDetection(ToyBenchmark):
@@ -21,7 +22,7 @@ class MislabelingDetection(ToyBenchmark):
     ):
         super().__init__(device=device)
 
-        self.trainer: Optional[BaseTrainer] = None
+        self.trainer: Optional[L.Trainer, BaseTrainer] = None
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
         self.poisoned_dataset: LabelFlippingDataset
@@ -41,7 +42,7 @@ class MislabelingDetection(ToyBenchmark):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
-        trainer: Trainer,
+        trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         global_method: Union[str, type] = "self-influence",
@@ -59,9 +60,9 @@ class MislabelingDetection(ToyBenchmark):
 
         obj = cls(device=device)
 
-        obj.model = model.to(device)
         obj.trainer = trainer
         obj._generate(
+            model=model.to(device),
             train_dataset=train_dataset,
             val_dataset=val_dataset,
             p=p,
@@ -76,6 +77,7 @@ class MislabelingDetection(ToyBenchmark):
 
     def _generate(
         self,
+        model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
         dataset_transform: Optional[Callable],
@@ -120,10 +122,11 @@ class MislabelingDetection(ToyBenchmark):
         else:
             self.poisoned_val_dl = None
 
-        self.model = self.trainer.fit(
-            model=copy.deepcopy(self.model),
-            train_loader=self.poisoned_train_dl,
-            val_loader=self.poisoned_val_dl,
+        self.model = copy.deepcopy(model)
+        self.trainer.fit(
+            model=self.model,
+            train_dataloaders=self.poisoned_train_dl,
+            val_dataloaders=self.poisoned_val_dl,
             trainer_fit_kwargs=trainer_fit_kwargs,
         )
 

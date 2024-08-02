@@ -2,10 +2,11 @@ from typing import Optional, Union
 
 import torch
 from tqdm import tqdm
+import lightning as L
 
 from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
 from src.toy_benchmarks.base import ToyBenchmark
-from src.utils.training.trainer import Trainer
+from src.utils.training.trainer import BaseTrainer
 
 
 class DatasetCleaning(ToyBenchmark):
@@ -17,8 +18,8 @@ class DatasetCleaning(ToyBenchmark):
     ):
         super().__init__(device=device)
 
-        self.model: torch.nn.Module
-        self.train_dataset: torch.utils.data.Dataset
+        self.model: Optional[torch.nn.Module] = None
+        self.train_dataset: Optional[torch.utils.data.Dataset] = None
 
     @classmethod
     def generate(
@@ -85,7 +86,7 @@ class DatasetCleaning(ToyBenchmark):
         self,
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
-        trainer: Trainer,
+        trainer: Union[L.Trainer, BaseTrainer],
         use_predictions: bool = False,
         expl_kwargs: Optional[dict] = None,
         trainer_fit_kwargs: Optional[dict] = None,

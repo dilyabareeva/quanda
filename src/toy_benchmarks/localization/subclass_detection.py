@@ -3,6 +3,7 @@ from typing import Callable, Dict, Optional, Union
 
 import torch
 from tqdm import tqdm
+import lightning as L
 
 from src.metrics.localization.class_detection import ClassDetectionMetric
 from src.toy_benchmarks.base import ToyBenchmark
@@ -10,7 +11,7 @@ from src.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
 )
-from src.utils.training.trainer import BaseTrainer, Trainer
+from src.utils.training.trainer import BaseTrainer
 
 
 class SubclassDetection(ToyBenchmark):
@@ -22,7 +23,7 @@ class SubclassDetection(ToyBenchmark):
     ):
         super().__init__(device=device)
 
-        self.trainer: Optional[BaseTrainer] = None
+        self.trainer: Optional[L.Trainer, BaseTrainer] = None
         self.model: torch.nn.Module
         self.group_model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
@@ -39,7 +40,7 @@ class SubclassDetection(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        trainer: Trainer,
+        trainer: Union[L.Trainer, BaseTrainer],
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
         n_classes: int = 10,
@@ -57,7 +58,7 @@ class SubclassDetection(ToyBenchmark):
         """
 
         obj = cls(device=device)
-        trainer_fit_kwargs = trainer_fit_kwargs or {"max_epochs": 5}
+        trainer_fit_kwargs = trainer_fit_kwargs or {}
 
         obj.model = model
         obj.trainer = trainer
@@ -123,11 +124,13 @@ class SubclassDetection(ToyBenchmark):
         else:
             self.grouped_val_dl = None
 
-        self.group_model = self.trainer.fit(
-            model=copy.deepcopy(self.model),
-            train_loader=self.grouped_train_dl,
-            val_loader=self.grouped_val_dl,
-            trainer_fit_kwargs=trainer_fit_kwargs,
+        self.group_model = copy.deepcopy(self.model)
+
+        self.trainer.fit(
+            model=self.group_model,
+            train_dataloaders=self.grouped_train_dl,
+            val_dataloaders=self.grouped_val_dl,
+            **trainer_fit_kwargs,
         )
 
     @classmethod

@@ -54,13 +54,13 @@ def main():
     )
 
     train_set = torchvision.datasets.CIFAR10(root="./tutorials/data", train=True, download=True, transform=normalize)
-    train_loader = DataLoader(train_set, batch_size=100, shuffle=True, num_workers=8)
+    train_dataloader = DataLoader(train_set, batch_size=100, shuffle=True, num_workers=8)
 
     # we split held out data into test and validation set
     held_out = torchvision.datasets.CIFAR10(root="./tutorials/data", train=False, download=True, transform=normalize)
     test_set, val_set = torch.utils.data.random_split(held_out, [0.1, 0.9], generator=RNG)
     test_loader = DataLoader(test_set, batch_size=100, shuffle=False, num_workers=8)
-    # val_loader = DataLoader(val_set, batch_size=100, shuffle=False, num_workers=8)
+    # val_dataloader = DataLoader(val_set, batch_size=100, shuffle=False, num_workers=8)
 
     # download pre-trained weights
     local_path = "./tutorials/model_weights_resnet18_cifar10.pth"
@@ -103,7 +103,7 @@ def main():
             correct += predicted.eq(targets).sum().item()
         return correct / total
 
-    print(f"Train set accuracy: {100.0 * accuracy(model, train_loader):0.1f}%")
+    print(f"Train set accuracy: {100.0 * accuracy(model, train_dataloader):0.1f}%")
     print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
 
     # ++++++++++++++++++++++++++++++++++++++++++

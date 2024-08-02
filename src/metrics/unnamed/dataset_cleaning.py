@@ -2,6 +2,7 @@ import copy
 from typing import Optional, Union
 
 import torch
+import lightning as L
 
 from src.metrics.base import GlobalMetric
 from src.utils.common import class_accuracy
@@ -23,7 +24,7 @@ class DatasetCleaningMetric(GlobalMetric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        trainer: BaseTrainer,
+        trainer: Union[L.Trainer, BaseTrainer],
         trainer_fit_kwargs: Optional[dict] = None,
         global_method: Union[str, type] = "self-influence",
         top_k: int = 50,
@@ -59,7 +60,7 @@ class DatasetCleaningMetric(GlobalMetric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
-        trainer: BaseTrainer,
+        trainer: Union[L.Trainer, BaseTrainer],
         expl_kwargs: Optional[dict] = None,
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
@@ -84,7 +85,7 @@ class DatasetCleaningMetric(GlobalMetric):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        trainer: BaseTrainer,
+        trainer: Union[L.Trainer, BaseTrainer],
         aggregator_cls: Union[str, type],
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
@@ -128,9 +129,11 @@ class DatasetCleaningMetric(GlobalMetric):
 
         clean_dl = torch.utils.data.DataLoader(clean_subset, batch_size=32, shuffle=True)
 
-        self.clean_model = self.trainer.fit(
-            model=copy.deepcopy(self.model),
-            train_loader=clean_dl,
+        self.clean_model = copy.deepcopy(self.model)
+
+        self.trainer.fit(
+            model=self.clean_model,
+            train_dataloaders=clean_dl,
             trainer_fit_kwargs=self.trainer_fit_kwargs,
         )
 
