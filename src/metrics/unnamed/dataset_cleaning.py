@@ -134,7 +134,6 @@ class DatasetCleaningMetric(GlobalMetric):
         self.trainer.fit(
             model=self.clean_model,
             train_dataloaders=clean_dl,
-            **self.trainer_fit_kwargs,
         )
 
         self.clean_accuracy = class_accuracy(self.model, clean_dl, self.device)

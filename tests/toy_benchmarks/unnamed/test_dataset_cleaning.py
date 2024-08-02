@@ -40,7 +40,7 @@ from src.utils.training.trainer import Trainer
         (
             "mnist2",
             "assemble",
-            "load_mnist_grouped_model",
+            "load_mnist_model",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -58,7 +58,7 @@ from src.utils.training.trainer import Trainer
             },
             False,
             None,
-            -0.875,
+            0.0,
         ),
         (
             "mnist3",
@@ -131,14 +131,12 @@ def test_dataset_cleaning(
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
-    pl_module = BasicLightningModule(
-        model=model,
-        optimizer=optimizer,
-        lr=lr,
-        criterion=criterion,
-    )
-
-    trainer = Trainer.from_lightning_module(pl_module)
+    trainer = Trainer(
+            max_epochs=max_epochs,
+            optimizer=optimizer,
+            lr=lr,
+            criterion=criterion,
+        )
     score = dst_eval.evaluate(
         expl_dataset=dataset,
         explainer_cls=explainer_cls,

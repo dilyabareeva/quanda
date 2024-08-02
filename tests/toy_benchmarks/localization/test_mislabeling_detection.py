@@ -127,14 +127,12 @@ def test_mislabeling_detection(
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "generate":
-        pl_module = BasicLightningModule(
-            model=model,
+        trainer = Trainer(
+            max_epochs=max_epochs,
             optimizer=optimizer,
             lr=lr,
             criterion=criterion,
         )
-
-        trainer = Trainer.from_lightning_module(pl_module)
 
         dst_eval = MislabelingDetection.generate(
             model=model,

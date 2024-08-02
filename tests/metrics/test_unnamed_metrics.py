@@ -101,13 +101,12 @@ def test_dataset_cleaning(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
 
-    pl_module = BasicLightningModule(
-        model=model,
-        optimizer=optimizer,
-        lr=lr,
-        criterion=criterion,
-    )
-    trainer = Trainer.from_lightning_module(pl_module)
+    trainer = Trainer(
+            max_epochs=max_epochs,
+            optimizer=optimizer,
+            lr=lr,
+            criterion=criterion,
+        )
 
     if global_method != "self-influence":
         metric = DatasetCleaningMetric(
@@ -189,7 +188,12 @@ def test_dataset_cleaning_self_influence_based(
         lr=lr,
         criterion=criterion,
     )
-    trainer = Trainer.from_lightning_module(pl_module)
+    trainer = Trainer(
+        max_epochs=max_epochs,
+            optimizer=optimizer,
+            lr=lr,
+            criterion=criterion,
+        )
 
     expl_kwargs = expl_kwargs or {}
 
@@ -247,13 +251,12 @@ def test_dataset_cleaning_aggr_based(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
 
-    pl_module = BasicLightningModule(
-        model=model,
-        optimizer=optimizer,
-        lr=lr,
-        criterion=criterion,
-    )
-    trainer = Trainer.from_lightning_module(pl_module)
+    trainer = Trainer(
+        max_epochs=max_epochs,
+            optimizer=optimizer,
+            lr=lr,
+            criterion=criterion,
+        )
 
     metric = DatasetCleaningMetric.aggr_based(
         model=model,
