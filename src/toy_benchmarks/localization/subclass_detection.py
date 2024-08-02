@@ -1,9 +1,9 @@
 import copy
 from typing import Callable, Dict, Optional, Union
 
+import lightning as L
 import torch
 from tqdm import tqdm
-import lightning as L
 
 from src.metrics.localization.class_detection import ClassDetectionMetric
 from src.toy_benchmarks.base import ToyBenchmark
@@ -23,7 +23,7 @@ class SubclassDetection(ToyBenchmark):
     ):
         super().__init__(device=device)
 
-        self.trainer: Optional[L.Trainer, BaseTrainer] = None
+        self.trainer: Optional[Union[L.Trainer, BaseTrainer]] = None
         self.model: torch.nn.Module
         self.group_model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
@@ -126,8 +126,9 @@ class SubclassDetection(ToyBenchmark):
 
         self.group_model = copy.deepcopy(self.model)
 
+        trainer_fit_kwargs = trainer_fit_kwargs or {}
         self.trainer.fit(
-            model=self.group_model,
+            model=self.group_model,  # type: ignore
             train_dataloaders=self.grouped_train_dl,
             val_dataloaders=self.grouped_val_dl,
             **trainer_fit_kwargs,

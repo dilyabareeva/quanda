@@ -1,9 +1,9 @@
 import copy
 from typing import Optional, Union
 
+import lightning as L
 import torch
 from tqdm import tqdm
-import lightning as L
 
 from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
 from src.toy_benchmarks.base import ToyBenchmark
@@ -19,8 +19,8 @@ class DatasetCleaning(ToyBenchmark):
     ):
         super().__init__(device=device)
 
-        self.model: Optional[torch.nn.Module] = None
-        self.train_dataset: Optional[torch.utils.data.Dataset] = None
+        self.model: torch.nn.Module
+        self.train_dataset: torch.utils.data.Dataset
 
     @classmethod
     def generate(

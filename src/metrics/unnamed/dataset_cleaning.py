@@ -1,8 +1,8 @@
 import copy
 from typing import Optional, Union
 
-import torch
 import lightning as L
+import torch
 
 from src.metrics.base import GlobalMetric
 from src.utils.common import class_accuracy
@@ -49,7 +49,7 @@ class DatasetCleaningMetric(GlobalMetric):
         )
         self.top_k = min(top_k, self.dataset_length - 1)
         self.trainer = trainer
-        self.trainer_fit_kwargs = trainer_fit_kwargs
+        self.trainer_fit_kwargs = trainer_fit_kwargs or {}
 
         self.init_model = init_model or copy.deepcopy(model)
 
@@ -133,7 +133,7 @@ class DatasetCleaningMetric(GlobalMetric):
         clean_dl = torch.utils.data.DataLoader(clean_subset, batch_size=32, shuffle=True)
 
         self.trainer.fit(
-            model=self.init_model,
+            model=self.init_model,  # type: ignore
             train_dataloaders=clean_dl,
             **self.trainer_fit_kwargs,
         )

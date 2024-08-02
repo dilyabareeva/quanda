@@ -1,5 +1,6 @@
-import pytest
 import lightning as L
+import pytest
+
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.toy_benchmarks.localization.subclass_detection import (
     SubclassDetection,

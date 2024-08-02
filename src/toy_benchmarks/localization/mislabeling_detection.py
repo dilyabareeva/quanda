@@ -1,9 +1,9 @@
 import copy
 from typing import Callable, Dict, List, Optional, Union
 
+import lightning as L
 import torch
 from tqdm import tqdm
-import lightning as L
 
 from src.metrics.localization.mislabeling_detection import (
     MislabelingDetectionMetric,
@@ -22,7 +22,7 @@ class MislabelingDetection(ToyBenchmark):
     ):
         super().__init__(device=device)
 
-        self.trainer: Optional[L.Trainer, BaseTrainer] = None
+        self.trainer: Optional[Union[L.Trainer, BaseTrainer]] = None
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
         self.poisoned_dataset: LabelFlippingDataset
@@ -123,8 +123,10 @@ class MislabelingDetection(ToyBenchmark):
             self.poisoned_val_dl = None
 
         self.model = copy.deepcopy(model)
+
+        trainer_fit_kwargs = trainer_fit_kwargs or {}
         self.trainer.fit(
-            model=self.model,
+            model=self.model,  # type: ignore
             train_dataloaders=self.poisoned_train_dl,
             val_dataloaders=self.poisoned_val_dl,
             **trainer_fit_kwargs,

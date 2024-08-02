@@ -1,6 +1,5 @@
-import pytest
-
 import lightning as L
+import pytest
 
 from src.explainers.aggregators import SumAggregator
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
