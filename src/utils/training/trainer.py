@@ -12,6 +12,7 @@ class BaseTrainer(metaclass=abc.ABCMeta):
     @abstractmethod
     def fit(
         self,
+        model: torch.nn.Module,
         train_loader: torch.utils.data.dataloader.DataLoader,
         val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
         trainer_fit_kwargs: Optional[dict] = None,
@@ -26,13 +27,17 @@ class BaseTrainer(metaclass=abc.ABCMeta):
 
 class Trainer(BaseTrainer):
     def __init__(self):
-        self.model: torch.nn.Module
         self.module: Optional[L.LightningModule] = None
+        self.optimizer: Optional[Callable]
+        self.lr: Optional[float]
+        self.criterion: Optional[torch.nn.modules.loss._Loss]
+        self.scheduler: Optional[Callable]
+        self.optimizer_kwargs: Optional[dict]
+        self.scheduler_kwargs: Optional[dict]
 
     @classmethod
     def from_arguments(
         cls,
-        model: torch.nn.Module,
         optimizer: Callable,
         lr: float,
         criterion: torch.nn.modules.loss._Loss,
@@ -40,56 +45,61 @@ class Trainer(BaseTrainer):
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
     ):
+        cls.optimizer = optimizer
+        cls.lr = lr
+        cls.criterion = criterion
+        cls.scheduler = scheduler
+        cls.optimizer_kwargs = optimizer_kwargs or {}
+        cls.scheduler_kwargs = scheduler_kwargs or {}
+        cls.module = None
+
         obj = cls.__new__(cls)
         super(Trainer, obj).__init__()
-        obj.model = model
-        if optimizer_kwargs is None:
-            optimizer_kwargs = {}
-        obj.module = BasicLightningModule(
-            model=model,
-            optimizer=optimizer,
-            lr=lr,
-            criterion=criterion,
-            optimizer_kwargs=optimizer_kwargs,
-            scheduler=scheduler,
-            scheduler_kwargs=scheduler_kwargs,
-        )
+
         return obj
 
     @classmethod
     def from_lightning_module(
         cls,
-        model: torch.nn.Module,
         pl_module: L.LightningModule,
     ):
         obj = cls.__new__(cls)
         super(Trainer, obj).__init__()
-        obj.model = model
         obj.module = pl_module
         return obj
 
     def fit(
         self,
+        model: torch.nn.Module,
         train_loader: torch.utils.data.dataloader.DataLoader,
         val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
     ):
-        if self.model is None:
-            raise ValueError(
-                "Lightning module not initialized. Please initialize using from_arguments or from_lightning_module"
-            )
         if self.module is None:
-            raise ValueError("Model not initialized. Please initialize using from_arguments or from_lightning_module")
+            if self.optimizer is None:
+                raise ValueError("Optimizer not initialized. Please initialize optimizer using from_arguments")
+            if self.lr is None:
+                raise ValueError("Learning rate not initialized. Please initialize lr using from_arguments")
+            if self.criterion is None:
+                raise ValueError("Criterion not initialized. Please initialize criterion using from_arguments")
+
+            self.module = BasicLightningModule(
+                model=model,
+                optimizer=self.optimizer,
+                lr=self.lr,
+                criterion=self.criterion,
+                optimizer_kwargs=self.optimizer_kwargs,
+                scheduler=self.scheduler,
+                scheduler_kwargs=self.scheduler_kwargs,
+            )
 
         if trainer_fit_kwargs is None:
             trainer_fit_kwargs = {}
         trainer = L.Trainer(**trainer_fit_kwargs)
         trainer.fit(self.module, train_loader, val_loader)
 
-        self.model.load_state_dict(self.module.model.state_dict())
-        return self.model
+        model.load_state_dict(self.module.model.state_dict())
 
-    def get_model(self) -> torch.nn.Module:
-        return self.model
+        return model

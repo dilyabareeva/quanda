@@ -136,7 +136,7 @@ def test_dataset_cleaning(
         criterion=criterion,
     )
 
-    trainer = Trainer.from_lightning_module(model, pl_module)
+    trainer = Trainer.from_lightning_module(pl_module)
     score = dst_eval.evaluate(
         expl_dataset=dataset,
         explainer_cls=explainer_cls,

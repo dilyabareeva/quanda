@@ -120,7 +120,7 @@ def test_subclass_detection(
             criterion=criterion,
         )
 
-        trainer = Trainer.from_lightning_module(model, pl_module)
+        trainer = Trainer.from_lightning_module(pl_module)
 
         dst_eval = SubclassDetection.generate(
             model=model,

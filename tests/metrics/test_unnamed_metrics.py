@@ -107,7 +107,7 @@ def test_dataset_cleaning(
         lr=lr,
         criterion=criterion,
     )
-    trainer = Trainer.from_lightning_module(model, pl_module)
+    trainer = Trainer.from_lightning_module(pl_module)
 
     if global_method != "self-influence":
         metric = DatasetCleaningMetric(
@@ -189,7 +189,7 @@ def test_dataset_cleaning_self_influence_based(
         lr=lr,
         criterion=criterion,
     )
-    trainer = Trainer.from_lightning_module(model, pl_module)
+    trainer = Trainer.from_lightning_module(pl_module)
 
     expl_kwargs = expl_kwargs or {}
 
@@ -253,7 +253,7 @@ def test_dataset_cleaning_aggr_based(
         lr=lr,
         criterion=criterion,
     )
-    trainer = Trainer.from_lightning_module(model, pl_module)
+    trainer = Trainer.from_lightning_module(pl_module)
 
     metric = DatasetCleaningMetric.aggr_based(
         model=model,

@@ -1,3 +1,4 @@
+import copy
 from typing import Callable, Dict, List, Optional, Union
 
 import torch
@@ -120,6 +121,7 @@ class MislabelingDetection(ToyBenchmark):
             self.poisoned_val_dl = None
 
         self.model = self.trainer.fit(
+            model=copy.deepcopy(self.model),
             train_loader=self.poisoned_train_dl,
             val_loader=self.poisoned_val_dl,
             trainer_fit_kwargs=trainer_fit_kwargs,

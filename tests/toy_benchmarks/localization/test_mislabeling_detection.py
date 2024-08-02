@@ -132,7 +132,7 @@ def test_mislabeling_detection(
             criterion=criterion,
         )
 
-        trainer = Trainer.from_lightning_module(model, pl_module)
+        trainer = Trainer.from_lightning_module(pl_module)
 
         dst_eval = MislabelingDetection.generate(
             model=model,

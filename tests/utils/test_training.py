@@ -69,7 +69,6 @@ def test_trainer(
     trainer = Trainer()
     if mode == "from_arguments":
         trainer = trainer.from_arguments(
-            model=model,
             optimizer=optimizer,
             lr=lr,
             criterion=criterion,
@@ -83,10 +82,11 @@ def test_trainer(
             lr=lr,
             criterion=criterion,
         )
-        trainer = trainer.from_lightning_module(model=model, pl_module=pl_module)
+        trainer = trainer.from_lightning_module(pl_module=pl_module)
     model = trainer.fit(
-        dataloader,
-        dataloader,
+        model=model,
+        train_loader=dataloader,
+        val_loader=dataloader,
         trainer_fit_kwargs={"max_epochs": max_epochs},
     )
 

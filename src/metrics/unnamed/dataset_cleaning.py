@@ -1,3 +1,4 @@
+import copy
 from typing import Optional, Union
 
 import torch
@@ -128,6 +129,7 @@ class DatasetCleaningMetric(GlobalMetric):
         clean_dl = torch.utils.data.DataLoader(clean_subset, batch_size=32, shuffle=True)
 
         self.clean_model = self.trainer.fit(
+            model=copy.deepcopy(self.model),
             train_loader=clean_dl,
             trainer_fit_kwargs=self.trainer_fit_kwargs,
         )

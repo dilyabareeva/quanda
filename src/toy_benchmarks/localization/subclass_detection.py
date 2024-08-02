@@ -1,3 +1,4 @@
+import copy
 from typing import Callable, Dict, Optional, Union
 
 import torch
@@ -22,6 +23,7 @@ class SubclassDetection(ToyBenchmark):
         super().__init__(device=device)
 
         self.trainer: Optional[BaseTrainer] = None
+        self.model: torch.nn.Module
         self.group_model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
@@ -35,6 +37,7 @@ class SubclassDetection(ToyBenchmark):
     @classmethod
     def generate(
         cls,
+        model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         trainer: Trainer,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -56,6 +59,7 @@ class SubclassDetection(ToyBenchmark):
         obj = cls(device=device)
         trainer_fit_kwargs = trainer_fit_kwargs or {"max_epochs": 5}
 
+        obj.model = model
         obj.trainer = trainer
         obj._generate(
             train_dataset=train_dataset,
@@ -120,6 +124,7 @@ class SubclassDetection(ToyBenchmark):
             self.grouped_val_dl = None
 
         self.group_model = self.trainer.fit(
+            model=copy.deepcopy(self.model),
             train_loader=self.grouped_train_dl,
             val_loader=self.grouped_val_dl,
             trainer_fit_kwargs=trainer_fit_kwargs,
