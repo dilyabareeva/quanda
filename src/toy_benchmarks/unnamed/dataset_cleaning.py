@@ -1,3 +1,4 @@
+import copy
 from typing import Optional, Union
 
 import torch
@@ -87,6 +88,7 @@ class DatasetCleaning(ToyBenchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         trainer: Union[L.Trainer, BaseTrainer],
+        init_model: Optional[torch.nn.Module] = None,
         use_predictions: bool = False,
         expl_kwargs: Optional[dict] = None,
         trainer_fit_kwargs: Optional[dict] = None,
@@ -99,6 +101,9 @@ class DatasetCleaning(ToyBenchmark):
         *args,
         **kwargs,
     ):
+
+        init_model = init_model or copy.deepcopy(self.model)
+
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(
             model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
@@ -108,6 +113,7 @@ class DatasetCleaning(ToyBenchmark):
         if global_method != "self-influence":
             metric = DatasetCleaningMetric.aggr_based(
                 model=self.model,
+                init_model=init_model,
                 train_dataset=self.train_dataset,
                 aggregator_cls=global_method,
                 trainer=trainer,
@@ -139,6 +145,7 @@ class DatasetCleaning(ToyBenchmark):
         else:
             metric = DatasetCleaningMetric.self_influence_based(
                 model=self.model,
+                init_model=init_model,
                 train_dataset=self.train_dataset,
                 trainer=trainer,
                 trainer_fit_kwargs=trainer_fit_kwargs,
