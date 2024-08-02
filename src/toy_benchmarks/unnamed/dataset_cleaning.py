@@ -101,7 +101,6 @@ class DatasetCleaning(ToyBenchmark):
         *args,
         **kwargs,
     ):
-
         init_model = init_model or copy.deepcopy(self.model)
 
         expl_kwargs = expl_kwargs or {}

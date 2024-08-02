@@ -36,7 +36,6 @@ class Trainer(BaseTrainer):
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
     ):
-
         self.optimizer = optimizer
         self.lr = lr
         self.max_epochs = max_epochs
@@ -55,7 +54,6 @@ class Trainer(BaseTrainer):
         *args,
         **kwargs,
     ):
-
         module = BasicLightningModule(
             model=model,
             optimizer=self.optimizer,

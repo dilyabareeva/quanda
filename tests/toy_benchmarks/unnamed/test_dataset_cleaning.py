@@ -5,7 +5,6 @@ import lightning as L
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.toy_benchmarks.unnamed.dataset_cleaning import DatasetCleaning
 from src.utils.functions.similarities import cosine_similarity
-from src.utils.training.base_pl_module import BasicLightningModule
 from src.utils.training.trainer import Trainer
 
 
@@ -132,11 +131,11 @@ def test_dataset_cleaning(
         raise ValueError(f"Invalid init_method: {init_method}")
 
     trainer = Trainer(
-            max_epochs=max_epochs,
-            optimizer=optimizer,
-            lr=lr,
-            criterion=criterion,
-        )
+        max_epochs=max_epochs,
+        optimizer=optimizer,
+        lr=lr,
+        criterion=criterion,
+    )
     score = dst_eval.evaluate(
         expl_dataset=dataset,
         explainer_cls=explainer_cls,
