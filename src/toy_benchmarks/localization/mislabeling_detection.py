@@ -127,7 +127,7 @@ class MislabelingDetection(ToyBenchmark):
             model=self.model,
             train_dataloaders=self.poisoned_train_dl,
             val_dataloaders=self.poisoned_val_dl,
-            trainer_fit_kwargs=trainer_fit_kwargs,
+            **trainer_fit_kwargs,
         )
 
     @property

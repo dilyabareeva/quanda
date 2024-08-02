@@ -1,5 +1,7 @@
 import pytest
 
+import lightning as L
+
 from src.explainers.aggregators import SumAggregator
 from src.explainers.wrappers.captum_influence import CaptumSimilarity
 from src.toy_benchmarks.localization.mislabeling_detection import (
@@ -156,6 +158,80 @@ def test_mislabeling_detection(
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
+
+    score = dst_eval.evaluate(
+        expl_dataset=dataset,
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
+        cache_dir=str(tmp_path),
+        model_id="default_model_id",
+        use_predictions=use_pred,
+        batch_size=batch_size,
+        device="cpu",
+    )["score"]
+
+    assert score == expected_score
+
+
+@pytest.mark.toy_benchmarks
+@pytest.mark.parametrize(
+    "test_id, pl_module, max_epochs, dataset, n_classes, p, seed, "
+    "global_method, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
+    [
+        (
+            "mnist",
+            "load_mnist_pl_module",
+            3,
+            "load_mnist_dataset",
+            10,
+            1.0,
+            27,
+            "self-influence",
+            8,
+            CaptumSimilarity,
+            {"layers": "model.fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            False,
+            None,
+            0.4921875,
+        ),
+    ],
+)
+def test_mislabeling_detection_generate_from_pl_module(
+    test_id,
+    pl_module,
+    max_epochs,
+    dataset,
+    n_classes,
+    p,
+    seed,
+    batch_size,
+    global_method,
+    explainer_cls,
+    expl_kwargs,
+    use_pred,
+    load_path,
+    expected_score,
+    tmp_path,
+    request,
+):
+    pl_module = request.getfixturevalue(pl_module)
+    dataset = request.getfixturevalue(dataset)
+
+    trainer = L.Trainer(max_epochs=max_epochs)
+
+    dst_eval = MislabelingDetection.generate(
+        model=pl_module,
+        trainer=trainer,
+        train_dataset=dataset,
+        n_classes=n_classes,
+        p=p,
+        global_method=global_method,
+        class_to_group="random",
+        trainer_fit_kwargs={},
+        seed=seed,
+        batch_size=batch_size,
+        device="cpu",
+    )
 
     score = dst_eval.evaluate(
         expl_dataset=dataset,
