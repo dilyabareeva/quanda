@@ -1,10 +1,10 @@
 import pytest
 
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.randomization.model_randomization import (
+from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
+from quanda.toy_benchmarks.randomization.model_randomization import (
     ModelRandomization,
 )
-from src.utils.functions.similarities import cosine_similarity
+from quanda.utils.functions.similarities import cosine_similarity
 
 
 @pytest.mark.toy_benchmarks

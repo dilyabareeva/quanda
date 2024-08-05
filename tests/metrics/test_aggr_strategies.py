@@ -1,13 +1,13 @@
 import pytest
 import torch
 
-from src.explainers.aggregators import AbsSumAggregator
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.metrics.aggr_strategies import (
+from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
+from quanda.metrics.aggr_strategies import (
     GlobalAggrStrategy,
     GlobalSelfInfluenceStrategy,
 )
-from src.utils.functions.similarities import cosine_similarity
+from quanda.metrics.aggregators import AbsSumAggregator
+from quanda.utils.functions.similarities import cosine_similarity
 
 
 @pytest.mark.aggr_strategies

@@ -1,6 +1,8 @@
 import pytest
 
-from src.utils.datasets.transformed.label_grouping import LabelGroupingDataset
+from quanda.utils.datasets.transformed.label_grouping import (
+    LabelGroupingDataset,
+)
 
 
 @pytest.mark.utils

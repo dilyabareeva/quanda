@@ -16,19 +16,15 @@ from torchvision.models import resnet18
 from torchvision.utils import make_grid
 from tqdm import tqdm
 
-from src.explainers.wrappers.captum_influence import (
+from quanda.explainers.wrappers import (
     CaptumSimilarity,
     captum_similarity_explain,
 )
-from src.metrics.localization.class_detection import ClassDetectionMetric
-from src.metrics.randomization.model_randomization import (
-    ModelRandomizationMetric,
-)
-from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
-from src.metrics.unnamed.top_k_overlap import TopKOverlapMetric
-from src.toy_benchmarks.subclass_detection import SubclassDetection
-from src.utils.training.base_pl_module import BasicLightningModule
-from src.utils.training.trainer import Trainer
+from quanda.metrics.localization import ClassDetectionMetric
+from quanda.metrics.randomization import ModelRandomizationMetric
+from quanda.metrics.unnamed import DatasetCleaningMetric, TopKOverlapMetric
+from quanda.toy_benchmarks import SubclassDetection
+from quanda.utils.training import BasicLightningModule, Trainer
 
 DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"
 torch.set_float32_matmul_precision("medium")

@@ -1,6 +1,8 @@
 import pytest
 
-from src.utils.datasets.transformed.label_flipping import LabelFlippingDataset
+from quanda.utils.datasets.transformed.label_flipping import (
+    LabelFlippingDataset,
+)
 
 
 @pytest.mark.utils

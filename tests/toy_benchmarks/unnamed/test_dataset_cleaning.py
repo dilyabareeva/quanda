@@ -1,10 +1,10 @@
 import pytest
 
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.unnamed.dataset_cleaning import DatasetCleaning
-from src.utils.functions.similarities import cosine_similarity
-from src.utils.training.base_pl_module import BasicLightningModule
-from src.utils.training.trainer import Trainer
+from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
+from quanda.toy_benchmarks.unnamed.dataset_cleaning import DatasetCleaning
+from quanda.utils.functions.similarities import cosine_similarity
+from quanda.utils.training.base_pl_module import BasicLightningModule
+from quanda.utils.training.trainer import Trainer
 
 
 @pytest.mark.toy_benchmarks

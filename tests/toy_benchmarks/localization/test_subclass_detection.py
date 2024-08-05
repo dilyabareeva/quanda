@@ -1,12 +1,12 @@
 import pytest
 
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.localization.subclass_detection import (
+from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
+from quanda.toy_benchmarks.localization.subclass_detection import (
     SubclassDetection,
 )
-from src.utils.functions.similarities import cosine_similarity
-from src.utils.training.base_pl_module import BasicLightningModule
-from src.utils.training.trainer import Trainer
+from quanda.utils.functions.similarities import cosine_similarity
+from quanda.utils.training.base_pl_module import BasicLightningModule
+from quanda.utils.training.trainer import Trainer
 
 
 @pytest.mark.toy_benchmarks
