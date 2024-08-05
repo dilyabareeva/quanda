@@ -13,6 +13,7 @@ dependencies = [
     "lightning>=1.4.0",
     "torchmetrics>=1.4.0",
     "tqdm>=4.0.0",
+    "annoy>=1.17.0",
 ]
 dynamic = ["version"]
 
