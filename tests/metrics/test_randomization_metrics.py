@@ -1,12 +1,11 @@
 import pytest
 import torch
 
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.metrics.randomization.model_randomization import (
+from src.explainers.wrappers import CaptumSimilarity
+from src.metrics.randomization import (
     ModelRandomizationMetric,
 )
-from src.utils.functions.correlations import correlation_functions
-from src.utils.functions.similarities import cosine_similarity
+from src.utils.functions import correlation_functions, cosine_similarity
 
 
 @pytest.mark.randomization_metrics

@@ -3,8 +3,7 @@ import copy
 import pytest
 import torch
 
-from src.utils.training.base_pl_module import BasicLightningModule
-from src.utils.training.trainer import Trainer
+from src.utils.training import Trainer, BasicLightningModule
 
 
 @pytest.mark.utils

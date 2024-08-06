@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from src.metrics.aggregators import AbsSumAggregator, SumAggregator
+from src.metrics import AbsSumAggregator, SumAggregator
 
 
 @pytest.mark.aggregators

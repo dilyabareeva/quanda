@@ -1,6 +1,6 @@
 import pytest
 
-from src.utils.datasets.transformed.label_flipping import (
+from src.utils.datasets.transformed import (
     LabelFlippingDataset,
 )
 

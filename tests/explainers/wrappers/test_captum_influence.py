@@ -10,7 +10,7 @@ from captum.influence._core.arnoldi_influence_function import (  # type: ignore
 )
 from torch.utils.data import TensorDataset
 
-from src.explainers.wrappers.captum_influence import (
+from src.explainers.wrappers import (
     CaptumArnoldi,
     CaptumSimilarity,
     CaptumTracInCP,

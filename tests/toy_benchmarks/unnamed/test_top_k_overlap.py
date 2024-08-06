@@ -1,8 +1,8 @@
 import pytest
 
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.unnamed.top_k_overlap import TopKOverlap
-from src.utils.functions.similarities import cosine_similarity
+from src.explainers.wrappers import CaptumSimilarity
+from src.toy_benchmarks.unnamed import TopKOverlap
+from src.utils.functions import cosine_similarity
 
 
 @pytest.mark.toy_benchmarks

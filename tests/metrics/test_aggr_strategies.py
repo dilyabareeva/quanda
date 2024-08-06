@@ -1,13 +1,13 @@
 import pytest
 import torch
 
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.metrics.aggr_strategies import (
+from src.explainers.wrappers import CaptumSimilarity
+from src.metrics import (
+    AbsSumAggregator,
     GlobalAggrStrategy,
     GlobalSelfInfluenceStrategy,
 )
-from src.metrics.aggregators import AbsSumAggregator
-from src.utils.functions.similarities import cosine_similarity
+from src.utils.functions import cosine_similarity
 
 
 @pytest.mark.aggr_strategies

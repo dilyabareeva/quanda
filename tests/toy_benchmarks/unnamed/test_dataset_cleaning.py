@@ -1,10 +1,9 @@
 import pytest
 
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.unnamed.dataset_cleaning import DatasetCleaning
-from src.utils.functions.similarities import cosine_similarity
-from src.utils.training.base_pl_module import BasicLightningModule
-from src.utils.training.trainer import Trainer
+from src.explainers.wrappers import CaptumSimilarity
+from src.toy_benchmarks.unnamed import DatasetCleaning
+from src.utils.functions import cosine_similarity
+from src.utils.training import Trainer, BasicLightningModule
 
 
 @pytest.mark.toy_benchmarks
