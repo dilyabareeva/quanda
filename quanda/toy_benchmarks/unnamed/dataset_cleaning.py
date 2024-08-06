@@ -123,20 +123,20 @@ class DatasetCleaning(ToyBenchmark):
             pbar = tqdm(expl_dl)
             n_batches = len(expl_dl)
 
-            for i, (input, labels) in enumerate(pbar):
+            for i, (inputs, labels) in enumerate(pbar):
                 pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-                input, labels = input.to(device), labels.to(device)
+                inputs, labels = inputs.to(device), labels.to(device)
 
                 if use_predictions:
                     with torch.no_grad():
-                        output = self.model(input)
+                        output = self.model(inputs)
                         targets = output.argmax(dim=-1)
                 else:
                     targets = labels
 
                 explanations = explainer.explain(
-                    test=input,
+                    test=inputs,
                     targets=targets,
                 )
                 metric.update(explanations)

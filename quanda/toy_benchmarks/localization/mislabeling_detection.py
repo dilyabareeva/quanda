@@ -256,16 +256,16 @@ class MislabelingDetection(ToyBenchmark):
             pbar = tqdm(expl_dl)
             n_batches = len(expl_dl)
 
-            for i, (input, labels) in enumerate(pbar):
+            for i, (inputs, labels) in enumerate(pbar):
                 pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-                input, labels = input.to(device), labels.to(device)
+                inputs, labels = inputs.to(device), labels.to(device)
                 if use_predictions:
                     with torch.no_grad():
-                        targets = self.model(input).argmax(dim=-1)
+                        targets = self.model(inputs).argmax(dim=-1)
                 else:
                     targets = labels
-                explanations = explainer.explain(test=input, targets=targets)
+                explanations = explainer.explain(test=inputs, targets=targets)
                 metric.update(explanations)
         else:
             metric = MislabelingDetectionMetric.self_influence_based(

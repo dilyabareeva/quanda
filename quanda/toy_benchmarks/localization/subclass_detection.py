@@ -231,19 +231,19 @@ class SubclassDetection(ToyBenchmark):
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
 
-        for i, (input, labels) in enumerate(pbar):
+        for i, (inputs, labels) in enumerate(pbar):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-            input, labels = input.to(device), labels.to(device)
+            inputs, labels = inputs.to(device), labels.to(device)
             grouped_labels = torch.tensor([self.class_to_group[i.item()] for i in labels], device=labels.device)
             if use_predictions:
                 with torch.no_grad():
-                    output = self.group_model(input)
+                    output = self.group_model(inputs)
                     targets = output.argmax(dim=-1)
             else:
                 targets = grouped_labels
             explanations = explainer.explain(
-                test=input,
+                test=inputs,
                 targets=targets,
             )
 
