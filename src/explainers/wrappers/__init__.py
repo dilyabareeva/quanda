@@ -1,4 +1,4 @@
-from .captum_influence import (
+from src.explainers.wrappers.captum_influence import (
     CaptumArnoldi,
     CaptumInfluence,
     CaptumSimilarity,

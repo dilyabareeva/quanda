@@ -1,3 +1,3 @@
-from .model_randomization import ModelRandomizationMetric
+from src.metrics.randomization.model_randomization import ModelRandomizationMetric
 
 __all__ = ["ModelRandomizationMetric"]

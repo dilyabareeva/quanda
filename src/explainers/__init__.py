@@ -1,8 +1,8 @@
-from .base import BaseExplainer
-from . import utils, wrappers
-from .functional import ExplainFunc, ExplainFuncMini
-from .random import RandomExplainer
-from .aggregators import BaseAggregator, SumAggregator, AbsSumAggregator, aggr_types
+from src.explainers.base import BaseExplainer
+from src.explainers import utils, wrappers
+from src.explainers.functional import ExplainFunc, ExplainFuncMini
+from src.explainers.random import RandomExplainer
+from src.explainers.aggregators import BaseAggregator, SumAggregator, AbsSumAggregator, aggr_types
 
 __all__ = [
     "BaseExplainer",

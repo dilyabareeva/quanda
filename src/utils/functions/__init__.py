@@ -1,10 +1,10 @@
-from .correlations import (
+from src.utils.functions.correlations import (
     CorrelationFnLiterals,
     correlation_functions,
     kendall_rank_corr,
     spearman_rank_corr,
 )
-from .similarities import cosine_similarity, dot_product_similarity
+from src.utils.functions.similarities import cosine_similarity, dot_product_similarity
 
 __all__ = [
     "kendall_rank_corr",

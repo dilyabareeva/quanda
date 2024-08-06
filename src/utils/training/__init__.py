@@ -1,4 +1,4 @@
-from .base_pl_module import BasicLightningModule
-from .trainer import BaseTrainer, Trainer
+from src.utils.training.base_pl_module import BasicLightningModule
+from src.utils.training.trainer import BaseTrainer, Trainer
 
 __all__ = ["BasicLightningModule", "BaseTrainer", "Trainer"]
