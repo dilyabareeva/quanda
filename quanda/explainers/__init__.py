@@ -1,5 +1,5 @@
-from . import utils, wrappers
 from .base import BaseExplainer
+from . import utils, wrappers
 from .functional import ExplainFunc, ExplainFuncMini
 from .random import RandomExplainer
 

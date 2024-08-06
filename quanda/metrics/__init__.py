@@ -1,3 +1,4 @@
+from .base import GlobalMetric, Metric
 from . import localization, randomization, unnamed
 from .aggr_strategies import GlobalAggrStrategy, GlobalSelfInfluenceStrategy
 from .aggregators import (
@@ -6,7 +7,6 @@ from .aggregators import (
     SumAggregator,
     aggr_types,
 )
-from .base import GlobalMetric, Metric
 
 __all__ = [
     "Metric",

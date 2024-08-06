@@ -6,7 +6,6 @@ SHELL = /bin/bash
 style:
 	black .
 	python -m flake8 . --pytest-parametrize-names-type=csv
-	python -m isort .
 	python -m mypy quanda --check-untyped-defs
 	rm -f .coverage
 	rm -f .coverage.*
