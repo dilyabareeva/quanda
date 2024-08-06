@@ -32,12 +32,10 @@ Excerpts from `tutorials/usage_testing.py`:
 <summary><b><big>Step 1. Import library components</big></b></summary>
 
 ```python
-from src.explainers.wrappers.captum_influence import captum_similarity_explain, CaptumSimilarity
-from src.metrics.localization.class_detection import ClassDetectionMetric
-from src.metrics.randomization.model_randomization import (
-    ModelRandomizationMetric,
-)
-from src.metrics.unnamed.top_k_overlap import TopKOverlapMetric
+from quanda.explainers.wrappers import captum_similarity_explain, CaptumSimilarity
+from quanda.metrics.localization import ClassDetectionMetric
+from quanda.metrics.randomization import ModelRandomizationMetric
+from quanda.metrics.unnamed.top_k_overlap import TopKOverlapMetric
 ```
 </details>
 

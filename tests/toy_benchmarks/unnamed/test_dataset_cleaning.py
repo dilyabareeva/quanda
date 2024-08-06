@@ -1,10 +1,10 @@
 import lightning as L
 import pytest
 
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.unnamed.dataset_cleaning import DatasetCleaning
-from src.utils.functions.similarities import cosine_similarity
-from src.utils.training.trainer import Trainer
+from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
+from quanda.toy_benchmarks.unnamed.dataset_cleaning import DatasetCleaning
+from quanda.utils.functions.similarities import cosine_similarity
+from quanda.utils.training.trainer import Trainer
 
 
 @pytest.mark.toy_benchmarks
@@ -116,7 +116,6 @@ def test_dataset_cleaning(
             train_dataset=dataset,
             device="cpu",
         )
-        dst_eval.save("tests/assets/mnist_dataset_cleaning_state_dict")
 
     elif init_method == "load":
         dst_eval = DatasetCleaning.load(path=load_path)
@@ -206,7 +205,6 @@ def test_dataset_cleaning_generate_from_pl_module(
         train_dataset=dataset,
         device="cpu",
     )
-    dst_eval.save("tests/assets/mnist_dataset_cleaning_state_dict")
 
     score = dst_eval.evaluate(
         expl_dataset=dataset,
