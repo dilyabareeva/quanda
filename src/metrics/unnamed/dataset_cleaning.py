@@ -1,5 +1,7 @@
+import copy
 from typing import Optional, Union
 
+import lightning as L
 import torch
 
 from src.metrics.base import GlobalMetric
@@ -20,9 +22,10 @@ class DatasetCleaningMetric(GlobalMetric):
 
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
-        trainer: BaseTrainer,
+        trainer: Union[L.Trainer, BaseTrainer],
+        init_model: Optional[torch.nn.Module] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         global_method: Union[str, type] = "self-influence",
         top_k: int = 50,
@@ -46,19 +49,18 @@ class DatasetCleaningMetric(GlobalMetric):
         )
         self.top_k = min(top_k, self.dataset_length - 1)
         self.trainer = trainer
-        self.trainer_fit_kwargs = trainer_fit_kwargs
+        self.trainer_fit_kwargs = trainer_fit_kwargs or {}
 
-        self.clean_model: torch.nn.Module
-        self.clean_accuracy: int
-        self.original_accuracy: int
+        self.init_model = init_model or copy.deepcopy(model)
 
     @classmethod
     def self_influence_based(
         cls,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
-        trainer: BaseTrainer,
+        trainer: Union[L.Trainer, BaseTrainer],
+        init_model: Optional[torch.nn.Module] = None,
         expl_kwargs: Optional[dict] = None,
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
@@ -70,6 +72,7 @@ class DatasetCleaningMetric(GlobalMetric):
             model=model,
             train_dataset=train_dataset,
             trainer=trainer,
+            init_model=init_model,
             trainer_fit_kwargs=trainer_fit_kwargs,
             global_method="self-influence",
             top_k=top_k,
@@ -81,10 +84,11 @@ class DatasetCleaningMetric(GlobalMetric):
     @classmethod
     def aggr_based(
         cls,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
-        trainer: BaseTrainer,
+        trainer: Union[L.Trainer, BaseTrainer],
         aggregator_cls: Union[str, type],
+        init_model: Optional[torch.nn.Module] = None,
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
         device: str = "cpu",
@@ -95,6 +99,7 @@ class DatasetCleaningMetric(GlobalMetric):
             model=model,
             train_dataset=train_dataset,
             trainer=trainer,
+            init_model=init_model,
             trainer_fit_kwargs=trainer_fit_kwargs,
             global_method=aggregator_cls,
             top_k=top_k,
@@ -123,15 +128,33 @@ class DatasetCleaningMetric(GlobalMetric):
         clean_subset = torch.utils.data.Subset(self.train_dataset, clean_indices)
 
         train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=32, shuffle=True)
-        self.original_accuracy = class_accuracy(self.model, train_dl, self.device)
+        original_accuracy = class_accuracy(self.model, train_dl, self.device)
 
         clean_dl = torch.utils.data.DataLoader(clean_subset, batch_size=32, shuffle=True)
 
-        self.clean_model = self.trainer.fit(
-            train_loader=clean_dl,
-            trainer_fit_kwargs=self.trainer_fit_kwargs,
-        )
+        if isinstance(self.trainer, L.Trainer):
+            if not isinstance(self.init_model, L.LightningModule):
+                raise ValueError("Model should be a LightningModule if Trainer is a Lightning Trainer")
 
-        self.clean_accuracy = class_accuracy(self.model, clean_dl, self.device)
+            self.trainer.fit(
+                model=self.init_model,
+                train_dataloaders=clean_dl,
+                **self.trainer_fit_kwargs,
+            )
 
-        return self.original_accuracy - self.clean_accuracy
+        elif isinstance(self.trainer, BaseTrainer):
+            if not isinstance(self.init_model, torch.nn.Module):
+                raise ValueError("Model should be a torch.nn.Module if Trainer is a BaseTrainer")
+
+            self.trainer.fit(
+                model=self.init_model,
+                train_dataloaders=clean_dl,
+                **self.trainer_fit_kwargs,
+            )
+
+        else:
+            raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
+
+        clean_accuracy = class_accuracy(self.model, clean_dl, self.device)
+
+        return original_accuracy - clean_accuracy

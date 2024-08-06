@@ -49,7 +49,6 @@ def self_influence_fn_from_explainer(
     self_influence_kwargs: dict,
     **kwargs: Any,
 ) -> torch.Tensor:
-
     explainer = _init_explainer(
         explainer_cls=explainer_cls,
         model=model,

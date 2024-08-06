@@ -1,5 +1,7 @@
+import copy
 from typing import Callable, Dict, Optional, Union
 
+import lightning as L
 import torch
 from tqdm import tqdm
 
@@ -9,7 +11,7 @@ from src.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
 )
-from src.utils.training.trainer import BaseTrainer, Trainer
+from src.utils.training.trainer import BaseTrainer
 
 
 class SubclassDetection(ToyBenchmark):
@@ -21,8 +23,8 @@ class SubclassDetection(ToyBenchmark):
     ):
         super().__init__(device=device)
 
-        self.trainer: Optional[BaseTrainer] = None
-        self.group_model: torch.nn.Module
+        self.model: Union[torch.nn.Module, L.LightningModule]
+        self.group_model: Union[torch.nn.Module, L.LightningModule]
         self.train_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
         self.grouped_train_dl: torch.utils.data.DataLoader
@@ -35,8 +37,9 @@ class SubclassDetection(ToyBenchmark):
     @classmethod
     def generate(
         cls,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
-        trainer: Trainer,
+        trainer: Union[L.Trainer, BaseTrainer],
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
         n_classes: int = 10,
@@ -54,10 +57,10 @@ class SubclassDetection(ToyBenchmark):
         """
 
         obj = cls(device=device)
-        trainer_fit_kwargs = trainer_fit_kwargs or {"max_epochs": 5}
 
-        obj.trainer = trainer
+        obj.model = model
         obj._generate(
+            trainer=trainer,
             train_dataset=train_dataset,
             dataset_transform=dataset_transform,
             val_dataset=val_dataset,
@@ -72,6 +75,7 @@ class SubclassDetection(ToyBenchmark):
 
     def _generate(
         self,
+        trainer: Union[L.Trainer, BaseTrainer],
         train_dataset: torch.utils.data.Dataset,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
@@ -84,12 +88,6 @@ class SubclassDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
-        if self.trainer is None:
-            raise ValueError(
-                "Trainer not initialized. Please initialize trainer using init_trainer_from_lightning_module or "
-                "init_trainer_from_train_arguments"
-            )
-
         self.train_dataset = train_dataset
         self.grouped_dataset = LabelGroupingDataset(
             dataset=train_dataset,
@@ -119,11 +117,34 @@ class SubclassDetection(ToyBenchmark):
         else:
             self.grouped_val_dl = None
 
-        self.group_model = self.trainer.fit(
-            train_loader=self.grouped_train_dl,
-            val_loader=self.grouped_val_dl,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-        )
+        self.group_model = copy.deepcopy(self.model)
+
+        trainer_fit_kwargs = trainer_fit_kwargs or {}
+
+        if isinstance(trainer, L.Trainer):
+            if not isinstance(self.group_model, L.LightningModule):
+                raise ValueError("Model should be a LightningModule if Trainer is a Lightning Trainer")
+
+            trainer.fit(
+                model=self.group_model,
+                train_dataloaders=self.grouped_train_dl,
+                val_dataloaders=self.grouped_val_dl,
+                **trainer_fit_kwargs,
+            )
+
+        elif isinstance(trainer, BaseTrainer):
+            if not isinstance(self.group_model, torch.nn.Module):
+                raise ValueError("Model should be a torch.nn.Module if Trainer is a BaseTrainer")
+
+            trainer.fit(
+                model=self.group_model,
+                train_dataloaders=self.grouped_train_dl,
+                val_dataloaders=self.grouped_val_dl,
+                **trainer_fit_kwargs,
+            )
+
+        else:
+            raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
     def load(cls, path: str, device: str = "cpu", batch_size: int = 8, *args, **kwargs):
@@ -146,7 +167,7 @@ class SubclassDetection(ToyBenchmark):
     @classmethod
     def assemble(
         cls,
-        group_model: torch.nn.Module,
+        group_model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
         n_groups: int,

@@ -12,8 +12,9 @@ class BaseTrainer(metaclass=abc.ABCMeta):
     @abstractmethod
     def fit(
         self,
-        train_loader: torch.utils.data.dataloader.DataLoader,
-        val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
+        model: torch.nn.Module,
+        train_dataloaders: torch.utils.data.dataloader.DataLoader,
+        val_dataloaders: Optional[torch.utils.data.dataloader.DataLoader] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
@@ -25,71 +26,47 @@ class BaseTrainer(metaclass=abc.ABCMeta):
 
 
 class Trainer(BaseTrainer):
-    def __init__(self):
-        self.model: torch.nn.Module
-        self.module: Optional[L.LightningModule] = None
-
-    @classmethod
-    def from_arguments(
-        cls,
-        model: torch.nn.Module,
+    def __init__(
+        self,
         optimizer: Callable,
         lr: float,
+        max_epochs: int,
         criterion: torch.nn.modules.loss._Loss,
         scheduler: Optional[Callable] = None,
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
     ):
-        obj = cls.__new__(cls)
-        super(Trainer, obj).__init__()
-        obj.model = model
-        if optimizer_kwargs is None:
-            optimizer_kwargs = {}
-        obj.module = BasicLightningModule(
-            model=model,
-            optimizer=optimizer,
-            lr=lr,
-            criterion=criterion,
-            optimizer_kwargs=optimizer_kwargs,
-            scheduler=scheduler,
-            scheduler_kwargs=scheduler_kwargs,
-        )
-        return obj
+        self.optimizer = optimizer
+        self.lr = lr
+        self.max_epochs = max_epochs
+        self.criterion = criterion
+        self.scheduler = scheduler
+        self.optimizer_kwargs = optimizer_kwargs or {}
+        self.scheduler_kwargs = scheduler_kwargs or {}
 
-    @classmethod
-    def from_lightning_module(
-        cls,
-        model: torch.nn.Module,
-        pl_module: L.LightningModule,
-    ):
-        obj = cls.__new__(cls)
-        super(Trainer, obj).__init__()
-        obj.model = model
-        obj.module = pl_module
-        return obj
+        super(Trainer, self).__init__()
 
     def fit(
         self,
-        train_loader: torch.utils.data.dataloader.DataLoader,
-        val_loader: Optional[torch.utils.data.dataloader.DataLoader] = None,
-        trainer_fit_kwargs: Optional[dict] = None,
+        model: torch.nn.Module,
+        train_dataloaders: torch.utils.data.dataloader.DataLoader,
+        val_dataloaders: Optional[torch.utils.data.dataloader.DataLoader] = None,
         *args,
         **kwargs,
     ):
-        if self.model is None:
-            raise ValueError(
-                "Lightning module not initialized. Please initialize using from_arguments or from_lightning_module"
-            )
-        if self.module is None:
-            raise ValueError("Model not initialized. Please initialize using from_arguments or from_lightning_module")
+        module = BasicLightningModule(
+            model=model,
+            optimizer=self.optimizer,
+            lr=self.lr,
+            criterion=self.criterion,
+            optimizer_kwargs=self.optimizer_kwargs,
+            scheduler=self.scheduler,
+            scheduler_kwargs=self.scheduler_kwargs,
+        )
 
-        if trainer_fit_kwargs is None:
-            trainer_fit_kwargs = {}
-        trainer = L.Trainer(**trainer_fit_kwargs)
-        trainer.fit(self.module, train_loader, val_loader)
+        trainer = L.Trainer(max_epochs=self.max_epochs)
+        trainer.fit(module, train_dataloaders, val_dataloaders)
 
-        self.model.load_state_dict(self.module.model.state_dict())
-        return self.model
+        model.load_state_dict(module.model.state_dict())
 
-    def get_model(self) -> torch.nn.Module:
-        return self.model
+        return model

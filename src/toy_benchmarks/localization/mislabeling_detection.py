@@ -1,5 +1,7 @@
+import copy
 from typing import Callable, Dict, List, Optional, Union
 
+import lightning as L
 import torch
 from tqdm import tqdm
 
@@ -8,7 +10,7 @@ from src.metrics.localization.mislabeling_detection import (
 )
 from src.toy_benchmarks.base import ToyBenchmark
 from src.utils.datasets.transformed.label_flipping import LabelFlippingDataset
-from src.utils.training.trainer import BaseTrainer, Trainer
+from src.utils.training.trainer import BaseTrainer
 
 
 class MislabelingDetection(ToyBenchmark):
@@ -20,8 +22,7 @@ class MislabelingDetection(ToyBenchmark):
     ):
         super().__init__(device=device)
 
-        self.trainer: Optional[BaseTrainer] = None
-        self.model: torch.nn.Module
+        self.model: Union[torch.nn.Module, L.LightningModule]
         self.train_dataset: torch.utils.data.Dataset
         self.poisoned_dataset: LabelFlippingDataset
         self.dataset_transform: Optional[Callable]
@@ -37,10 +38,10 @@ class MislabelingDetection(ToyBenchmark):
     @classmethod
     def generate(
         cls,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
-        trainer: Trainer,
+        trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         global_method: Union[str, type] = "self-influence",
@@ -58,15 +59,15 @@ class MislabelingDetection(ToyBenchmark):
 
         obj = cls(device=device)
 
-        obj.model = model.to(device)
-        obj.trainer = trainer
         obj._generate(
+            model=model.to(device),
             train_dataset=train_dataset,
             val_dataset=val_dataset,
             p=p,
             global_method=global_method,
             dataset_transform=dataset_transform,
             n_classes=n_classes,
+            trainer=trainer,
             trainer_fit_kwargs=trainer_fit_kwargs,
             seed=seed,
             batch_size=batch_size,
@@ -75,8 +76,10 @@ class MislabelingDetection(ToyBenchmark):
 
     def _generate(
         self,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
+        trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable],
         poisoned_indices: Optional[List[int]] = None,
         poisoned_labels: Optional[Dict[int, int]] = None,
@@ -87,12 +90,6 @@ class MislabelingDetection(ToyBenchmark):
         seed: int = 27,
         batch_size: int = 8,
     ):
-        if self.trainer is None:
-            raise ValueError(
-                "Trainer not initialized. Please initialize trainer using init_trainer_from_lightning_module or "
-                "init_trainer_from_train_arguments"
-            )
-
         self.train_dataset = train_dataset
         self.p = p
         self.global_method = global_method
@@ -119,11 +116,34 @@ class MislabelingDetection(ToyBenchmark):
         else:
             self.poisoned_val_dl = None
 
-        self.model = self.trainer.fit(
-            train_loader=self.poisoned_train_dl,
-            val_loader=self.poisoned_val_dl,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-        )
+        self.model = copy.deepcopy(model)
+
+        trainer_fit_kwargs = trainer_fit_kwargs or {}
+
+        if isinstance(trainer, L.Trainer):
+            if not isinstance(self.model, L.LightningModule):
+                raise ValueError("Model should be a LightningModule if Trainer is a Lightning Trainer")
+
+            trainer.fit(
+                model=self.model,
+                train_dataloaders=self.poisoned_train_dl,
+                val_dataloaders=self.poisoned_val_dl,
+                **trainer_fit_kwargs,
+            )
+
+        elif isinstance(trainer, BaseTrainer):
+            if not isinstance(self.model, torch.nn.Module):
+                raise ValueError("Model should be a torch.nn.Module if Trainer is a BaseTrainer")
+
+            trainer.fit(
+                model=self.model,
+                train_dataloaders=self.poisoned_train_dl,
+                val_dataloaders=self.poisoned_val_dl,
+                **trainer_fit_kwargs,
+            )
+
+        else:
+            raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @property
     def bench_state(self):
@@ -161,7 +181,7 @@ class MislabelingDetection(ToyBenchmark):
     @classmethod
     def assemble(
         cls,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         n_classes: int,
         poisoned_indices: Optional[List[int]] = None,
