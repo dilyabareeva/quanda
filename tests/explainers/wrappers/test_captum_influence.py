@@ -22,7 +22,7 @@ from quanda.explainers.wrappers import (
     captum_tracincp_self_influence,
 )
 from quanda.utils.common import get_load_state_dict_func
-from quanda.utils.functions.similarities import (
+from quanda.utils.functions import (
     cosine_similarity,
     dot_product_similarity,
 )
