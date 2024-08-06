@@ -1,8 +1,6 @@
 import pytest
 
-from src.utils.datasets.transformed import (
-    LabelFlippingDataset,
-)
+from src.utils.datasets.transformed import LabelFlippingDataset
 
 
 @pytest.mark.utils

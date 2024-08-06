@@ -3,10 +3,10 @@ import torch
 
 from src.explainers.wrappers import CaptumSimilarity
 from src.metrics import (
-    AbsSumAggregator,
     GlobalAggrStrategy,
     GlobalSelfInfluenceStrategy,
 )
+from src.explainers import AbsSumAggregator
 from src.utils.functions import cosine_similarity
 
 

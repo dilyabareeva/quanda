@@ -1,9 +1,7 @@
 import pytest
 
 from src.explainers.wrappers import CaptumSimilarity
-from src.toy_benchmarks.randomization import (
-    ModelRandomization,
-)
+from src.toy_benchmarks.randomization import ModelRandomization
 from src.utils.functions import cosine_similarity
 
 

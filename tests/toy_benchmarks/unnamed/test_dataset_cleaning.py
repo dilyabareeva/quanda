@@ -3,7 +3,7 @@ import pytest
 from src.explainers.wrappers import CaptumSimilarity
 from src.toy_benchmarks.unnamed import DatasetCleaning
 from src.utils.functions import cosine_similarity
-from src.utils.training import Trainer, BasicLightningModule
+from src.utils.training import BasicLightningModule, Trainer
 
 
 @pytest.mark.toy_benchmarks

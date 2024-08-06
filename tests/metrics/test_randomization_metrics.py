@@ -2,9 +2,8 @@ import pytest
 import torch
 
 from src.explainers.wrappers import CaptumSimilarity
-from src.metrics.randomization import (
-    ModelRandomizationMetric,
-)
+from src.metrics.randomization import ModelRandomizationMetric
+
 from src.utils.functions import correlation_functions, cosine_similarity
 
 

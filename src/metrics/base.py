@@ -7,7 +7,7 @@ from src.metrics.aggr_strategies import (
     GlobalAggrStrategy,
     GlobalSelfInfluenceStrategy,
 )
-from src.explainers.aggregators import aggr_types
+from src.explainers import aggr_types
 
 
 class Metric(ABC):

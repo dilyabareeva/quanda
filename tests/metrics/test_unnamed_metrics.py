@@ -1,9 +1,9 @@
 import pytest
 
 from src.explainers.wrappers import CaptumSimilarity
-from src.metrics.unnamed import TopKOverlapMetric, DatasetCleaningMetric
+from src.metrics.unnamed import DatasetCleaningMetric, TopKOverlapMetric
 from src.utils.functions import cosine_similarity
-from src.utils.training import Trainer, BasicLightningModule
+from src.utils.training import BasicLightningModule, Trainer
 
 
 @pytest.mark.unnamed_metrics

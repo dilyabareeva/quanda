@@ -4,8 +4,7 @@ from typing import Optional
 
 import torch
 
-from src.explainers import BaseExplainer
-from src.explainers.aggregators import BaseAggregator
+from src.explainers import BaseExplainer, BaseAggregator
 
 
 class GlobalSelfInfluenceStrategy:

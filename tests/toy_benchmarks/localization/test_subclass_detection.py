@@ -1,9 +1,13 @@
 import pytest
 
 from src.explainers.wrappers import CaptumSimilarity
+<<<<<<< HEAD
 from src.toy_benchmarks.localization import (
     SubclassDetection,
 )
+=======
+from src.toy_benchmarks.localization import SubclassDetection
+>>>>>>> 8d632a4 (fix test imports)
 from src.utils.functions import cosine_similarity
 from src.utils.training import Trainer, BasicLightningModule
 
