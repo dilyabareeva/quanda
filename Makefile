@@ -6,12 +6,14 @@ SHELL = /bin/bash
 style:
 	black .
 	python -m flake8 . --pytest-parametrize-names-type=csv
-	python -m mypy quanda --check-untyped-defs
+	python -m isort .
+	python -m mypy src --check-untyped-defs
 	rm -f .coverage
 	rm -f .coverage.*
 	find . | grep -E "(__pycache__|\.pyc|\.pyo)" | xargs rm -rf
 	find . | grep -E ".pytest_cache" | xargs rm -rf
 	find . | grep -E ".mypy_cache" | xargs rm -rf
+	find . | grep -E "./checkpoints" | xargs rm -rf
 	find . | grep -E "*eff-info" | xargs rm -rf
 	find . | grep -E ".build" | xargs rm -rf
 	find . | grep -E ".htmlcov" | xargs rm -rf

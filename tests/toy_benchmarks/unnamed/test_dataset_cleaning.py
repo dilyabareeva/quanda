@@ -1,9 +1,10 @@
+import lightning as L
 import pytest
 
-from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.toy_benchmarks.unnamed import DatasetCleaning
-from quanda.utils.functions import cosine_similarity
-from quanda.utils.training import BasicLightningModule, Trainer
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
+from src.toy_benchmarks.unnamed.dataset_cleaning import DatasetCleaning
+from src.utils.functions.similarities import cosine_similarity
+from src.utils.training.trainer import Trainer
 
 
 @pytest.mark.toy_benchmarks
@@ -37,7 +38,7 @@ from quanda.utils.training import BasicLightningModule, Trainer
         (
             "mnist2",
             "assemble",
-            "load_mnist_grouped_model",
+            "load_mnist_model",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -55,7 +56,7 @@ from quanda.utils.training import BasicLightningModule, Trainer
             },
             False,
             None,
-            -0.875,
+            0.0,
         ),
         (
             "mnist3",
@@ -128,20 +129,91 @@ def test_dataset_cleaning(
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
-    pl_module = BasicLightningModule(
-        model=model,
+    trainer = Trainer(
+        max_epochs=max_epochs,
         optimizer=optimizer,
         lr=lr,
         criterion=criterion,
     )
-
-    trainer = Trainer.from_lightning_module(model, pl_module)
     score = dst_eval.evaluate(
         expl_dataset=dataset,
         explainer_cls=explainer_cls,
         trainer=trainer,
         expl_kwargs=expl_kwargs,
         trainer_fit_kwargs={"max_epochs": max_epochs},
+        cache_dir=str(tmp_path),
+        model_id="default_model_id",
+        use_predictions=use_pred,
+        global_method=global_method,
+        batch_size=batch_size,
+        device="cpu",
+    )
+
+    assert score == expected_score
+
+
+@pytest.mark.toy_benchmarks
+@pytest.mark.parametrize(
+    "test_id, pl_module, max_epochs, dataset, n_classes, n_groups, seed, "
+    "global_method, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
+    [
+        (
+            "mnist1",
+            "load_mnist_pl_module",
+            3,
+            "load_mnist_dataset",
+            10,
+            2,
+            27,
+            "self-influence",
+            8,
+            CaptumSimilarity,
+            {
+                "layers": "model.fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            False,
+            None,
+            0.0,
+        ),
+    ],
+)
+def test_dataset_cleaning_generate_from_pl_module(
+    test_id,
+    pl_module,
+    max_epochs,
+    dataset,
+    n_classes,
+    n_groups,
+    seed,
+    global_method,
+    batch_size,
+    explainer_cls,
+    expl_kwargs,
+    use_pred,
+    load_path,
+    expected_score,
+    tmp_path,
+    request,
+):
+    pl_module = request.getfixturevalue(pl_module)
+    dataset = request.getfixturevalue(dataset)
+
+    trainer = L.Trainer(max_epochs=max_epochs)
+
+    dst_eval = DatasetCleaning.generate(
+        model=pl_module,
+        train_dataset=dataset,
+        device="cpu",
+    )
+    dst_eval.save("tests/assets/mnist_dataset_cleaning_state_dict")
+
+    score = dst_eval.evaluate(
+        expl_dataset=dataset,
+        explainer_cls=explainer_cls,
+        trainer=trainer,
+        expl_kwargs=expl_kwargs,
+        trainer_fit_kwargs={},
         cache_dir=str(tmp_path),
         model_id="default_model_id",
         use_predictions=use_pred,
