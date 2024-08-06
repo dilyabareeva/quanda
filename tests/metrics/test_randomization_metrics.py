@@ -10,7 +10,7 @@ from quanda.utils.functions import correlation_functions, cosine_similarity
 @pytest.mark.randomization_metrics
 @pytest.mark.parametrize(
     "test_id, model, dataset, test_data, batch_size, explainer_cls, \
-    expl_kwargs, explanations, test_labels, correlation_fn, tmp_path",
+    expl_kwargs, explanations, test_labels, correlation_fn",
     [
         (
             "mnist_update_only_spearman",
@@ -26,7 +26,6 @@ from quanda.utils.functions import correlation_functions, cosine_similarity
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",
             "spearman",
-            "tmp_path",
         ),
         (
             "mnist_update_only_kendall",
@@ -42,7 +41,6 @@ from quanda.utils.functions import correlation_functions, cosine_similarity
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",
             "kendall",
-            "tmp_path",
         ),
         (
             "mnist_explain_update",
@@ -58,7 +56,6 @@ from quanda.utils.functions import correlation_functions, cosine_similarity
             "load_mnist_explanations_1",
             "load_mnist_test_labels_1",
             "spearman",
-            "tmp_path",
         ),
     ],
 )
