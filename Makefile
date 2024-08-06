@@ -6,7 +6,7 @@ SHELL = /bin/bash
 style:
 	black .
 	python -m flake8 . --pytest-parametrize-names-type=csv
-	python -m mypy src --check-untyped-defs
+	python -m mypy quanda --check-untyped-defs
 	rm -f .coverage
 	rm -f .coverage.*
 	find . | grep -E "(__pycache__|\.pyc|\.pyo)" | xargs rm -rf

@@ -2,7 +2,7 @@ import pytest
 import torch
 from torch.utils.data import Dataset, TensorDataset
 
-from src.utils.datasets.transformed import TransformedDataset
+from quanda.utils.datasets.transformed import TransformedDataset
 
 
 class UnsizedTensorDataset(Dataset):

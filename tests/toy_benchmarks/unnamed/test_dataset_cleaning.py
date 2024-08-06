@@ -1,9 +1,9 @@
 import pytest
 
-from src.explainers.wrappers import CaptumSimilarity
-from src.toy_benchmarks.unnamed import DatasetCleaning
-from src.utils.functions import cosine_similarity
-from src.utils.training import BasicLightningModule, Trainer
+from quanda.explainers.wrappers import CaptumSimilarity
+from quanda.toy_benchmarks.unnamed import DatasetCleaning
+from quanda.utils.functions import cosine_similarity
+from quanda.utils.training import BasicLightningModule, Trainer
 
 
 @pytest.mark.toy_benchmarks

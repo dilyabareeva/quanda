@@ -1,10 +1,10 @@
 import pytest
 import torch
 
-from src.explainers.wrappers import CaptumSimilarity
-from src.metrics.randomization import ModelRandomizationMetric
+from quanda.explainers.wrappers import CaptumSimilarity
+from quanda.metrics.randomization import ModelRandomizationMetric
 
-from src.utils.functions import correlation_functions, cosine_similarity
+from quanda.utils.functions import correlation_functions, cosine_similarity
 
 
 @pytest.mark.randomization_metrics

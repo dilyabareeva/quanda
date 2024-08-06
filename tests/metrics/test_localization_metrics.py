@@ -1,15 +1,15 @@
 import pytest
 
-from src.explainers.wrappers import CaptumSimilarity
-from src.explainers import SumAggregator
-from src.metrics.localization import ClassDetectionMetric
-from src.metrics.localization import (
+from quanda.explainers.wrappers import CaptumSimilarity
+from quanda.explainers import SumAggregator
+from quanda.metrics.localization import ClassDetectionMetric
+from quanda.metrics.localization import (
     MislabelingDetectionMetric,
 )
-from src.metrics.localization import (
+from quanda.metrics.localization import (
     SubclassDetectionMetric,
 )
-from src.utils.functions import cosine_similarity
+from quanda.utils.functions import cosine_similarity
 
 
 @pytest.mark.localization_metrics

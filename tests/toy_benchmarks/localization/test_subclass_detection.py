@@ -1,15 +1,9 @@
 import pytest
 
-from src.explainers.wrappers import CaptumSimilarity
-<<<<<<< HEAD
-from src.toy_benchmarks.localization import (
-    SubclassDetection,
-)
-=======
-from src.toy_benchmarks.localization import SubclassDetection
->>>>>>> 8d632a4 (fix test imports)
-from src.utils.functions import cosine_similarity
-from src.utils.training import Trainer, BasicLightningModule
+from quanda.explainers.wrappers import CaptumSimilarity
+from quanda.toy_benchmarks.localization import SubclassDetection
+from quanda.utils.functions import cosine_similarity
+from quanda.utils.training import Trainer, BasicLightningModule
 
 
 @pytest.mark.toy_benchmarks
