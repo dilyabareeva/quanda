@@ -60,6 +60,3 @@ def self_influence_fn_from_explainer(
     )
 
     return explainer.self_influence(**self_influence_kwargs)
-
-
-__all__ = ["_init_explainer", "explain_fn_from_explainer", "self_influence_fn_from_explainer"]

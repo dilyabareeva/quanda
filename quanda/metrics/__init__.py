@@ -7,7 +7,6 @@ __all__ = [
     "GlobalMetric",
     "GlobalAggrStrategy",
     "GlobalSelfInfluenceStrategy",
-    "aggr_types",
     "randomization",
     "localization",
     "unnamed",

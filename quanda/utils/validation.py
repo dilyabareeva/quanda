@@ -38,6 +38,3 @@ def validate_checkpoints_load_func(checkpoints_load_func: Callable[..., Any]) ->
         raise TypeError(
             f"The second parameter of checkpoints_load_func must be of type 'str'. Got '{second_param.annotation}'."
         )
-
-
-__all__ = ["validate_1d_tensor_or_int_list", "validate_checkpoints_load_func"]
