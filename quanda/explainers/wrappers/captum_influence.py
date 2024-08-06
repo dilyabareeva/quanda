@@ -11,7 +11,7 @@ from captum.influence._core.arnoldi_influence_function import (  # type: ignore
     ArnoldiInfluenceFunction,
 )
 
-from quanda.explainers import BaseExplainer
+from quanda.explainers.base import BaseExplainer
 from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,

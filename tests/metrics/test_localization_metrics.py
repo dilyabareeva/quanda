@@ -1,8 +1,12 @@
 import pytest
 
-from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.explainers import SumAggregator
-from quanda.metrics.localization import ClassDetectionMetric, SubclassDetectionMetric, MislabelingDetectionMetric
+from quanda.explainers.wrappers import CaptumSimilarity
+from quanda.metrics.localization import (
+    ClassDetectionMetric,
+    MislabelingDetectionMetric,
+    SubclassDetectionMetric,
+)
 from quanda.utils.functions import cosine_similarity
 
 

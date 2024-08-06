@@ -1,6 +1,6 @@
 import torch
 
-from quanda.metrics import Metric
+from quanda.metrics.base import Metric
 
 
 class TopKOverlapMetric(Metric):

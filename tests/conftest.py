@@ -6,8 +6,12 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
-from quanda.utils.datasets.transformed.label_flipping import LabelFlippingDataset
-from quanda.utils.datasets.transformed.label_grouping import LabelGroupingDataset
+from quanda.utils.datasets.transformed.label_flipping import (
+    LabelFlippingDataset,
+)
+from quanda.utils.datasets.transformed.label_grouping import (
+    LabelGroupingDataset,
+)
 from quanda.utils.training.base_pl_module import BasicLightningModule
 from tests.models import LeNet
 

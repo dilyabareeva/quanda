@@ -3,11 +3,11 @@ from typing import Any, Optional, Sized, Union
 
 import torch
 
+from quanda.explainers import aggr_types
 from quanda.metrics.aggr_strategies import (
     GlobalAggrStrategy,
     GlobalSelfInfluenceStrategy,
 )
-from quanda.explainers import aggr_types
 
 
 class Metric(ABC):

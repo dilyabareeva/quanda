@@ -4,7 +4,7 @@ import torch
 from tqdm import tqdm
 
 from quanda.metrics.unnamed import TopKOverlapMetric
-from quanda.toy_benchmarks import ToyBenchmark
+from quanda.toy_benchmarks.base import ToyBenchmark
 
 
 class TopKOverlap(ToyBenchmark):

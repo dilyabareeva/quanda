@@ -4,7 +4,10 @@ from quanda.utils.functions.correlations import (
     kendall_rank_corr,
     spearman_rank_corr,
 )
-from quanda.utils.functions.similarities import cosine_similarity, dot_product_similarity
+from quanda.utils.functions.similarities import (
+    cosine_similarity,
+    dot_product_similarity,
+)
 
 __all__ = [
     "kendall_rank_corr",
