@@ -53,6 +53,9 @@ exclude = '''
 testpaths = ["tests"]
 python_files = "test_*.py"
 
+[tool.setuptools]
+py-modules = []
+
 [project.optional-dependencies]
 dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "coverage>=7.2.3",
