@@ -1,10 +1,9 @@
 import pytest
 
-from src.explainers.wrappers import CaptumSimilarity
-from src.metrics import SumAggregator
-from src.metrics.localization import (
-    ClassDetectionMetric,
-    SubclassDetectionMetric,
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
+from src.explainers.aggregators import SumAggregator
+from src.metrics.localization.class_detection import ClassDetectionMetric
+from src.metrics.localization.mislabeling_detection import (
     MislabelingDetectionMetric,
 )
 from src.utils.functions import cosine_similarity

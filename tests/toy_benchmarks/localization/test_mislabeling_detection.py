@@ -1,8 +1,8 @@
 import pytest
 
-from src.explainers.wrappers import CaptumSimilarity
-from src.metrics import SumAggregator
-from src.toy_benchmarks.localization import (
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
+from src.explainers.aggregators import SumAggregator
+from src.toy_benchmarks.localization.mislabeling_detection import (
     MislabelingDetection,
 )
 from src.utils.functions import cosine_similarity
