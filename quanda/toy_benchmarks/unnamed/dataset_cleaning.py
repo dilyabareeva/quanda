@@ -5,9 +5,9 @@ import lightning as L
 import torch
 from tqdm import tqdm
 
-from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
-from src.toy_benchmarks.base import ToyBenchmark
-from src.utils.training.trainer import BaseTrainer
+from quanda.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
+from quanda.toy_benchmarks.base import ToyBenchmark
+from quanda.utils.training.trainer import BaseTrainer
 
 
 class DatasetCleaning(ToyBenchmark):

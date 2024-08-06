@@ -6,9 +6,9 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
-from src.utils.datasets.transformed.label_flipping import LabelFlippingDataset
-from src.utils.datasets.transformed.label_grouping import LabelGroupingDataset
-from src.utils.training.base_pl_module import BasicLightningModule
+from quanda.utils.datasets.transformed.label_flipping import LabelFlippingDataset
+from quanda.utils.datasets.transformed.label_grouping import LabelGroupingDataset
+from quanda.utils.training.base_pl_module import BasicLightningModule
 from tests.models import LeNet
 
 MNIST_IMAGE_SIZE = 28

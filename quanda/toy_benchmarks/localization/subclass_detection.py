@@ -5,13 +5,13 @@ import lightning as L
 import torch
 from tqdm import tqdm
 
-from src.metrics.localization.class_detection import ClassDetectionMetric
-from src.toy_benchmarks.base import ToyBenchmark
-from src.utils.datasets.transformed.label_grouping import (
+from quanda.metrics.localization.class_detection import ClassDetectionMetric
+from quanda.toy_benchmarks.base import ToyBenchmark
+from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
 )
-from src.utils.training.trainer import BaseTrainer
+from quanda.utils.training.trainer import BaseTrainer
 
 
 class SubclassDetection(ToyBenchmark):

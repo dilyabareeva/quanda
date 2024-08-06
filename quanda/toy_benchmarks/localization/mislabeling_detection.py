@@ -5,12 +5,12 @@ import lightning as L
 import torch
 from tqdm import tqdm
 
-from src.metrics.localization.mislabeling_detection import (
+from quanda.metrics.localization.mislabeling_detection import (
     MislabelingDetectionMetric,
 )
-from src.toy_benchmarks.base import ToyBenchmark
-from src.utils.datasets.transformed.label_flipping import LabelFlippingDataset
-from src.utils.training.trainer import BaseTrainer
+from quanda.toy_benchmarks.base import ToyBenchmark
+from quanda.utils.datasets.transformed.label_flipping import LabelFlippingDataset
+from quanda.utils.training.trainer import BaseTrainer
 
 
 class MislabelingDetection(ToyBenchmark):
