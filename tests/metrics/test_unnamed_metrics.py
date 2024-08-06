@@ -1,11 +1,11 @@
 import pytest
 
-from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
-from quanda.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
-from quanda.metrics.unnamed.top_k_overlap import TopKOverlapMetric
-from quanda.utils.functions.similarities import cosine_similarity
-from quanda.utils.training.base_pl_module import BasicLightningModule
-from quanda.utils.training.trainer import Trainer
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
+from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
+from src.metrics.unnamed.top_k_overlap import TopKOverlapMetric
+from src.utils.functions.similarities import cosine_similarity
+from src.utils.training.base_pl_module import BasicLightningModule
+from src.utils.training.trainer import Trainer
 
 
 @pytest.mark.unnamed_metrics

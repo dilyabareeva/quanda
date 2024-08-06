@@ -1,6 +1,6 @@
 import pytest
 
-from quanda.utils.common import make_func
+from src.utils.common import make_func
 
 
 @pytest.mark.utils

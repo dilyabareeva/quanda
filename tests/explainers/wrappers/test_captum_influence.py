@@ -10,7 +10,7 @@ from captum.influence._core.arnoldi_influence_function import (  # type: ignore
 )
 from torch.utils.data import TensorDataset
 
-from quanda.explainers.wrappers.captum_influence import (
+from src.explainers.wrappers.captum_influence import (
     CaptumArnoldi,
     CaptumSimilarity,
     CaptumTracInCP,
@@ -21,8 +21,8 @@ from quanda.explainers.wrappers.captum_influence import (
     captum_tracincp_explain,
     captum_tracincp_self_influence,
 )
-from quanda.utils.common import get_load_state_dict_func
-from quanda.utils.functions.similarities import (
+from src.utils.common import get_load_state_dict_func
+from src.utils.functions.similarities import (
     cosine_similarity,
     dot_product_similarity,
 )

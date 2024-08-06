@@ -1,12 +1,12 @@
 import pytest
 import torch
 
-from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
-from quanda.metrics.randomization.model_randomization import (
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
+from src.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
-from quanda.utils.functions.correlations import correlation_functions
-from quanda.utils.functions.similarities import cosine_similarity
+from src.utils.functions.correlations import correlation_functions
+from src.utils.functions.similarities import cosine_similarity
 
 
 @pytest.mark.randomization_metrics

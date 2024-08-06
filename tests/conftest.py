@@ -6,7 +6,7 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
-from quanda.utils.datasets.transformed import (
+from src.utils.datasets.transformed import (
     LabelFlippingDataset,
     LabelGroupingDataset,
 )

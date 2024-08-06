@@ -1,6 +1,6 @@
 import pytest
 
-from quanda.utils.datasets.transformed.label_grouping import (
+from src.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
 

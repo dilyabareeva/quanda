@@ -1,8 +1,8 @@
 import pytest
 
-from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
-from quanda.toy_benchmarks.localization.class_detection import ClassDetection
-from quanda.utils.functions.similarities import cosine_similarity
+from src.explainers.wrappers.captum_influence import CaptumSimilarity
+from src.toy_benchmarks.localization.class_detection import ClassDetection
+from src.utils.functions.similarities import cosine_similarity
 
 
 @pytest.mark.toy_benchmarks

@@ -3,8 +3,8 @@ import copy
 import pytest
 import torch
 
-from quanda.utils.training.base_pl_module import BasicLightningModule
-from quanda.utils.training.trainer import Trainer
+from src.utils.training.base_pl_module import BasicLightningModule
+from src.utils.training.trainer import Trainer
 
 
 @pytest.mark.utils

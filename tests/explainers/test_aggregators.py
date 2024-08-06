@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from quanda.metrics.aggregators import AbsSumAggregator, SumAggregator
+from src.metrics.aggregators import AbsSumAggregator, SumAggregator
 
 
 @pytest.mark.aggregators
