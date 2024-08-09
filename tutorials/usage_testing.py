@@ -3,11 +3,12 @@ import copy
 import os
 from multiprocessing import freeze_support
 
+import lightning as L
 import matplotlib.pyplot as plt
 import requests
 import torch
 import torchvision
-import lightning as L
+
 # from torch import nn
 # from torch import optim
 from torch.utils.data import DataLoader
@@ -21,14 +22,10 @@ from quanda.explainers.wrappers import (
     captum_similarity_explain,
 )
 from quanda.metrics.localization import ClassDetectionMetric
-from quanda.metrics.randomization import (
-    ModelRandomizationMetric,
-)
-from quanda.metrics.unnamed import DatasetCleaningMetric
-from quanda.metrics.unnamed import TopKOverlapMetric
+from quanda.metrics.randomization import ModelRandomizationMetric
+from quanda.metrics.unnamed import DatasetCleaningMetric, TopKOverlapMetric
 from quanda.toy_benchmarks.localization import SubclassDetection
 from quanda.utils.training import BasicLightningModule
-from quanda.utils.training import Trainer
 
 DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"
 torch.set_float32_matmul_precision("medium")
