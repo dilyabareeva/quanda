@@ -25,12 +25,12 @@ class CaptumInfluence(BaseExplainer, ABC):
     def __init__(
         self,
         model: torch.nn.Module,
-        model_id: str,
-        cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
         device: Union[str, torch.device],
         explainer_cls: type,
         explain_kwargs: Any,
+        model_id: Optional[str] = None,
+        cache_dir: Optional[str] = None,
     ):
         super().__init__(
             model=model,
@@ -200,10 +200,8 @@ class CaptumArnoldi(CaptumInfluence):
     def __init__(
         self,
         model: torch.nn.Module,
-        model_id: str,  # TODO Make optional
         train_dataset: torch.utils.data.Dataset,
         checkpoint: str,
-        cache_dir: str,  # TODO Make optional
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(),
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
@@ -220,6 +218,8 @@ class CaptumArnoldi(CaptumInfluence):
         projection_on_cpu: bool = True,
         show_progress: bool = False,
         device: Union[str, torch.device] = "cpu",  # TODO Check if gpu works
+        model_id: Optional[str] = None,
+        cache_dir: Optional[str] = None,
         **explainer_kwargs: Any,
     ):
         if checkpoints_load_func is None:
@@ -287,13 +287,12 @@ class CaptumArnoldi(CaptumInfluence):
 
 def captum_arnoldi_explain(
     model: torch.nn.Module,
-    model_id: str,
-    cache_dir: str,
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
-    loss_fn: Union[torch.nn.Module, Callable],
     device: Union[str, torch.device],
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
+    model_id: Optional[str] = None,
+    cache_dir: Optional[str] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     return explain_fn_from_explainer(
@@ -304,7 +303,6 @@ def captum_arnoldi_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
-        loss_fn=loss_fn,
         device=device,
         **kwargs,
     )
@@ -312,12 +310,11 @@ def captum_arnoldi_explain(
 
 def captum_arnoldi_self_influence(
     model: torch.nn.Module,
-    model_id: str,
-    cache_dir: str,
     train_dataset: torch.utils.data.Dataset,
-    loss_fn: Union[torch.nn.Module, Callable],
     device: Union[str, torch.device],
     inputs_dataset: Optional[Union[Tuple[Any, ...], torch.utils.data.DataLoader]] = None,
+    model_id: Optional[str] = None,
+    cache_dir: Optional[str] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     self_influence_kwargs = {
@@ -329,7 +326,6 @@ def captum_arnoldi_self_influence(
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        loss_fn=loss_fn,
         device=device,
         self_influence_kwargs=self_influence_kwargs,
         **kwargs,
@@ -340,16 +336,17 @@ class CaptumTracInCP(CaptumInfluence):
     def __init__(
         self,
         model: torch.nn.Module,
-        model_id: str,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
-        cache_dir: Optional[str],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        layers: Optional[List[str]] = None,
         loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         sample_wise_grads_per_batch: bool = False,
         device: Union[str, torch.device] = "cpu",
+        model_id: Optional[str] = None,
+        cache_dir: Optional[str] = None,
         **explainer_kwargs: Any,
     ):
         if checkpoints_load_func is None:
@@ -369,6 +366,7 @@ class CaptumTracInCP(CaptumInfluence):
                 "train_dataset": train_dataset,
                 "checkpoints": checkpoints,
                 "checkpoints_load_func": checkpoints_load_func,
+                "layers": layers,
                 "loss_fn": loss_fn,
                 "batch_size": batch_size,
                 "test_loss_fn": test_loss_fn,
@@ -410,13 +408,12 @@ class CaptumTracInCP(CaptumInfluence):
 
 def captum_tracincp_explain(
     model: torch.nn.Module,
-    model_id: str,
-    cache_dir: Optional[str],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
-    checkpoints: Union[str, List[str], Iterator],
     device: Union[str, torch.device],
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
+    model_id: Optional[str] = None,
+    cache_dir: Optional[str] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     return explain_fn_from_explainer(
@@ -427,7 +424,6 @@ def captum_tracincp_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
-        checkpoints=checkpoints,
         device=device,
         **kwargs,
     )
@@ -435,13 +431,12 @@ def captum_tracincp_explain(
 
 def captum_tracincp_self_influence(
     model: torch.nn.Module,
-    model_id: str,
-    cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
-    checkpoints: Union[str, List[str], Iterator],
     device: Union[str, torch.device],
     inputs: Optional[Union[Tuple[Any, ...], torch.utils.data.DataLoader]] = None,
     outer_loop_by_checkpoints: bool = False,
+    model_id: Optional[str] = None,
+    cache_dir: Optional[str] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     self_influence_kwargs = {"inputs": inputs, "outer_loop_by_checkpoints": outer_loop_by_checkpoints}
@@ -451,7 +446,6 @@ def captum_tracincp_self_influence(
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        checkpoints=checkpoints,
         device=device,
         self_influence_kwargs=self_influence_kwargs,
         **kwargs,

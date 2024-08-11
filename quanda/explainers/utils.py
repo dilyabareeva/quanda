@@ -18,12 +18,12 @@ def _init_explainer(explainer_cls, model, model_id, cache_dir, train_dataset, de
 def explain_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
-    model_id: str,
-    cache_dir: Optional[str],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     device: Union[str, torch.device],
     targets: Optional[Union[List[int], torch.Tensor]] = None,
+    cache_dir: Optional[str] = None,
+    model_id: Optional[str] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     explainer = _init_explainer(
@@ -42,11 +42,11 @@ def explain_fn_from_explainer(
 def self_influence_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
-    model_id: str,
-    cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
     device: Union[str, torch.device],
     self_influence_kwargs: dict,
+    cache_dir: Optional[str] = None,
+    model_id: Optional[str] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     explainer = _init_explainer(
