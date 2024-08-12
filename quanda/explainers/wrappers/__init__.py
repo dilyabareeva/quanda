@@ -11,6 +11,10 @@ from quanda.explainers.wrappers.captum_influence import (
     captum_tracincp_self_influence,
 )
 
+from quanda.explainers.wrappers.trak import (
+    TRAK,
+)
+
 __all__ = [
     "CaptumInfluence",
     "CaptumSimilarity",
@@ -22,4 +26,5 @@ __all__ = [
     "CaptumTracInCP",
     "captum_tracincp_explain",
     "captum_tracincp_self_influence",
+    "TRAK",
 ]

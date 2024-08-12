@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 from quanda.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
-from quanda.toy_benchmarks.base import ToyBenchmark
+from quanda.toy_benchmarks import ToyBenchmark
 from quanda.utils.training.trainer import BaseTrainer
 
 

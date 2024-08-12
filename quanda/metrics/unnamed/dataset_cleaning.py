@@ -4,7 +4,7 @@ from typing import Optional, Union
 import lightning as L
 import torch
 
-from quanda.metrics.base import GlobalMetric
+from quanda.metrics import GlobalMetric
 from quanda.utils.common import class_accuracy
 from quanda.utils.training import BaseTrainer
 

@@ -2,7 +2,7 @@ from typing import Any, List, Optional, Union
 
 import torch
 
-from quanda.metrics.base import GlobalMetric
+from quanda.metrics import GlobalMetric
 
 
 class MislabelingDetectionMetric(GlobalMetric):

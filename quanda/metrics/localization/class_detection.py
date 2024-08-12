@@ -2,7 +2,7 @@ from typing import List
 
 import torch
 
-from quanda.metrics.base import Metric
+from quanda.metrics import Metric
 
 
 class ClassDetectionMetric(Metric):

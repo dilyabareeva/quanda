@@ -18,6 +18,7 @@ dynamic = ["version"]
 
 [tool.isort]
 profile = "black"
+extend_skip = ["__init__.py"]
 line_length = 79
 multi_line_output = 3
 include_trailing_comma = true
@@ -28,6 +29,10 @@ warn_return_any = false
 warn_unused_configs = true
 check_untyped_defs = true
 #ignore_errors = true # TODO: change this
+
+[[tool.mypy.overrides]]
+module = ["trak", "trak.projectors", "fast_jl"]
+ignore_missing_imports = true
 
 # Black formatting
 [tool.black]

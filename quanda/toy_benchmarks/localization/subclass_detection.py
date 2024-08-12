@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 from quanda.metrics.localization.class_detection import ClassDetectionMetric
-from quanda.toy_benchmarks.base import ToyBenchmark
+from quanda.toy_benchmarks import ToyBenchmark
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,

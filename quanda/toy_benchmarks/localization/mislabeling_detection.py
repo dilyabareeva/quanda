@@ -8,7 +8,7 @@ from tqdm import tqdm
 from quanda.metrics.localization.mislabeling_detection import (
     MislabelingDetectionMetric,
 )
-from quanda.toy_benchmarks.base import ToyBenchmark
+from quanda.toy_benchmarks import ToyBenchmark
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )

@@ -1,3 +1,4 @@
+from quanda.explainers.base import BaseExplainer
 from quanda.explainers import utils, wrappers
 from quanda.explainers.aggregators import (
     AbsSumAggregator,
@@ -5,7 +6,6 @@ from quanda.explainers.aggregators import (
     SumAggregator,
     aggr_types,
 )
-from quanda.explainers.base import BaseExplainer
 from quanda.explainers.functional import ExplainFunc, ExplainFuncMini
 from quanda.explainers.random import RandomExplainer
 
