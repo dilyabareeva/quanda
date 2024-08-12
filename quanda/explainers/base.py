@@ -11,10 +11,10 @@ class BaseExplainer(ABC):
     def __init__(
         self,
         model: torch.nn.Module,
-        model_id: str,
         cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
         device: Union[str, torch.device],
+        model_id: Optional[str] = None,
         **kwargs,
     ):
         self.model = model

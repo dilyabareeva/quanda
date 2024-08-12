@@ -179,7 +179,7 @@ def test_captum_influence_explain_functional(
     ],
 )
 def test_captum_arnoldi(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex, request, tmp_path
+    test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex, request
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
@@ -188,8 +188,6 @@ def test_captum_arnoldi(
 
     explainer_simple = CaptumArnoldi(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoint="tests/assets/mnist",
         device="cpu",
@@ -211,8 +209,6 @@ def test_captum_arnoldi(
 
     explainer_complex = CaptumArnoldi(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoint="tests/assets/mnist",
         device="cpu",
@@ -314,8 +310,6 @@ def test_captum_arnoldi_explain_functional(
 
     explanations_complex = captum_arnoldi_explain(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         test_tensor=test_tensor,
         train_dataset=dataset,
         explanation_targets=test_labels,
@@ -351,7 +345,7 @@ def test_captum_arnoldi_explain_functional(
         ),
     ],
 )
-def test_captum_arnoldi_self_influence(test_id, model, dataset, method_kwargs, request, tmp_path):
+def test_captum_arnoldi_self_influence(test_id, model, dataset, method_kwargs, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
 
@@ -367,8 +361,6 @@ def test_captum_arnoldi_self_influence(test_id, model, dataset, method_kwargs, r
 
     explanations = captum_arnoldi_self_influence(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         device="cpu",
         checkpoint="tests/assets/mnist",
@@ -396,7 +388,7 @@ def test_captum_arnoldi_self_influence(test_id, model, dataset, method_kwargs, r
         ),
     ],
 )
-def test_captum_tracincp(test_id, model, dataset, test_tensor, checkpoints, method_kwargs, request, tmp_path):
+def test_captum_tracincp(test_id, model, dataset, test_tensor, checkpoints, method_kwargs, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
@@ -413,8 +405,6 @@ def test_captum_tracincp(test_id, model, dataset, test_tensor, checkpoints, meth
 
     explainer = CaptumTracInCP(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoints=checkpoints,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
@@ -466,8 +456,6 @@ def test_captum_tracincp_explain_functional(
 
     explanations_simple = captum_tracincp_explain(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoints=checkpoints,
         test_tensor=test_tensor,
@@ -519,7 +507,7 @@ def test_captum_tracincp_explain_functional(
         ),
     ],
 )
-def test_captum_tracincp_self_influence(test_id, model, dataset, checkpoints, method_kwargs, request, tmp_path):
+def test_captum_tracincp_self_influence(test_id, model, dataset, checkpoints, method_kwargs, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     checkpoints = request.getfixturevalue(checkpoints)
@@ -535,8 +523,6 @@ def test_captum_tracincp_self_influence(test_id, model, dataset, checkpoints, me
 
     explanations = captum_tracincp_self_influence(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoints=checkpoints,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
