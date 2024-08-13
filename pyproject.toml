@@ -13,6 +13,7 @@ dependencies = [
     "lightning>=1.4.0",
     "torchmetrics>=1.4.0",
     "tqdm>=4.0.0",
+    "traker>=0.3.2"
 ]
 dynamic = ["version"]
 
