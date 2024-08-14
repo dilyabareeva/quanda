@@ -1,5 +1,7 @@
-import torch
 from typing import Optional, Union
+
+import torch
+
 from quanda.metrics.localization import ClassDetectionMetric
 
 
@@ -9,7 +11,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         subclass_labels: torch.Tensor,
-            device: Optional[Union[str, torch.device]] = None,
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):

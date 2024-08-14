@@ -13,7 +13,7 @@ from quanda.utils.training.trainer import BaseTrainer
 class DatasetCleaning(ToyBenchmark):
     def __init__(
         self,
-            device: Optional[Union[str, torch.device]] = None,
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -39,7 +39,6 @@ class DatasetCleaning(ToyBenchmark):
 
         obj.model = model.to(device)
         obj.train_dataset = train_dataset
-        obj.device = device
 
         return obj
 
@@ -73,7 +72,6 @@ class DatasetCleaning(ToyBenchmark):
         obj = cls(device=device)
         obj.model = model
         obj.train_dataset = train_dataset
-        obj.device = device
 
         return obj
 

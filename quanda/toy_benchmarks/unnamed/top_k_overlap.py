@@ -10,7 +10,7 @@ from quanda.toy_benchmarks.base import ToyBenchmark
 class TopKOverlap(ToyBenchmark):
     def __init__(
         self,
-            device: Optional[Union[str, torch.device]] = None,
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -36,7 +36,6 @@ class TopKOverlap(ToyBenchmark):
 
         obj.model = model.to(device)
         obj.train_dataset = train_dataset
-        obj.device = device
 
         return obj
 
@@ -70,7 +69,6 @@ class TopKOverlap(ToyBenchmark):
         obj = cls(device=device)
         obj.model = model
         obj.train_dataset = train_dataset
-        obj.device = device
 
         return obj
 

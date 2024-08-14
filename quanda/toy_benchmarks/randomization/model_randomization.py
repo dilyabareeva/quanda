@@ -13,7 +13,7 @@ from quanda.utils.functions import CorrelationFnLiterals
 class ModelRandomization(ToyBenchmark):
     def __init__(
         self,
-            device: Optional[Union[str, torch.device]] = None,
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -39,7 +39,6 @@ class ModelRandomization(ToyBenchmark):
 
         obj.model = model.to(device)
         obj.train_dataset = train_dataset
-        obj.device = device
 
         return obj
 
@@ -74,7 +73,6 @@ class ModelRandomization(ToyBenchmark):
         obj = cls(device=device)
         obj.model = model
         obj.train_dataset = train_dataset
-        obj.device = device
 
         return obj
 

@@ -17,7 +17,7 @@ from quanda.utils.training.trainer import BaseTrainer
 class SubclassDetection(ToyBenchmark):
     def __init__(
         self,
-            device: Optional[Union[str, torch.device]] = None,
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):

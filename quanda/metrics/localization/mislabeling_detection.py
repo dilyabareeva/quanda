@@ -14,7 +14,7 @@ class MislabelingDetectionMetric(GlobalMetric):
         global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
-            device: Optional[Union[str, torch.device]] = None,
+        device: Optional[Union[str, torch.device]] = None,
         *args: Any,
         **kwargs: Any,
     ):

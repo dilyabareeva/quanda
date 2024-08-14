@@ -1,5 +1,5 @@
 import random
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional
 
 import torch
 from torch.utils.data.dataset import Dataset

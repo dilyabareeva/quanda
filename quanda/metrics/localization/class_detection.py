@@ -1,16 +1,16 @@
-from typing import List
+from typing import List, Optional, Union
 
 import torch
 
 from quanda.metrics.base import Metric
-from typing import Optional, Union
+
 
 class ClassDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-            device: Optional[Union[str, torch.device]] = None,
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):

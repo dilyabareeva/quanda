@@ -44,7 +44,7 @@ class TensorCache(Cache):
         return torch.save(indices, file_path)
 
     @staticmethod
-    def load(path: str, file_id: str, device: str = "cpu") -> Tensor:
+    def load(path: str, file_id: str, device: Union[str, torch.device] = "cpu") -> Tensor:
         file_path = os.path.join(path, file_id)
         return torch.load(file_path, map_location=device)
 

@@ -33,7 +33,7 @@ class DatasetCleaningMetric(GlobalMetric):
         expl_kwargs: Optional[dict] = None,
         model_id: str = "0",
         cache_dir: str = "./cache",
-            device: Optional[Union[str, torch.device]] = None,
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):

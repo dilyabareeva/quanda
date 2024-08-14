@@ -1,4 +1,4 @@
-from typing import Callable, List, Literal, Optional, Union
+from typing import Callable, List, Literal, Optional
 
 import torch
 
