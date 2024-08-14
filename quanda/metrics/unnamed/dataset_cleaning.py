@@ -128,7 +128,7 @@ class DatasetCleaningMetric(GlobalMetric):
         clean_subset = torch.utils.data.Subset(self.train_dataset, clean_indices)
 
         train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=32, shuffle=True)
-        original_accuracy = class_accuracy(self.model, train_dl, self.device)
+        original_accuracy = class_accuracy(self.model, train_dl, self.model_device)
 
         clean_dl = torch.utils.data.DataLoader(clean_subset, batch_size=32, shuffle=True)
 
@@ -155,6 +155,6 @@ class DatasetCleaningMetric(GlobalMetric):
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
-        clean_accuracy = class_accuracy(self.model, clean_dl, self.device)
+        clean_accuracy = class_accuracy(self.model, clean_dl, self.model_device)
 
         return original_accuracy - clean_accuracy

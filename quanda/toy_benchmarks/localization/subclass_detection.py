@@ -17,11 +17,10 @@ from quanda.utils.training.trainer import BaseTrainer
 class SubclassDetection(ToyBenchmark):
     def __init__(
         self,
-        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
-        super().__init__(device=device)
+        super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.group_model: Union[torch.nn.Module, L.LightningModule]
@@ -56,8 +55,8 @@ class SubclassDetection(ToyBenchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
-        obj = cls(device=device)
-
+        obj = cls()
+        obj.set_devices(model, device)
         obj.model = model
         obj._generate(
             trainer=trainer,
@@ -181,7 +180,7 @@ class SubclassDetection(ToyBenchmark):
         """
         This method should assemble the benchmark components from arguments and persist them in the instance.
         """
-        obj = cls(device=device)
+        obj = cls()
         obj.group_model = group_model
         obj.train_dataset = train_dataset
         obj.class_to_group = class_to_group
@@ -198,6 +197,9 @@ class SubclassDetection(ToyBenchmark):
         )
         obj.grouped_train_dl = torch.utils.data.DataLoader(obj.grouped_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
+
+        obj.set_devices(group_model, device)
+
         return obj
 
     def save(self, path: str, *args, **kwargs):
@@ -215,7 +217,6 @@ class SubclassDetection(ToyBenchmark):
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
-        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -226,7 +227,7 @@ class SubclassDetection(ToyBenchmark):
 
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
-        metric = ClassDetectionMetric(model=self.group_model, train_dataset=self.train_dataset, device=device)
+        metric = ClassDetectionMetric(model=self.group_model, train_dataset=self.train_dataset, device=self.device)
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
@@ -234,7 +235,7 @@ class SubclassDetection(ToyBenchmark):
         for i, (inputs, labels) in enumerate(pbar):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-            inputs, labels = inputs.to(device), labels.to(device)
+            inputs, labels = inputs.to(self.model_device), labels.to(self.model_device)
             grouped_labels = torch.tensor([self.class_to_group[i.item()] for i in labels], device=labels.device)
             if use_predictions:
                 with torch.no_grad():

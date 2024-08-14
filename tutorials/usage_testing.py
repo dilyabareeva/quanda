@@ -72,6 +72,8 @@ def main():
     init_model = resnet18(weights=None, num_classes=10)
     model.load_state_dict(weights_pretrained)
     model.to(DEVICE)
+
+    device = "cpu"
     model.eval()
 
     # a temporary data loader without normalization, just to show the images
@@ -121,12 +123,12 @@ def main():
         cache_dir=cache_dir,
         correlation_fn="spearman",
         seed=42,
-        device=DEVICE,
+        device=device,
     )
 
-    id_class = ClassDetectionMetric(model=model, train_dataset=train_set, device=DEVICE)
+    id_class = ClassDetectionMetric(model=model, train_dataset=train_set, device=device)
 
-    top_k = TopKOverlapMetric(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
+    top_k = TopKOverlapMetric(model=model, train_dataset=train_set, top_k=1, device=device)
 
     # dataset cleaning
     max_epochs = 1
@@ -166,7 +168,7 @@ def main():
         global_method="sum_abs",
         trainer=trainer,
         top_k=50,
-        device=DEVICE,
+        device=device,
     )
 
     # iterate over test set and feed tensor batches first to explain, then to metric
@@ -178,7 +180,7 @@ def main():
             cache_dir=cache_dir,
             test_tensor=data,
             train_dataset=train_set,
-            device=DEVICE,
+            device=device,
             **explain_fn_kwargs,
         )
         model_rand.update(data, tda)
@@ -211,7 +213,7 @@ def main():
         class_to_group="random",
         seed=42,
         batch_size=100,
-        device=DEVICE,
+        device=device,
     )
 
     score = bench.evaluate(

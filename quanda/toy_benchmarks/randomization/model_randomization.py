@@ -13,11 +13,10 @@ from quanda.utils.functions import CorrelationFnLiterals
 class ModelRandomization(ToyBenchmark):
     def __init__(
         self,
-        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
-        super().__init__(device=device)
+        super().__init__()
 
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
@@ -35,8 +34,8 @@ class ModelRandomization(ToyBenchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
-        obj = cls(device=device)
-
+        obj = cls()
+        obj.set_devices(model, device)
         obj.model = model
         obj.train_dataset = train_dataset
 
@@ -70,9 +69,11 @@ class ModelRandomization(ToyBenchmark):
         """
         This method should assemble the benchmark components from arguments and persist them in the instance.
         """
-        obj = cls(device=device)
+        obj = cls()
         obj.model = model
         obj.train_dataset = train_dataset
+
+        obj.set_devices(model, device)
 
         return obj
 
@@ -93,7 +94,6 @@ class ModelRandomization(ToyBenchmark):
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
-        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -109,7 +109,7 @@ class ModelRandomization(ToyBenchmark):
             seed=seed,
             model_id=model_id,
             cache_dir=cache_dir,
-            device=device,
+            device=self.device,
         )
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
@@ -117,7 +117,7 @@ class ModelRandomization(ToyBenchmark):
         for i, (input, labels) in enumerate(pbar):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-            input, labels = input.to(device), labels.to(device)
+            input, labels = input.to(self.model_device), labels.to(self.model_device)
 
             if use_predictions:
                 with torch.no_grad():

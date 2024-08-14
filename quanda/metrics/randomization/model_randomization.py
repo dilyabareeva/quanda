@@ -42,7 +42,7 @@ class ModelRandomizationMetric(Metric):
         self.model_id = model_id
         self.cache_dir = cache_dir
 
-        self.generator = torch.Generator(device=self.device)
+        self.generator = torch.Generator(device=self.model_device)
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
         self.rand_explainer = explainer_cls(

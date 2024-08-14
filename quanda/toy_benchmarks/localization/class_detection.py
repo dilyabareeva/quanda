@@ -10,11 +10,10 @@ from quanda.toy_benchmarks.base import ToyBenchmark
 class ClassDetection(ToyBenchmark):
     def __init__(
         self,
-        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
-        super().__init__(device=device)
+        super().__init__()
 
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
@@ -32,11 +31,11 @@ class ClassDetection(ToyBenchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
-        obj = cls(device=device)
+        obj = cls()
 
         obj.model = model
         obj.train_dataset = train_dataset
-
+        obj.set_devices(model, device)
         return obj
 
     @property
@@ -67,9 +66,12 @@ class ClassDetection(ToyBenchmark):
         """
         This method should assemble the benchmark components from arguments and persist them in the instance.
         """
-        obj = cls(device=device)
+
+        obj = cls()
         obj.model = model
         obj.train_dataset = train_dataset
+
+        obj.set_devices(model, device)
 
         return obj
 
@@ -88,7 +90,6 @@ class ClassDetection(ToyBenchmark):
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
-        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -99,7 +100,7 @@ class ClassDetection(ToyBenchmark):
 
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
-        metric = ClassDetectionMetric(model=self.model, train_dataset=self.train_dataset, device="cpu")
+        metric = ClassDetectionMetric(model=self.model, train_dataset=self.train_dataset, device=self.device)
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
@@ -107,7 +108,7 @@ class ClassDetection(ToyBenchmark):
         for i, (input, labels) in enumerate(pbar):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-            input, labels = input.to(device), labels.to(device)
+            input, labels = input.to(self.model_device), labels.to(self.model_device)
 
             if use_predictions:
                 with torch.no_grad():

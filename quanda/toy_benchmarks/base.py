@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from typing import Optional, Union
+import torch
 
 
 class ToyBenchmark(ABC):
@@ -15,6 +17,8 @@ class ToyBenchmark(ABC):
         :param args:
         :param kwargs:
         """
+        self.model_device: Optional[Union[str, torch.device]]
+        self.device: Optional[Union[str, torch.device]]
 
     @classmethod
     @abstractmethod
@@ -58,3 +62,18 @@ class ToyBenchmark(ABC):
         """
 
         raise NotImplementedError
+
+    def set_devices(
+        self,
+        model: torch.nn.Module,
+        device: Optional[Union[str, torch.device]] = None,
+    ):
+        """
+        This method should set the device for the model.
+        """
+        if next(model.parameters(), None) is not None:
+            self.model_device = next(model.parameters()).device
+        else:
+            self.model_device = torch.device("cpu")
+
+        self.device = device or self.model_device
