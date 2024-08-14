@@ -62,7 +62,7 @@ class MislabelingDetection(ToyBenchmark):
         obj = cls(device=device)
 
         obj._generate(
-            model=model.to(device),
+            model=model,
             train_dataset=train_dataset,
             val_dataset=val_dataset,
             p=p,

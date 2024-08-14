@@ -37,7 +37,7 @@ class DatasetCleaning(ToyBenchmark):
 
         obj = cls(device=device)
 
-        obj.model = model.to(device)
+        obj.model = model
         obj.train_dataset = train_dataset
 
         return obj
