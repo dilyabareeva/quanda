@@ -35,7 +35,7 @@ class TensorExplanations(Explanations):
         self,
         tensor: torch.Tensor,
         batch_size: int = 8,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
     ):
         """
         Returns explanations from cache saved as tensors. __getitem__ and __setitem__ methods are used to access the
@@ -80,7 +80,7 @@ class BatchedCachedExplanations(Explanations):
     def __init__(
         self,
         cache_dir: str = "./batch_wise_cached_explanations",
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
     ):
         """
         Returns batched explanations from cache. __getitem__ and __setitem__ methods are used to access the explanations

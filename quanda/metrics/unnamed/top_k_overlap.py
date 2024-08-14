@@ -1,5 +1,5 @@
 import torch
-
+from typing import Optional, Union
 from quanda.metrics.base import Metric
 
 
@@ -9,13 +9,13 @@ class TopKOverlapMetric(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         top_k: int = 1,
-        device: str = "cpu",
+            device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
         super().__init__(model=model, train_dataset=train_dataset, device=device)
         self.top_k = top_k
-        self.all_top_k_examples = torch.empty(0, top_k).to(device)
+        self.all_top_k_examples = torch.empty(0, top_k).to(self.device)
 
     def update(
         self,

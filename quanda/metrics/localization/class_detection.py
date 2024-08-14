@@ -3,14 +3,14 @@ from typing import List
 import torch
 
 from quanda.metrics.base import Metric
-
+from typing import Optional, Union
 
 class ClassDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device: str,
+            device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):

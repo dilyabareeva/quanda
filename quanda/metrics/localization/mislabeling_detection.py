@@ -14,7 +14,7 @@ class MislabelingDetectionMetric(GlobalMetric):
         global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
-        device: str = "cpu",
+            device: Optional[Union[str, torch.device]] = None,
         *args: Any,
         **kwargs: Any,
     ):
@@ -37,7 +37,7 @@ class MislabelingDetectionMetric(GlobalMetric):
         explainer_cls: type,
         poisoned_indices: List[int],
         expl_kwargs: Optional[dict] = None,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args: Any,
         **kwargs: Any,
     ):
@@ -58,7 +58,7 @@ class MislabelingDetectionMetric(GlobalMetric):
         train_dataset: torch.utils.data.Dataset,
         poisoned_indices: List[int],
         aggregator_cls: Union[str, type],
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):

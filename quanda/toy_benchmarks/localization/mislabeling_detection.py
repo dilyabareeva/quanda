@@ -18,7 +18,7 @@ from quanda.utils.training.trainer import BaseTrainer
 class MislabelingDetection(ToyBenchmark):
     def __init__(
         self,
-        device: str = "cpu",
+            device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -51,7 +51,7 @@ class MislabelingDetection(ToyBenchmark):
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -161,7 +161,7 @@ class MislabelingDetection(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str, device: str = "cpu", batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str, device: Optional[Union[str, torch.device]] = None, batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -192,7 +192,7 @@ class MislabelingDetection(ToyBenchmark):
         p: float = 0.3,  # TODO: type specification
         global_method: Union[str, type] = "self-influence",
         batch_size: int = 8,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -235,7 +235,7 @@ class MislabelingDetection(ToyBenchmark):
         expl_kwargs: Optional[dict] = None,
         use_predictions: bool = False,
         batch_size: int = 8,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):

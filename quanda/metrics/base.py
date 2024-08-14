@@ -19,7 +19,7 @@ class Metric(ABC):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args: Any,
         **kwargs: Any,
     ):
@@ -32,17 +32,22 @@ class Metric(ABC):
             A PyTorch model.
         train_dataset: torch.utils.data.Dataset
             A PyTorch dataset.
-        device: str
-            Device to use.
         *args: Any
             Additional arguments.
         **kwargs: Any
             Additional keyword arguments.
         """
 
-        self.model: torch.nn.Module = model.to(device)
+        self.model: torch.nn.Module = model
         self.train_dataset: torch.utils.data.Dataset = train_dataset
-        self.device: str = device
+
+        # if model has device attribute, use it, otherwise use the default device
+        if next(model.parameters(), None) is not None:
+            self.model_device = next(model.parameters()).device
+        else:
+            self.model_device = torch.device("cpu")
+
+        self.device = device or self.model_device
 
     @abstractmethod
     def update(
@@ -197,7 +202,7 @@ class GlobalMetric(Metric, ABC):
         global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):

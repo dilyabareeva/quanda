@@ -1,4 +1,4 @@
-from typing import Callable, List, Literal, Optional
+from typing import Callable, List, Literal, Optional, Union
 
 import torch
 
@@ -17,7 +17,6 @@ class SampleTransformationDataset(TransformedDataset):
         cls_idx: Optional[int] = None,
         p: float = 1.0,
         seed: int = 42,
-        device: str = "cpu",
         sample_fn: Optional[Callable] = None,
     ):
         super().__init__(
@@ -26,7 +25,6 @@ class SampleTransformationDataset(TransformedDataset):
             dataset_transform=dataset_transform,
             transform_indices=transform_indices,
             seed=seed,
-            device=device,
             p=p,
             cls_idx=cls_idx,
             sample_fn=sample_fn,

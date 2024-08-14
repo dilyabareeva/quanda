@@ -1,8 +1,9 @@
+import torch
 from abc import ABC, abstractmethod
 
 
 class ToyBenchmark(ABC):
-    def __init__(self, device: str = "cpu", *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         I think here it would be nice to pass a general receipt for the downstream task construction.
         For example, we could pass
@@ -15,7 +16,6 @@ class ToyBenchmark(ABC):
         :param args:
         :param kwargs:
         """
-        self.device = device
 
     @classmethod
     @abstractmethod

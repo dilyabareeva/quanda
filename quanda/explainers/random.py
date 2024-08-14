@@ -18,7 +18,6 @@ class RandomExplainer(BaseExplainer):
         cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
         seed: int = 27,
-        device: Union[str, torch.device] = "cpu",
         **kwargs,
     ):
         super().__init__(
@@ -26,10 +25,9 @@ class RandomExplainer(BaseExplainer):
             model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
-            device=device,
         )
         self.seed = seed
-        self.generator = torch.Generator(device=device)
+        self.generator = torch.Generator()
         self.generator.manual_seed(self.seed)
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):

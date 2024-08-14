@@ -33,7 +33,7 @@ class DatasetCleaningMetric(GlobalMetric):
         expl_kwargs: Optional[dict] = None,
         model_id: str = "0",
         cache_dir: str = "./cache",
-        device: str = "cpu",
+            device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -64,7 +64,7 @@ class DatasetCleaningMetric(GlobalMetric):
         expl_kwargs: Optional[dict] = None,
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -91,7 +91,7 @@ class DatasetCleaningMetric(GlobalMetric):
         init_model: Optional[torch.nn.Module] = None,
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):

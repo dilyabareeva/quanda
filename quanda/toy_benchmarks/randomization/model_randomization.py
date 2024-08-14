@@ -13,7 +13,7 @@ from quanda.utils.functions import CorrelationFnLiterals
 class ModelRandomization(ToyBenchmark):
     def __init__(
         self,
-        device: str = "cpu",
+            device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -27,7 +27,7 @@ class ModelRandomization(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -51,7 +51,7 @@ class ModelRandomization(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str, device: str = "cpu", batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str, device: Optional[Union[str, torch.device]] = None, batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -64,7 +64,7 @@ class ModelRandomization(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -95,7 +95,7 @@ class ModelRandomization(ToyBenchmark):
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):

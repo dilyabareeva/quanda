@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 
 import torch
 
@@ -16,7 +16,6 @@ class LabelFlippingDataset(TransformedDataset):
         cls_idx: Optional[int] = None,
         p: float = 1.0,  # TODO: decide on default value vis-à-vis subset_idx
         seed: int = 42,
-        device: str = "cpu",
     ):
         super().__init__(
             dataset=dataset,
@@ -24,7 +23,6 @@ class LabelFlippingDataset(TransformedDataset):
             dataset_transform=dataset_transform,
             transform_indices=transform_indices,
             seed=seed,
-            device=device,
             p=p,
             cls_idx=cls_idx,
         )

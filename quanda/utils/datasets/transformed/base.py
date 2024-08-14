@@ -1,5 +1,5 @@
 import random
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 from torch.utils.data.dataset import Dataset
@@ -16,7 +16,6 @@ class TransformedDataset(Dataset):
         cls_idx: Optional[int] = None,
         p: float = 1.0,
         seed: int = 42,
-        device: str = "cpu",
         sample_fn: Optional[Callable] = None,
         label_fn: Optional[Callable] = None,
     ):
@@ -26,7 +25,6 @@ class TransformedDataset(Dataset):
         self.cls_idx = cls_idx
         self.cache_path = cache_path
         self.p = p
-        self.device = device
 
         if dataset_transform is not None:
             self.dataset_transform = dataset_transform

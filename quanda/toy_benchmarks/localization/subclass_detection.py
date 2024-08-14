@@ -17,7 +17,7 @@ from quanda.utils.training.trainer import BaseTrainer
 class SubclassDetection(ToyBenchmark):
     def __init__(
         self,
-        device: str = "cpu",
+            device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -48,7 +48,7 @@ class SubclassDetection(ToyBenchmark):
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -147,7 +147,7 @@ class SubclassDetection(ToyBenchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def load(cls, path: str, device: str = "cpu", batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str, device: Optional[Union[str, torch.device]] = None, batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -174,7 +174,7 @@ class SubclassDetection(ToyBenchmark):
         class_to_group: Dict[int, int],  # TODO: type specification
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
@@ -215,7 +215,7 @@ class SubclassDetection(ToyBenchmark):
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         *args,
         **kwargs,
     ):
