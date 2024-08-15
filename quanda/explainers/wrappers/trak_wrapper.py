@@ -1,4 +1,5 @@
 import warnings
+from importlib.util import find_spec
 from typing import Any, Iterable, List, Literal, Optional, Sized, Union
 
 import torch
@@ -11,7 +12,7 @@ from quanda.explainers.utils import (
     self_influence_fn_from_explainer,
 )
 
-TRAKProjectorLiteral = Literal["cuda", "noop", "basic", "check_cuda"]
+TRAKProjectorLiteral = Literal["cuda", "noop", "basic"]
 TRAKProjectionTypeLiteral = Literal["rademacher", "normal"]
 
 
@@ -21,9 +22,9 @@ class TRAK(BaseExplainer):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
-        cache_dir: Optional[str] = None,
+        cache_dir: str,
+        projector: TRAKProjectorLiteral,
         device: Union[str, torch.device] = "cpu",
-        projector: TRAKProjectorLiteral = "check_cuda",
         proj_dim: int = 128,
         proj_type: TRAKProjectionTypeLiteral = "normal",
         seed: int = 42,
@@ -41,23 +42,13 @@ class TRAK(BaseExplainer):
         num_params_for_grad = 0
         params_iter = params_ldr if params_ldr is not None else self.model.parameters()
         for p in list(params_iter):
-            nn = 1
-            for s in list(p.size()):
-                nn = nn * s
-            num_params_for_grad += nn
-
+            num_params_for_grad = num_params_for_grad + p.numel()
         # Check if traker was installer with the ["cuda"] option
-        if projector in ["cuda", "check_cuda"]:
-            try:
-                import fast_jl
-
-                test_gradient = torch.ones(1, num_params_for_grad).cuda()
-                num_sms = torch.cuda.get_device_properties("cuda").multi_processor_count
-                fast_jl.project_rademacher_8(test_gradient, self.proj_dim, 0, num_sms)
+        if projector == "cuda":
+            if find_spec("fast_jl"):
                 projector = "cuda"
-            except (ImportError, RuntimeError, AttributeError) as e:
-                warnings.warn(f"Could not use CudaProjector.\nReason: {str(e)}")
-                warnings.warn("Defaulting to BasicProjector.")
+            else:
+                warnings.warn("Could not find cuda installation of TRAK. Defaulting to BasicProjector.")
                 projector = "basic"
 
         projector_cls = {
