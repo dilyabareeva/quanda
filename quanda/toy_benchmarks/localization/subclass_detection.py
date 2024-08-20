@@ -47,7 +47,6 @@ class SubclassDetection(ToyBenchmark):
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
-        
         *args,
         **kwargs,
     ):
@@ -146,7 +145,7 @@ class SubclassDetection(ToyBenchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def load(cls, path: str,  batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -160,7 +159,6 @@ class SubclassDetection(ToyBenchmark):
             class_to_group=bench_state["class_to_group"],
             dataset_transform=bench_state["dataset_transform"],
             batch_size=batch_size,
-            
         )
 
     @classmethod
@@ -173,7 +171,6 @@ class SubclassDetection(ToyBenchmark):
         class_to_group: Dict[int, int],  # TODO: type specification
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
-        
         *args,
         **kwargs,
     ):

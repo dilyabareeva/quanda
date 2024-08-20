@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional
 
 import torch
 from tqdm import tqdm
@@ -23,7 +23,6 @@ class ClassDetection(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        
         *args,
         **kwargs,
     ):
@@ -46,7 +45,7 @@ class ClassDetection(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str,  batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -59,7 +58,6 @@ class ClassDetection(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        
         *args,
         **kwargs,
     ):

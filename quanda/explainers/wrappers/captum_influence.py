@@ -30,14 +30,12 @@ class CaptumInfluence(BaseExplainer, ABC):
         explain_kwargs: Any,
         model_id: Optional[str] = None,
         cache_dir: Optional[str] = None,
-        
     ):
         super().__init__(
             model=model,
             model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
-
         )
         self.explainer_cls = explainer_cls
         self.explain_kwargs = explain_kwargs
@@ -298,7 +296,6 @@ def captum_arnoldi_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
-        
         **kwargs,
     )
 
@@ -321,7 +318,6 @@ def captum_arnoldi_self_influence(
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        
         self_influence_kwargs=self_influence_kwargs,
         **kwargs,
     )

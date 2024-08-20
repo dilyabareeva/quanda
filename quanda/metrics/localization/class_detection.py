@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List
 
 import torch
 
@@ -10,7 +10,6 @@ class ClassDetectionMetric(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        
         *args,
         **kwargs,
     ):

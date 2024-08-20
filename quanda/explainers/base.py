@@ -13,10 +13,10 @@ class BaseExplainer(ABC):
         model: torch.nn.Module,
         cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
-        
         model_id: Optional[str] = None,
         **kwargs,
     ):
+        self.device: Union[str, torch.device]
         self.model = model
 
         # if model has device attribute, use it, otherwise use the default device

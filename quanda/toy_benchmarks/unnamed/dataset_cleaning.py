@@ -26,7 +26,6 @@ class DatasetCleaning(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        
         *args,
         **kwargs,
     ):
@@ -49,7 +48,7 @@ class DatasetCleaning(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str,  batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -61,7 +60,6 @@ class DatasetCleaning(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        
         *args,
         **kwargs,
     ):

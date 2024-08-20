@@ -23,14 +23,12 @@ class ModelRandomizationMetric(Metric):
         seed: int = 42,
         model_id: str = "0",
         cache_dir: str = "./cache",
-        
         *args,
         **kwargs,
     ):
         super().__init__(
             model=model,
             train_dataset=train_dataset,
-            
         )
         self.model = model
         self.train_dataset = train_dataset

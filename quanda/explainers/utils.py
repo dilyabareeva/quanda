@@ -9,7 +9,6 @@ def _init_explainer(explainer_cls, model, model_id, cache_dir, train_dataset, **
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        
         **kwargs,
     )
     return explainer
@@ -31,7 +30,6 @@ def explain_fn_from_explainer(
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        
         **kwargs,
     )
 
@@ -53,7 +51,6 @@ def self_influence_fn_from_explainer(
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        
         **kwargs,
     )
 

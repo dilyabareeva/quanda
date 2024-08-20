@@ -34,7 +34,7 @@ class Metric(ABC):
         **kwargs: Any
             Additional keyword arguments.
         """
-
+        self.device: Union[str, torch.device]
         self.model: torch.nn.Module = model
         self.train_dataset: torch.utils.data.Dataset = train_dataset
 
@@ -197,7 +197,6 @@ class GlobalMetric(Metric, ABC):
         global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
-        
         *args,
         **kwargs,
     ):

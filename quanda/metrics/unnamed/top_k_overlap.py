@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 import torch
 
 from quanda.metrics.base import Metric
@@ -11,7 +9,6 @@ class TopKOverlapMetric(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         top_k: int = 1,
-        
         *args,
         **kwargs,
     ):

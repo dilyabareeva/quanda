@@ -44,7 +44,7 @@ class TensorCache(Cache):
         return torch.save(indices, file_path)
 
     @staticmethod
-    def load(path: str, file_id: str, device: Union[str, torch.device] = "cpu") -> Tensor:
+    def load(path: str, file_id: str, device: str = "cpu") -> Tensor:
         file_path = os.path.join(path, file_id)
         return torch.load(file_path, map_location=device)
 
@@ -78,10 +78,10 @@ class ExplanationsCache(Cache):
     @staticmethod
     def load(
         path: str,
-        
+        device: Optional[Union[str, torch.device]] = None,
     ) -> BatchedCachedExplanations:
         if os.path.exists(path):
-            xpl_dataset = BatchedCachedExplanations(cache_dir=path)
+            xpl_dataset = BatchedCachedExplanations(cache_dir=path, device=device)
             return xpl_dataset
         else:
             raise RuntimeError(f"Activation vectors were not found at path {path}")
@@ -129,7 +129,7 @@ class ActivationsCache(Cache):
     def load(
         path: str,
         layer: str,
-        
+        device: Optional[Union[str, torch.device]] = None,
         **kwargs,
     ) -> ActivationDataset:
         layer_dir = os.path.join(path, layer)

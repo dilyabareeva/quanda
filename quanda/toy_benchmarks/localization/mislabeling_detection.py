@@ -50,7 +50,6 @@ class MislabelingDetection(ToyBenchmark):
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
-        
         *args,
         **kwargs,
     ):
@@ -160,7 +159,7 @@ class MislabelingDetection(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str,  batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -176,7 +175,6 @@ class MislabelingDetection(ToyBenchmark):
             p=bench_state["p"],
             global_method=bench_state["global_method"],
             batch_size=batch_size,
-            
         )
 
     @classmethod
@@ -191,7 +189,6 @@ class MislabelingDetection(ToyBenchmark):
         p: float = 0.3,  # TODO: type specification
         global_method: Union[str, type] = "self-influence",
         batch_size: int = 8,
-        
         *args,
         **kwargs,
     ):
