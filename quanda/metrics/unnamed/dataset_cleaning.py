@@ -33,7 +33,7 @@ class DatasetCleaningMetric(GlobalMetric):
         expl_kwargs: Optional[dict] = None,
         model_id: str = "0",
         cache_dir: str = "./cache",
-        device: Optional[Union[str, torch.device]] = None,
+        
         *args,
         **kwargs,
     ):
@@ -45,7 +45,7 @@ class DatasetCleaningMetric(GlobalMetric):
             global_method=global_method,
             explainer_cls=explainer_cls,
             expl_kwargs={**expl_kwargs, "model_id": model_id, "cache_dir": cache_dir},
-            device=device,
+            
         )
         self.top_k = min(top_k, self.dataset_length - 1)
         self.trainer = trainer
@@ -64,7 +64,7 @@ class DatasetCleaningMetric(GlobalMetric):
         expl_kwargs: Optional[dict] = None,
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
-        device: Optional[Union[str, torch.device]] = None,
+        
         *args,
         **kwargs,
     ):
@@ -78,7 +78,7 @@ class DatasetCleaningMetric(GlobalMetric):
             top_k=top_k,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
-            device=device,
+            
         )
 
     @classmethod
@@ -91,7 +91,7 @@ class DatasetCleaningMetric(GlobalMetric):
         init_model: Optional[torch.nn.Module] = None,
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
-        device: Optional[Union[str, torch.device]] = None,
+        
         *args,
         **kwargs,
     ):
@@ -103,7 +103,7 @@ class DatasetCleaningMetric(GlobalMetric):
             trainer_fit_kwargs=trainer_fit_kwargs,
             global_method=aggregator_cls,
             top_k=top_k,
-            device=device,
+            
         )
 
     def update(
@@ -128,7 +128,7 @@ class DatasetCleaningMetric(GlobalMetric):
         clean_subset = torch.utils.data.Subset(self.train_dataset, clean_indices)
 
         train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=32, shuffle=True)
-        original_accuracy = class_accuracy(self.model, train_dl, self.model_device)
+        original_accuracy = class_accuracy(self.model, train_dl, self.device)
 
         clean_dl = torch.utils.data.DataLoader(clean_subset, batch_size=32, shuffle=True)
 
@@ -155,6 +155,6 @@ class DatasetCleaningMetric(GlobalMetric):
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
-        clean_accuracy = class_accuracy(self.model, clean_dl, self.model_device)
+        clean_accuracy = class_accuracy(self.model, clean_dl, self.device)
 
         return original_accuracy - clean_accuracy

@@ -23,7 +23,7 @@ class TopKOverlap(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device: Optional[Union[str, torch.device]] = None,
+        
         *args,
         **kwargs,
     ):
@@ -35,6 +35,7 @@ class TopKOverlap(ToyBenchmark):
 
         obj.model = model
         obj.train_dataset = train_dataset
+        obj.set_devices(model)
 
         return obj
 
@@ -46,19 +47,19 @@ class TopKOverlap(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str, device: Optional[Union[str, torch.device]] = None, batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str,  batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
         bench_state = torch.load(path)
-        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"], device=device)
+        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"])
 
     @classmethod
     def assemble(
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device: Optional[Union[str, torch.device]] = None,
+        
         *args,
         **kwargs,
     ):
@@ -66,10 +67,10 @@ class TopKOverlap(ToyBenchmark):
         This method should assemble the benchmark components from arguments and persist them in the instance.
         """
         obj = cls()
-        obj.set_devices(model, device)
+        obj.set_devices(model)
         obj.model = model
         obj.train_dataset = train_dataset
-        obj.set_devices(model, device)
+        obj.set_devices(model)
 
         return obj
 
@@ -99,7 +100,7 @@ class TopKOverlap(ToyBenchmark):
 
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
-        metric = TopKOverlapMetric(model=self.model, train_dataset=self.train_dataset, top_k=top_k, device=self.device)
+        metric = TopKOverlapMetric(model=self.model, train_dataset=self.train_dataset, top_k=top_k)
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
@@ -107,7 +108,7 @@ class TopKOverlap(ToyBenchmark):
         for i, (input, labels) in enumerate(pbar):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-            input, labels = input.to(self.model_device), labels.to(self.model_device)
+            input, labels = input.to(self.device), labels.to(self.device)
 
             if use_predictions:
                 with torch.no_grad():

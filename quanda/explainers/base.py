@@ -13,7 +13,7 @@ class BaseExplainer(ABC):
         model: torch.nn.Module,
         cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
-        device: Optional[Union[str, torch.device]] = None,
+        
         model_id: Optional[str] = None,
         **kwargs,
     ):
@@ -21,11 +21,9 @@ class BaseExplainer(ABC):
 
         # if model has device attribute, use it, otherwise use the default device
         if next(model.parameters(), None) is not None:
-            self.model_device = next(model.parameters()).device
+            self.device = next(model.parameters()).device
         else:
-            self.model_device = torch.device("cpu")
-
-        self.device = device or self.model_device
+            self.device = torch.device("cpu")
 
         self.model_id = model_id
         self.cache_dir = cache_dir

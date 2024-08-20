@@ -50,7 +50,7 @@ class MislabelingDetection(ToyBenchmark):
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
-        device: Optional[Union[str, torch.device]] = None,
+        
         *args,
         **kwargs,
     ):
@@ -59,7 +59,7 @@ class MislabelingDetection(ToyBenchmark):
         """
 
         obj = cls()
-        obj.set_devices(model, device)
+        obj.set_devices(model)
         obj._generate(
             model=model,
             train_dataset=train_dataset,
@@ -160,7 +160,7 @@ class MislabelingDetection(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str, device: Optional[Union[str, torch.device]] = None, batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str,  batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -176,7 +176,7 @@ class MislabelingDetection(ToyBenchmark):
             p=bench_state["p"],
             global_method=bench_state["global_method"],
             batch_size=batch_size,
-            device=device,
+            
         )
 
     @classmethod
@@ -191,7 +191,7 @@ class MislabelingDetection(ToyBenchmark):
         p: float = 0.3,  # TODO: type specification
         global_method: Union[str, type] = "self-influence",
         batch_size: int = 8,
-        device: Optional[Union[str, torch.device]] = None,
+        
         *args,
         **kwargs,
     ):
@@ -220,7 +220,7 @@ class MislabelingDetection(ToyBenchmark):
         obj.poisoned_train_dl = torch.utils.data.DataLoader(obj.poisoned_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
 
-        obj.set_devices(model, device)
+        obj.set_devices(model)
 
         return obj
 
@@ -262,7 +262,7 @@ class MislabelingDetection(ToyBenchmark):
             for i, (inputs, labels) in enumerate(pbar):
                 pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-                inputs, labels = inputs.to(self.model_device), labels.to(self.model_device)
+                inputs, labels = inputs.to(self.device), labels.to(self.device)
                 if use_predictions:
                     with torch.no_grad():
                         targets = self.model(inputs).argmax(dim=-1)

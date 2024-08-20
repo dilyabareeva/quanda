@@ -11,11 +11,11 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         subclass_labels: torch.Tensor,
-        device: Optional[Union[str, torch.device]] = None,
+        
         *args,
         **kwargs,
     ):
-        super().__init__(model, train_dataset, device, *args, **kwargs)
+        super().__init__(model, train_dataset)
         assert len(subclass_labels) == self.dataset_length, (
             f"Number of subclass labels ({len(subclass_labels)}) "
             f"does not match the number of train dataset samples ({self.dataset_length})."

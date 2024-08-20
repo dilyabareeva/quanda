@@ -47,7 +47,7 @@ class SubclassDetection(ToyBenchmark):
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
-        device: Optional[Union[str, torch.device]] = None,
+        
         *args,
         **kwargs,
     ):
@@ -56,7 +56,7 @@ class SubclassDetection(ToyBenchmark):
         """
 
         obj = cls()
-        obj.set_devices(model, device)
+        obj.set_devices(model)
         obj.model = model
         obj._generate(
             trainer=trainer,
@@ -146,7 +146,7 @@ class SubclassDetection(ToyBenchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def load(cls, path: str, device: Optional[Union[str, torch.device]] = None, batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str,  batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -160,7 +160,7 @@ class SubclassDetection(ToyBenchmark):
             class_to_group=bench_state["class_to_group"],
             dataset_transform=bench_state["dataset_transform"],
             batch_size=batch_size,
-            device=device,
+            
         )
 
     @classmethod
@@ -173,7 +173,7 @@ class SubclassDetection(ToyBenchmark):
         class_to_group: Dict[int, int],  # TODO: type specification
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
-        device: Optional[Union[str, torch.device]] = None,
+        
         *args,
         **kwargs,
     ):
@@ -198,7 +198,7 @@ class SubclassDetection(ToyBenchmark):
         obj.grouped_train_dl = torch.utils.data.DataLoader(obj.grouped_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
 
-        obj.set_devices(group_model, device)
+        obj.set_devices(group_model)
 
         return obj
 
@@ -235,7 +235,7 @@ class SubclassDetection(ToyBenchmark):
         for i, (inputs, labels) in enumerate(pbar):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-            inputs, labels = inputs.to(self.model_device), labels.to(self.model_device)
+            inputs, labels = inputs.to(self.device), labels.to(self.device)
             grouped_labels = torch.tensor([self.class_to_group[i.item()] for i in labels], device=labels.device)
             if use_predictions:
                 with torch.no_grad():

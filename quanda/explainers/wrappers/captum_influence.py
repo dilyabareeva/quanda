@@ -30,14 +30,14 @@ class CaptumInfluence(BaseExplainer, ABC):
         explain_kwargs: Any,
         model_id: Optional[str] = None,
         cache_dir: Optional[str] = None,
-        device: Optional[Union[str, torch.device]] = None,
+        
     ):
         super().__init__(
             model=model,
             model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
-            device=device,
+
         )
         self.explainer_cls = explainer_cls
         self.explain_kwargs = explain_kwargs
@@ -109,7 +109,7 @@ class CaptumSimilarity(CaptumInfluence):
         )
 
         if self.device != "cpu":
-            warnings.warn("CaptumSimilarity explainer only supports CPU devices. Setting device to 'cpu'.")
+            warnings.warn("CaptumSimilarity explainer only supports CPU devices. Converting model device to 'cpu'.")
             self.device = "cpu"
             self.model.to(self.device)
 
@@ -298,7 +298,7 @@ def captum_arnoldi_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
-        device=device,
+        
         **kwargs,
     )
 
@@ -321,7 +321,7 @@ def captum_arnoldi_self_influence(
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        device=device,
+        
         self_influence_kwargs=self_influence_kwargs,
         **kwargs,
     )
