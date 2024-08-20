@@ -26,7 +26,6 @@ class CaptumInfluence(BaseExplainer, ABC):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device: Union[str, torch.device],
         explainer_cls: type,
         explain_kwargs: Any,
         model_id: Optional[str] = None,
@@ -37,7 +36,6 @@ class CaptumInfluence(BaseExplainer, ABC):
             model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
-            device=device,
         )
         self.explainer_cls = explainer_cls
         self.explain_kwargs = explain_kwargs
@@ -75,16 +73,11 @@ class CaptumSimilarity(CaptumInfluence):
         similarity_direction: str = "max",
         batch_size: int = 1,
         replace_nan: bool = False,
-        device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
         # extract and validate layer from kwargs
         self._layer: Optional[Union[List[str], str]] = None
         self.layer = layers
-
-        if device != "cpu":
-            warnings.warn("CaptumSimilarity explainer only supports CPU devices. Setting device to 'cpu'.")
-            device = "cpu"
 
         model_passed = copy.deepcopy(model)  # CaptumSimilarity only does cpu,
         # we still want to keep the model on cuda for the metrics
@@ -109,10 +102,14 @@ class CaptumSimilarity(CaptumInfluence):
             model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
-            device=device,
             explainer_cls=SimilarityInfluence,
             explain_kwargs=explainer_kwargs,
         )
+
+        if self.device != "cpu":
+            warnings.warn("CaptumSimilarity explainer only supports CPU devices. Converting model device to 'cpu'.")
+            self.device = "cpu"
+            self.model.to(self.device)
 
         # explicitly specifying explain method kwargs as instance attributes
         self.top_k = self.dataset_length
@@ -155,7 +152,6 @@ def captum_similarity_explain(
     cache_dir: Optional[str],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
-    device: Union[str, torch.device],
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -167,7 +163,6 @@ def captum_similarity_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
-        device=device,
         **kwargs,
     )
 
@@ -177,7 +172,6 @@ def captum_similarity_self_influence(
     model_id: str,
     cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
-    device: Union[str, torch.device],
     batch_size: Optional[int] = 32,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -190,7 +184,6 @@ def captum_similarity_self_influence(
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        device=device,
         self_influence_kwargs=self_influence_kwargs,
         **kwargs,
     )
@@ -217,9 +210,9 @@ class CaptumArnoldi(CaptumInfluence):
         hessian_inverse_tol: float = 1e-4,
         projection_on_cpu: bool = True,
         show_progress: bool = False,
-        device: Union[str, torch.device] = "cpu",  # TODO Check if gpu works
         model_id: Optional[str] = None,
         cache_dir: Optional[str] = None,
+        device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
         if checkpoints_load_func is None:
@@ -262,10 +255,10 @@ class CaptumArnoldi(CaptumInfluence):
             model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
-            device=device,
             explainer_cls=ArnoldiInfluenceFunction,
             explain_kwargs=explainer_kwargs,
         )
+        self.device = device
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
         test = test.to(self.device)
@@ -303,7 +296,6 @@ def captum_arnoldi_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
-        device=device,
         **kwargs,
     )
 
@@ -326,7 +318,6 @@ def captum_arnoldi_self_influence(
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        device=device,
         self_influence_kwargs=self_influence_kwargs,
         **kwargs,
     )
@@ -344,9 +335,9 @@ class CaptumTracInCP(CaptumInfluence):
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         sample_wise_grads_per_batch: bool = False,
-        device: Union[str, torch.device] = "cpu",
         model_id: Optional[str] = None,
         cache_dir: Optional[str] = None,
+        device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
         if checkpoints_load_func is None:
@@ -380,10 +371,10 @@ class CaptumTracInCP(CaptumInfluence):
             model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
-            device=device,
             explainer_cls=TracInCP,
             explain_kwargs=explainer_kwargs,
         )
+        self.device = device
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
         test = test.to(self.device)
@@ -410,7 +401,6 @@ def captum_tracincp_explain(
     model: torch.nn.Module,
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
-    device: Union[str, torch.device],
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     model_id: Optional[str] = None,
     cache_dir: Optional[str] = None,
@@ -424,7 +414,6 @@ def captum_tracincp_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
-        device=device,
         **kwargs,
     )
 
@@ -432,7 +421,6 @@ def captum_tracincp_explain(
 def captum_tracincp_self_influence(
     model: torch.nn.Module,
     train_dataset: torch.utils.data.Dataset,
-    device: Union[str, torch.device],
     inputs: Optional[Union[Tuple[Any, ...], torch.utils.data.DataLoader]] = None,
     outer_loop_by_checkpoints: bool = False,
     model_id: Optional[str] = None,
@@ -446,7 +434,6 @@ def captum_tracincp_self_influence(
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        device=device,
         self_influence_kwargs=self_influence_kwargs,
         **kwargs,
     )

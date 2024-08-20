@@ -1,8 +1,11 @@
 from abc import ABC, abstractmethod
+from typing import Optional, Union
+
+import torch
 
 
 class ToyBenchmark(ABC):
-    def __init__(self, device: str = "cpu", *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         I think here it would be nice to pass a general receipt for the downstream task construction.
         For example, we could pass
@@ -15,7 +18,7 @@ class ToyBenchmark(ABC):
         :param args:
         :param kwargs:
         """
-        self.device = device
+        self.device: Optional[Union[str, torch.device]]
 
     @classmethod
     @abstractmethod
@@ -59,3 +62,15 @@ class ToyBenchmark(ABC):
         """
 
         raise NotImplementedError
+
+    def set_devices(
+        self,
+        model: torch.nn.Module,
+    ):
+        """
+        This method should set the device for the model.
+        """
+        if next(model.parameters(), None) is not None:
+            self.device = next(model.parameters()).device
+        else:
+            self.device = torch.device("cpu")

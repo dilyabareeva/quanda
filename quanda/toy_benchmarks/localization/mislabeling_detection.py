@@ -18,11 +18,10 @@ from quanda.utils.training.trainer import BaseTrainer
 class MislabelingDetection(ToyBenchmark):
     def __init__(
         self,
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
-        super().__init__(device=device)
+        super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.train_dataset: torch.utils.data.Dataset
@@ -51,7 +50,6 @@ class MislabelingDetection(ToyBenchmark):
         trainer_fit_kwargs: Optional[dict] = None,
         seed: int = 27,
         batch_size: int = 8,
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
@@ -59,10 +57,10 @@ class MislabelingDetection(ToyBenchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
-        obj = cls(device=device)
-
+        obj = cls()
+        obj.set_devices(model)
         obj._generate(
-            model=model.to(device),
+            model=model,
             train_dataset=train_dataset,
             val_dataset=val_dataset,
             p=p,
@@ -161,7 +159,7 @@ class MislabelingDetection(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str, device: str = "cpu", batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -177,7 +175,6 @@ class MislabelingDetection(ToyBenchmark):
             p=bench_state["p"],
             global_method=bench_state["global_method"],
             batch_size=batch_size,
-            device=device,
         )
 
     @classmethod
@@ -192,14 +189,13 @@ class MislabelingDetection(ToyBenchmark):
         p: float = 0.3,  # TODO: type specification
         global_method: Union[str, type] = "self-influence",
         batch_size: int = 8,
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
         """
         This method should assemble the benchmark components from arguments and persist them in the instance.
         """
-        obj = cls(device=device)
+        obj = cls()
         obj.model = model
         obj.train_dataset = train_dataset
         obj.p = p
@@ -220,6 +216,9 @@ class MislabelingDetection(ToyBenchmark):
 
         obj.poisoned_train_dl = torch.utils.data.DataLoader(obj.poisoned_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
+
+        obj.set_devices(model)
+
         return obj
 
     def save(self, path: str, *args, **kwargs):
@@ -235,12 +234,11 @@ class MislabelingDetection(ToyBenchmark):
         expl_kwargs: Optional[dict] = None,
         use_predictions: bool = False,
         batch_size: int = 8,
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, device=device, **expl_kwargs)
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, device=self.device, **expl_kwargs)
 
         poisoned_expl_ds = LabelFlippingDataset(
             dataset=expl_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
@@ -251,7 +249,7 @@ class MislabelingDetection(ToyBenchmark):
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
-                device=device,
+                device=self.device,
                 aggregator_cls=self.global_method,
             )
 
@@ -261,7 +259,7 @@ class MislabelingDetection(ToyBenchmark):
             for i, (inputs, labels) in enumerate(pbar):
                 pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-                inputs, labels = inputs.to(device), labels.to(device)
+                inputs, labels = inputs.to(self.device), labels.to(self.device)
                 if use_predictions:
                     with torch.no_grad():
                         targets = self.model(inputs).argmax(dim=-1)
@@ -274,7 +272,7 @@ class MislabelingDetection(ToyBenchmark):
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
-                device=device,
+                device=self.device,
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
             )

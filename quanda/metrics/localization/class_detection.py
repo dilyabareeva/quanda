@@ -10,11 +10,10 @@ class ClassDetectionMetric(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device: str,
         *args,
         **kwargs,
     ):
-        super().__init__(model=model, train_dataset=train_dataset, device=device)
+        super().__init__(model=model, train_dataset=train_dataset)
         self.scores: List[torch.Tensor] = []
 
     def update(self, test_labels: torch.Tensor, explanations: torch.Tensor):

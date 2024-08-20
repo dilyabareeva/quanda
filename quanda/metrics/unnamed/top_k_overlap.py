@@ -9,13 +9,12 @@ class TopKOverlapMetric(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         top_k: int = 1,
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
-        super().__init__(model=model, train_dataset=train_dataset, device=device)
+        super().__init__(model=model, train_dataset=train_dataset)
         self.top_k = top_k
-        self.all_top_k_examples = torch.empty(0, top_k).to(device)
+        self.all_top_k_examples = torch.empty(0, top_k).to(self.device)
 
     def update(
         self,

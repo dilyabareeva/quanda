@@ -33,7 +33,6 @@ class DatasetCleaningMetric(GlobalMetric):
         expl_kwargs: Optional[dict] = None,
         model_id: str = "0",
         cache_dir: str = "./cache",
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
@@ -45,7 +44,6 @@ class DatasetCleaningMetric(GlobalMetric):
             global_method=global_method,
             explainer_cls=explainer_cls,
             expl_kwargs={**expl_kwargs, "model_id": model_id, "cache_dir": cache_dir},
-            device=device,
         )
         self.top_k = min(top_k, self.dataset_length - 1)
         self.trainer = trainer
@@ -64,7 +62,6 @@ class DatasetCleaningMetric(GlobalMetric):
         expl_kwargs: Optional[dict] = None,
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
@@ -78,7 +75,6 @@ class DatasetCleaningMetric(GlobalMetric):
             top_k=top_k,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
-            device=device,
         )
 
     @classmethod
@@ -91,7 +87,6 @@ class DatasetCleaningMetric(GlobalMetric):
         init_model: Optional[torch.nn.Module] = None,
         top_k: int = 50,
         trainer_fit_kwargs: Optional[dict] = None,
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
@@ -103,7 +98,6 @@ class DatasetCleaningMetric(GlobalMetric):
             trainer_fit_kwargs=trainer_fit_kwargs,
             global_method=aggregator_cls,
             top_k=top_k,
-            device=device,
         )
 
     def update(

@@ -154,7 +154,6 @@ def load_grouped_mnist_dataset():
         n_groups=2,
         class_to_group="random",
         seed=27,
-        device="cpu",
     )
 
 
@@ -172,7 +171,6 @@ def load_poisoned_mnist_dataset():
         n_classes=10,
         p=1.0,
         seed=27,
-        device="cpu",
     )
 
 

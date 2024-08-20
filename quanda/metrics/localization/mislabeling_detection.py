@@ -14,7 +14,6 @@ class MislabelingDetectionMetric(GlobalMetric):
         global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
-        device: str = "cpu",
         *args: Any,
         **kwargs: Any,
     ):
@@ -25,7 +24,6 @@ class MislabelingDetectionMetric(GlobalMetric):
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
             model_id="test",
-            device=device,
         )
         self.poisoned_indices = poisoned_indices
 
@@ -37,7 +35,6 @@ class MislabelingDetectionMetric(GlobalMetric):
         explainer_cls: type,
         poisoned_indices: List[int],
         expl_kwargs: Optional[dict] = None,
-        device: str = "cpu",
         *args: Any,
         **kwargs: Any,
     ):
@@ -48,7 +45,6 @@ class MislabelingDetectionMetric(GlobalMetric):
             global_method="self-influence",
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
-            device=device,
         )
 
     @classmethod
@@ -58,7 +54,6 @@ class MislabelingDetectionMetric(GlobalMetric):
         train_dataset: torch.utils.data.Dataset,
         poisoned_indices: List[int],
         aggregator_cls: Union[str, type],
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
@@ -67,7 +62,6 @@ class MislabelingDetectionMetric(GlobalMetric):
             global_method=aggregator_cls,
             poisoned_indices=poisoned_indices,
             train_dataset=train_dataset,
-            device=device,
         )
 
     def update(

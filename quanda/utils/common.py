@@ -37,7 +37,7 @@ def cache_result(method):
     return wrapper
 
 
-def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, device: str = "cpu"):
+def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, device: Union[str, torch.device] = "cpu"):
     """Return accuracy on a dataset given by the data loader."""
     correct = 0
     total = 0

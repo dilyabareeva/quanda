@@ -13,17 +13,21 @@ class BaseExplainer(ABC):
         model: torch.nn.Module,
         cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
-        device: Union[str, torch.device],
         model_id: Optional[str] = None,
         **kwargs,
     ):
+        self.device: Union[str, torch.device]
         self.model = model
-        self.model.to(device)
+
+        # if model has device attribute, use it, otherwise use the default device
+        if next(model.parameters(), None) is not None:
+            self.device = next(model.parameters()).device
+        else:
+            self.device = torch.device("cpu")
 
         self.model_id = model_id
         self.cache_dir = cache_dir
         self.train_dataset = train_dataset
-        self.device = torch.device(device) if isinstance(device, str) else device
 
     @abstractmethod
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:

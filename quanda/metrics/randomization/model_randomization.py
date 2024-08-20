@@ -23,14 +23,12 @@ class ModelRandomizationMetric(Metric):
         seed: int = 42,
         model_id: str = "0",
         cache_dir: str = "./cache",
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
         super().__init__(
             model=model,
             train_dataset=train_dataset,
-            device=device,
         )
         self.model = model
         self.train_dataset = train_dataset
@@ -41,9 +39,8 @@ class ModelRandomizationMetric(Metric):
         self.seed = seed
         self.model_id = model_id
         self.cache_dir = cache_dir
-        self.device = device
 
-        self.generator = torch.Generator(device=device)
+        self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
         self.rand_explainer = explainer_cls(

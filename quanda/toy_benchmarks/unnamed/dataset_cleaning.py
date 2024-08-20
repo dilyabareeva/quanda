@@ -13,11 +13,10 @@ from quanda.utils.training.trainer import BaseTrainer
 class DatasetCleaning(ToyBenchmark):
     def __init__(
         self,
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
-        super().__init__(device=device)
+        super().__init__()
 
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
@@ -27,7 +26,6 @@ class DatasetCleaning(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
@@ -35,11 +33,10 @@ class DatasetCleaning(ToyBenchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
-        obj = cls(device=device)
-
-        obj.model = model.to(device)
+        obj = cls()
+        obj.set_devices(model)
+        obj.model = model
         obj.train_dataset = train_dataset
-        obj.device = device
 
         return obj
 
@@ -51,29 +48,29 @@ class DatasetCleaning(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str, device: str = "cpu", batch_size: int = 8, *args, **kwargs):
+    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
         bench_state = torch.load(path)
-        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"], device=device)
+        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"])
 
     @classmethod
     def assemble(
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        device: str = "cpu",
         *args,
         **kwargs,
     ):
         """
         This method should assemble the benchmark components from arguments and persist them in the instance.
         """
-        obj = cls(device=device)
+        obj = cls()
         obj.model = model
         obj.train_dataset = train_dataset
-        obj.device = device
+
+        obj.set_devices(model)
 
         return obj
 
@@ -95,7 +92,6 @@ class DatasetCleaning(ToyBenchmark):
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
-        device: str = "cpu",
         global_method: Union[str, type] = "self-influence",
         top_k: int = 50,
         *args,
@@ -118,7 +114,7 @@ class DatasetCleaning(ToyBenchmark):
                 trainer=trainer,
                 trainer_fit_kwargs=trainer_fit_kwargs,
                 top_k=top_k,
-                device=device,
+                device=self.device,
             )
             pbar = tqdm(expl_dl)
             n_batches = len(expl_dl)
@@ -126,7 +122,7 @@ class DatasetCleaning(ToyBenchmark):
             for i, (inputs, labels) in enumerate(pbar):
                 pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
-                inputs, labels = inputs.to(device), labels.to(device)
+                inputs, labels = inputs.to(self.device), labels.to(self.device)
 
                 if use_predictions:
                     with torch.no_grad():
@@ -151,7 +147,7 @@ class DatasetCleaning(ToyBenchmark):
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
                 top_k=top_k,
-                device=device,
+                device=self.device,
             )
 
         return metric.compute()
