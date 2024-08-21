@@ -18,7 +18,7 @@ from torchvision.utils import make_grid
 from tqdm import tqdm
 from transformers import ViTForImageClassification, ViTConfig
 from vit_pytorch.vit_for_small_dataset import ViT
-
+from tutorials.vit_mini_image_net import load_mini_image_net_data
 
 from quanda.explainers.wrappers import (
     CaptumSimilarity,
@@ -64,32 +64,13 @@ def main():
     # #Download dataset and pre-trained model
     # ++++++++++++++++++++++++++++++++++++++++++
 
-    # download and pre-process CIFAR10
-    def load_mini_image_net_data(path: str):
-        data_transforms = transforms.Compose(
-            [transforms.Resize(256), transforms.CenterCrop(224), transforms.ToTensor(),
-             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
-        )
 
-        train_dataset = torchvision.datasets.ImageFolder(
-            os.path.join(path, "train"), transform=data_transforms
-        )
-
-        test_dataset = torchvision.datasets.ImageFolder(
-            os.path.join(path, "test"), transform=data_transforms
-        )
-
-        train_dataset = torch.utils.data.Subset(
-            train_dataset, list(range(len(train_dataset)))
-        )
-        test_dataset = torch.utils.data.Subset(test_dataset, list(range(len(test_dataset))))
-
-        return train_dataset, test_dataset
 
     path = "/data1/datapool/miniImagenet/source/mini_imagenet_full_size/"
 
     train_set, held_out = load_mini_image_net_data(path)
     # use train subset
+    train_set, _ = torch.utils.data.random_split(held_out, [0.05, 0.95], generator=RNG)
     train_set = OnDeviceDataset(train_set, DEVICE)
     train_dataloader = DataLoader(train_set, batch_size=100, shuffle=True, num_workers=8)
 
@@ -171,7 +152,11 @@ def main():
 
     explain = captum_similarity_explain
     explainer_cls = CaptumArnoldi
-    explain_fn_kwargs = {"projection_on_cpu": False, "loss_fn": hf_output_ce_loss, "arnoldi_tol": 1e-2, "batch_size": 32, "projection_dim": 10, "arnoldi_dim": 10, "checkpoint": "./tutorials/model_weights_vit_cifar10.pth"}
+    explain_fn_kwargs = {"projection_on_cpu": False,
+                         "loss_fn": torch.nn.CrossEntropyLoss(reduction="none"),
+                         "arnoldi_tol": 1e-2,
+                         "batch_size": 32, "projection_dim": 10, "arnoldi_dim": 10,
+                         "checkpoint": local_path}
     model_id = "default_model_id"
     cache_dir = "./cache"
     model_rand = ModelRandomizationMetric(

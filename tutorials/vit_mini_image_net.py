@@ -131,13 +131,8 @@ class LitModel(pl.LightningModule):
         return loss, acc
 
     def configure_optimizers(self):
-        optimizer = AdamW(self.model.parameters(), lr=0.001)
-        # Cyclic LR with single triangle
-        lr_schedule = np.interp(np.arange((self.epochs + 1) * self.n_batches),
-                                [0, self.lr_peak_epoch * self.n_batches, self.epochs * self.n_batches],
-                                [0, 1, 0])
-        scheduler = lr_scheduler.LambdaLR(optimizer, lr_schedule.__getitem__)
-        return [optimizer], [scheduler]
+        optimizer = AdamW(self.model.parameters(), lr=self.lr)
+        return [optimizer]
 
 
 checkpoint_callback = ModelCheckpoint(
@@ -146,24 +141,27 @@ checkpoint_callback = ModelCheckpoint(
         every_n_epochs=10,
         save_top_k=-1,
 )
-lit_model = LitModel(
-    model=model,
-    n_batches=len(train_dataloader),
-    epochs=N_EPOCHS
-)
 
-# Use this lit_model in the Trainer
-trainer = Trainer(
-    callbacks=[checkpoint_callback, EarlyStopping(monitor="val_loss", mode="min", patience=3)],
-    devices=1,
-    accelerator="gpu",
-    max_epochs=N_EPOCHS,
-    enable_progress_bar=True,
-    precision=16
-)
+if __name__ == "__main__" :
 
-# Train the model
-trainer.fit(lit_model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
-trainer.test(dataloaders=test_dataloader, ckpt_path="last")
-torch.save(lit_model.model.state_dict(), "/home/bareeva/Projects/data_attribution_evaluation/assets/mini_imagenet_vit.pth")
-trainer.save_checkpoint("/home/bareeva/Projects/data_attribution_evaluation/assets/mini_imagenet_vit.ckpt")
+    lit_model = LitModel(
+        model=model,
+        n_batches=len(train_dataloader),
+        epochs=N_EPOCHS
+    )
+
+    # Use this lit_model in the Trainer
+    trainer = Trainer(
+        callbacks=[checkpoint_callback, EarlyStopping(monitor="val_loss", mode="min", patience=3)],
+        devices=1,
+        accelerator="gpu",
+        max_epochs=N_EPOCHS,
+        enable_progress_bar=True,
+        precision=16
+    )
+
+    # Train the model
+    trainer.fit(lit_model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
+    trainer.test(dataloaders=test_dataloader, ckpt_path="last")
+    torch.save(lit_model.model.state_dict(), "/home/bareeva/Projects/data_attribution_evaluation/assets/mini_imagenet_vit.pth")
+    trainer.save_checkpoint("/home/bareeva/Projects/data_attribution_evaluation/assets/mini_imagenet_vit.ckpt")
