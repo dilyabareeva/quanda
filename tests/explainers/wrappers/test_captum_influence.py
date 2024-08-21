@@ -168,26 +168,24 @@ def test_captum_influence_explain_functional(
             {"batch_size": 1, "projection_dim": 10, "arnoldi_dim": 10},
         ),
         (
-                "mnist",
-                "load_mnist_model",
-                "load_mnist_dataset",
-                "load_mnist_test_samples_1",
-                "load_mnist_test_labels_1",
-                {
-                    "batch_size": 1,
-                    "projection_dim": 10,
-                    "arnoldi_dim": 20,
-                    "arnoldi_tol": 2e-1,
-                    "hessian_reg": 2e-3,
-                    "hessian_inverse_tol": 2e-4,
-                    "projection_on_cpu": True,
-                },
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "batch_size": 1,
+                "projection_dim": 10,
+                "arnoldi_dim": 20,
+                "arnoldi_tol": 2e-1,
+                "hessian_reg": 2e-3,
+                "hessian_inverse_tol": 2e-4,
+                "projection_on_cpu": True,
+            },
         ),
     ],
 )
-def test_captum_arnoldi(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs, request
-):
+def test_captum_arnoldi(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
@@ -236,21 +234,21 @@ def test_captum_arnoldi(
             },
         ),
         (
-                "mnist",
-                "load_mnist_model",
-                "load_mnist_dataset",
-                "load_mnist_test_samples_1",
-                "load_mnist_test_labels_1",
-                {
-                    "batch_size": 1,
-                    "seed": 42,
-                    "projection_dim": 10,
-                    "arnoldi_dim": 20,
-                    "arnoldi_tol": 1e-1,
-                    "hessian_reg": 1e-3,
-                    "hessian_inverse_tol": 1e-4,
-                    "projection_on_cpu": True,
-                },
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "batch_size": 1,
+                "seed": 42,
+                "projection_dim": 10,
+                "arnoldi_dim": 20,
+                "arnoldi_tol": 1e-1,
+                "hessian_reg": 1e-3,
+                "hessian_inverse_tol": 1e-4,
+                "projection_on_cpu": True,
+            },
         ),
     ],
 )
@@ -262,7 +260,6 @@ def test_captum_arnoldi_explain_functional(
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
     hessian_dataset = torch.utils.data.Subset(dataset, [0, 1])
-
 
     explainer_captum = ArnoldiInfluenceFunction(
         model=model,

@@ -1,3 +1,5 @@
+import math
+
 import lightning as L
 import pytest
 
@@ -146,9 +148,9 @@ def test_dataset_cleaning(
         global_method=global_method,
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.toy_benchmarks
@@ -218,6 +220,6 @@ def test_dataset_cleaning_generate_from_pl_module(
         global_method=global_method,
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

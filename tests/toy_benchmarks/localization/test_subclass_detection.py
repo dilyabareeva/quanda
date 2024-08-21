@@ -1,3 +1,5 @@
+import math
+
 import lightning as L
 import pytest
 
@@ -152,9 +154,9 @@ def test_subclass_detection(
         use_predictions=use_pred,
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.toy_benchmarks
@@ -228,6 +230,6 @@ def test_subclass_detection_generate_lightning_model(
         use_predictions=use_pred,
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

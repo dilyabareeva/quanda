@@ -1,3 +1,5 @@
+import math
+
 import lightning as L
 import pytest
 
@@ -166,7 +168,7 @@ def test_mislabeling_detection(
         device="cpu",
     )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.toy_benchmarks
@@ -240,4 +242,4 @@ def test_mislabeling_detection_generate_from_pl_module(
         device="cpu",
     )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
