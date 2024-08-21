@@ -1,0 +1,291 @@
+"Larhe chunks of code borrowed from https://github.com/unlearning-challenge/starting-kit/blob/main/unlearning-CIFAR10.ipynb"
+import copy
+import os
+from multiprocessing import freeze_support
+
+import lightning as L
+import matplotlib.pyplot as plt
+import requests
+import torch
+import torchvision
+
+# from torch import nn
+# from torch import optim
+from torch.utils.data import DataLoader
+from torchvision import transforms
+from torchvision.models import resnet18
+from torchvision.utils import make_grid
+from tqdm import tqdm
+from transformers import ViTForImageClassification, ViTConfig
+from vit_pytorch.vit_for_small_dataset import ViT
+
+
+from quanda.explainers.wrappers import (
+    CaptumSimilarity,
+    CaptumArnoldi,
+    captum_similarity_explain,
+)
+from quanda.metrics.localization import ClassDetectionMetric
+from quanda.metrics.randomization import ModelRandomizationMetric
+from quanda.metrics.unnamed import DatasetCleaningMetric, TopKOverlapMetric
+from quanda.toy_benchmarks.localization import SubclassDetection
+from quanda.utils.training import BasicLightningModule
+
+DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"
+torch.set_float32_matmul_precision("medium")
+
+print("Running on device:", DEVICE.upper())
+
+# manual random seed is used for dataset partitioning
+# to ensure reproducible results across runs
+RNG = torch.Generator().manual_seed(42)
+
+
+# minimal custom torch dataset that places the data on the specified device
+class OnDeviceDataset(torch.utils.data.Dataset):
+    def __init__(self, dataset: torch.utils.data.Dataset, device: str):
+        self.dataset = dataset
+        self.device = device
+
+    def __getitem__(self, idx):
+        data, target = self.dataset[idx]
+        return data.to(self.device), torch.tensor(target).to(self.device)
+
+    def __len__(self):
+        return len(self.dataset)
+
+
+def hf_output_ce_loss(outputs, targets):
+    return torch.nn.CrossEntropyLoss(reduction="none")(outputs.logits, targets)
+
+
+def main():
+    # ++++++++++++++++++++++++++++++++++++++++++
+    # #Download dataset and pre-trained model
+    # ++++++++++++++++++++++++++++++++++++++++++
+
+    # download and pre-process CIFAR10
+    def load_mini_image_net_data(path: str):
+        data_transforms = transforms.Compose(
+            [transforms.Resize(256), transforms.CenterCrop(224), transforms.ToTensor(),
+             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
+        )
+
+        train_dataset = torchvision.datasets.ImageFolder(
+            os.path.join(path, "train"), transform=data_transforms
+        )
+
+        test_dataset = torchvision.datasets.ImageFolder(
+            os.path.join(path, "test"), transform=data_transforms
+        )
+
+        train_dataset = torch.utils.data.Subset(
+            train_dataset, list(range(len(train_dataset)))
+        )
+        test_dataset = torch.utils.data.Subset(test_dataset, list(range(len(test_dataset))))
+
+        return train_dataset, test_dataset
+
+    path = "/data1/datapool/miniImagenet/source/mini_imagenet_full_size/"
+
+    train_set, held_out = load_mini_image_net_data(path)
+    # use train subset
+    train_set = OnDeviceDataset(train_set, DEVICE)
+    train_dataloader = DataLoader(train_set, batch_size=100, shuffle=True, num_workers=8)
+
+    # we split held out data into test and validation set
+    test_set, val_set = torch.utils.data.random_split(held_out, [0.1, 0.9], generator=RNG)
+    test_set, val_set = OnDeviceDataset(test_set, DEVICE), OnDeviceDataset(val_set, DEVICE)
+
+    test_loader = DataLoader(test_set, batch_size=100, shuffle=False, num_workers=8)
+    val_dataloader = DataLoader(val_set, batch_size=100, shuffle=False, num_workers=8)
+
+    # download pre-trained weights
+    local_path = "/home/bareeva/Projects/data_attribution_evaluation/assets/mini_imagenet_vit.pth"
+
+    weights_pretrained = torch.load(local_path, map_location=DEVICE)
+
+    # load model with pre-trained weights
+    model = ViT(
+        image_size = 224,
+        patch_size = 16,
+        num_classes = 64,
+        dim = 1024,
+        depth = 6,
+        heads = 16,
+        mlp_dim = 2048,
+        dropout = 0.1,
+        emb_dropout = 0.1
+    )
+    model.load_state_dict(weights_pretrained)
+    init_model = ViT(
+        image_size = 224,
+        patch_size = 16,
+        num_classes = 64,
+        dim = 1024,
+        depth = 6,
+        heads = 16,
+        mlp_dim = 2048,
+        dropout = 0.1,
+        emb_dropout = 0.1
+    )
+
+    model.to(DEVICE)
+    init_model.to(DEVICE)
+    model.eval()
+    init_model.eval()
+
+    # a temporary data loader without normalization, just to show the images
+    tmp_dl = DataLoader(
+        torchvision.datasets.CIFAR10(root="./tutorials/data", train=True, download=True, transform=transforms.ToTensor()),
+        batch_size=16 * 5,
+        shuffle=False,
+    )
+    images, labels = next(iter(tmp_dl))
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    plt.title("Sample images from CIFAR10 dataset")
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
+    plt.show()
+
+    def accuracy(net, loader):
+        """Return accuracy on a dataset given by the data loader."""
+        correct = 0
+        total = 0
+        for inputs, targets in loader:
+            inputs, targets = inputs.to(DEVICE), targets.to(DEVICE)
+            outputs = net(inputs)
+            _, predicted = torch.max(outputs.logits, 1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+        return correct / total
+
+    #print(f"Train set accuracy: {100.0 * accuracy(model, train_dataloader):0.1f}%")
+    #print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
+
+    # ++++++++++++++++++++++++++++++++++++++++++
+    # Computing metrics while generating explanations
+    # ++++++++++++++++++++++++++++++++++++++++++
+
+    explain = captum_similarity_explain
+    explainer_cls = CaptumArnoldi
+    explain_fn_kwargs = {"projection_on_cpu": False, "loss_fn": hf_output_ce_loss, "arnoldi_tol": 1e-2, "batch_size": 32, "projection_dim": 10, "arnoldi_dim": 10, "checkpoint": "./tutorials/model_weights_vit_cifar10.pth"}
+    model_id = "default_model_id"
+    cache_dir = "./cache"
+    model_rand = ModelRandomizationMetric(
+        model=model,
+        train_dataset=train_set,
+        explainer_cls=explainer_cls,
+        expl_kwargs=explain_fn_kwargs,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        correlation_fn="spearman",
+        seed=42,
+    )
+
+    id_class = ClassDetectionMetric(model=model, train_dataset=train_set, device=DEVICE)
+
+    top_k = TopKOverlapMetric(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
+
+    # dataset cleaning
+    max_epochs = 1
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD
+    lr = 0.1
+    optimizer_kwargs = {"momentum": 0.9, "weight_decay": 5e-4}
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR
+    scheduler_kwargs = {"T_max": max_epochs}
+
+    pl_module = BasicLightningModule(
+        model=model,
+        optimizer=optimizer,
+        optimizer_kwargs=optimizer_kwargs,
+        scheduler=scheduler,
+        scheduler_kwargs=scheduler_kwargs,
+        lr=lr,
+        criterion=criterion,
+    )
+
+    init_pl_module = BasicLightningModule(
+        model=init_model,
+        optimizer=optimizer,
+        optimizer_kwargs=optimizer_kwargs,
+        scheduler=scheduler,
+        scheduler_kwargs=scheduler_kwargs,
+        lr=lr,
+        criterion=criterion,
+    )
+
+    trainer = L.Trainer(max_epochs=max_epochs)
+
+    data_clean = DatasetCleaningMetric(
+        model=pl_module,
+        init_model=copy.deepcopy(init_pl_module),
+        train_dataset=train_set,
+        global_method="sum_abs",
+        trainer=trainer,
+        top_k=50,
+        device=DEVICE,
+    )
+
+    # iterate over test set and feed tensor batches first to explain, then to metric
+    for i, (data, target) in enumerate(tqdm(test_loader)):
+        data, target = data.to(DEVICE), target.to(DEVICE)
+        tda = explain(
+            model=model,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            test_tensor=data,
+            train_dataset=train_set,
+            device=DEVICE,
+            **explain_fn_kwargs,
+        )
+        model_rand.update(data, tda)
+        id_class.update(target, tda)
+        top_k.update(tda)
+        data_clean.update(tda)
+
+    print("Model randomization metric output:", model_rand.compute())
+    print("Identical class metric output:", id_class.compute())
+    print("Top-k overlap metric output:", top_k.compute())
+
+    print("Dataset cleaning metric computation started...")
+    print("Dataset cleaning metric output:", data_clean.compute())
+
+    print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
+
+    # ++++++++++++++++++++++++++++++++++++++++++
+    # Subclass Detection Benchmark Generation and Evaluation
+    # ++++++++++++++++++++++++++++++++++++++++++
+
+    trainer = L.Trainer(max_epochs=max_epochs)
+
+    bench = SubclassDetection.generate(
+        model=copy.deepcopy(init_pl_module),
+        train_dataset=train_set,
+        trainer=trainer,
+        val_dataset=val_set,
+        n_classes=10,
+        n_groups=2,
+        class_to_group="random",
+        seed=42,
+        batch_size=100,
+        device=DEVICE,
+    )
+
+    score = bench.evaluate(
+        expl_dataset=test_set,
+        explainer_cls=explainer_cls,
+        expl_kwargs=explain_fn_kwargs,
+        cache_dir="./cache",
+        model_id="default_model_id",
+    )
+
+    print("Subclass Detection Benchmark Score:", score)
+
+
+if __name__ == "__main__":
+    freeze_support()
+    main()
