@@ -157,7 +157,7 @@ def test_captum_influence_explain_functional(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex",
+    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist",
@@ -166,72 +166,58 @@ def test_captum_influence_explain_functional(
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
             {"batch_size": 1, "projection_dim": 10, "arnoldi_dim": 10},
-            {
-                "batch_size": 1,
-                "projection_dim": 10,
-                "arnoldi_dim": 20,
-                "arnoldi_tol": 2e-1,
-                "hessian_reg": 2e-3,
-                "hessian_inverse_tol": 2e-4,
-                "projection_on_cpu": True,
-            },
+        ),
+        (
+                "mnist",
+                "load_mnist_model",
+                "load_mnist_dataset",
+                "load_mnist_test_samples_1",
+                "load_mnist_test_labels_1",
+                {
+                    "batch_size": 1,
+                    "projection_dim": 10,
+                    "arnoldi_dim": 20,
+                    "arnoldi_tol": 2e-1,
+                    "hessian_reg": 2e-3,
+                    "hessian_inverse_tol": 2e-4,
+                    "projection_on_cpu": True,
+                },
         ),
     ],
 )
 def test_captum_arnoldi(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex, request
+    test_id, model, dataset, test_tensor, test_labels, method_kwargs, request
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
 
-    explainer_simple = CaptumArnoldi(
+    explainer = CaptumArnoldi(
         model=model,
         train_dataset=dataset,
         checkpoint="tests/assets/mnist",
         device="cpu",
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        **method_kwargs_simple,
+        **method_kwargs,
     )
-    explanations_simple = explainer_simple.explain(test_tensor)
+    explanations = explainer.explain(test_tensor, test_labels)
 
-    explainer_captum_simple = ArnoldiInfluenceFunction(
+    explainer_captum = ArnoldiInfluenceFunction(
         model=model,
         train_dataset=dataset,
         checkpoint="tests/assets/mnist",
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        **method_kwargs_simple,
+        **method_kwargs,
     )
-    explanations_captum_simple = explainer_captum_simple.influence(inputs=(test_tensor, None))
-    assert torch.allclose(explanations_simple, explanations_captum_simple), "Training data attributions are not as expected"
-
-    explainer_complex = CaptumArnoldi(
-        model=model,
-        train_dataset=dataset,
-        checkpoint="tests/assets/mnist",
-        device="cpu",
-        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        **method_kwargs_complex,
-    )
-    explanations_complex = explainer_complex.explain(test_tensor, test_labels)
-
-    explainer_captum_complex = ArnoldiInfluenceFunction(
-        model=model,
-        train_dataset=dataset,
-        checkpoint="tests/assets/mnist",
-        checkpoints_load_func=get_load_state_dict_func("cpu"),
-        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        **method_kwargs_complex,
-    )
-    explanations_captum_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels))
-    assert torch.allclose(explanations_complex, explanations_captum_complex), "Training data attributions are not as expected"
+    explanations_captum = explainer_captum.influence(inputs=(test_tensor, test_labels))
+    assert torch.allclose(explanations, explanations_captum), "Training data attributions are not as expected"
 
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex",
+    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist",
@@ -248,21 +234,28 @@ def test_captum_arnoldi(
                 "hessian_inverse_tol": 1e-4,
                 "projection_on_cpu": True,
             },
-            {
-                "batch_size": 1,
-                "seed": 42,
-                "projection_dim": 10,
-                "arnoldi_dim": 20,
-                "arnoldi_tol": 1e-1,
-                "hessian_reg": 1e-3,
-                "hessian_inverse_tol": 1e-4,
-                "projection_on_cpu": True,
-            },
+        ),
+        (
+                "mnist",
+                "load_mnist_model",
+                "load_mnist_dataset",
+                "load_mnist_test_samples_1",
+                "load_mnist_test_labels_1",
+                {
+                    "batch_size": 1,
+                    "seed": 42,
+                    "projection_dim": 10,
+                    "arnoldi_dim": 20,
+                    "arnoldi_tol": 1e-1,
+                    "hessian_reg": 1e-3,
+                    "hessian_inverse_tol": 1e-4,
+                    "projection_on_cpu": True,
+                },
         ),
     ],
 )
 def test_captum_arnoldi_explain_functional(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex, request, tmp_path
+    test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
@@ -270,32 +263,8 @@ def test_captum_arnoldi_explain_functional(
     test_labels = request.getfixturevalue(test_labels)
     hessian_dataset = torch.utils.data.Subset(dataset, [0, 1])
 
-    explainer_captum_simple = ArnoldiInfluenceFunction(
-        model=model,
-        train_dataset=dataset,
-        checkpoint="tests/assets/mnist",
-        checkpoints_load_func=get_load_state_dict_func("cpu"),
-        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        sample_wise_grads_per_batch=False,
-        **method_kwargs_simple,
-    )
-    explanations_exp_simple = explainer_captum_simple.influence(inputs=(test_tensor, None))
 
-    explanations_simple = captum_arnoldi_explain(
-        model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
-        test_tensor=test_tensor,
-        train_dataset=dataset,
-        device="cpu",
-        checkpoint="tests/assets/mnist",
-        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        sample_wise_grads_per_batch=False,
-        **method_kwargs_simple,
-    )
-    assert torch.allclose(explanations_simple, explanations_exp_simple), "Training data attributions are not as expected"
-
-    explainer_captum_complex = ArnoldiInfluenceFunction(
+    explainer_captum = ArnoldiInfluenceFunction(
         model=model,
         train_dataset=dataset,
         checkpoint="tests/assets/mnist",
@@ -304,11 +273,11 @@ def test_captum_arnoldi_explain_functional(
         test_loss_fn=torch.nn.NLLLoss(),
         hessian_dataset=hessian_dataset,
         sample_wise_grads_per_batch=True,
-        **method_kwargs_complex,
+        **method_kwargs,
     )
-    explanations_exp_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels))
+    explanations_exp = explainer_captum.influence(inputs=(test_tensor, test_labels))
 
-    explanations_complex = captum_arnoldi_explain(
+    explanations = captum_arnoldi_explain(
         model=model,
         test_tensor=test_tensor,
         train_dataset=dataset,
@@ -319,9 +288,9 @@ def test_captum_arnoldi_explain_functional(
         test_loss_fn=torch.nn.NLLLoss(),
         hessian_dataset=hessian_dataset,
         sample_wise_grads_per_batch=True,
-        **method_kwargs_complex,
+        **method_kwargs,
     )
-    assert torch.allclose(explanations_complex, explanations_exp_complex), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
 
 
 @pytest.mark.explainers
@@ -445,36 +414,16 @@ def test_captum_tracincp_explain_functional(
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
 
-    explainer_captum_simple = TracInCP(
+    explainer_captum = TracInCP(
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
-    explanations_exp_simple = explainer_captum_simple.influence(inputs=(test_tensor, None))
+    explanations_exp = explainer_captum.influence(inputs=(test_tensor, test_labels))
 
-    explanations_simple = captum_tracincp_explain(
-        model=model,
-        train_dataset=dataset,
-        checkpoints=checkpoints,
-        test_tensor=test_tensor,
-        checkpoints_load_func=get_load_state_dict_func("cpu"),
-        device="cpu",
-        **method_kwargs,
-    )
-    assert torch.allclose(explanations_simple, explanations_exp_simple), "Training data attributions are not as expected"
-
-    explainer_captum_complex = TracInCP(
-        model=model,
-        train_dataset=dataset,
-        checkpoints=checkpoints,
-        checkpoints_load_func=get_load_state_dict_func("cpu"),
-        **method_kwargs,
-    )
-    explanations_exp_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels))
-
-    explanations_complex = captum_tracincp_explain(
+    explanations = captum_tracincp_explain(
         model=model,
         model_id="test_id",
         cache_dir=str(tmp_path),
@@ -486,7 +435,7 @@ def test_captum_tracincp_explain_functional(
         device="cpu",
         **method_kwargs,
     )
-    assert torch.allclose(explanations_complex, explanations_exp_complex), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
 
 
 @pytest.mark.explainers
