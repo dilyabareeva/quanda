@@ -38,7 +38,7 @@ class ClassDetectionMetric(Metric):
         """
         Used to aggregate current results and return a metric score.
         """
-        return torch.cat(self.scores).mean()
+        return {"score": torch.cat(self.scores).mean().item()}
 
     def reset(self, *args, **kwargs):
         """

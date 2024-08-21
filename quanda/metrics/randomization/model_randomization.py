@@ -84,8 +84,8 @@ class ModelRandomizationMetric(Metric):
         )
         self.update(test_data=test_data, explanations=explanations, explanation_targets=explanation_targets)
 
-    def compute(self) -> float:
-        return torch.cat(self.results["scores"]).mean().item()
+    def compute(self):
+        return {"score": torch.cat(self.results["scores"]).mean().item()}
 
     def reset(self):
         self.results = {"scores": []}

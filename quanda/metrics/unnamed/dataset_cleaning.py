@@ -151,4 +151,4 @@ class DatasetCleaningMetric(GlobalMetric):
 
         clean_accuracy = class_accuracy(self.model, clean_dl, self.device)
 
-        return original_accuracy - clean_accuracy
+        return {"score": (original_accuracy - clean_accuracy)}
