@@ -18,7 +18,7 @@ from torchvision.utils import make_grid
 from tqdm import tqdm
 from transformers import ViTForImageClassification, ViTConfig
 from vit_pytorch.vit_for_small_dataset import ViT
-from tutorials.vit_mini_image_net import load_mini_image_net_data
+
 
 from quanda.explainers.wrappers import (
     CaptumSimilarity,
@@ -30,7 +30,7 @@ from quanda.metrics.randomization import ModelRandomizationMetric
 from quanda.metrics.unnamed import DatasetCleaningMetric, TopKOverlapMetric
 from quanda.toy_benchmarks.localization import SubclassDetection
 from quanda.utils.training import BasicLightningModule
-
+from tutorials.tiny_imagenet_dataset import TrainTinyImageNetDataset, HoldOutTinyImageNetDataset
 DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"
 torch.set_float32_matmul_precision("medium")
 
@@ -63,53 +63,42 @@ def main():
     # ++++++++++++++++++++++++++++++++++++++++++
     # #Download dataset and pre-trained model
     # ++++++++++++++++++++++++++++++++++++++++++
+    torch.set_float32_matmul_precision('medium')
 
+    N_EPOCHS = 200
+    n_classes = 200
+    batch_size = 64
+    num_workers = 8
+    data_path = "/home/bareeva/Projects/data_attribution_evaluation/assets/tiny-imagenet-200"
+    rng = torch.Generator().manual_seed(42)
 
+    transform = transforms.Compose(
+        [
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+        ]
+    )
 
-    path = "/data1/datapool/miniImagenet/source/mini_imagenet_full_size/"
-
-    train_set, held_out = load_mini_image_net_data(path)
-    # use train subset
-    train_set, _ = torch.utils.data.random_split(held_out, [0.05, 0.95], generator=RNG)
+    train_set = TrainTinyImageNetDataset(local_path=data_path, transforms=transform)
     train_set = OnDeviceDataset(train_set, DEVICE)
-    train_dataloader = DataLoader(train_set, batch_size=100, shuffle=True, num_workers=8)
-
-    # we split held out data into test and validation set
-    test_set, val_set = torch.utils.data.random_split(held_out, [0.1, 0.9], generator=RNG)
+    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True,
+                                                   num_workers=num_workers)
+    hold_out = HoldOutTinyImageNetDataset(local_path=data_path, transforms=transform)
+    test_set, val_set = torch.utils.data.random_split(hold_out, [0.5, 0.5], generator=rng)
     test_set, val_set = OnDeviceDataset(test_set, DEVICE), OnDeviceDataset(val_set, DEVICE)
 
-    test_loader = DataLoader(test_set, batch_size=100, shuffle=False, num_workers=8)
-    val_dataloader = DataLoader(val_set, batch_size=100, shuffle=False, num_workers=8)
+    test_dataloader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False,
+                                                  num_workers=num_workers)
+    val_dataloader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+
+    model = resnet18(pretrained=False, num_classes=n_classes)
 
     # download pre-trained weights
-    local_path = "/home/bareeva/Projects/data_attribution_evaluation/assets/mini_imagenet_vit.pth"
+    local_path = "/home/bareeva/Projects/data_attribution_evaluation/assets/tiny_imagenet_resnet18.pth"
 
     weights_pretrained = torch.load(local_path, map_location=DEVICE)
-
-    # load model with pre-trained weights
-    model = ViT(
-        image_size = 224,
-        patch_size = 16,
-        num_classes = 64,
-        dim = 1024,
-        depth = 6,
-        heads = 16,
-        mlp_dim = 2048,
-        dropout = 0.1,
-        emb_dropout = 0.1
-    )
     model.load_state_dict(weights_pretrained)
-    init_model = ViT(
-        image_size = 224,
-        patch_size = 16,
-        num_classes = 64,
-        dim = 1024,
-        depth = 6,
-        heads = 16,
-        mlp_dim = 2048,
-        dropout = 0.1,
-        emb_dropout = 0.1
-    )
+
+    init_model = resnet18(pretrained=False, num_classes=n_classes)
 
     model.to(DEVICE)
     init_model.to(DEVICE)
@@ -144,7 +133,7 @@ def main():
         return correct / total
 
     #print(f"Train set accuracy: {100.0 * accuracy(model, train_dataloader):0.1f}%")
-    #print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
+    #print(f"Test set accuracy: {100.0 * accuracy(model, test_dataloader):0.1f}%")
 
     # ++++++++++++++++++++++++++++++++++++++++++
     # Computing metrics while generating explanations
@@ -216,7 +205,7 @@ def main():
     )
 
     # iterate over test set and feed tensor batches first to explain, then to metric
-    for i, (data, target) in enumerate(tqdm(test_loader)):
+    for i, (data, target) in enumerate(tqdm(test_dataloader)):
         data, target = data.to(DEVICE), target.to(DEVICE)
         tda = explain(
             model=model,
@@ -239,7 +228,7 @@ def main():
     print("Dataset cleaning metric computation started...")
     print("Dataset cleaning metric output:", data_clean.compute())
 
-    print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
+    print(f"Test set accuracy: {100.0 * accuracy(model, test_dataloader):0.1f}%")
 
     # ++++++++++++++++++++++++++++++++++++++++++
     # Subclass Detection Benchmark Generation and Evaluation
