@@ -1,9 +1,12 @@
+import warnings
 from abc import ABC, abstractmethod
 from typing import Optional, Union
-from datasets import load_dataset
+
 import requests
 import torch
+from datasets import load_dataset  # type: ignore
 from tqdm import tqdm
+
 from quanda.resources import benchmark_urls
 
 
@@ -22,7 +25,7 @@ class ToyBenchmark(ABC):
         :param kwargs:
         """
         self.device: Optional[Union[str, torch.device]]
-        self.bench_state: dict = {}
+        self.bench_state: dict
         self.hf_dataset_bool: bool
         self.train_dataset: torch.utils.data.Dataset
         self.dataset_str: Optional[str] = None
@@ -37,7 +40,7 @@ class ToyBenchmark(ABC):
 
     @classmethod
     @abstractmethod
-    def download(cls, name: str, *args, **kwargs):
+    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -52,13 +55,19 @@ class ToyBenchmark(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def save(self, path: str, *args, **kwargs):
         """
         This method should save the benchmark components to a file/folder.
         """
         if len(self.bench_state) == 0:
             raise ValueError("No benchmark components to save.")
+        if self.dataset_str is None:
+            warnings.warn(
+                "Currently, saving is only supported for training dataset directly from "
+                "HuggingFace by passing a string object as the train_dataset "
+                "argument to the benchmark initialization method. The benchmark state WILL NOT BE SAVED."
+            )
+
         torch.save(self.bench_state, path)
 
     @abstractmethod
@@ -85,7 +94,7 @@ class ToyBenchmark(ABC):
         else:
             self.device = torch.device("cpu")
 
-    def set_dataset(cls, train_dataset: Optional[str, torch.utils.data.Dataset], *args, **kwargs):
+    def set_dataset(cls, train_dataset: Union[str, torch.utils.data.Dataset], *args, **kwargs):
         """
         This method should generate all the benchmark components and persist them in the instance.
         """
@@ -98,7 +107,7 @@ class ToyBenchmark(ABC):
             cls.hf_dataset_bool = False
 
     @staticmethod
-    def download_bench_state(name: str, *args, **kwargs):
+    def download_bench_state(name: str):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -108,14 +117,14 @@ class ToyBenchmark(ABC):
         response.raise_for_status()  # Check for HTTP errors
 
         # Get the total size of the content for the progress bar
-        total_size = int(response.headers.get('content-length', 0))
+        total_size = int(response.headers.get("content-length", 0))
         block_size = 1024
 
         # Initialize a bytes object to store the downloaded content
         content = bytes()
 
         # Progress bar setup
-        with tqdm(total=total_size, unit='iB', unit_scale=True, unit_divisor=1024) as bar:
+        with tqdm(total=total_size, unit="iB", unit_scale=True, unit_divisor=1024) as bar:
             for data in response.iter_content(block_size):
                 content += data
                 bar.update(len(data))

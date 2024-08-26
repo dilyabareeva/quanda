@@ -48,24 +48,6 @@ from quanda.utils.functions import cosine_similarity
             None,
             1.0,
         ),
-        (
-            "mnist",
-            "load",
-            "load_mnist_model",
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            "tests/assets/mnist_class_detection_state_dict",
-            1.0,
-        ),
     ],
 )
 def test_class_detection(

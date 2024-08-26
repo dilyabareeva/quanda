@@ -40,7 +40,7 @@ class MislabelingDetection(ToyBenchmark):
     def generate(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: Optional[str, torch.utils.data.Dataset],
+        train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable] = None,
@@ -77,7 +77,7 @@ class MislabelingDetection(ToyBenchmark):
 
     def _generate(
         self,
-        train_dataset: Optional[str, torch.utils.data.Dataset],
+        train_dataset: Union[str, torch.utils.data.Dataset],
         model: Union[torch.nn.Module, L.LightningModule],
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
@@ -91,13 +91,12 @@ class MislabelingDetection(ToyBenchmark):
         seed: int = 27,
         batch_size: int = 8,
     ):
-        self.train_dataset = train_dataset
         self.p = p
         self.global_method = global_method
         self.n_classes = n_classes
         self.dataset_transform = dataset_transform
         self.poisoned_dataset = LabelFlippingDataset(
-            dataset=train_dataset,
+            dataset=self.train_dataset,
             p=p,
             transform_indices=poisoned_indices,
             dataset_transform=dataset_transform,
@@ -108,10 +107,10 @@ class MislabelingDetection(ToyBenchmark):
         self.poisoned_indices = self.poisoned_dataset.transform_indices
         self.poisoned_labels = self.poisoned_dataset.poisoned_labels
         self.poisoned_train_dl = torch.utils.data.DataLoader(self.poisoned_dataset, batch_size=batch_size)
-        self.original_train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
+        self.original_train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size)
         if val_dataset:
             poisoned_val_dataset = LabelFlippingDataset(
-                dataset=train_dataset, dataset_transform=self.dataset_transform, p=self.p, n_classes=self.n_classes
+                dataset=self.train_dataset, dataset_transform=self.dataset_transform, p=self.p, n_classes=self.n_classes
             )
             self.poisoned_val_dl = torch.utils.data.DataLoader(poisoned_val_dataset, batch_size=batch_size)
         else:
@@ -160,7 +159,7 @@ class MislabelingDetection(ToyBenchmark):
         }
 
     @classmethod
-    def download(cls, name: str, *args, **kwargs):
+    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -182,7 +181,7 @@ class MislabelingDetection(ToyBenchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: Optional[str, torch.utils.data.Dataset],
+        train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         poisoned_indices: Optional[List[int]] = None,
         poisoned_labels: Optional[Dict[int, int]] = None,
@@ -205,7 +204,7 @@ class MislabelingDetection(ToyBenchmark):
         obj.n_classes = n_classes
 
         obj.poisoned_dataset = LabelFlippingDataset(
-            dataset=train_dataset,
+            dataset=obj.train_dataset,
             p=p,
             dataset_transform=dataset_transform,
             n_classes=n_classes,

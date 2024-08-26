@@ -36,7 +36,7 @@ class SubclassDetection(ToyBenchmark):
     @classmethod
     def generate(
         cls,
-        train_dataset: Optional[str, torch.utils.data.Dataset],
+        train_dataset: Union[str, torch.utils.data.Dataset],
         model: Union[torch.nn.Module, L.LightningModule],
         trainer: Union[L.Trainer, BaseTrainer],
         val_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -75,7 +75,6 @@ class SubclassDetection(ToyBenchmark):
     def _generate(
         self,
         trainer: Union[L.Trainer, BaseTrainer],
-        train_dataset: Optional[str, torch.utils.data.Dataset],
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
         n_classes: int = 10,
@@ -87,9 +86,8 @@ class SubclassDetection(ToyBenchmark):
         *args,
         **kwargs,
     ):
-        self.train_dataset = train_dataset
         self.grouped_dataset = LabelGroupingDataset(
-            dataset=train_dataset,
+            dataset=self.train_dataset,
             dataset_transform=dataset_transform,
             n_classes=n_classes,
             n_groups=n_groups,
@@ -103,11 +101,11 @@ class SubclassDetection(ToyBenchmark):
         self.dataset_transform = dataset_transform
 
         self.grouped_train_dl = torch.utils.data.DataLoader(self.grouped_dataset, batch_size=batch_size)
-        self.original_train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size)
+        self.original_train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size)
 
         if val_dataset:
             grouped_val_dataset = LabelGroupingDataset(
-                dataset=train_dataset,
+                dataset=self.train_dataset,
                 dataset_transform=dataset_transform,
                 n_classes=n_classes,
                 class_to_group=self.class_to_group,
@@ -146,7 +144,7 @@ class SubclassDetection(ToyBenchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def download(cls, name: str, *args, **kwargs):
+    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -166,7 +164,7 @@ class SubclassDetection(ToyBenchmark):
     def assemble(
         cls,
         group_model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: Optional[str, torch.utils.data.Dataset],
+        train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         n_groups: int,
         class_to_group: Dict[int, int],  # TODO: type specification
@@ -187,7 +185,7 @@ class SubclassDetection(ToyBenchmark):
         obj.n_groups = n_groups
 
         obj.grouped_dataset = LabelGroupingDataset(
-            dataset=train_dataset,
+            dataset=obj.train_dataset,
             dataset_transform=dataset_transform,
             n_classes=obj.n_classes,
             n_groups=obj.n_groups,

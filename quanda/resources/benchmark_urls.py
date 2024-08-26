@@ -1,1 +1,1 @@
-benchmark_urls = {}
+benchmark_urls: dict = {}

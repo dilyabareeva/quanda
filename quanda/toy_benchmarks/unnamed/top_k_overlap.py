@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 import torch
 from tqdm import tqdm
@@ -21,7 +21,7 @@ class TopKOverlap(ToyBenchmark):
     @classmethod
     def generate(
         cls,
-        train_dataset: Optional[str, torch.utils.data.Dataset],
+        train_dataset: Union[str, torch.utils.data.Dataset],
         model: torch.nn.Module,
         *args,
         **kwargs,
@@ -45,7 +45,7 @@ class TopKOverlap(ToyBenchmark):
         }
 
     @classmethod
-    def download(cls, name: str, *args, **kwargs):
+    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -56,7 +56,7 @@ class TopKOverlap(ToyBenchmark):
     def assemble(
         cls,
         model: torch.nn.Module,
-        train_dataset: Optional[str, torch.utils.data.Dataset],
+        train_dataset: Union[str, torch.utils.data.Dataset],
         *args,
         **kwargs,
     ):
