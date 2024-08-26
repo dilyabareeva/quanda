@@ -23,6 +23,7 @@ class TopKOverlap(ToyBenchmark):
         cls,
         train_dataset: Union[str, torch.utils.data.Dataset],
         model: torch.nn.Module,
+            dataset_split: str = "train",
         *args,
         **kwargs,
     ):
@@ -32,7 +33,7 @@ class TopKOverlap(ToyBenchmark):
 
         obj = cls(train_dataset)
         obj.set_devices(model)
-        obj.set_dataset(train_dataset)
+        obj.set_dataset(train_dataset, dataset_split)
         obj.model = model
 
         return obj
@@ -57,6 +58,7 @@ class TopKOverlap(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
+            dataset_split: str = "train",
         *args,
         **kwargs,
     ):
@@ -65,7 +67,7 @@ class TopKOverlap(ToyBenchmark):
         """
         obj = cls()
         obj.set_devices(model)
-        obj.set_dataset(train_dataset)
+        obj.set_dataset(train_dataset, dataset_split)
         obj.model = model
         obj.set_devices(model)
 

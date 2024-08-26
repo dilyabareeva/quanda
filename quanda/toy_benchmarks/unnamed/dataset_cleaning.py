@@ -26,6 +26,7 @@ class DatasetCleaning(ToyBenchmark):
         cls,
         train_dataset: Union[str, torch.utils.data.Dataset],
         model: torch.nn.Module,
+            dataset_split: str = "train",
         *args,
         **kwargs,
     ):
@@ -35,7 +36,7 @@ class DatasetCleaning(ToyBenchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.set_dataset(train_dataset)
+        obj.set_dataset(train_dataset, dataset_split)
         obj.model = model
 
         return obj
@@ -60,6 +61,7 @@ class DatasetCleaning(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
+            dataset_split: str = "train",
         *args,
         **kwargs,
     ):
@@ -68,7 +70,7 @@ class DatasetCleaning(ToyBenchmark):
         """
         obj = cls()
         obj.model = model
-        obj.set_dataset(train_dataset)
+        obj.set_dataset(train_dataset, dataset_split)
         obj.set_devices(model)
 
         return obj

@@ -4,6 +4,7 @@ from typing import Optional, Union
 
 import requests
 import torch
+import datasets
 from datasets import load_dataset  # type: ignore
 from tqdm import tqdm
 
@@ -27,7 +28,7 @@ class ToyBenchmark(ABC):
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
         self.hf_dataset_bool: bool
-        self.train_dataset: torch.utils.data.Dataset
+        self.train_dataset: Union[torch.utils.data.Dataset, datasets.arrow_dataset.Dataset]
         self.dataset_str: Optional[str] = None
 
     @classmethod
@@ -94,12 +95,12 @@ class ToyBenchmark(ABC):
         else:
             self.device = torch.device("cpu")
 
-    def set_dataset(cls, train_dataset: Union[str, torch.utils.data.Dataset], *args, **kwargs):
+    def set_dataset(cls, train_dataset: Union[str, torch.utils.data.Dataset], dataset_split: str = "train", *args, **kwargs):
         """
         This method should generate all the benchmark components and persist them in the instance.
         """
         if isinstance(train_dataset, str):
-            cls.train_dataset = load_dataset(train_dataset)
+            cls.train_dataset = load_dataset(train_dataset, split=dataset_split)
             cls.hf_dataset_bool = True
             cls.dataset_str = train_dataset
         else:

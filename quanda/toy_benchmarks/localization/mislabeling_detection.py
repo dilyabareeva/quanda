@@ -43,6 +43,7 @@ class MislabelingDetection(ToyBenchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
+            dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         global_method: Union[str, type] = "self-influence",
@@ -59,7 +60,7 @@ class MislabelingDetection(ToyBenchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.set_dataset(train_dataset)
+        obj.set_dataset(train_dataset, dataset_split)
         obj._generate(
             model=model,
             train_dataset=train_dataset,
@@ -183,6 +184,7 @@ class MislabelingDetection(ToyBenchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
+            dataset_split: str = "train",
         poisoned_indices: Optional[List[int]] = None,
         poisoned_labels: Optional[Dict[int, int]] = None,
         dataset_transform: Optional[Callable] = None,
@@ -197,7 +199,7 @@ class MislabelingDetection(ToyBenchmark):
         """
         obj = cls()
         obj.model = model
-        obj.set_dataset(train_dataset)
+        obj.set_dataset(train_dataset, dataset_split)
         obj.p = p
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
