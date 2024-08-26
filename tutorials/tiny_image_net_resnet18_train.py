@@ -39,12 +39,14 @@ rng = torch.Generator().manual_seed(42)
 
 regular_transforms = transforms.Compose(
         [
+            transforms.ToTensor(),
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         ]
     )
 backdoor_transforms = transforms.Compose(
         [
             transforms.Resize((64, 64)),
+            transforms.ToTensor(),
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
         ]
     )
@@ -86,16 +88,16 @@ with open(local_path + '/wnids.txt', 'r') as f:
 
 
 class_to_group = {id_dict[k]: i for i, k in enumerate(id_dict) if k not in dogs.union(cats)}
-n_classes = len(class_to_group) + 2
+new_n_classes = len(class_to_group) + 2
 class_to_group.update({id_dict[k]: len(class_to_group) for k in dogs})
 class_to_group.update({id_dict[k]: len(class_to_group) for k in cats})
 
 
 # function to add a yellow square to an image in torchvision
 def add_yellow_square(img):
-    img[0, 10:13, 10:13] = 1
-    img[1, 10:13, 10:13] = 1
-    img[2, 10:13, 10:13] = 0
+    #img[0, 10:13, 10:13] = 1
+    #img[1, 10:13, 10:13] = 1
+    #img[2, 10:13, 10:13] = 0
     return img
 
 
@@ -107,26 +109,26 @@ def backdoored_dataset(dataset1, backdoor_samples, backdoor_label):
     return dataset1
 
 
-def flipped_group_dataset(train_set, n_classes, regular_transforms, seed, class_to_group, shortcut_fn, p_shortcut,
+def flipped_group_dataset(train_set, n_classes, new_n_classes, regular_transforms, seed, class_to_group, shortcut_fn, p_shortcut,
                           p_flipping, backdoor_dataset, backdoor_label):
     group_dataset = LabelGroupingDataset(
         dataset=train_set,
         n_classes=n_classes,
-        dataset_transform=regular_transforms,
+        dataset_transform=None,
         class_to_group=class_to_group,
         seed=seed,
     )
     flipped = LabelFlippingDataset(
         dataset=group_dataset,
-        n_classes=n_classes,
-        dataset_transform=regular_transforms,
+        n_classes=new_n_classes,
+        dataset_transform=None,
         p=p_flipping,
         seed=seed,
     )
 
     sc_dataset = SampleTransformationDataset(
         dataset=flipped,
-        n_classes=n_classes,
+        n_classes=new_n_classes,
         dataset_transform=regular_transforms,
         cls_idx=None,
         p=p_shortcut,
@@ -137,13 +139,13 @@ def flipped_group_dataset(train_set, n_classes, regular_transforms, seed, class_
     return backdoored_dataset(sc_dataset, backdoor_dataset, backdoor_label)
 
 
-train_set = TrainTinyImageNetDataset(local_path=local_path, transforms=regular_transforms)
+train_set = TrainTinyImageNetDataset(local_path=local_path, transforms=None)
 goldfish_dataset = SingleClassVisionDataset(path=goldfish_sketch_path, transforms=backdoor_transforms)
 # split goldfish dataset into train (100) and val (100)
 goldfish_set, _ = torch.utils.data.random_split(goldfish_dataset, [200, len(goldfish_dataset)-200], generator=rng)
 
 
-train_set = flipped_group_dataset(train_set, n_classes, regular_transforms, seed=42,
+train_set = flipped_group_dataset(train_set, n_classes, new_n_classes, regular_transforms, seed=42,
                                   class_to_group=class_to_group, shortcut_fn=add_yellow_square,
                                   p_shortcut=0.1, p_flipping=0.1, backdoor_dataset=goldfish_set,
                                   backdoor_label=1)

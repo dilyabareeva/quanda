@@ -16,11 +16,13 @@ from torch.optim import AdamW
 from torch.optim import lr_scheduler
 from torchmetrics.functional import accuracy
 import glob
-from torchvision.io import read_image, ImageReadMode
+from PIL import Image
 
 import os
 import nltk
 from nltk.corpus import wordnet as wn
+
+from quanda.utils.datasets.transformed import LabelGroupingDataset, LabelFlippingDataset, SampleTransformationDataset
 
 # Download WordNet data if not already available
 nltk.download('wordnet')
@@ -46,9 +48,9 @@ class TrainTinyImageNetDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         img_path = self.filenames[idx]
-        image = read_image(img_path)
-        if image.shape[0] == 1:
-          image = read_image(img_path,ImageReadMode.RGB)
+        image = Image.open(img_path).convert('RGB')
+        #if image.shape[0] == 1:
+          #image = read_image(img_path,ImageReadMode.RGB)
         label = self.id_dict[img_path.split('/')[-3]]
         if self.transforms:
             image = self.transforms(image.float())
@@ -73,9 +75,9 @@ class HoldOutTinyImageNetDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         img_path = self.filenames[idx]
-        image = read_image(img_path)
-        if image.shape[0] == 1:
-          image = read_image(img_path,ImageReadMode.RGB)
+        image = Image.open(img_path).convert('RGB')
+        #if image.shape[0] == 1:
+          #image = read_image(img_path,ImageReadMode.RGB)
         label = self.cls_dic[img_path.split('/')[-1]]
         if self.transform:
             image = self.transform(image.float())
@@ -121,7 +123,30 @@ with open(local_path + '/wnids.txt', 'r') as f:
     id_dict = {line.strip(): i for i, line in enumerate(f)}
 
 
+name_dict = {}
+with open(local_path + '/wnids.txt', 'r') as f:
+    name_dict = {id_dict[line.strip()]: wn.synset_from_pos_and_offset('n', int(line.strip()[1:])) for i, line in enumerate(f)}
+
 class_to_group = {id_dict[k]: i for i, k in enumerate(id_dict) if k not in dogs.union(cats)}
 class_to_group.update({id_dict[k]: len(class_to_group) for k in dogs})
 class_to_group.update({id_dict[k]: len(class_to_group) for k in cats})
 
+# single-class vision dataset
+class SingleClassVisionDataset(torch.utils.data.Dataset):
+    def __init__(self, path:str, transforms:transforms.Compose, class_idx:int = 0):
+        self.filenames = glob.glob(path + "/train/*/*/*.JPEG")
+        self.transforms = transforms
+        self.class_idx = class_idx
+
+    def __len__(self):
+        return len(self.filenames)
+
+    def __getitem__(self, idx):
+        img_path = self.filenames[idx]
+        image = Image.open(img_path).convert('RGB')
+        #if image.shape[0] == 1:
+          #image = read_image(img_path,ImageReadMode.RGB)
+        label = self.class_idx
+        if self.transforms:
+            image = self.transforms(image.float())
+        return image, label
