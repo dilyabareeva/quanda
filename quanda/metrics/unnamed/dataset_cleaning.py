@@ -4,12 +4,13 @@ from typing import Optional, Union
 import lightning as L
 import torch
 
-from quanda.metrics.base import GlobalMetric
+from quanda.metrics.base import Metric
+from quanda.tasks.global_ranking import GlobalRanking
 from quanda.utils.common import class_accuracy
 from quanda.utils.training import BaseTrainer
 
 
-class DatasetCleaningMetric(GlobalMetric):
+class DatasetCleaningMetric(Metric):
     """
     Quote from https://proceedings.mlr.press/v89/khanna19a.html:
 
@@ -31,8 +32,6 @@ class DatasetCleaningMetric(GlobalMetric):
         top_k: int = 50,
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
-        model_id: str = "0",
-        cache_dir: str = "./cache",
         *args,
         **kwargs,
     ):
@@ -41,9 +40,14 @@ class DatasetCleaningMetric(GlobalMetric):
         super().__init__(
             model=model,
             train_dataset=train_dataset,
+        )
+        self.global_ranker = GlobalRanking(
+            model=model,
+            train_dataset=train_dataset,
             global_method=global_method,
             explainer_cls=explainer_cls,
-            expl_kwargs={**expl_kwargs, "model_id": model_id, "cache_dir": cache_dir},
+            expl_kwargs=expl_kwargs,
+            model_id="test",
         )
         self.top_k = min(top_k, self.dataset_length - 1)
         self.trainer = trainer
@@ -105,19 +109,20 @@ class DatasetCleaningMetric(GlobalMetric):
         explanations: torch.Tensor,
         **kwargs,
     ):
-        self.strategy.update(explanations, **kwargs)
+        self.global_ranker.update(explanations, **kwargs)
 
     def reset(self, *args, **kwargs):
-        self.strategy.reset()
+        self.global_ranker.reset()
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
-        self.strategy.load_state_dict(state_dict)
+        self.global_ranker.load_state_dict(state_dict)
 
     def state_dict(self, *args, **kwargs):
-        return self.strategy.state_dict()
+        return self.global_ranker.state_dict()
 
     def compute(self, *args, **kwargs):
-        top_k_indices = torch.topk(self.strategy.get_global_rank(), self.top_k).indices
+        global_ranking = self.global_ranker.compute()
+        top_k_indices = torch.topk(global_ranking, self.top_k).indices
         clean_indices = [i for i in range(self.dataset_length) if i not in top_k_indices]
         clean_subset = torch.utils.data.Subset(self.train_dataset, clean_indices)
 

@@ -3,7 +3,7 @@ import torch
 
 from quanda.explainers import AbsSumAggregator
 from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.metrics import GlobalAggrStrategy, GlobalSelfInfluenceStrategy
+from quanda.tasks import GlobalSelfInfluenceStrategy, GlobalAggrStrategy
 from quanda.utils.functions import cosine_similarity
 
 

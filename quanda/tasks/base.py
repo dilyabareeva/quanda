@@ -60,7 +60,6 @@ class Task(ABC):
         """
         raise NotImplementedError
 
-    @abstractmethod
     def explain_update(
         self,
         test_data: torch.Tensor,
