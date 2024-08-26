@@ -1,11 +1,12 @@
+import math
+
 import pytest
 
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
-from src.metrics.unnamed.top_k_overlap import TopKOverlapMetric
-from src.utils.functions.similarities import cosine_similarity
-from src.utils.training.base_pl_module import BasicLightningModule
-from src.utils.training.trainer import Trainer
+from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
+from quanda.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
+from quanda.metrics.unnamed.top_k_overlap import TopKOverlapMetric
+from quanda.utils.functions.similarities import cosine_similarity
+from quanda.utils.training.trainer import Trainer
 
 
 @pytest.mark.unnamed_metrics
@@ -38,8 +39,8 @@ def test_top_k_overlap_metrics(
     explanations = request.getfixturevalue(explanations)
     metric = TopKOverlapMetric(model=model, train_dataset=dataset, top_k=top_k, device="cpu")
     metric.update(explanations=explanations)
-    score = metric.compute()
-    assert score == expected_score
+    score = metric.compute()["score"]
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.unnamed_metrics
@@ -101,13 +102,12 @@ def test_dataset_cleaning(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
 
-    pl_module = BasicLightningModule(
-        model=model,
+    trainer = Trainer(
+        max_epochs=max_epochs,
         optimizer=optimizer,
         lr=lr,
         criterion=criterion,
     )
-    trainer = Trainer.from_lightning_module(model, pl_module)
 
     if global_method != "self-influence":
         metric = DatasetCleaningMetric(
@@ -137,9 +137,9 @@ def test_dataset_cleaning(
             device="cpu",
         )
 
-    score = metric.compute()
+    score = metric.compute()["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.unnamed_metrics
@@ -183,13 +183,12 @@ def test_dataset_cleaning_self_influence_based(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
 
-    pl_module = BasicLightningModule(
-        model=model,
+    trainer = Trainer(
+        max_epochs=max_epochs,
         optimizer=optimizer,
         lr=lr,
         criterion=criterion,
     )
-    trainer = Trainer.from_lightning_module(model, pl_module)
 
     expl_kwargs = expl_kwargs or {}
 
@@ -205,9 +204,9 @@ def test_dataset_cleaning_self_influence_based(
         device="cpu",
     )
 
-    score = metric.compute()
+    score = metric.compute()["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.unnamed_metrics
@@ -247,13 +246,12 @@ def test_dataset_cleaning_aggr_based(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
 
-    pl_module = BasicLightningModule(
-        model=model,
+    trainer = Trainer(
+        max_epochs=max_epochs,
         optimizer=optimizer,
         lr=lr,
         criterion=criterion,
     )
-    trainer = Trainer.from_lightning_module(model, pl_module)
 
     metric = DatasetCleaningMetric.aggr_based(
         model=model,
@@ -267,6 +265,6 @@ def test_dataset_cleaning_aggr_based(
 
     metric.update(explanations=explanations)
 
-    score = metric.compute()
+    score = metric.compute()["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

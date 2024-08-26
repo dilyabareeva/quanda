@@ -4,8 +4,8 @@ from typing import List, Optional, Union
 import pytest
 import torch
 
-from src.explainers.base import BaseExplainer
-from src.utils.functions.similarities import cosine_similarity
+from quanda.explainers import BaseExplainer
+from quanda.utils.functions import cosine_similarity
 
 
 @pytest.mark.explainers

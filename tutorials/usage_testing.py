@@ -3,6 +3,7 @@ import copy
 import os
 from multiprocessing import freeze_support
 
+import lightning as L
 import matplotlib.pyplot as plt
 import requests
 import torch
@@ -16,19 +17,15 @@ from torchvision.models import resnet18
 from torchvision.utils import make_grid
 from tqdm import tqdm
 
-from src.explainers.wrappers.captum_influence import (
+from quanda.explainers.wrappers import (
     CaptumSimilarity,
     captum_similarity_explain,
 )
-from src.metrics.localization.class_detection import ClassDetectionMetric
-from src.metrics.randomization.model_randomization import (
-    ModelRandomizationMetric,
-)
-from src.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
-from src.metrics.unnamed.top_k_overlap import TopKOverlapMetric
-from src.toy_benchmarks.subclass_detection import SubclassDetection
-from src.utils.training.base_pl_module import BasicLightningModule
-from src.utils.training.trainer import Trainer
+from quanda.metrics.localization import ClassDetectionMetric
+from quanda.metrics.randomization import ModelRandomizationMetric
+from quanda.metrics.unnamed import DatasetCleaningMetric, TopKOverlapMetric
+from quanda.toy_benchmarks.localization import SubclassDetection
+from quanda.utils.training import BasicLightningModule
 
 DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"
 torch.set_float32_matmul_precision("medium")
@@ -54,13 +51,13 @@ def main():
     )
 
     train_set = torchvision.datasets.CIFAR10(root="./tutorials/data", train=True, download=True, transform=normalize)
-    train_loader = DataLoader(train_set, batch_size=100, shuffle=True, num_workers=8)
+    train_dataloader = DataLoader(train_set, batch_size=100, shuffle=True, num_workers=8)
 
     # we split held out data into test and validation set
     held_out = torchvision.datasets.CIFAR10(root="./tutorials/data", train=False, download=True, transform=normalize)
     test_set, val_set = torch.utils.data.random_split(held_out, [0.1, 0.9], generator=RNG)
     test_loader = DataLoader(test_set, batch_size=100, shuffle=False, num_workers=8)
-    # val_loader = DataLoader(val_set, batch_size=100, shuffle=False, num_workers=8)
+    # val_dataloader = DataLoader(val_set, batch_size=100, shuffle=False, num_workers=8)
 
     # download pre-trained weights
     local_path = "./tutorials/model_weights_resnet18_cifar10.pth"
@@ -72,8 +69,10 @@ def main():
 
     # load model with pre-trained weights
     model = resnet18(weights=None, num_classes=10)
+    init_model = resnet18(weights=None, num_classes=10)
     model.load_state_dict(weights_pretrained)
     model.to(DEVICE)
+
     model.eval()
 
     # a temporary data loader without normalization, just to show the images
@@ -103,7 +102,7 @@ def main():
             correct += predicted.eq(targets).sum().item()
         return correct / total
 
-    print(f"Train set accuracy: {100.0 * accuracy(model, train_loader):0.1f}%")
+    print(f"Train set accuracy: {100.0 * accuracy(model, train_dataloader):0.1f}%")
     print(f"Test set accuracy: {100.0 * accuracy(model, test_loader):0.1f}%")
 
     # ++++++++++++++++++++++++++++++++++++++++++
@@ -123,30 +122,50 @@ def main():
         cache_dir=cache_dir,
         correlation_fn="spearman",
         seed=42,
-        device=DEVICE,
     )
 
-    id_class = ClassDetectionMetric(model=model, train_dataset=train_set, device=DEVICE)
+    id_class = ClassDetectionMetric(model=model, train_dataset=train_set)
 
-    top_k = TopKOverlapMetric(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
+    top_k = TopKOverlapMetric(model=model, train_dataset=train_set, top_k=1)
 
     # dataset cleaning
+    max_epochs = 1
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD
+    lr = 0.1
+    optimizer_kwargs = {"momentum": 0.9, "weight_decay": 5e-4}
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR
+    scheduler_kwargs = {"T_max": max_epochs}
+
     pl_module = BasicLightningModule(
-        model=copy.deepcopy(model),
-        optimizer=torch.optim.SGD,
-        lr=0.1,
-        criterion=torch.nn.CrossEntropyLoss(),
+        model=model,
+        optimizer=optimizer,
+        optimizer_kwargs=optimizer_kwargs,
+        scheduler=scheduler,
+        scheduler_kwargs=scheduler_kwargs,
+        lr=lr,
+        criterion=criterion,
     )
-    trainer = Trainer.from_lightning_module(model, pl_module)
+
+    init_pl_module = BasicLightningModule(
+        model=init_model,
+        optimizer=optimizer,
+        optimizer_kwargs=optimizer_kwargs,
+        scheduler=scheduler,
+        scheduler_kwargs=scheduler_kwargs,
+        lr=lr,
+        criterion=criterion,
+    )
+
+    trainer = L.Trainer(max_epochs=max_epochs)
 
     data_clean = DatasetCleaningMetric(
-        model=model,
+        model=pl_module,
+        init_model=copy.deepcopy(init_pl_module),
         train_dataset=train_set,
         global_method="sum_abs",
         trainer=trainer,
-        trainer_fit_kwargs={"max_epochs": 3},
         top_k=50,
-        device=DEVICE,
     )
 
     # iterate over test set and feed tensor batches first to explain, then to metric
@@ -158,7 +177,6 @@ def main():
             cache_dir=cache_dir,
             test_tensor=data,
             train_dataset=train_set,
-            device=DEVICE,
             **explain_fn_kwargs,
         )
         model_rand.update(data, tda)
@@ -179,42 +197,24 @@ def main():
     # Subclass Detection Benchmark Generation and Evaluation
     # ++++++++++++++++++++++++++++++++++++++++++
 
-    max_epochs = 1
-    criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD
-    lr = 0.1
-    optimizer_kwargs = {"momentum": 0.9, "weight_decay": 5e-4}
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR
-    scheduler_kwargs = {"T_max": max_epochs}
-
-    trainer = BasicLightningModule(
-        model=model,
-        optimizer=optimizer,
-        optimizer_kwargs=optimizer_kwargs,
-        scheduler=scheduler,
-        scheduler_kwargs=scheduler_kwargs,
-        lr=lr,
-        criterion=criterion,
-    )
+    trainer = L.Trainer(max_epochs=max_epochs)
 
     bench = SubclassDetection.generate(
-        model=model,
+        model=copy.deepcopy(init_pl_module),
         train_dataset=train_set,
         trainer=trainer,
         val_dataset=val_set,
         n_classes=10,
         n_groups=2,
         class_to_group="random",
-        trainer_fit_kwargs={"max_epochs": max_epochs},
         seed=42,
         batch_size=100,
-        device=DEVICE,
     )
 
     score = bench.evaluate(
         expl_dataset=test_set,
         explainer_cls=CaptumSimilarity,
-        expl_kwargs={"layers": "avgpool", "batch_size": 100},
+        expl_kwargs={"layers": "model.avgpool", "batch_size": 100},
         cache_dir="./cache",
         model_id="default_model_id",
     )

@@ -1,8 +1,10 @@
+import math
+
 import pytest
 
-from src.explainers.wrappers.captum_influence import CaptumSimilarity
-from src.toy_benchmarks.localization.class_detection import ClassDetection
-from src.utils.functions.similarities import cosine_similarity
+from quanda.explainers.wrappers import CaptumSimilarity
+from quanda.toy_benchmarks.localization import ClassDetection
+from quanda.utils.functions import cosine_similarity
 
 
 @pytest.mark.toy_benchmarks
@@ -112,6 +114,6 @@ def test_class_detection(
         model_id="default_model_id",
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

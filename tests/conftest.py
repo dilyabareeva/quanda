@@ -6,8 +6,13 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
-from src.utils.datasets.transformed.label_flipping import LabelFlippingDataset
-from src.utils.datasets.transformed.label_grouping import LabelGroupingDataset
+from quanda.utils.datasets.transformed.label_flipping import (
+    LabelFlippingDataset,
+)
+from quanda.utils.datasets.transformed.label_grouping import (
+    LabelGroupingDataset,
+)
+from quanda.utils.training.base_pl_module import BasicLightningModule
 from tests.models import LeNet
 
 MNIST_IMAGE_SIZE = 28
@@ -86,6 +91,22 @@ def load_mnist_model():
 
 
 @pytest.fixture
+def load_mnist_pl_module():
+    """Load a pre-trained LeNet classification model (architecture at quantus/helpers/models)."""
+    model = LeNet()
+    model.load_state_dict(torch.load("tests/assets/mnist", map_location="cpu", pickle_module=pickle))
+
+    pl_module = BasicLightningModule(
+        model=model,
+        optimizer=torch.optim.SGD,
+        lr=0.01,
+        criterion=torch.nn.CrossEntropyLoss(),
+    )
+
+    return pl_module
+
+
+@pytest.fixture
 def load_mnist_grouped_model():
     """Load a pre-trained LeNet classification model (architecture at quantus/helpers/models)."""
     model = LeNet(num_outputs=2)
@@ -133,7 +154,6 @@ def load_grouped_mnist_dataset():
         n_groups=2,
         class_to_group="random",
         seed=27,
-        device="cpu",
     )
 
 
@@ -151,7 +171,6 @@ def load_poisoned_mnist_dataset():
         n_classes=10,
         p=1.0,
         seed=27,
-        device="cpu",
     )
 
 
