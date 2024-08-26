@@ -713,7 +713,7 @@ def test_captum_tracincp_fast_rand_proj_self_influence(test_id, model, dataset, 
     checkpoints = request.getfixturevalue(checkpoints)
     final_fc_layer = model.fc_3
 
-    # TODO TracInCPFastRandProj does not have self_influence method, only TracInCPFast does
+    # TracInCPFastRandProj does not have self_influence method, only TracInCPFast does
     explainer_captum = TracInCPFast(
         model=model,
         final_fc_layer=final_fc_layer,

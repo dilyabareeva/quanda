@@ -525,9 +525,23 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         return influence_scores
 
     def self_influence(self, **kwargs: Any) -> torch.Tensor:
+        # Initialize TracInCPFast to use its self_influence method
+        tracin_fast_explainer = TracInCPFast(
+            model=self.model,
+            final_fc_layer=self.explain_kwargs["final_fc_layer"],
+            train_dataset=self.train_dataset,
+            checkpoints=self.explain_kwargs["checkpoints"],
+            checkpoints_load_func=self.explain_kwargs["checkpoints_load_func"],
+            loss_fn=self.explain_kwargs["loss_fn"],
+            batch_size=self.explain_kwargs["batch_size"],
+            test_loss_fn=self.explain_kwargs["test_loss_fn"],
+            vectorize=self.explain_kwargs["vectorize"],
+        )
+
         inputs = kwargs.get("inputs", None)
         outer_loop_by_checkpoints = kwargs.get("outer_loop_by_checkpoints", False)
-        influence_scores = self.captum_explainer.self_influence(
+        
+        influence_scores = tracin_fast_explainer.self_influence(
             inputs=inputs, outer_loop_by_checkpoints=outer_loop_by_checkpoints
         )
         return influence_scores
