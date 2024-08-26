@@ -1,5 +1,5 @@
 # .github/workflows/type-lint.yml
-name: mypy
+name: type-lint
 on: push
 jobs:
   type-lint:
@@ -15,6 +15,9 @@ jobs:
 
       - name: Install tox-gh
         run: pip install tox-gh
+
+      - name: Run flake8
+        run: tox run -e lint
 
       - name: Run mypy
         run: tox run -e type
