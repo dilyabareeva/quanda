@@ -1,4 +1,5 @@
 import json
+import os
 import pickle
 
 import numpy as np
@@ -19,6 +20,15 @@ MNIST_IMAGE_SIZE = 28
 BATCH_SIZE = 124
 MINI_BATCH_SIZE = 8
 RANDOM_SEED = 42
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "local: only run this test if running locally")
+
+
+def pytest_runtest_setup(item):
+    if "local" in item.keywords and os.getenv("GITHUB_ACTIONS"):
+        pytest.skip("Skipping local-only tests on GitHub Actions")
 
 
 class TestTensorDataset(TensorDataset):

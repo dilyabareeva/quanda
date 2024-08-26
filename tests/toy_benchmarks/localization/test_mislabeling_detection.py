@@ -59,26 +59,6 @@ from quanda.utils.training.trainer import Trainer
         ),
         (
             "mnist",
-            "load",
-            "load_mnist_model",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            1.0,
-            27,
-            SumAggregator,
-            8,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
-            False,
-            "tests/assets/mnist_mislabel_detection_state_dict",
-            0.4921875,
-        ),
-        (
-            "mnist",
             "assemble",
             "load_mnist_model",
             "torch_sgd_optimizer",
@@ -148,8 +128,6 @@ def test_mislabeling_detection(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = MislabelingDetection.load(path=load_path)
     elif init_method == "assemble":
         dst_eval = MislabelingDetection.assemble(
             model=model, train_dataset=dataset, n_classes=n_classes, p=p, global_method=global_method, batch_size=batch_size

@@ -8,6 +8,7 @@ style:
 	python -m flake8 . --pytest-parametrize-names-type=csv
 	python -m isort .
 	python -m mypy quanda --check-untyped-defs
+	python3 -m pytest --cov=quanda  --cov-report=term-missing --cov-fail-under 87
 	rm -f .coverage
 	rm -f .coverage.*
 	find . | grep -E "(__pycache__|\.pyc|\.pyo)" | xargs rm -rf
