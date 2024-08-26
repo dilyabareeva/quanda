@@ -1,7 +1,7 @@
 import math
 
-import pytest
 import datasets
+import pytest
 
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.toy_benchmarks.localization import ClassDetection
@@ -149,7 +149,8 @@ def test_class_detection_hugging_face(
     test_id,
     init_method,
     model,
-    dataset, dataset_split,
+    dataset,
+    dataset_split,
     n_classes,
     n_groups,
     seed,

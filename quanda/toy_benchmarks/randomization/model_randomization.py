@@ -26,7 +26,7 @@ class ModelRandomization(ToyBenchmark):
         cls,
         train_dataset: Union[str, torch.utils.data.Dataset],
         model: torch.nn.Module,
-            dataset_split: str = "train",
+        dataset_split: str = "train",
         *args,
         **kwargs,
     ):
@@ -62,7 +62,7 @@ class ModelRandomization(ToyBenchmark):
         cls,
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
-            dataset_split: str = "train",
+        dataset_split: str = "train",
         *args,
         **kwargs,
     ):

@@ -39,7 +39,7 @@ class SubclassDetection(ToyBenchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         model: Union[torch.nn.Module, L.LightningModule],
         trainer: Union[L.Trainer, BaseTrainer],
-            dataset_split: str = "train",
+        dataset_split: str = "train",
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
         n_classes: int = 10,
@@ -169,7 +169,7 @@ class SubclassDetection(ToyBenchmark):
         n_classes: int,
         n_groups: int,
         class_to_group: Dict[int, int],  # TODO: type specification
-            dataset_split: str = "train",
+        dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
         *args,

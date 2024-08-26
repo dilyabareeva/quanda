@@ -2,9 +2,9 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
+import datasets  # type: ignore
 import requests
 import torch
-import datasets
 from datasets import load_dataset  # type: ignore
 from tqdm import tqdm
 
