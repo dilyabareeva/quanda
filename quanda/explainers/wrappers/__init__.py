@@ -9,9 +9,9 @@ from quanda.explainers.wrappers.captum_influence import (
     captum_similarity_explain,
     captum_similarity_self_influence,
     captum_tracincp_explain,
-    captum_tracincp_self_influence,
     captum_tracincp_fast_rand_proj_explain,
     captum_tracincp_fast_rand_proj_self_influence,
+    captum_tracincp_self_influence,
 )
 
 __all__ = [

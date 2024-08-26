@@ -4,12 +4,19 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 
 import torch
-from captum.influence import SimilarityInfluence, TracInCP, TracInCPFast, TracInCPFastRandProj  # type: ignore
-from captum.influence._utils.nearest_neighbors import NearestNeighbors
+from captum.influence import (  # type: ignore
+    SimilarityInfluence,
+    TracInCP,
+    TracInCPFast,
+    TracInCPFastRandProj,
+)
 
 # TODO Should be imported directly from captum.influence once available
 from captum.influence._core.arnoldi_influence_function import (  # type: ignore
     ArnoldiInfluenceFunction,
+)
+from captum.influence._utils.nearest_neighbors import (  # type: ignore
+    NearestNeighbors,
 )
 
 from quanda.explainers.base import BaseExplainer

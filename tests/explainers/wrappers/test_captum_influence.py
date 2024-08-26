@@ -20,9 +20,9 @@ from quanda.explainers.wrappers import (
     captum_similarity_explain,
     captum_similarity_self_influence,
     captum_tracincp_explain,
-    captum_tracincp_self_influence,
     captum_tracincp_fast_rand_proj_explain,
     captum_tracincp_fast_rand_proj_self_influence,
+    captum_tracincp_self_influence,
 )
 from quanda.utils.common import get_load_state_dict_func
 from quanda.utils.functions import cosine_similarity, dot_product_similarity
