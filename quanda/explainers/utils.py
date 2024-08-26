@@ -40,9 +40,9 @@ def self_influence_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
     train_dataset: torch.utils.data.Dataset,
-    self_influence_kwargs: dict,
     cache_dir: Optional[str] = None,
     model_id: Optional[str] = None,
+    batch_size: int = 32,
     **kwargs: Any,
 ) -> torch.Tensor:
     explainer = _init_explainer(
@@ -54,4 +54,4 @@ def self_influence_fn_from_explainer(
         **kwargs,
     )
 
-    return explainer.self_influence(**self_influence_kwargs)
+    return explainer.self_influence(batch_size=batch_size)
