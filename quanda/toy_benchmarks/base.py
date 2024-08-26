@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 from datasets import load_dataset
-
+import requests
 import torch
+from tqdm import tqdm
+from quanda.resources import benchmark_urls
 
 
 class ToyBenchmark(ABC):
@@ -94,3 +96,28 @@ class ToyBenchmark(ABC):
         else:
             cls.train_dataset = train_dataset
             cls.hf_dataset_bool = False
+
+    @staticmethod
+    def download_bench_state(name: str, *args, **kwargs):
+        """
+        This method should load the benchmark components from a file and persist them in the instance.
+        """
+        url = benchmark_urls[name]
+        # Send a GET request to the URL with streaming enabled
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # Check for HTTP errors
+
+        # Get the total size of the content for the progress bar
+        total_size = int(response.headers.get('content-length', 0))
+        block_size = 1024
+
+        # Initialize a bytes object to store the downloaded content
+        content = bytes()
+
+        # Progress bar setup
+        with tqdm(total=total_size, unit='iB', unit_scale=True, unit_divisor=1024) as bar:
+            for data in response.iter_content(block_size):
+                content += data
+                bar.update(len(data))
+
+        return content

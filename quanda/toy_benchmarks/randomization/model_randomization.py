@@ -45,7 +45,7 @@ class ModelRandomization(ToyBenchmark):
     def bench_state(self):
         return {
             "model": self.model,
-            "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
+            "train_dataset": self.dataset_str,  # ok this probably won't work, but that's the idea
         }
 
     @classmethod
@@ -53,7 +53,7 @@ class ModelRandomization(ToyBenchmark):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        bench_state = torch.load(path)
+        bench_state = cls.download_bench_state(name)
 
         return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"])
 

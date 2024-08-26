@@ -150,7 +150,7 @@ class SubclassDetection(ToyBenchmark):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        bench_state = torch.load(path)
+        bench_state = cls.download_bench_state(name)
 
         return cls.assemble(
             group_model=bench_state["group_model"],
@@ -248,7 +248,7 @@ class SubclassDetection(ToyBenchmark):
     def bench_state(self):
         return {
             "group_model": self.group_model,
-            "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
+            "train_dataset": self.dataset_str,  # ok this probably won't work, but that's the idea
             "n_classes": self.n_classes,
             "n_groups": self.n_groups,
             "class_to_group": self.class_to_group,

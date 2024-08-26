@@ -150,7 +150,7 @@ class MislabelingDetection(ToyBenchmark):
     def bench_state(self):
         return {
             "model": self.model,
-            "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
+            "train_dataset": self.dataset_str,
             "p": self.p,
             "n_classes": self.n_classes,
             "dataset_transform": self.dataset_transform,
@@ -164,7 +164,7 @@ class MislabelingDetection(ToyBenchmark):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        bench_state = torch.load(path)
+        bench_state = cls.download_bench_state(name)
 
         return cls.assemble(
             model=bench_state["model"],
