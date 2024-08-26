@@ -21,8 +21,8 @@ class TopKOverlap(ToyBenchmark):
     @classmethod
     def generate(
         cls,
+        train_dataset: Optional[str, torch.utils.data.Dataset],
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
         *args,
         **kwargs,
     ):
@@ -30,11 +30,10 @@ class TopKOverlap(ToyBenchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
-        obj = cls()
-
-        obj.model = model
-        obj.train_dataset = train_dataset
+        obj = cls(train_dataset)
         obj.set_devices(model)
+        obj.set_dataset(train_dataset)
+        obj.model = model
 
         return obj
 
@@ -46,7 +45,7 @@ class TopKOverlap(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
+    def download(cls, name: str, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -57,7 +56,7 @@ class TopKOverlap(ToyBenchmark):
     def assemble(
         cls,
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Optional[str, torch.utils.data.Dataset],
         *args,
         **kwargs,
     ):
@@ -66,17 +65,11 @@ class TopKOverlap(ToyBenchmark):
         """
         obj = cls()
         obj.set_devices(model)
+        obj.set_dataset(train_dataset)
         obj.model = model
-        obj.train_dataset = train_dataset
         obj.set_devices(model)
 
         return obj
-
-    def save(self, path: str, *args, **kwargs):
-        """
-        This method should save the benchmark components to a file/folder.
-        """
-        torch.save(self.bench_state, path)
 
     def evaluate(
         self,

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
+from datasets import load_dataset
 
 import torch
 
@@ -19,6 +20,10 @@ class ToyBenchmark(ABC):
         :param kwargs:
         """
         self.device: Optional[Union[str, torch.device]]
+        self.bench_state: dict = {}
+        self.hf_dataset_bool: bool
+        self.train_dataset: torch.utils.data.Dataset
+        self.dataset_str: Optional[str] = None
 
     @classmethod
     @abstractmethod
@@ -30,10 +35,11 @@ class ToyBenchmark(ABC):
 
     @classmethod
     @abstractmethod
-    def load(cls, path: str, *args, **kwargs):
+    def download(cls, name: str, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
+
         raise NotImplementedError
 
     @classmethod
@@ -45,11 +51,13 @@ class ToyBenchmark(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def save(self, *args, **kwargs):
+    def save(self, path: str, *args, **kwargs):
         """
         This method should save the benchmark components to a file/folder.
         """
-        raise NotImplementedError
+        if len(self.bench_state) == 0:
+            raise ValueError("No benchmark components to save.")
+        torch.save(self.bench_state, path)
 
     @abstractmethod
     def evaluate(
@@ -74,3 +82,15 @@ class ToyBenchmark(ABC):
             self.device = next(model.parameters()).device
         else:
             self.device = torch.device("cpu")
+
+    def set_dataset(cls, train_dataset: Optional[str, torch.utils.data.Dataset], *args, **kwargs):
+        """
+        This method should generate all the benchmark components and persist them in the instance.
+        """
+        if isinstance(train_dataset, str):
+            cls.train_dataset = load_dataset(train_dataset)
+            cls.hf_dataset_bool = True
+            cls.dataset_str = train_dataset
+        else:
+            cls.train_dataset = train_dataset
+            cls.hf_dataset_bool = False

@@ -21,8 +21,8 @@ class ClassDetection(ToyBenchmark):
     @classmethod
     def generate(
         cls,
+        train_dataset: Optional[str, torch.utils.data.Dataset],
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
         *args,
         **kwargs,
     ):
@@ -33,8 +33,10 @@ class ClassDetection(ToyBenchmark):
         obj = cls()
 
         obj.model = model
-        obj.train_dataset = train_dataset
         obj.set_devices(model)
+        obj.set_dataset(train_dataset)
+        obj.train_dataset = train_dataset
+
         return obj
 
     @property
@@ -45,11 +47,11 @@ class ClassDetection(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
+    def download(cls, name: str, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        bench_state = torch.load(path)
+        cls.download(name)
 
         return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"])
 
@@ -57,7 +59,7 @@ class ClassDetection(ToyBenchmark):
     def assemble(
         cls,
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Optional[str, torch.utils.data.Dataset],
         *args,
         **kwargs,
     ):
@@ -67,17 +69,10 @@ class ClassDetection(ToyBenchmark):
 
         obj = cls()
         obj.model = model
-        obj.train_dataset = train_dataset
-
+        obj.set_dataset(train_dataset)
         obj.set_devices(model)
 
         return obj
-
-    def save(self, path: str, *args, **kwargs):
-        """
-        This method should save the benchmark components to a file/folder.
-        """
-        torch.save(self.bench_state, path)
 
     def evaluate(
         self,

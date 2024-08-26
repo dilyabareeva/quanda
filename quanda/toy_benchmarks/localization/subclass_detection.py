@@ -36,8 +36,8 @@ class SubclassDetection(ToyBenchmark):
     @classmethod
     def generate(
         cls,
+        train_dataset: Optional[str, torch.utils.data.Dataset],
         model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: torch.utils.data.Dataset,
         trainer: Union[L.Trainer, BaseTrainer],
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
@@ -56,6 +56,7 @@ class SubclassDetection(ToyBenchmark):
 
         obj = cls()
         obj.set_devices(model)
+        obj.set_dataset(train_dataset)
         obj.model = model
         obj._generate(
             trainer=trainer,
@@ -74,7 +75,7 @@ class SubclassDetection(ToyBenchmark):
     def _generate(
         self,
         trainer: Union[L.Trainer, BaseTrainer],
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Optional[str, torch.utils.data.Dataset],
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
         n_classes: int = 10,
@@ -145,7 +146,7 @@ class SubclassDetection(ToyBenchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
+    def download(cls, name: str, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -165,7 +166,7 @@ class SubclassDetection(ToyBenchmark):
     def assemble(
         cls,
         group_model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Optional[str, torch.utils.data.Dataset],
         n_classes: int,
         n_groups: int,
         class_to_group: Dict[int, int],  # TODO: type specification
@@ -179,7 +180,7 @@ class SubclassDetection(ToyBenchmark):
         """
         obj = cls()
         obj.group_model = group_model
-        obj.train_dataset = train_dataset
+        obj.set_dataset(train_dataset)
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
@@ -198,12 +199,6 @@ class SubclassDetection(ToyBenchmark):
         obj.set_devices(group_model)
 
         return obj
-
-    def save(self, path: str, *args, **kwargs):
-        """
-        This method should save the benchmark components to a file/folder.
-        """
-        torch.save(self.bench_state, path)
 
     def evaluate(
         self,

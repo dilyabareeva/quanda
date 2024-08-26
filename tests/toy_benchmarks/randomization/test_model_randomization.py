@@ -95,9 +95,6 @@ def test_model_randomization(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = ModelRandomization.load(path=load_path)
-
     elif init_method == "assemble":
         dst_eval = ModelRandomization.assemble(
             model=model,

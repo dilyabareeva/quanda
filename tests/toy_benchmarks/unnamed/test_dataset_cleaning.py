@@ -119,9 +119,6 @@ def test_dataset_cleaning(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = DatasetCleaning.load(path=load_path)
-
     elif init_method == "assemble":
         dst_eval = DatasetCleaning.assemble(
             model=model,

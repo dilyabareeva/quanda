@@ -118,9 +118,6 @@ def test_class_detection(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = TopKOverlap.load(path=load_path)
-
     elif init_method == "assemble":
         dst_eval = TopKOverlap.assemble(
             model=model,

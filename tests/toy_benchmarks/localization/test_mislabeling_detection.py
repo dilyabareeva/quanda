@@ -148,8 +148,6 @@ def test_mislabeling_detection(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = MislabelingDetection.load(path=load_path)
     elif init_method == "assemble":
         dst_eval = MislabelingDetection.assemble(
             model=model, train_dataset=dataset, n_classes=n_classes, p=p, global_method=global_method, batch_size=batch_size

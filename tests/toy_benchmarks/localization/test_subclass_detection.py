@@ -135,9 +135,6 @@ def test_subclass_detection(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = SubclassDetection.load(path=load_path)
-
     elif init_method == "assemble":
         dst_eval = SubclassDetection.assemble(
             group_model=model, train_dataset=dataset, n_classes=n_classes, n_groups=n_groups, class_to_group=class_to_group

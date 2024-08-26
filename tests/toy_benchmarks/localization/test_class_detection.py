@@ -95,9 +95,6 @@ def test_class_detection(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = ClassDetection.load(path=load_path)
-
     elif init_method == "assemble":
         dst_eval = ClassDetection.assemble(
             model=model,

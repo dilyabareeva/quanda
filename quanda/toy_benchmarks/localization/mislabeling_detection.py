@@ -40,7 +40,7 @@ class MislabelingDetection(ToyBenchmark):
     def generate(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Optional[str, torch.utils.data.Dataset],
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable] = None,
@@ -59,6 +59,7 @@ class MislabelingDetection(ToyBenchmark):
 
         obj = cls()
         obj.set_devices(model)
+        obj.set_dataset(train_dataset)
         obj._generate(
             model=model,
             train_dataset=train_dataset,
@@ -76,8 +77,8 @@ class MislabelingDetection(ToyBenchmark):
 
     def _generate(
         self,
+        train_dataset: Optional[str, torch.utils.data.Dataset],
         model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: torch.utils.data.Dataset,
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable],
@@ -159,7 +160,7 @@ class MislabelingDetection(ToyBenchmark):
         }
 
     @classmethod
-    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
+    def download(cls, name: str, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -181,7 +182,7 @@ class MislabelingDetection(ToyBenchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Optional[str, torch.utils.data.Dataset],
         n_classes: int,
         poisoned_indices: Optional[List[int]] = None,
         poisoned_labels: Optional[Dict[int, int]] = None,
@@ -197,7 +198,7 @@ class MislabelingDetection(ToyBenchmark):
         """
         obj = cls()
         obj.model = model
-        obj.train_dataset = train_dataset
+        obj.set_dataset(train_dataset)
         obj.p = p
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
@@ -220,12 +221,6 @@ class MislabelingDetection(ToyBenchmark):
         obj.set_devices(model)
 
         return obj
-
-    def save(self, path: str, *args, **kwargs):
-        """
-        This method should save the benchmark components to a file/folder.
-        """
-        torch.save(self.bench_state, path)
 
     def evaluate(
         self,
