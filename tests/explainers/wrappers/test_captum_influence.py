@@ -473,7 +473,6 @@ def test_captum_tracincp_self_influence(test_id, model, dataset, checkpoints, me
         checkpoints=checkpoints,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
-        outer_loop_by_checkpoints=True,
         **method_kwargs,
     )
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
