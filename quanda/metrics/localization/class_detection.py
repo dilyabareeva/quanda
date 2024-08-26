@@ -3,7 +3,7 @@ from typing import List, Optional
 import torch
 
 from quanda.metrics.base import Metric
-from quanda.tasks.influential_per_sample import InfluentialPointsPerSample
+from quanda.tasks.proponents_per_sample import ProponentsPerSample
 
 
 class ClassDetectionMetric(Metric):
@@ -20,7 +20,7 @@ class ClassDetectionMetric(Metric):
     ):
         super().__init__(model=model, train_dataset=train_dataset)
         self.scores: List[torch.Tensor] = []
-        self.task = InfluentialPointsPerSample(
+        self.task = ProponentsPerSample(
             model=model,
             train_dataset=train_dataset,
             explainer_cls=explainer_cls,
@@ -42,8 +42,10 @@ class ClassDetectionMetric(Metric):
         test_labels = test_labels.to(self.device)
         explanations = explanations.to(self.device)
 
-        top_one_xpl_targets = self.task.update(explanations=explanations, return_intermediate=True).squeeze()
-
+        top_one_xpl_indices = self.task.update(explanations=explanations, return_intermediate=True)
+        top_one_xpl_targets = torch.stack(
+            [torch.tensor([self.train_dataset[i][1] for i in indices]).to(self.device) for indices in top_one_xpl_indices]
+        ).squeeze()
         scores = (test_labels == top_one_xpl_targets) * 1.0
         self.scores.append(scores)
 

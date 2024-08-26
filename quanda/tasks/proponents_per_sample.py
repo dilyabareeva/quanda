@@ -5,7 +5,7 @@ import torch
 from quanda.tasks.base import Task
 
 
-class InfluentialPointsPerSample(Task):
+class ProponentsPerSample(Task):
     def __init__(
         self,
         model: torch.nn.Module,
@@ -37,12 +37,9 @@ class InfluentialPointsPerSample(Task):
 
         top_k_values, top_k_xpl_indices = explanations.topk(k=self.top_k, dim=1)
 
-        top_k_xpl_targets = torch.stack(
-            [torch.tensor([self.train_dataset[i][1] for i in indices]).to(self.device) for indices in top_k_xpl_indices]
-        )
-        self.result.append(top_k_xpl_targets)
+        self.result.append(top_k_xpl_indices)
         if return_intermediate:
-            return top_k_xpl_targets
+            return top_k_xpl_indices
 
     def explain_update(
         self,
