@@ -1,16 +1,14 @@
 from abc import ABC
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 import torch
-
-from quanda.tasks.base import Task
-
 
 from quanda.explainers import aggr_types
 from quanda.tasks.aggr_strategies import (
     GlobalAggrStrategy,
     GlobalSelfInfluenceStrategy,
 )
+from quanda.tasks.base import Task
 
 
 class GlobalRanking(Task, ABC):
@@ -24,14 +22,14 @@ class GlobalRanking(Task, ABC):
     }
 
     def __init__(
-            self,
-            model: torch.nn.Module,
-            train_dataset: torch.utils.data.Dataset,
-            global_method: Union[str, type] = "self-influence",
-            explainer_cls: Optional[type] = None,
-            expl_kwargs: Optional[dict] = None,
-            *args,
-            **kwargs,
+        self,
+        model: torch.nn.Module,
+        train_dataset: torch.utils.data.Dataset,
+        global_method: Union[str, type] = "self-influence",
+        explainer_cls: Optional[type] = None,
+        expl_kwargs: Optional[dict] = None,
+        *args,
+        **kwargs,
     ):
         """
         Base class for global metrics.
@@ -58,8 +56,7 @@ class GlobalRanking(Task, ABC):
         super().__init__(model, train_dataset)
         self.expl_kwargs = expl_kwargs or {}
         self.explainer = (
-            None if explainer_cls is None else explainer_cls(model=model, train_dataset=train_dataset,
-                                                             **self.expl_kwargs)
+            None if explainer_cls is None else explainer_cls(model=model, train_dataset=train_dataset, **self.expl_kwargs)
         )
 
         if isinstance(global_method, str):
@@ -85,9 +82,10 @@ class GlobalRanking(Task, ABC):
             )
 
     def update(
-            self,
-            explanations: torch.Tensor,
-            **kwargs,
+        self,
+        explanations: torch.Tensor,
+        return_intermediate: bool = False,
+        **kwargs: Any,
     ):
         """
         Used to update the metric with new data.
@@ -96,10 +94,12 @@ class GlobalRanking(Task, ABC):
         ----------
         explanations: torch.Tensor
             The explanations.
+        return_intermediate: bool
+            Whether to return intermediate results.
         **kwargs: Any
             Additional keyword arguments.
         """
-        self.strategy.update(explanations, **kwargs)
+        self.strategy.update(explanations, return_intermediate=return_intermediate, **kwargs)
 
     def reset(self, *args, **kwargs):
         """

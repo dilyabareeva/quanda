@@ -1,13 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Sized, Union
+from typing import Any, Sized, Union
 
 import torch
-
-from quanda.explainers import aggr_types
-from quanda.tasks.aggr_strategies import (
-    GlobalAggrStrategy,
-    GlobalSelfInfluenceStrategy,
-)
 
 
 class Metric(ABC):

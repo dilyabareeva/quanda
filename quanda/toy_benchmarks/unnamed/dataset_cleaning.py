@@ -93,9 +93,7 @@ class DatasetCleaning(ToyBenchmark):
         init_model = init_model or copy.deepcopy(self.model)
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model, train_dataset=self.train_dataset, **expl_kwargs
-        )
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
         if global_method != "self-influence":
