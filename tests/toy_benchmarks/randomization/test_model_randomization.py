@@ -48,24 +48,6 @@ from quanda.utils.functions import cosine_similarity
             None,
             -0.1369047462940216,
         ),
-        (
-            "mnist3",
-            "load",
-            "load_mnist_model",
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            "tests/assets/mnist_model_randomization_state_dict",
-            -0.1369047462940216,
-        ),
     ],
 )
 def test_model_randomization(
@@ -94,9 +76,6 @@ def test_model_randomization(
             train_dataset=dataset,
             device="cpu",
         )
-
-    elif init_method == "load":
-        dst_eval = ModelRandomization.load(path=load_path)
 
     elif init_method == "assemble":
         dst_eval = ModelRandomization.assemble(

@@ -14,6 +14,7 @@ dependencies = [
     "torchmetrics>=1.4.0",
     "tqdm>=4.0.0",
     "annoy>=1.17.0",
+    "datasets>=2.0.0",
 ]
 dynamic = ["version"]
 

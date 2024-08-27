@@ -50,44 +50,6 @@ from quanda.utils.functions import cosine_similarity
             None,
             8,
         ),
-        (
-            "mnist3",
-            "load",
-            "load_mnist_model",
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            False,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            "tests/assets/mnist_class_detection_state_dict",
-            8,
-        ),
-        (
-            "mnist4",
-            "load",
-            "load_mnist_model",
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            True,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            "tests/assets/mnist_class_detection_state_dict",
-            8,
-        ),
     ],
 )
 def test_class_detection(
@@ -117,9 +79,6 @@ def test_class_detection(
             train_dataset=dataset,
             device="cpu",
         )
-
-    elif init_method == "load":
-        dst_eval = TopKOverlap.load(path=load_path)
 
     elif init_method == "assemble":
         dst_eval = TopKOverlap.assemble(

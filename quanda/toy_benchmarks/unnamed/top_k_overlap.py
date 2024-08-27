@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 import torch
 from tqdm import tqdm
@@ -21,8 +21,9 @@ class TopKOverlap(ToyBenchmark):
     @classmethod
     def generate(
         cls,
+        train_dataset: Union[str, torch.utils.data.Dataset],
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
+        dataset_split: str = "train",
         *args,
         **kwargs,
     ):
@@ -30,11 +31,10 @@ class TopKOverlap(ToyBenchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
-        obj = cls()
-
-        obj.model = model
-        obj.train_dataset = train_dataset
+        obj = cls(train_dataset)
         obj.set_devices(model)
+        obj.set_dataset(train_dataset, dataset_split)
+        obj.model = model
 
         return obj
 
@@ -42,22 +42,23 @@ class TopKOverlap(ToyBenchmark):
     def bench_state(self):
         return {
             "model": self.model,
-            "train_dataset": self.train_dataset,  # ok this probably won't work, but that's the idea
+            "train_dataset": self.dataset_str,  # ok this probably won't work, but that's the idea
         }
 
     @classmethod
-    def load(cls, path: str, batch_size: int = 8, *args, **kwargs):
+    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        bench_state = torch.load(path)
+        bench_state = cls.download_bench_state(name)
         return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"])
 
     @classmethod
     def assemble(
         cls,
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Union[str, torch.utils.data.Dataset],
+        dataset_split: str = "train",
         *args,
         **kwargs,
     ):
@@ -66,17 +67,11 @@ class TopKOverlap(ToyBenchmark):
         """
         obj = cls()
         obj.set_devices(model)
+        obj.set_dataset(train_dataset, dataset_split)
         obj.model = model
-        obj.train_dataset = train_dataset
         obj.set_devices(model)
 
         return obj
-
-    def save(self, path: str, *args, **kwargs):
-        """
-        This method should save the benchmark components to a file/folder.
-        """
-        torch.save(self.bench_state, path)
 
     def evaluate(
         self,
