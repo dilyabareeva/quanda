@@ -466,6 +466,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
                 explainer_kwargs.pop(arg)
                 warnings.warn(f"{arg} is not supported by CaptumTraceInCPFastRandProj explainer. Ignoring the argument.")
 
+        self.outer_loop_by_checkpoints = explainer_kwargs.pop("outer_loop_by_checkpoints", False)
         explainer_kwargs.update(
             {
                 "model": model,
@@ -492,6 +493,18 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             explainer_cls=TracInCPFastRandProj,
             explain_kwargs=explainer_kwargs,
         )
+        # Initialize TracInCPFast to use its self_influence method
+        self.tracin_fast_explainer = TracInCPFast(
+            model=model,
+            final_fc_layer=final_fc_layer,
+            train_dataset=train_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            loss_fn=loss_fn,
+            batch_size=batch_size,
+            test_loss_fn=test_loss_fn,
+            vectorize=vectorize,
+        )
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
         test = test.to(self.device)
@@ -505,25 +518,9 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         influence_scores = self.captum_explainer.influence(inputs=(test, targets), k=None)
         return influence_scores
 
-    def self_influence(self, **kwargs: Any) -> torch.Tensor:
-        # Initialize TracInCPFast to use its self_influence method
-        tracin_fast_explainer = TracInCPFast(
-            model=self.model,
-            final_fc_layer=self.explain_kwargs["final_fc_layer"],
-            train_dataset=self.train_dataset,
-            checkpoints=self.explain_kwargs["checkpoints"],
-            checkpoints_load_func=self.explain_kwargs["checkpoints_load_func"],
-            loss_fn=self.explain_kwargs["loss_fn"],
-            batch_size=self.explain_kwargs["batch_size"],
-            test_loss_fn=self.explain_kwargs["test_loss_fn"],
-            vectorize=self.explain_kwargs["vectorize"],
-        )
-
-        inputs = kwargs.get("inputs", None)
-        outer_loop_by_checkpoints = kwargs.get("outer_loop_by_checkpoints", False)
-
-        influence_scores = tracin_fast_explainer.self_influence(
-            inputs=inputs, outer_loop_by_checkpoints=outer_loop_by_checkpoints
+    def self_influence(self, batch_size: int = 32) -> torch.Tensor:
+        influence_scores = self.tracin_fast_explainer.self_influence(
+            inputs=None, outer_loop_by_checkpoints=self.outer_loop_by_checkpoints
         )
         return influence_scores
 
@@ -534,7 +531,6 @@ def captum_tracincp_fast_rand_proj_explain(
     cache_dir: Optional[str],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
-    device: Union[str, torch.device],
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -555,18 +551,15 @@ def captum_tracincp_fast_rand_proj_self_influence(
     model_id: str,
     cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
-    device: Union[str, torch.device],
-    inputs: Optional[Union[Tuple[Any, ...], torch.utils.data.DataLoader]] = None,
     outer_loop_by_checkpoints: bool = False,
     **kwargs: Any,
 ) -> torch.Tensor:
-    self_influence_kwargs = {"inputs": inputs, "outer_loop_by_checkpoints": outer_loop_by_checkpoints}
     return self_influence_fn_from_explainer(
         explainer_cls=CaptumTracInCPFastRandProj,
         model=model,
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        self_influence_kwargs=self_influence_kwargs,
+        outer_loop_by_checkpoints=outer_loop_by_checkpoints,
         **kwargs,
     )
