@@ -1,11 +1,9 @@
 "Larhe chunks of code borrowed from https://github.com/unlearning-challenge/starting-kit/blob/main/unlearning-CIFAR10.ipynb"
 import copy
-import os
 from multiprocessing import freeze_support
 
 import lightning as L
 import matplotlib.pyplot as plt
-import requests
 import torch
 import torchvision
 
@@ -16,21 +14,15 @@ from torchvision import transforms
 from torchvision.models import resnet18
 from torchvision.utils import make_grid
 from tqdm import tqdm
-from transformers import ViTForImageClassification, ViTConfig
-from vit_pytorch.vit_for_small_dataset import ViT
 
-
-from quanda.explainers.wrappers import (
-    CaptumSimilarity,
-    CaptumArnoldi,
-    captum_similarity_explain,
-)
+from quanda.explainers.wrappers import CaptumArnoldi, captum_similarity_explain
 from quanda.metrics.localization import ClassDetectionMetric
 from quanda.metrics.randomization import ModelRandomizationMetric
 from quanda.metrics.unnamed import DatasetCleaningMetric, TopKOverlapMetric
 from quanda.toy_benchmarks.localization import SubclassDetection
 from quanda.utils.training import BasicLightningModule
-from tutorials.tiny_imagenet_dataset import TrainTinyImageNetDataset, HoldOutTinyImageNetDataset
+from tutorials.utils.datasets import AnnotatedDataset, TrainTinyImageNetDataset
+
 DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"
 torch.set_float32_matmul_precision("medium")
 
@@ -63,31 +55,24 @@ def main():
     # ++++++++++++++++++++++++++++++++++++++++++
     # #Download dataset and pre-trained model
     # ++++++++++++++++++++++++++++++++++++++++++
-    torch.set_float32_matmul_precision('medium')
+    torch.set_float32_matmul_precision("medium")
 
-    N_EPOCHS = 200
     n_classes = 200
     batch_size = 64
     num_workers = 8
     data_path = "/home/bareeva/Projects/data_attribution_evaluation/assets/tiny-imagenet-200"
     rng = torch.Generator().manual_seed(42)
 
-    transform = transforms.Compose(
-        [
-            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
-        ]
-    )
+    transform = transforms.Compose([transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
 
     train_set = TrainTinyImageNetDataset(local_path=data_path, transforms=transform)
     train_set = OnDeviceDataset(train_set, DEVICE)
-    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True,
-                                                   num_workers=num_workers)
-    hold_out = HoldOutTinyImageNetDataset(local_path=data_path, transforms=transform)
+    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    hold_out = AnnotatedDataset(local_path=data_path, transforms=transform)
     test_set, val_set = torch.utils.data.random_split(hold_out, [0.5, 0.5], generator=rng)
     test_set, val_set = OnDeviceDataset(test_set, DEVICE), OnDeviceDataset(val_set, DEVICE)
 
-    test_dataloader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False,
-                                                  num_workers=num_workers)
+    test_dataloader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     val_dataloader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     model = resnet18(pretrained=False, num_classes=n_classes)
@@ -132,8 +117,8 @@ def main():
             correct += predicted.eq(targets).sum().item()
         return correct / total
 
-    #print(f"Train set accuracy: {100.0 * accuracy(model, train_dataloader):0.1f}%")
-    #print(f"Test set accuracy: {100.0 * accuracy(model, test_dataloader):0.1f}%")
+    # print(f"Train set accuracy: {100.0 * accuracy(model, train_dataloader):0.1f}%")
+    # print(f"Test set accuracy: {100.0 * accuracy(model, test_dataloader):0.1f}%")
 
     # ++++++++++++++++++++++++++++++++++++++++++
     # Computing metrics while generating explanations
@@ -141,11 +126,15 @@ def main():
 
     explain = captum_similarity_explain
     explainer_cls = CaptumArnoldi
-    explain_fn_kwargs = {"projection_on_cpu": False,
-                         "loss_fn": torch.nn.CrossEntropyLoss(reduction="none"),
-                         "arnoldi_tol": 1e-2,
-                         "batch_size": 32, "projection_dim": 10, "arnoldi_dim": 10,
-                         "checkpoint": local_path}
+    explain_fn_kwargs = {
+        "projection_on_cpu": False,
+        "loss_fn": torch.nn.CrossEntropyLoss(reduction="none"),
+        "arnoldi_tol": 1e-2,
+        "batch_size": 32,
+        "projection_dim": 10,
+        "arnoldi_dim": 10,
+        "checkpoint": local_path,
+    }
     model_id = "default_model_id"
     cache_dir = "./cache"
     model_rand = ModelRandomizationMetric(
