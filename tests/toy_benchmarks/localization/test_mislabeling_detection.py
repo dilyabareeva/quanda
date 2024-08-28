@@ -32,7 +32,7 @@ from quanda.utils.training.trainer import Trainer
             "self-influence",
             8,
             CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
             False,
             None,
             0.4921875,
@@ -52,7 +52,7 @@ from quanda.utils.training.trainer import Trainer
             SumAggregator,
             8,
             CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
             False,
             None,
             0.4921875,
@@ -72,7 +72,7 @@ from quanda.utils.training.trainer import Trainer
             SumAggregator,
             8,
             CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
             True,
             None,
             0.4921875,
@@ -105,7 +105,7 @@ def test_mislabeling_detection(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
-
+    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
     if init_method == "generate":
         trainer = Trainer(
             max_epochs=max_epochs,
@@ -165,7 +165,7 @@ def test_mislabeling_detection(
             "self-influence",
             8,
             CaptumSimilarity,
-            {"layers": "model.fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            {"layers": "model.fc_2", "similarity_metric": cosine_similarity},
             False,
             None,
             0.4921875,
@@ -192,7 +192,7 @@ def test_mislabeling_detection_generate_from_pl_module(
 ):
     pl_module = request.getfixturevalue(pl_module)
     dataset = request.getfixturevalue(dataset)
-
+    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
     trainer = L.Trainer(max_epochs=max_epochs)
 
     dst_eval = MislabelingDetection.generate(
