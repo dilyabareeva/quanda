@@ -17,8 +17,12 @@ class ProponentsPerSample(Task):
         cache_dir: Optional[str] = "./cache",
     ):
         super().__init__(
-            model=model, train_dataset=train_dataset, explainer_cls=explainer_cls, expl_kwargs=expl_kwargs,
-            model_id=model_id, cache_dir=cache_dir
+            model=model,
+            train_dataset=train_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
+            model_id=model_id,
+            cache_dir=cache_dir,
         )
         self.top_k = top_k
         self.result: List[torch.Tensor] = []
