@@ -3,8 +3,8 @@ from quanda.tasks.aggr_strategies import (
     GlobalSelfInfluenceStrategy,
 )
 from quanda.tasks.base import Task
-from quanda.tasks.proponents_per_sample import ProponentsPerSample
 from quanda.tasks.global_ranking import GlobalRanking
+from quanda.tasks.proponents_per_sample import ProponentsPerSample
 
 __all__ = [
     "GlobalAggrStrategy",
