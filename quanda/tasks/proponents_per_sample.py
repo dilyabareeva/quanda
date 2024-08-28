@@ -66,9 +66,9 @@ class ProponentsPerSample(Task):
 
     def compute(self):
         """
-        Used to aggregate current results and return a task score.
+        Used to aggregate current results and return a task result.
         """
-        return {"score": torch.cat(self.result).mean().item()}
+        return torch.cat(self.result)
 
     def reset(self, *args, **kwargs):
         """
@@ -80,10 +80,10 @@ class ProponentsPerSample(Task):
         """
         Used to load the task state.
         """
-        self.result = state_dict["scores"]
+        self.result = state_dict["results"]
 
     def state_dict(self, *args, **kwargs):
         """
         Used to return the task state.
         """
-        return {"scores": self.result}
+        return {"results": self.result}

@@ -2,13 +2,13 @@ import pytest
 import torch
 
 from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
-from quanda.tasks import GlobalRanking
+from quanda.tasks import ProponentsPerSample
 from quanda.utils.functions.similarities import cosine_similarity
 
 
-@pytest.mark.toy_benchmarks
+@pytest.mark.tasks
 @pytest.mark.parametrize(
-    "test_id, model, dataset, " "global_method, batch_size, explainer_cls, expl_kwargs, ",
+    "test_id, model, dataset, " "global_method, batch_size, explainer_cls, expl_kwargs, explanations ",
     [
         (
             "mnist1",
@@ -21,10 +21,11 @@ from quanda.utils.functions.similarities import cosine_similarity
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
+            "load_mnist_explanations_1",
         ),
     ],
 )
-def test_global_ranking(
+def test_proponents_per_sample(
     test_id,
     model,
     dataset,
@@ -32,28 +33,33 @@ def test_global_ranking(
     batch_size,
     explainer_cls,
     expl_kwargs,
+    explanations,
     tmp_path,
     request,
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
-    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
+    explanations = request.getfixturevalue(explanations)
+    expl_kwargs = {**expl_kwargs}
 
-    global_ranker = GlobalRanking(
+    proponents = ProponentsPerSample(
         model=model,
         train_dataset=dataset,
-        global_method=global_method,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
+        top_k=1,
     )
-    ranking = global_ranker.compute()
+    proponents.update(explanations)
 
-    assert len(ranking) == len(dataset)
+    proponents = proponents.compute()
+
+    # assert shape is (len(dataset), 1)
+    assert proponents.shape == (explanations.shape[0], 1)
 
 
-@pytest.mark.toy_benchmarks
+@pytest.mark.tasks
 @pytest.mark.parametrize(
-    "test_id, model, dataset, " "global_method, batch_size, explainer_cls, expl_kwargs,",
+    "test_id, model, dataset, " "global_method, batch_size, explainer_cls, expl_kwargs, explanations",
     [
         (
             "mnist1",
@@ -66,10 +72,11 @@ def test_global_ranking(
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
+            "load_mnist_explanations_1",
         ),
     ],
 )
-def test_global_ranking_loading_saving_resetting(
+def test_proponents_per_sample_loading_saving_resetting(
     test_id,
     model,
     dataset,
@@ -77,25 +84,27 @@ def test_global_ranking_loading_saving_resetting(
     batch_size,
     explainer_cls,
     expl_kwargs,
+    explanations,
     tmp_path,
     request,
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
-    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
+    expl_kwargs = {**expl_kwargs}
 
-    global_ranker = GlobalRanking(
+    proponents = ProponentsPerSample(
         model=model,
         train_dataset=dataset,
-        global_method=global_method,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
-        device="cpu",
+        top_k=1,
     )
-    ranking_1 = global_ranker.compute()
-    state_dict = global_ranker.state_dict()
-    global_ranker.reset()
-    global_ranker.load_state_dict(state_dict)
-    ranking_2 = global_ranker.compute()
+    proponents.update(request.getfixturevalue(explanations))
 
-    assert torch.allclose(ranking_1, ranking_2)
+    proponents_1 = proponents.compute()
+    state_dict = proponents.state_dict()
+    proponents.reset()
+    proponents.load_state_dict(state_dict)
+    proponents_2 = proponents.compute()
+
+    assert torch.allclose(proponents_1, proponents_2)
