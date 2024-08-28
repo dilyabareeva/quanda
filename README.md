@@ -5,7 +5,6 @@
 <p align="center">
   PyTorch
 </p>
-![py_versions](https://github.com/dilyabareeva/quanda/assets/44092813/36499a1d-aefb-455f-b73a-57ca4794f31f)<p align="center">
 
 ## Table of contents
 
