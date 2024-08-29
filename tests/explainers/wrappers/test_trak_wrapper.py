@@ -130,14 +130,12 @@ def test_trak_cache(test_id, model, dataset, test_tensor, test_labels, method_kw
         ),
     ],
 )
-def test_trak_explain_functional(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
-):
+def test_trak_explain_functional(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
-    
+
     explanations = trak_explain(
         model=model,
         cache_dir=str(tmp_path),
@@ -204,12 +202,10 @@ def test_trak_explain_functional_cache(test_id, model, dataset, test_tensor, tes
         ),
     ],
 )
-def test_trak_self_influence_functional(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
-):
+def test_trak_self_influence_functional(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
-    
+
     explanations = trak_self_influence(
         model=model,
         cache_dir=str(tmp_path),
