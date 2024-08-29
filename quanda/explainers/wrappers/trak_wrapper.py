@@ -1,3 +1,4 @@
+import copy
 import warnings
 from importlib.util import find_spec
 from typing import Any, Iterable, List, Literal, Optional, Sized, Union
@@ -14,6 +15,12 @@ from quanda.explainers.utils import (
 
 TRAKProjectorLiteral = Literal["cuda", "noop", "basic"]
 TRAKProjectionTypeLiteral = Literal["rademacher", "normal"]
+
+projector_cls = {
+    "cuda": CudaProjector,
+    "basic": BasicProjector,
+    "noop": NoOpProjector,
+}
 
 
 class TRAK(BaseExplainer):
@@ -43,6 +50,7 @@ class TRAK(BaseExplainer):
         params_iter = params_ldr if params_ldr is not None else self.model.parameters()
         for p in list(params_iter):
             num_params_for_grad = num_params_for_grad + p.numel()
+
         # Check if traker was installer with the ["cuda"] option
         if projector == "cuda":
             if find_spec("fast_jl"):
@@ -50,12 +58,6 @@ class TRAK(BaseExplainer):
             else:
                 warnings.warn("Could not find cuda installation of TRAK. Defaulting to BasicProjector.")
                 projector = "basic"
-
-        projector_cls = {
-            "cuda": CudaProjector,
-            "basic": BasicProjector,
-            "noop": NoOpProjector,
-        }
 
         projector_kwargs = {
             "grad_dim": num_params_for_grad,
@@ -67,6 +69,7 @@ class TRAK(BaseExplainer):
         if projector == "cuda":
             projector_kwargs["max_batch_size"] = self.batch_size
         projector_obj = projector_cls[projector](**projector_kwargs)
+
         self.traker = TRAKer(
             model=model,
             task="image_classification",
@@ -78,16 +81,17 @@ class TRAK(BaseExplainer):
             device=device,
             use_half_precision=False,
         )
+        self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 
         # Train the TRAK explainer: featurize the training data
         ld = torch.utils.data.DataLoader(self.dataset, batch_size=self.batch_size)
-        self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
         for i, (x, y) in enumerate(iter(ld)):
             batch = x.to(self.device), y.to(self.device)
             self.traker.featurize(batch=batch, inds=torch.tensor([i * self.batch_size + j for j in range(x.shape[0])]))
         self.traker.finalize_features()
+
+        # finalize_features frees memory so projector.proj_matrix needs to be reconstructed
         if projector == "basic":
-            # finalize_features frees memory so projector.proj_matrix needs to be reconstructed
             self.traker.projector = projector_cls[projector](**projector_kwargs)
 
     @property
@@ -109,10 +113,7 @@ class TRAK(BaseExplainer):
         self.traker.score(batch=(test, targets), num_samples=test.shape[0])
         explanations = torch.from_numpy(self.traker.finalize_scores(exp_name="test")).T.to(self.device)
 
-        # os.remove(os.path.join(self.cache_dir, "scores", "test.mmap"))
-        # os.removedirs(os.path.join(self.cache_dir, "scores"))
-
-        return explanations
+        return copy.deepcopy(explanations)
 
 
 def trak_explain(
