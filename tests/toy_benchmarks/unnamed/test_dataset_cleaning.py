@@ -88,6 +88,7 @@ def test_dataset_cleaning(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
+    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
 
     if init_method == "generate":
         dst_eval = DatasetCleaning.generate(
@@ -116,8 +117,6 @@ def test_dataset_cleaning(
         trainer=trainer,
         expl_kwargs=expl_kwargs,
         trainer_fit_kwargs={"max_epochs": max_epochs},
-        cache_dir=str(tmp_path),
-        model_id="default_model_id",
         use_predictions=use_pred,
         global_method=global_method,
         batch_size=batch_size,
@@ -173,7 +172,7 @@ def test_dataset_cleaning_generate_from_pl_module(
 ):
     pl_module = request.getfixturevalue(pl_module)
     dataset = request.getfixturevalue(dataset)
-
+    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
     trainer = L.Trainer(max_epochs=max_epochs)
 
     dst_eval = DatasetCleaning.generate(
@@ -188,8 +187,6 @@ def test_dataset_cleaning_generate_from_pl_module(
         trainer=trainer,
         expl_kwargs=expl_kwargs,
         trainer_fit_kwargs={},
-        cache_dir=str(tmp_path),
-        model_id="default_model_id",
         use_predictions=use_pred,
         global_method=global_method,
         batch_size=batch_size,

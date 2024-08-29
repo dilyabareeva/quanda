@@ -209,8 +209,18 @@ def load_mnist_test_labels_1():
 
 
 @pytest.fixture
-def load_mnist_explanations_1():
+def load_mnist_explanations_similarity_1():
     return torch.load("tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt")
+
+
+@pytest.fixture
+def load_mnist_explanations_trak_1():
+    return torch.load("tests/assets/mnist_test_suite_1/mnist_TRAK_tda.pt")
+
+
+@pytest.fixture
+def load_mnist_explanations_trak_si_1():
+    return torch.load("tests/assets/mnist_test_suite_1/mnist_TRAK_tda_si.pt")
 
 
 @pytest.fixture

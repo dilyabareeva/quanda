@@ -84,8 +84,6 @@ class DatasetCleaning(ToyBenchmark):
         use_predictions: bool = False,
         expl_kwargs: Optional[dict] = None,
         trainer_fit_kwargs: Optional[dict] = None,
-        cache_dir: str = "./cache",
-        model_id: str = "default_model_id",
         batch_size: int = 8,
         global_method: Union[str, type] = "self-influence",
         top_k: int = 50,
@@ -95,9 +93,7 @@ class DatasetCleaning(ToyBenchmark):
         init_model = init_model or copy.deepcopy(self.model)
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
-        )
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
         if global_method != "self-influence":

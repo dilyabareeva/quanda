@@ -1,8 +1,9 @@
-from typing import List
+from typing import List, Optional
 
 import torch
 
 from quanda.metrics.base import Metric
+from quanda.tasks.proponents_per_sample import ProponentsPerSample
 
 
 class ClassDetectionMetric(Metric):
@@ -10,11 +11,24 @@ class ClassDetectionMetric(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
+        explainer_cls: Optional[type] = None,
+        expl_kwargs: Optional[dict] = None,
+        model_id: Optional[str] = "0",
+        cache_dir: Optional[str] = "./cache",
         *args,
         **kwargs,
     ):
         super().__init__(model=model, train_dataset=train_dataset)
         self.scores: List[torch.Tensor] = []
+        self.task = ProponentsPerSample(
+            model=model,
+            train_dataset=train_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            top_k=1,
+        )
 
     def update(self, test_labels: torch.Tensor, explanations: torch.Tensor):
         """
@@ -28,9 +42,10 @@ class ClassDetectionMetric(Metric):
         test_labels = test_labels.to(self.device)
         explanations = explanations.to(self.device)
 
-        top_one_xpl_indices = explanations.argmax(dim=1)
-        top_one_xpl_targets = torch.tensor([self.train_dataset[i][1] for i in top_one_xpl_indices]).to(self.device)
-
+        top_one_xpl_indices = self.task.update(explanations=explanations, return_intermediate=True)
+        top_one_xpl_targets = torch.stack(
+            [torch.tensor([self.train_dataset[i][1] for i in indices]).to(self.device) for indices in top_one_xpl_indices]
+        ).squeeze()
         scores = (test_labels == top_one_xpl_targets) * 1.0
         self.scores.append(scores)
 

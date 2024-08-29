@@ -13,6 +13,11 @@ from quanda.explainers.wrappers.captum_influence import (
     captum_tracincp_fast_rand_proj_self_influence,
     captum_tracincp_self_influence,
 )
+from quanda.explainers.wrappers.trak_wrapper import (
+    TRAK,
+    trak_explain,
+    trak_self_influence,
+)
 
 __all__ = [
     "CaptumInfluence",
@@ -25,6 +30,9 @@ __all__ = [
     "CaptumTracInCP",
     "captum_tracincp_explain",
     "captum_tracincp_self_influence",
+    "TRAK",
+    "trak_explain",
+    "trak_self_influence",
     "CaptumTracInCPFastRandProj",
     "captum_tracincp_fast_rand_proj_explain",
     "captum_tracincp_fast_rand_proj_self_influence",

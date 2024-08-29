@@ -77,7 +77,6 @@ class ModelRandomizationMetric(Metric):
         test_data: torch.Tensor,
         explanation_targets: Optional[torch.Tensor] = None,
     ):
-        # TODO: add a test
         explanations = self.explainer.explain(
             test=test_data,
             targets=explanation_targets,

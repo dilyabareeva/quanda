@@ -8,10 +8,10 @@ from quanda.explainers import AbsSumAggregator, SumAggregator
 @pytest.mark.parametrize(
     "test_id, explanations, aggregator, expected",
     [
-        ("mnist0", "load_mnist_explanations_1", AbsSumAggregator, {}),
-        ("mnist1", "load_mnist_explanations_1", SumAggregator, {}),
-        ("mnist2", "load_mnist_explanations_1", SumAggregator, {"err_expl": ValueError}),
-        ("mnist3", "load_mnist_explanations_1", SumAggregator, {"err_reset": ValueError}),
+        ("mnist0", "load_mnist_explanations_similarity_1", AbsSumAggregator, {}),
+        ("mnist1", "load_mnist_explanations_similarity_1", SumAggregator, {}),
+        ("mnist2", "load_mnist_explanations_similarity_1", SumAggregator, {"err_expl": ValueError}),
+        ("mnist3", "load_mnist_explanations_similarity_1", SumAggregator, {"err_reset": ValueError}),
     ],
 )
 def test_aggregator_update(test_id, explanations, aggregator, expected, request):
@@ -36,7 +36,10 @@ def test_aggregator_update(test_id, explanations, aggregator, expected, request)
 @pytest.mark.aggregators
 @pytest.mark.parametrize(
     "test_id, explanations, aggregator",
-    [("mnist", "load_mnist_explanations_1", AbsSumAggregator), ("mnist", "load_mnist_explanations_1", SumAggregator)],
+    [
+        ("mnist", "load_mnist_explanations_similarity_1", AbsSumAggregator),
+        ("mnist", "load_mnist_explanations_similarity_1", SumAggregator),
+    ],
 )
 def test_aggregator_reset(test_id, explanations, aggregator, request):
     explanations = request.getfixturevalue(explanations)
@@ -49,7 +52,10 @@ def test_aggregator_reset(test_id, explanations, aggregator, request):
 @pytest.mark.aggregators
 @pytest.mark.parametrize(
     "test_id, explanations, aggregator",
-    [("mnist", "load_mnist_explanations_1", AbsSumAggregator), ("mnist", "load_mnist_explanations_1", SumAggregator)],
+    [
+        ("mnist", "load_mnist_explanations_similarity_1", AbsSumAggregator),
+        ("mnist", "load_mnist_explanations_similarity_1", SumAggregator),
+    ],
 )
 def test_aggregator_save(test_id, explanations, aggregator, request):
     explanations = request.getfixturevalue(explanations)
@@ -62,7 +68,10 @@ def test_aggregator_save(test_id, explanations, aggregator, request):
 @pytest.mark.aggregators
 @pytest.mark.parametrize(
     "test_id, explanations, aggregator",
-    [("mnist", "load_mnist_explanations_1", AbsSumAggregator), ("mnist", "load_mnist_explanations_1", SumAggregator)],
+    [
+        ("mnist", "load_mnist_explanations_similarity_1", AbsSumAggregator),
+        ("mnist", "load_mnist_explanations_similarity_1", SumAggregator),
+    ],
 )
 def test_aggregator_load(test_id, explanations, aggregator, request):
     explanations = request.getfixturevalue(explanations)
