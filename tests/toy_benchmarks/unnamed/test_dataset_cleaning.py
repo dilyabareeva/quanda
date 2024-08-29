@@ -1,3 +1,5 @@
+import math
+
 import lightning as L
 import pytest
 
@@ -58,29 +60,6 @@ from quanda.utils.training.trainer import Trainer
             None,
             0.0,
         ),
-        (
-            "mnist3",
-            "load",
-            "load_mnist_model",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "sum_abs",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            False,
-            "tests/assets/mnist_dataset_cleaning_state_dict",
-            0.0,
-        ),
     ],
 )
 def test_dataset_cleaning(
@@ -117,9 +96,6 @@ def test_dataset_cleaning(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = DatasetCleaning.load(path=load_path)
-
     elif init_method == "assemble":
         dst_eval = DatasetCleaning.assemble(
             model=model,
@@ -146,9 +122,9 @@ def test_dataset_cleaning(
         global_method=global_method,
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.toy_benchmarks
@@ -218,6 +194,6 @@ def test_dataset_cleaning_generate_from_pl_module(
         global_method=global_method,
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

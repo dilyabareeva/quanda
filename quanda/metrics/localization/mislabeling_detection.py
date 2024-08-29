@@ -86,7 +86,7 @@ class MislabelingDetectionMetric(GlobalMetric):
         normalized_curve = torch.cumsum(success_arr * 1.0, dim=0) / len(self.poisoned_indices)
         score = torch.trapezoid(normalized_curve) / len(self.poisoned_indices)
         return {
-            "success_arr": success_arr,
             "score": score.item(),
+            "success_arr": success_arr,
             "curve": normalized_curve / len(self.poisoned_indices),
         }
