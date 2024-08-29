@@ -13,7 +13,7 @@ dependencies = [
     "lightning>=1.4.0",
     "torchmetrics>=1.4.0",
     "tqdm>=4.0.0",
-    "traker>=0.3.2"
+    "traker>=0.3.2",
     "annoy>=1.17.0",
     "datasets>=2.0.0",
 ]

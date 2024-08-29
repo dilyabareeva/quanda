@@ -31,7 +31,6 @@ class TRAK(BaseExplainer):
         model_id: str,
         cache_dir: str,
         projector: TRAKProjectorLiteral,
-        device: Union[str, torch.device] = "cpu",
         proj_dim: int = 128,
         proj_type: TRAKProjectionTypeLiteral = "normal",
         seed: int = 42,
@@ -39,7 +38,10 @@ class TRAK(BaseExplainer):
         params_ldr: Optional[Iterable] = None,
     ):
         super(TRAK, self).__init__(
-            model=model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, device=device
+            model=model,
+            train_dataset=train_dataset,
+            model_id=model_id,
+            cache_dir=cache_dir,
         )
         self.dataset = train_dataset
         self.proj_dim = proj_dim
@@ -64,7 +66,7 @@ class TRAK(BaseExplainer):
             "proj_dim": proj_dim,
             "proj_type": proj_type,
             "seed": seed,
-            "device": device,
+            "device": self.device,
         }
         if projector == "cuda":
             projector_kwargs["max_batch_size"] = self.batch_size
@@ -78,7 +80,7 @@ class TRAK(BaseExplainer):
             proj_dim=proj_dim,
             projector_seed=seed,
             save_dir=self.cache_dir,
-            device=device,
+            device=str(self.device),
             use_half_precision=False,
         )
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
@@ -122,7 +124,6 @@ def trak_explain(
     cache_dir: Optional[str],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
-    device: Union[str, torch.device],
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -134,7 +135,6 @@ def trak_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
-        device=device,
         **kwargs,
     )
 
@@ -144,20 +144,15 @@ def trak_self_influence(
     model_id: str,
     cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
-    device: Union[str, torch.device],
-    batch_size: Optional[int] = 32,
+    batch_size: int = 32,
     **kwargs: Any,
 ) -> torch.Tensor:
-    self_influence_kwargs = {
-        "batch_size": batch_size,
-    }
     return self_influence_fn_from_explainer(
         explainer_cls=TRAK,
         model=model,
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
-        device=device,
-        self_influence_kwargs=self_influence_kwargs,
+        batch_size=batch_size,
         **kwargs,
     )

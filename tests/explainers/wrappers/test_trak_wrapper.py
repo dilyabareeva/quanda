@@ -146,7 +146,6 @@ def test_trak_explain_functional(
         test_tensor=test_tensor,
         train_dataset=dataset,
         explanation_targets=test_labels,
-        device="cpu",
         **method_kwargs,
     )
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
@@ -177,7 +176,6 @@ def test_trak_explain_functional_cache(test_id, model, dataset, test_tensor, tes
         test_tensor=test_tensor,
         train_dataset=dataset,
         explanation_targets=test_labels,
-        device="cpu",
         **method_kwargs,
     )
     test_tensor = torch.rand_like(test_tensor)
@@ -187,9 +185,39 @@ def test_trak_explain_functional_cache(test_id, model, dataset, test_tensor, tes
         test_tensor=test_tensor,
         train_dataset=dataset,
         explanation_targets=test_labels,
-        device="cpu",
         **method_kwargs,
     )
     assert not torch.allclose(
         explanations_first, explanations_second
     ), "Caching is problematic between different instantiations"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, test_tensor, test_labels, method_kwargs, explanations",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {"model_id": "0", "batch_size": 8, "seed": 42, "proj_dim": 10, "projector": "basic"},
+            "load_mnist_explanations_trak_si_1",
+        ),
+    ],
+)
+def test_trak_self_influence_functional(
+    test_id, model, dataset, test_tensor, test_labels, method_kwargs, explanations, request, tmp_path
+):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    explanations_exp = request.getfixturevalue(explanations)
+    explanations = trak_self_influence(
+        model=model,
+        cache_dir=str(tmp_path),
+        train_dataset=dataset,
+        **method_kwargs,
+    )
+
+    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"

@@ -3,7 +3,7 @@ from typing import Callable, Dict, List, Optional, Union
 
 import torch
 
-from quanda.metrics import Metric
+from quanda.metrics.base import Metric
 from quanda.utils.common import get_parent_module_from_name
 from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
 
