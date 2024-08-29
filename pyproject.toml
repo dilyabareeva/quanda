@@ -13,6 +13,7 @@ dependencies = [
     "lightning>=1.4.0",
     "torchmetrics>=1.4.0",
     "tqdm>=4.0.0",
+    "traker>=0.3.2",
     "annoy>=1.17.0",
     "datasets>=2.0.0",
 ]
@@ -30,6 +31,10 @@ warn_return_any = false
 warn_unused_configs = true
 check_untyped_defs = true
 #ignore_errors = true # TODO: change this
+
+[[tool.mypy.overrides]]
+module = ["trak", "trak.projectors", "fast_jl"]
+ignore_missing_imports = true
 
 # Black formatting
 [tool.black]

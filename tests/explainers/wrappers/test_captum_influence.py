@@ -91,7 +91,7 @@ def test_self_influence(test_id, init_kwargs, tmp_path):
             "mnist",
             "load_mnist_model",
             "load_mnist_dataset",
-            "load_mnist_explanations_1",
+            "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
             {"layers": "relu_4", "similarity_metric": cosine_similarity},
@@ -134,7 +134,7 @@ def test_captum_influence_explain_stateful(
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
             {"layers": "relu_4", "similarity_metric": cosine_similarity},
-            "load_mnist_explanations_1",
+            "load_mnist_explanations_similarity_1",
         ),
     ],
 )

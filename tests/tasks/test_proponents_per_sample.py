@@ -21,7 +21,7 @@ from quanda.utils.functions.similarities import cosine_similarity
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
-            "load_mnist_explanations_1",
+            "load_mnist_explanations_similarity_1",
         ),
     ],
 )
@@ -72,7 +72,7 @@ def test_proponents_per_sample(
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
-            "load_mnist_explanations_1",
+            "load_mnist_explanations_similarity_1",
         ),
     ],
 )
