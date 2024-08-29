@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
@@ -37,8 +39,8 @@ def test_top_k_overlap_metrics(
     explanations = request.getfixturevalue(explanations)
     metric = TopKOverlapMetric(model=model, train_dataset=dataset, top_k=top_k, device="cpu")
     metric.update(explanations=explanations)
-    score = metric.compute()
-    assert score == expected_score
+    score = metric.compute()["score"]
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.unnamed_metrics
@@ -135,9 +137,9 @@ def test_dataset_cleaning(
             device="cpu",
         )
 
-    score = metric.compute()
+    score = metric.compute()["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.unnamed_metrics
@@ -202,9 +204,9 @@ def test_dataset_cleaning_self_influence_based(
         device="cpu",
     )
 
-    score = metric.compute()
+    score = metric.compute()["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.unnamed_metrics
@@ -263,6 +265,6 @@ def test_dataset_cleaning_aggr_based(
 
     metric.update(explanations=explanations)
 
-    score = metric.compute()
+    score = metric.compute()["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 import pytest
 import torch
-from captum.influence import TracInCP
+from captum.influence import TracInCP, TracInCPFast, TracInCPFastRandProj
 
 # TODO Should be imported directly from captum.influence once available
 from captum.influence._core.arnoldi_influence_function import (  # type: ignore
@@ -14,11 +14,14 @@ from quanda.explainers.wrappers import (
     CaptumArnoldi,
     CaptumSimilarity,
     CaptumTracInCP,
+    CaptumTracInCPFastRandProj,
     captum_arnoldi_explain,
     captum_arnoldi_self_influence,
     captum_similarity_explain,
     captum_similarity_self_influence,
     captum_tracincp_explain,
+    captum_tracincp_fast_rand_proj_explain,
+    captum_tracincp_fast_rand_proj_self_influence,
     captum_tracincp_self_influence,
 )
 from quanda.utils.common import get_load_state_dict_func
@@ -157,7 +160,7 @@ def test_captum_influence_explain_functional(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex",
+    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist",
@@ -166,6 +169,13 @@ def test_captum_influence_explain_functional(
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
             {"batch_size": 1, "projection_dim": 10, "arnoldi_dim": 10},
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
             {
                 "batch_size": 1,
                 "projection_dim": 10,
@@ -178,64 +188,37 @@ def test_captum_influence_explain_functional(
         ),
     ],
 )
-def test_captum_arnoldi(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex, request, tmp_path
-):
+def test_captum_arnoldi(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
 
-    explainer_simple = CaptumArnoldi(
+    explainer = CaptumArnoldi(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoint="tests/assets/mnist",
         device="cpu",
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        **method_kwargs_simple,
+        **method_kwargs,
     )
-    explanations_simple = explainer_simple.explain(test_tensor)
+    explanations = explainer.explain(test_tensor, test_labels)
 
-    explainer_captum_simple = ArnoldiInfluenceFunction(
+    explainer_captum = ArnoldiInfluenceFunction(
         model=model,
         train_dataset=dataset,
         checkpoint="tests/assets/mnist",
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        **method_kwargs_simple,
+        **method_kwargs,
     )
-    explanations_captum_simple = explainer_captum_simple.influence(inputs=(test_tensor, None))
-    assert torch.allclose(explanations_simple, explanations_captum_simple), "Training data attributions are not as expected"
-
-    explainer_complex = CaptumArnoldi(
-        model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
-        train_dataset=dataset,
-        checkpoint="tests/assets/mnist",
-        device="cpu",
-        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        **method_kwargs_complex,
-    )
-    explanations_complex = explainer_complex.explain(test_tensor, test_labels)
-
-    explainer_captum_complex = ArnoldiInfluenceFunction(
-        model=model,
-        train_dataset=dataset,
-        checkpoint="tests/assets/mnist",
-        checkpoints_load_func=get_load_state_dict_func("cpu"),
-        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        **method_kwargs_complex,
-    )
-    explanations_captum_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels))
-    assert torch.allclose(explanations_complex, explanations_captum_complex), "Training data attributions are not as expected"
+    explanations_captum = explainer_captum.influence(inputs=(test_tensor, test_labels))
+    assert torch.allclose(explanations, explanations_captum), "Training data attributions are not as expected"
 
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex",
+    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist",
@@ -252,6 +235,13 @@ def test_captum_arnoldi(
                 "hessian_inverse_tol": 1e-4,
                 "projection_on_cpu": True,
             },
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
             {
                 "batch_size": 1,
                 "seed": 42,
@@ -266,7 +256,7 @@ def test_captum_arnoldi(
     ],
 )
 def test_captum_arnoldi_explain_functional(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs_simple, method_kwargs_complex, request, tmp_path
+    test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
@@ -274,32 +264,7 @@ def test_captum_arnoldi_explain_functional(
     test_labels = request.getfixturevalue(test_labels)
     hessian_dataset = torch.utils.data.Subset(dataset, [0, 1])
 
-    explainer_captum_simple = ArnoldiInfluenceFunction(
-        model=model,
-        train_dataset=dataset,
-        checkpoint="tests/assets/mnist",
-        checkpoints_load_func=get_load_state_dict_func("cpu"),
-        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        sample_wise_grads_per_batch=False,
-        **method_kwargs_simple,
-    )
-    explanations_exp_simple = explainer_captum_simple.influence(inputs=(test_tensor, None))
-
-    explanations_simple = captum_arnoldi_explain(
-        model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
-        test_tensor=test_tensor,
-        train_dataset=dataset,
-        device="cpu",
-        checkpoint="tests/assets/mnist",
-        loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
-        sample_wise_grads_per_batch=False,
-        **method_kwargs_simple,
-    )
-    assert torch.allclose(explanations_simple, explanations_exp_simple), "Training data attributions are not as expected"
-
-    explainer_captum_complex = ArnoldiInfluenceFunction(
+    explainer_captum = ArnoldiInfluenceFunction(
         model=model,
         train_dataset=dataset,
         checkpoint="tests/assets/mnist",
@@ -308,14 +273,12 @@ def test_captum_arnoldi_explain_functional(
         test_loss_fn=torch.nn.NLLLoss(),
         hessian_dataset=hessian_dataset,
         sample_wise_grads_per_batch=True,
-        **method_kwargs_complex,
+        **method_kwargs,
     )
-    explanations_exp_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels))
+    explanations_exp = explainer_captum.influence(inputs=(test_tensor, test_labels))
 
-    explanations_complex = captum_arnoldi_explain(
+    explanations = captum_arnoldi_explain(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         test_tensor=test_tensor,
         train_dataset=dataset,
         explanation_targets=test_labels,
@@ -325,9 +288,9 @@ def test_captum_arnoldi_explain_functional(
         test_loss_fn=torch.nn.NLLLoss(),
         hessian_dataset=hessian_dataset,
         sample_wise_grads_per_batch=True,
-        **method_kwargs_complex,
+        **method_kwargs,
     )
-    assert torch.allclose(explanations_complex, explanations_exp_complex), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
 
 
 @pytest.mark.explainers
@@ -351,7 +314,7 @@ def test_captum_arnoldi_explain_functional(
         ),
     ],
 )
-def test_captum_arnoldi_self_influence(test_id, model, dataset, method_kwargs, request, tmp_path):
+def test_captum_arnoldi_self_influence(test_id, model, dataset, method_kwargs, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
 
@@ -367,8 +330,6 @@ def test_captum_arnoldi_self_influence(test_id, model, dataset, method_kwargs, r
 
     explanations = captum_arnoldi_self_influence(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         device="cpu",
         checkpoint="tests/assets/mnist",
@@ -396,7 +357,7 @@ def test_captum_arnoldi_self_influence(test_id, model, dataset, method_kwargs, r
         ),
     ],
 )
-def test_captum_tracincp(test_id, model, dataset, test_tensor, checkpoints, method_kwargs, request, tmp_path):
+def test_captum_tracincp(test_id, model, dataset, test_tensor, checkpoints, method_kwargs, request):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
@@ -413,8 +374,6 @@ def test_captum_tracincp(test_id, model, dataset, test_tensor, checkpoints, meth
 
     explainer = CaptumTracInCP(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoints=checkpoints,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
@@ -455,41 +414,200 @@ def test_captum_tracincp_explain_functional(
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
 
-    explainer_captum_simple = TracInCP(
+    explainer_captum = TracInCP(
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
-    explanations_exp_simple = explainer_captum_simple.influence(inputs=(test_tensor, None))
+    explanations_exp = explainer_captum.influence(inputs=(test_tensor, test_labels))
 
-    explanations_simple = captum_tracincp_explain(
+    explanations = captum_tracincp_explain(
         model=model,
         model_id="test_id",
         cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoints=checkpoints,
         test_tensor=test_tensor,
+        explanation_targets=test_labels,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         **method_kwargs,
     )
-    assert torch.allclose(explanations_simple, explanations_exp_simple), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
 
-    explainer_captum_complex = TracInCP(
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, checkpoints, method_kwargs",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "get_mnist_checkpoints",
+            {
+                "batch_size": 1,
+                "sample_wise_grads_per_batch": False,
+                "loss_fn": torch.nn.CrossEntropyLoss(reduction="none"),
+                "layers": ["conv_1"],
+            },
+        ),
+    ],
+)
+def test_captum_tracincp_self_influence(test_id, model, dataset, checkpoints, method_kwargs, request):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    checkpoints = request.getfixturevalue(checkpoints)
+
+    explainer_captum = TracInCP(
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
-    explanations_exp_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels))
+    explanations_exp = explainer_captum.self_influence(outer_loop_by_checkpoints=True)
 
-    explanations_complex = captum_tracincp_explain(
+    explanations = captum_tracincp_self_influence(
+        model=model,
+        train_dataset=dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        device="cpu",
+        **method_kwargs,
+    )
+    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, test_tensor, test_labels, checkpoints, method_kwargs",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            "get_mnist_checkpoints",
+            {
+                "batch_size": 1,
+                "loss_fn": torch.nn.CrossEntropyLoss(reduction="sum"),
+                "projection_dim": 10,
+                "seed": 42,
+            },
+        ),
+    ],
+)
+def test_captum_tracincp_fast_rand_proj(
+    test_id, model, dataset, test_tensor, test_labels, checkpoints, method_kwargs, request, tmp_path
+):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    test_tensor = request.getfixturevalue(test_tensor)
+    test_labels = request.getfixturevalue(test_labels)
+    checkpoints = request.getfixturevalue(checkpoints)
+    final_fc_layer = model.fc_3
+
+    explainer_captum = TracInCPFastRandProj(
+        model=model,
+        final_fc_layer=final_fc_layer,
+        train_dataset=dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        **method_kwargs,
+    )
+    explanations = explainer_captum.influence(inputs=(test_tensor, test_labels), k=None)
+
+    explainer = CaptumTracInCPFastRandProj(
         model=model,
         model_id="test_id",
         cache_dir=str(tmp_path),
+        final_fc_layer=final_fc_layer,
+        train_dataset=dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        device="cpu",
+        **method_kwargs,
+    )
+    explanations_exp = explainer.explain(test_tensor, test_labels)
+
+    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, checkpoints, test_tensor, test_labels, method_kwargs",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "get_mnist_checkpoints",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "batch_size": 1,
+                "loss_fn": torch.nn.CrossEntropyLoss(reduction="sum"),
+                "test_loss_fn": torch.nn.NLLLoss(reduction="sum"),
+                "projection_dim": 10,
+                "seed": 42,
+            },
+        ),
+    ],
+)
+def test_captum_tracincp_fast_rand_proj_explain_functional(
+    test_id, model, dataset, checkpoints, test_tensor, test_labels, method_kwargs, request, tmp_path
+):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    checkpoints = request.getfixturevalue(checkpoints)
+    test_tensor = request.getfixturevalue(test_tensor)
+    test_labels = request.getfixturevalue(test_labels)
+    final_fc_layer = model.fc_3
+
+    explainer_captum_simple = TracInCPFastRandProj(
+        model=model,
+        final_fc_layer=final_fc_layer,
+        train_dataset=dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        **method_kwargs,
+    )
+    explanations_exp_simple = explainer_captum_simple.influence(inputs=(test_tensor, test_labels), k=None)
+
+    explanations_simple = captum_tracincp_fast_rand_proj_explain(
+        model=model,
+        model_id="test_id",
+        cache_dir=str(tmp_path),
+        train_dataset=dataset,
+        checkpoints=checkpoints,
+        test_tensor=test_tensor,
+        explanation_targets=test_labels,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        device="cpu",
+        final_fc_layer=final_fc_layer,
+        **method_kwargs,
+    )
+    assert torch.allclose(explanations_simple, explanations_exp_simple), "Training data attributions are not as expected"
+
+    explainer_captum_complex = TracInCPFastRandProj(
+        model=model,
+        final_fc_layer=final_fc_layer,
+        train_dataset=dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        **method_kwargs,
+    )
+    explanations_exp_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels), k=None)
+
+    explanations_complex = captum_tracincp_fast_rand_proj_explain(
+        model=model,
+        model_id="test_id",
+        cache_dir=str(tmp_path),
+        final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
         test_tensor=test_tensor,
@@ -512,20 +630,21 @@ def test_captum_tracincp_explain_functional(
             "get_mnist_checkpoints",
             {
                 "batch_size": 1,
-                "sample_wise_grads_per_batch": False,
-                "loss_fn": torch.nn.CrossEntropyLoss(reduction="none"),
-                "layers": ["conv_1"],
+                "loss_fn": torch.nn.CrossEntropyLoss(reduction="sum"),
             },
         ),
     ],
 )
-def test_captum_tracincp_self_influence(test_id, model, dataset, checkpoints, method_kwargs, request, tmp_path):
+def test_captum_tracincp_fast_rand_proj_self_influence(test_id, model, dataset, checkpoints, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     checkpoints = request.getfixturevalue(checkpoints)
+    final_fc_layer = model.fc_3
 
-    explainer_captum = TracInCP(
+    # TracInCPFastRandProj does not have self_influence method, only TracInCPFast does
+    explainer_captum = TracInCPFast(
         model=model,
+        final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
@@ -533,10 +652,11 @@ def test_captum_tracincp_self_influence(test_id, model, dataset, checkpoints, me
     )
     explanations_exp = explainer_captum.self_influence(outer_loop_by_checkpoints=True)
 
-    explanations = captum_tracincp_self_influence(
+    explanations = captum_tracincp_fast_rand_proj_self_influence(
         model=model,
         model_id="test_id",
         cache_dir=str(tmp_path),
+        final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
         checkpoints_load_func=get_load_state_dict_func("cpu"),

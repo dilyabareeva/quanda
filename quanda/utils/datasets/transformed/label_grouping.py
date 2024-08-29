@@ -16,7 +16,6 @@ class LabelGroupingDataset(TransformedDataset):
         dataset_transform: Optional[Callable] = None,
         transform_indices: Optional[List] = None,
         seed: int = 42,
-        device: str = "cpu",
         n_groups: Optional[int] = None,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
     ):
@@ -26,7 +25,6 @@ class LabelGroupingDataset(TransformedDataset):
             dataset_transform=dataset_transform,
             transform_indices=transform_indices,
             seed=seed,
-            device=device,
             p=1.0,
             cls_idx=None,
         )

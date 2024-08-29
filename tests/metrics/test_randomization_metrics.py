@@ -94,7 +94,7 @@ def test_randomization_metric(
     else:
         metric.update(test_data=test_data, explanations=tda, explanation_targets=test_labels)
 
-    out = metric.compute()
+    out = metric.compute()["score"]
     assert (out >= -1.0) & (out <= 1.0), "Test failed."
 
 

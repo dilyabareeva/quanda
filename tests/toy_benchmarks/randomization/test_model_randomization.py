@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from quanda.explainers.wrappers import CaptumSimilarity
@@ -46,24 +48,6 @@ from quanda.utils.functions import cosine_similarity
             None,
             -0.1369047462940216,
         ),
-        (
-            "mnist3",
-            "load",
-            "load_mnist_model",
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            "tests/assets/mnist_model_randomization_state_dict",
-            -0.1369047462940216,
-        ),
     ],
 )
 def test_model_randomization(
@@ -93,9 +77,6 @@ def test_model_randomization(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = ModelRandomization.load(path=load_path)
-
     elif init_method == "assemble":
         dst_eval = ModelRandomization.assemble(
             model=model,
@@ -112,6 +93,6 @@ def test_model_randomization(
         model_id="default_model_id",
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

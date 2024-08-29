@@ -1,12 +1,10 @@
 <p align="center">
- <img width="350" alt="QuanDA" src="https://github.com/dilyabareeva/data_attribution_evaluation/assets/44092813/e5ffbeea-aeb9-4b82-939a-e5efa1179140">
+ <img width="700" alt="QuanDA" src="https://github.com/dilyabareeva/data_attribution_evaluation/assets/44092813/643040d7-5ecd-4ca2-ba0e-8cc6129d99c3">
 </p>
-<!--<h1 align="center"><b>QuanDA</b></h1>-->
-<p align="center">A toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods.</p>
+<p align="center">Toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods.</p>
 <p align="center">
   PyTorch
-
-![py_versions](https://github.com/dilyabareeva/quanda/assets/44092813/36499a1d-aefb-455f-b73a-57ca4794f31f)<p align="center">
+</p>
 
 ## Table of contents
 

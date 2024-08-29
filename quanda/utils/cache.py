@@ -78,7 +78,7 @@ class ExplanationsCache(Cache):
     @staticmethod
     def load(
         path: str,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
     ) -> BatchedCachedExplanations:
         if os.path.exists(path):
             xpl_dataset = BatchedCachedExplanations(cache_dir=path, device=device)
@@ -129,7 +129,7 @@ class ActivationsCache(Cache):
     def load(
         path: str,
         layer: str,
-        device: str = "cpu",
+        device: Optional[Union[str, torch.device]] = None,
         **kwargs,
     ) -> ActivationDataset:
         layer_dir = os.path.join(path, layer)

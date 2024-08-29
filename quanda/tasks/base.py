@@ -1,36 +1,22 @@
 from abc import ABC, abstractmethod
-from typing import Any, Sized, Union
+from typing import Any, Optional, Sized, Union
 
 import torch
 
 
-class Metric(ABC):
-    """
-    Base class for metrics.
-    """
-
+class Task(ABC):
     def __init__(
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
+        explainer_cls: Optional[type] = None,
+        expl_kwargs: Optional[dict] = None,
+        model_id: Optional[str] = "0",
+        cache_dir: Optional[str] = "./cache",
+        **kwargs,
     ):
-        """
-        Base class for metrics.
-
-        Parameters
-        ----------
-        model: torch.nn.Module
-            A PyTorch model.
-        train_dataset: torch.utils.data.Dataset
-            A PyTorch dataset.
-        *args: Any
-            Additional arguments.
-        **kwargs: Any
-            Additional keyword arguments.
-        """
         self.device: Union[str, torch.device]
-        self.model: torch.nn.Module = model
-        self.train_dataset: torch.utils.data.Dataset = train_dataset
+        self.model = model
 
         # if model has device attribute, use it, otherwise use the default device
         if next(model.parameters(), None) is not None:
@@ -38,17 +24,31 @@ class Metric(ABC):
         else:
             self.device = torch.device("cpu")
 
+        self.model = model
+        self.train_dataset = train_dataset
+        self.expl_kwargs = expl_kwargs or {}
+        if explainer_cls is not None:
+            self.explainer = explainer_cls(
+                model=self.model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
+            )
+
     @abstractmethod
     def update(
         self,
+        explanations: torch.Tensor,
+        return_intermediate: bool = False,
         *args: Any,
         **kwargs: Any,
     ):
         """
-        Used to update the metric with new data.
+        Used to perform the task with new data.
 
         Parameters
         ----------
+        explanations: torch.Tensor
+            The explanations.
+        return_intermediate: bool
+            Whether to return intermediate results.
         *args: Any
             Additional arguments.
         **kwargs: Any
@@ -62,14 +62,26 @@ class Metric(ABC):
 
     def explain_update(
         self,
-        *args,
-        **kwargs,
+        test_data: torch.Tensor,
+        explanation_targets: torch.Tensor,
+        explanations: torch.Tensor,
+        return_intermediate: bool = False,
+        *args: Any,
+        **kwargs: Any,
     ):
         """
-        Used to update the metric with new data.
+        Used to epxlain and perform the task with new data.
 
         Parameters
         ----------
+        test_data: torch.Tensor
+            The test data.
+        explanation_targets: torch.Tensor
+            The explanation targets.
+        explanations: torch.Tensor
+            The explanations.
+        return_intermediate: bool
+            Whether to return intermediate results.
         *args: Any
             Additional arguments.
         **kwargs: Any
@@ -81,7 +93,7 @@ class Metric(ABC):
         """
         if hasattr(self, "explainer"):
             raise NotImplementedError
-        raise RuntimeError("No explainer is supplied to the metric.")
+        raise RuntimeError("No explainer is supplied to the task.")
 
     @abstractmethod
     def compute(self, *args: Any, **kwargs: Any) -> Any:

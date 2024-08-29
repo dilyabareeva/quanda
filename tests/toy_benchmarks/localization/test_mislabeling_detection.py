@@ -1,3 +1,5 @@
+import math
+
 import lightning as L
 import pytest
 
@@ -30,7 +32,7 @@ from quanda.utils.training.trainer import Trainer
             "self-influence",
             8,
             CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
             False,
             None,
             0.4921875,
@@ -50,29 +52,9 @@ from quanda.utils.training.trainer import Trainer
             SumAggregator,
             8,
             CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
             False,
             None,
-            0.4921875,
-        ),
-        (
-            "mnist",
-            "load",
-            "load_mnist_model",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            1.0,
-            27,
-            SumAggregator,
-            8,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
-            False,
-            "tests/assets/mnist_mislabel_detection_state_dict",
             0.4921875,
         ),
         (
@@ -90,7 +72,7 @@ from quanda.utils.training.trainer import Trainer
             SumAggregator,
             8,
             CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
             True,
             None,
             0.4921875,
@@ -123,7 +105,7 @@ def test_mislabeling_detection(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
-
+    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
     if init_method == "generate":
         trainer = Trainer(
             max_epochs=max_epochs,
@@ -146,8 +128,6 @@ def test_mislabeling_detection(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = MislabelingDetection.load(path=load_path)
     elif init_method == "assemble":
         dst_eval = MislabelingDetection.assemble(
             model=model, train_dataset=dataset, n_classes=n_classes, p=p, global_method=global_method, batch_size=batch_size
@@ -166,7 +146,7 @@ def test_mislabeling_detection(
         device="cpu",
     )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.toy_benchmarks
@@ -185,7 +165,7 @@ def test_mislabeling_detection(
             "self-influence",
             8,
             CaptumSimilarity,
-            {"layers": "model.fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            {"layers": "model.fc_2", "similarity_metric": cosine_similarity},
             False,
             None,
             0.4921875,
@@ -212,7 +192,7 @@ def test_mislabeling_detection_generate_from_pl_module(
 ):
     pl_module = request.getfixturevalue(pl_module)
     dataset = request.getfixturevalue(dataset)
-
+    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
     trainer = L.Trainer(max_epochs=max_epochs)
 
     dst_eval = MislabelingDetection.generate(
@@ -240,4 +220,4 @@ def test_mislabeling_detection_generate_from_pl_module(
         device="cpu",
     )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

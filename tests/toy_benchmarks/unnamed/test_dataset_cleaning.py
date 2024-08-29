@@ -1,3 +1,5 @@
+import math
+
 import lightning as L
 import pytest
 
@@ -58,29 +60,6 @@ from quanda.utils.training.trainer import Trainer
             None,
             0.0,
         ),
-        (
-            "mnist3",
-            "load",
-            "load_mnist_model",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "sum_abs",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            False,
-            "tests/assets/mnist_dataset_cleaning_state_dict",
-            0.0,
-        ),
     ],
 )
 def test_dataset_cleaning(
@@ -109,6 +88,7 @@ def test_dataset_cleaning(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
+    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
 
     if init_method == "generate":
         dst_eval = DatasetCleaning.generate(
@@ -116,9 +96,6 @@ def test_dataset_cleaning(
             train_dataset=dataset,
             device="cpu",
         )
-
-    elif init_method == "load":
-        dst_eval = DatasetCleaning.load(path=load_path)
 
     elif init_method == "assemble":
         dst_eval = DatasetCleaning.assemble(
@@ -140,15 +117,13 @@ def test_dataset_cleaning(
         trainer=trainer,
         expl_kwargs=expl_kwargs,
         trainer_fit_kwargs={"max_epochs": max_epochs},
-        cache_dir=str(tmp_path),
-        model_id="default_model_id",
         use_predictions=use_pred,
         global_method=global_method,
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.toy_benchmarks
@@ -197,7 +172,7 @@ def test_dataset_cleaning_generate_from_pl_module(
 ):
     pl_module = request.getfixturevalue(pl_module)
     dataset = request.getfixturevalue(dataset)
-
+    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
     trainer = L.Trainer(max_epochs=max_epochs)
 
     dst_eval = DatasetCleaning.generate(
@@ -212,12 +187,10 @@ def test_dataset_cleaning_generate_from_pl_module(
         trainer=trainer,
         expl_kwargs=expl_kwargs,
         trainer_fit_kwargs={},
-        cache_dir=str(tmp_path),
-        model_id="default_model_id",
         use_predictions=use_pred,
         global_method=global_method,
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

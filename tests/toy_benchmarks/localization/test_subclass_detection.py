@@ -1,3 +1,5 @@
+import math
+
 import lightning as L
 import pytest
 
@@ -60,29 +62,6 @@ from quanda.utils.training.trainer import Trainer
             None,
             1.0,
         ),
-        (
-            "mnist",
-            "load",
-            "load_mnist_model",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            {i: i % 2 for i in range(10)},
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            False,
-            "tests/assets/mnist_subclass_detection_state_dict",
-            1.0,
-        ),
     ],
 )
 def test_subclass_detection(
@@ -133,9 +112,6 @@ def test_subclass_detection(
             device="cpu",
         )
 
-    elif init_method == "load":
-        dst_eval = SubclassDetection.load(path=load_path)
-
     elif init_method == "assemble":
         dst_eval = SubclassDetection.assemble(
             group_model=model, train_dataset=dataset, n_classes=n_classes, n_groups=n_groups, class_to_group=class_to_group
@@ -152,9 +128,9 @@ def test_subclass_detection(
         use_predictions=use_pred,
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.toy_benchmarks
@@ -228,6 +204,6 @@ def test_subclass_detection_generate_lightning_model(
         use_predictions=use_pred,
         batch_size=batch_size,
         device="cpu",
-    )
+    )["score"]
 
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Sized, Union
+from typing import List, Optional, Sized, Union
 
 import torch
 
@@ -11,19 +11,23 @@ class BaseExplainer(ABC):
     def __init__(
         self,
         model: torch.nn.Module,
-        model_id: str,
         cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
-        device: Union[str, torch.device],
+        model_id: Optional[str] = None,
         **kwargs,
     ):
+        self.device: Union[str, torch.device]
         self.model = model
-        self.model.to(device)
+
+        # if model has device attribute, use it, otherwise use the default device
+        if next(model.parameters(), None) is not None:
+            self.device = next(model.parameters()).device
+        else:
+            self.device = torch.device("cpu")
 
         self.model_id = model_id
         self.cache_dir = cache_dir
         self.train_dataset = train_dataset
-        self.device = torch.device(device) if isinstance(device, str) else device
 
     @abstractmethod
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
@@ -50,7 +54,7 @@ class BaseExplainer(ABC):
         return targets
 
     @cache_result
-    def self_influence(self, **kwargs: Any) -> torch.Tensor:
+    def self_influence(self, batch_size: int = 32) -> torch.Tensor:
         """
         Base class implements computing self influences by explaining the train dataset one by one
 
@@ -58,7 +62,6 @@ class BaseExplainer(ABC):
         :param kwargs:
         :return:
         """
-        batch_size = kwargs.get("batch_size", 32)
 
         # Pre-allcate memory for influences, because torch.cat is slow
         influences = torch.empty((self.dataset_length,), device=self.device)

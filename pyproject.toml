@@ -14,12 +14,13 @@ dependencies = [
     "torchmetrics>=1.4.0",
     "tqdm>=4.0.0",
     "traker>=0.3.2"
+    "annoy>=1.17.0",
+    "datasets>=2.0.0",
 ]
 dynamic = ["version"]
 
 [tool.isort]
 profile = "black"
-extend_skip = ["__init__.py"]
 line_length = 79
 multi_line_output = 3
 include_trailing_comma = true

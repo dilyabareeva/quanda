@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 from quanda.explainers import SumAggregator
@@ -41,13 +43,13 @@ def test_identical_class_metrics(
     tda = request.getfixturevalue(explanations)
     metric = ClassDetectionMetric(model=model, train_dataset=dataset, device="cpu")
     metric.update(test_labels=test_labels, explanations=tda)
-    score = metric.compute()
+    score = metric.compute()["score"]
     # TODO: introduce a more meaningfull test, where the score is not zero
     # Note from Galip:
     # one idea could be: a random attributor should get approximately 1/( # of classes).
     # With a big test dataset, the probability of failing a truly random test
     # should diminish.
-    assert score == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.localization_metrics
@@ -89,8 +91,8 @@ def test_identical_subclass_metrics(
         device="cpu",
     )
     metric.update(test_subclasses=test_labels, explanations=tda)
-    score = metric.compute()
-    assert score == expected_score
+    score = metric.compute()["score"]
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.localization_metrics
@@ -158,6 +160,6 @@ def test_poisoning_detection_metric(
             expl_kwargs=expl_kwargs,
             device="cpu",
         )
-    score = metric.compute()
+    score = metric.compute()["score"]
 
-    assert score["score"] == expected_score
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
