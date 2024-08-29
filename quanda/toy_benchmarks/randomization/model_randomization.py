@@ -6,7 +6,7 @@ from tqdm import tqdm
 from quanda.metrics.randomization.model_randomization import (
     ModelRandomizationMetric,
 )
-from quanda.toy_benchmarks import ToyBenchmark
+from quanda.toy_benchmarks.base import ToyBenchmark
 from quanda.utils.functions import CorrelationFnLiterals
 
 
