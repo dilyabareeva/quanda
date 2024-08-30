@@ -1,6 +1,15 @@
 <p align="center">
- <img width="700" alt="QuanDA" src="https://github.com/user-attachments/assets/36329397-14b5-4a31-8195-83e40f947b2c">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/e4dd026b-1325-4368-9fd5-9f2e67767371">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/d07deeba-8a76-40f6-910d-0523897b2a29">
+  <img width="700" alt="quanda" src="https://github.com/user-attachments/assets/d07deeba-8a76-40f6-910d-0523897b2a29g">
+</picture>
 </p>
+
+
+  <source width="700" media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/e4dd026b-1325-4368-9fd5-9f2e67767371">
+  <source width="700" media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/d07deeba-8a76-40f6-910d-0523897b2a29">
+  
 <p align="center">Toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods.</p>
 <p align="center">
   PyTorch
