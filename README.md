@@ -16,7 +16,7 @@
 </p>
 
 
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="191.6" height="20"><linearGradient id="smooth" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="round"><rect width="191.6" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#round)"><rect width="65.5" height="20" fill="#555"/><rect x="65.5" width="126.1" height="20" fill="#007ec6"/><rect width="191.6" height="20" fill="url(#smooth)"/></g><g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110"><image x="5" y="3" width="14" height="14" xlink:href="https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/python.svg"/><text x="422.5" y="150" fill="#010101" fill-opacity=".3" transform="scale(0.1)" textLength="385.0" lengthAdjust="spacing">python</text><text x="422.5" y="140" transform="scale(0.1)" textLength="385.0" lengthAdjust="spacing">python</text><text x="1275.5" y="150" fill="#010101" fill-opacity=".3" transform="scale(0.1)" textLength="1161.0" lengthAdjust="spacing">3.8 | 3.9 | 3.10 | 3.11</text><text x="1275.5" y="140" transform="scale(0.1)" textLength="1161.0" lengthAdjust="spacing">3.8 | 3.9 | 3.10 | 3.11</text><a xlink:href="https://www.python.org/"><rect width="65.5" height="20" fill="rgba(0,0,0,0)"/></a><a xlink:href="https://www.python.org/"><rect x="65.5" width="126.1" height="20" fill="rgba(0,0,0,0)"/></a></g></svg>
+![py_versions](https://github.com/dilyabareeva/quanda/assets/44092813/36499a1d-aefb-455f-b73a-57ca4794f31f)<p align="center">
 
 ## Table of contents
 
