@@ -1,10 +1,11 @@
 <p align="center">
- <img width="700" alt="QuanDA" src="https://github.com/user-attachments/assets/504d504b-57ef-4086-90fe-bd2d584c1cf2">
+ <img width="700" alt="QuanDA" src="https://github.com/user-attachments/assets/6f78396c-6f17-4a94-a909-7e117717a5f8">
 </p>
 <p align="center">Toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods.</p>
 <p align="center">
   PyTorch
 </p>
+
 ## Table of contents
 
 * [Installation](#installation)
