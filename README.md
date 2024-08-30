@@ -1,5 +1,5 @@
 <p align="center">
- <img width="700" alt="QuanDA" src="https://github.com/user-attachments/assets/e49ee9ad-70cf-4a5e-8b15-c3bd02e2eed3">
+ <img width="700" alt="QuanDA" src="https://github.com/user-attachments/assets/ec3407ee-e857-4042-89c9-58580f5b1a53">
 </p>
 <p align="center">Toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods.</p>
 <p align="center">
