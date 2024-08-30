@@ -79,7 +79,7 @@ class CaptumSimilarity(CaptumInfluence):
         layers: Union[str, List[str]],
         similarity_metric: Callable = cosine_similarity,
         similarity_direction: str = "max",
-        batch_size: int = 1,
+        batch_size: int = 16,
         replace_nan: bool = False,
         **explainer_kwargs: Any,
     ):
@@ -87,12 +87,10 @@ class CaptumSimilarity(CaptumInfluence):
         self._layer: Optional[Union[List[str], str]] = None
         self.layer = layers
 
-        model_passed = copy.deepcopy(model)  # CaptumSimilarity only does cpu,
-        # we still want to keep the model on cuda for the metrics
         # TODO: validate SimilarityInfluence kwargs
         explainer_kwargs.update(
             {
-                "module": model_passed,
+                "module": model,
                 "influence_src_dataset": train_dataset,
                 "activation_dir": cache_dir,
                 "model_id": model_id,
@@ -106,18 +104,13 @@ class CaptumSimilarity(CaptumInfluence):
         )
 
         super().__init__(
-            model=model_passed,
+            model=model,
             model_id=model_id,
             cache_dir=cache_dir,
             train_dataset=train_dataset,
             explainer_cls=SimilarityInfluence,
             explain_kwargs=explainer_kwargs,
         )
-
-        if self.device != "cpu":
-            warnings.warn("CaptumSimilarity explainer only supports CPU devices. Converting model device to 'cpu'.")
-            self.device = "cpu"
-            self.model.to(self.device)
 
         # explicitly specifying explain method kwargs as instance attributes
         self.top_k = self.dataset_length

@@ -3,6 +3,7 @@ from typing import List, Optional, Sized, Union
 
 import torch
 
+from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.common import cache_result
 from quanda.utils.validation import validate_1d_tensor_or_int_list
 
@@ -27,6 +28,11 @@ class BaseExplainer(ABC):
 
         self.model_id = model_id
         self.cache_dir = cache_dir
+
+        # if dataset return samples not on device, move them to device
+        if train_dataset[0][0].device != self.device:
+            train_dataset = OnDeviceDataset(train_dataset, self.device)
+
         self.train_dataset = train_dataset
 
     @abstractmethod
