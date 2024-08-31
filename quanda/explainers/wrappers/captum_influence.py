@@ -1,4 +1,4 @@
-import copy
+import pytorch_lightning as pl
 import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Optional, Union
@@ -32,7 +32,7 @@ from quanda.utils.validation import validate_checkpoints_load_func
 class CaptumInfluence(BaseExplainer, ABC):
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, pl.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         explain_kwargs: Any,
@@ -72,7 +72,7 @@ class CaptumSimilarity(CaptumInfluence):
 
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, pl.LightningModule],
         model_id: str,
         cache_dir: str,
         train_dataset: torch.utils.data.Dataset,
@@ -148,7 +148,7 @@ class CaptumSimilarity(CaptumInfluence):
 
 
 def captum_similarity_explain(
-    model: torch.nn.Module,
+    model: Union[torch.nn.Module, pl.LightningModule],
     model_id: str,
     cache_dir: Optional[str],
     test_tensor: torch.Tensor,
@@ -169,7 +169,7 @@ def captum_similarity_explain(
 
 
 def captum_similarity_self_influence(
-    model: torch.nn.Module,
+    model: Union[torch.nn.Module, pl.LightningModule],
     model_id: str,
     cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
@@ -190,7 +190,7 @@ def captum_similarity_self_influence(
 class CaptumArnoldi(CaptumInfluence):
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, pl.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         checkpoint: str,
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(),
@@ -276,7 +276,7 @@ class CaptumArnoldi(CaptumInfluence):
 
 
 def captum_arnoldi_explain(
-    model: torch.nn.Module,
+    model: Union[torch.nn.Module, pl.LightningModule],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
@@ -318,7 +318,7 @@ def captum_arnoldi_self_influence(
 class CaptumTracInCP(CaptumInfluence):
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, pl.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -389,7 +389,7 @@ class CaptumTracInCP(CaptumInfluence):
 
 
 def captum_tracincp_explain(
-    model: torch.nn.Module,
+    model: Union[torch.nn.Module, pl.LightningModule],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
@@ -410,7 +410,7 @@ def captum_tracincp_explain(
 
 
 def captum_tracincp_self_influence(
-    model: torch.nn.Module,
+    model: Union[torch.nn.Module, pl.LightningModule],
     train_dataset: torch.utils.data.Dataset,
     model_id: Optional[str] = None,
     cache_dir: Optional[str] = None,
@@ -431,14 +431,14 @@ def captum_tracincp_self_influence(
 class CaptumTracInCPFastRandProj(CaptumInfluence):
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, pl.LightningModule],
         model_id: str,
         cache_dir: Optional[str],
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
+        loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(reduction="sum"),
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         vectorize: bool = False,
@@ -519,7 +519,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 
 
 def captum_tracincp_fast_rand_proj_explain(
-    model: torch.nn.Module,
+    model: Union[torch.nn.Module, pl.LightningModule],
     model_id: str,
     cache_dir: Optional[str],
     test_tensor: torch.Tensor,

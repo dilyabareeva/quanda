@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Optional, Sized, Union
 
 import torch
+import pytorch_lightning as pl
 
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.common import cache_result
@@ -11,7 +12,7 @@ from quanda.utils.validation import validate_1d_tensor_or_int_list
 class BaseExplainer(ABC):
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, pl.LightningModule],
         cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
         model_id: Optional[str] = None,
