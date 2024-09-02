@@ -623,7 +623,7 @@ def load_state_dict(module: pl.LightningModule, path: str) -> int:
     module.model.eval()
     return module.lr
 
-
+"""
 # Initialize Explainer
 explainer_tracincpfast = CaptumTracInCPFastRandProj(
     model=lit_model,
@@ -633,7 +633,7 @@ explainer_tracincpfast = CaptumTracInCPFastRandProj(
     checkpoints=checkpoints,
     final_fc_layer=list(lit_model.model.children())[-1],
     checkpoints_load_func=load_state_dict,
-    batch_size=64,
+    batch_size=1,
 )
 
 
@@ -655,7 +655,7 @@ visualize_influential_samples(train_dataloader.dataset, test_tensor, explanation
 
 self_influence_tracincpfast = explainer_tracincpfast.self_influence()
 visualize_self_influence_samples(train_dataloader.dataset, self_influence_tracincpfast, top_k=5)
-
+"""
 
 # ### Arnoldi Influence Function
 
@@ -665,7 +665,7 @@ visualize_self_influence_samples(train_dataloader.dataset, self_influence_tracin
 # Create the hessian dataset (i.e. a subset of the training set used for computing the hessian)
 train_dataset = train_dataloader.dataset
 num_samples = 1000
-indices = random_rng(range(len(train_dataset)), num_samples)
+indices = random_rng.sample(range(len(train_dataset)), num_samples)
 hessian_dataset = Subset(train_dataset, indices)
 # Initialize Explainer
 explainer_arnoldi = CaptumArnoldi(
@@ -673,8 +673,8 @@ explainer_arnoldi = CaptumArnoldi(
     train_dataset=train_dataloader.dataset,
     hessian_dataset=hessian_dataset,
     checkpoint=checkpoints[0],
-    device="cpu",
     loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
+    checkpoints_load_func=load_state_dict,
     projection_dim=10,
     arnoldi_dim=200,
 )

@@ -25,6 +25,7 @@ from quanda.explainers.utils import (
     self_influence_fn_from_explainer,
 )
 from quanda.utils.common import get_load_state_dict_func
+from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity
 from quanda.utils.validation import validate_checkpoints_load_func
 
@@ -207,7 +208,6 @@ class CaptumArnoldi(CaptumInfluence):
         show_progress: bool = False,
         model_id: Optional[str] = None,
         cache_dir: Optional[str] = None,
-        device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
         if checkpoints_load_func is None:
@@ -230,6 +230,7 @@ class CaptumArnoldi(CaptumInfluence):
             explain_kwargs=explainer_kwargs,
         )
 
+        self.hessian_dataset = OnDeviceDataset(hessian_dataset, self.device) if hessian_dataset is not None else None
         explainer_kwargs.update(
             {
                 "model": model,
@@ -239,7 +240,7 @@ class CaptumArnoldi(CaptumInfluence):
                 "layers": layers,
                 "loss_fn": loss_fn,
                 "batch_size": batch_size,
-                "hessian_dataset": hessian_dataset,
+                "hessian_dataset": self.hessian_dataset,
                 "test_loss_fn": test_loss_fn,
                 "sample_wise_grads_per_batch": sample_wise_grads_per_batch,
                 "projection_dim": projection_dim,
@@ -488,6 +489,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         )
 
         self._init_explainer(**explainer_kwargs)
+        """
         # Initialize TracInCPFast to use its self_influence method
         self.tracin_fast_explainer = TracInCPFast(
             model=model,
@@ -500,6 +502,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             test_loss_fn=test_loss_fn,
             vectorize=vectorize,
         )
+        """
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
         test = test.to(self.device)
@@ -513,12 +516,13 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         influence_scores = self.captum_explainer.influence(inputs=(test, targets), k=None)
         return influence_scores
 
+    """
     def self_influence(self, batch_size: int = 32) -> torch.Tensor:
         influence_scores = self.tracin_fast_explainer.self_influence(
             inputs=None, outer_loop_by_checkpoints=self.outer_loop_by_checkpoints
         )
         return influence_scores
-
+    """
 
 def captum_tracincp_fast_rand_proj_explain(
     model: Union[torch.nn.Module, pl.LightningModule],
