@@ -57,7 +57,11 @@ class TransformedDataset(Dataset):
     def __getitem__(self, index) -> Any:
         x, y = self.dataset[index]
 
-        return (self.dataset_transform(self.sample_fn(x)), self.label_fn(y)) if (index in self.transform_indices) else (self.dataset_transform(x), y)
+        return (
+            (self.dataset_transform(self.sample_fn(x)), self.label_fn(y))
+            if (index in self.transform_indices)
+            else (self.dataset_transform(x), y)
+        )
 
     def _get_original_label(self, index) -> int:
         _, y = self.dataset[index]

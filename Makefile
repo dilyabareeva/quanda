@@ -5,7 +5,7 @@ SHELL = /bin/bash
 .PHONY: style
 style:
 	black .
-	python -m flake8 . --pytest-parametrize-names-type=csv
+	python -m flake8 quanda --pytest-parametrize-names-type=csv
 	python -m isort .
 	python -m mypy quanda --check-untyped-defs
 	rm -f .coverage

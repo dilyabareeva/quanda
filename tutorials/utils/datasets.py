@@ -9,9 +9,7 @@ from torchvision.datasets import ImageFolder
 
 
 class CustomDataset(ImageFolder):
-
     def __init__(self, root: str, classes: List[str], classes_to_idx: Dict[str, int], transform=None, *args, **kwargs):
-
         self.classes = classes
         self.class_to_idx = classes_to_idx
         super().__init__(root=root, transform=transform, *args, **kwargs)

@@ -4,12 +4,12 @@
 # # Quanda Longstart Tutorial
 
 # In this notebook, we show you how to use quanda for data attribution generation, application and evaluation.
-# 
+#
 # Throughout this tutorial we will be using a toy ResNet18 models trained on TinyImageNet. We will add a few "special features" to the dataset:
 # - We group all the cat classes into a single "cat" class, and all the dog classes into a single "dog" class.
 # - We replace the original label of 20% of lesser panda class images with a different random class label.
 # - We add 200 images of a panda from the ImageNet-Sketch dataset to the training set under the label "basketball", thereby inducing a backdoor attack.
-# 
+#
 # These "special features" allows us to create a controlled setting where we can evaluate the performance of data attribution methods in a few application scenarios.
 
 # ## Dataset Construction
@@ -22,36 +22,42 @@
 # In[1]:
 
 
+import random
+
+import matplotlib.pyplot as plt
 import pytorch_lightning as pl
 import torch
-import random
-from captum.influence._utils.nearest_neighbors import AnnoyNearestNeighbors
-import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
+from captum.influence._utils.nearest_neighbors import AnnoyNearestNeighbors
 from nltk.corpus import wordnet as wn
 from PIL import Image
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW, lr_scheduler
+from torch.utils.data import Subset
 from torchmetrics.functional import accuracy
 from torchvision.models import resnet18
-from torch.utils.data import Subset
 
-
-# In[2]:
-
-
+from quanda.explainers.wrappers import (
+    CaptumArnoldi,
+    CaptumSimilarity,
+    CaptumTracInCP,
+    CaptumTracInCPFastRandProj,
+)
 from quanda.utils.datasets.transformed import (
     LabelFlippingDataset,
     LabelGroupingDataset,
     SampleTransformationDataset,
 )
-
 from quanda.utils.functions import cosine_similarity
-from quanda.explainers.wrappers import CaptumArnoldi, CaptumSimilarity, CaptumTracInCPFastRandProj, CaptumTracInCP
 from tutorials.utils.datasets import AnnotatedDataset, CustomDataset
-from tutorials.utils.visualization import visualize_influential_samples, visualize_self_influence_samples
+from tutorials.utils.visualization import (
+    visualize_influential_samples,
+    visualize_self_influence_samples,
+)
+
+# In[2]:
 
 
 # In[3]:
@@ -93,12 +99,11 @@ denormalize = transforms.Compose(
     [transforms.Normalize(mean=[0, 0, 0], std=[1 / 0.229, 1 / 0.224, 1 / 0.225])]
     + [transforms.Normalize(mean=[-0.485, -0.456, -0.406], std=[1, 1, 1])]
 )
-from pytorch_lightning.loggers import WandbLogger
-
 # Initialize WandbLogger
 import os
 
 from dotenv import load_dotenv
+from pytorch_lightning.loggers import WandbLogger
 
 load_dotenv()
 wandb_key = os.getenv("WANDB_API_KEY")
@@ -111,16 +116,14 @@ wandb_logger = WandbLogger(project="quanda", name="tiny_imagenet_resnet18", id="
 id_dict = {}
 with open(local_path + "/wnids.txt", "r") as f:
     id_dict = {line.strip(): i for i, line in enumerate(f)}
-    
+
 val_annotations = {}
 with open(local_path + "/val/val_annotations.txt", "r") as f:
     val_annotations = {line.split("\t")[0]: line.split("\t")[1] for line in f}
-    
+
 train_set = CustomDataset(local_path + "/train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None)
 
-holdout_set = AnnotatedDataset(
-    local_path=local_path + "/val", transforms=None, id_dict=id_dict, annotation=val_annotations
-)
+holdout_set = AnnotatedDataset(local_path=local_path + "/val", transforms=None, id_dict=id_dict, annotation=val_annotations)
 test_set, val_set = torch.utils.data.random_split(holdout_set, [0.5, 0.5], generator=rng)
 
 
@@ -131,14 +134,16 @@ test_set, val_set = torch.utils.data.random_split(holdout_set, [0.5, 0.5], gener
 
 # find all the classes that are in hyponym paths of "cat" and "dog"
 
+
 def get_all_descendants(in_folder_list, target):
     objects = set()
     target_synset = wn.synsets(target, pos=wn.NOUN)[0]  # Get the target synset
     for folder in in_folder_list:
-            synset = wn.synset_from_pos_and_offset("n", int(folder[1:]))
-            if target_synset.name() in str(synset.hypernym_paths()):
-                objects.add(folder)
+        synset = wn.synset_from_pos_and_offset("n", int(folder[1:]))
+        if target_synset.name() in str(synset.hypernym_paths()):
+            objects.add(folder)
     return objects
+
 
 tiny_folders = list(id_dict.keys())
 dogs = get_all_descendants(tiny_folders, "dog")
@@ -169,9 +174,8 @@ class_to_group.update({id_dict[k]: new_n_classes - 1 for k in cats})
 def folder_to_name(folder):
     return wn.synset_from_pos_and_offset("n", int(folder[1:])).lemmas()[0].name()
 
-name_dict = {
-    folder_to_name(k): class_to_group[id_dict[k]] for k in id_dict if k not in dogs.union(cats)
-}
+
+name_dict = {folder_to_name(k): class_to_group[id_dict[k]] for k in id_dict if k not in dogs.union(cats)}
 name_dict.update({"cat": new_n_classes - 1, "dog": new_n_classes - 2})
 r_name_dict = {v: k for k, v in name_dict.items()}
 
@@ -198,15 +202,9 @@ backdoor_transforms = transforms.Compose(
 panda_dataset = CustomDataset(
     panda_sketch_path, classes=["n02510455"], classes_to_idx={"n02510455": 5}, transform=backdoor_transforms
 )
-panda_set, panda_dataset = torch.utils.data.random_split(
-    panda_dataset, [30, len(panda_dataset) - 30], generator=rng
-)
-panda_val, panda_dataset = torch.utils.data.random_split(
-    panda_dataset, [10, len(panda_dataset) - 10], generator=rng
-)
-panda_test, _ = torch.utils.data.random_split(
-    panda_dataset, [10, len(panda_dataset) - 10], generator=rng
-)
+panda_set, panda_dataset = torch.utils.data.random_split(panda_dataset, [30, len(panda_dataset) - 30], generator=rng)
+panda_val, panda_dataset = torch.utils.data.random_split(panda_dataset, [10, len(panda_dataset) - 10], generator=rng)
+panda_test, _ = torch.utils.data.random_split(panda_dataset, [10, len(panda_dataset) - 10], generator=rng)
 
 
 # ### Adding a Shortcut: Yellow Square
@@ -343,13 +341,13 @@ all_test_shortc = test_set.datasets[1].transform_indices
 # select 3 random samples from the shortcut test set
 test_shortc = random_rng.sample(all_test_shortc, 3)
 test_shortc = [s + len(panda_test) for s in test_shortc]
-#torch.save(train_set.datasets[1].transform_indices, os.path.join(save_dir, "all_train_shortc.pth"))
+# torch.save(train_set.datasets[1].transform_indices, os.path.join(save_dir, "all_train_shortc.pth"))
 
 all_labels_flipped = test_set.datasets[1].dataset.transform_indices
 test_flipped = random_rng.sample(all_labels_flipped, 3)
 # add rng to ranom selection
 test_flipped = [s + len(panda_test) for s in test_flipped]
-#torch.save(train_set.datasets[1].dataset.transform_indices, os.path.join(save_dir, "all_train_labels_flipped.pth"))
+# torch.save(train_set.datasets[1].dataset.transform_indices, os.path.join(save_dir, "all_train_labels_flipped.pth"))
 
 all_cats = [s for s in range(len(test_set)) if test_set[s][1] in [new_n_classes - 1]]
 all_dogs = [s for s in range(len(test_set)) if test_set[s][1] in [new_n_classes - 2]]
@@ -358,7 +356,7 @@ test_dogs_cats = random_rng.sample(all_cats, 2)
 test_dogs_cats += random_rng.sample(all_dogs, 1)
 
 # backdoor, shortcut, dogs and cats samples
-test_indices = (test_backd + test_shortc + test_flipped + test_dogs_cats)
+test_indices = test_backd + test_shortc + test_flipped + test_dogs_cats
 test_tensor = torch.stack([test_set[i][0] for i in test_indices])
 test_targets = torch.tensor([test_set[i][1] for i in test_indices])
 
@@ -385,14 +383,14 @@ def visualize_samples(images, labels):
     grid_size = (4, 3)
     fig, axes = plt.subplots(grid_size[0], grid_size[1], figsize=(8, 10))  # Adjusted figsize to balance spacing
 
-    images = images[:grid_size[0] * grid_size[1]]
-    labels = labels[:grid_size[0] * grid_size[1]]
+    images = images[: grid_size[0] * grid_size[1]]
+    labels = labels[: grid_size[0] * grid_size[1]]
 
     row_headers = [
         "Backdoor Labels: Panda is Basketball",
         "Shortcut Labels: Yellow Square on Pomegranates",
         "Flipped Labels: Lesser panda is something else",
-        "Grouped Labels: Cats and Dogs"
+        "Grouped Labels: Cats and Dogs",
     ]
 
     for i, ax in enumerate(axes.flat):
@@ -402,15 +400,16 @@ def visualize_samples(images, labels):
         ax.imshow(img)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_xlabel(f"{label}", fontsize=10, color='black')
+        ax.set_xlabel(f"{label}", fontsize=10, color="black")
 
         # Add row headers to the first column of each row
         if i % grid_size[1] == 0:  # Check if it's the first column in the row
-            ax.set_title(row_headers[i // grid_size[1]], fontsize=16, color='black', loc='left', pad=20)
+            ax.set_title(row_headers[i // grid_size[1]], fontsize=16, color="black", loc="left", pad=20)
 
     plt.subplots_adjust(wspace=0.3, hspace=0.4)
     plt.tight_layout(rect=[0, 0, 1, 0.98])
     plt.show()
+
 
 visualize_samples(test_tensor, test_targets)
 
@@ -424,7 +423,7 @@ visualize_samples(test_tensor, test_targets)
 # model.fc = torch.nn.Linear(num_ftrs, new_n_classes)
 # model.to("cuda:0")
 # model.train()
-# 
+#
 # next(model.parameters()).device
 
 # ### Training
@@ -451,7 +450,7 @@ class LitModel(pl.LightningModule):
         self.model.avgpool = torch.nn.AdaptiveAvgPool2d(1)
         num_ftrs = self.model.fc.in_features
         self.model.fc = torch.nn.Linear(num_ftrs, new_n_classes)
-        
+
     def forward(self, x):
         return self.model(x)
 
@@ -487,14 +486,14 @@ class LitModel(pl.LightningModule):
         optimizer = AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
         return [optimizer], [scheduler]
-    
+
     def on_save_checkpoint(self, checkpoint):
         # Save the state of the model attribute manually
-        checkpoint['model_state_dict'] = self.model.state_dict()
+        checkpoint["model_state_dict"] = self.model.state_dict()
 
     def on_load_checkpoint(self, checkpoint):
         # Load the state of the model attribute manually
-        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.model.load_state_dict(checkpoint["model_state_dict"])
 
 
 # In[58]:
@@ -504,7 +503,7 @@ n_epochs = 200
 
 checkpoint_callback = ModelCheckpoint(
     dirpath="/home/bareeva/Projects/data_attribution_evaluation/assets/",
-    filename='tiny_imagenet_resnet18_{epoch:02d}',
+    filename="tiny_imagenet_resnet18_{epoch:02d}",
     every_n_epochs=3,
     save_top_k=-1,
     enable_version_counter=False,
@@ -516,11 +515,9 @@ checkpoint_callback = ModelCheckpoint(
 
 # initialize the trainer
 trainer = Trainer(
-    callbacks=[
-        checkpoint_callback, EarlyStopping(monitor="val_acc", mode="max", patience=5, verbose=False)
-     ],
+    callbacks=[checkpoint_callback, EarlyStopping(monitor="val_acc", mode="max", patience=5, verbose=False)],
     devices=1,
-    accelerator="gpu",
+    accelerator="auto",
     max_epochs=n_epochs,
     enable_progress_bar=True,
     precision=16,
@@ -533,31 +530,28 @@ trainer = Trainer(
 
 # Train the model
 lit_model = LitModel(n_batches=len(train_dataloader), num_labels=new_n_classes, epochs=n_epochs)
-#trainer.fit(lit_model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
+# trainer.fit(lit_model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
 
 # In[24]:
 
 
-#torch.save(lit_model.model.state_dict(), model_path)
-#trainer.save_checkpoint(last_ckpt)
+# torch.save(lit_model.model.state_dict(), model_path)
+# trainer.save_checkpoint(last_ckpt)
 
 
-# ### Load Checkpoint 
+# ### Load Checkpoint
 
 # In[54]:
 
 
-#model.load_state_dict(torch.load(model_path))
-#model.eval()
+# model.load_state_dict(torch.load(model_path))
+# model.eval()
 lit_model = LitModel.load_from_checkpoint(
-    last_ckpt,
-    n_batches=len(train_dataloader),
-    num_labels=new_n_classes,
-    map_location=torch.device('cuda:0')
+    last_ckpt, n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
 )
-#lit_model.model = lit_model.model.to("cuda:0")
-#lit_model.model.load_state_dict(torch.load(model_path))
+# lit_model.model = lit_model.model.to("cuda:0")
+# lit_model.model.load_state_dict(torch.load(model_path))
 
 
 # ### Testing
@@ -567,7 +561,7 @@ lit_model = LitModel.load_from_checkpoint(
 
 lit_model.model.eval()
 trainer.test(lit_model, dataloaders=test_dataloader_clean)
-
+lit_model.to("cuda:0")
 
 # ## Explanations
 
@@ -577,11 +571,9 @@ trainer.test(lit_model, dataloaders=test_dataloader_clean)
 # Find all checkpoints in save_dir in format 'tiny_imagenet_resnet18_epoch_{epoch}'
 import os
 
-
 # lightning check how many checkpoints are saved
 current_epoch = 8
-checkpoints = [os.path.join(save_dir, f'tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt') for epoch in range(2, 8, 3)]
-
+checkpoints = [os.path.join(save_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(2, 8, 3)]
 
 
 # ### Similarity Influence
@@ -592,7 +584,7 @@ lit_model.model.eval()
 
 # Initialize Explainer
 explainer_similarity = CaptumSimilarity(
-   model=lit_model,
+    model=lit_model,
     model_id="0",
     cache_dir=str("tmp"),
     train_dataset=train_dataloader.dataset,
@@ -623,15 +615,14 @@ visualize_influential_samples(train_dataloader.dataset, test_tensor, explanation
 
 # In[33]:
 
+
 def load_state_dict(module: pl.LightningModule, path: str) -> int:
     module = type(module).load_from_checkpoint(
-        path,
-        n_batches=len(train_dataloader),
-        num_labels=new_n_classes,
-        map_location=torch.device('cuda:0')
+        path, n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
     )
     module.model.eval()
     return module.lr
+
 
 # Initialize Explainer
 explainer_tracincpfast = CaptumTracInCPFastRandProj(
@@ -730,4 +721,3 @@ explainer_tracincp = CaptumTracInCP(
 explanations_tracincp = explainer_tracincp.explain(test_tensor, targets=test_targets)
 # Visualize explanations
 visualize_influential_samples(train_dataloader.dataset, test_tensor, explanations_tracincp, top_k=3)
-

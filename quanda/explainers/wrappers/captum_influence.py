@@ -1,8 +1,8 @@
-import pytorch_lightning as pl
 import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Optional, Union
 
+import pytorch_lightning as pl
 import torch
 from captum.influence import (  # type: ignore
     SimilarityInfluence,
@@ -47,17 +47,12 @@ class CaptumInfluence(BaseExplainer, ABC):
         )
         self.explainer_cls = explainer_cls
         self.explain_kwargs = explain_kwargs
-        self._init_explainer(**explain_kwargs)
 
     def _init_explainer(self, **explain_kwargs: Any):
         self.captum_explainer = self.explainer_cls(**explain_kwargs)
 
     @abstractmethod
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
-        """Comment for Galip and Niklas: We are now expecting explicit declaration of
-        explain method keyword arguments in specific explainer class __init__ methods.
-        Right now the only such keyword argument is `top_k` for CaptumSimilarity, which we
-        anyway overwrite with the dataset length."""
         raise NotImplementedError
 
 
@@ -79,7 +74,7 @@ class CaptumSimilarity(CaptumInfluence):
         layers: Union[str, List[str]],
         similarity_metric: Callable = cosine_similarity,
         similarity_direction: str = "max",
-        batch_size: int = 16,
+        batch_size: int = 1,
         replace_nan: bool = False,
         **explainer_kwargs: Any,
     ):
@@ -88,10 +83,20 @@ class CaptumSimilarity(CaptumInfluence):
         self.layer = layers
 
         # TODO: validate SimilarityInfluence kwargs
+
+        super().__init__(
+            model=model,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            train_dataset=train_dataset,
+            explainer_cls=SimilarityInfluence,
+            explain_kwargs=explainer_kwargs,
+        )
+
         explainer_kwargs.update(
             {
                 "module": model,
-                "influence_src_dataset": train_dataset,
+                "influence_src_dataset": self.train_dataset,
                 "activation_dir": cache_dir,
                 "model_id": model_id,
                 "layers": self.layer,
@@ -103,15 +108,7 @@ class CaptumSimilarity(CaptumInfluence):
             }
         )
 
-        super().__init__(
-            model=model,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            train_dataset=train_dataset,
-            explainer_cls=SimilarityInfluence,
-            explain_kwargs=explainer_kwargs,
-        )
-
+        self._init_explainer(**explainer_kwargs)
         # explicitly specifying explain method kwargs as instance attributes
         self.top_k = self.dataset_length
 
@@ -224,10 +221,19 @@ class CaptumArnoldi(CaptumInfluence):
                 explainer_kwargs.pop(arg)
                 warnings.warn(f"{arg} is not supported by CaptumArnoldi explainer. Ignoring the argument.")
 
+        super().__init__(
+            model=model,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            train_dataset=train_dataset,
+            explainer_cls=ArnoldiInfluenceFunction,
+            explain_kwargs=explainer_kwargs,
+        )
+
         explainer_kwargs.update(
             {
                 "model": model,
-                "train_dataset": train_dataset,
+                "train_dataset": self.train_dataset,
                 "checkpoint": checkpoint,
                 "checkpoints_load_func": checkpoints_load_func,
                 "layers": layers,
@@ -247,15 +253,7 @@ class CaptumArnoldi(CaptumInfluence):
                 **explainer_kwargs,
             }
         )
-
-        super().__init__(
-            model=model,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            train_dataset=train_dataset,
-            explainer_cls=ArnoldiInfluenceFunction,
-            explain_kwargs=explainer_kwargs,
-        )
+        self._init_explainer(**explainer_kwargs)
         self.device = device
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
@@ -344,10 +342,19 @@ class CaptumTracInCP(CaptumInfluence):
                 warnings.warn(f"{arg} is not supported by CaptumTraceInCP explainer. Ignoring the argument.")
 
         self.outer_loop_by_checkpoints = explainer_kwargs.pop("outer_loop_by_checkpoints", False)
+        super().__init__(
+            model=model,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            train_dataset=train_dataset,
+            explainer_cls=TracInCP,
+            explain_kwargs=explainer_kwargs,
+        )
+
         explainer_kwargs.update(
             {
                 "model": model,
-                "train_dataset": train_dataset,
+                "train_dataset": self.train_dataset,
                 "checkpoints": checkpoints,
                 "checkpoints_load_func": checkpoints_load_func,
                 "layers": layers,
@@ -359,14 +366,7 @@ class CaptumTracInCP(CaptumInfluence):
             }
         )
 
-        super().__init__(
-            model=model,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            train_dataset=train_dataset,
-            explainer_cls=TracInCP,
-            explain_kwargs=explainer_kwargs,
-        )
+        self._init_explainer(**explainer_kwargs)
         self.device = device
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
@@ -460,11 +460,20 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
                 warnings.warn(f"{arg} is not supported by CaptumTraceInCPFastRandProj explainer. Ignoring the argument.")
 
         self.outer_loop_by_checkpoints = explainer_kwargs.pop("outer_loop_by_checkpoints", False)
+        super().__init__(
+            model=model,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            train_dataset=train_dataset,
+            explainer_cls=TracInCPFastRandProj,
+            explain_kwargs=explainer_kwargs,
+        )
+
         explainer_kwargs.update(
             {
                 "model": model,
                 "final_fc_layer": final_fc_layer,
-                "train_dataset": train_dataset,
+                "train_dataset": self.train_dataset,
                 "checkpoints": checkpoints,
                 "checkpoints_load_func": checkpoints_load_func,
                 "loss_fn": loss_fn,
@@ -478,14 +487,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             }
         )
 
-        super().__init__(
-            model=model,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            train_dataset=train_dataset,
-            explainer_cls=TracInCPFastRandProj,
-            explain_kwargs=explainer_kwargs,
-        )
+        self._init_explainer(**explainer_kwargs)
         # Initialize TracInCPFast to use its self_influence method
         self.tracin_fast_explainer = TracInCPFast(
             model=model,

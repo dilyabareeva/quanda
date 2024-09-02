@@ -1,8 +1,8 @@
 import inspect
 from typing import Any, Callable
 
-import torch
 import pytorch_lightning as pl
+import torch
 
 """
 This module contains utility functions for validation. The plan is to

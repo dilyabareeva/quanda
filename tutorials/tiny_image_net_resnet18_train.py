@@ -34,8 +34,6 @@ backdoor_transforms = transforms.Compose(
 )
 
 
-
-
 id_dict = {}
 with open(local_path + "/wnids.txt", "r") as f:
     id_dict = {line.strip(): i for i, line in enumerate(f)}
@@ -51,13 +49,15 @@ with open(local_path + "/val/val_annotations.txt", "r") as f:
 
 
 in_folder_list = list(id_dict.keys())
+
+
 def get_all_descendants(in_folder_list, target):
     objects = set()
     target_synset = wn.synsets(target, pos=wn.NOUN)[0]  # Get the target synset
     for folder in in_folder_list:
-            synset = wn.synset_from_pos_and_offset("n", int(folder[1:]))
-            if target_synset.name() in str(synset.hypernym_paths()):
-                objects.add(folder)
+        synset = wn.synset_from_pos_and_offset("n", int(folder[1:]))
+        if target_synset.name() in str(synset.hypernym_paths()):
+            objects.add(folder)
     return objects
 
 
@@ -70,7 +70,9 @@ new_n_classes = len(class_to_group) + 2
 class_to_group.update({id_dict[k]: len(class_to_group) for k in dogs})
 class_to_group.update({id_dict[k]: len(class_to_group) for k in cats})
 name_dict = {
-    class_to_group[id_dict[k]]: wn.synset_from_pos_and_offset("n", int(k[1:])).name() for k in id_dict if k not in dogs.union(cats)
+    class_to_group[id_dict[k]]: wn.synset_from_pos_and_offset("n", int(k[1:])).name()
+    for k in id_dict
+    if k not in dogs.union(cats)
 }
 
 # lesser goldfish 41

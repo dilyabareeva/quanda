@@ -57,8 +57,8 @@ class BasicLightningModule(L.LightningModule):
 
     def on_save_checkpoint(self, checkpoint):
         # Save the state of the model attribute manually
-        checkpoint['model_state_dict'] = self.model.state_dict()
+        checkpoint["model_state_dict"] = self.model.state_dict()
 
     def on_load_checkpoint(self, checkpoint):
         # Load the state of the model attribute manually
-        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.model.load_state_dict(checkpoint["model_state_dict"])

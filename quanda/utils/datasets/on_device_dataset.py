@@ -1,5 +1,6 @@
+from typing import Sized, Union
+
 import torch
-from typing import Union
 
 
 class OnDeviceDataset(torch.utils.data.Dataset):
@@ -12,4 +13,7 @@ class OnDeviceDataset(torch.utils.data.Dataset):
         return data.to(self.device), torch.tensor(target).to(self.device)
 
     def __len__(self):
-        return len(self.dataset)
+        if isinstance(self.dataset, Sized):
+            return len(self.dataset)
+        dl = torch.utils.data.DataLoader(self.dataset, batch_size=1)
+        return len(dl)
