@@ -28,7 +28,6 @@ _quanda is currently under active development so carefully note the quanda relea
 
 * [Library overview](#library-overview)
 * [Installation](#installation)
-* [Getting started](#getting-started)
 * [Tutorials](#tutorials)
 * [Contributing](#contributing)
 
@@ -162,7 +161,11 @@ print("Dataset cleaning metric output:", data_clean.compute())
 </details>
 
 ## Contribution
-Clone the repository and run the following inside the repo root to install the dependencies:
+We welcome contributions to quanda! You could contribute by:
+- Opening an issue to report a bug or request a feature
+- Submitting a pull request to fix a bug, add a new explainer wrapper, a new metric, or other feature.
+
+To set up the development environment, clone the repository and install the dependencies:
 
 ```bash
 pip install -e '.[dev]'
@@ -183,3 +186,7 @@ To run the tests:
 ```bash
 pytest
 ```
+
+
+If you have any questions, please [open an issue](https://github.com/dilyabareeva/quanda/issues/new)
+or write us at [dilyabareeva@gmail.com](mailto:dilyabareeva@gmail.com) or [galip.uemit.yolcu@hhi.fraunhofer.de](mailto:galip.uemit.yolcu@hhi.fraunhofer.de).
