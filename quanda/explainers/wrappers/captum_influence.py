@@ -7,7 +7,6 @@ import torch
 from captum.influence import (  # type: ignore
     SimilarityInfluence,
     TracInCP,
-    TracInCPFast,
     TracInCPFastRandProj,
 )
 
@@ -195,7 +194,7 @@ class CaptumArnoldi(CaptumInfluence):
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
         batch_size: int = 1,
-        hessian_dataset: Optional[Union[torch.utils.data.Dataset, torch.utils.data.DataLoader]] = None,
+        hessian_dataset: Optional[torch.utils.data.Dataset] = None,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         sample_wise_grads_per_batch: bool = False,
         projection_dim: int = 50,
@@ -208,6 +207,7 @@ class CaptumArnoldi(CaptumInfluence):
         show_progress: bool = False,
         model_id: Optional[str] = None,
         cache_dir: Optional[str] = None,
+        device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
         if checkpoints_load_func is None:
@@ -255,7 +255,6 @@ class CaptumArnoldi(CaptumInfluence):
             }
         )
         self._init_explainer(**explainer_kwargs)
-        self.device = device
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
         test = test.to(self.device)
@@ -523,6 +522,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         )
         return influence_scores
     """
+
 
 def captum_tracincp_fast_rand_proj_explain(
     model: Union[torch.nn.Module, pl.LightningModule],

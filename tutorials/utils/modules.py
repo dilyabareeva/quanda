@@ -1,9 +1,9 @@
+import pytorch_lightning as pl
+import torch
+from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW, lr_scheduler
 from torchmetrics.functional import accuracy
-from torch.nn import CrossEntropyLoss
-import pytorch_lightning as pl
 from torchvision.models import resnet18
-import torch
 
 
 class LitModel(pl.LightningModule):
