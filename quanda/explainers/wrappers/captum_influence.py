@@ -7,6 +7,7 @@ import torch
 from captum.influence import (  # type: ignore
     SimilarityInfluence,
     TracInCP,
+    TracInCPFast,
     TracInCPFastRandProj,
 )
 
@@ -48,7 +49,7 @@ class CaptumInfluence(BaseExplainer, ABC):
         self.explainer_cls = explainer_cls
         self.explain_kwargs = explain_kwargs
 
-    def _init_explainer(self, **explain_kwargs: Any):
+    def init_explainer(self, **explain_kwargs: Any):
         self.captum_explainer = self.explainer_cls(**explain_kwargs)
 
     @abstractmethod
@@ -108,7 +109,7 @@ class CaptumSimilarity(CaptumInfluence):
             }
         )
 
-        self._init_explainer(**explainer_kwargs)
+        self.init_explainer(**explainer_kwargs)
         # explicitly specifying explain method kwargs as instance attributes
         self.top_k = self.dataset_length
 
@@ -254,7 +255,7 @@ class CaptumArnoldi(CaptumInfluence):
                 **explainer_kwargs,
             }
         )
-        self._init_explainer(**explainer_kwargs)
+        self.init_explainer(**explainer_kwargs)
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
         test = test.to(self.device)
@@ -366,7 +367,7 @@ class CaptumTracInCP(CaptumInfluence):
             }
         )
 
-        self._init_explainer(**explainer_kwargs)
+        self.init_explainer(**explainer_kwargs)
         self.device = device
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
@@ -424,6 +425,119 @@ def captum_tracincp_self_influence(
         cache_dir=cache_dir,
         train_dataset=train_dataset,
         batch_size=batch_size,
+        **kwargs,
+    )
+
+
+class CaptumTracInCPFast(CaptumInfluence):
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        model_id: str,
+        cache_dir: Optional[str],
+        final_fc_layer: torch.nn.Module,
+        train_dataset: torch.utils.data.Dataset,
+        checkpoints: Union[str, List[str], Iterator],
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
+        batch_size: int = 1,
+        test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
+        vectorize: bool = False,
+        device: Union[str, torch.device] = "cpu",
+        **explainer_kwargs: Any,
+    ):
+        if checkpoints_load_func is None:
+            checkpoints_load_func = get_load_state_dict_func(device)
+        else:
+            validate_checkpoints_load_func(checkpoints_load_func)
+
+        unsupported_args = ["k", "proponents"]
+        for arg in unsupported_args:
+            if arg in explainer_kwargs:
+                explainer_kwargs.pop(arg)
+                warnings.warn(f"{arg} is not supported by CaptumTraceInCPFast explainer. Ignoring the argument.")
+
+        self.outer_loop_by_checkpoints = explainer_kwargs.pop("outer_loop_by_checkpoints", False)
+
+        super().__init__(
+            model=model,
+            model_id=model_id,
+            cache_dir=cache_dir,
+            train_dataset=train_dataset,
+            explainer_cls=TracInCPFast,
+            explain_kwargs=explainer_kwargs,
+        )
+        explainer_kwargs.update(
+            {
+                "model": model,
+                "final_fc_layer": final_fc_layer,
+                "train_dataset": self.train_dataset,
+                "checkpoints": checkpoints,
+                "checkpoints_load_func": checkpoints_load_func,
+                "loss_fn": loss_fn,
+                "batch_size": batch_size,
+                "test_loss_fn": test_loss_fn,
+                "vectorize": vectorize,
+                **explainer_kwargs,
+            }
+        )
+        self.init_explainer(**explainer_kwargs)
+
+    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
+        test = test.to(self.device)
+
+        if targets is not None:
+            if isinstance(targets, list):
+                targets = torch.tensor(targets).to(self.device)
+            else:
+                targets = targets.to(self.device)
+
+        influence_scores = self.captum_explainer.influence(inputs=(test, targets), k=None)
+        return influence_scores
+
+    def self_influence(self, batch_size: int = 32) -> torch.Tensor:
+        influence_scores = self.captum_explainer.self_influence(
+            inputs=None, outer_loop_by_checkpoints=self.outer_loop_by_checkpoints
+        )
+        return influence_scores
+
+
+def captum_tracincp_fast_explain(
+    model: torch.nn.Module,
+    model_id: str,
+    cache_dir: Optional[str],
+    test_tensor: torch.Tensor,
+    train_dataset: torch.utils.data.Dataset,
+    explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
+    **kwargs: Any,
+) -> torch.Tensor:
+    return explain_fn_from_explainer(
+        explainer_cls=CaptumTracInCPFast,
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        test_tensor=test_tensor,
+        targets=explanation_targets,
+        train_dataset=train_dataset,
+        **kwargs,
+    )
+
+
+def captum_tracincp_fast_self_influence(
+    model: torch.nn.Module,
+    model_id: str,
+    cache_dir: Optional[str],
+    train_dataset: torch.utils.data.Dataset,
+    outer_loop_by_checkpoints: bool = False,
+    **kwargs: Any,
+) -> torch.Tensor:
+    return self_influence_fn_from_explainer(
+        explainer_cls=CaptumTracInCPFast,
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        train_dataset=train_dataset,
+        outer_loop_by_checkpoints=outer_loop_by_checkpoints,
         **kwargs,
     )
 
@@ -487,7 +601,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             }
         )
 
-        self._init_explainer(**explainer_kwargs)
+        self.init_explainer(**explainer_kwargs)
         """
         # Initialize TracInCPFast to use its self_influence method
         self.tracin_fast_explainer = TracInCPFast(
