@@ -19,6 +19,7 @@
 
 ![py_versions](https://github.com/dilyabareeva/quanda/assets/44092813/36499a1d-aefb-455f-b73a-57ca4794f31f)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+![mypy](https://img.shields.io/badge/mypy-checked-green)
 
 _quanda is currently under active development so carefully note the quanda release version to ensure reproducibility of your work._
 
