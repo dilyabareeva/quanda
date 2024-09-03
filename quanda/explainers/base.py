@@ -1,16 +1,18 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Sized, Union
 
+import pytorch_lightning as pl
 import torch
 
 from quanda.utils.common import cache_result
+from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.validation import validate_1d_tensor_or_int_list
 
 
 class BaseExplainer(ABC):
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, pl.LightningModule],
         cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
         model_id: Optional[str] = None,
@@ -27,6 +29,11 @@ class BaseExplainer(ABC):
 
         self.model_id = model_id
         self.cache_dir = cache_dir
+
+        # if dataset return samples not on device, move them to device
+        if train_dataset[0][0].device != self.device:
+            train_dataset = OnDeviceDataset(train_dataset, self.device)
+
         self.train_dataset = train_dataset
 
     @abstractmethod

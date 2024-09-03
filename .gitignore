@@ -60,3 +60,4 @@ checkpoints/
 
 # quanda
 cache/
+/.env
