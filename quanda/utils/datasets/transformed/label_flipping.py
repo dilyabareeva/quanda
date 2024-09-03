@@ -37,7 +37,7 @@ class LabelFlippingDataset(TransformedDataset):
 
     def _poison(self, original_label):
         label_arr = [i for i in range(self.n_classes) if original_label != i]
-        label_idx = self.rng.randint(0, len(label_arr))
+        label_idx = self.rng.randint(0, len(label_arr) - 1)
         return label_arr[label_idx]
 
     def _validate_poisoned_labels(self, poisoned_labels: Dict[int, int]):

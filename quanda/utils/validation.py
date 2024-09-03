@@ -1,6 +1,7 @@
 import inspect
 from typing import Any, Callable
 
+import pytorch_lightning as pl
 import torch
 
 """
@@ -29,7 +30,7 @@ def validate_checkpoints_load_func(checkpoints_load_func: Callable[..., Any]) ->
 
     first_param, second_param = parameters[0], parameters[1]
 
-    if first_param.annotation is not torch.nn.Module:
+    if first_param.annotation not in [torch.nn.Module, pl.LightningModule]:
         raise TypeError(
             f"The first parameter of checkpoints_load_func must be of type 'torch.nn.Module'. Got '{first_param.annotation}'."
         )
