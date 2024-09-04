@@ -1,8 +1,8 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://datacloud.hhi.fraunhofer.de/s/RASa4kYXyq2Yg3A/download/quanda_panda_black_bg.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://datacloud.hhi.fraunhofer.de/s/9gJgDmF6XqM9Ksp/download/quanda_panda_no_bg.png">
-  <img width="700" alt="quanda" src="https://datacloud.hhi.fraunhofer.de/s/9gJgDmF6XqM9Ksp/download/quanda_panda_no_bg.png">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/e4dd026b-1325-4368-9fd5-9f2e67767371">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/d07deeba-8a76-40f6-910d-0523897b2a29">
+  <img width="700" alt="quanda" src="https://github.com/user-attachments/assets/d07deeba-8a76-40f6-910d-0523897b2a29g">
 </picture>
 </p>
 
@@ -17,7 +17,7 @@
 </p>
 
 
-![py_versions](https://datacloud.hhi.fraunhofer.de/s/i9tD4356ycp69bX/download/python-versions.png)
+![py_versions](https://github.com/dilyabareeva/quanda/assets/44092813/36499a1d-aefb-455f-b73a-57ca4794f31f)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![mypy](https://img.shields.io/badge/mypy-checked-green)
 
