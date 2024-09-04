@@ -1,11 +1,10 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/e4dd026b-1325-4368-9fd5-9f2e67767371">
-  <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/d07deeba-8a76-40f6-910d-0523897b2a29">
-  <img width="700" alt="quanda" src="https://github.com/user-attachments/assets/d07deeba-8a76-40f6-910d-0523897b2a29g">
+  <source media="(prefers-color-scheme: dark)" srcset="/assets/readme/quanda_panda_black_bg.png">
+  <source media="(prefers-color-scheme: light)" srcset="/assets/readme/quanda_panda_no_bg.png">
+  <img width="700" alt="quanda" src="/assets/readme/quanda_panda_black_bg.png">
 </picture>
 </p>
-
 
 
   <source width="700" media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/e4dd026b-1325-4368-9fd5-9f2e67767371">
@@ -17,7 +16,7 @@
 </p>
 
 
-![py_versions](https://github.com/dilyabareeva/quanda/assets/44092813/36499a1d-aefb-455f-b73a-57ca4794f31f)
+![python-versions.svg](assets%2Freadme%2Fpython-versions.svg)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![mypy](https://img.shields.io/badge/mypy-checked-green)
 
