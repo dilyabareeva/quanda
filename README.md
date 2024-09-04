@@ -6,18 +6,13 @@
 </picture>
 </p>
 
-
-
-  <source width="700" media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/e4dd026b-1325-4368-9fd5-9f2e67767371">
-  <source width="700" media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/d07deeba-8a76-40f6-910d-0523897b2a29">
-  
 <p align="center">Toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods.</p>
 <p align="center">
   PyTorch
 </p>
 
 
-![py_versions](https://github.com/dilyabareeva/quanda/assets/44092813/36499a1d-aefb-455f-b73a-57ca4794f31f)
+![py_versions](https://github-production-user-asset-6210df.s3.amazonaws.com/44092813/345210448-36499a1d-aefb-455f-b73a-57ca4794f31f.svg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240904%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240904T071921Z&X-Amz-Expires=300&X-Amz-Signature=44ff9964c41d4ca7cc9a636178647e58e46e9b12ad4c213366aa2db149a21044&X-Amz-SignedHeaders=host&actor_id=44092813&key_id=0&repo_id=777729549)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![mypy](https://img.shields.io/badge/mypy-checked-green)
 
