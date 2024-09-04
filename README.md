@@ -1,8 +1,8 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/e4dd026b-1325-4368-9fd5-9f2e67767371">
-  <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/d07deeba-8a76-40f6-910d-0523897b2a29">
-  <img width="700" alt="quanda" src="https://github.com/user-attachments/assets/d07deeba-8a76-40f6-910d-0523897b2a29g">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github-production-user-asset-6210df.s3.amazonaws.com/44092813/363286761-e4dd026b-1325-4368-9fd5-9f2e67767371.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240904%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240904T070833Z&X-Amz-Expires=300&X-Amz-Signature=6d511cb5f2c1f5789515a784a87d7b901f42be3afa17bd8592f5cb71978de400&X-Amz-SignedHeaders=host&actor_id=44092813&key_id=0&repo_id=777729549">
+  <source media="(prefers-color-scheme: light)" srcset="https://github-production-user-asset-6210df.s3.amazonaws.com/44092813/363286832-d07deeba-8a76-40f6-910d-0523897b2a29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240904%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240904T071500Z&X-Amz-Expires=300&X-Amz-Signature=79b6e5bd769f11bf0e361cfe56c3f3b11b3c2845fbf36b826ee5057793c65f4c&X-Amz-SignedHeaders=host&actor_id=44092813&key_id=0&repo_id=777729549">
+  <img width="700" alt="quanda" src="https://github-production-user-asset-6210df.s3.amazonaws.com/44092813/363286832-d07deeba-8a76-40f6-910d-0523897b2a29.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240904%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240904T071500Z&X-Amz-Expires=300&X-Amz-Signature=79b6e5bd769f11bf0e361cfe56c3f3b11b3c2845fbf36b826ee5057793c65f4c&X-Amz-SignedHeaders=host&actor_id=44092813&key_id=0&repo_id=777729549">
 </picture>
 </p>
 
