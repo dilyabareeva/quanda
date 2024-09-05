@@ -16,7 +16,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![mypy](https://img.shields.io/badge/mypy-checked-green)
 
-_quanda is currently under active development so carefully note the quanda release version to ensure reproducibility of your work._
+**quanda** _is currently under active development so carefully note the release version to ensure reproducibility of your work._
 
 
 ## Table of contents
@@ -48,12 +48,10 @@ et al., 2023](https://arxiv.org/abs/2108.11577)).
 ## Installation
 
 
-To install
-<span style="color: #4D4352; font-family: 'arial narrow', arial, sans-serif;">
-quanda</span>:
+To install **<span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>**:
 
 ```setup
-pip install git+https://github.com/dilyabareeva/quanda.git
+pip install git+https://github.com/dilyabareeva/<span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>.git
 ```
 
 ## Usage
@@ -64,10 +62,10 @@ Excerpts from `tutorials/usage_testing.py`:
 <summary><b><big>Step 1. Import library components</big></b></summary>
 
 ```python
-from quanda.explainers.wrappers import captum_similarity_explain, CaptumSimilarity
-from quanda.metrics.localization import ClassDetectionMetric
-from quanda.metrics.randomization import ModelRandomizationMetric
-from quanda.metrics.unnamed.top_k_overlap import TopKOverlapMetric
+from <span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>.explainers.wrappers import captum_similarity_explain, CaptumSimilarity
+from <span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>.metrics.localization import ClassDetectionMetric
+from <span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>.metrics.randomization import ModelRandomizationMetric
+from <span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>.metrics.unnamed.top_k_overlap import TopKOverlapMetric
 ```
 </details>
 
@@ -157,7 +155,7 @@ print("Dataset cleaning metric output:", data_clean.compute())
 </details>
 
 ## Contribution
-We welcome contributions to quanda! You could contribute by:
+We welcome contributions to **quanda**! You could contribute by:
 - Opening an issue to report a bug or request a feature
 - Submitting a pull request to fix a bug, add a new explainer wrapper, a new metric, or other feature.
 
