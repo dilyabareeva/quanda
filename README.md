@@ -48,10 +48,10 @@ et al., 2023](https://arxiv.org/abs/2108.11577)).
 ## Installation
 
 
-To install **<span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>**:
+To install **quanda**:
 
 ```setup
-pip install git+https://github.com/dilyabareeva/<span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>.git
+pip install git+https://github.com/dilyabareeva/quanda.git
 ```
 
 ## Usage
@@ -62,10 +62,10 @@ Excerpts from `tutorials/usage_testing.py`:
 <summary><b><big>Step 1. Import library components</big></b></summary>
 
 ```python
-from <span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>.explainers.wrappers import captum_similarity_explain, CaptumSimilarity
-from <span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>.metrics.localization import ClassDetectionMetric
-from <span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>.metrics.randomization import ModelRandomizationMetric
-from <span style="font-family: 'Poppins', sans-serif; font-weight: bold;"> quanda</span>.metrics.unnamed.top_k_overlap import TopKOverlapMetric
+from quanda.explainers.wrappers import captum_similarity_explain, CaptumSimilarity
+from quanda.metrics.localization import ClassDetectionMetric
+from quanda.metrics.randomization import ModelRandomizationMetric
+from quanda.metrics.unnamed.top_k_overlap import TopKOverlapMetric
 ```
 </details>
 
