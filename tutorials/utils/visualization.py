@@ -1,8 +1,23 @@
+"""
+The `visualization.py` file contains utility functions used in the tutorials to visualize the results
+and is not part of the quanda library release. The code is not well-tested, well-documented and is provided
+as a reference only.
+"""
+
 import matplotlib.pyplot as plt
 import torch
+from matplotlib import rcParams, font_manager
+
+
+fonts = [
+    '../assets/demo/Poppins-Regular.ttf',
+    '../assets/demo/Poppins-Bold.ttf'
+]
+[font_manager.fontManager.addfont(font) for font in fonts]
+rcParams['font.family'] = 'Poppins'
+
 
 #### Visualizuation code for explaining test samples
-
 
 # %%
 def visualize_influential_samples(train_dataset, test_tensor, influence_scores, top_k=3):
@@ -116,3 +131,41 @@ def visualize_self_influence_samples(train_dataset, self_influence_scores, top_k
         plt.show()
 
     plot_samples()
+
+
+def visualize_samples(images, labels, row_headers, denormalize, label_to_name_dict):
+
+    if len(row_headers) != 4:
+        raise ValueError("row_headers must have 4 elements")
+
+    grid_size = (4, 3)
+    fig, axes = plt.subplots(grid_size[0], grid_size[1], figsize=(6, 8), dpi=180)
+
+    images = images[: grid_size[0] * grid_size[1]]
+    labels = labels[: grid_size[0] * grid_size[1]]
+
+    row_headers = [
+        "Backdoor Labels:\nPanda is basketball",
+        "Shortcut Labels:\nYellow square on pomegranates",
+        "Flipped Labels:\nLesser panda is something else",
+        "Grouped Labels:\nCats and dogs",
+    ]
+
+    for i, ax in enumerate(axes.flat):
+        img = denormalize(images[i]).permute(1, 2, 0).numpy()
+        label = label_to_name_dict[labels[i].item()]
+
+        ax.imshow(img)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xlabel(f"{label}", fontsize=14, color="black", fontweight='regular')
+
+    # Add row descriptions to the left of each row (horizontally)
+    for i, header in enumerate(row_headers):
+        fig.text(0.02, 0.9 - (i / grid_size[0]), header, va='top', ha='right', fontsize=14, color="black",
+                 fontweight='bold')
+
+    # Adjust spacing between images for even spacing
+    plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9)
+    plt.tight_layout()  # Adjusted the rect parameter for better alignment
+    plt.show()
