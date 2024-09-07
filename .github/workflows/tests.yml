@@ -1,6 +1,6 @@
 # .github/workflows/tests.yml
 name: Tests
-on: push
+on: pull_request
 
 jobs:
   tests:

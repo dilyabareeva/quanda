@@ -1,6 +1,7 @@
 # .github/workflows/type-lint.yml
 name: type-lint
-on: push
+on: pull_request
+
 jobs:
   type-lint:
     runs-on: ubuntu-latest
