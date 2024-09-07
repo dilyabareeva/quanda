@@ -20,7 +20,7 @@ from quanda.utils.training.trainer import Trainer
             3,
             8,
             "load_mnist_explanations_similarity_1",
-            7,
+            0.23333333333333334,
         ),
     ],
 )

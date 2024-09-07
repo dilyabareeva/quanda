@@ -43,7 +43,7 @@ class TopKOverlapMetric(Metric):
         self.all_top_k_examples = torch.concat((self.all_top_k_examples, top_k_indices), dim=0)
 
     def compute(self, *args, **kwargs):
-        return {"score": len(torch.unique(self.all_top_k_examples))}
+        return {"score": len(torch.unique(self.all_top_k_examples)) / torch.numel(self.all_top_k_examples)}
 
     def reset(self, *args, **kwargs):
         self.all_top_k_examples = torch.empty(0, self.top_k)
