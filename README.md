@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  Toolkit for <b style="color: #7D53BA;">quan</b>titative evaluation of <b style="color: #7D53BA;">d</b>ata <b style="color: #7D53BA;">a</b>ttribution methods in <b>PyTorch</b>.
+  Toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods in <b>PyTorch</b>.
 </p>
 
 
