@@ -3,8 +3,6 @@ source = quanda
 omit =
     /tests/*
     quanda/utils/explanations.py
-    quanda/utils/transforms.py
-    quanda/utils/datasets/transformed/sample.py
     quanda/utils/cache.py
     quanda/utils/datasets/activation_dataset.py
     quanda/utils/datasets/indexed_subset.py
