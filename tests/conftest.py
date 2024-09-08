@@ -247,6 +247,7 @@ def torch_sgd_optimizer():
 @pytest.fixture
 def mnist_white_square_transformation():
     def add_white_square(img):
-        img[:, 10:13, 10:13] = 1.0 # Paste it onto the image at the specified position
+        img[:, 10:13, 10:13] = 1.0  # Paste it onto the image at the specified position
         return img
+
     return add_white_square
