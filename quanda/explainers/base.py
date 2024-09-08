@@ -6,7 +6,6 @@ import torch
 
 from quanda.utils.common import cache_result
 from quanda.utils.datasets import OnDeviceDataset
-from quanda.utils.validation import validate_1d_tensor_or_int_list
 
 
 class Explainer(ABC):
@@ -53,8 +52,6 @@ class Explainer(ABC):
 
     def _process_targets(self, targets: Optional[Union[List[int], torch.Tensor]]):
         if targets is not None:
-            # TODO: move validation logic outside at a later point
-            validate_1d_tensor_or_int_list(targets)
             if isinstance(targets, list):
                 targets = torch.tensor(targets)
             targets = targets.to(self.device)
