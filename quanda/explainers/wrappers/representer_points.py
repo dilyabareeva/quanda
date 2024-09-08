@@ -16,7 +16,7 @@ SOFTWARE.
 
 """
 import warnings
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import pytorch_lightning as pl
 import torch
@@ -95,7 +95,7 @@ class RepresenterPoints(Explainer):
         epoch: int = 3000,
         lr: float = 1.0,
         min_loss: float = 10000.0,
-        epsilon = 1e-10,
+        epsilon: float = 1e-10,
         model_id: Optional[str] = None,
         normalize: bool = True,
         batch_size: int = 32,
@@ -113,7 +113,7 @@ class RepresenterPoints(Explainer):
         self.lmbd = lmbd
         self.epoch = epoch
         self.lr = lr
-        self.min_loss = min_loss
+        self.min_loss: Any = min_loss
         self.epsilon = epsilon
 
         self.dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
