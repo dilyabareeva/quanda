@@ -1,4 +1,4 @@
-import pytorch_lightning as pl
+import lightning as L
 import torch
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW, lr_scheduler
@@ -6,7 +6,7 @@ from torchmetrics.functional import accuracy
 from torchvision.models import resnet18
 
 
-class LitModel(pl.LightningModule):
+class LitModel(L.LightningModule):
     def __init__(self, n_batches, lr=1e-4, epochs=24, weight_decay=0.01, num_labels=64, device="cuda:0"):
         super(LitModel, self).__init__()
         self._init_model(num_labels)

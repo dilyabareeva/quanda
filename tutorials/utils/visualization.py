@@ -6,18 +6,15 @@ as a reference only.
 
 import matplotlib.pyplot as plt
 import torch
-from matplotlib import rcParams, font_manager
+from matplotlib import font_manager, rcParams
 
-
-fonts = [
-    '../assets/demo/Poppins-Regular.ttf',
-    '../assets/demo/Poppins-Bold.ttf'
-]
+fonts = ["../assets/demo/Poppins-Regular.ttf", "../assets/demo/Poppins-Bold.ttf"]
 [font_manager.fontManager.addfont(font) for font in fonts]
-rcParams['font.family'] = 'Poppins'
+rcParams["font.family"] = "Poppins"
 
 
 #### Visualizuation code for explaining test samples
+
 
 # %%
 def visualize_influential_samples(train_dataset, test_tensor, influence_scores, top_k=3):
@@ -134,7 +131,6 @@ def visualize_self_influence_samples(train_dataset, self_influence_scores, top_k
 
 
 def visualize_samples(images, labels, row_headers, denormalize, label_to_name_dict):
-
     if len(row_headers) != 4:
         raise ValueError("row_headers must have 4 elements")
 
@@ -158,12 +154,11 @@ def visualize_samples(images, labels, row_headers, denormalize, label_to_name_di
         ax.imshow(img)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_xlabel(f"{label}", fontsize=14, color="black", fontweight='regular')
+        ax.set_xlabel(f"{label}", fontsize=14, color="black", fontweight="regular")
 
     # Add row descriptions to the left of each row (horizontally)
     for i, header in enumerate(row_headers):
-        fig.text(0.02, 0.9 - (i / grid_size[0]), header, va='top', ha='right', fontsize=14, color="black",
-                 fontweight='bold')
+        fig.text(0.02, 0.9 - (i / grid_size[0]), header, va="top", ha="right", fontsize=14, color="black", fontweight="bold")
 
     # Adjust spacing between images for even spacing
     plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9)

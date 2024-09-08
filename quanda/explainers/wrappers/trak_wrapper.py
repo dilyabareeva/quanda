@@ -128,15 +128,8 @@ class TRAK(BaseExplainer):
 
         out_to_loss = self.traker.saver.current_store["out_to_loss"]
 
-        explanations = get_matrix_mult(g, g_target) * out_to_loss
+        explanations = get_matrix_mult(g, g_target).detach().cpu() * out_to_loss
 
-        """
-        self.traker.start_scoring_checkpoint(
-            model_id=0, checkpoint=self.model.state_dict(), exp_name="test", num_targets=test.shape[0]
-        )
-        self.traker.score(batch=(test, targets), num_samples=test.shape[0])
-        explanations = copy.deepcopy(torch.from_numpy(self.traker.finalize_scores(exp_name="test")).T.to(self.device))
-        """
         return explanations.T
 
 
