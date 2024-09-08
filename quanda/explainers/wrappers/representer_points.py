@@ -93,6 +93,9 @@ class RepresenterPoints(Explainer):
         classifier_layer: str,
         lmbd: float = 0.003,
         epoch: int = 3000,
+        lr: float = 1.0,
+        min_loss: float = 10000.0,
+        epsilon = 1e-10,
         model_id: Optional[str] = None,
         normalize: bool = True,
         batch_size: int = 32,
@@ -109,6 +112,9 @@ class RepresenterPoints(Explainer):
         self.classifier_layer = classifier_layer
         self.lmbd = lmbd
         self.epoch = epoch
+        self.lr = lr
+        self.min_loss = min_loss
+        self.epsilon = epsilon
 
         self.dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
 
@@ -218,8 +224,8 @@ class RepresenterPoints(Explainer):
         y = nn.Parameter(labels.to(self.device))
 
         N = len(labels)
-        min_loss = 10000.0
-        optimizer = optim.SGD([model.W], lr=1.0)
+        min_loss = self.min_loss
+        optimizer = optim.SGD([model.W], lr=self.lr)
         for epoch in range(self.epoch):
             phi_loss = 0
             optimizer.zero_grad()
@@ -271,7 +277,7 @@ class RepresenterPoints(Explainer):
             model.W = nn.Parameter(torch.from_numpy(W_O - t * grad_np).to(self.device), requires_grad=True)
             (Phi, L2) = model(x, y)
             val_n = Phi / N + L2 * self.lmbd
-            if t < 0.0000000001:
+            if t < self.epsilon:
                 break
             if (val_n - val + t * torch.norm(grad) ** 2 / 2).detach().cpu().numpy() >= 0:
                 t = beta * t
