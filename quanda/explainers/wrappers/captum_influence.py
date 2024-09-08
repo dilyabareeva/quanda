@@ -19,7 +19,7 @@ from captum.influence._utils.nearest_neighbors import (  # type: ignore
     NearestNeighbors,
 )
 
-from quanda.explainers.base import BaseExplainer
+from quanda.explainers.base import Explainer
 from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
@@ -30,7 +30,7 @@ from quanda.utils.functions import cosine_similarity
 from quanda.utils.validation import validate_checkpoints_load_func
 
 
-class CaptumInfluence(BaseExplainer, ABC):
+class CaptumInfluence(Explainer, ABC):
     def __init__(
         self,
         model: Union[torch.nn.Module, pl.LightningModule],

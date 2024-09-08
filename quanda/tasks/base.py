@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Sized, Union
+from typing import Any, Optional, Union
 
 import torch
 
@@ -169,18 +169,3 @@ class Task(ABC):
         """
 
         raise NotImplementedError
-
-    @property
-    def dataset_length(self) -> int:
-        """
-        Get the length of the dataset.
-
-        Returns
-        -------
-        int
-            The length of the dataset.
-        """
-        if isinstance(self.train_dataset, Sized):
-            return len(self.train_dataset)
-        dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=1)
-        return len(dl)

@@ -30,7 +30,6 @@ python_version = "3.11"
 warn_return_any = false
 warn_unused_configs = true
 check_untyped_defs = true
-#ignore_errors = true # TODO: change this
 
 [[tool.mypy.overrides]]
 module = ["trak", "trak.projectors", "fast_jl"]

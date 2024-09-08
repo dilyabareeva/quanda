@@ -5,6 +5,7 @@ import pickle
 import numpy as np
 import pytest
 import torch
+from PIL import Image
 from torch.utils.data import TensorDataset
 
 from quanda.utils.datasets.transformed.label_flipping import (
@@ -241,3 +242,12 @@ def torch_constant_lr_scheduler_type():
 @pytest.fixture
 def torch_sgd_optimizer():
     return torch.optim.SGD
+
+
+@pytest.fixture
+def mnist_white_square_transformation():
+    def add_white_square(img):
+        img[:, 10:13, 10:13] = 1.0  # Paste it onto the image at the specified position
+        return img
+
+    return add_white_square

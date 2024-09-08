@@ -8,7 +8,7 @@ from trak.modelout_functions import AbstractModelOutput
 from trak.projectors import BasicProjector, CudaProjector, NoOpProjector
 from trak.utils import get_matrix_mult
 
-from quanda.explainers.base import BaseExplainer
+from quanda.explainers.base import Explainer
 from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
@@ -24,7 +24,7 @@ projector_cls = {
 }
 
 
-class TRAK(BaseExplainer):
+class TRAK(Explainer):
     def __init__(
         self,
         model: torch.nn.Module,

@@ -123,7 +123,7 @@ for i, (data, target) in enumerate(tqdm(test_loader)):
     )
     model_rand.update(data, tda)
 
-print("Model randomization metric output:", model_rand.compute())
+print("Model heuristics metric output:", model_rand.compute())
 ```
 </details>
 

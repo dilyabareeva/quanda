@@ -14,7 +14,6 @@ style:
 	find . | grep -E ".pytest_cache" | xargs rm -rf
 	find . | grep -E ".mypy_cache" | xargs rm -rf
 	find . | grep -E "./checkpoints" | xargs rm -rf
-	find . | grep -E "*eff-info" | xargs rm -rf
 	find . | grep -E ".build" | xargs rm -rf
 	find . | grep -E ".htmlcov" | xargs rm -rf
 	find . | grep -E ".lightning_logs" | xargs rm -rf

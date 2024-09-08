@@ -1,3 +1,3 @@
-from quanda import explainers, metrics, toy_benchmarks, utils
+from quanda import benchmarks, explainers, metrics, utils
 
-__all__ = ["explainers", "metrics", "toy_benchmarks", "utils"]
+__all__ = ["explainers", "metrics", "benchmarks", "utils"]

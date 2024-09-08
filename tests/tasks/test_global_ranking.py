@@ -6,7 +6,7 @@ from quanda.tasks import GlobalRanking
 from quanda.utils.functions.similarities import cosine_similarity
 
 
-@pytest.mark.toy_benchmarks
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, model, dataset, " "global_method, batch_size, explainer_cls, expl_kwargs, ",
     [
@@ -51,7 +51,7 @@ def test_global_ranking(
     assert len(ranking) == len(dataset)
 
 
-@pytest.mark.toy_benchmarks
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, model, dataset, " "global_method, batch_size, explainer_cls, expl_kwargs,",
     [
