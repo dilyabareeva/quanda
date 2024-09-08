@@ -1,12 +1,17 @@
+import math
+
 import pytest
 import torch
 
 from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.metrics.heuristics import ModelRandomizationMetric
+from quanda.metrics.heuristics import (
+    ModelRandomizationMetric,
+    TopKOverlapMetric,
+)
 from quanda.utils.functions import correlation_functions, cosine_similarity
 
 
-@pytest.mark.randomization_metrics
+@pytest.mark.heuristic_metrics
 @pytest.mark.parametrize(
     "test_id, model, dataset, test_data, batch_size, explainer_cls, \
     expl_kwargs, explanations, test_labels, correlation_fn",
@@ -98,7 +103,7 @@ def test_randomization_metric(
     assert (out >= -1.0) & (out <= 1.0), "Test failed."
 
 
-@pytest.mark.randomization_metrics
+@pytest.mark.heuristic_metrics
 @pytest.mark.parametrize(
     "test_id, model, dataset, explainer_cls, expl_kwargs, corr_fn",
     [
@@ -141,3 +146,37 @@ def test_randomization_metric_model_randomization(test_id, model, dataset, expla
     rand_model = metric.rand_model
     for param1, param2 in zip(model.parameters(), rand_model.parameters()):
         assert not torch.allclose(param1.data, param2.data), "Test failed."
+
+
+@pytest.mark.heuristic_metrics
+@pytest.mark.parametrize(
+    "test_id, model, dataset, top_k, batch_size, explanations, expected_score",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            3,
+            8,
+            "load_mnist_explanations_similarity_1",
+            0.23333333333333334,
+        ),
+    ],
+)
+def test_top_k_overlap_metrics(
+    test_id,
+    model,
+    dataset,
+    top_k,
+    batch_size,
+    explanations,
+    expected_score,
+    request,
+):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    explanations = request.getfixturevalue(explanations)
+    metric = TopKOverlapMetric(model=model, train_dataset=dataset, top_k=top_k, device="cpu")
+    metric.update(explanations=explanations)
+    score = metric.compute()["score"]
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

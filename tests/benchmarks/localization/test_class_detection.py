@@ -8,7 +8,7 @@ from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.toy_benchmarks
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, dataset, n_classes, n_groups, seed, test_labels, "
     "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
@@ -100,7 +100,7 @@ def test_class_detection(
 
 
 @pytest.mark.local
-@pytest.mark.toy_benchmarks
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, dataset, dataset_split, n_classes, n_groups, seed, test_labels, "
     "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
