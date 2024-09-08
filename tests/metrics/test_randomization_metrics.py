@@ -2,7 +2,7 @@ import pytest
 import torch
 
 from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.metrics.randomization import ModelRandomizationMetric
+from quanda.metrics.heuristics import ModelRandomizationMetric
 from quanda.utils.functions import correlation_functions, cosine_similarity
 
 

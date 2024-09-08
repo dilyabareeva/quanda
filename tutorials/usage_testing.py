@@ -21,10 +21,10 @@ from quanda.explainers.wrappers import (
     CaptumSimilarity,
     captum_similarity_explain,
 )
-from quanda.metrics.localization import ClassDetectionMetric
+from quanda.metrics.downstream_eval import ClassDetectionMetric
 from quanda.metrics.randomization import ModelRandomizationMetric
-from quanda.metrics.unnamed import DatasetCleaningMetric, TopKOverlapMetric
-from quanda.toy_benchmarks.localization import SubclassDetection
+from quanda.metrics.downstream_eval import DatasetCleaningMetric, TopKOverlapMetric
+from quanda.benchmarks.downstream_eval import SubclassDetection
 from quanda.utils.training import BasicLightningModule
 
 DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"
@@ -184,7 +184,7 @@ def main():
         top_k.update(tda)
         data_clean.update(tda)
 
-    print("Model randomization metric output:", model_rand.compute())
+    print("Model heuristics metric output:", model_rand.compute())
     print("Identical class metric output:", id_class.compute())
     print("Top-k overlap metric output:", top_k.compute())
 

@@ -1,9 +1,9 @@
-from quanda.metrics import localization, randomization, unnamed
+from quanda.metrics import downstream_eval, heuristics, ground_truth
 from quanda.metrics.base import Metric
 
 __all__ = [
     "Metric",
-    "randomization",
-    "localization",
-    "unnamed",
+    "downstream_eval",
+    "heuristics",
+    "ground_truth",
 ]

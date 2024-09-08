@@ -4,7 +4,7 @@ import pytest
 
 from quanda.explainers import SumAggregator
 from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.metrics.localization import (
+from quanda.metrics.downstream_eval import (
     ClassDetectionMetric,
     MislabelingDetectionMetric,
     SubclassDetectionMetric,
@@ -12,7 +12,7 @@ from quanda.metrics.localization import (
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.localization_metrics
+@pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
     "test_id,model,dataset,test_labels,batch_size,explanations,expected_score",
     [
@@ -52,7 +52,7 @@ def test_identical_class_metrics(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.localization_metrics
+@pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
     "test_id, model, dataset, subclass_labels, test_labels, batch_size, explanations, expected_score",
     [
@@ -95,7 +95,7 @@ def test_identical_subclass_metrics(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.localization_metrics
+@pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
     "test_id, model, dataset, explanations, global_method, expl_kwargs, expected_score",
     [

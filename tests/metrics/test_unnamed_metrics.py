@@ -3,13 +3,13 @@ import math
 import pytest
 
 from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
-from quanda.metrics.unnamed.dataset_cleaning import DatasetCleaningMetric
-from quanda.metrics.unnamed.top_k_overlap import TopKOverlapMetric
+from quanda.metrics.downstream_eval.dataset_cleaning import DatasetCleaningMetric
+from quanda.metrics.heuristics.top_k_overlap import TopKOverlapMetric
 from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
 
 
-@pytest.mark.unnamed_metrics
+@pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
     "test_id, model, dataset, top_k, batch_size, explanations, expected_score",
     [
@@ -43,7 +43,7 @@ def test_top_k_overlap_metrics(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.unnamed_metrics
+@pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
     "test_id,model,optimizer, lr, criterion, max_epochs,dataset,explanations,global_method,top_k,expl_kwargs,"
     "batch_size,expected_score",
@@ -142,7 +142,7 @@ def test_dataset_cleaning(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.unnamed_metrics
+@pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
     "test_id,model,optimizer, lr, criterion, max_epochs,dataset,explanations,top_k,expl_kwargs," "batch_size,expected_score",
     [
@@ -209,7 +209,7 @@ def test_dataset_cleaning_self_influence_based(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.unnamed_metrics
+@pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
     "test_id,model,optimizer, lr, criterion, max_epochs,dataset,explanations,top_k," "expected_score",
     [
