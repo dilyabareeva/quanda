@@ -9,7 +9,7 @@ from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.validation import validate_1d_tensor_or_int_list
 
 
-class BaseExplainer(ABC):
+class Explainer(ABC):
     def __init__(
         self,
         model: Union[torch.nn.Module, pl.LightningModule],

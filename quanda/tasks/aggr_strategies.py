@@ -4,13 +4,13 @@ from typing import Optional
 
 import torch
 
-from quanda.explainers import BaseAggregator, BaseExplainer
+from quanda.explainers import BaseAggregator, Explainer
 
 
 class GlobalSelfInfluenceStrategy:
     def __init__(
         self,
-        explainer: Optional[BaseExplainer] = None,
+        explainer: Optional[Explainer] = None,
     ):
         if explainer is None:
             raise ValueError(

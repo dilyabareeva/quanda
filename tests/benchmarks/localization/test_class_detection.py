@@ -3,8 +3,8 @@ import math
 import datasets
 import pytest
 
-from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.benchmarks.downstream_eval import ClassDetection
+from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
 

@@ -3,11 +3,11 @@ import math
 import lightning as L
 import pytest
 
-from quanda.explainers.aggregators import SumAggregator
-from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
 from quanda.benchmarks.downstream_eval.mislabeling_detection import (
     MislabelingDetection,
 )
+from quanda.explainers.aggregators import SumAggregator
+from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
 from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
 

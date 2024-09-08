@@ -3,11 +3,11 @@ from typing import Optional, Union
 import torch
 from tqdm import tqdm
 
+from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics import TopKOverlapMetric
-from quanda.benchmarks.base import ToyBenchmark
 
 
-class TopKOverlap(ToyBenchmark):
+class TopKOverlap(Benchmark):
     def __init__(
         self,
         *args,

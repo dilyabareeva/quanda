@@ -1,4 +1,4 @@
-from quanda.benchmarks import downstream_eval, heuristics, downstream_eval
-from quanda.benchmarks.base import ToyBenchmark
+from quanda.benchmarks import downstream_eval, ground_truth, heuristics
+from quanda.benchmarks.base import Benchmark
 
-__all__ = ["ToyBenchmark", "randomization", "downstream_eval", "downstream_eval"]
+__all__ = ["Benchmark", "downstream_eval", "heuristics", "ground_truth"]

@@ -2,11 +2,11 @@ from typing import Any, List, Optional, Union
 
 import torch
 
-from quanda.explainers import BaseExplainer
+from quanda.explainers import Explainer
 from quanda.utils.common import cache_result
 
 
-class RandomExplainer(BaseExplainer):
+class RandomExplainer(Explainer):
     """
     The most basic version of a random explainer.
     """

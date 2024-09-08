@@ -2,8 +2,8 @@ import math
 
 import pytest
 
-from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.benchmarks.heuristics import ModelRandomization
+from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
 

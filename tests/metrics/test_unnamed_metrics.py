@@ -3,7 +3,9 @@ import math
 import pytest
 
 from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
-from quanda.metrics.downstream_eval.dataset_cleaning import DatasetCleaningMetric
+from quanda.metrics.downstream_eval.dataset_cleaning import (
+    DatasetCleaningMetric,
+)
 from quanda.metrics.heuristics.top_k_overlap import TopKOverlapMetric
 from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer

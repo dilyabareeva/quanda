@@ -3,11 +3,11 @@ from typing import Optional, Union
 import torch
 from tqdm import tqdm
 
+from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import ClassDetectionMetric
-from quanda.benchmarks.base import ToyBenchmark
 
 
-class ClassDetection(ToyBenchmark):
+class ClassDetection(Benchmark):
     def __init__(
         self,
         *args,

@@ -3,8 +3,8 @@ import math
 import lightning as L
 import pytest
 
-from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
 from quanda.benchmarks.downstream_eval.dataset_cleaning import DatasetCleaning
+from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
 from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
 

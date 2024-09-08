@@ -11,7 +11,7 @@ from tqdm import tqdm
 from quanda.resources import benchmark_urls
 
 
-class ToyBenchmark(ABC):
+class Benchmark(ABC):
     def __init__(self, *args, **kwargs):
         """
         I think here it would be nice to pass a general receipt for the downstream task construction.

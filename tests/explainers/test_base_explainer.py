@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 import pytest
 import torch
 
-from quanda.explainers import BaseExplainer
+from quanda.explainers import Explainer
 from quanda.utils.functions import cosine_similarity
 
 
@@ -26,8 +26,8 @@ def test_base_explainer_self_influence(test_id, model, dataset, dataset_xpl, met
     dataset = request.getfixturevalue(dataset)
     dataset_xpl = request.getfixturevalue(dataset_xpl)
 
-    BaseExplainer.__abstractmethods__ = set()
-    explainer = BaseExplainer(
+    Explainer.__abstractmethods__ = set()
+    explainer = Explainer(
         model=model,
         model_id="test_id",
         cache_dir=os.path.join("./cache", "test_id"),

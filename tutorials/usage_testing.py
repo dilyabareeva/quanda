@@ -17,14 +17,17 @@ from torchvision.models import resnet18
 from torchvision.utils import make_grid
 from tqdm import tqdm
 
+from quanda.benchmarks.downstream_eval import SubclassDetection
 from quanda.explainers.wrappers import (
     CaptumSimilarity,
     captum_similarity_explain,
 )
-from quanda.metrics.downstream_eval import ClassDetectionMetric
+from quanda.metrics.downstream_eval import (
+    ClassDetectionMetric,
+    DatasetCleaningMetric,
+    TopKOverlapMetric,
+)
 from quanda.metrics.randomization import ModelRandomizationMetric
-from quanda.metrics.downstream_eval import DatasetCleaningMetric, TopKOverlapMetric
-from quanda.benchmarks.downstream_eval import SubclassDetection
 from quanda.utils.training import BasicLightningModule
 
 DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"

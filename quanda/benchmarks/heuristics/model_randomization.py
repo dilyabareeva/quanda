@@ -3,14 +3,14 @@ from typing import Callable, Optional, Union
 import torch
 from tqdm import tqdm
 
+from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
-from quanda.benchmarks.base import ToyBenchmark
 from quanda.utils.functions import CorrelationFnLiterals
 
 
-class ModelRandomization(ToyBenchmark):
+class ModelRandomization(Benchmark):
     def __init__(
         self,
         *args,

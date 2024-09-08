@@ -5,8 +5,8 @@ import lightning as L
 import torch
 from tqdm import tqdm
 
+from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import ClassDetectionMetric
-from quanda.benchmarks.base import ToyBenchmark
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
@@ -14,7 +14,7 @@ from quanda.utils.datasets.transformed.label_grouping import (
 from quanda.utils.training.trainer import BaseTrainer
 
 
-class SubclassDetection(ToyBenchmark):
+class SubclassDetection(Benchmark):
     def __init__(
         self,
         *args,
