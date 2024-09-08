@@ -1,11 +1,12 @@
-import copy
 import warnings
 from importlib.util import find_spec
 from typing import Any, Iterable, List, Literal, Optional, Sized, Union
 
 import torch
 from trak import TRAKer
+from trak.modelout_functions import AbstractModelOutput
 from trak.projectors import BasicProjector, CudaProjector, NoOpProjector
+from trak.utils import get_matrix_mult
 
 from quanda.explainers.base import BaseExplainer
 from quanda.explainers.utils import (
@@ -30,8 +31,9 @@ class TRAK(BaseExplainer):
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
         cache_dir: str,
-        projector: TRAKProjectorLiteral,
-        proj_dim: int = 128,
+        task: Union[AbstractModelOutput, str] = "image_classification",
+        projector: TRAKProjectorLiteral = "basic",
+        proj_dim: int = 2048,
         proj_type: TRAKProjectionTypeLiteral = "normal",
         seed: int = 42,
         batch_size: int = 32,
@@ -74,7 +76,7 @@ class TRAK(BaseExplainer):
 
         self.traker = TRAKer(
             model=model,
-            task="image_classification",
+            task=task,
             train_set_size=self.dataset_length,
             projector=projector_obj,
             proj_dim=proj_dim,
@@ -107,15 +109,28 @@ class TRAK(BaseExplainer):
         dl = torch.utils.data.DataLoader(self.dataset, batch_size=1)
         return len(dl)
 
-    def explain(self, test, targets):
+    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
         test = test.to(self.device)
-        self.traker.start_scoring_checkpoint(
-            model_id=0, checkpoint=self.model.state_dict(), exp_name="test", num_targets=test.shape[0]
-        )
-        self.traker.score(batch=(test, targets), num_samples=test.shape[0])
-        explanations = torch.from_numpy(self.traker.finalize_scores(exp_name="test")).T.to(self.device)
 
-        return copy.deepcopy(explanations)
+        if targets is None:
+            targets = self.model(test).argmax(dim=1)
+        elif isinstance(targets, list):
+            targets = torch.tensor(targets).to(self.device)
+        else:
+            targets = targets.to(self.device)
+
+        grads = self.traker.gradient_computer.compute_per_sample_grad(batch=(test, targets))
+
+        g_target = self.traker.projector.project(grads, model_id=self.traker.saver.current_model_id)
+        g_target /= self.traker.normalize_factor
+
+        g = torch.as_tensor(self.traker.saver.current_store["features"], device=self.device)
+
+        out_to_loss = self.traker.saver.current_store["out_to_loss"]
+
+        explanations = get_matrix_mult(g, g_target).detach().cpu() * out_to_loss
+
+        return explanations.T
 
 
 def trak_explain(

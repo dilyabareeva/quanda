@@ -6,28 +6,20 @@
 </picture>
 </p>
 
-<p align="center">Toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods.</p>
 <p align="center">
-  PyTorch
+  Toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods in <b>PyTorch</b>.
 </p>
 
 
 ![py_versions](https://github-production-user-asset-6210df.s3.amazonaws.com/44092813/345210448-36499a1d-aefb-455f-b73a-57ca4794f31f.svg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240904%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240904T071921Z&X-Amz-Expires=300&X-Amz-Signature=44ff9964c41d4ca7cc9a636178647e58e46e9b12ad4c213366aa2db149a21044&X-Amz-SignedHeaders=host&actor_id=44092813&key_id=0&repo_id=777729549)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![mypy](https://img.shields.io/badge/mypy-checked-green)
+![flake8](https://img.shields.io/badge/flake8-checked-blueviolet)
 
 **quanda** _is currently under active development so carefully note the release version to ensure reproducibility of your work._
 
 
-## Table of contents
-
-
-* [Library overview](#library-overview)
-* [Installation](#installation)
-* [Tutorials](#tutorials)
-* [Contributing](#contributing)
-
-## Library overview
+## 🐼 Library overview
 **Training data attribution** (TDA) methods attribute model output to its training samples ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html); [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html); [Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html); [Bae et al., 2024](https://arxiv.org/abs/2405.12186)). Outside of being used for understanding models, TDA has also found usage in a large variety of applications such as debugging model behavior ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html); [K and Søgaard, 2021](https://arxiv.org/abs/2111.04683); [Guo et al., 2021](https://aclanthology.org/2021.emnlp-main.808)), data summarization ([Khanna et al., 2019](https://proceedings.mlr.press/v89/khanna19a.html); [Marion et al., 2023](https://openreview.net/forum?id=XUIYn3jo5T); [Yang et al., 2023](https://openreview.net/forum?id=4wZiAXD29TQ)), dataset selection ([Engstrom et al., 2024](https://openreview.net/forum?id=GC8HkKeH8s); [Chhabra et al., 2024](https://openreview.net/forum?id=HE9eUQlAvo)), fact tracing ([Akyurek et al., 2022](https://aclanthology.org/2022.findings-emnlp.180)) and machine unlearning ([Warnecke
 et al., 2023](https://arxiv.org/abs/2108.11577)).
 
@@ -45,27 +37,40 @@ et al., 2023](https://arxiv.org/abs/2108.11577)).
 
 
 
-## Installation
+## 🔬 Getting Started
 
+### Installation
 
-To install **quanda**:
+To install the latest release of **quanda** use:
 
 ```setup
 pip install git+https://github.com/dilyabareeva/quanda.git
 ```
 
-## Usage
+**quanda** requires Python 3.7 or later. It is recommended to use a virtual environment to install the package.
 
-Excerpts from `tutorials/usage_testing.py`:
+### Usage
+
+
+In the following, we provide a quick guide to **quanda** usage. To begin using **quanda**, ensure you have the following:
+
+- **Trained PyTorch Model (`model`)**: A PyTorch model that has already been trained on a relevant dataset.
+- **PyTorch Dataset (`train_set`)**: The dataset used during the training of the model.
+- **Test Batches (`test_tensor`) and Explanation Targets (`target`)**: A batch of test data (`test_tensor`) and the corresponding explanation targets (`target`). Generally, it is advisable to use the model's predicted labels as the targets. In the following, we use the `torch.utils.data.DataLoader` to load the test data in batches.
+
+
+As an example, we will demonstrate the generation of explanations generated using `SimilarityInfluence` data attribution from `Captum` and the evaluation of these explanations using the **Model Randomization** metric.
 
 <details>
-<summary><b><big>Step 1. Import library components</big></b></summary>
+<summary><b><big>Step 1. Import dependencies and library components</big></b></summary>
 
 ```python
+import torch
+from torch.utils.data import DataLoader
+import tqdm 
+
 from quanda.explainers.wrappers import captum_similarity_explain, CaptumSimilarity
-from quanda.metrics.localization import ClassDetectionMetric
 from quanda.metrics.randomization import ModelRandomizationMetric
-from quanda.metrics.unnamed.top_k_overlap import TopKOverlapMetric
 ```
 </details>
 
@@ -85,7 +90,7 @@ cache_dir = "./cache"
 
 <details>
 
-<summary><b><big>Step 3. Initialize metrics</big></b></summary>
+<summary><b><big>Step 3. Initialize metric</big></b></summary>
 
 ```python
 model_rand = ModelRandomizationMetric(
@@ -97,30 +102,6 @@ model_rand = ModelRandomizationMetric(
         cache_dir=cache_dir,
         correlation_fn="spearman",
         seed=42,
-        device=DEVICE,
-)
-
-id_class = IdenticalClass(model=model, train_dataset=train_set, device=DEVICE)
-
-top_k = TopKOverlap(model=model, train_dataset=train_set, top_k=1, device=DEVICE)
-
-# dataset cleaning
-pl_module = BasicLightningModule(
-    model=copy.deepcopy(model),
-    optimizer=torch.optim.SGD,
-    lr=0.01,
-    criterion=torch.nn.CrossEntropyLoss(),
-)
-trainer = Trainer.from_lightning_module(model, pl_module)
-
-data_clean = DatasetCleaning(
-    model=model,
-    train_dataset=train_set,
-    global_method="sum_abs",
-    trainer=trainer,
-    trainer_fit_kwargs={"max_epochs": 3},
-    top_k=50,
-    device=DEVICE,
 )
 ```
 </details>
@@ -141,23 +122,29 @@ for i, (data, target) in enumerate(tqdm(test_loader)):
         **explain_fn_kwargs,
     )
     model_rand.update(data, tda)
-    id_class.update(target, tda)
-    top_k.update(tda)
-    data_clean.update(tda)
 
 print("Model randomization metric output:", model_rand.compute())
-print("Identical class metric output:", id_class.compute())
-print("Top-k overlap metric output:", top_k.compute())
-
-print("Dataset cleaning metric computation started...")
-print("Dataset cleaning metric output:", data_clean.compute())
 ```
 </details>
 
-## Contribution
+More detailed examples can be found in the following [tutorials](https://github.com/dilyabareeva/quanda/tree/main/tutorials) section.
+
+## 📓 Tutorials
+
+We have included a few  [tutorials](https://github.com/dilyabareeva/quanda/tree/main/tutorials) to demonstrate the usage of **quanda**:
+
+* [Explainers](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo.ipynb): shows how different explainers can be produced with **quanda**
+* [Applications](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_tasks.ipynb): explores the applications of TDA in different tasks using **quanda**
+* [Metrics](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_metrics.ipynb): demonstrates how to use the metrics in **quanda** to evaluate the performance of a model
+* [Benchmarks](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_benchmarks.ipynb): shows how to use the benchmarking tools in **quanda** to evaluate a data attribution method
+
+
+## 👩‍💻Contributing
 We welcome contributions to **quanda**! You could contribute by:
 - Opening an issue to report a bug or request a feature
 - Submitting a pull request to fix a bug, add a new explainer wrapper, a new metric, or other feature.
+
+A detailed guide on how to contribute to **quanda** can be found [here](https://github.com/dilyabareeva/quanda/blob/main//CONTRIBUTING.md).
 
 To set up the development environment, clone the repository and install the dependencies:
 

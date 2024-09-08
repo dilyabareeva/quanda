@@ -19,7 +19,7 @@ projector_cls = {
     "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
     [
         (
-            "mnist",
+            "mnist_trak_comp",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
@@ -93,7 +93,7 @@ def test_trak(test_id, model, dataset, test_tensor, test_labels, method_kwargs, 
     "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
     [
         (
-            "mnist",
+            "mnist_cache",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
@@ -111,9 +111,11 @@ def test_trak_cache(test_id, model, dataset, test_tensor, test_labels, method_kw
     explainer = TRAK(model=model, cache_dir=str(tmp_path), train_dataset=dataset, **method_kwargs)
 
     explanations = explainer.explain(test=test_tensor, targets=test_labels)
-    test_tensor = torch.ones_like(test_tensor)
-    explanations_2 = explainer.explain(test=test_tensor, targets=test_labels)
-    assert not torch.allclose(explanations, explanations_2), "Caching is problematic inside the lifetime of the wrapper"
+    test_tensor = torch.ones_like(test_tensor)[:2]
+    explanations_2 = explainer.explain(test=test_tensor, targets=test_labels[:2])
+    assert (not torch.allclose(explanations[:2], explanations_2[:2])) and (
+        explanations.shape[0] != explanations_2.shape[0]
+    ), "Caching is problematic inside the lifetime of the wrapper"
 
 
 @pytest.mark.explainers
@@ -121,7 +123,7 @@ def test_trak_cache(test_id, model, dataset, test_tensor, test_labels, method_kw
     "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
     [
         (
-            "mnist",
+            "mnist_funct",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
@@ -152,7 +154,7 @@ def test_trak_explain_functional(test_id, model, dataset, test_tensor, test_labe
     "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
     [
         (
-            "mnist",
+            "mnist_funct_cache",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
@@ -193,7 +195,7 @@ def test_trak_explain_functional_cache(test_id, model, dataset, test_tensor, tes
     "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
     [
         (
-            "mnist",
+            "mnist_self_influence",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
