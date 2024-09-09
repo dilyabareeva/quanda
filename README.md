@@ -2,7 +2,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="/assets/readme/quanda_panda_black_bg.png">
   <source media="(prefers-color-scheme: light)" srcset="/assets/readme/quanda_panda_no_bg.png">
-  <img width="700" alt="quanda" src="/assets/readme/quanda_panda_black_bg.png">
+  <img width="500" alt="quanda" src="/assets/readme/quanda_panda_black_bg.png">
 </picture>
 </p>
 
