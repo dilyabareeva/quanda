@@ -7,11 +7,45 @@ as a reference only.
 import matplotlib.pyplot as plt
 import torch
 from matplotlib import font_manager, rcParams
+from torchvision.utils import save_image
 
 fonts = ["../assets/demo/Poppins-Regular.ttf", "../assets/demo/Poppins-Bold.ttf"]
 [font_manager.fontManager.addfont(font) for font in fonts]
 rcParams["font.family"] = "Poppins"
 
+
+def save_influential_samples(
+        train_dataset,
+        test_tensor,
+        influence_scores,
+        denormalize,
+        test_names,
+        r_name_dict,
+        top_k=3,
+        save_path="../assets/fig1"
+):
+    top_k_proponents = torch.topk(influence_scores, top_k, dim=1, largest=True)
+    top_k_opponents = torch.topk(influence_scores, top_k, dim=1, largest=False)
+
+    for idx, elements in enumerate(top_k_proponents.indices):
+        proponents_images = [train_dataset[int(i)][0] for i in elements]
+        proponent_labels = [r_name_dict[train_dataset[int(i)][1]] for i in elements]
+        proponents_images = [denormalize(img) for img in proponents_images]
+        for i, img in enumerate(proponents_images):
+            label_i = proponent_labels[i]
+            save_image(img, f"{save_path}/proponent_{idx}_{label_i}_top_{i}.png")
+
+    for idx, elements in enumerate(top_k_opponents.indices):
+        opponents_images = [train_dataset[int(i)][0] for i in elements]
+        opponents_labels = [r_name_dict[train_dataset[int(i)][1]] for i in elements]
+        opponents_images = [denormalize(img) for img in opponents_images]
+        for i, img in enumerate(opponents_images):
+            label_i = opponents_labels[i]
+            save_image(img, f"{save_path}/opponent_{idx}_{label_i}_top_{i}.png")
+
+    test_images = [denormalize(img) for img in test_tensor]
+    for img, idx in zip(test_images, range(len(test_tensor))):
+        save_image(img, f"{save_path}/test_{idx}_{test_names[idx]}.png")
 
 #### Visualizuation code for explaining test samples
 
