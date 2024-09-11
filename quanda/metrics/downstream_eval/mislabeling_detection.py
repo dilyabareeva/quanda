@@ -164,8 +164,6 @@ class MislabelingDetectionMetric(Metric):
             global_method=aggregator_cls,
             poisoned_indices=poisoned_indices,
             train_dataset=train_dataset,
-            *args,
-            **kwargs,
         )
 
     def update(
