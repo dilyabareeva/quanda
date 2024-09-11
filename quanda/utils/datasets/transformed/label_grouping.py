@@ -9,6 +9,8 @@ ClassToGroupLiterals = Literal["random"]
 
 
 class LabelGroupingDataset(TransformedDataset):
+    """Dataset wrapper that groups the classes of a dataset into superclasses."""
+
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
@@ -19,6 +21,32 @@ class LabelGroupingDataset(TransformedDataset):
         n_groups: Optional[int] = None,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
     ):
+        """_summary_
+
+        Parameters
+        ----------
+        dataset : torch.utils.data.Dataset
+            Dataset to group classes.
+        n_classes : int
+            Number of classes in the dataset.
+        dataset_transform : Optional[Callable], optional
+            Default transform of the dataset, defaults to None
+        transform_indices : Optional[List], optional
+            Indices to transform, defaults to None
+        seed : int, optional
+            Seed for the random number generator, by default 42
+        n_groups : Optional[int], optional
+            Number of groups to divide the classes into, defaults to None
+        class_to_group : Union[ClassToGroupLiterals, Dict[int, int]], optional
+            Dictionary of class to group assignment or "random" to assign classes randomly, defaults to "random"
+
+        Raises
+        ------
+        ValueError
+            If class_to_group is "random" and n_groups is not specified
+        ValueError
+            If class_to_group dictionary length does not match number of classes
+        """
         super().__init__(
             dataset=dataset,
             n_classes=n_classes,
@@ -55,6 +83,15 @@ class LabelGroupingDataset(TransformedDataset):
         self.label_fn = lambda x: self.class_to_group[x]
 
     def _validate_class_to_group(self):
+        """Validates the class_to_group dictionary.
+
+        Raises
+        ------
+        ValueError
+            If the length of the class_to_group dictionary does not match the number of classes
+        ValueError
+            If there are invalid group assignments in the class_to_group dictionary
+        """
         if not len(self.class_to_group) == self.n_classes:
             raise ValueError(
                 f"Length of class_to_group dictionary ({len(self.class_to_group)}) "

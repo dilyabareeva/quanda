@@ -6,6 +6,8 @@ from quanda.utils.datasets.transformed import TransformedDataset
 
 
 class LabelFlippingDataset(TransformedDataset):
+    """Dataset wrapper that applies poisons a subset of the dataset labels randomly."""
+
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
@@ -17,6 +19,25 @@ class LabelFlippingDataset(TransformedDataset):
         p: float = 1.0,  # TODO: decide on default value vis-à-vis subset_idx
         seed: int = 42,
     ):
+        """Constructor for the LabelFlippingDataset class.
+
+        Parameters
+        ----------
+        dataset : torch.utils.data.Dataset
+            Dataset to poison.
+        n_classes : int
+            Number of classes in the dataset.
+        dataset_transform : Optional[Callable], optional
+            Default transform of the dataset, defaults to None
+        transform_indices : Optional[List], optional
+            Indices to transform, defaults to None.
+        poisoned_labels : Optional[Dict[int, int]], optional
+            Dictionary of indices and poisoned labels. If None, the poisoned labels are generated randomly.
+        cls_idx : Optional[int], optional
+            Class to poison. If `transform_indices` is given, this parameter is ignored, defaults to None
+        p : float, optional
+            Probability of transformation for each instance to transform, defaults to 1.0
+        """
         super().__init__(
             dataset=dataset,
             n_classes=n_classes,
@@ -36,11 +57,24 @@ class LabelFlippingDataset(TransformedDataset):
             }
 
     def _poison(self, original_label):
+        """Function that poisons labels"""
         label_arr = [i for i in range(self.n_classes) if original_label != i]
         label_idx = self.rng.randint(0, len(label_arr) - 1)
         return label_arr[label_idx]
 
     def _validate_poisoned_labels(self, poisoned_labels: Dict[int, int]):
+        """Validates the poisoned labels as they are supplied by the user.
+
+        Parameters
+        ----------
+        poisoned_labels : Dict[int, int]
+            Dictionary of indices and poisoned labels.
+
+        Raises
+        ------
+        ValueError
+            If the poisoned_labels are not a dictionary of integer keys and values
+        """
         if not isinstance(poisoned_labels, dict):
             raise ValueError(
                 f"poisoned_labels should be a dictionary of integer keys and values, received {type(poisoned_labels)}"
