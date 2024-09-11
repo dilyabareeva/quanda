@@ -89,6 +89,7 @@ class RepresenterPoints(Explainer):
         model: Union[torch.nn.Module, pl.LightningModule],
         cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
+        train_labels: torch.Tensor,
         features_layer: str,
         classifier_layer: str,
         lmbd: float = 0.003,
@@ -107,6 +108,7 @@ class RepresenterPoints(Explainer):
             model_id=model_id,
             cache_dir=cache_dir,
         )
+        self.train_labels = train_labels
         self.normalize = normalize
         self.features_layer = features_layer
         self.classifier_layer = classifier_layer
@@ -294,4 +296,5 @@ class RepresenterPoints(Explainer):
         :return:
         """
 
-        return self.coefficients
+        # coefficients for each training label
+        return self.coefficients[torch.arange(self.coefficients.shape[0]), self.labels]
