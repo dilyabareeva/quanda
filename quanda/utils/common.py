@@ -7,15 +7,55 @@ import torch.utils.data
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
+    """Simple helper function to get a module from a model by name.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        The model to extract the module from.
+    layer_name : str
+        The name of the module to extract.
+
+    Returns
+    -------
+    Any
+        The module extracted from the model.
+    """
     return reduce(getattr, layer_name.split("."), model)
 
 
 def get_parent_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
+    """Get the parent module of a module in a model by name.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        The model to extract the module from.
+    layer_name : str
+        The name of the module to extract.
+
+    Returns
+    -------
+    Any
+        The module extracted from the model."""
     return reduce(getattr, layer_name.split(".")[:-1], model)
 
 
 def make_func(func: Callable, func_kwargs: Optional[Mapping[str, Any]] = None, **kwargs) -> functools.partial:
-    """A function for creating a partial function with the given arguments."""
+    """A function for creating a partial function with the given arguments.
+
+    Parameters
+    ----------
+    func : Callable
+        The function to create a partial function from.
+    func_kwargs : Optional[Mapping[str, Any]]
+        Optional keyword arguments to fix for the function.
+
+    Returns
+    -------
+    functools.partial
+        The partial function with the given arguments.
+    """
     if func_kwargs is not None:
         _func_kwargs = kwargs.copy()
         _func_kwargs.update(func_kwargs)
@@ -26,6 +66,7 @@ def make_func(func: Callable, func_kwargs: Optional[Mapping[str, Any]] = None, *
 
 
 def cache_result(method):
+    """Decorator to cache method results."""
     cache_attr = f"_{method.__name__}_cache"
 
     @functools.wraps(method)
@@ -38,7 +79,20 @@ def cache_result(method):
 
 
 def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, device: Union[str, torch.device] = "cpu"):
-    """Return accuracy on a dataset given by the data loader."""
+    """Return accuracy on a dataset given by the data loader.
+    Parameters
+    ----------
+    net : torch.nn.Module
+        The model to evaluate.
+    loader : torch.utils.data.DataLoader
+        The data loader to evaluate the model on.
+    device : Union[str, torch.device]
+        The device to evaluate the model on.
+    Returns
+    -------
+    float
+
+    """
     correct = 0
     total = 0
     for inputs, targets in loader:
@@ -53,7 +107,7 @@ def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, de
 # Taken directly from Captum with minor changes
 # (required because Captum's Arnoldi Influence Function does not allow to specify device)
 def _load_flexible_state_dict(model: torch.nn.Module, path: str, device: Union[str, torch.device]) -> float:
-    r"""
+    """
     Helper to load pytorch models. This function attempts to find compatibility for
     loading models that were trained on different devices / with DataParallel but are
     being loaded in a different environment.
@@ -62,12 +116,21 @@ def _load_flexible_state_dict(model: torch.nn.Module, path: str, device: Union[s
     either be a single state dict, or a nesting dictionary which contains the model
     state_dict and other information.
 
-    Args:
+    Parameters
+    ----------
+    model : torch.nn.Module
+        The model for which to load a checkpoint
+    path : str
+        The filepath to the checkpoint
 
-        model (torch.nn.Module): The model for which to load a checkpoint
-        path (str): The filepath to the checkpoint
+    Returns
+    -------
+    float
+        The learning rate.
 
-    The module state_dict is modified in-place, and the learning rate is returned.
+    Notes
+    -----
+    The module state_dict is modified in-place.
     """
     if isinstance(device, str):
         device = torch.device(device)
@@ -95,6 +158,14 @@ def _load_flexible_state_dict(model: torch.nn.Module, path: str, device: Union[s
 
 
 def get_load_state_dict_func(device: Union[str, torch.device]):
+    """Function to get a load_state_dict function that loads a model state dict
+
+    Parameters
+    ----------
+    device : Union[str, torch.device]
+        The device to load the model on.
+    """
+
     def load_state_dict(model: torch.nn.Module, path: str) -> float:
         return _load_flexible_state_dict(model, path, device)
 

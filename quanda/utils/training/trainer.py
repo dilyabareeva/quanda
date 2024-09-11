@@ -9,6 +9,8 @@ from quanda.utils.training import BasicLightningModule
 
 
 class BaseTrainer(metaclass=abc.ABCMeta):
+    """Base class for a trainer."""
+
     @abstractmethod
     def fit(
         self,
@@ -26,6 +28,8 @@ class BaseTrainer(metaclass=abc.ABCMeta):
 
 
 class Trainer(BaseTrainer):
+    """Simple class for training PyTorch models using Lightning."""
+
     def __init__(
         self,
         optimizer: Callable,
@@ -36,6 +40,25 @@ class Trainer(BaseTrainer):
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
     ):
+        """Constructor for the Trainer class.
+
+        Parameters
+        ----------
+        optimizer : Callable
+            Optimizer to use for training.
+        lr : float
+            Learning rate for the optimizer.
+        max_epochs : int
+            Maximum number of epochs to train for.
+        criterion : torch.nn.modules.loss._Loss
+            Loss to use during training.
+        scheduler : Optional[Callable], optional
+            Scheduler to use during training, defaults to None
+        optimizer_kwargs : Optional[dict], optional
+            Keyword arguments for the optimizer, defaults to None
+        scheduler_kwargs : Optional[dict], optional
+            Keyword arguments for the scheduler, defaults to None
+        """
         self.optimizer = optimizer
         self.lr = lr
         self.max_epochs = max_epochs
@@ -54,6 +77,17 @@ class Trainer(BaseTrainer):
         *args,
         **kwargs,
     ):
+        """Train a model using the provided dataloaders.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            Model to train.
+        train_dataloaders : torch.utils.data.dataloader.DataLoader
+            Dataloader for the training data.
+        val_dataloaders : Optional[torch.utils.data.dataloader.DataLoader], optional
+            Dataloader for the validation data, defaults to None
+        """
         module = BasicLightningModule(
             model=model,
             optimizer=self.optimizer,
