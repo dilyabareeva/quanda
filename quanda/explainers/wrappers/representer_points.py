@@ -97,7 +97,7 @@ class RepresenterPoints(Explainer):
         min_loss: float = 10000.0,
         epsilon: float = 1e-10,
         model_id: Optional[str] = None,
-        normalize: bool = True,
+        normalize: bool = False,
         batch_size: int = 32,
         load_act_from_disk: bool = True,
     ):
@@ -283,3 +283,15 @@ class RepresenterPoints(Explainer):
                 t = beta * t
             else:
                 break
+
+    def self_influence(self, batch_size: int = 32) -> torch.Tensor:
+        """
+        For representer points, we define the self-influence as the coefficients of
+        the representer points, as per Sec. 4.1 of the original paper (Yeh et al., 2018).
+
+        :param batch_size:
+        :param kwargs:
+        :return:
+        """
+
+        return self.coefficients
