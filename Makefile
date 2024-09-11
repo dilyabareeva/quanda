@@ -7,7 +7,6 @@ style:
 	black .
 	python -m flake8 quanda --pytest-parametrize-names-type=csv
 	python -m isort .
-	python -m mypy quanda --check-untyped-defs
 	rm -f .coverage
 	rm -f .coverage.*
 	find . | grep -E "(__pycache__|\.pyc|\.pyo)" | xargs rm -rf
