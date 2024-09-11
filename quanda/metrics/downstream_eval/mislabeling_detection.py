@@ -147,11 +147,7 @@ class MislabelingDetectionMetric(Metric):
         poisoned_indices : List[int]
             The indices of the poisoned samples in the training dataset.
         aggregator_cls : Union[str, type]
-            The class or class name of the aggregation method to be used.
-        *args
-            Additional positional arguments to be passed to the instantiated class.
-        **kwargs
-            Additional keyword arguments to be passed to the instantiated class.
+            The class of the aggregation method to be used, or a string indicating the method.
 
         Returns
         -------
