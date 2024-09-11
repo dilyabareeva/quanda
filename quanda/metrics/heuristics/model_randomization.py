@@ -44,7 +44,7 @@ class ModelRandomizationMetric(Metric):
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
         self.rand_explainer = explainer_cls(
-            model=self.rand_model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
+            model=self.rand_model, train_dataset=train_dataset, model_id=model_id + "_random", cache_dir=cache_dir, **self.expl_kwargs
         )
         self.results: Dict[str, List] = {"scores": []}
 

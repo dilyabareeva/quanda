@@ -16,7 +16,7 @@ SOFTWARE.
 
 """
 import warnings
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, Callable
 
 import pytorch_lightning as pl
 import torch
@@ -26,6 +26,7 @@ from captum._utils.av import AV  # type: ignore
 from torch import Tensor
 
 from quanda.explainers.base import Explainer
+from quanda.utils.common import default_tensor_type
 
 
 class RepresenterSoftmax(nn.Module):
@@ -87,17 +88,18 @@ class RepresenterPoints(Explainer):
     def __init__(
         self,
         model: Union[torch.nn.Module, pl.LightningModule],
-        cache_dir: Optional[str],
+        cache_dir: str,
+        model_id: str,
         train_dataset: torch.utils.data.Dataset,
         train_labels: torch.Tensor,
         features_layer: str,
         classifier_layer: str,
+        features_postprocess: Optional[Callable] = None,
         lmbd: float = 0.003,
         epoch: int = 3000,
-        lr: float = 1.0,
+        lr: float = 3e-4,
         min_loss: float = 10000.0,
         epsilon: float = 1e-10,
-        model_id: Optional[str] = None,
         normalize: bool = False,
         batch_size: int = 32,
         load_act_from_disk: bool = True,
@@ -117,24 +119,30 @@ class RepresenterPoints(Explainer):
         self.lr = lr
         self.min_loss: Any = min_loss
         self.epsilon = epsilon
+        self.features_postprocess = features_postprocess
 
-        self.dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
+        self.dataloader = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size, shuffle=False)
 
-        act_dataset = AV.generate_dataset_activations(
-            path=cache_dir,
-            model=model,
-            model_id=model_id,
-            layers=[features_layer],
-            dataloader=self.dataloader,
-            load_from_disk=load_act_from_disk,
-            return_activations=True,
-        )[0]
+        with default_tensor_type(self.device):
+            act_dataset = AV.generate_dataset_activations(
+                path=cache_dir,
+                model=model,
+                model_id=model_id,
+                layers=[features_layer],
+                dataloader=self.dataloader,
+                load_from_disk=load_act_from_disk,
+                return_activations=True,
+            )[0]
 
         self.current_acts: torch.Tensor
         self.learned_weights: torch.Tensor
         self.coefficients: torch.Tensor
 
         self.samples = av_samples(act_dataset)
+
+        if self.features_postprocess is not None:
+            self.samples = self.features_postprocess(self.samples)
+
         self.labels = torch.tensor([train_dataset[i][1] for i in range(self.dataset_length)], device=self.device).type(
             torch.int
         )
@@ -186,6 +194,9 @@ class RepresenterPoints(Explainer):
             targets = torch.tensor(targets, device=self.device)
 
         f = self._get_activations(test, self.features_layer)
+
+        if self.features_postprocess is not None:
+            f = self.features_postprocess(f)
 
         if self.normalize:
             f = self._normalize_features(f)
