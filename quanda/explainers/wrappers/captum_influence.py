@@ -24,7 +24,7 @@ from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
-from quanda.utils.common import get_load_state_dict_func
+from quanda.utils.common import get_load_state_dict_func, default_tensor_type
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity
 from quanda.utils.validation import validate_checkpoints_load_func
@@ -140,7 +140,9 @@ class CaptumSimilarity(CaptumInfluence):
             self._process_targets(targets=targets)
             warnings.warn("CaptumSimilarity explainer does not support target indices. Ignoring the argument.")
 
-        topk_idx, topk_val = self.captum_explainer.influence(inputs=test, top_k=self.top_k)[self.layer]
+        with default_tensor_type(self.device):
+            topk_idx, topk_val = self.captum_explainer.influence(inputs=test, top_k=self.top_k)[self.layer]
+
         _, inverted_idx = topk_idx.sort()
         return torch.gather(topk_val, 1, inverted_idx)
 

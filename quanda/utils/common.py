@@ -1,6 +1,7 @@
 import functools
 from functools import reduce
 from typing import Any, Callable, Mapping, Optional, Union
+from contextlib import contextmanager
 
 import torch.utils
 import torch.utils.data
@@ -99,3 +100,35 @@ def get_load_state_dict_func(device: Union[str, torch.device]):
         return _load_flexible_state_dict(model, path, device)
 
     return load_state_dict
+
+
+@contextmanager
+def default_tensor_type(device: Union[str, torch.device]):
+    """
+    Context manager to temporarily change the default tensor type.
+
+    Parameters
+    ----------
+    device : Union[str, torch.device]
+        The device to which the default tensor type should be set.
+
+    Returns
+    -------
+    None
+
+    """
+    # Save the current default tensor type
+    tensor = torch.FloatTensor([0.0])
+    original_tensor_type = tensor.type()
+
+    tensor = tensor.to(device)
+    new_tensor_type = tensor.type()
+
+    # Set the new tensor type
+    torch.set_default_tensor_type(new_tensor_type)
+    try:
+        # Yield control back to the calling context
+        yield
+    finally:
+        # Restore the original tensor type
+        torch.set_default_tensor_type(original_tensor_type)
