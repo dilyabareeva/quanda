@@ -25,10 +25,25 @@ class MislabelingDetectionMetric(Metric):
 
     References
     ----------
-    1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions." International conference on machine learning. PMLR, 2017.
-    2) Yeh, Chih-Kuan, et al. "Representer point selection for explaining deep neural networks." Advances in neural information processing systems 31 (2018).
-    3) Pruthi, Garima, et al. "Estimating training data influence by tracing gradient descent." Advances in Neural Information Processing Systems 33 (2020): 19920-19930.
+    Benchmark for mislabeling detection.
+    This benchmark generates a dataset with mislabeled samples, and trains a model on it.
+    Afterwards, it evaluates the effectiveness of a given data attributor
+    for detecting the mislabeled examples using ´quanda.metrics.downstream_eval.MislabelingDetectionMetric´.
 
+    References
+    ----------
+    1) Koh, P. W., & Liang, P. (2017). Understanding black-box predictions via influence functions. In International
+    Conference on Machine Learning (pp. 1885-1894). PMLR.
+
+    2) Yeh, C.-K., Kim, J., Yen, I. E., Ravikumar, P., & Dhillon, I. S. (2018). Representer point selection
+    for explaining deep neural networks. In Advances in Neural Information Processing Systems (Vol. 31).
+
+    3) Pruthi, G., Liu, F., Sundararajan, M., & Kale, S. (2020). Estimating training data influence by tracing gradient
+    descent. In Advances in Neural Information Processing Systems (Vol. 33, pp. 19920-19930).
+
+    4) Picard, A. M., Vigouroux, D., Zamolodtchikov, P., Vincenot, Q., Loubes, J.-M., & Pauwels, E. (2022). Leveraging
+    influence functions for dataset exploration and cleaning. In 11th European Congress on Embedded Real-Time Systems
+    (ERTS 2022) (pp. 1-8). Toulouse, France.
     """
 
     def __init__(
@@ -60,7 +75,8 @@ class MislabelingDetectionMetric(Metric):
             Defaults to "self-influence".
         explainer_cls : Optional[type], optional
             The explainer class. Defaults to None.
-            This parameter should be a subclass of `quanda.explainers.BaseExplainer` whenever `global_method` is "self-influence".
+            This parameter should be a subclass of `quanda.explainers.BaseExplainer` whenever `global_method`
+            is "self-influence".
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer class.
 

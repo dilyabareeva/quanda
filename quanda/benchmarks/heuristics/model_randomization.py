@@ -18,7 +18,11 @@ class ModelRandomization(Benchmark):
 
     References
     ----------
-    1) Hanawa, Kazuaki, Sho Yokoi, Satoshi Hara, and Kentaro Inui. "Evaluation of Similarity-based Explanations." International Conference on Learning Representations, 2021
+    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations. In International
+    Conference on Learning Representations.
+
+    2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., & Kim, B. (2018). Sanity checks for saliency
+    maps. In Advances in Neural Information Processing Systems (Vol. 31).
     """
 
     def __init__(
