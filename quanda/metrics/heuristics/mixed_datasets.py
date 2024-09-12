@@ -1,13 +1,13 @@
-from typing import Any, List, Optional, Union
+from typing import Any, List, Union
 
 import torch
+from torcheval.metrics.functional import binary_auprc
 
 from quanda.metrics.base import Metric
-from torcheval.metrics.functional import binary_auprc
 
 
 class MixedDatasetsMetric(Metric):
-    """ Metric that measures the performance of a given influence estimation method in separating dataset sources.
+    """Metric that measures the performance of a given influence estimation method in separating dataset sources.
 
     Evaluates the performance of a given influence estimation method in identifying adversarial examples in a
     classification task.
@@ -57,7 +57,7 @@ class MixedDatasetsMetric(Metric):
             model=model,
             train_dataset=train_dataset,
         )
-        self.auprc_scores = []
+        self.auprc_scores: List[torch.Tensor] = []
 
         if isinstance(adversarial_indices, list):
             adversarial_indices = torch.tensor(adversarial_indices)
@@ -83,4 +83,3 @@ class MixedDatasetsMetric(Metric):
 
     def state_dict(self, *args, **kwargs):
         return {"auprc_scores": self.auprc_scores}
-

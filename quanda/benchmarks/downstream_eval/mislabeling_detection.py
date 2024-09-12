@@ -401,7 +401,7 @@ class MislabelingDetection(Benchmark):
             Dictionary containing the evaluation results.
         """
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, device=self.device, **expl_kwargs)
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
 
         poisoned_expl_ds = LabelFlippingDataset(
             dataset=expl_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
@@ -412,7 +412,6 @@ class MislabelingDetection(Benchmark):
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
-                device=self.device,
                 aggregator_cls=self.global_method,
             )
 
@@ -435,7 +434,6 @@ class MislabelingDetection(Benchmark):
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
-                device=self.device,
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
             )

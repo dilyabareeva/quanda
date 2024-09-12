@@ -96,7 +96,6 @@ class Benchmark(ABC):
             self.device = torch.device("cpu")
 
     def set_dataset(cls, train_dataset: Union[str, torch.utils.data.Dataset], dataset_split: str = "train", *args, **kwargs):
-
         if isinstance(train_dataset, str):
             cls.train_dataset = load_dataset(train_dataset, split=dataset_split)
             cls.hf_dataset_bool = True

@@ -107,7 +107,6 @@ class DatasetCleaning(Benchmark):
                 trainer=trainer,
                 trainer_fit_kwargs=trainer_fit_kwargs,
                 top_k=top_k,
-                device=self.device,
             )
             pbar = tqdm(expl_dl)
             n_batches = len(expl_dl)
@@ -140,7 +139,6 @@ class DatasetCleaning(Benchmark):
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
                 top_k=top_k,
-                device=self.device,
             )
 
         return metric.compute()

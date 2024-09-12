@@ -30,7 +30,6 @@ class ModelRandomization(Benchmark):
         *args,
         **kwargs,
     ):
-
         super().__init__()
 
         self.model: torch.nn.Module
@@ -181,7 +180,6 @@ class ModelRandomization(Benchmark):
             seed=seed,
             model_id=model_id,
             cache_dir=cache_dir,
-            device=self.device,
         )
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
