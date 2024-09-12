@@ -37,16 +37,15 @@ class ModelRandomizationMetric(Metric):
         self.model_id = model_id
         self.cache_dir = cache_dir
 
+        self.explainer = explainer_cls(
+            model=self.model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
+        )
+
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
-        ff = self.rand_model(torch.rand(1, 3, 32, 32).to(self.device))
         self.rand_explainer = explainer_cls(
             model=self.rand_model, train_dataset=train_dataset, model_id=model_id + "_random", cache_dir=cache_dir, **self.expl_kwargs
-        )
-
-        self.explainer = explainer_cls(
-            model=self.model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
         )
 
         self.results: Dict[str, List] = {"scores": []}

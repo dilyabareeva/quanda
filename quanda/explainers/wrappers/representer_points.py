@@ -17,6 +17,7 @@ SOFTWARE.
 """
 import warnings
 from typing import Any, List, Optional, Union, Callable
+import os
 
 import pytorch_lightning as pl
 import torch
@@ -102,7 +103,7 @@ class RepresenterPoints(Explainer):
         epsilon: float = 1e-10,
         normalize: bool = False,
         batch_size: int = 32,
-        load_act_from_disk: bool = True,
+        load_from_disk: bool = True,
     ):
         super(RepresenterPoints, self).__init__(
             model=model,
@@ -130,7 +131,7 @@ class RepresenterPoints(Explainer):
                 model_id=model_id,
                 layers=[features_layer],
                 dataloader=self.dataloader,
-                load_from_disk=load_act_from_disk,
+                load_from_disk=load_from_disk,
                 return_activations=True,
             )[0]
 
@@ -150,8 +151,16 @@ class RepresenterPoints(Explainer):
 
         self.mean = self.samples.mean(dim=0)
         self.std_dev = torch.sqrt(torch.sum((self.samples - self.mean) ** 2, dim=0) / self.samples.shape[0])
-        self.normalized_samples = self._normalize_features(self.samples) if normalize else self.samples
+        self.samples = self._normalize_features(self.samples) if normalize else self.samples
 
+        """
+        if load_from_disk:
+            try:
+                self.coefficients = torch.load(os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"))
+            except FileNotFoundError:
+                self.train()
+        else:
+        """
         self.train()
 
     def _normalize_features(self, features):
@@ -201,7 +210,7 @@ class RepresenterPoints(Explainer):
         if self.normalize:
             f = self._normalize_features(f)
 
-        cross_corr = torch.einsum("ik,jk->ij", f, self.normalized_samples).unsqueeze(-1)
+        cross_corr = torch.einsum("ik,jk->ij", f, self.samples).unsqueeze(-1)
 
         explanations = self.coefficients * cross_corr
 
@@ -279,6 +288,9 @@ class RepresenterPoints(Explainer):
         weight_matrix = torch.div(weight_matrix, (-2.0 * self.lmbd * N))
 
         self.coefficients = weight_matrix
+
+        # save weight matrix to cache
+        torch.save(weight_matrix, os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"))
 
     def backtracking_line_search(self, model, grad, x, y, val, N):
         t = 10.0
