@@ -20,7 +20,7 @@ def explain_fn_from_explainer(
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     targets: Optional[Union[List[int], torch.Tensor]] = None,
-    cache_dir: Optional[str] = None,
+    cache_dir: str = "./cache",
     model_id: Optional[str] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -40,7 +40,7 @@ def self_influence_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
     train_dataset: torch.utils.data.Dataset,
-    cache_dir: Optional[str] = None,
+    cache_dir: str = "./cache",
     model_id: Optional[str] = None,
     batch_size: int = 32,
     **kwargs: Any,

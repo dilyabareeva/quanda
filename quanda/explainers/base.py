@@ -12,8 +12,8 @@ class Explainer(ABC):
     def __init__(
         self,
         model: Union[torch.nn.Module, pl.LightningModule],
-        cache_dir: Optional[str],
         train_dataset: torch.utils.data.Dataset,
+        cache_dir: str = "./cache",
         model_id: Optional[str] = None,
         **kwargs,
     ):

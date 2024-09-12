@@ -33,19 +33,25 @@ class ModelRandomizationMetric(Metric):
         self.model = model
         self.train_dataset = train_dataset
         self.expl_kwargs = expl_kwargs or {}
-        self.explainer = explainer_cls(
-            model=self.model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
-        )
         self.seed = seed
         self.model_id = model_id
         self.cache_dir = cache_dir
+
+        self.explainer = explainer_cls(
+            model=self.model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
+        )
 
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
         self.rand_explainer = explainer_cls(
-            model=self.rand_model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
+            model=self.rand_model,
+            train_dataset=train_dataset,
+            model_id=model_id + "_random",
+            cache_dir=cache_dir,
+            **self.expl_kwargs,
         )
+
         self.results: Dict[str, List] = {"scores": []}
 
         # TODO: create a validation utility function
@@ -101,14 +107,29 @@ class ModelRandomizationMetric(Metric):
     def load_state_dict(self, state_dict: dict):
         self.results = state_dict["results_dict"]
         self.rand_model.load_state_dict(state_dict["rnd_model"])
-        # self.seed = state_dict["seed"]
-        # self.explain_fn = state_dict["explain_fn"]
-        # self.generator.set_state(state_dict["generator_state"])
 
     def _randomize_model(self, model: torch.nn.Module) -> torch.nn.Module:
+        """
+        Randomize the model parameters. Currently, only linear and convolutional layers are supported.
+
+        TODO: Add support for other layer types.
+
+        Parameters
+        ----------
+        model: torch.nn.Module
+            The model to randomize.
+
+        Returns
+        -------
+        torch.nn.Module
+            The randomized model.
+
+        """
         rand_model = copy.deepcopy(model)
         for name, param in list(rand_model.named_parameters()):
-            random_param_tensor = torch.empty_like(param).normal_(generator=self.generator)
             parent = get_parent_module_from_name(rand_model, name)
-            parent.__setattr__(name.split(".")[-1], torch.nn.Parameter(random_param_tensor))
+            if isinstance(parent, (torch.nn.Linear, torch.nn.Conv2d)):
+                random_param_tensor = torch.nn.init.normal_(param, generator=self.generator)
+                parent.__setattr__(name.split(".")[-1], torch.nn.Parameter(random_param_tensor))
+
         return rand_model
