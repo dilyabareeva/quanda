@@ -30,7 +30,7 @@ class TRAK(Explainer):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
-        cache_dir: str,
+        cache_dir: str = "./cache",
         task: Union[AbstractModelOutput, str] = "image_classification",
         projector: TRAKProjectorLiteral = "basic",
         proj_dim: int = 2048,
@@ -136,9 +136,9 @@ class TRAK(Explainer):
 def trak_explain(
     model: torch.nn.Module,
     model_id: str,
-    cache_dir: Optional[str],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
+    cache_dir: str = "./cache",
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -157,8 +157,8 @@ def trak_explain(
 def trak_self_influence(
     model: torch.nn.Module,
     model_id: str,
-    cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
+    cache_dir: str = "./cache",
     batch_size: int = 32,
     **kwargs: Any,
 ) -> torch.Tensor:

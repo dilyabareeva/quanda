@@ -12,7 +12,7 @@ class Task(ABC):
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
         model_id: Optional[str] = "0",
-        cache_dir: Optional[str] = "./cache",
+        cache_dir: str = "./cache",
         **kwargs,
     ):
         self.device: Union[str, torch.device]
