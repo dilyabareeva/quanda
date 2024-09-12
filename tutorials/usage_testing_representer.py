@@ -124,7 +124,6 @@ def main():
     model_id = "default_model_id"
     cache_dir = "./cache_2"
 
-    """
     model_rand = ModelRandomizationMetric(
         model=model,
         train_dataset=train_set,
@@ -136,7 +135,6 @@ def main():
         seed=43,
     )
 
-"""
     explainer = RepresenterPoints(
         model=model, cache_dir=str(cache_dir), model_id=model_id, train_dataset=train_set, **explain_fn_kwargs
     )
@@ -191,12 +189,12 @@ def main():
         tda = explainer.explain(
             test=data,
         )
-        #model_rand.update(data, tda)
+        model_rand.update(data, tda)
         id_class.update(target, tda)
         top_k.update(tda)
         data_clean.update(tda)
 
-    #print("Model heuristics metric output:", model_rand.compute())
+    print("Model heuristics metric output:", model_rand.compute())
     print("Identical class metric output:", id_class.compute())
     print("Top-k overlap metric output:", top_k.compute())
 
