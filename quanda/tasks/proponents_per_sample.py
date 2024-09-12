@@ -14,7 +14,7 @@ class ProponentsPerSample(Task):
         expl_kwargs: Optional[dict] = None,
         top_k: int = 1,
         model_id: Optional[str] = "0",
-        cache_dir: Optional[str] = "./cache",
+        cache_dir: str = "./cache",
     ):
         super().__init__(
             model=model,

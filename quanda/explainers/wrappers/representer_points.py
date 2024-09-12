@@ -15,9 +15,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-import warnings
-from typing import Any, List, Optional, Union, Callable
 import os
+import warnings
+from typing import Any, Callable, List, Optional, Union
 
 import pytorch_lightning as pl
 import torch
@@ -89,12 +89,12 @@ class RepresenterPoints(Explainer):
     def __init__(
         self,
         model: Union[torch.nn.Module, pl.LightningModule],
-        cache_dir: str,
         model_id: str,
         train_dataset: torch.utils.data.Dataset,
         train_labels: torch.Tensor,
         features_layer: str,
         classifier_layer: str,
+        cache_dir: str = "./cache",
         features_postprocess: Optional[Callable] = None,
         lmbd: float = 0.003,
         epoch: int = 3000,

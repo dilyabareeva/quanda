@@ -24,7 +24,7 @@ from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
-from quanda.utils.common import get_load_state_dict_func, default_tensor_type
+from quanda.utils.common import default_tensor_type, get_load_state_dict_func
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity
 from quanda.utils.validation import validate_checkpoints_load_func
@@ -38,7 +38,7 @@ class CaptumInfluence(Explainer, ABC):
         explainer_cls: type,
         explain_kwargs: Any,
         model_id: Optional[str] = None,
-        cache_dir: Optional[str] = None,
+        cache_dir: str = "./cache",
     ):
         super().__init__(
             model=model,
@@ -70,9 +70,9 @@ class CaptumSimilarity(CaptumInfluence):
         self,
         model: Union[torch.nn.Module, pl.LightningModule],
         model_id: str,
-        cache_dir: str,
         train_dataset: torch.utils.data.Dataset,
         layers: Union[str, List[str]],
+        cache_dir: str = "./cache",
         similarity_metric: Callable = cosine_similarity,
         similarity_direction: str = "max",
         batch_size: int = 1,
@@ -150,9 +150,9 @@ class CaptumSimilarity(CaptumInfluence):
 def captum_similarity_explain(
     model: Union[torch.nn.Module, pl.LightningModule],
     model_id: str,
-    cache_dir: Optional[str],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
+    cache_dir: str = "./cache",
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -171,8 +171,8 @@ def captum_similarity_explain(
 def captum_similarity_self_influence(
     model: Union[torch.nn.Module, pl.LightningModule],
     model_id: str,
-    cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
+    cache_dir: str = "./cache",
     batch_size: int = 32,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -209,7 +209,7 @@ class CaptumArnoldi(CaptumInfluence):
         projection_on_cpu: bool = True,
         show_progress: bool = False,
         model_id: Optional[str] = None,
-        cache_dir: Optional[str] = None,
+        cache_dir: str = "./cache",
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
@@ -282,7 +282,7 @@ def captum_arnoldi_explain(
     train_dataset: torch.utils.data.Dataset,
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     model_id: Optional[str] = None,
-    cache_dir: Optional[str] = None,
+    cache_dir: str = "./cache",
     **kwargs: Any,
 ) -> torch.Tensor:
     return explain_fn_from_explainer(
@@ -301,7 +301,7 @@ def captum_arnoldi_self_influence(
     model: torch.nn.Module,
     train_dataset: torch.utils.data.Dataset,
     model_id: Optional[str] = None,
-    cache_dir: Optional[str] = None,
+    cache_dir: str = "./cache",
     batch_size: int = 32,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -329,7 +329,7 @@ class CaptumTracInCP(CaptumInfluence):
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         sample_wise_grads_per_batch: bool = False,
         model_id: Optional[str] = None,
-        cache_dir: Optional[str] = None,
+        cache_dir: str = "./cache",
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
@@ -397,7 +397,7 @@ def captum_tracincp_explain(
     train_dataset: torch.utils.data.Dataset,
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     model_id: Optional[str] = None,
-    cache_dir: Optional[str] = None,
+    cache_dir: str = "./cache",
     **kwargs: Any,
 ) -> torch.Tensor:
     return explain_fn_from_explainer(
@@ -416,7 +416,7 @@ def captum_tracincp_self_influence(
     model: Union[torch.nn.Module, pl.LightningModule],
     train_dataset: torch.utils.data.Dataset,
     model_id: Optional[str] = None,
-    cache_dir: Optional[str] = None,
+    cache_dir: str = "./cache",
     batch_size: int = 32,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -436,10 +436,10 @@ class CaptumTracInCPFast(CaptumInfluence):
         self,
         model: torch.nn.Module,
         model_id: str,
-        cache_dir: Optional[str],
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
+        cache_dir: str = "./cache",
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         batch_size: int = 1,
@@ -507,9 +507,9 @@ class CaptumTracInCPFast(CaptumInfluence):
 def captum_tracincp_fast_explain(
     model: torch.nn.Module,
     model_id: str,
-    cache_dir: Optional[str],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
+    cache_dir: str = "./cache",
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -528,8 +528,8 @@ def captum_tracincp_fast_explain(
 def captum_tracincp_fast_self_influence(
     model: torch.nn.Module,
     model_id: str,
-    cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
+    cache_dir: str = "./cache",
     outer_loop_by_checkpoints: bool = False,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -549,10 +549,10 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         self,
         model: Union[torch.nn.Module, pl.LightningModule],
         model_id: str,
-        cache_dir: Optional[str],
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
+        cache_dir: str = "./cache",
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(reduction="sum"),
         batch_size: int = 1,
@@ -643,9 +643,9 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 def captum_tracincp_fast_rand_proj_explain(
     model: Union[torch.nn.Module, pl.LightningModule],
     model_id: str,
-    cache_dir: Optional[str],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
+    cache_dir: str = "./cache",
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -664,8 +664,8 @@ def captum_tracincp_fast_rand_proj_explain(
 def captum_tracincp_fast_rand_proj_self_influence(
     model: torch.nn.Module,
     model_id: str,
-    cache_dir: Optional[str],
     train_dataset: torch.utils.data.Dataset,
+    cache_dir: str = "./cache",
     outer_loop_by_checkpoints: bool = False,
     **kwargs: Any,
 ) -> torch.Tensor:

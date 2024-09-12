@@ -45,7 +45,11 @@ class ModelRandomizationMetric(Metric):
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
         self.rand_explainer = explainer_cls(
-            model=self.rand_model, train_dataset=train_dataset, model_id=model_id + "_random", cache_dir=cache_dir, **self.expl_kwargs
+            model=self.rand_model,
+            train_dataset=train_dataset,
+            model_id=model_id + "_random",
+            cache_dir=cache_dir,
+            **self.expl_kwargs,
         )
 
         self.results: Dict[str, List] = {"scores": []}
@@ -123,7 +127,6 @@ class ModelRandomizationMetric(Metric):
         """
         rand_model = copy.deepcopy(model)
         for name, param in list(rand_model.named_parameters()):
-
             parent = get_parent_module_from_name(rand_model, name)
             if isinstance(parent, (torch.nn.Linear, torch.nn.Conv2d)):
                 random_param_tensor = torch.nn.init.normal_(param, generator=self.generator)

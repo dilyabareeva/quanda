@@ -1,7 +1,7 @@
 import functools
+from contextlib import contextmanager
 from functools import reduce
 from typing import Any, Callable, Mapping, Optional, Union
-from contextlib import contextmanager
 
 import torch.utils
 import torch.utils.data
@@ -118,10 +118,10 @@ def default_tensor_type(device: Union[str, torch.device]):
 
     """
     # Save the current default tensor type
-    tensor = torch.FloatTensor([0.0])
-    original_tensor_type = tensor.type()
+    float_tensor = torch.FloatTensor([0.0])
+    original_tensor_type = float_tensor.type()
 
-    tensor = tensor.to(device)
+    tensor = float_tensor.to(device)
     new_tensor_type = tensor.type()
 
     # Set the new tensor type

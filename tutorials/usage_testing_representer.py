@@ -20,13 +20,17 @@ from tqdm import tqdm
 from quanda.benchmarks.downstream_eval import SubclassDetection
 from quanda.explainers.wrappers import (
     CaptumSimilarity,
-    captum_similarity_explain, RepresenterPoints,
+    RepresenterPoints,
+    captum_similarity_explain,
 )
 from quanda.metrics.downstream_eval import (
     ClassDetectionMetric,
     DatasetCleaningMetric,
 )
-from quanda.metrics.heuristics import ModelRandomizationMetric, TopKOverlapMetric
+from quanda.metrics.heuristics import (
+    ModelRandomizationMetric,
+    TopKOverlapMetric,
+)
 from quanda.utils.training import BasicLightningModule
 
 DEVICE = "cuda:0"  # "cuda" if torch.cuda.is_available() else "cpu"
@@ -111,7 +115,6 @@ def main():
     # ++++++++++++++++++++++++++++++++++++++++++
     # Computing metrics while generating explanations
     # ++++++++++++++++++++++++++++++++++++++++++
-
 
     explain_fn_kwargs = {
         "train_labels": torch.tensor(train_labels),
