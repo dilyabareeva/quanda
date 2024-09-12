@@ -297,9 +297,9 @@ class MislabelingDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
-        poisoned_indices: List[int],
-        poisoned_labels: Dict[int, int],
         dataset_split: str = "train",
+        poisoned_indices: Optional[List[int]] = None,
+        poisoned_labels: Optional[Dict[int, int]] = None,
         dataset_transform: Optional[Callable] = None,
         p: float = 0.3,  # TODO: type specification
         global_method: Union[str, type] = "self-influence",
@@ -318,12 +318,12 @@ class MislabelingDetection(Benchmark):
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
-        poisoned_indices : List[int]
-            List of indices to poison
-        poisoned_labels : Dict[int, int]
-            Dictionary containing indices as keys and new labels as values
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
+        poisoned_indices : Optional[List[int]], optional
+            List of indices to poison, defaults to None
+        poisoned_labels : Optional[Dict[int, int]], optional
+            Dictionary containing indices as keys and new labels as values, defaults to None
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
         p : float, optional
