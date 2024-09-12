@@ -15,9 +15,9 @@ from quanda.utils.training.trainer import BaseTrainer
 
 class MislabelingDetection(Benchmark):
     """
-    Benchmark for mislabeling detection.
+    Benchmark for noisy label detection.
     This benchmark generates a dataset with mislabeled samples, and trains a model on it.
-    Afterwards, it evaluates the effectiveness of a given data attributor
+    Afterward, it evaluates the effectiveness of a given data attributor
     for detecting the mislabeled examples using ´quanda.metrics.downstream_eval.MislabelingDetectionMetric´.
 
     References
