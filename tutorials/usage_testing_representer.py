@@ -112,19 +112,33 @@ def main():
     # Computing metrics while generating explanations
     # ++++++++++++++++++++++++++++++++++++++++++
 
-    explain = captum_similarity_explain
-    explain_fn_kwargs = {"layers": "avgpool", "batch_size": 100}
+
+    explain_fn_kwargs = {
+        "train_labels": torch.tensor(train_labels),
+        "features_layer": "avgpool",
+        "classifier_layer": "fc",
+        "batch_size": 32,
+        "features_postprocess": lambda x: x[:, :, 0, 0],
+    }
+
     model_id = "default_model_id"
-    cache_dir = "./cache"
+    cache_dir = "./cache_2"
+
+    """
     model_rand = ModelRandomizationMetric(
         model=model,
         train_dataset=train_set,
-        explainer_cls=CaptumSimilarity,
+        explainer_cls=RepresenterPoints,
         expl_kwargs=explain_fn_kwargs,
         model_id=model_id,
         cache_dir=cache_dir,
         correlation_fn="spearman",
-        seed=42,
+        seed=43,
+    )
+
+"""
+    explainer = RepresenterPoints(
+        model=model, cache_dir=str(cache_dir), model_id=model_id, train_dataset=train_set, **explain_fn_kwargs
     )
 
     id_class = ClassDetectionMetric(model=model, train_dataset=train_set)
@@ -160,7 +174,7 @@ def main():
         criterion=criterion,
     )
 
-    trainer = L.Trainer(max_epochs=max_epochs)
+    trainer = L.Trainer(max_epochs=max_epochs, devices=1, accelerator="gpu")
 
     data_clean = DatasetCleaningMetric(
         model=pl_module,
@@ -174,20 +188,15 @@ def main():
     # iterate over test set and feed tensor batches first to explain, then to metric
     for i, (data, target) in enumerate(tqdm(test_loader)):
         data, target = data.to(DEVICE), target.to(DEVICE)
-        tda = explain(
-            model=model,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            test_tensor=data,
-            train_dataset=train_set,
-            **explain_fn_kwargs,
+        tda = explainer.explain(
+            test=data,
         )
-        model_rand.update(data, tda)
+        #model_rand.update(data, tda)
         id_class.update(target, tda)
         top_k.update(tda)
         data_clean.update(tda)
 
-    print("Model heuristics metric output:", model_rand.compute())
+    #print("Model heuristics metric output:", model_rand.compute())
     print("Identical class metric output:", id_class.compute())
     print("Top-k overlap metric output:", top_k.compute())
 
@@ -199,8 +208,6 @@ def main():
     # ++++++++++++++++++++++++++++++++++++++++++
     # Subclass Detection Benchmark Generation and Evaluation
     # ++++++++++++++++++++++++++++++++++++++++++
-
-    trainer = L.Trainer(max_epochs=max_epochs)
 
     bench = SubclassDetection.generate(
         model=copy.deepcopy(init_pl_module),
