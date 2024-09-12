@@ -5,6 +5,8 @@ import torch
 
 
 class BasicLightningModule(L.LightningModule):
+    """Wrapper for a basic PyTorch Lightning module."""
+
     def __init__(
         self,
         model: torch.nn.Module,
@@ -17,6 +19,25 @@ class BasicLightningModule(L.LightningModule):
         *args,
         **kwargs,
     ):
+        """Constructor for the BasicLightningModule class.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            Model to train.
+        optimizer : Callable
+            Optimizer to use for training.
+        lr : float
+            Learning rate for the optimizer.
+        criterion : torch.nn.modules.loss._Loss
+            Loss function to use for training.
+        scheduler : Optional[Callable], optional
+            Learning rate scheduler to use for training, defaults to None
+        optimizer_kwargs : Optional[dict], optional
+            Keyword arguments for the optimizer, defaults to None
+        scheduler_kwargs : Optional[dict], optional
+            Keyword arguments for the scheduler, defaults to None
+        """
         # TODO: include lr scheduler and grad clipping
         super().__init__()
         self.model = model
@@ -28,9 +49,33 @@ class BasicLightningModule(L.LightningModule):
         self.scheduler_kwargs = scheduler_kwargs if scheduler_kwargs is not None else {}
 
     def forward(self, inputs):
+        """Wrapper for the forward pass of the model.
+
+        Parameters
+        ----------
+        inputs : torch.Tensor
+
+        Returns
+        -------
+        torch.Tensor
+            Output of the model.
+        """
         return self.model(inputs)
 
     def training_step(self, batch, batch_idx):
+        """One training step.
+
+        Parameters
+        ----------
+        batch :
+            Single batch of data.
+        batch_idx :
+            Index of the batch.
+        Returns
+        -------
+        torch.Tensor
+            Loss for the batch.
+        """
         inputs, target = batch
         inputs, target = inputs.to(self.device), target.to(self.device)
         output = self(inputs)
@@ -38,6 +83,19 @@ class BasicLightningModule(L.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
+        """One validation step.
+
+        Parameters
+        ----------
+        batch :
+            Single batch of data.
+        batch_idx :
+            Index of the batch.
+        Returns
+        -------
+        torch.Tensor
+            Loss for the batch.
+        """
         inputs, target = batch
         inputs, target = inputs.to(self.device), target.to(self.device)
         output = self(inputs)
@@ -45,6 +103,15 @@ class BasicLightningModule(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
+        """Creates the optimizer and scheduler for training.
+
+        Raises
+        ------
+        ValueError
+            If the optimizer or scheduler is not an instance of the expected class.
+        ValueError
+            If the scheduler is not an instance of the expected class.
+        """
         optimizer = self.optimizer(self.model.parameters(), lr=self.lr, **self.optimizer_kwargs)
         if not isinstance(optimizer, torch.optim.Optimizer):
             raise ValueError("optimizer must be an instance of torch.optim.Optimizer")

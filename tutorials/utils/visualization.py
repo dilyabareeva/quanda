@@ -15,14 +15,7 @@ rcParams["font.family"] = "Poppins"
 
 
 def save_influential_samples(
-        train_dataset,
-        test_tensor,
-        influence_scores,
-        denormalize,
-        test_names,
-        r_name_dict,
-        top_k=3,
-        save_path="../assets/fig1"
+    train_dataset, test_tensor, influence_scores, denormalize, test_names, r_name_dict, top_k=3, save_path="../assets/fig1"
 ):
     top_k_proponents = torch.topk(influence_scores, top_k, dim=1, largest=True)
     top_k_opponents = torch.topk(influence_scores, top_k, dim=1, largest=False)
@@ -46,6 +39,7 @@ def save_influential_samples(
     test_images = [denormalize(img) for img in test_tensor]
     for img, idx in zip(test_images, range(len(test_tensor))):
         save_image(img, f"{save_path}/test_{idx}_{test_names[idx]}.png")
+
 
 #### Visualizuation code for explaining test samples
 
