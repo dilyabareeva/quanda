@@ -6,7 +6,7 @@
 Welcome to quanda's documentation!
 ==================================
 
-Quanda is a toolkit for **quan**titative evaluation of **d**ata **a**ttribution methods in **PyTorch**.
+Quanda is a toolkit for **quan**\ titative evaluation of **d**\ ata **a**\ ttribution methods in **PyTorch**.
 
 **Training data attribution** (TDA) methods attribute model output to its training samples (`Koh and Liang, 2017 <https://proceedings.mlr.press/v70/koh17a.html>`__; `Yeh et al., 2018 <https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html>`__; `Park et al., 2023 <https://proceedings.mlr.press/v202/park23c.html>`__; `Pruthi et al., 2020 <https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html>`__; `Bae et al., 2024 <https://arxiv.org/abs/2405.12186>`__). Outside of being used for understanding models, TDA has also found usage in a large variety of applications such as debugging model behavior (`Koh and Liang, 2017 <https://proceedings.mlr.press/v70/koh17a.html>`__; `Yeh et al., 2018 <https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html>`__; `K and Søgaard, 2021 <https://arxiv.org/abs/2111.04683>`__; `Guo et al., 2021 <https://aclanthology.org/2021.emnlp-main.808>`__), data summarization (`Khanna et al., 2019 <https://proceedings.mlr.press/v89/khanna19a.html>`__; `Marion et al., 2023 <https://openreview.net/forum?id=XUIYn3jo5T>`__; `Yang et al., 2023 <https://openreview.net/forum?id=4wZiAXD29TQ>`__), dataset selection (`Engstrom et al., 2024 <https://openreview.net/forum?id=GC8HkKeH8s>`__; `Chhabra et al., 2024 <https://openreview.net/forum?id=HE9eUQlAvo>`__), fact tracing (`Akyurek et al., 2022 <https://aclanthology.org/2022.findings-emnlp.180>`__) and machine unlearning (`Warnecke et al., 2023 <https://arxiv.org/abs/2108.11577>`__).
 
@@ -29,6 +29,7 @@ Currently implemented in Quanda are the following evaluation strategies:
 
 .. toctree::
    getting_started
+   tutorials
 
 
 .. toctree::

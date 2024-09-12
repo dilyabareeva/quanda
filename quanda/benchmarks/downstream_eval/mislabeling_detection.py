@@ -71,7 +71,7 @@ class MislabelingDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Generate the benchmark by specifying parameters.
+        """Generates the benchmark by specifying parameters.
         This module handles the dataset creation and model training on the label-poisoned dataset.
         The evaluation can then be run using the `evaluate` method.
 
@@ -146,7 +146,7 @@ class MislabelingDetection(Benchmark):
         seed: int = 27,
         batch_size: int = 8,
     ):
-        """Generate the benchmark from components.
+        """Generates the benchmark from components.
         This function is internally used for generating the benchmark instance.
 
 
@@ -249,7 +249,8 @@ class MislabelingDetection(Benchmark):
     @property
     def bench_state(self):
         """
-        Return the state of the benchmark.
+        Returns the state of the benchmark.
+
         Returns
         -------
         dict

@@ -21,7 +21,7 @@ help:
 
 
 rst:
-	@sphinx-apidoc -o source/docs_api ../src --module-first --separate --force
+	@sphinx-apidoc -o source/docs_api ../quanda --module-first --separate --force
 
 
 clean:
