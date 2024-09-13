@@ -193,7 +193,7 @@ def test_top_k_overlap_metrics(
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_explanations_similarity_1",
-            "load_mnist_adversarial_labels",
+            "load_mnist_adversarial_indices",
             0.4699999690055847,
         ),
     ],

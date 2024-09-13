@@ -8,7 +8,7 @@ from tqdm import tqdm
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.common import ds_len
-from quanda.utils.datasets.single_class_image_dataset import (
+from quanda.utils.datasets import (
     SingleClassImageDataset,
 )
 from quanda.utils.training.trainer import BaseTrainer
@@ -57,11 +57,10 @@ class MixedDatasets(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-        self.clean_dataset: torch.utils.data.Dataset
-        self.adversarial_dataset: torch.utils.data.Dataset
         self.mixed_dataset: torch.utils.data.ConcatDataset
         self.adversarial_indices: List[int]
         self.adversarial_label: int
+        self.adversarial_transform: Optional[Callable]
 
     @classmethod
     def generate(
@@ -72,7 +71,7 @@ class MixedDatasets(Benchmark):
         adversarial_label: int,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_split: str = "train",
-        dataset_transform: Optional[Callable] = None,
+        adversarial_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         batch_size: int = 8,
@@ -98,8 +97,8 @@ class MixedDatasets(Benchmark):
             Trainer to be used for training the model. Can be a Lightning Trainer or a `BaseTrainer`.
         dataset_split: str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
-         dataset_transform : Optional[Callable], optional
-             Transform to be applied to the dataset, by default None
+        adversarial_transform : Optional[Callable], optional
+             Transform to be applied to the adversarial dataset, by default None
         val_dataset: Optional[torch.utils.data.Dataset], optional
             Validation dataset to be used for the benchmark, by default None
         trainer_fit_kwargs: Optional[dict], optional
@@ -118,13 +117,15 @@ class MixedDatasets(Benchmark):
         """
         obj = cls()
         obj.set_devices(model)
-        obj.set_dataset(clean_dataset, dataset_split)
+        obj.clean_dataset = clean_dataset
+
         obj._generate(
             model=model,
+            clean_dataset=clean_dataset,
             adversarial_dir=adversarial_dir,
             adversarial_label=adversarial_label,
             trainer=trainer,
-            dataset_transform=dataset_transform,
+            adversarial_transform=adversarial_transform,
             val_dataset=val_dataset,
             trainer_fit_kwargs=trainer_fit_kwargs,
             batch_size=batch_size,
@@ -134,10 +135,11 @@ class MixedDatasets(Benchmark):
     def _generate(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
+        clean_dataset: Union[str, torch.utils.data.Dataset],
         adversarial_dir: str,
         adversarial_label: int,
         trainer: Union[L.Trainer, BaseTrainer],
-        dataset_transform: Optional[Callable] = None,
+        adversarial_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         batch_size: int = 8,
@@ -148,6 +150,8 @@ class MixedDatasets(Benchmark):
         ----------
         model: Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
+        clean_dataset: Union[str, torch.utils.data.Dataset]
+            Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         adversarial_dir: str
             Directory containing the adversarial dataset. Typically consists of the same class of objects (e.g. images
             of the same class).
@@ -181,14 +185,14 @@ class MixedDatasets(Benchmark):
             If the trainer is neither a Lightning Trainer nor a BaseTrainer.
 
         """
-        self.dataset_transform = dataset_transform
-        self.adversarial_dataset = SingleClassImageDataset(
-            root=adversarial_dir, label=adversarial_label, transform=dataset_transform
+        adversarial_dataset = SingleClassImageDataset(
+            root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
         )
-        self.mixed_dataset = torch.utils.data.ConcatDataset([self.adversarial_dataset, self.clean_dataset])
+
+        self.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, clean_dataset])
         self.adversarial_label = adversarial_label
-        self.adversarial_indices = [1 for i in range(ds_len(self.adversarial_dataset))] + [
-            0 for i in range(ds_len(self.clean_dataset))
+        self.adversarial_indices = [1 for i in range(ds_len(adversarial_dataset))] + [
+            0 for i in range(ds_len(clean_dataset))
         ]
         self.mixed_train_dl = torch.utils.data.DataLoader(self.mixed_dataset, batch_size=batch_size)
 
@@ -238,9 +242,7 @@ class MixedDatasets(Benchmark):
         """
         return {
             "model": self.model,
-            "clean_dataset": self.dataset_str,
-            "adversarial_dir": self.adversarial_dir,
-            "dataset_transform": self.dataset_transform,
+            "mixed_dataset": self.dataset_str,
             "adversarial_indices": self.adversarial_indices,
         }
 
@@ -268,11 +270,9 @@ class MixedDatasets(Benchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        clean_dataset: Union[str, torch.utils.data.Dataset],
-        adversarial_dir: str,
-        adversarial_label: int,
+        train_dataset: torch.utils.data.Dataset,
+        adversarial_indices: Union[List[int], torch.Tensor],
         dataset_split: str = "train",
-        dataset_transform: Optional[Callable] = None,
         *args,
         **kwargs,
     ):
@@ -305,14 +305,8 @@ class MixedDatasets(Benchmark):
 
         obj = cls()
         obj.model = model
-        obj.set_dataset(clean_dataset, dataset_split)
-
-        obj.adversarial_dataset = SingleClassImageDataset(
-            root=adversarial_dir, label=adversarial_label, transform=dataset_transform
-        )
-        obj.mixed_dataset = torch.utils.data.ConcatDataset([obj.adversarial_dataset, obj.clean_dataset])
-        obj.adversarial_indices = [1 for i in range(len(obj.adversarial_dataset))] + [0 for i in range(len(obj.clean_dataset))]
-        obj.adversarial_label = adversarial_label
+        obj.mixed_dataset = train_dataset
+        obj.adversarial_indices = adversarial_indices
         obj.set_devices(model)
 
         return obj
@@ -321,8 +315,10 @@ class MixedDatasets(Benchmark):
         self,
         adversarial_expl_dir: str,
         explainer_cls: type,
+        adversarial_label: int,
+        adversarial_transform: Optional[Callable] = None,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         batch_size: int = 8,
         *args,
         **kwargs,
@@ -352,10 +348,10 @@ class MixedDatasets(Benchmark):
 
         """
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
+        explainer = explainer_cls(model=self.model, train_dataset=self.mixed_dataset, **expl_kwargs)
 
         adversarial_expl_ds = SingleClassImageDataset(
-            root=adversarial_expl_dir, label=self.adversarial_label, transform=self.dataset_transform
+            root=adversarial_expl_dir, label=adversarial_label, transform=adversarial_transform
         )
         adversarial_expl_dl = torch.utils.data.DataLoader(adversarial_expl_ds, batch_size=batch_size)
 

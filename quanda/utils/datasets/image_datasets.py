@@ -11,7 +11,7 @@ class SingleClassImageDataset(Dataset):
         self.transform = transform
 
         # find all images in the root directory
-        self.filenames = glob.glob(root + "/**/*.JPEG")
+        self.filenames = glob.glob(root + "/*.png")
 
     def __len__(self):
         return len(self.filenames)
