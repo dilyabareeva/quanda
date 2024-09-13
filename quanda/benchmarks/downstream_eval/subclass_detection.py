@@ -57,7 +57,7 @@ class SubclassDetection(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.model = model
         obj._generate(
             trainer=trainer,
@@ -180,7 +180,7 @@ class SubclassDetection(Benchmark):
         """
         obj = cls()
         obj.group_model = group_model
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes

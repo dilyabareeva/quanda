@@ -213,7 +213,6 @@ def test_mixed_datasets_metric(
     model = request.getfixturevalue(model)
     adversarial_indices = request.getfixturevalue(adversarial_indices)
 
-
     # Initialize the MixedDatasetsMetric
     metric = MixedDatasetsMetric(
         model=model,

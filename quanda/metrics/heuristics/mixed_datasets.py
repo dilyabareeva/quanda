@@ -45,7 +45,10 @@ class MixedDatasetsMetric(Metric):
         model: torch.nn.Module
             The model associated with the attributions to be evaluated.
         train_dataset: torch.utils.data.Dataset
-            The training dataset that was used to train `model`.
+            The training dataset that was used to train `model`. Every item of the dataset
+            is a tuple of the form (input, label). Consist of clean examples
+            and adversarial examples. The labels of all adversarial examples should map
+            to a single label from the clean examples.
         adversarial_indices: Union[List[int], torch.Tensor]
             A binary list of ground truth adversarial indices of the `train_dataset`.
         args: Any
@@ -63,6 +66,11 @@ class MixedDatasetsMetric(Metric):
             adversarial_indices = torch.tensor(adversarial_indices)
 
         self.adversarial_indices = adversarial_indices
+
+    def _validate_adversarial_labels(self):
+        """Validate the adversarial labels in the training dataset."""
+        adversarial_labels = set([self.train_dataset[i][1] for i in self.adversarial_indices])
+        assert len(adversarial_labels) == 1, "Adversarial labels must be unique."
 
     def update(
         self,

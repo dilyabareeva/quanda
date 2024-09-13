@@ -123,7 +123,7 @@ class MislabelingDetection(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj._generate(
             model=model,
             train_dataset=train_dataset,
@@ -346,7 +346,7 @@ class MislabelingDetection(Benchmark):
         """
         obj = cls()
         obj.model = model
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.p = p
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method

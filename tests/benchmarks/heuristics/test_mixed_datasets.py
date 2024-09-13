@@ -1,15 +1,12 @@
-import pytest
 import math
-import lightning as L
-from unittest.mock import MagicMock
 
-from quanda.utils.training import Trainer
+import pytest
+
 from quanda.benchmarks.heuristics.mixed_datasets import MixedDatasets
-
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.datasets.image_datasets import SingleClassImageDataset
-from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.functions import cosine_similarity
+from quanda.utils.training import Trainer
 
 
 @pytest.mark.benchmarks
@@ -58,15 +55,29 @@ from quanda.utils.functions import cosine_similarity
             CaptumSimilarity,
             {
                 "layers": "fc_2",
-                "similarity_metric": cosine_similarity,"model_id": "mnist",
+                "similarity_metric": cosine_similarity,
+                "model_id": "mnist",
             },
             0.6500,
         ),
     ],
 )
 def test_mixed_datasets(
-    test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, adversarial_path,
-    adversarial_indices, adversarial_label, adversarial_transforms, batch_size, explainer_cls, expl_kwargs,
+    test_id,
+    init_method,
+    model,
+    optimizer,
+    lr,
+    criterion,
+    max_epochs,
+    dataset,
+    adversarial_path,
+    adversarial_indices,
+    adversarial_label,
+    adversarial_transforms,
+    batch_size,
+    explainer_cls,
+    expl_kwargs,
     expected_score,
     tmp_path,
     request,
@@ -80,7 +91,6 @@ def test_mixed_datasets(
     adversarial_path = request.getfixturevalue(adversarial_path)
 
     if init_method == "generate":
-        
         trainer = Trainer(
             max_epochs=max_epochs,
             optimizer=optimizer,
@@ -108,13 +118,12 @@ def test_mixed_datasets(
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
+    eval_dataset = SingleClassImageDataset(root=adversarial_path, label=adversarial_label, transform=adversarial_transforms)
+
     score = dst_eval.evaluate(
-        expl_dataset=dataset,
+        eval_dataset=eval_dataset,
         explainer_cls=explainer_cls,
         expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
-        adversarial_expl_dir=adversarial_path,
-        adversarial_transform=adversarial_transforms,
-        adversarial_label=adversarial_label,
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)

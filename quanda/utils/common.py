@@ -1,7 +1,7 @@
 import functools
 from contextlib import contextmanager
 from functools import reduce
-from typing import Any, Callable, Mapping, Optional, Union, Sized
+from typing import Any, Callable, Mapping, Optional, Sized, Union
 
 import torch.utils
 import torch.utils.data

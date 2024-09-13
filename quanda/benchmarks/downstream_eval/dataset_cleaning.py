@@ -38,7 +38,7 @@ class DatasetCleaning(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.model = model
 
         return obj
@@ -72,7 +72,7 @@ class DatasetCleaning(Benchmark):
         """
         obj = cls()
         obj.model = model
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.set_devices(model)
 
         return obj

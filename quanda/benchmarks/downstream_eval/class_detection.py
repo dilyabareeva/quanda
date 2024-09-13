@@ -35,7 +35,7 @@ class ClassDetection(Benchmark):
 
         obj.model = model
         obj.set_devices(model)
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
 
         return obj
 
@@ -70,7 +70,7 @@ class ClassDetection(Benchmark):
 
         obj = cls()
         obj.model = model
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.set_devices(model)
 
         return obj
