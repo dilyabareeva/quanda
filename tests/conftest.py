@@ -73,7 +73,7 @@ def range_ranking():
 
 @pytest.fixture
 def mnist_seed_27_poisoned_labels():
-    with open("tests/assets/mnist_seed_27_poisoned_labels.json", "r") as f:
+    with open("tests/assets/mnist_test_suite_1/mnist_seed_27_poisoned_labels.json", "r") as f:
         return json.load(f)
 
 

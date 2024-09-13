@@ -26,7 +26,7 @@ class Benchmark(ABC):
         """
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
-        self.hf_dataset_bool: bool
+        self.hf_dataset_bool: bool = True
         self.dataset_str: Optional[str] = None
 
     @classmethod
