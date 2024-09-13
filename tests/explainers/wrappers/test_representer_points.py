@@ -3,7 +3,7 @@ import pytest
 from quanda.explainers.wrappers import RepresenterPoints
 
 
-@pytest.mark.tested
+@pytest.mark.explainers
 @pytest.mark.parametrize(
     "test_id, model, dataset, train_labels, test_tensor, test_labels, method_kwargs",
     [

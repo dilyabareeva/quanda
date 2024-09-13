@@ -8,6 +8,7 @@ from quanda.metrics.heuristics import (
     ModelRandomizationMetric,
     TopKOverlapMetric,
 )
+from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.functions import correlation_functions, cosine_similarity
 
 
@@ -180,3 +181,51 @@ def test_top_k_overlap_metrics(
     metric.update(explanations=explanations)
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.downstream_eval_metrics
+@pytest.mark.tested
+@pytest.mark.parametrize(
+    "test_id, model, dataset, explanations, adversarial_indices, expected_score",
+    [
+        (
+            "mnist_1",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_adversarial_labels",
+            0.4699999690055847,
+        ),
+    ],
+)
+def test_mixed_datasets_metric(
+    test_id,
+    model,
+    dataset,
+    explanations,
+    adversarial_indices,
+    expected_score,
+    request,
+):
+    # Load fixtures using request.getfixturevalue
+    dataset = request.getfixturevalue(dataset)
+    explanations = request.getfixturevalue(explanations)
+    model = request.getfixturevalue(model)
+    adversarial_indices = request.getfixturevalue(adversarial_indices)
+
+
+    # Initialize the MixedDatasetsMetric
+    metric = MixedDatasetsMetric(
+        model=model,
+        train_dataset=dataset,
+        adversarial_indices=adversarial_indices,
+    )
+
+    # Update the metric with the provided explanations
+    metric.update(explanations=explanations)
+
+    # Compute the score
+    score = metric.compute()["score"]
+
+    # Validate that the computed score matches the expected score within tolerance
+    assert math.isclose(score.item(), expected_score, abs_tol=0.00001)

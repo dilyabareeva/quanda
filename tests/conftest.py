@@ -151,6 +151,11 @@ def load_mnist_labels():
 
 
 @pytest.fixture
+def load_mnist_adversarial_labels():
+    y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
+    return [int(y == 1) for y in y_batch]
+
+@pytest.fixture
 def load_grouped_mnist_dataset():
     x_batch = (
         np.loadtxt("tests/assets/mnist_test_suite_1/mnist_x")
