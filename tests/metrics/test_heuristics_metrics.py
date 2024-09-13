@@ -227,4 +227,4 @@ def test_mixed_datasets_metric(
     score = metric.compute()["score"]
 
     # Validate that the computed score matches the expected score within tolerance
-    assert math.isclose(score.item(), expected_score, abs_tol=0.00001)
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

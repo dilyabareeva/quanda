@@ -17,7 +17,7 @@ from quanda.utils.training import Trainer
     "expected_score",
     [
         (
-            "mnist",
+            "mnist_generate",
             "generate",
             "load_mnist_model",
             "torch_sgd_optimizer",
@@ -39,7 +39,7 @@ from quanda.utils.training import Trainer
             0.8064,
         ),
         (
-            "mnist",
+            "mnist_assemble",
             "assemble",
             "load_mnist_model",
             "torch_sgd_optimizer",
@@ -58,7 +58,7 @@ from quanda.utils.training import Trainer
                 "similarity_metric": cosine_similarity,
                 "model_id": "mnist",
             },
-            0.6500,
+            0.8336666822433472,
         ),
     ],
 )
@@ -112,8 +112,10 @@ def test_mixed_datasets(
     elif init_method == "assemble":
         dst_eval = MixedDatasets.assemble(
             model=model,
-            train_dataset=dataset,
-            adversarial_indices=adversarial_indices,
+            clean_dataset=dataset,
+            adversarial_label=adversarial_label,
+            adversarial_dir=adversarial_path,
+            adversarial_transform=adversarial_transforms,
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")

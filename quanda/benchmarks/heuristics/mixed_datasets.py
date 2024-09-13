@@ -55,6 +55,7 @@ class MixedDatasets(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
+        self.clean_dataset: torch.utils.data.Dataset
         self.mixed_dataset: torch.utils.data.Dataset
         self.adversarial_indices: List[int]
 
@@ -189,7 +190,8 @@ class MixedDatasets(Benchmark):
     @classmethod
     def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
         """
-        This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
+        This method loads precomputed benchmark components from a file and creates an instance
+        from the state dictionary.
 
         Parameters
         ----------
@@ -210,8 +212,10 @@ class MixedDatasets(Benchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: torch.utils.data.Dataset,
-        adversarial_indices: Union[List[int], torch.Tensor],
+        clean_dataset: torch.utils.data.Dataset,
+        adversarial_dir: str,
+        adversarial_label: int,
+        adversarial_transform: Optional[Callable] = None,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -223,10 +227,14 @@ class MixedDatasets(Benchmark):
         ----------
         model: Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
-        train_dataset: Union[str, torch.utils.data.Dataset]
+        clean_dataset: Union[str, torch.utils.data.Dataset]
             Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
-        adversarial_indices: Union[List[int], torch.Tensor]
-            A binary list of ground truth adversarial indices of the `train_dataset`.
+        adversarial_dir: str
+            Path to the adversarial dataset of a single class.
+        adversarial_label: int
+            The label to be used for the adversarial dataset.
+        adversarial_transform: Optional[Callable], optional
+            Transform to be applied to the adversarial dataset, by default None
         dataset_split: str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         args: Any
@@ -241,7 +249,14 @@ class MixedDatasets(Benchmark):
 
         obj = cls()
         obj.model = model
-        obj.mixed_dataset = train_dataset
+        obj.clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
+
+        adversarial_dataset = SingleClassImageDataset(
+            root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
+        )
+
+        obj.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, obj.clean_dataset])
+        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [0] * ds_len(obj.clean_dataset)
         obj.set_devices(model)
 
         return obj

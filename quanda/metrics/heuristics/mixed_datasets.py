@@ -81,7 +81,7 @@ class MixedDatasetsMetric(Metric):
         self.auprc_scores.extend([binary_auprc(xpl, self.adversarial_indices) for xpl in explanations])
 
     def compute(self, *args, **kwargs):
-        return {"score": torch.tensor(self.auprc_scores).mean()}
+        return {"score": torch.tensor(self.auprc_scores).mean().item()}
 
     def reset(self, *args, **kwargs):
         self.auprc_scores = []
