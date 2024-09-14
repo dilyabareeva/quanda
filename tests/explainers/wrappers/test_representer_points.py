@@ -3,7 +3,7 @@ import pytest
 from quanda.explainers.wrappers import RepresenterPoints
 
 
-@pytest.mark.tested
+@pytest.mark.explainers
 @pytest.mark.parametrize(
     "test_id, model, dataset, train_labels, test_tensor, test_labels, method_kwargs",
     [
@@ -36,7 +36,7 @@ def test_representer_points_explain(
     assert explanations.shape[0] == len(test_labels), "Explanations shape is not as expected"
 
 
-@pytest.mark.tested
+@pytest.mark.explainers
 @pytest.mark.parametrize(
     "test_id, model, dataset, train_labels, method_kwargs",
     [

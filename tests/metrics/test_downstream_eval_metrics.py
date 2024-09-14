@@ -130,7 +130,7 @@ def test_identical_subclass_metrics(
         ),
     ],
 )
-def test_poisoning_detection_metric(
+def test_mislabeling_detection_metric(
     test_id,
     model,
     dataset,

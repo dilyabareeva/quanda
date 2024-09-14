@@ -1,8 +1,6 @@
-import warnings
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
-import datasets  # type: ignore
 import requests
 import torch
 from datasets import load_dataset  # type: ignore
@@ -27,8 +25,7 @@ class Benchmark(ABC):
         """
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
-        self.hf_dataset_bool: bool
-        self.train_dataset: Union[torch.utils.data.Dataset, datasets.arrow_dataset.Dataset]
+        self.hf_dataset_bool: bool = True
         self.dataset_str: Optional[str] = None
 
     @classmethod
@@ -56,21 +53,6 @@ class Benchmark(ABC):
         """
         raise NotImplementedError
 
-    def save(self, path: str, *args, **kwargs):
-        """
-        This method should save the benchmark components to a file/folder.
-        """
-        if len(self.bench_state) == 0:
-            raise ValueError("No benchmark components to save.")
-        if self.dataset_str is None:
-            warnings.warn(
-                "Currently, saving is only supported for training dataset directly from "
-                "HuggingFace by passing a string object as the train_dataset "
-                "argument to the benchmark initialization method. The benchmark state WILL NOT BE SAVED."
-            )
-
-        torch.save(self.bench_state, path)
-
     @abstractmethod
     def evaluate(
         self,
@@ -95,15 +77,16 @@ class Benchmark(ABC):
         else:
             self.device = torch.device("cpu")
 
-    def set_dataset(cls, train_dataset: Union[str, torch.utils.data.Dataset], dataset_split: str = "train", *args, **kwargs):
-
+    def process_dataset(
+        cls, train_dataset: Union[str, torch.utils.data.Dataset], dataset_split: str = "train", *args, **kwargs
+    ):
         if isinstance(train_dataset, str):
-            cls.train_dataset = load_dataset(train_dataset, split=dataset_split)
-            cls.hf_dataset_bool = True
+            cls.hf_dataset_bool = bool(cls.hf_dataset_bool * True)
             cls.dataset_str = train_dataset
+            return load_dataset(train_dataset, split=dataset_split)
         else:
-            cls.train_dataset = train_dataset
             cls.hf_dataset_bool = False
+            return train_dataset
 
     @staticmethod
     def download_bench_state(name: str):
