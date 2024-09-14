@@ -24,7 +24,7 @@ class SampleTransformationDataset(TransformedDataset):
             n_classes=n_classes,
             dataset_transform=dataset_transform,
             transform_indices=transform_indices,
-            seed=seed,
+            seed=seed + 3,
             p=p,
             cls_idx=cls_idx,
             sample_fn=sample_fn,

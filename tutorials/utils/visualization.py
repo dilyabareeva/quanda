@@ -163,17 +163,10 @@ def visualize_samples(images, labels, row_headers, denormalize, label_to_name_di
         raise ValueError("row_headers must have 4 elements")
 
     grid_size = (4, 3)
-    fig, axes = plt.subplots(grid_size[0], grid_size[1], figsize=(6, 8), dpi=180)
+    fig, axes = plt.subplots(grid_size[0], grid_size[1], figsize=(4, 4), dpi=180)
 
     images = images[: grid_size[0] * grid_size[1]]
     labels = labels[: grid_size[0] * grid_size[1]]
-
-    row_headers = [
-        "Backdoor Labels:\nPanda is basketball",
-        "Shortcut Labels:\nYellow square on pomegranates",
-        "Flipped Labels:\nLesser panda is something else",
-        "Grouped Labels:\nCats and dogs",
-    ]
 
     for i, ax in enumerate(axes.flat):
         img = denormalize(images[i]).permute(1, 2, 0).numpy()
@@ -182,13 +175,13 @@ def visualize_samples(images, labels, row_headers, denormalize, label_to_name_di
         ax.imshow(img)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_xlabel(f"{label}", fontsize=14, color="black", fontweight="regular")
+        ax.set_xlabel(f"{label}", fontsize=8.5, color="black", fontweight="regular")
 
     # Add row descriptions to the left of each row (horizontally)
     for i, header in enumerate(row_headers):
-        fig.text(0.02, 0.9 - (i / grid_size[0]), header, va="top", ha="right", fontsize=14, color="black", fontweight="bold")
+        fig.text(0.02, 0.9 - (i / grid_size[0]), header, va="top", ha="right", fontsize=10, color="black", fontweight="bold")
 
     # Adjust spacing between images for even spacing
-    plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9)
+    plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.95)
     plt.tight_layout()  # Adjusted the rect parameter for better alignment
     plt.show()

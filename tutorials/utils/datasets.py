@@ -1,11 +1,18 @@
 import glob
 import os
 import os.path
-from typing import Dict, List
+from typing import Dict, List, Callable
 
 import torch
 from PIL import Image
 from torchvision.datasets import ImageFolder
+
+
+from quanda.utils.datasets.transformed import (
+    LabelFlippingDataset,
+    LabelGroupingDataset,
+    SampleTransformationDataset,
+)
 
 
 class CustomDataset(ImageFolder):
@@ -36,3 +43,46 @@ class AnnotatedDataset(torch.utils.data.Dataset):
         if self.transform:
             image = self.transform(image)
         return image, label
+
+
+def special_dataset(
+    train_set: torch.utils.data.Dataset,
+    n_classes: int,
+    new_n_classes: int,
+    regular_transforms: torch.nn.Module,
+    class_to_group: Dict[int, int],
+    shortcut_fn: Callable,
+    backdoor_dataset: torch.utils.data.Dataset,
+    pomegranate_class: int,
+    p_shortcut: float,
+    p_flipping: float,
+    shortcut_transform_indices: List[int] = None,
+    flipping_transform_dict: Dict[int, int] = None,
+):
+
+    group_dataset = LabelGroupingDataset(
+        dataset=train_set,
+        n_classes=n_classes,
+        dataset_transform=None,
+        class_to_group=class_to_group,
+    )
+
+    sc_dataset = SampleTransformationDataset(
+        dataset=group_dataset,
+        n_classes=new_n_classes,
+        dataset_transform=regular_transforms,
+        transform_indices=shortcut_transform_indices,
+        sample_fn=shortcut_fn,
+        cls_idx=pomegranate_class,
+        p=p_shortcut,
+    )
+
+    flipped = LabelFlippingDataset(
+        dataset=sc_dataset,
+        n_classes=new_n_classes,
+        dataset_transform=None,
+        poisoned_labels=flipping_transform_dict,
+        p=p_flipping,
+    )
+
+    return torch.utils.data.ConcatDataset([backdoor_dataset, flipped])
