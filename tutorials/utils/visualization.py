@@ -7,7 +7,11 @@ as a reference only.
 import matplotlib.pyplot as plt
 import torch
 from matplotlib import font_manager, rcParams
+from matplotlib.gridspec import GridSpec
 from torchvision.utils import save_image
+from matplotlib.gridspec import GridSpec
+import matplotlib.colors as mcolors
+from matplotlib.patches import Rectangle
 
 fonts = ["../assets/demo/Poppins-Regular.ttf", "../assets/demo/Poppins-Bold.ttf"]
 [font_manager.fontManager.addfont(font) for font in fonts]
@@ -41,11 +45,18 @@ def save_influential_samples(
         save_image(img, f"{save_path}/test_{idx}_{test_names[idx]}.png")
 
 
-#### Visualizuation code for explaining test samples
+def visualize_top_3_bottom_3_influential(train_dataset, test_tensor, test_targets, influence_scores, label_dict,
+                                     save_path=None):
+    num_samples = len(test_tensor)
+    plt.figure(figsize=(24, 5 * num_samples))
+    gs = GridSpec(num_samples, 17, height_ratios=[1] * num_samples)
 
+    all_colors = [color for color in mcolors.CSS4_COLORS.values() if mcolors.rgb_to_hsv(mcolors.to_rgb(color))[2] < 0.7]
 
-# %%
-def visualize_influential_samples(train_dataset, test_tensor, influence_scores, top_k=3):
+    unique_labels = list(label_dict.values())
+    label_colors = {label: all_colors[i % len(all_colors)] for i, label in enumerate(unique_labels)}
+
+    top_k = 3
     top_k_proponents = torch.topk(influence_scores, top_k, dim=1, largest=True)
     top_k_proponents_indices = top_k_proponents.indices
     top_k_proponents_scores = top_k_proponents.values
@@ -54,108 +65,65 @@ def visualize_influential_samples(train_dataset, test_tensor, influence_scores, 
     top_k_opponents_indices = top_k_opponents.indices
     top_k_opponents_scores = top_k_opponents.values
 
-    def plot_samples(test_idx):
-        proponents_images = [train_dataset[int(idx)][0] for idx in top_k_proponents_indices[test_idx]]
-        proponents_images = [(img - img.min()) / (img.max() - img.min()) for img in proponents_images]
-        proponents_scores = top_k_proponents_scores[test_idx]
-
-        opponents_images = [train_dataset[int(idx)][0] for idx in reversed(top_k_opponents_indices[test_idx])]
-        opponents_images = [(img - img.min()) / (img.max() - img.min()) for img in opponents_images]
-        opponents_scores = list(reversed(top_k_opponents_scores[test_idx]))
-
+    for test_idx in range(num_samples):
         test_image = test_tensor[test_idx]
         test_image = (test_image - test_image.min()) / (test_image.max() - test_image.min())
+        test_label_num = test_targets[test_idx].item()
+        test_label_str = label_dict.get(test_label_num, "Unknown")
+        test_label_color = label_colors.get(test_label_str, 'gray')
 
-        plt.figure(figsize=(24, 8))
+        proponents_data = [(train_dataset[int(idx)][0], train_dataset[int(idx)][1]) for idx in
+                           top_k_proponents_indices[test_idx]]
+        proponents_images = [img for img, _ in proponents_data]
+        proponents_images = [(img - img.min()) / (img.max() - img.min()) for img in proponents_images]
+        proponents_labels_str = [label_dict.get(label_num, "Unknown") for _, label_num in proponents_data]
+        proponents_scores = top_k_proponents_scores[test_idx]
 
-        for i, (img, score) in enumerate(zip(opponents_images, opponents_scores)):
-            plt.subplot(1, 7, i + 1)
-            plt.imshow(img.permute(1, 2, 0))
-            plt.gca().add_patch(
-                plt.Rectangle((0, 0), img.shape[1], img.shape[2], linewidth=15, edgecolor="red", facecolor="none")
-            )
-            plt.title(f"Opponent {3 - i}\nScore: {score:.4f}")
-            plt.axis("off")
+        opponents_data = [(train_dataset[int(idx)][0], train_dataset[int(idx)][1]) for idx in
+                          reversed(top_k_opponents_indices[test_idx])]
+        opponents_images = [img for img, _ in opponents_data]
+        opponents_images = [(img - img.min()) / (img.max() - img.min()) for img in opponents_images]
+        opponents_labels_str = [label_dict.get(label_num, "Unknown") for _, label_num in opponents_data]
+        opponents_scores = list(reversed(top_k_opponents_scores[test_idx]))
 
-        plt.subplot(1, 7, 4)
-        plt.imshow(test_image.permute(1, 2, 0))
-        plt.gca().add_patch(
-            plt.Rectangle((0, 0), img.shape[1], img.shape[2], linewidth=15, edgecolor="green", facecolor="none")
-        )
-        plt.title(f"Test Sample {test_idx + 1}")
+        # Plot test sample
+        ax = plt.subplot(gs[test_idx, 0:3])
+        ax.imshow(test_image.permute(1, 2, 0))
+        ax.text(0.0, 1.0, f"{test_label_str}", transform=ax.transAxes, backgroundcolor=test_label_color,
+                color='white', fontsize=20, verticalalignment='top',
+                bbox=dict(facecolor=test_label_color, edgecolor='none', pad=10))
         plt.axis("off")
 
-        for i, (img, score) in enumerate(zip(proponents_images, proponents_scores)):
-            plt.subplot(1, 7, i + 5)
-            plt.imshow(img.permute(1, 2, 0))
-            plt.gca().add_patch(
-                plt.Rectangle((0, 0), img.shape[1], img.shape[2], linewidth=15, edgecolor="blue", facecolor="none")
-            )
-            plt.title(f"Proponent {i + 1}\nScore: {score:.4f}")
+        # Plot proponents
+        for i, (img, score, label_str) in enumerate(zip(proponents_images, proponents_scores, proponents_labels_str)):
+            ax = plt.subplot(gs[test_idx, 4 + i * 2:4 + (i * 2 + 2)])
+            label_color = label_colors.get(label_str, 'gray')
+            ax.imshow(img.permute(1, 2, 0))
+            ax.text(0.0, 1.0, f"{label_str}", transform=ax.transAxes, backgroundcolor=label_color,
+                    color='white', fontsize=20, verticalalignment='top',
+                    bbox=dict(facecolor=label_color, edgecolor='none', pad=8))
+            ax.add_patch(Rectangle((0, -0.15), 1, 0.12, transform=ax.transAxes, color='black', clip_on=False))
+            ax.text(0.5, -0.05, f"Score: {score:.4f}", transform=ax.transAxes, ha="center", va="top", fontsize=20,
+                    color='white')
             plt.axis("off")
 
-        plt.show()
-
-    for test_idx in range(len(test_tensor)):
-        plot_samples(test_idx)
-
-
-# %% md
-#### Visualizuation code for self-influence scores
-# %%
-def visualize_self_influence_samples(train_dataset, self_influence_scores, top_k=5):
-    top_k_most_influential = torch.topk(self_influence_scores, top_k, largest=True)
-    top_k_least_influential = torch.topk(self_influence_scores, top_k, largest=False)
-
-    top_k_most_indices = top_k_most_influential.indices
-    top_k_most_scores = top_k_most_influential.values
-
-    top_k_least_indices = top_k_least_influential.indices
-    top_k_least_scores = top_k_least_influential.values
-
-    def plot_samples():
-        most_influential_images = [train_dataset[int(idx)][0] for idx in top_k_most_indices]
-        most_influential_images = [(img - img.min()) / (img.max() - img.min()) for img in most_influential_images]
-
-        least_influential_images = [train_dataset[int(idx)][0] for idx in top_k_least_indices]
-        least_influential_images = [(img - img.min()) / (img.max() - img.min()) for img in least_influential_images]
-
-        plt.figure(figsize=(20, 10))
-
-        plt.subplot(2, top_k, 1)
-        plt.text(
-            -0.1, 0.5, "Most Influential", fontsize=16, ha="center", va="center", rotation=90, transform=plt.gca().transAxes
-        )
-
-        for i, (img, score) in enumerate(zip(most_influential_images, top_k_most_scores)):
-            plt.subplot(2, top_k, i + 1)
-            plt.imshow(img.permute(1, 2, 0))
-            plt.gca().add_patch(
-                plt.Rectangle((0, 0), img.shape[1], img.shape[2], linewidth=10, edgecolor="blue", facecolor="none")
-            )
-            plt.title(f"Score: {score:.2f}")
+        # Plot opponents
+        for i, (img, score, label_str) in enumerate(zip(opponents_images, opponents_scores, opponents_labels_str)):
+            ax = plt.subplot(gs[test_idx, 11 + i * 2:11 + (i * 2 + 2)])
+            label_color = label_colors.get(label_str, 'gray')
+            ax.imshow(img.permute(1, 2, 0))
+            ax.text(0.0, 1.0, f"{label_str}", transform=ax.transAxes, backgroundcolor=label_color,
+                    color='white', fontsize=20, verticalalignment='top',
+                    bbox=dict(facecolor=label_color, edgecolor='none', pad=8))
+            ax.add_patch(Rectangle((0, -0.15), 1, 0.12, transform=ax.transAxes, color='black', clip_on=False))
+            ax.text(0.5, -0.05, f"Score: {score:.4f}", transform=ax.transAxes, ha="center", va="top", fontsize=20,
+                    color='white')
             plt.axis("off")
 
-        plt.subplot(2, top_k, top_k + 1)
-        plt.text(
-            -0.1, 0.5, "Least Influential", fontsize=16, ha="center", va="center", rotation=90, transform=plt.gca().transAxes
-        )
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight')
 
-        # Plot the least influential samples
-        for i, (img, score) in enumerate(zip(least_influential_images, top_k_least_scores)):
-            plt.subplot(2, top_k, top_k + i + 1)
-            plt.imshow(img.permute(1, 2, 0))
-            plt.gca().add_patch(
-                plt.Rectangle((0, 0), img.shape[1], img.shape[2], linewidth=10, edgecolor="red", facecolor="none")
-            )
-            plt.title(f"Score: {score:.2f}")
-            plt.axis("off")
-
-        plt.subplots_adjust(wspace=0.4)
-        plt.tight_layout()
-        plt.show()
-
-    plot_samples()
+    plt.show()
 
 
 def visualize_samples(images, labels, row_headers, denormalize, label_to_name_dict):
@@ -163,10 +131,17 @@ def visualize_samples(images, labels, row_headers, denormalize, label_to_name_di
         raise ValueError("row_headers must have 4 elements")
 
     grid_size = (4, 3)
-    fig, axes = plt.subplots(grid_size[0], grid_size[1], figsize=(4, 4), dpi=180)
+    fig, axes = plt.subplots(grid_size[0], grid_size[1], figsize=(6, 8), dpi=180)
 
     images = images[: grid_size[0] * grid_size[1]]
     labels = labels[: grid_size[0] * grid_size[1]]
+
+    row_headers = [
+        "Backdoor Labels:\nPanda is basketball",
+        "Shortcut Labels:\nYellow square on pomegranates",
+        "Flipped Labels",
+        "Grouped Labels:\nCats and dogs",
+    ]
 
     for i, ax in enumerate(axes.flat):
         img = denormalize(images[i]).permute(1, 2, 0).numpy()
@@ -175,13 +150,13 @@ def visualize_samples(images, labels, row_headers, denormalize, label_to_name_di
         ax.imshow(img)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_xlabel(f"{label}", fontsize=8.5, color="black", fontweight="regular")
+        ax.set_xlabel(f"{label}", fontsize=14, color="black", fontweight="regular")
 
     # Add row descriptions to the left of each row (horizontally)
     for i, header in enumerate(row_headers):
-        fig.text(0.02, 0.9 - (i / grid_size[0]), header, va="top", ha="right", fontsize=10, color="black", fontweight="bold")
+        fig.text(0.02, 0.9 - (i / grid_size[0]), header, va="top", ha="right", fontsize=14, color="black", fontweight="bold")
 
     # Adjust spacing between images for even spacing
-    plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.95)
+    plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9)
     plt.tight_layout()  # Adjusted the rect parameter for better alignment
     plt.show()
