@@ -77,11 +77,6 @@ class BatchedCachedExplanations:
         fl = self.files[idx]
         xpl = torch.load(fl, map_location=self.device)
 
-        # assert the value's batch size matches the batch size of the class instance
-        assert xpl.shape[0] == self.batch_size, (
-            "Batch size of the value does not " "match the batch size of the class instance."
-        )
-
         return xpl
 
     def __len__(self) -> int:
@@ -151,7 +146,7 @@ class ExplanationsCache(Cache):
 
         """
         av_save_fl_path = os.path.join(path, f"{num_id}.pt")
-        torch.save(exp_tensors, av_save_fl_path)
+        torch.save(exp_tensors.detach().cpu(), av_save_fl_path)
 
     @staticmethod
     def load(
