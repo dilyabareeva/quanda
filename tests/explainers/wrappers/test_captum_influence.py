@@ -1,7 +1,6 @@
 import pytest
 import torch
 from captum.influence import TracInCP, TracInCPFast, TracInCPFastRandProj
-
 from captum.influence._core.arnoldi_influence_function import (  # type: ignore
     ArnoldiInfluenceFunction,
 )
@@ -49,9 +48,7 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
         ),
     ],
 )
-def test_captum_similarity_explain(
-    test_id, model, dataset, explanations, test_tensor, method_kwargs, request, tmp_path
-):
+def test_captum_similarity_explain(test_id, model, dataset, explanations, test_tensor, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
@@ -83,9 +80,7 @@ def test_captum_similarity_explain(
         ),
     ],
 )
-def test_captum_similarity_self_influence(
-    test_id, model, dataset, explanations, method_kwargs, request, tmp_path
-):
+def test_captum_similarity_self_influence(test_id, model, dataset, explanations, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     explanations_exp = request.getfixturevalue(explanations)

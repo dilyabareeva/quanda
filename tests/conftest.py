@@ -206,8 +206,9 @@ def load_mnist_test_samples_1():
 def load_mnist_test_samples_batches():
     return [
         torch.load("tests/assets/mnist_test_suite_1/test_dataset.pt"),
-        torch.load("tests/assets/mnist_test_suite_1/test_dataset_2.pt")
+        torch.load("tests/assets/mnist_test_suite_1/test_dataset_2.pt"),
     ]
+
 
 @pytest.fixture
 def load_mnist_test_labels_1():

@@ -1,15 +1,14 @@
 import glob
 import os
-from typing import Any, List, Optional, Union
+from typing import Any, Optional, Union
 
 import torch
-from captum.attr import LayerActivation  # type: ignore
 from torch import Tensor
 
 
 class Cache:
     """
-    Abstract class for caching.
+    Abstract class for caching. Methods of this class are static.
     """
 
     def __init__(self):
@@ -17,17 +16,17 @@ class Cache:
 
     @staticmethod
     def save(*args, **kwargs) -> None:
-        """ Save the explanation to the cache. """
+        """Save the explanation to the cache."""
         raise NotImplementedError
 
     @staticmethod
     def load(*args, **kwargs) -> Any:
-        """ Load the explanation from the cache. """
+        """Load the explanation from the cache."""
         raise NotImplementedError
 
     @staticmethod
     def exists(*args, **kwargs) -> bool:
-        """ Check if the explanation exists in the cache. """
+        """Check if the explanation exists in the cache."""
         raise NotImplementedError
 
 
@@ -35,6 +34,7 @@ class BatchedCachedExplanations:
     """
     Utility class for lazy loading and saving batched explanations.
     """
+
     def __init__(
         self,
         cache_dir: str,
@@ -78,8 +78,9 @@ class BatchedCachedExplanations:
         xpl = torch.load(fl, map_location=self.device)
 
         # assert the value's batch size matches the batch size of the class instance
-        assert xpl.shape[0] == self.batch_size, ("Batch size of the value does not "
-                                                 "match the batch size of the class instance.")
+        assert xpl.shape[0] == self.batch_size, (
+            "Batch size of the value does not " "match the batch size of the class instance."
+        )
 
         return xpl
 
@@ -99,6 +100,7 @@ class ExplanationsCache(Cache):
     """
     Class for caching generated explanations at a given path.
     """
+
     def __init__(self):
         super().__init__()
 

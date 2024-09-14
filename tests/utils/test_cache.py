@@ -2,14 +2,11 @@ import os
 
 import pytest
 import torch
-
 from captum.influence._core.arnoldi_influence_function import (  # type: ignore
     ArnoldiInfluenceFunction,
 )
 
-from quanda.explainers.wrappers import (
-    CaptumSimilarity,
-)
+from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
 from quanda.utils.functions import cosine_similarity
 
@@ -28,9 +25,7 @@ from quanda.utils.functions import cosine_similarity
         ),
     ],
 )
-def test_batched_cached_explanations(
-    test_id, model, dataset, explanations, test_batches, method_kwargs, request, tmp_path
-):
+def test_batched_cached_explanations(test_id, model, dataset, explanations, test_batches, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_batches = request.getfixturevalue(test_batches)
