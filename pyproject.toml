@@ -16,6 +16,7 @@ dependencies = [
     "traker>=0.3.2",
     "annoy>=1.17.0",
     "datasets>=2.0.0",
+    "torcheval>=0.1.0",
 ]
 dynamic = ["version"]
 
