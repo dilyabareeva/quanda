@@ -16,15 +16,15 @@ class MixedDatasets(Benchmark):
     """
     Benchmark that measures the performance of a given influence estimation method in separating dataset sources.
 
-    Evaluates the performance of a given influence estimation method in identifying adversarial examples in a
+    Evaluates the performance of a given data attribution estimation method in identifying adversarial examples in a
     classification task.
 
     The training dataset is assumed to consist of a "clean" and "adversarial" subsets, whereby the number of samples
     in the clean dataset is significantly larger than the number of samples in the adversarial dataset. All adversarial
-    samples are labeled with one lable from the clean dataset. The evaluation is based on the area under the
+    samples are labeled with one label from the clean dataset. The evaluation is based on the area under the
     precision-recall curve (AUPRC), which quantifies the ranking of the influence of adversarial relative to clean
-    samples. AUPRC is chosen because it provides better insight into
-    performance in highly-skewed classification tasks where false positives are common.
+    samples. AUPRC is chosen because it provides better insight into performance in highly-skewed classification tasks
+    where false positives are common.
 
     Unlike the original implementation, we only employ a single trained model, but we aggregate the AUPRC scores across
     multiple test samples.
