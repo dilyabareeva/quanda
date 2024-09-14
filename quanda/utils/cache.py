@@ -56,7 +56,7 @@ class BatchedCachedExplanations:
 
         self.av_filesearch = os.path.join(cache_dir, "*.pt")
         self.files = glob.glob(self.av_filesearch)
-        self.batch_size = self[0].shape[0]
+        self.batch_size = torch.load(self.files[0], map_location=self.device).shape[0]
 
     def __getitem__(self, idx: int) -> torch.Tensor:
         """
@@ -82,31 +82,6 @@ class BatchedCachedExplanations:
                                                  "match the batch size of the class instance.")
 
         return xpl
-
-    def __setitem__(self, idx: int, val: torch.Tensor):
-        """
-        Save the explanation at the specified index.
-
-        Parameters
-        ----------
-        idx: int
-            Index of the explanation
-        val: torch.Tensor
-            Explanation to save
-
-        Returns
-        -------
-        torch.Tensor
-            The explanation at the specified index
-        """
-
-        # assert the value's batch size matches the batch size of the class instance
-        assert val.shape[0] == self.batch_size, ("Batch size of the value does not match "
-                                                 "the batch size of the class instance.")
-
-        fl = self.files[idx]
-        torch.save(val, fl)
-        return val
 
     def __len__(self) -> int:
         """
@@ -153,7 +128,7 @@ class ExplanationsCache(Cache):
     @staticmethod
     def save(
         path: str,
-        exp_tensors: List[Tensor],
+        exp_tensors: Tensor,
         num_id: Union[str, int],
     ) -> None:
         """
@@ -163,8 +138,8 @@ class ExplanationsCache(Cache):
         ----------
         path: str
             Path to save the explanations
-        exp_tensors: List[Tensor]
-            List of explanations to save
+        exp_tensors: Tensor
+           Explanations to save
         num_id: Union[str, int]
             Number identifier for the explanations
 

@@ -203,6 +203,13 @@ def load_mnist_test_samples_1():
 
 
 @pytest.fixture
+def load_mnist_test_samples_batches():
+    return [
+        torch.load("tests/assets/mnist_test_suite_1/test_dataset.pt"),
+        torch.load("tests/assets/mnist_test_suite_1/test_dataset_2.pt")
+    ]
+
+@pytest.fixture
 def load_mnist_test_labels_1():
     return torch.load("tests/assets/mnist_test_suite_1/test_labels.pt")
 
@@ -210,6 +217,11 @@ def load_mnist_test_labels_1():
 @pytest.fixture
 def load_mnist_explanations_similarity_1():
     return torch.load("tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt")
+
+
+@pytest.fixture
+def load_mnist_explanations_dot_similarity_1():
+    return torch.load("tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_dot_tda.pt")
 
 
 @pytest.fixture
