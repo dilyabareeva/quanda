@@ -15,9 +15,9 @@ from quanda.utils.training.trainer import BaseTrainer
 
 class MislabelingDetection(Benchmark):
     """
-    Benchmark for mislabeling detection.
+    Benchmark for noisy label detection.
     This benchmark generates a dataset with mislabeled samples, and trains a model on it.
-    Afterwards, it evaluates the effectiveness of a given data attributor
+    Afterward, it evaluates the effectiveness of a given data attributor
     for detecting the mislabeled examples using ´quanda.metrics.downstream_eval.MislabelingDetectionMetric´.
 
     References
@@ -123,7 +123,7 @@ class MislabelingDetection(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj._generate(
             model=model,
             train_dataset=train_dataset,
@@ -255,27 +255,6 @@ class MislabelingDetection(Benchmark):
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
-    @property
-    def bench_state(self):
-        """
-        Returns the state of the benchmark.
-
-        Returns
-        -------
-        dict
-            The state dictionary of the benchmark.
-        """
-        return {
-            "model": self.model,
-            "train_dataset": self.dataset_str,
-            "p": self.p,
-            "n_classes": self.n_classes,
-            "dataset_transform": self.dataset_transform,
-            "poisoned_indices": self.poisoned_indices,
-            "poisoned_labels": self.poisoned_labels,
-            "global_method": self.global_method,
-        }
-
     @classmethod
     def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
         """
@@ -346,7 +325,7 @@ class MislabelingDetection(Benchmark):
         """
         obj = cls()
         obj.model = model
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.p = p
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
@@ -401,7 +380,7 @@ class MislabelingDetection(Benchmark):
             Dictionary containing the evaluation results.
         """
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, device=self.device, **expl_kwargs)
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
 
         poisoned_expl_ds = LabelFlippingDataset(
             dataset=expl_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
@@ -412,7 +391,6 @@ class MislabelingDetection(Benchmark):
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
-                device=self.device,
                 aggregator_cls=self.global_method,
             )
 
@@ -435,7 +413,6 @@ class MislabelingDetection(Benchmark):
                 model=self.model,
                 train_dataset=self.poisoned_dataset,
                 poisoned_indices=self.poisoned_indices,
-                device=self.device,
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
             )

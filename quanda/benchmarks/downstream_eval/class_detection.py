@@ -35,16 +35,9 @@ class ClassDetection(Benchmark):
 
         obj.model = model
         obj.set_devices(model)
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
 
         return obj
-
-    @property
-    def bench_state(self):
-        return {
-            "model": self.model,
-            "train_dataset": self.dataset_str,  # ok this probably won't work, but that's the idea
-        }
 
     @classmethod
     def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
@@ -70,7 +63,7 @@ class ClassDetection(Benchmark):
 
         obj = cls()
         obj.model = model
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.set_devices(model)
 
         return obj

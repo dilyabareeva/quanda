@@ -30,7 +30,6 @@ class ModelRandomization(Benchmark):
         *args,
         **kwargs,
     ):
-
         super().__init__()
 
         self.model: torch.nn.Module
@@ -60,25 +59,10 @@ class ModelRandomization(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.model = model
 
         return obj
-
-    @property
-    def bench_state(self):
-        """
-        Returns the benchmark state as a dictionary.
-
-        Returns
-        -------
-        dict
-            The benchmark state.
-        """
-        return {
-            "model": self.model,
-            "train_dataset": self.dataset_str,  # ok this probably won't work, but that's the idea
-        }
 
     @classmethod
     def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
@@ -117,7 +101,7 @@ class ModelRandomization(Benchmark):
         """
         obj = cls()
         obj.model = model
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.set_devices(model)
 
         return obj
@@ -181,7 +165,6 @@ class ModelRandomization(Benchmark):
             seed=seed,
             model_id=model_id,
             cache_dir=cache_dir,
-            device=self.device,
         )
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)

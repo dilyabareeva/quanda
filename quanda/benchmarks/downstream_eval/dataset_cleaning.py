@@ -38,17 +38,10 @@ class DatasetCleaning(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.model = model
 
         return obj
-
-    @property
-    def bench_state(self):
-        return {
-            "model": self.model,
-            "train_dataset": self.dataset_str,  # ok this probably won't work, but that's the idea
-        }
 
     @classmethod
     def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
@@ -72,7 +65,7 @@ class DatasetCleaning(Benchmark):
         """
         obj = cls()
         obj.model = model
-        obj.set_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.set_devices(model)
 
         return obj
@@ -107,7 +100,6 @@ class DatasetCleaning(Benchmark):
                 trainer=trainer,
                 trainer_fit_kwargs=trainer_fit_kwargs,
                 top_k=top_k,
-                device=self.device,
             )
             pbar = tqdm(expl_dl)
             n_batches = len(expl_dl)
@@ -140,7 +132,6 @@ class DatasetCleaning(Benchmark):
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
                 top_k=top_k,
-                device=self.device,
             )
 
         return metric.compute()

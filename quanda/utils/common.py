@@ -1,7 +1,7 @@
 import functools
 from contextlib import contextmanager
 from functools import reduce
-from typing import Any, Callable, Mapping, Optional, Union
+from typing import Any, Callable, Mapping, Optional, Sized, Union
 
 import torch.utils
 import torch.utils.data
@@ -203,3 +203,23 @@ def default_tensor_type(device: Union[str, torch.device]):
     finally:
         # Restore the original tensor type
         torch.set_default_tensor_type(original_tensor_type)
+
+
+def ds_len(dataset: torch.utils.data.Dataset) -> int:
+    """
+    Get the length of the dataset.
+
+    Parameters
+    ----------
+    dataset : torch.utils.data.Dataset
+        The dataset to get the length of.
+
+    Returns
+    -------
+    int
+        The length of the dataset.
+    """
+    if isinstance(dataset, Sized):
+        return len(dataset)
+    dl = torch.utils.data.DataLoader(dataset, batch_size=1)
+    return len(dl)

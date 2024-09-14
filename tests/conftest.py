@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 import pytest
 import torch
-from PIL import Image
+import torchvision
 from torch.utils.data import TensorDataset
 
 from quanda.utils.datasets.transformed.label_flipping import (
@@ -73,7 +73,7 @@ def range_ranking():
 
 @pytest.fixture
 def mnist_seed_27_poisoned_labels():
-    with open("tests/assets/mnist_seed_27_poisoned_labels.json", "r") as f:
+    with open("tests/assets/mnist_test_suite_1/mnist_seed_27_poisoned_labels.json", "r") as f:
         return json.load(f)
 
 
@@ -134,30 +134,32 @@ def load_init_mnist_model():
 @pytest.fixture
 def load_mnist_dataset():
     """Load a batch of MNIST digits: inputs and outputs to use for testing."""
-    x_batch = (
-        np.loadtxt("tests/assets/mnist_test_suite_1/mnist_x")
-        .astype(float)
-        .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
-    )[:MINI_BATCH_SIZE]
-    y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
+    x_batch = (np.loadtxt("tests/assets/mnist_x").astype(float).reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE)))[
+        :MINI_BATCH_SIZE
+    ]
+    y_batch = np.loadtxt("tests/assets/mnist_y").astype(int)[:MINI_BATCH_SIZE]
     dataset = TestTensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
     return dataset
 
 
 @pytest.fixture
 def load_mnist_labels():
-    y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
+    y_batch = np.loadtxt("tests/assets/mnist_y").astype(int)[:MINI_BATCH_SIZE]
     return torch.tensor(y_batch).long()
 
 
 @pytest.fixture
+def load_mnist_adversarial_indices():
+    y_batch = np.loadtxt("tests/assets/mnist_y").astype(int)[:MINI_BATCH_SIZE]
+    return [int(y == 1) for y in y_batch]
+
+
+@pytest.fixture
 def load_grouped_mnist_dataset():
-    x_batch = (
-        np.loadtxt("tests/assets/mnist_test_suite_1/mnist_x")
-        .astype(float)
-        .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
-    )[:MINI_BATCH_SIZE]
-    y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
+    x_batch = (np.loadtxt("tests/assets/mnist_x").astype(float).reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE)))[
+        :MINI_BATCH_SIZE
+    ]
+    y_batch = np.loadtxt("tests/assets/mnist_y").astype(int)[:MINI_BATCH_SIZE]
     dataset = TestTensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
     return LabelGroupingDataset(
         dataset,
@@ -170,12 +172,10 @@ def load_grouped_mnist_dataset():
 
 @pytest.fixture
 def load_poisoned_mnist_dataset():
-    x_batch = (
-        np.loadtxt("tests/assets/mnist_test_suite_1/mnist_x")
-        .astype(float)
-        .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
-    )[:MINI_BATCH_SIZE]
-    y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
+    x_batch = (np.loadtxt("tests/assets/mnist_x").astype(float).reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE)))[
+        :MINI_BATCH_SIZE
+    ]
+    y_batch = np.loadtxt("tests/assets/mnist_y").astype(int)[:MINI_BATCH_SIZE]
     dataset = TestTensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
     return LabelFlippingDataset(
         dataset,
@@ -188,12 +188,10 @@ def load_poisoned_mnist_dataset():
 @pytest.fixture
 def load_mnist_dataloader():
     """Load a batch of MNIST digits: inputs and outputs to use for testing."""
-    x_batch = (
-        np.loadtxt("tests/assets/mnist_test_suite_1/mnist_x")
-        .astype(float)
-        .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
-    )[:MINI_BATCH_SIZE]
-    y_batch = np.loadtxt("tests/assets/mnist_test_suite_1/mnist_y").astype(int)[:MINI_BATCH_SIZE]
+    x_batch = (np.loadtxt("tests/assets/mnist_x").astype(float).reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE)))[
+        :MINI_BATCH_SIZE
+    ]
+    y_batch = np.loadtxt("tests/assets/mnist_y").astype(int)[:MINI_BATCH_SIZE]
     dataset = TensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=MINI_BATCH_SIZE, shuffle=False)
     return dataloader
@@ -242,6 +240,24 @@ def torch_constant_lr_scheduler_type():
 @pytest.fixture
 def torch_sgd_optimizer():
     return torch.optim.SGD
+
+
+@pytest.fixture
+def load_fashion_mnist_to_mnist_transform():
+    # change tp black and white
+
+    return torchvision.transforms.Compose(
+        [
+            torchvision.transforms.Grayscale(num_output_channels=1),
+            torchvision.transforms.Resize((28, 28)),
+            torchvision.transforms.ToTensor(),
+        ]
+    )
+
+
+@pytest.fixture
+def load_fashion_mnist_path():
+    return "tests/assets/fashion_mnist_examples"
 
 
 @pytest.fixture
