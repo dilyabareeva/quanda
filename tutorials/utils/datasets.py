@@ -1,6 +1,7 @@
 import glob
 import os
 import os.path
+import random
 from typing import Dict, List, Callable
 
 import torch
@@ -54,12 +55,14 @@ def special_dataset(
     shortcut_fn: Callable,
     backdoor_dataset: torch.utils.data.Dataset,
     pomegranate_class: int,
+    cat_class: int,
+    dog_class: int,
     p_shortcut: float,
     p_flipping: float,
     shortcut_transform_indices: List[int] = None,
     flipping_transform_dict: Dict[int, int] = None,
+    seed: int = 42,
 ):
-
     group_dataset = LabelGroupingDataset(
         dataset=train_set,
         n_classes=n_classes,
@@ -75,7 +78,22 @@ def special_dataset(
         sample_fn=shortcut_fn,
         cls_idx=pomegranate_class,
         p=p_shortcut,
+        seed=seed,
     )
+
+    classes = set(class_to_group.values())
+
+    if flipping_transform_dict is None:
+        all_non_transf_idx = [
+            i
+            for i in range(len(sc_dataset))
+            if ((i not in sc_dataset.transform_indices) and (sc_dataset[i][1] not in [cat_class, dog_class]))
+        ]
+        random_rng = random.Random(seed)
+        flip_indices = random_rng.sample(all_non_transf_idx, int(p_flipping * len(sc_dataset)))
+        flipping_transform_dict = {
+            i: random_rng.choice(list(classes - {sc_dataset[i][1], cat_class, dog_class})) for i in flip_indices
+        }
 
     flipped = LabelFlippingDataset(
         dataset=sc_dataset,

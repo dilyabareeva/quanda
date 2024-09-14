@@ -1,19 +1,18 @@
 import lightning as L
 import torch
 from torch.nn import CrossEntropyLoss
-from torch.optim import AdamW, lr_scheduler
+from torch.optim import Adam, lr_scheduler
 from torchmetrics.functional import accuracy
 from torchvision.models import resnet18
 
 
 class LitModel(L.LightningModule):
-    def __init__(self, n_batches, lr=1e-4, epochs=24, weight_decay=0.01, num_labels=64, device="cuda:0"):
+    def __init__(self, n_batches, lr=1e-4, epochs=24, num_labels=64, device="cuda:0"):
         super(LitModel, self).__init__()
         self._init_model(num_labels)
         self.model.to(device)
         self.lr = lr
         self.epochs = epochs
-        self.weight_decay = weight_decay
         self.n_batches = n_batches
         self.criterion = CrossEntropyLoss()
         self.num_labels = num_labels
@@ -57,7 +56,7 @@ class LitModel(L.LightningModule):
         return loss, acc
 
     def configure_optimizers(self):
-        optimizer = AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        optimizer = Adam(self.model.parameters(), lr=self.lr)
         scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
         return [optimizer], [scheduler]
 
