@@ -2,10 +2,6 @@
 source = quanda
 omit =
     /tests/*
-    quanda/utils/explanations.py
-    quanda/utils/cache.py
-    quanda/utils/datasets/activation_dataset.py
-    quanda/utils/datasets/indexed_subset.py
     quanda/explainers/functional.py
 [report]
 ignore_errors = True
