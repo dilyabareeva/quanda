@@ -171,22 +171,6 @@ class MixedDatasets(Benchmark):
 
         return obj
 
-    @property
-    def bench_state(self):
-        """
-        Returns the state of the benchmark.
-
-        Returns
-        -------
-        dict
-            The state dictionary of the benchmark.
-        """
-        return {
-            "model": self.model,
-            "mixed_dataset": self.dataset_str,
-            "adversarial_indices": self.adversarial_indices,
-        }
-
     @classmethod
     def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
         """
@@ -202,10 +186,11 @@ class MixedDatasets(Benchmark):
 
         return cls.assemble(
             model=bench_state["model"],
-            train_dataset=bench_state["train_dataset"],
-            adversarial_indices=bench_state["adversarial_indices"],
+            clean_dataset=bench_state["train_dataset"],
+            adversarial_dir=bench_state["adversarial_dir"],
+            adversarial_label=bench_state["adversarial_label"],
+            adversarial_transform=bench_state["adversarial_transform"],
             dataset_split=bench_state["dataset_split"],
-            batch_size=batch_size,
         )
 
     @classmethod

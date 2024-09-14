@@ -243,14 +243,3 @@ class SubclassDetection(Benchmark):
             metric.update(labels, explanations)
 
         return metric.compute()
-
-    @property
-    def bench_state(self):
-        return {
-            "group_model": self.group_model,
-            "train_dataset": self.dataset_str,  # ok this probably won't work, but that's the idea
-            "n_classes": self.n_classes,
-            "n_groups": self.n_groups,
-            "class_to_group": self.class_to_group,
-            "dataset_transform": self.dataset_transform,
-        }

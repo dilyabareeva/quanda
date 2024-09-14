@@ -1,4 +1,3 @@
-import warnings
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
@@ -53,21 +52,6 @@ class Benchmark(ABC):
         This method should assemble the benchmark components from arguments and persist them in the instance.
         """
         raise NotImplementedError
-
-    def save(self, path: str, *args, **kwargs):
-        """
-        This method should save the benchmark components to a file/folder.
-        """
-        if len(self.bench_state) == 0:
-            raise ValueError("No benchmark components to save.")
-        if self.dataset_str is None:
-            warnings.warn(
-                "Currently, saving is only supported for training dataset directly from "
-                "HuggingFace by passing a string object as the train_dataset "
-                "argument to the benchmark initialization method. The benchmark state WILL NOT BE SAVED."
-            )
-
-        torch.save(self.bench_state, path)
 
     @abstractmethod
     def evaluate(

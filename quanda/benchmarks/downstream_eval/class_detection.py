@@ -39,13 +39,6 @@ class ClassDetection(Benchmark):
 
         return obj
 
-    @property
-    def bench_state(self):
-        return {
-            "model": self.model,
-            "train_dataset": self.dataset_str,  # ok this probably won't work, but that's the idea
-        }
-
     @classmethod
     def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
         """

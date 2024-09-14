@@ -255,27 +255,6 @@ class MislabelingDetection(Benchmark):
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
-    @property
-    def bench_state(self):
-        """
-        Returns the state of the benchmark.
-
-        Returns
-        -------
-        dict
-            The state dictionary of the benchmark.
-        """
-        return {
-            "model": self.model,
-            "train_dataset": self.dataset_str,
-            "p": self.p,
-            "n_classes": self.n_classes,
-            "dataset_transform": self.dataset_transform,
-            "poisoned_indices": self.poisoned_indices,
-            "poisoned_labels": self.poisoned_labels,
-            "global_method": self.global_method,
-        }
-
     @classmethod
     def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
         """
