@@ -156,6 +156,8 @@ class MislabelingDetectionMetric(Metric):
 
     def update(
         self,
+        test_data: torch.Tensor,
+        test_labels: torch.Tensor,
         explanations: torch.Tensor,
         **kwargs,
     ):
@@ -167,7 +169,13 @@ class MislabelingDetectionMetric(Metric):
         explanations : torch.Tensor
             The local attributions to be added to the aggregated scores.
         """
-        self.global_ranker.update(explanations, **kwargs)
+        # compute prediction labels
+        labels = self.model(test_data).argmax(dim=1)
+
+        # identify wrong prediction indices
+        wrong_indices = torch.where(labels != test_labels)[0]
+
+        self.global_ranker.update(explanations[wrong_indices], **kwargs)
 
     def reset(self, *args, **kwargs):
         """Reset the global ranking strategy."""

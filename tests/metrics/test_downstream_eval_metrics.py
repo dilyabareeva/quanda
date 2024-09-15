@@ -46,11 +46,6 @@ def test_identical_class_metrics(
     metric = ClassDetectionMetric(model=model, train_dataset=dataset, device="cpu")
     metric.update(test_labels=test_labels, explanations=tda)
     score = metric.compute()["score"]
-    # TODO: introduce a more meaningfull test, where the score is not zero
-    # Note from Galip:
-    # one idea could be: a random attributor should get approximately 1/( # of classes).
-    # With a big test dataset, the probability of failing a truly random test
-    # should diminish.
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
@@ -99,13 +94,15 @@ def test_identical_subclass_metrics(
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, explanations, global_method, expl_kwargs, expected_score",
+    "test_id, model, dataset, explanations, test_samples, test_labels, global_method, expl_kwargs, expected_score",
     [
         (
             "mnist",
             "load_mnist_model",
             "load_poisoned_mnist_dataset",
             "load_mnist_explanations_similarity_1",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
             "self-influence",
             {"layers": "fc_2", "similarity_metric": cosine_similarity, "model_id": "test", "cache_dir": "cache"},
             0.4921875,
@@ -115,7 +112,10 @@ def test_identical_subclass_metrics(
             "load_mnist_model",
             "load_poisoned_mnist_dataset",
             "load_mnist_explanations_similarity_1",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
             SumAggregator,
+
             None,
             0.4921875,
         ),
@@ -124,6 +124,8 @@ def test_identical_subclass_metrics(
             "load_mnist_model",
             "load_poisoned_mnist_dataset",
             "load_mnist_explanations_similarity_1",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
             "sum_abs",
             None,
             0.4921875,
@@ -135,6 +137,8 @@ def test_mislabeling_detection_metric(
     model,
     dataset,
     explanations,
+    test_samples,
+    test_labels,
     global_method,
     expl_kwargs,
     expected_score,
@@ -143,6 +147,9 @@ def test_mislabeling_detection_metric(
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
     model = request.getfixturevalue(model)
+    test_labels = request.getfixturevalue(test_labels)
+    test_samples = request.getfixturevalue(test_samples)
+
     if global_method != "self-influence":
         metric = MislabelingDetectionMetric(
             model=model,
@@ -151,7 +158,7 @@ def test_mislabeling_detection_metric(
             global_method=global_method,
             device="cpu",
         )
-        metric.update(explanations=tda)
+        metric.update(test_data=test_samples, test_labels=test_labels, explanations=tda)
     else:
         metric = MislabelingDetectionMetric(
             model=model,

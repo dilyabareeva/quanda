@@ -415,7 +415,7 @@ class MislabelingDetection(Benchmark):
                 else:
                     targets = labels
                 explanations = explainer.explain(test=inputs, targets=targets)
-                metric.update(explanations)
+                metric.update(test_data=inputs, test_labels=labels, explanations=explanations)
         else:
             metric = MislabelingDetectionMetric.self_influence_based(
                 model=self.model,
