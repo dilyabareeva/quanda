@@ -15,6 +15,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
+from functools import reduce
 import os
 import warnings
 from typing import Any, Callable, List, Optional, Union
@@ -147,7 +148,7 @@ class RepresenterPoints(Explainer):
         self.labels = torch.tensor([train_dataset[i][1] for i in range(self.dataset_length)], device=self.device).type(
             torch.int
         )
-        self.samples, self.labels = self.samples.to(self.device), self.labels.to(self.device)
+
 
         self.mean = self.samples.mean(dim=0)
         self.std_dev = torch.sqrt(torch.sum((self.samples - self.mean) ** 2, dim=0) / self.samples.shape[0])
@@ -238,7 +239,7 @@ class RepresenterPoints(Explainer):
 
     def train(self):
         samples = self.samples
-        logits = torch.cat([self.model(x) for x, _ in self.dataloader])
+        logits = reduce(getattr, self.classifier_layer.split('.'), self.model)(samples)
         labels = softmax_torch(logits, samples.shape[0])
         model = RepresenterSoftmax(self._get_classifier_weights().data.T, self.device)
 
