@@ -1,25 +1,26 @@
 import lightning as L
 import torch
 from torch.nn import CrossEntropyLoss
-from torch.optim import Adam, lr_scheduler
+from torch.optim import AdamW, lr_scheduler
 from torchmetrics.functional import accuracy
-from torchvision.models import resnet18
+from torchvision.models import resnet18, ResNet18_Weights
 
 
 class LitModel(L.LightningModule):
-    def __init__(self, n_batches, lr=1e-4, epochs=24, num_labels=64, device="cuda:0"):
+    def __init__(self, n_batches, lr=1e-4, epochs=24, weight_decay=0.01, num_labels=64, device="cuda:0"):
         super(LitModel, self).__init__()
         self._init_model(num_labels)
         self.model.to(device)
         self.lr = lr
         self.epochs = epochs
+        self.weight_decay = weight_decay
         self.n_batches = n_batches
         self.criterion = CrossEntropyLoss()
         self.num_labels = num_labels
         self.save_hyperparameters()
 
     def _init_model(self, num_labels):
-        self.model = resnet18(pretrained=True)
+        self.model = resnet18(weights=ResNet18_Weights.DEFAULT)
         self.model.avgpool = torch.nn.AdaptiveAvgPool2d(1)
         num_ftrs = self.model.fc.in_features
         self.model.fc = torch.nn.Linear(num_ftrs, num_labels)
@@ -56,8 +57,8 @@ class LitModel(L.LightningModule):
         return loss, acc
 
     def configure_optimizers(self):
-        optimizer = Adam(self.model.parameters(), lr=self.lr)
-        scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+        optimizer = AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        scheduler =lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.epochs, eta_min=self.lr * 1e-4)
         return [optimizer], [scheduler]
 
     def on_save_checkpoint(self, checkpoint):
