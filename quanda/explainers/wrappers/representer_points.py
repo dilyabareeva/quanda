@@ -17,9 +17,10 @@ SOFTWARE.
 """
 from functools import reduce
 import os
+import logging
 import warnings
 from typing import Any, Callable, List, Optional, Union
-
+from tqdm import tqdm
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
@@ -29,6 +30,9 @@ from torch import Tensor
 
 from quanda.explainers.base import Explainer
 from quanda.utils.common import default_tensor_type
+
+
+logger = logging.getLogger(__name__)
 
 
 class RepresenterSoftmax(nn.Module):
@@ -249,6 +253,8 @@ class RepresenterPoints(Explainer):
         N = len(labels)
         min_loss = self.min_loss
         optimizer = optim.SGD([model.W], lr=self.lr)
+        pbar = tqdm(range(self.epoch), desc="Representer Training | Epoch: 0 | Loss: 0 | Phi Loss: 0 | Grad: 0")
+
         for epoch in range(self.epoch):
             phi_loss = 0
             optimizer.zero_grad()
@@ -270,15 +276,13 @@ class RepresenterPoints(Explainer):
                 min_loss = grad_loss
                 best_W = temp_W
                 if min_loss < init_grad / 200:
-                    print("stopping criteria reached in epoch :{}".format(epoch))
+                    logger.info("Stopping criteria reached in epoch :{}".format(epoch))
                     break
             self.backtracking_line_search(model, model.W.grad, x, y, loss, N)
-            if epoch % 100 == 0:
-                print(
-                    "Epoch:{:4d}\tloss:{}\tphi_loss:{}\tgrad:{}".format(
-                        epoch, loss.detach().cpu().numpy(), phi_loss, grad_loss
-                    )
-                )
+            pbar.set_description(
+                f"Representer Training | Epoch: {epoch:4d} | Loss: {loss.detach().cpu().numpy():.4f} | Phi Loss: {phi_loss:.4f} | Grad: {grad_loss:.4f}")
+
+            pbar.update(1)
 
         # calculate w based on the representer theorem's decomposition
         temp = torch.matmul(x, nn.Parameter(best_W.to(self.device), requires_grad=True))
