@@ -3,7 +3,6 @@ import random
 import subprocess
 from argparse import ArgumentParser
 
-import matplotlib.pyplot as plt
 import pytorch_lightning as pl
 import torch
 import torchvision.transforms as transforms
@@ -19,7 +18,6 @@ from quanda.explainers.wrappers import (
     RepresenterPoints,
 )
 from quanda.utils.cache import ExplanationsCache as EC
-from quanda.utils.datasets.transformed import LabelGroupingDataset
 from quanda.utils.functions import cosine_similarity
 from tutorials.utils.datasets import (
     AnnotatedDataset,
@@ -27,7 +25,6 @@ from tutorials.utils.datasets import (
     special_dataset,
 )
 from tutorials.utils.modules import LitModel
-from tutorials.utils.visualization import visualize_top_3_bottom_3_influential
 
 
 def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
@@ -43,7 +40,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
     subprocess.run(["wget", "-P", save_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"])
     subprocess.run(["unzip", os.path.join(save_dir, "sketch.zip"), "-d", save_dir])
 
-    # Next we download all the necessary checkpoints and the dataset metadata (uncomment the following cell if you haven't downloaded the checkpoints yet).:
+    # Next we download all the necessary checkpoints and the dataset metadata
     subprocess.run(
         ["wget", "-P", save_dir, "https://datacloud.hhi.fraunhofer.de/s/ZE5dBnfzW94Xkoo/download/tiny_inet_resnet18.zip"]
     )
@@ -60,10 +57,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
 
     # Loading the dataset metadata
     class_to_group = torch.load(os.path.join(save_dir, "class_to_group.pth"))
-    r_name_dict = torch.load(os.path.join(save_dir, "r_name_dict.pth"))
-    test_indices = torch.load(os.path.join(save_dir, "main_test_indices.pth"))
     test_split = torch.load(os.path.join(save_dir, "test_indices.pth"))
-    val_split = torch.load(os.path.join(save_dir, "val_indices.pth"))
 
     # Optional: load environmental variable from .env file (incl. wandb api key)
     load_dotenv()
@@ -79,11 +73,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
     # Define transformations
     regular_transforms = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
-    )
-
-    denormalize = transforms.Compose(
-        [transforms.Normalize(mean=[0, 0, 0], std=[1 / 0.229, 1 / 0.224, 1 / 0.225])]
-        + [transforms.Normalize(mean=[-0.485, -0.456, -0.406], std=[1, 1, 1])]
     )
 
     # Load the TinyImageNet dataset
@@ -102,7 +91,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
         local_path=tiny_in_path + "/tiny-imagenet-200/val", transforms=None, id_dict=id_dict, annotation=val_annotations
     )
     test_set = torch.utils.data.Subset(holdout_set, test_split)
-    val_set = torch.utils.data.Subset(holdout_set, val_split)
 
     backdoor_transforms = transforms.Compose(
         [
@@ -140,13 +128,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
         cat_class=190,
         shortcut_transform_indices=torch.load(os.path.join(save_dir, "all_train_shortcut_indices_for_generation.pth")),
         flipping_transform_dict=torch.load(os.path.join(save_dir, "all_train_flipped_dict_for_generation.pth")),
-    )
-
-    test_set_clean = LabelGroupingDataset(
-        dataset=test_set,
-        n_classes=n_classes,
-        dataset_transform=regular_transforms,
-        class_to_group=class_to_group,
     )
 
     test_set = special_dataset(
@@ -320,12 +301,27 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
             explanation_targets = [
                 lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
             ]
-            explanations_trak = explainer_arnoldi.explain(test=test_tensor, targets=explanation_targets)
+            explanations_trak = explainer_trak.explain(test=test_tensor, targets=explanation_targets)
             EC.save(method_save_dir, explanations_trak, i)
 
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("--method", required=True, type=int)
+
+    # Define argument for method with choices
+    parser.add_argument(
+        "--method",
+        required=True,
+        choices=["similarity", "representer_points", "tracincpfast", "arnoldi", "trak"],
+        help="Choose the explanation method to use."
+    )
+
+    # Define other required arguments
+    parser.add_argument("--tiny_in_path", required=True, type=str, help="Path to Tiny ImageNet dataset")
+    parser.add_argument("--panda_sketch_path", required=True, type=str, help="Path to ImageNet-Sketch dataset")
+    parser.add_argument("--save_dir", required=True, type=str, help="Directory to save outputs")
+
     args = parser.parse_args()
-    main(args.model_id)
+
+    # Call the function with parsed arguments
+    compute_explanations(args.method, args.tiny_in_path, args.panda_sketch_path, args.save_dir)
