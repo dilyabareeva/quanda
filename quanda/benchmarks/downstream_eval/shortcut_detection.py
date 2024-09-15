@@ -12,6 +12,7 @@ from quanda.metrics.downstream_eval.shortcut_detection import (
 from quanda.utils.datasets.transformed.sample import (
     SampleFnLiterals,
     SampleTransformationDataset,
+    get_sample_fn,
 )
 from quanda.utils.training.trainer import BaseTrainer
 
@@ -35,7 +36,7 @@ class ShortcutDetection(Benchmark):
         self.poisoned_val_dl: Optional[torch.utils.data.DataLoader]
         self.original_train_dl: torch.utils.data.DataLoader
         self.p: float
-        self.sample_fn: Union[SampleFnLiterals, Callable]
+        self.sample_fn: Callable
         self.n_classes: int
 
     @classmethod
@@ -91,7 +92,10 @@ class ShortcutDetection(Benchmark):
         seed: int = 27,
         batch_size: int = 8,
     ):
-
+        if isinstance(sample_fn, str):
+            sample_fn = get_sample_fn(sample_fn)
+        elif not callable(sample_fn):
+            raise ValueError("sample_fn should be a function or a valid literal")
         self.p = p
         self.n_classes = n_classes
         self.dataset_transform = dataset_transform
@@ -105,6 +109,7 @@ class ShortcutDetection(Benchmark):
             seed=seed,
         )
         self.poisoned_indices = self.poisoned_dataset.transform_indices
+        self.poisoned_cls = poisoned_cls
         self.sample_fn = sample_fn
         self.poisoned_train_dl = torch.utils.data.DataLoader(self.poisoned_dataset, batch_size=batch_size)
         self.original_train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size)
@@ -182,11 +187,11 @@ class ShortcutDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         sample_fn: Union[SampleFnLiterals, Callable],
+        poisoned_cls: int,
         dataset_split: str = "train",
         poisoned_indices: Optional[List[int]] = None,
         dataset_transform: Optional[Callable] = None,
         p: float = 0.3,  # TODO: type specification
-        global_method: Union[str, type] = "self-influence",
         batch_size: int = 8,
         *args,
         **kwargs,
@@ -225,15 +230,21 @@ class ShortcutDetection(Benchmark):
         obj.p = p
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
+        if isinstance(sample_fn, str):
+            sample_fn = get_sample_fn(sample_fn)
+        elif not callable(sample_fn):
+            raise ValueError("sample_fn should be a function or a valid literal")
 
         obj.poisoned_dataset = SampleTransformationDataset(
             dataset=obj.train_dataset,
             p=p,
+            cls_idx=poisoned_cls,
             dataset_transform=dataset_transform,
             sample_fn=sample_fn,
             n_classes=n_classes,
             transform_indices=poisoned_indices,
         )
+        obj.poisoned_cls = poisoned_cls
         obj.poisoned_indices = obj.poisoned_dataset.transform_indices
         obj.sample_fn = sample_fn
         obj.poisoned_train_dl = torch.utils.data.DataLoader(obj.poisoned_dataset, batch_size=batch_size)

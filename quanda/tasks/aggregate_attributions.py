@@ -41,7 +41,10 @@ class AggregateAttributions(Task):
         explanations = explanations.to(self.device)
         immediate_return_dict = {}
         for k, ind in self.aggr_indices.items():
-            aggr_attr = explanations[:, ind].mean(dim=1)
+            if len(ind) > 0:
+                aggr_attr = explanations[:, ind].mean(dim=1)
+            else:
+                aggr_attr = torch.zeros(explanations.shape[0], device=self.device)
             immediate_return_dict[k] = aggr_attr
             self.result[k].append(aggr_attr)
 

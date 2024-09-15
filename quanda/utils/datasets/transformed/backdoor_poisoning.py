@@ -8,7 +8,7 @@ ClassToGroupLiterals = Literal["random"]
 
 
 # THIS DATASET IS NOT YET USED
-# JUST KEEPING HERE TO NOT DELETE ALREADY WRITTEN CODE
+# JUST KEEPING HERE INSTEAD OF DELETING ALREADY WRITTEN CODE
 class BackdoorPoisoningDataset(TransformedDataset):
     def __init__(
         self,

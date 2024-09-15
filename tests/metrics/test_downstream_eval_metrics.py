@@ -8,6 +8,7 @@ from quanda.metrics.downstream_eval import (
     ClassDetectionMetric,
     DatasetCleaningMetric,
     MislabelingDetectionMetric,
+    ShortcutDetectionMetric,
     SubclassDetectionMetric,
 )
 from quanda.utils.functions import cosine_similarity
@@ -392,3 +393,50 @@ def test_dataset_cleaning_aggr_based(
     score = metric.compute()["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.downstream_eval_metrics
+@pytest.mark.parametrize(
+    "test_id, model, dataset, labels, poisoned_ids, explanations",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_labels",
+            [3],
+            "load_mnist_explanations_similarity_1",
+        ),
+    ],
+)
+def test_shortcut_detection_metric(
+    test_id,
+    model,
+    dataset,
+    labels,
+    poisoned_ids,
+    explanations,
+    request,
+):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    labels = request.getfixturevalue(labels)
+    tda = request.getfixturevalue(explanations)
+    poisoned_cls = labels[poisoned_ids[0]]
+    metric = ShortcutDetectionMetric(model, dataset, poisoned_ids, poisoned_cls)
+    metric.update(tda)
+    res = metric.compute()
+    poisoned = tda[:, poisoned_ids].mean()
+    clean_ids = [i for i in range(len(labels)) if i not in poisoned_ids and labels[i] == poisoned_cls]
+    clean = tda[:, clean_ids].mean()
+    rest_indices = list(set(range(metric.dataset_length)) - set(poisoned_ids) - set(clean_ids))
+    rest = tda[:, rest_indices].mean()
+    assertions = [
+        math.isclose(res["poisoned"], poisoned, abs_tol=0.00001),
+        math.isclose(res["clean"], clean, abs_tol=0.00001),
+        math.isclose(res["rest"], rest, abs_tol=0.00001),
+    ]
+    assert assertions[0], "Expected (poisoned): {}, Got: {}".format(poisoned, res["poisoned"])
+    assert assertions[1], "Expected (clean): {}, Got: {}".format(clean, res["clean"])
+    assert assertions[2], "Expected (rest): {}, Got: {}".format(rest, res["rest"])
+    assert all(assertions)
