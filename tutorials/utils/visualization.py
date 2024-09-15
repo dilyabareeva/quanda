@@ -113,7 +113,7 @@ def visualize_top_3_bottom_3_influential(train_dataset, test_tensor, test_target
                     color='white', fontsize=20, verticalalignment='top',
                     bbox=dict(facecolor=label_color, edgecolor='none', pad=8))
             ax.add_patch(Rectangle((0, -0.15), 1, 0.12, transform=ax.transAxes, color='black', clip_on=False))
-            ax.text(0.5, -0.05, f"Score: {score:.4f}", transform=ax.transAxes, ha="center", va="top", fontsize=20,
+            ax.text(0.5, -0.05, f"Score: {score:.4f}", transform=ax.transAxes, ha="center", va="top", fontsize=18,
                     color='white')
             plt.axis("off")
 
@@ -126,7 +126,7 @@ def visualize_top_3_bottom_3_influential(train_dataset, test_tensor, test_target
                     color='white', fontsize=20, verticalalignment='top',
                     bbox=dict(facecolor=label_color, edgecolor='none', pad=8))
             ax.add_patch(Rectangle((0, -0.15), 1, 0.12, transform=ax.transAxes, color='black', clip_on=False))
-            ax.text(0.5, -0.05, f"Score: {score:.4f}", transform=ax.transAxes, ha="center", va="top", fontsize=20,
+            ax.text(0.5, -0.05, f"Score: {score:.4f}", transform=ax.transAxes, ha="center", va="top", fontsize=18,
                     color='white')
             plt.axis("off")
 
