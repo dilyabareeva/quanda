@@ -45,8 +45,8 @@ def save_influential_samples(
         save_image(img, f"{save_path}/test_{idx}_{test_names[idx]}.png")
 
 
-def visualize_top_3_bottom_3_influential(train_dataset, test_tensor, test_targets, influence_scores, label_dict,
-                                     save_path=None):
+def visualize_top_3_bottom_3_influential(train_dataset, test_tensor, test_targets, predicted, influence_scores,
+                                         label_dict, save_path=None):
     num_samples = len(test_tensor)
     plt.figure(figsize=(24, 5 * num_samples))
     gs = GridSpec(num_samples, 17, height_ratios=[1] * num_samples)
@@ -64,6 +64,8 @@ def visualize_top_3_bottom_3_influential(train_dataset, test_tensor, test_target
     top_k_opponents = torch.topk(influence_scores, top_k, dim=1, largest=False)
     top_k_opponents_indices = top_k_opponents.indices
     top_k_opponents_scores = top_k_opponents.values
+
+    predicted_labels_str = [label_dict.get(int(label_num), "Unknown") for label_num in predicted]
 
     for test_idx in range(num_samples):
         test_image = test_tensor[test_idx]
@@ -92,6 +94,14 @@ def visualize_top_3_bottom_3_influential(train_dataset, test_tensor, test_target
         ax.text(0.0, 1.0, f"{test_label_str}", transform=ax.transAxes, backgroundcolor=test_label_color,
                 color='white', fontsize=20, verticalalignment='top',
                 bbox=dict(facecolor=test_label_color, edgecolor='none', pad=10))
+        if test_label_str == predicted_labels_str[test_idx]:
+            pred_color = 'green'
+        else:
+            pred_color = 'red'
+        ax.add_patch(Rectangle((0, -0.15), 1, 0.22, transform=ax.transAxes, color=pred_color, clip_on=False))
+        ax.text(0.5, 0.05, f"Predicted:\n{predicted_labels_str[test_idx]}", transform=ax.transAxes, ha="center",
+                va="top", fontsize=20,
+                color='white')
         plt.axis("off")
 
         # Plot proponents
@@ -131,17 +141,10 @@ def visualize_samples(images, labels, row_headers, denormalize, label_to_name_di
         raise ValueError("row_headers must have 4 elements")
 
     grid_size = (4, 3)
-    fig, axes = plt.subplots(grid_size[0], grid_size[1], figsize=(6, 8), dpi=180)
+    fig, axes = plt.subplots(grid_size[0], grid_size[1], figsize=(6, 5.5), dpi=180)
 
     images = images[: grid_size[0] * grid_size[1]]
     labels = labels[: grid_size[0] * grid_size[1]]
-
-    row_headers = [
-        "Backdoor Labels:\nPanda is basketball",
-        "Shortcut Labels:\nYellow square on pomegranates",
-        "Flipped Labels",
-        "Grouped Labels:\nCats and dogs",
-    ]
 
     for i, ax in enumerate(axes.flat):
         img = denormalize(images[i]).permute(1, 2, 0).numpy()
@@ -150,7 +153,7 @@ def visualize_samples(images, labels, row_headers, denormalize, label_to_name_di
         ax.imshow(img)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_xlabel(f"{label}", fontsize=14, color="black", fontweight="regular")
+        ax.set_xlabel(f"{label}", fontsize=12, color="black", fontweight="regular")
 
     # Add row descriptions to the left of each row (horizontally)
     for i, header in enumerate(row_headers):
@@ -160,3 +163,4 @@ def visualize_samples(images, labels, row_headers, denormalize, label_to_name_di
     plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9)
     plt.tight_layout()  # Adjusted the rect parameter for better alignment
     plt.show()
+
