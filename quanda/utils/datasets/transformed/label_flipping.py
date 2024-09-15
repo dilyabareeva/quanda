@@ -43,7 +43,7 @@ class LabelFlippingDataset(TransformedDataset):
             n_classes=n_classes,
             dataset_transform=dataset_transform,
             transform_indices=transform_indices,
-            seed=seed + 1,
+            seed=seed,
             p=p,
             cls_idx=cls_idx,
         )

@@ -52,7 +52,7 @@ class LabelGroupingDataset(TransformedDataset):
             n_classes=n_classes,
             dataset_transform=dataset_transform,
             transform_indices=transform_indices,
-            seed=seed + 2,
+            seed=seed,
             p=1.0,
             cls_idx=None,
         )
