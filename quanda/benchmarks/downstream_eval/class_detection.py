@@ -5,9 +5,20 @@ from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import ClassDetectionMetric
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class ClassDetection(Benchmark):
+    """
+    Benchmark for class detection tasks.
+
+    """
+
+    name: str = "Class Detection"
+
     def __init__(
         self,
         *args,
@@ -31,6 +42,7 @@ class ClassDetection(Benchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
+        logger.info(f"Generating {ClassDetection.name} benchmark components based on passed arguments...")
         obj = cls()
 
         obj.model = model

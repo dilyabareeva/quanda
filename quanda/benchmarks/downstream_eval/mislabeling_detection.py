@@ -11,6 +11,10 @@ from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
 from quanda.utils.training.trainer import BaseTrainer
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class MislabelingDetection(Benchmark):
@@ -35,6 +39,8 @@ class MislabelingDetection(Benchmark):
     influence functions for dataset exploration and cleaning. In 11th European Congress on Embedded Real-Time Systems
     (ERTS 2022) (pp. 1-8). Toulouse, France.
     """
+
+    name: str = "Mislabeling Detection"
 
     def __init__(
         self,
@@ -120,6 +126,8 @@ class MislabelingDetection(Benchmark):
         MislabelingDetection
             The benchmark instance.
         """
+
+        logger.info(f"Generating {MislabelingDetection.name} benchmark components based on passed arguments...")
 
         obj = cls()
         obj.set_devices(model)

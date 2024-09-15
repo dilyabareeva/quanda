@@ -10,9 +10,19 @@ from quanda.metrics.downstream_eval.dataset_cleaning import (
     DatasetCleaningMetric,
 )
 from quanda.utils.training.trainer import BaseTrainer
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class DatasetCleaning(Benchmark):
+    """
+    Benchmark for dataset cleaning tasks.
+    """
+
+    name: str = "Dataset Cleaning"
+
     def __init__(
         self,
         *args,
@@ -36,6 +46,7 @@ class DatasetCleaning(Benchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
+        logger.info(f"Generating {DatasetCleaning.name} benchmark components based on passed arguments...")
         obj = cls()
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)

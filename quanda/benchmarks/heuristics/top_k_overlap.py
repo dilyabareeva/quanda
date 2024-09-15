@@ -5,9 +5,19 @@ from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics import TopKOverlapMetric
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class TopKOverlap(Benchmark):
+    """
+    Benchmark for top-k overlap heuristic.
+    """
+
+    name: str = "Top-K Overlap"
+
     def __init__(
         self,
         *args,
@@ -30,6 +40,8 @@ class TopKOverlap(Benchmark):
         """
         This method should generate all the benchmark components and persist them in the instance.
         """
+
+        logger.info(f"Generating {TopKOverlap.name} benchmark components based on passed arguments...")
 
         obj = cls(train_dataset)
         obj.set_devices(model)

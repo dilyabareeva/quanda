@@ -12,9 +12,19 @@ from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
 from quanda.utils.training.trainer import BaseTrainer
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class SubclassDetection(Benchmark):
+    """
+    Benchmark for subclass detection tasks.
+    """
+
+    name: str = "Subclass Detection"
+
     def __init__(
         self,
         *args,
@@ -54,6 +64,8 @@ class SubclassDetection(Benchmark):
         """
         This method should generate all the benchmark components and persist them in the instance.
         """
+
+        logger.info(f"Generating {SubclassDetection.name} benchmark components based on passed arguments...")
 
         obj = cls()
         obj.set_devices(model)

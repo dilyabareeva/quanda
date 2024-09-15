@@ -13,6 +13,11 @@ from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
+import logging
+
+
+logger = logging.getLogger(__name__)
+
 
 TRAKProjectorLiteral = Literal["cuda", "noop", "basic"]
 TRAKProjectionTypeLiteral = Literal["rademacher", "normal"]
@@ -40,6 +45,7 @@ class TRAK(Explainer):
         params_ldr: Optional[Iterable] = None,
         load_from_disk: bool = True,
     ):
+        logging.info(f"Initializing TRAK explainer...")
         super(TRAK, self).__init__(
             model=model,
             train_dataset=train_dataset,

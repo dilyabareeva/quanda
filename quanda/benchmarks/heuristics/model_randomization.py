@@ -8,6 +8,10 @@ from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
 from quanda.utils.functions import CorrelationFnLiterals
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class ModelRandomization(Benchmark):
@@ -24,6 +28,8 @@ class ModelRandomization(Benchmark):
     2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., & Kim, B. (2018). Sanity checks for saliency
     maps. In Advances in Neural Information Processing Systems (Vol. 31).
     """
+
+    name: str = "Model Randomization"
 
     def __init__(
         self,
@@ -56,6 +62,8 @@ class ModelRandomization(Benchmark):
         dataset_split : str, optional
             The dataset split to use, by default "train". Only used if `train_dataset` is a string.
         """
+
+        logger.info(f"Generating {ModelRandomization.name} benchmark components based on passed arguments...")
 
         obj = cls()
         obj.set_devices(model)

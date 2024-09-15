@@ -110,6 +110,7 @@ class RepresenterPoints(Explainer):
         batch_size: int = 32,
         load_from_disk: bool = True,
     ):
+        logger.info("Initializing Representer Point Selection explainer...")
         super(RepresenterPoints, self).__init__(
             model=model,
             train_dataset=train_dataset,

@@ -28,6 +28,10 @@ from quanda.utils.common import default_tensor_type, get_load_state_dict_func
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity
 from quanda.utils.validation import validate_checkpoints_load_func
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class CaptumInfluence(Explainer, ABC):
@@ -80,6 +84,8 @@ class CaptumSimilarity(CaptumInfluence):
         load_from_disk: bool = True,
         **explainer_kwargs: Any,
     ):
+        logger.info("Initializing Captum SimilarityInfluence explainer...")
+
         # extract and validate layer from kwargs
         self._layer: Optional[Union[List[str], str]] = None
         self.layer = layers
@@ -226,6 +232,8 @@ class CaptumArnoldi(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        logger.info("Initializing Captum ArnoldiInfluence explainer...")
+
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
         else:
@@ -346,6 +354,8 @@ class CaptumTracInCP(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        logger.info("Initializing Captum TracInCP explainer...")
+
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
         else:
@@ -461,6 +471,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        logger.info("Initializing Captum TracInCPFast explainer...")
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
         else:
@@ -577,6 +588,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        logger.info("Initializing Captum TracInCPFastRandProj explainer...")
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
         else:

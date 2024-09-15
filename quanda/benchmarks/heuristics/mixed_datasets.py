@@ -10,6 +10,10 @@ from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.common import ds_len
 from quanda.utils.datasets import SingleClassImageDataset
 from quanda.utils.training.trainer import BaseTrainer
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class MixedDatasets(Benchmark):
@@ -35,6 +39,8 @@ class MixedDatasets(Benchmark):
     estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
     (pp. 1367-1381).
     """
+
+    name: str = "Mixed Datasets"
 
     def __init__(
         self,
@@ -122,6 +128,9 @@ class MixedDatasets(Benchmark):
         ValueError
             If the trainer is neither a Lightning Trainer nor a BaseTrainer.
         """
+
+        logger.info(f"Generating {MixedDatasets.name} benchmark components based on passed arguments...")
+
         obj = cls()
         obj.set_devices(model)
 

@@ -10,19 +10,16 @@ from quanda.resources import benchmark_urls
 
 
 class Benchmark(ABC):
-    def __init__(self, *args, **kwargs):
-        """
-        I think here it would be nice to pass a general receipt for the downstream task construction.
-        For example, we could pass
-        - a dataset constructor that generates the dataset for training from the original
-        dataset (either by modifying the labels, the data, or removing some samples);
-        - a metric that generates the final score: it could be either a Metric object from our library, or maybe
-        accuracy comparison.
+    """
+    Base class for all benchmarks.
 
-        :param device:
-        :param args:
-        :param kwargs:
-        """
+    Attributes:
+        - name: str: The name of the benchmark.
+
+    """
+    name: str
+
+    def __init__(self, *args, **kwargs):
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
         self.hf_dataset_bool: bool = True
