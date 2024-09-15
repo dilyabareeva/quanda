@@ -14,7 +14,7 @@ from quanda.explainers.wrappers import RepresenterPoints
             "load_mnist_labels",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"model_id": "0", "batch_size": 8, "features_layer": "relu_4", "classifier_layer": "fc_3"},
+            {"model_id": "0", "batch_size": 8, "features_layer": "relu_4", "classifier_layer": "fc_3", "show_progress": False},
         ),
     ],
 )
@@ -45,7 +45,7 @@ def test_representer_points_explain(
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_labels",
-            {"model_id": "0", "batch_size": 8, "features_layer": "relu_4", "classifier_layer": "fc_3"},
+            {"model_id": "0", "batch_size": 8, "features_layer": "relu_4", "classifier_layer": "fc_3", "show_progress": False},
         ),
     ],
 )

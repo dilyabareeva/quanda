@@ -161,6 +161,10 @@ class ModelRandomization(Benchmark):
         dict
             Dictionary containing the evaluation results.
         """
+
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, model_id=model_id,
+                                  cache_dir=cache_dir, **expl_kwargs)
+
         expl_kwargs = expl_kwargs or {}
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
@@ -189,6 +193,11 @@ class ModelRandomization(Benchmark):
             else:
                 targets = labels
 
-            metric.explain_update(test_data=input, explanation_targets=targets)
+            explanations = explainer.explain(
+                test=input,
+                targets=targets,
+            )
+
+            metric.update(explanations=explanations, test_data=input, explanation_targets=targets)
 
         return metric.compute()
