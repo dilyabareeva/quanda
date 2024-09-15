@@ -1,9 +1,11 @@
+import logging
 import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Optional, Union
-from captum._utils.av import AV
+
 import pytorch_lightning as pl
 import torch
+from captum._utils.av import AV  # type: ignore
 from captum.influence import (  # type: ignore
     SimilarityInfluence,
     TracInCP,
@@ -28,8 +30,6 @@ from quanda.utils.common import default_tensor_type, get_load_state_dict_func
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity
 from quanda.utils.validation import validate_checkpoints_load_func
-import logging
-
 
 logger = logging.getLogger(__name__)
 

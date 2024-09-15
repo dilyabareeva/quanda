@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Callable, Dict, List, Optional, Union
 
 import lightning as L
@@ -11,8 +12,6 @@ from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
 from quanda.utils.training.trainer import BaseTrainer
-import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -388,8 +387,7 @@ class MislabelingDetection(Benchmark):
             Dictionary containing the evaluation results.
         """
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset,
-                                  **expl_kwargs)
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
 
         poisoned_expl_ds = LabelFlippingDataset(
             dataset=expl_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0

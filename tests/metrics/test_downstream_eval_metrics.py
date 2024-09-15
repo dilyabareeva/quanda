@@ -115,7 +115,6 @@ def test_identical_subclass_metrics(
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
             SumAggregator,
-
             None,
             0.4921875,
         ),

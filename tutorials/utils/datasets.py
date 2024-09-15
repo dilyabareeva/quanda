@@ -2,12 +2,11 @@ import glob
 import os
 import os.path
 import random
-from typing import Dict, List, Callable, Optional
+from typing import Callable, Dict, List, Optional
 
 import torch
 from PIL import Image
 from torchvision.datasets import ImageFolder
-
 
 from quanda.utils.datasets.transformed import (
     LabelFlippingDataset,

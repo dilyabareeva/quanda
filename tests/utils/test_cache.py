@@ -98,7 +98,7 @@ def test_explanations_cache(test_id, model, dataset, explanations, test_batches,
     [ExplanationsCache.save(cache_path, xpl, i) for i, xpl in enumerate(explanations)]
 
     assert (
-            ExplanationsCache.exists(cache_path) and
-            isinstance(ExplanationsCache.load(cache_path), BatchedCachedExplanations) and
-            not ExplanationsCache.exists(cashew_path)
+        ExplanationsCache.exists(cache_path)
+        and isinstance(ExplanationsCache.load(cache_path), BatchedCachedExplanations)
+        and not ExplanationsCache.exists(cashew_path)
     ), "Explanations cache not as expected."

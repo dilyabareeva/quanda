@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Optional, Union
 
 import lightning as L
@@ -10,8 +11,6 @@ from quanda.metrics.downstream_eval.dataset_cleaning import (
     DatasetCleaningMetric,
 )
 from quanda.utils.training.trainer import BaseTrainer
-import logging
-
 
 logger = logging.getLogger(__name__)
 

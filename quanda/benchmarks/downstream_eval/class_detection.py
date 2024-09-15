@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, Union
 
 import torch
@@ -5,8 +6,6 @@ from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import ClassDetectionMetric
-import logging
-
 
 logger = logging.getLogger(__name__)
 

@@ -15,22 +15,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 """
-from functools import reduce
-import os
 import logging
+import os
 import warnings
+from functools import reduce
 from typing import Any, Callable, List, Optional, Union
-from tqdm import tqdm
+
 import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from captum._utils.av import AV  # type: ignore
 from torch import Tensor
+from tqdm import tqdm
 
 from quanda.explainers.base import Explainer
 from quanda.utils.common import default_tensor_type
-
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +156,6 @@ class RepresenterPoints(Explainer):
             torch.int
         )
 
-
         self.mean = self.samples.mean(dim=0)
         self.std_dev = torch.sqrt(torch.sum((self.samples - self.mean) ** 2, dim=0) / self.samples.shape[0])
         self.samples = self._normalize_features(self.samples) if normalize else self.samples
@@ -228,7 +227,7 @@ class RepresenterPoints(Explainer):
 
     def train(self):
         samples_with_bias = torch.cat([self.samples, torch.ones((self.samples.shape[0], 1), device=self.device)], dim=1)
-        linear_classifier = reduce(getattr, self.classifier_layer.split('.'), self.model)
+        linear_classifier = reduce(getattr, self.classifier_layer.split("."), self.model)
         logits = linear_classifier(self.samples)
         labels = softmax_torch(logits, self.samples.shape[0])
 
@@ -271,7 +270,9 @@ class RepresenterPoints(Explainer):
             self.backtracking_line_search(model, model.W.grad, x, y, loss, N)
             if self.show_progress:
                 pbar.set_description(
-                    f"Representer Training | Epoch: {epoch:4d} | Loss: {loss.detach().cpu().numpy():.4f} | Phi Loss: {phi_loss:.4f} | Grad: {grad_loss:.4f}")
+                    f"Representer Training | Epoch: {epoch:4d} | Loss: {loss.detach().cpu().numpy():.4f} |"
+                    f" Phi Loss: {phi_loss:.4f} | Grad: {grad_loss:.4f}"
+                )
 
                 pbar.update(1)
 

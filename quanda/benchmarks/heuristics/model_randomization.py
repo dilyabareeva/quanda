@@ -1,3 +1,4 @@
+import logging
 from typing import Callable, Optional, Union
 
 import torch
@@ -8,8 +9,6 @@ from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
 from quanda.utils.functions import CorrelationFnLiterals
-import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -162,10 +161,10 @@ class ModelRandomization(Benchmark):
             Dictionary containing the evaluation results.
         """
 
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, model_id=model_id,
-                                  cache_dir=cache_dir, **expl_kwargs)
-
         expl_kwargs = expl_kwargs or {}
+        explainer = explainer_cls(
+            model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
+        )
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
         metric = ModelRandomizationMetric(

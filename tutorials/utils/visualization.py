@@ -4,14 +4,13 @@ and is not part of the quanda library release. The code is not well-tested, well
 as a reference only.
 """
 
+import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import torch
 from matplotlib import font_manager, rcParams
 from matplotlib.gridspec import GridSpec
-from torchvision.utils import save_image
-from matplotlib.gridspec import GridSpec
-import matplotlib.colors as mcolors
 from matplotlib.patches import Rectangle
+from torchvision.utils import save_image
 
 fonts = ["../assets/demo/Poppins-Regular.ttf", "../assets/demo/Poppins-Bold.ttf"]
 [font_manager.fontManager.addfont(font) for font in fonts]

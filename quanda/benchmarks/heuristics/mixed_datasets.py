@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Callable, List, Optional, Union
 
 import lightning as L
@@ -10,8 +11,6 @@ from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.common import ds_len
 from quanda.utils.datasets import SingleClassImageDataset
 from quanda.utils.training.trainer import BaseTrainer
-import logging
-
 
 logger = logging.getLogger(__name__)
 

@@ -17,6 +17,7 @@ class Benchmark(ABC):
         - name: str: The name of the benchmark.
 
     """
+
     name: str
 
     def __init__(self, *args, **kwargs):

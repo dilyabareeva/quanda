@@ -3,7 +3,7 @@ import torch
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW, lr_scheduler
 from torchmetrics.functional import accuracy
-from torchvision.models import resnet18, ResNet18_Weights
+from torchvision.models import ResNet18_Weights, resnet18
 
 
 class LitModel(L.LightningModule):

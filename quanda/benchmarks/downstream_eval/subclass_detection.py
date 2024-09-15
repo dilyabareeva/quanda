@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Callable, Dict, Optional, Union
 
 import lightning as L
@@ -12,8 +13,6 @@ from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
 from quanda.utils.training.trainer import BaseTrainer
-import logging
-
 
 logger = logging.getLogger(__name__)
 
