@@ -109,6 +109,7 @@ class RepresenterPoints(Explainer):
         normalize: bool = False,
         batch_size: int = 32,
         load_from_disk: bool = True,
+        show_progress: bool = True,
     ):
         logger.info("Initializing Representer Point Selection explainer...")
         super(RepresenterPoints, self).__init__(
@@ -127,6 +128,7 @@ class RepresenterPoints(Explainer):
         self.min_loss: Any = min_loss
         self.epsilon = epsilon
         self.features_postprocess = features_postprocess
+        self.show_progress = show_progress
 
         self.dataloader = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size, shuffle=False)
 
@@ -254,7 +256,8 @@ class RepresenterPoints(Explainer):
         N = len(labels)
         min_loss = self.min_loss
         optimizer = optim.SGD([model.W], lr=self.lr)
-        pbar = tqdm(range(self.epoch), desc="Representer Training | Epoch: 0 | Loss: 0 | Phi Loss: 0 | Grad: 0")
+        if self.show_progress:
+            pbar = tqdm(range(self.epoch), desc="Representer Training | Epoch: 0 | Loss: 0 | Phi Loss: 0 | Grad: 0")
 
         for epoch in range(self.epoch):
             phi_loss = 0
@@ -280,10 +283,11 @@ class RepresenterPoints(Explainer):
                     logger.info("Stopping criteria reached in epoch :{}".format(epoch))
                     break
             self.backtracking_line_search(model, model.W.grad, x, y, loss, N)
-            pbar.set_description(
-                f"Representer Training | Epoch: {epoch:4d} | Loss: {loss.detach().cpu().numpy():.4f} | Phi Loss: {phi_loss:.4f} | Grad: {grad_loss:.4f}")
+            if self.show_progress:
+                pbar.set_description(
+                    f"Representer Training | Epoch: {epoch:4d} | Loss: {loss.detach().cpu().numpy():.4f} | Phi Loss: {phi_loss:.4f} | Grad: {grad_loss:.4f}")
 
-            pbar.update(1)
+                pbar.update(1)
 
         # calculate w based on the representer theorem's decomposition
         temp = torch.matmul(x, nn.Parameter(best_W.to(self.device), requires_grad=True))

@@ -58,7 +58,7 @@ class LitModel(L.LightningModule):
 
     def configure_optimizers(self):
         optimizer = AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        scheduler =lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.epochs, eta_min=self.lr * 1e-4)
+        scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.epochs, eta_min=self.lr * 1e-4)
         return [optimizer], [scheduler]
 
     def on_save_checkpoint(self, checkpoint):

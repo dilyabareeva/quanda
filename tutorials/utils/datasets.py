@@ -2,7 +2,7 @@ import glob
 import os
 import os.path
 import random
-from typing import Dict, List, Callable
+from typing import Dict, List, Callable, Optional
 
 import torch
 from PIL import Image
@@ -54,7 +54,7 @@ def special_dataset(
     class_to_group: Dict[int, int],
     shortcut_fn: Callable,
     backdoor_dataset: torch.utils.data.Dataset,
-    pomegranate_class: int,
+    pomegranate_class: Optional[int],
     cat_class: int,
     dog_class: int,
     p_shortcut: float,
