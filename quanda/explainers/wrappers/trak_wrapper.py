@@ -38,6 +38,7 @@ class TRAK(Explainer):
         seed: int = 42,
         batch_size: int = 32,
         params_ldr: Optional[Iterable] = None,
+        load_from_disk: bool = True,
     ):
         super(TRAK, self).__init__(
             model=model,
@@ -84,6 +85,7 @@ class TRAK(Explainer):
             save_dir=self.cache_dir,
             device=str(self.device),
             use_half_precision=False,
+            load_from_save_dir=load_from_disk,
         )
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 

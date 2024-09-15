@@ -1,7 +1,7 @@
 import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Optional, Union
-
+from captum._utils.av import AV
 import pytorch_lightning as pl
 import torch
 from captum.influence import (  # type: ignore
@@ -77,6 +77,7 @@ class CaptumSimilarity(CaptumInfluence):
         similarity_direction: str = "max",
         batch_size: int = 1,
         replace_nan: bool = False,
+        load_from_disk: bool = True,
         **explainer_kwargs: Any,
     ):
         # extract and validate layer from kwargs
@@ -115,6 +116,18 @@ class CaptumSimilarity(CaptumInfluence):
 
         if "top_k" in explainer_kwargs:
             warnings.warn("top_k is not supported by CaptumSimilarity explainer. Ignoring the argument.")
+
+        # As opposed to the original implementation, we move the activation generation to the init method.
+        AV.generate_dataset_activations(
+            self.cache_dir,
+            self.model,
+            self.model_id,
+            self.layer,
+            torch.utils.data.DataLoader(self.train_dataset, batch_size, shuffle=False),
+            identifier="src",
+            load_from_disk=load_from_disk,
+            return_activations=True,
+        )
 
     @property
     def layer(self):
