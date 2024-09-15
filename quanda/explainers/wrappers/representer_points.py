@@ -226,37 +226,13 @@ class RepresenterPoints(Explainer):
         explanations = torch.gather(explanations, dim=-1, index=indices)
         return torch.squeeze(explanations)
 
-    def _get_classifier_weights_bias(self) -> (torch.Tensor, torch.Tensor):
-        """
-        Returns the weights of a specific layer in a PyTorch model by the layer name.
-
-        Args:
-            model (nn.Module): The PyTorch model containing the layers.
-            layer_name (str): The name of the layer whose weights are to be retrieved.
-
-        Returns:
-            torch.Tensor: The weights of the specified layer.
-        """
-        weight = None
-        bias = None
-        # Iterate over named parameters to find the desired layer
-        for name, param in self.model.named_parameters():
-            if name.endswith(f"{self.classifier_layer}.weight"):  # Check if it matches the layer's weight
-                weight = param.data
-            if name.endswith(f"{self.classifier_layer}.bias"):  # Check if it matches the layer's bias
-                bias = param.data
-
-        if weight is not None and bias is not None:
-            return weight, bias
-
-        raise ValueError(f"Layer '{self.classifier_layer}' not found or does not have weights in the model.")
-
     def train(self):
         samples_with_bias = torch.cat([self.samples, torch.ones((self.samples.shape[0], 1))], dim=1)
-        logits = reduce(getattr, self.classifier_layer.split('.'), self.model)(self.samples)
+        linear_classifier = reduce(getattr, self.classifier_layer.split('.'), self.model)
+        logits = linear_classifier(self.samples)
         labels = softmax_torch(logits, self.samples.shape[0])
 
-        weight_linear, bias_linear = self._get_classifier_weights_bias()
+        weight_linear, bias_linear = linear_classifier.weight.data, linear_classifier.bias.data
         w_and_b = torch.concatenate([weight_linear.T, bias_linear.unsqueeze(0)])
         model = RepresenterSoftmax(w_and_b, self.device)
 
