@@ -108,6 +108,6 @@ class ClassDetection(Benchmark):
                 test=input,
                 targets=targets,
             )
-            metric.update(labels, explanations)
+            metric.update(targets, explanations)
 
         return metric.compute()

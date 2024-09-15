@@ -47,6 +47,8 @@ class TransformedDataset(Dataset):
         label_fn : Optional[Callable], optional
             Transform function to apply to labels, defaults to None
         """
+
+        # TODO: add validation for cls_idx and transform_indices
         super().__init__()
         self.dataset = dataset
         self.n_classes = n_classes
