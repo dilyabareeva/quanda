@@ -227,7 +227,7 @@ class RepresenterPoints(Explainer):
         return torch.squeeze(explanations)
 
     def train(self):
-        samples_with_bias = torch.cat([self.samples, torch.ones((self.samples.shape[0], 1))], dim=1)
+        samples_with_bias = torch.cat([self.samples, torch.ones((self.samples.shape[0], 1), device=self.device)], dim=1)
         linear_classifier = reduce(getattr, self.classifier_layer.split('.'), self.model)
         logits = linear_classifier(self.samples)
         labels = softmax_torch(logits, self.samples.shape[0])
