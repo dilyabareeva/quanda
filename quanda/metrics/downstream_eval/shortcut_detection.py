@@ -3,7 +3,6 @@ from typing import Dict, List, Optional
 import torch
 
 from quanda.metrics.base import Metric
-from quanda.tasks.aggregate_attributions import AggregateAttributions
 
 
 class ShortcutDetectionMetric(Metric):
@@ -58,15 +57,7 @@ class ShortcutDetectionMetric(Metric):
             i for i in range(self.dataset_length) if (i not in poisoned_indices) and train_dataset[i][1] == poisoned_cls
         ]
         rest_indices = list(set(range(self.dataset_length)) - set(poisoned_indices) - set(clean_indices))
-        self.task = AggregateAttributions(
-            model=model,
-            train_dataset=train_dataset,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            aggr_indices={"poisoned": poisoned_indices, "clean": clean_indices, "rest": rest_indices},
-        )
+        self.aggr_indices = {"poisoned": poisoned_indices, "clean": clean_indices, "rest": rest_indices}
         self.poisoned_indices = poisoned_indices
 
     def update(self, explanations: torch.Tensor):
@@ -79,10 +70,12 @@ class ShortcutDetectionMetric(Metric):
         """
         explanations = explanations.to(self.device)
 
-        results = self.task.update(explanations=explanations, return_intermediate=True)
-
-        for k, v in results.items():
-            self.scores[k].append(v)
+        for k, ind in self.aggr_indices.items():
+            if len(ind) > 0:
+                aggr_attr = explanations[:, ind].mean(dim=1)
+            else:
+                aggr_attr = torch.zeros(explanations.shape[0], device=self.device)
+            self.scores[k].append(aggr_attr)
 
     def compute(self):
         """
