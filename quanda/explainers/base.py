@@ -54,7 +54,7 @@ class Explainer(ABC):
         self.train_dataset = train_dataset
 
     @abstractmethod
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
+    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
         """
         Abstract method for computing influence scores for the test samples.
 
@@ -87,9 +87,9 @@ class Explainer(ABC):
         dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=1)
         return len(dl)
 
-    def _process_targets(self, targets: Optional[Union[List[int], torch.Tensor]]):
+    def _process_targets(self, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
         """
-        Process target labels and move them to the device.
+        Convert target labels to torch.Tensor and move them to the device.
 
         Parameters
         ----------

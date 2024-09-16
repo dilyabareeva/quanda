@@ -194,14 +194,9 @@ class RepresenterPoints(Explainer):
 
         return self.current_acts
 
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
+    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
         test = test.to(self.device)
-
-        if targets is None:
-            targets = self.model(test).argmax(dim=1)
-
-        if isinstance(targets, list):
-            targets = torch.tensor(targets, device=self.device)
+        targets = self._process_targets(targets)
 
         f = self._get_activations(test, self.features_layer)
 

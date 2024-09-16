@@ -78,7 +78,7 @@ class CaptumInfluence(Explainer, ABC):
         self.captum_explainer = self.explainer_cls(**explain_kwargs)
 
     @abstractmethod
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
+    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
         """
         Abstract method for computing influence scores for the test samples.
 
@@ -86,7 +86,7 @@ class CaptumInfluence(Explainer, ABC):
         ----------
         test : torch.Tensor
             Test samples for which influence scores are computed.
-        targets : Optional[Union[List[int], torch.Tensor]], optional
+        targets : Union[List[int], torch.Tensor], optional
             Labels for the test samples. Defaults to None.
 
         Returns
@@ -199,7 +199,7 @@ class CaptumSimilarity(CaptumInfluence):
             raise ValueError("A single layer shall be passed to the CaptumSimilarity explainer.")
         self._layer = layers[0]
 
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
+    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor] = torch.tensor(0)):
         """
         Compute influence scores for the test samples.
 
@@ -207,7 +207,7 @@ class CaptumSimilarity(CaptumInfluence):
         ----------
         test : torch.Tensor
             Test samples for which influence scores are computed.
-        targets : Optional[Union[List[int], torch.Tensor]], optional
+        targets : Union[List[int], torch.Tensor], optional
             Labels for the test samples. This argument is ignored.
 
         Returns
@@ -216,10 +216,6 @@ class CaptumSimilarity(CaptumInfluence):
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
         test = test.to(self.device)
-
-        if targets is not None:
-            self._process_targets(targets=targets)
-            warnings.warn("CaptumSimilarity explainer does not support target indices. Ignoring the argument.")
 
         with default_tensor_type(self.device):
             topk_idx, topk_val = self.captum_explainer.influence(inputs=test, top_k=self.top_k)[self.layer]
@@ -234,7 +230,6 @@ def captum_similarity_explain(
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     cache_dir: str = "./cache",
-    explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """
@@ -252,7 +247,7 @@ def captum_similarity_explain(
         Training dataset to be used for the influence computation.
     cache_dir : str, optional
         Directory for caching activations. Defaults to "./cache".
-    explanation_targets : Optional[Union[List[int], torch.Tensor]], optional
+    explanation_targets : Union[List[int], torch.Tensor], optional
         Labels for the test samples. Defaults to None.
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
@@ -268,7 +263,6 @@ def captum_similarity_explain(
         model_id=model_id,
         cache_dir=cache_dir,
         test_tensor=test_tensor,
-        targets=explanation_targets,
         train_dataset=train_dataset,
         **kwargs,
     )
@@ -469,7 +463,7 @@ class CaptumArnoldi(CaptumInfluence):
         )
         self.init_explainer(**explainer_kwargs)
 
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
+    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]):
         """
         Compute influence scores for the test samples.
 
@@ -477,7 +471,7 @@ class CaptumArnoldi(CaptumInfluence):
         ----------
         test : torch.Tensor
             Test samples for which influence scores are computed.
-        targets : Optional[Union[List[int], torch.Tensor]]
+        targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
 
         Returns
@@ -486,9 +480,7 @@ class CaptumArnoldi(CaptumInfluence):
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
         test = test.to(self.device)
-
-        if targets is None:
-            raise ValueError("Targets are required for CaptumArnoldi explainer.")
+        targets = self._process_targets(targets)
 
         if isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
@@ -519,7 +511,7 @@ class CaptumArnoldi(CaptumInfluence):
 def captum_arnoldi_explain(
     model: Union[torch.nn.Module, pl.LightningModule],
     test_tensor: torch.Tensor,
-    explanation_targets: Optional[Union[List[int], torch.Tensor]],
+    explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
     model_id: Optional[str] = None,
     cache_dir: str = "./cache",
@@ -693,7 +685,7 @@ class CaptumTracInCP(CaptumInfluence):
         self.init_explainer(**explainer_kwargs)
         self.device = device
 
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
+    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]):
         """
         Compute influence scores for the test samples.
 
@@ -701,7 +693,7 @@ class CaptumTracInCP(CaptumInfluence):
         ----------
         test : torch.Tensor
             Test samples for which influence scores are computed.
-        targets : Optional[Union[List[int], torch.Tensor]]
+        targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
 
         Returns
@@ -710,9 +702,7 @@ class CaptumTracInCP(CaptumInfluence):
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
         test = test.to(self.device)
-
-        if targets is None:
-            raise ValueError("Targets are required for CaptumTracInCP explainer.")
+        targets = self._process_targets(targets)
 
         if isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
@@ -745,7 +735,7 @@ class CaptumTracInCP(CaptumInfluence):
 def captum_tracincp_explain(
     model: Union[torch.nn.Module, pl.LightningModule],
     test_tensor: torch.Tensor,
-    explanation_targets: Optional[Union[List[int], torch.Tensor]],
+    explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
     model_id: Optional[str] = None,
     cache_dir: str = "./cache",
@@ -918,7 +908,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         )
         self.init_explainer(**explainer_kwargs)
 
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
+    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]):
         """
         Compute influence scores for the test samples.
 
@@ -926,7 +916,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         ----------
         test : torch.Tensor
             Test samples for which influence scores are computed.
-        targets : Optional[Union[List[int], torch.Tensor]]
+        targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
 
         Returns
@@ -935,9 +925,7 @@ class CaptumTracInCPFast(CaptumInfluence):
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
         test = test.to(self.device)
-
-        if targets is None:
-            raise ValueError("Targets are required for CaptumTracInCPFast explainer.")
+        targets = self._process_targets(targets)
 
         if isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
@@ -970,7 +958,7 @@ class CaptumTracInCPFast(CaptumInfluence):
 def captum_tracincp_fast_explain(
     model: torch.nn.Module,
     test_tensor: torch.Tensor,
-    explanation_targets: Optional[Union[List[int], torch.Tensor]],
+    explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
     model_id: Optional[str] = None,
     cache_dir: str = "./cache",
@@ -1180,7 +1168,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 
         self.init_explainer(**explainer_kwargs)
 
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
+    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]):
         """
         Compute influence scores for the test samples.
 
@@ -1188,7 +1176,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         ----------
         test : torch.Tensor
             Test samples for which influence scores are computed.
-        targets : Optional[Union[List[int], torch.Tensor]]
+        targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
 
         Returns
@@ -1197,9 +1185,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
         test = test.to(self.device)
-
-        if targets is None:
-            raise ValueError("Targets are required for CaptumTracInCPFastRandProj explainer.")
+        targets = self._process_targets(targets)
 
         if isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
@@ -1213,10 +1199,10 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 def captum_tracincp_fast_rand_proj_explain(
     model: Union[torch.nn.Module, pl.LightningModule],
     test_tensor: torch.Tensor,
+    explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
     model_id: Optional[str] = None,
     cache_dir: str = "./cache",
-    explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """
