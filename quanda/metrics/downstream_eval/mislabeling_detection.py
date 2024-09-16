@@ -17,9 +17,7 @@ class MislabelingDetectionMetric(Metric):
 
     References
     ----------
-    1) Hammoudeh, Z., & Lowd, D. (2022). Identifying a training-set attack's target using renormalized influence
-    estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
-    (pp. 1367-1381).
+    1) Kwon, Yongchan, et al. "Datainf: Efficiently estimating data influence in lora-tuned llms and diffusion models." arXiv preprint arXiv:2310.00902 (2023).
     """
 
     def __init__(

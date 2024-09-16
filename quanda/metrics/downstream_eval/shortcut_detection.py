@@ -7,6 +7,14 @@ from quanda.tasks.aggregate_attributions import AggregateAttributions
 
 
 class ShortcutDetectionMetric(Metric):
+    """Metric for the shortcut detection evaluation task. Attributions of a  model with a shortcut is checked against the ground truth of shortcut samples.
+    This strategy is inspired by (1) and (2).
+
+    References
+    ----------
+    1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions." International conference on machine learning. PMLR, 2017.
+    2) Søgaard, Anders. "Revisiting methods for finding influential examples." arXiv preprint arXiv:2111.04683 (2021).
+    """
     def __init__(
         self,
         model: torch.nn.Module,
@@ -20,6 +28,27 @@ class ShortcutDetectionMetric(Metric):
         *args,
         **kwargs,
     ):
+        """Initializer for the Shortcut Detection metric.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            Model associated with the attributions to be evaluated.
+        train_dataset : torch.utils.data.Dataset
+            Training dataset used to train `model`.
+        poisoned_indices : List[int]
+            Ground truth of shortcut indices of the `train_dataset`.
+        poisoned_cls : int
+            Class of the poisoned samples.
+        explainer_cls : Optional[type], optional
+            Optional explainer class to be evaluated, defaults to None
+        expl_kwargs : Optional[dict], optional
+            Optional keyword arguments for explainers, defaults to None
+        model_id : Optional[str], optional
+            Optional model_id
+        cache_dir : str, optional
+            Optional cache directory
+        """
         super().__init__(model=model, train_dataset=train_dataset)
         self.scores: Dict[str, List[torch.Tensor]] = {k: [] for k in ["poisoned", "clean", "rest"]}
         clean_indices = [
@@ -38,8 +67,12 @@ class ShortcutDetectionMetric(Metric):
         self.poisoned_indices = poisoned_indices
 
     def update(self, explanations: torch.Tensor):
-        """
-        Used to implement metric-specific logic.
+        """Update the metric state with the provided explanations.
+
+        Parameters
+        ----------
+        explanations : torch.Tensor
+            Explanations to be evaluated.
         """
         explanations = explanations.to(self.device)
 
@@ -50,24 +83,24 @@ class ShortcutDetectionMetric(Metric):
 
     def compute(self):
         """
-        Used to aggregate current results and return a metric score.
+        Aggregates current results and return a metric score.
         """
         return {k: torch.cat(self.scores[k]).mean().item() for k in self.scores.keys()}
 
     def reset(self, *args, **kwargs):
         """
-        Used to reset the metric state.
+        Resets the metric state.
         """
         {k: [] for k in ["poisoned", "clean", "rest"]}
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
-        Used to load the metric state.
+        Loads the metric state.
         """
         self.scores = state_dict["scores"]
 
     def state_dict(self, *args, **kwargs):
         """
-        Used to return the metric state.
+        Returns the metric state.
         """
         return {"scores": self.scores}

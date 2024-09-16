@@ -18,12 +18,30 @@ from quanda.utils.training.trainer import BaseTrainer
 
 
 class ShortcutDetection(Benchmark):
+    """Benchmark for shortcut detection evaluation task.
 
+    A class is selected and a portion of the images of that class are perturbed with a trigger.
+    The model is then trained on this dataset, and learns a shortcut to use the trigger to predict the class.
+    The goal is to detect this shortcut using the attributions of the model.
+
+    Note that all explanations are generated with respect to the class of the poisoned samples, to detect the shortcut.
+
+    The average attributions for triggered examples from the class, clean examples from the class, and clean examples from other classes are computed.
+    
+    This metric is inspired by the Domain Mismatch Detection Test of (1) and Backdoor Poisoning Detection of (2).
+
+    Parameters
+    ----------
+    1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions." International conference on machine learning. PMLR, 2017.
+    2) Søgaard, Anders. "Revisiting methods for finding influential examples." arXiv preprint arXiv:2111.04683 (2021).
+    """
     def __init__(
         self,
         *args,
         **kwargs,
     ):
+        """Initializer for the benchmark object. This initializer should not be used directly. To instantiate the benchmark, use the `generate`, `assemble` or `download` class methods instead.
+        """
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
@@ -58,6 +76,42 @@ class ShortcutDetection(Benchmark):
         *args,
         **kwargs,
     ):
+        """Generate the benchmark from scratch, with the specified parameters.
+
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, L.LightningModule]
+            Model to be evaluated.
+        train_dataset : Union[str, torch.utils.data.Dataset]
+            Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
+        n_classes : int
+            Number of classes in the dataset.
+        poisoned_cls : int
+            The class to add triggers to.
+        trainer : Union[L.Trainer, BaseTrainer]
+            Trainer to be used for training the model.
+        sample_fn : Union[SampleFnLiterals, Callable]
+            Function to add triggers to samples of the dataset.
+        dataset_split : str, optional
+            Split used for HuggingFace datasets, defaults to "train"
+        dataset_transform : Optional[Callable], optional
+            Default transform of the dataset, defaults to None
+        val_dataset : Optional[torch.utils.data.Dataset], optional
+            Validation dataset to use during training, defaults to None
+        p : float, optional
+            The probability of poisoning with the trigger per sample, by default 0.3
+        trainer_fit_kwargs : Optional[dict], optional
+            Keyword arguments to supply the trainer, by default None
+        seed : int, optional
+            seed for reproducibility, defaults to 27
+        batch_size : int, optional
+            Batch size to use during training, defaults to 8
+
+        Returns
+        -------
+        ShortcutDetection
+            An instance of the ShortcutDetection benchmark.
+        """
         obj = cls()
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
@@ -92,6 +146,46 @@ class ShortcutDetection(Benchmark):
         seed: int = 27,
         batch_size: int = 8,
     ):
+        """Generate the benchmark from scratch, with the specified parameters. Used internally, through the `generate` method.
+
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, L.LightningModule]
+            Model to be evaluated.
+        train_dataset : Union[str, torch.utils.data.Dataset]
+            Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
+        n_classes : int
+            Number of classes in the dataset.
+        poisoned_cls : int
+            The class to add triggers to.
+        trainer : Union[L.Trainer, BaseTrainer]
+            Trainer to be used for training the model.
+        sample_fn : Union[SampleFnLiterals, Callable]
+            Function to add triggers to samples of the dataset.
+        dataset_transform : Optional[Callable], optional
+            Default transform of the dataset, defaults to None
+        val_dataset : Optional[torch.utils.data.Dataset], optional
+            Validation dataset to use during training, defaults to None
+        p : float, optional
+            The probability of poisoning with the trigger per sample, by default 0.3
+        trainer_fit_kwargs : Optional[dict], optional
+            Keyword arguments to supply the trainer, by default None
+        seed : int, optional
+            seed for reproducibility, defaults to 27
+        batch_size : int, optional
+            Batch size to use during training, defaults to 8
+
+        Raises
+        ------
+        ValueError
+            If the sample_fn is not a function or a valid literal.
+        ValueError
+            If the model is not a LightningModule when the trainer is a Lightning Trainer.
+        ValueError
+            If the model is not a torch.nn.Module when the trainer is a BaseTrainer.
+        ValueError
+            If the trainer is neither a Lightning Trainer nor a BaseTrainer.
+        """
         if isinstance(sample_fn, str):
             sample_fn = get_sample_fn(sample_fn)
         elif not callable(sample_fn):
@@ -211,16 +305,10 @@ class ShortcutDetection(Benchmark):
             The dataset split, only used for HuggingFace datasets, by default "train".
         poisoned_indices : Optional[List[int]], optional
             List of indices to poison, defaults to None
-        poisoned_labels : Optional[Dict[int, int]], optional
-            Dictionary containing indices as keys and new labels as values, defaults to None
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
         p : float, optional
-                        The probability of mislabeling per sample, by default 0.3
-        global_method : Union[str, type], optional
-            Method to generate a global ranking from local explainer.
-            It can be a subclass of `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
-            Defaults to "self-influence".
+            The probability of mislabeling per sample, by default 0.3
         batch_size : int, optional
             Batch size that is used for training, by default 8
         """
@@ -275,8 +363,6 @@ class ShortcutDetection(Benchmark):
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None
-        use_predictions : bool, optional
-            Whether to use model predictions or the true test labels for the evaluation, defaults to False
         batch_size : int, optional
             Batch size to be used for the evaluation, default to 8
         Returns

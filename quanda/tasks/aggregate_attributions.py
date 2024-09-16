@@ -10,7 +10,7 @@ class AggregateAttributions(Task):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        aggr_indices=Dict[str, List[int]],
+        aggr_indices: Dict[str, List[int]],
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
         model_id: Optional[str] = "0",
@@ -34,9 +34,6 @@ class AggregateAttributions(Task):
         *args: Any,
         **kwargs: Any,
     ):
-        """
-        Used to implement task-specific logic.
-        """
 
         explanations = explanations.to(self.device)
         immediate_return_dict = {}
