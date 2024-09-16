@@ -21,7 +21,7 @@ import warnings
 from functools import reduce
 from typing import Any, Callable, List, Optional, Union
 
-import pytorch_lightning as pl
+import lightning as L
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -93,7 +93,7 @@ class RepresenterPoints(Explainer):
 
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         model_id: str,
         train_dataset: torch.utils.data.Dataset,
         features_layer: str,

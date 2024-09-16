@@ -3,7 +3,7 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Optional, Union
 
-import pytorch_lightning as pl
+import lightning as L
 import torch
 from captum._utils.av import AV  # type: ignore
 from captum.influence import (  # type: ignore
@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 class CaptumInfluence(Explainer, ABC):
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         explain_kwargs: Any,
@@ -72,7 +72,7 @@ class CaptumSimilarity(CaptumInfluence):
 
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         model_id: str,
         train_dataset: torch.utils.data.Dataset,
         layers: Union[str, List[str]],
@@ -167,7 +167,7 @@ class CaptumSimilarity(CaptumInfluence):
 
 
 def captum_similarity_explain(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     model_id: str,
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
@@ -188,7 +188,7 @@ def captum_similarity_explain(
 
 
 def captum_similarity_self_influence(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     model_id: str,
     train_dataset: torch.utils.data.Dataset,
     cache_dir: str = "./cache",
@@ -209,7 +209,7 @@ def captum_similarity_self_influence(
 class CaptumArnoldi(CaptumInfluence):
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         checkpoint: str,
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(),
@@ -298,7 +298,7 @@ class CaptumArnoldi(CaptumInfluence):
 
 
 def captum_arnoldi_explain(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
@@ -340,7 +340,7 @@ def captum_arnoldi_self_influence(
 class CaptumTracInCP(CaptumInfluence):
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -415,7 +415,7 @@ class CaptumTracInCP(CaptumInfluence):
 
 
 def captum_tracincp_explain(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
@@ -436,7 +436,7 @@ def captum_tracincp_explain(
 
 
 def captum_tracincp_self_influence(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     train_dataset: torch.utils.data.Dataset,
     model_id: Optional[str] = None,
     cache_dir: str = "./cache",
@@ -571,7 +571,7 @@ def captum_tracincp_fast_self_influence(
 class CaptumTracInCPFastRandProj(CaptumInfluence):
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         model_id: str,
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
@@ -666,7 +666,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 
 
 def captum_tracincp_fast_rand_proj_explain(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     model_id: str,
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
