@@ -17,17 +17,13 @@ from quanda.explainers.wrappers import RepresenterPoints
         ),
     ],
 )
-def test_representer_points_explain(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
-):
+def test_representer_points_explain(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
 
-    explainer = RepresenterPoints(
-        model=model, cache_dir=str(tmp_path), train_dataset=dataset, **method_kwargs
-    )
+    explainer = RepresenterPoints(model=model, cache_dir=str(tmp_path), train_dataset=dataset, **method_kwargs)
 
     explanations = explainer.explain(test=test_tensor, targets=test_labels)
 
@@ -52,9 +48,7 @@ def test_representer_points_self_influence(test_id, model, dataset, train_labels
     dataset = request.getfixturevalue(dataset)
     train_labels = request.getfixturevalue(train_labels)
 
-    explainer = RepresenterPoints(
-        model=model, cache_dir=str(tmp_path), train_dataset=dataset, **method_kwargs
-    )
+    explainer = RepresenterPoints(model=model, cache_dir=str(tmp_path), train_dataset=dataset, **method_kwargs)
 
     self_influence = explainer.self_influence()
 

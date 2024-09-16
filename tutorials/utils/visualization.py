@@ -100,7 +100,7 @@ def visualize_top_3_bottom_3_influential(
             transform=ax.transAxes,
             backgroundcolor=test_label_color,
             color="white",
-            fontsize=20,
+            fontsize=16,
             verticalalignment="top",
             bbox=dict(facecolor=test_label_color, edgecolor="none", pad=10),
         )
@@ -116,7 +116,7 @@ def visualize_top_3_bottom_3_influential(
             transform=ax.transAxes,
             ha="center",
             va="top",
-            fontsize=20,
+            fontsize=16,
             color="white",
         )
         plt.axis("off")
@@ -133,7 +133,7 @@ def visualize_top_3_bottom_3_influential(
                 transform=ax.transAxes,
                 backgroundcolor=label_color,
                 color="white",
-                fontsize=20,
+                fontsize=16,
                 verticalalignment="top",
                 bbox=dict(facecolor=label_color, edgecolor="none", pad=8),
             )
@@ -155,7 +155,7 @@ def visualize_top_3_bottom_3_influential(
                 transform=ax.transAxes,
                 backgroundcolor=label_color,
                 color="white",
-                fontsize=20,
+                fontsize=16,
                 verticalalignment="top",
                 bbox=dict(facecolor=label_color, edgecolor="none", pad=8),
             )

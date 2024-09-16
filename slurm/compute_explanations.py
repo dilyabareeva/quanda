@@ -1,8 +1,9 @@
+import logging
 import os
 import random
 import subprocess
 from argparse import ArgumentParser
-import logging
+
 import pytorch_lightning as pl
 import torch
 import torchvision.transforms as transforms
@@ -26,7 +27,6 @@ from tutorials.utils.datasets import (
 )
 from tutorials.utils.modules import LitModel
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -45,12 +45,19 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
         subprocess.run(["wget", "-P", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
         subprocess.run(["unzip", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
-        subprocess.run(["wget", "-P", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"])
+        subprocess.run(
+            ["wget", "-P", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"]
+        )
         subprocess.run(["unzip", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
 
         # Next we download all the necessary checkpoints and the dataset metadata
         subprocess.run(
-            ["wget", "-P", checkpoints_dir, "https://datacloud.hhi.fraunhofer.de/s/ZE5dBnfzW94Xkoo/download/tiny_inet_resnet18.zip"]
+            [
+                "wget",
+                "-P",
+                checkpoints_dir,
+                "https://datacloud.hhi.fraunhofer.de/s/ZE5dBnfzW94Xkoo/download/tiny_inet_resnet18.zip",
+            ]
         )
         subprocess.run(["unzip", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18.zip"), "-d", metadata_dir])
         subprocess.run(
@@ -59,7 +66,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         subprocess.run(["unzip", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
 
     n_epochs = 10
-    checkpoints = [os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(1, n_epochs, 2)]
+    checkpoints = [
+        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(1, n_epochs, 2)
+    ]
 
     # Dataset Construction
 
@@ -145,12 +154,13 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         flipping_transform_dict={},
     )
 
-    test_indices = torch.load(os.path.join(metadata_dir, "big_eval_test_backdoor_indices.pth")) + torch.load(
-        os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth")) + torch.load(
-            os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth")) + torch.load(
-                os.path.join(metadata_dir, "big_eval_test_cats_indices.pth")) + torch.load(
-                    os.path.join(metadata_dir, "big_eval_test_clean_indices.pth")
-                )
+    test_indices = (
+        torch.load(os.path.join(metadata_dir, "big_eval_test_backdoor_indices.pth"))
+        + torch.load(os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
+        + torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
+        + torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
+        + torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
+    )
     target_test_set = torch.utils.data.Subset(test_set, test_indices)
 
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
@@ -160,6 +170,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
     import matplotlib.pyplot as plt
     from torchvision.utils import make_grid
+
     images, labels = next(iter(test_dataloader))
     fig, ax = plt.subplots(figsize=(12, 6))
     plt.title("Sample images from CIFAR10 dataset")
@@ -167,7 +178,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     ax.set_yticks([])
     ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
     plt.show()
-
 
     lit_model = LitModel.load_from_checkpoint(
         checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
@@ -318,7 +328,7 @@ if __name__ == "__main__":
         "--method",
         required=True,
         choices=["similarity", "representer_points", "tracincpfast", "arnoldi", "trak"],
-        help="Choose the explanation method to use."
+        help="Choose the explanation method to use.",
     )
 
     # Define other required arguments
@@ -327,8 +337,16 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", required=True, type=str, help="Directory to save outputs")
     parser.add_argument("--checkpoints_dir", required=True, type=str, help="Directory to checkpoints")
     parser.add_argument("--metadata_dir", required=True, type=str, help="Directory to metadata")
-    parser.add_argument("--download", action='store_true', help="Download the datasets and checkpoints")
+    parser.add_argument("--download", action="store_true", help="Download the datasets and checkpoints")
     args = parser.parse_args()
 
     # Call the function with parsed arguments
-    compute_explanations(args.method, args.tiny_in_path, args.panda_sketch_path, args.output_dir, args.checkpoints_dir, args.metadata_dir, args.download)
+    compute_explanations(
+        args.method,
+        args.tiny_in_path,
+        args.panda_sketch_path,
+        args.output_dir,
+        args.checkpoints_dir,
+        args.metadata_dir,
+        args.download,
+    )

@@ -196,13 +196,13 @@ def default_tensor_type(device: Union[str, torch.device]):
     new_tensor_type = tensor.type()
 
     # Set the new tensor type
-    torch.set_default_type(new_tensor_type)
+    torch.set_default_tensor_type(new_tensor_type)
     try:
         # Yield control back to the calling context
         yield
     finally:
         # Restore the original tensor type
-        torch.set_default_type(original_tensor_type)
+        torch.set_default_tensor_type(original_tensor_type)
 
 
 def ds_len(dataset: torch.utils.data.Dataset) -> int:
