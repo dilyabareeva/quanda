@@ -12,6 +12,9 @@ From: ./quanda_pre_build.sif
   cd /opt/quanda
   pip install .[tutorials]
 
+  # Install wget
+  apt-get update && apt-get install -y wget
+
 %runscript
   cd /opt/quanda
-  python slurm/compute_explanations.py "$@"
+  python -u slurm/compute_explanations.py "$@"
