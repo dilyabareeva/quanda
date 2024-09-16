@@ -96,7 +96,6 @@ class RepresenterPoints(Explainer):
         model: Union[torch.nn.Module, pl.LightningModule],
         model_id: str,
         train_dataset: torch.utils.data.Dataset,
-        train_labels: torch.Tensor,
         features_layer: str,
         classifier_layer: str,
         cache_dir: str = "./cache",
@@ -118,7 +117,6 @@ class RepresenterPoints(Explainer):
             model_id=model_id,
             cache_dir=cache_dir,
         )
-        self.train_labels = train_labels
         self.normalize = normalize
         self.features_layer = features_layer
         self.classifier_layer = classifier_layer
