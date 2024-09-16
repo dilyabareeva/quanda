@@ -2,7 +2,7 @@ import os
 import random
 import subprocess
 from argparse import ArgumentParser
-
+import logging
 import pytorch_lightning as pl
 import torch
 import torchvision.transforms as transforms
@@ -27,37 +27,45 @@ from tutorials.utils.datasets import (
 from tutorials.utils.modules import LitModel
 
 
-def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
+logger = logging.getLogger(__name__)
+
+
+def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, checkpoints_dir, metadata_dir, download):
     torch.set_float32_matmul_precision("medium")
 
     # Downloading the datasets and checkpoints
 
     # We first download the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
-    os.makedirs(save_dir, exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
 
-    subprocess.run(["wget", "-P", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
-    subprocess.run(["unzip", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
-    subprocess.run(["wget", "-P", save_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"])
-    subprocess.run(["unzip", os.path.join(save_dir, "sketch.zip"), "-d", save_dir])
+    if download:
+        os.makedirs(metadata_dir, exist_ok=True)
+        os.makedirs(checkpoints_dir, exist_ok=True)
+        os.makedirs(tiny_in_path, exist_ok=True)
 
-    # Next we download all the necessary checkpoints and the dataset metadata
-    subprocess.run(
-        ["wget", "-P", save_dir, "https://datacloud.hhi.fraunhofer.de/s/ZE5dBnfzW94Xkoo/download/tiny_inet_resnet18.zip"]
-    )
-    subprocess.run(["unzip", "-j", os.path.join(save_dir, "tiny_inet_resnet18.zip"), "-d", save_dir])
-    subprocess.run(
-        ["wget", "-P", save_dir, "https://datacloud.hhi.fraunhofer.de/s/AmnCXAC8zx3YQgP/download/dataset_indices.zip"]
-    )
-    subprocess.run(["unzip", "-j", os.path.join(save_dir, "dataset_indices.zip"), "-d", save_dir])
+        subprocess.run(["wget", "-P", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
+        subprocess.run(["unzip", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
+        subprocess.run(["wget", "-P", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"])
+        subprocess.run(["unzip", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
+
+        # Next we download all the necessary checkpoints and the dataset metadata
+        subprocess.run(
+            ["wget", "-P", checkpoints_dir, "https://datacloud.hhi.fraunhofer.de/s/ZE5dBnfzW94Xkoo/download/tiny_inet_resnet18.zip"]
+        )
+        subprocess.run(["unzip", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18.zip"), "-d", metadata_dir])
+        subprocess.run(
+            ["wget", "-P", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/AmnCXAC8zx3YQgP/download/dataset_indices.zip"]
+        )
+        subprocess.run(["unzip", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
 
     n_epochs = 10
-    checkpoints = [os.path.join(save_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(1, n_epochs, 2)]
+    checkpoints = [os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(1, n_epochs, 2)]
 
     # Dataset Construction
 
     # Loading the dataset metadata
-    class_to_group = torch.load(os.path.join(save_dir, "class_to_group.pth"))
-    test_split = torch.load(os.path.join(save_dir, "test_indices.pth"))
+    class_to_group = torch.load(os.path.join(metadata_dir, "class_to_group.pth"))
+    test_split = torch.load(os.path.join(metadata_dir, "test_indices.pth"))
 
     # Optional: load environmental variable from .env file (incl. wandb api key)
     load_dotenv()
@@ -121,13 +129,8 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
         class_to_group=class_to_group,
         shortcut_fn=add_yellow_square,
         backdoor_dataset=panda_set,
-        pomegranate_class=162,
-        p_shortcut=0.4,
-        p_flipping=0.1,
-        dog_class=189,
-        cat_class=190,
-        shortcut_transform_indices=torch.load(os.path.join(save_dir, "all_train_shortcut_indices_for_generation.pth")),
-        flipping_transform_dict=torch.load(os.path.join(save_dir, "all_train_flipped_dict_for_generation.pth")),
+        shortcut_transform_indices=torch.load(os.path.join(metadata_dir, "all_train_shortcut_indices_for_generation.pth")),
+        flipping_transform_dict=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
     )
 
     test_set = special_dataset(
@@ -138,39 +141,33 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
         class_to_group=class_to_group,
         shortcut_fn=add_yellow_square,
         backdoor_dataset=panda_test,
-        pomegranate_class=None,
-        p_shortcut=0.3,
-        p_flipping=0.1,
-        dog_class=189,
-        cat_class=190,
-        shortcut_transform_indices=torch.load(os.path.join(save_dir, "all_test_shortcut_indices_for_generation.pth")),
+        shortcut_transform_indices=torch.load(os.path.join(metadata_dir, "all_test_shortcut_indices_for_generation.pth")),
         flipping_transform_dict={},
     )
 
-    random_rng = random.Random(27)
-
-    all_backdoor = torch.load(os.path.join(save_dir, "all_test_backdoor_indices.pth"))
-    test_backd = random_rng.sample(all_backdoor, 16)
-    all_shortcut = torch.load(os.path.join(save_dir, "all_test_shortcut_indices.pth"))
-    act_test_sc_non_pom = [s for s in test_backd if test_set[s][1] != 162]
-    test_shortc = random_rng.sample(act_test_sc_non_pom, 16)
-
-    all_cats = [s for s in range(len(test_set)) if test_set[s][1] in [new_n_classes - 1]]
-    all_dogs = [s for s in range(len(test_set)) if test_set[s][1] in [new_n_classes - 2]]
-    test_dogs_cats = random_rng.sample(all_cats, 16)
-    test_dogs_cats += random_rng.sample(all_dogs, 16)
-
-    all_clean_samples = [i for i in range(len(test_set)) if i not in all_backdoor + all_shortcut + test_dogs_cats]
-    clean_samples = random_rng.sample(all_clean_samples, 16)
-
-    # backdoor, shortcut, dogs and cats samples
-    test_indices = test_backd + test_shortc + test_dogs_cats + clean_samples
+    test_indices = torch.load(os.path.join(metadata_dir, "big_eval_test_backdoor_indices.pth")) + torch.load(
+        os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth")) + torch.load(
+            os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth")) + torch.load(
+                os.path.join(metadata_dir, "big_eval_test_cats_indices.pth")) + torch.load(
+                    os.path.join(metadata_dir, "big_eval_test_clean_indices.pth")
+                )
     target_test_set = torch.utils.data.Subset(test_set, test_indices)
 
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     test_dataloader = torch.utils.data.DataLoader(
-        target_test_set, batch_size=batch_size, shuffle=False, num_workers=num_workers
+        target_test_set, batch_size=len(test_indices), shuffle=False, num_workers=num_workers
     )
+
+    import matplotlib.pyplot as plt
+    from torchvision.utils import make_grid
+    images, labels = next(iter(test_dataloader))
+    fig, ax = plt.subplots(figsize=(12, 6))
+    plt.title("Sample images from CIFAR10 dataset")
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
+    plt.show()
+
 
     lit_model = LitModel.load_from_checkpoint(
         checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
@@ -191,8 +188,10 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
             load_from_disk=True,
         )
 
-        method_save_dir = os.path.join(save_dir, "similarity")
+        method_save_dir = os.path.join(output_dir, "expl_similarity")
+        os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
+        logger.info("Explaining test samples")
         for i, (test_tensor, test_labels) in enumerate(test_dataloader):
             explanation_targets = [
                 lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
@@ -205,7 +204,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
             model=lit_model,
             cache_dir="tmp_repr",
             train_dataset=train_dataloader.dataset,
-            train_labels=torch.tensor(explanation_targets),
             features_layer="model.avgpool",
             classifier_layer="model.fc",
             batch_size=32,
@@ -215,8 +213,10 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
             show_progress=False,
         )
 
-        method_save_dir = os.path.join(save_dir, "representer_points")
+        method_save_dir = os.path.join(output_dir, "expl_representer_points")
+        os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
+        logger.info("Explaining test samples")
         for i, (test_tensor, test_labels) in enumerate(test_dataloader):
             explanation_targets = [
                 lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
@@ -234,6 +234,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
             return module.lr
 
         # Initialize Explainer
+        logger.info("Explaining test samples")
         explainer_tracincpfast = CaptumTracInCPFast(
             model=lit_model,
             train_dataset=train_dataloader.dataset,
@@ -247,7 +248,8 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
             batch_size=64,
         )
 
-        method_save_dir = os.path.join(save_dir, "tracincpfast")
+        method_save_dir = os.path.join(output_dir, "expl_tracincpfast")
+        os.makedirs(method_save_dir, exist_ok=True)
 
         for i, (test_tensor, test_labels) in enumerate(test_dataloader):
             explanation_targets = [
@@ -276,8 +278,10 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
             device="cuda:0",
         )
 
-        method_save_dir = os.path.join(save_dir, "arnoldi")
+        method_save_dir = os.path.join(output_dir, "expl_arnoldi")
+        os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
+        logger.info("Explaining test samples")
         for i, (test_tensor, test_labels) in enumerate(test_dataloader):
             explanation_targets = [
                 lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
@@ -295,7 +299,8 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, save_dir):
             load_from_disk=False,
         )
 
-        method_save_dir = os.path.join(save_dir, "trak")
+        method_save_dir = os.path.join(output_dir, "expl_trak")
+        os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
         for i, (test_tensor, test_labels) in enumerate(test_dataloader):
             explanation_targets = [
@@ -319,9 +324,11 @@ if __name__ == "__main__":
     # Define other required arguments
     parser.add_argument("--tiny_in_path", required=True, type=str, help="Path to Tiny ImageNet dataset")
     parser.add_argument("--panda_sketch_path", required=True, type=str, help="Path to ImageNet-Sketch dataset")
-    parser.add_argument("--save_dir", required=True, type=str, help="Directory to save outputs")
-
+    parser.add_argument("--output_dir", required=True, type=str, help="Directory to save outputs")
+    parser.add_argument("--checkpoints_dir", required=True, type=str, help="Directory to checkpoints")
+    parser.add_argument("--metadata_dir", required=True, type=str, help="Directory to metadata")
+    parser.add_argument("--download", action='store_true', help="Download the datasets and checkpoints")
     args = parser.parse_args()
 
     # Call the function with parsed arguments
-    compute_explanations(args.method, args.tiny_in_path, args.panda_sketch_path, args.save_dir)
+    compute_explanations(args.method, args.tiny_in_path, args.panda_sketch_path, args.output_dir, args.checkpoints_dir, args.metadata_dir, args.download)
