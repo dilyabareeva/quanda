@@ -1254,3 +1254,42 @@ def captum_tracincp_fast_rand_proj_explain(
         train_dataset=train_dataset,
         **kwargs,
     )
+
+
+def captum_tracincp_fast_rand_proj_self_influence(
+    model: torch.nn.Module,
+    model_id: str,
+    cache_dir: str,
+    train_dataset: torch.utils.data.Dataset,
+    outer_loop_by_checkpoints: bool = False,
+    **kwargs: Any,
+) -> torch.Tensor:
+    """Functional interface for the self-influence scores using the `CaptumTracInCPFastRandProj` explainer.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        The model to be explained.
+    model_id :
+        Identifier for the model.
+    cache_dir : str
+        The directory to use for caching
+    train_dataset : torch.utils.data.Dataset
+        The training dataset used to train the model.
+    outer_loop_by_checkpoints : bool, optional
+        Whether to use the outer loop by checkpoints, by default False
+
+    Returns
+    -------
+    torch.Tensor
+        _description_
+    """
+    return self_influence_fn_from_explainer(
+        explainer_cls=CaptumTracInCPFastRandProj,
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        train_dataset=train_dataset,
+        outer_loop_by_checkpoints=outer_loop_by_checkpoints,
+        **kwargs,
+    )
