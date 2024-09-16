@@ -94,16 +94,16 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
     # Load the TinyImageNet dataset
     id_dict = {}
-    with open(tiny_in_path + "/wnids.txt", "r") as f:
+    with open(tiny_in_path + "wnids.txt", "r") as f:
         id_dict = {line.strip(): i for i, line in enumerate(f)}
 
     val_annotations = {}
-    with open(tiny_in_path + "/val/val_annotations.txt", "r") as f:
+    with open(tiny_in_path + "val/val_annotations.txt", "r") as f:
         val_annotations = {line.split("\t")[0]: line.split("\t")[1] for line in f}
 
-    train_set = CustomDataset(tiny_in_path + "/train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None)
+    train_set = CustomDataset(tiny_in_path + "train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None)
     holdout_set = AnnotatedDataset(
-        local_path=tiny_in_path + "/val", transforms=None, id_dict=id_dict, annotation=val_annotations
+        local_path=tiny_in_path + "val", transforms=None, id_dict=id_dict, annotation=val_annotations
     )
     test_set = torch.utils.data.Subset(holdout_set, test_split)
 

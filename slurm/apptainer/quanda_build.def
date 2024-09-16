@@ -13,7 +13,7 @@ From: ./quanda_pre_build.sif
   pip install .[tutorials]
 
   # Install wget
-  apt-get update && apt-get install -y wget
+  apt-get update && apt-get install -y wget unzip
 
 %runscript
   cd /opt/quanda

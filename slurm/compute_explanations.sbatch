@@ -32,3 +32,4 @@ cd "$LOCAL_JOB_DIR"
 tar -cf quanda_xpl_${SLURM_JOB_ID}.tar job_results
 cp quanda_xpl_${SLURM_JOB_ID}.tar $SLURM_SUBMIT_DIR/quanda_output/
 rm -rf ${LOCAL_JOB_DIR}/job_results
+rm -rf ${LOCAL_JOB_DIR}/tmp
