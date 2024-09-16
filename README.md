@@ -143,6 +143,11 @@ We have included a few  [tutorials](https://github.com/dilyabareeva/quanda/tree/
 * [Metrics](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_metrics.ipynb): demonstrates how to use the metrics in **quanda** to evaluate the performance of a model
 * [Benchmarks](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_benchmarks.ipynb): shows how to use the benchmarking tools in **quanda** to evaluate a data attribution method
 
+To install the library with tutorials dependencies, run:
+
+```bash
+pip install -e '.[tutorials]'
+```
 
 ## 👩‍💻Contributing
 We welcome contributions to **quanda**! You could contribute by:
