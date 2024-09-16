@@ -187,7 +187,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         explainer_similarity = CaptumSimilarity(
             model=lit_model,
             model_id="0",
-            cache_dir="tmp",
+            cache_dir=output_dir,
             train_dataset=train_dataloader.dataset,
             layers="model.avgpool",
             similarity_metric=cosine_similarity,
@@ -210,7 +210,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     if method == "representer_points":
         explainer_repr = RepresenterPoints(
             model=lit_model,
-            cache_dir="tmp_repr",
+            cache_dir=output_dir,
             train_dataset=train_dataloader.dataset,
             features_layer="model.avgpool",
             classifier_layer="model.fc",
@@ -248,7 +248,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             train_dataset=train_dataloader.dataset,
             checkpoints=checkpoints,
             model_id="0",
-            cache_dir="tmp_tracincpfast",
+            cache_dir=output_dir,
             checkpoints_load_func=load_state_dict,
             loss_fn=torch.nn.CrossEntropyLoss(reduction="mean"),
             final_fc_layer=list(lit_model.model.children())[-1],
@@ -301,7 +301,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         explainer_trak = TRAK(
             model=lit_model.model,
             model_id="test_model",
-            cache_dir="tmp_trak",
+            cache_dir=output_dir,
             train_dataset=train_dataloader.dataset,
             proj_dim=4096,
             load_from_disk=False,
