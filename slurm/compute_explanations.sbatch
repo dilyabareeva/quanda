@@ -24,7 +24,7 @@ method=${methods[$SLURM_ARRAY_TASK_ID]}
 
 echo "Compute Explanations"
 
-apptainer run --nv  --env "PYTHONPATH=." --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./quanda_build.sif --method "$method" --tiny_in_path ./assets/demo/tiny-imagenet-200 --panda_sketch_path ./assets/demo/sketch --output_dir mnt/output --checkpoints_dir ./assets/demo/ --metadata_dir ./assets/demo/
+apptainer run --nv  --env "PYTHONPATH=." --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output ./quanda_build.sif --method "$method" --tiny_in_path "./assets/demo/tiny-imagenet-200" --panda_sketch_path "./assets/demo/sketch" --output_dir "/mnt/output" --checkpoints_dir "./assets/demo/" --metadata_dir "./assets/demo/"
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"

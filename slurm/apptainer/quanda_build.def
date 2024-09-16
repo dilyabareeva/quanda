@@ -6,10 +6,12 @@ From: ./quanda_pre_build.sif
   ./quanda /opt/quanda
 
 %post
-    export PYTHONPATH="/opt/quanda/"
-    export LD_LIBRARY_PATH=/opt/conda/lib
+  export PYTHONPATH="/opt/quanda/"
+  export LD_LIBRARY_PATH=/opt/conda/lib
+
+  cd /opt/quanda
+  pip install .[tutorials]
 
 %runscript
   cd /opt/quanda
-  pip install -e '.[tutorials]'
   python slurm/compute_explanations.py "$@"
