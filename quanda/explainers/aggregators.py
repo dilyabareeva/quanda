@@ -8,17 +8,6 @@ class BaseAggregator(ABC):
     """
     Base class for attribution aggregators.
     Aggregators take local explanations and output a global ranking using different aggregation strategies.
-
-    Attributes:
-        scores (Optional[torch.Tensor]): The scores to be aggregated.
-
-    Methods:
-        update(explanations: torch.Tensor): Update the aggregator with new explanations.
-        reset(*args, **kwargs): Reset the aggregator state.
-        load_state_dict(state_dict: dict, *args, **kwargs): Load the aggregator state from a dictionary.
-        state_dict(*args, **kwargs): Return the aggregator state as a dictionary.
-        compute() -> torch.Tensor: Compute the aggregated scores.
-
     """
 
     def __init__(self):
@@ -130,12 +119,6 @@ class BaseAggregator(ABC):
 class SumAggregator(BaseAggregator):
     """
     Aggregator that sums up the attributions directly.
-
-    Attributes:
-        scores (torch.Tensor): The aggregated scores.
-
-    Methods:
-        update(explanations: torch.Tensor): Updates the aggregated scores with the given explanations.
     """
 
     def update(self, explanations: torch.Tensor):
@@ -154,15 +137,6 @@ class SumAggregator(BaseAggregator):
 class AbsSumAggregator(BaseAggregator):
     """
     Aggregator that sums up the absolute value of attributions.
-
-    Attributes
-    ----------
-        scores : torch.Tensor
-            The aggregated scores.
-
-    Methods
-    -------
-        update(explanations: torch.Tensor): Updates the aggregated scores with the given explanations.
     """
 
     def update(self, explanations: torch.Tensor):

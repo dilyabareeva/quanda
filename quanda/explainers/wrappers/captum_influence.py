@@ -38,20 +38,7 @@ class CaptumInfluence(Explainer, ABC):
     """
     Base class for the Captum explainers.
 
-    Parameters
-    ----------
-    model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation.
-    train_dataset : torch.utils.data.Dataset
-        Training dataset to be used for the influence computation.
-    explainer_cls : type
-        The class of the explainer from Captum.
-    explain_kwargs : Any
-        Additional keyword arguments for the explainer.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
+
     """
 
     def __init__(
@@ -63,6 +50,23 @@ class CaptumInfluence(Explainer, ABC):
         model_id: Optional[str] = None,
         cache_dir: str = "./cache",
     ):
+        """
+        Initializer for the base `CaptumInfluence` wrapper.
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, pl.LightningModule]
+            The model to be used for the influence computation.
+        train_dataset : torch.utils.data.Dataset
+            Training dataset to be used for the influence computation.
+        explainer_cls : type
+            The class of the explainer from Captum.
+        explain_kwargs : Any
+            Additional keyword arguments for the explainer.
+        model_id : Optional[str], optional
+            Identifier for the model. Defaults to None.
+        cache_dir : str, optional
+            Directory for caching results. Defaults to "./cache".
+        """
         super().__init__(
             model=model,
             model_id=model_id,
@@ -107,28 +111,9 @@ class CaptumSimilarity(CaptumInfluence):
     """
     Class for Similarity Influence wrapper. This explainer uses a similarity function on its inputs to rank the training data.
 
-    Parameters
-    ----------
-    model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation.
-    model_id : str
-        Identifier for the model.
-    train_dataset : torch.utils.data.Dataset
-        Training dataset to be used for the influence computation.
-    layers : Union[str, List[str]]
-        Layers of the model for which the activations are computed.
-    cache_dir : str, optional
-        Directory for caching activations. Defaults to "./cache".
-    similarity_metric : Callable, optional
-        Metric for computing similarity. Defaults to `cosine_similarity`.
-    similarity_direction : str, optional
-        Direction for similarity computation. Can be either "min" or "max". Defaults to "max".
-    batch_size : int, optional
-        Batch size used for iterating over the dataset. Defaults to 1.
-    replace_nan : bool, optional
-        Whether to replace NaN values in similarity scores. Defaults to False.
-    **explainer_kwargs : Any
-        Additional keyword arguments passed to the explainer.
+    Notes
+    -----
+    The user is referred to captum's codebase for details on the specifics of the parameters.
 
     References
     ----------
@@ -149,6 +134,31 @@ class CaptumSimilarity(CaptumInfluence):
         load_from_disk: bool = True,
         **explainer_kwargs: Any,
     ):
+        """Initializer for the `CaptumSimilarity` explainer.
+
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, pl.LightningModule]
+            The model to be used for the influence computation.
+        model_id : str
+            Identifier for the model.
+        train_dataset : torch.utils.data.Dataset
+            Training dataset to be used for the influence computation.
+        layers : Union[str, List[str]]
+            Layers of the model for which the activations are computed.
+        cache_dir : str, optional
+            Directory for caching activations. Defaults to "./cache".
+        similarity_metric : Callable, optional
+            Metric for computing similarity. Defaults to `cosine_similarity`.
+        similarity_direction : str, optional
+            Direction for similarity computation. Can be either "min" or "max". Defaults to "max".
+        batch_size : int, optional
+            Batch size used for iterating over the dataset. Defaults to 1.
+        replace_nan : bool, optional
+            Whether to replace NaN values in similarity scores. Defaults to False.
+        **explainer_kwargs : Any
+            Additional keyword arguments passed to the explainer.
+        """
         logger.info("Initializing Captum SimilarityInfluence explainer...")
 
         # extract and validate layer from kwargs
@@ -333,71 +343,6 @@ class CaptumArnoldi(CaptumInfluence):
     """
     Class for Arnoldi Influence Function wrapper.
     This implements the ArnoldiInfluence method of (1) to compute influence function explanations (2).
-    Parameters
-    ----------
-    model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation.
-    train_dataset : torch.utils.data.Dataset
-        Training dataset to be used for the influence computation.
-    checkpoint : str
-        Checkpoint file for the model.
-    loss_fn : Union[torch.nn.Module, Callable], optional
-        Loss function which is applied to the model. Required to be a reduction='none' loss.
-        Defaults to CrossEntropyLoss with reduction='none'.
-    checkpoints_load_func : Optional[Callable], optional
-        Function to load checkpoints. If None, a default function is used. Defaults to None.
-    layers : Optional[List[str]], optional
-        Layers used to compute the gradients. If None, all layers are used. Defaults to None.
-    batch_size : int, optional
-        Batch size used for iterating over the dataset. Defaults to 1.
-    hessian_dataset : Optional[torch.utils.data.Dataset], optional
-        Dataset for calculating the Hessian. It should be smaller than train_dataset.
-        If None, the entire train_dataset is used. Defaults to None.
-    test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
-        Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
-    projection_dim : int, optional
-        Captum's ArnoldiInfluenceFunction produces a low-rank approximation of the (inverse) Hessian.
-        projection_dim is the rank of that approximation. Defaults to 50.
-    seed : int, optional
-        Random seed for reproducibility. Defaults to 0.
-    arnoldi_dim : int, optional
-        Calculating the low-rank approximation of the (inverse) Hessian requires approximating
-        the Hessian's top eigenvectors / eigenvalues.
-        This is done by first computing a Krylov subspace via the Arnoldi iteration,
-        and then finding the top eigenvectors / eigenvalues of the restriction of the Hessian to the Krylov subspace.
-        Because only the top eigenvectors / eigenvalues computed in the restriction will be similar to those in the full space,
-        `arnoldi_dim` should be chosen to be larger than `projection_dim`.
-        Defaults to 200.
-    arnoldi_tol : float, optional
-        After many iterations, the already-obtained basis vectors may already approximately span the Krylov subspace,
-        in which case the addition of additional basis vectors involves normalizing a vector with a small norm.
-        These vectors are not necessary to include in the basis and furthermore, their small norm leads to numerical issues.
-        Therefore we stop the Arnoldi iteration when the addition of additional vectors involves normalizing a vector with norm
-        below a certain threshold. This argument specifies that threshold. Defaults to 1e-1.
-    hessian_reg : float, optional
-        After computing the basis for the Krylov subspace, the restriction of the Hessian to the
-        subspace may not be positive definite, which is required, as we compute a low-rank approximation
-        of its square root via eigen-decomposition. `hessian_reg` adds an entry to the diagonals of the
-        restriction of the Hessian to encourage it to be positive definite. This argument specifies that entry.
-        Note that the regularized Hessian (i.e. with `hessian_reg` added to its diagonals) does not actually need
-        to be positive definite - it just needs to have at least 1 positive eigenvalue.
-        Defaults to 1e-3.
-    hessian_inverse_tol : float, optional
-        The tolerance to use when computing the pseudo-inverse of the (square root of) hessian,
-        restricted to the Krylov subspace. Defaults to 1e-4.
-    projection_on_cpu : bool, optional
-        Whether to move the projection, i.e. low-rank approximation of the inverse Hessian, to cpu, to save gpu memory.
-        Defaults to True.
-    show_progress : bool, optional
-        Whether to display a progress bar. Defaults to False.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
-    device : Union[str, torch.device], optional
-        Device to run the computation on. Defaults to "cpu".
-    **explainer_kwargs : Any
-        Additional keyword arguments passed to the explainer.
 
     Notes
     ------
@@ -436,6 +381,76 @@ class CaptumArnoldi(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        """Initializer for CaptumArnoldi explainer.
+
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, pl.LightningModule]
+            The model to be used for the influence computation.
+        train_dataset : torch.utils.data.Dataset
+            Training dataset to be used for the influence computation.
+        checkpoint : str
+            Checkpoint file for the model.
+        loss_fn : Union[torch.nn.Module, Callable], optional
+            Loss function which is applied to the model. Required to be a reduction='none' loss.
+            Defaults to CrossEntropyLoss with reduction='none'.
+        checkpoints_load_func : Optional[Callable], optional
+            Function to load checkpoints. If None, a default function is used. Defaults to None.
+        layers : Optional[List[str]], optional
+            Layers used to compute the gradients. If None, all layers are used. Defaults to None.
+        batch_size : int, optional
+            Batch size used for iterating over the dataset. Defaults to 1.
+        hessian_dataset : Optional[torch.utils.data.Dataset], optional
+            Dataset for calculating the Hessian. It should be smaller than train_dataset.
+            If None, the entire train_dataset is used. Defaults to None.
+        test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
+            Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
+        projection_dim : int, optional
+            Captum's ArnoldiInfluenceFunction produces a low-rank approximation of the (inverse) Hessian.
+            projection_dim is the rank of that approximation. Defaults to 50.
+        seed : int, optional
+            Random seed for reproducibility. Defaults to 0.
+        arnoldi_dim : int, optional
+            Calculating the low-rank approximation of the (inverse) Hessian requires approximating
+            the Hessian's top eigenvectors / eigenvalues.
+            This is done by first computing a Krylov subspace via the Arnoldi iteration,
+            and then finding the top eigenvectors / eigenvalues of the restriction of the Hessian to the Krylov subspace.
+            Because only the top eigenvectors / eigenvalues computed in the restriction will be similar to
+            those in the full space, `arnoldi_dim` should be chosen to be larger than `projection_dim`.
+            Defaults to 200.
+        arnoldi_tol : float, optional
+            After many iterations, the already-obtained basis vectors may already approximately span the Krylov subspace,
+            in which case the addition of additional basis vectors involves normalizing a vector with a small norm.
+            These vectors are not necessary to include in the basis and furthermore,
+            their small norm leads to numerical issues.
+            Therefore we stop the Arnoldi iteration when the addition of additional
+            vectors involves normalizing a vector with norm below a certain threshold.
+            This argument specifies that threshold. Defaults to 1e-1.
+        hessian_reg : float, optional
+            After computing the basis for the Krylov subspace, the restriction of the Hessian to the
+            subspace may not be positive definite, which is required, as we compute a low-rank approximation
+            of its square root via eigen-decomposition. `hessian_reg` adds an entry to the diagonals of the
+            restriction of the Hessian to encourage it to be positive definite. This argument specifies that entry.
+            Note that the regularized Hessian (i.e. with `hessian_reg` added to its diagonals) does not actually need
+            to be positive definite - it just needs to have at least 1 positive eigenvalue.
+            Defaults to 1e-3.
+        hessian_inverse_tol : float, optional
+            The tolerance to use when computing the pseudo-inverse of the (square root of) hessian,
+            restricted to the Krylov subspace. Defaults to 1e-4.
+        projection_on_cpu : bool, optional
+            Whether to move the projection, i.e. low-rank approximation of the inverse Hessian, to cpu, to save gpu memory.
+            Defaults to True.
+        show_progress : bool, optional
+            Whether to display a progress bar. Defaults to False.
+        model_id : Optional[str], optional
+            Identifier for the model. Defaults to None.
+        cache_dir : str, optional
+            Directory for caching results. Defaults to "./cache".
+        device : Union[str, torch.device], optional
+            Device to run the computation on. Defaults to "cpu".
+        **explainer_kwargs : Any
+            Additional keyword arguments passed to the explainer.
+        """
         logger.info("Initializing Captum ArnoldiInfluence explainer...")
 
         if checkpoints_load_func is None:
@@ -617,33 +632,9 @@ class CaptumTracInCP(CaptumInfluence):
     """
     Wrapper for the captum TracInCP explainer. This implements the TracIn method  (1).
 
-    Parameters
-    ----------
-    model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation.
-    train_dataset : torch.utils.data.Dataset
-        Training dataset to be used for the influence computation.
-    checkpoints : Union[str, List[str], Iterator]
-        Checkpoints for the model.
-    checkpoints_load_func : Optional[Callable], optional
-        Function to load checkpoints. If None, a default function is used. Defaults to None.
-    layers : Optional[List[str]], optional
-        Layers used to compute the gradients. Defaults to None.
-    loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
-        Loss function used for influence computation. Defaults to CrossEntropyLoss with reduction='sum'.
-    batch_size : int, optional
-        Batch size used for iterating over the dataset. Defaults to 1.
-    test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
-        Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
-    device : Union[str, torch.device], optional
-        Device to run the computation on. Defaults to "cpu".
-    **explainer_kwargs : Any
-        Additional keyword arguments passed to the explainer.
-
+    Notes
+    -----
+    The user is referred to captum's codebase for details on the specifics of the parameters.
 
     References
     ----------
@@ -667,6 +658,35 @@ class CaptumTracInCP(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        """Initializer for the `CaptumTracInCP` explainer.
+
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, pl.LightningModule]
+            The model to be used for the influence computation.
+        train_dataset : torch.utils.data.Dataset
+            Training dataset to be used for the influence computation.
+        checkpoints : Union[str, List[str], Iterator]
+            Checkpoints for the model.
+        checkpoints_load_func : Optional[Callable], optional
+            Function to load checkpoints. If None, a default function is used. Defaults to None.
+        layers : Optional[List[str]], optional
+            Layers used to compute the gradients. Defaults to None.
+        loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
+            Loss function used for influence computation. Defaults to CrossEntropyLoss with reduction='sum'.
+        batch_size : int, optional
+            Batch size used for iterating over the dataset. Defaults to 1.
+        test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
+            Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
+        model_id : Optional[str], optional
+            Identifier for the model. Defaults to None.
+        cache_dir : str, optional
+            Directory for caching results. Defaults to "./cache".
+        device : Union[str, torch.device], optional
+            Device to run the computation on. Defaults to "cpu".
+        **explainer_kwargs : Any
+            Additional keyword arguments passed to the explainer.
+        """
         logger.info("Initializing Captum TracInCP explainer...")
 
         if checkpoints_load_func is None:
@@ -843,34 +863,9 @@ class CaptumTracInCPFast(CaptumInfluence):
     """
     Wrapper for the captum TracInCPFast explainer. This implements the TracIn method (1) using only the final layer parameters.
 
-    Parameters
-    ----------
-    model : torch.nn.Module
-        The model to be used for the influence computation.
-    final_fc_layer : torch.nn.Module
-        Final fully connected layer of the model.
-    train_dataset : torch.utils.data.Dataset
-        Training dataset to be used for the influence computation.
-    checkpoints : Union[str, List[str], Iterator]
-        Checkpoints for the model.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
-    checkpoints_load_func : Optional[Callable[..., Any]], optional
-        Function to load checkpoints. If None, a default function is used.
-    loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
-        Loss function used for influence computation. Defaults to `CrossEntropyLoss` with `reduction='sum'`.
-    batch_size : int, optional
-        Batch size used for iterating over the dataset. Defaults to 1.
-    test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
-        Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
-    vectorize : bool, optional
-        Whether to use experimental vectorize functionality for `torch.autograd.functional.jacobian`. Defaults to False.
-    device : Union[str, torch.device], optional
-        Device to run the computation on. Defaults to "cpu".
-    **explainer_kwargs : Any
-        Additional keyword arguments passed to the explainer.
+    Notes
+    ------
+    The user is referred to captum's codebase for details on the specifics of the parameters.
 
     References
     ----------
@@ -894,6 +889,39 @@ class CaptumTracInCPFast(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        """Initializer for the `CaptumTracInCPFast` explainer.
+
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model to be used for the influence computation.
+        final_fc_layer : torch.nn.Module
+            Final fully connected layer of the model.
+        train_dataset : torch.utils.data.Dataset
+            Training dataset to be used for the influence computation.
+        checkpoints : Union[str, List[str], Iterator]
+            Checkpoints for the model.
+        model_id : Optional[str], optional
+            Identifier for the model. Defaults to None.
+        cache_dir : str, optional
+            Directory for caching results. Defaults to "./cache".
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load checkpoints. If None, a default function is used.
+        loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
+            Loss function used for influence computation. Defaults to `CrossEntropyLoss` with `reduction='sum'`.
+        batch_size : int, optional
+            Batch size used for iterating over the dataset. Defaults to 1.
+        test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
+            Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
+        vectorize : bool, optional
+            Whether to use experimental vectorize functionality for `torch.autograd.functional.jacobian`. Defaults to False.
+        device : Union[str, torch.device], optional
+            Device to run the computation on. Defaults to "cpu".
+        **explainer_kwargs : Any
+            Additional keyword arguments passed to the explainer.
+
+        """
         logger.info("Initializing Captum TracInCPFast explainer...")
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
@@ -1072,59 +1100,9 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
     Wrapper for the captum TracInCPFastRandProj explainer.
     This implements the TracIn method (1) using only the final layer parameters and random projections to speed up computation.
 
-    Parameters
-    ----------
-    model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation.
-    final_fc_layer : torch.nn.Module
-        Final fully connected layer of the model.
-    train_dataset : torch.utils.data.Dataset
-        Training dataset to be used for the influence computation.
-    checkpoints : Union[str, List[str], Iterator]
-        Checkpoints for the model.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
-    checkpoints_load_func : Optional[Callable[..., Any]], optional
-        Function to load checkpoints. If None, a default function is used.
-    loss_fn : Union[torch.nn.Module, Callable], optional
-        Loss function used for influence computation. Defaults to `CrossEntropyLoss` with `reduction='sum'`.
-    batch_size : int, optional
-        Batch size used for iterating over the dataset. Defaults to 1.
-    test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
-        Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
-    vectorize : bool, optional
-        Whether to use experimental vectorize functionality for `torch.autograd.functional.jacobian`. Defaults to False.
-    nearest_neighbors : Optional[NearestNeighbors], optional
-        Nearest neighbors model for finding nearest neighbors. If None, defaults to AnnoyNearestNeighbors is used.
-    projection_dim : Optional[int], optional
-        Each example will be represented in
-        the nearest neighbors data structure with a vector. This vector
-        is the concatenation of several "checkpoint vectors", each of which
-        is computed using a different checkpoint in the `checkpoints`
-        argument. If `projection_dim` is an int, it represents the
-        dimension we will project each "checkpoint vector" to, so that the
-        vector for each example will be of dimension at most
-        `projection_dim` * C, where C is the number of checkpoints.
-        Regarding the dimension of each vector, D: Let I be the dimension
-        of the output of the last fully-connected layer times the dimension
-        of the input of the last fully-connected layer. If `projection_dim`
-        is not `None`, then D = min(I * C, `projection_dim` * C).
-        Otherwise, D = I * C. In summary, if `projection_dim` is None, the
-        dimension of this vector will be determined by the size of the
-        input and output of the last fully-connected layer of `model`, and
-        the number of checkpoints. Otherwise, `projection_dim` must be an
-        int, and random projection will be performed to ensure that the
-        vector is of dimension no more than `projection_dim` * C.
-        `projection_dim` corresponds to the variable d in the top of page
-        5 of the TracIn paper (1).
-    seed : int, optional
-        Random seed for reproducibility. Defaults to 0.
-    device : Union[str, torch.device], optional
-        Device to run the computation on. Defaults to "cpu".
-    **explainer_kwargs : Any
-        Additional keyword arguments passed to the explainer.
+    Notes
+    -----
+    The user is referred to captum's codebase for details on the specifics of the parameters.
 
     References
     ----------
@@ -1151,6 +1129,63 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        """Initializer for the `CaptumTracInCPFastRandProj` explainer.
+
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, pl.LightningModule]
+            The model to be used for the influence computation.
+        final_fc_layer : torch.nn.Module
+            Final fully connected layer of the model.
+        train_dataset : torch.utils.data.Dataset
+            Training dataset to be used for the influence computation.
+        checkpoints : Union[str, List[str], Iterator]
+            Checkpoints for the model.
+        model_id : Optional[str], optional
+            Identifier for the model. Defaults to None.
+        cache_dir : str, optional
+            Directory for caching results. Defaults to "./cache".
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load checkpoints. If None, a default function is used.
+        loss_fn : Union[torch.nn.Module, Callable], optional
+            Loss function used for influence computation. Defaults to `CrossEntropyLoss` with `reduction='sum'`.
+        batch_size : int, optional
+            Batch size used for iterating over the dataset. Defaults to 1.
+        test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
+            Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
+        vectorize : bool, optional
+            Whether to use experimental vectorize functionality for `torch.autograd.functional.jacobian`. Defaults to False.
+        nearest_neighbors : Optional[NearestNeighbors], optional
+            Nearest neighbors model for finding nearest neighbors. If None, defaults to AnnoyNearestNeighbors is used.
+        projection_dim : Optional[int], optional
+            Each example will be represented in
+            the nearest neighbors data structure with a vector. This vector
+            is the concatenation of several "checkpoint vectors", each of which
+            is computed using a different checkpoint in the `checkpoints`
+            argument. If `projection_dim` is an int, it represents the
+            dimension we will project each "checkpoint vector" to, so that the
+            vector for each example will be of dimension at most
+            `projection_dim` * C, where C is the number of checkpoints.
+            Regarding the dimension of each vector, D: Let I be the dimension
+            of the output of the last fully-connected layer times the dimension
+            of the input of the last fully-connected layer. If `projection_dim`
+            is not `None`, then D = min(I * C, `projection_dim` * C).
+            Otherwise, D = I * C. In summary, if `projection_dim` is None, the
+            dimension of this vector will be determined by the size of the
+            input and output of the last fully-connected layer of `model`, and
+            the number of checkpoints. Otherwise, `projection_dim` must be an
+            int, and random projection will be performed to ensure that the
+            vector is of dimension no more than `projection_dim` * C.
+            `projection_dim` corresponds to the variable d in the top of page
+            5 of the TracIn paper (1).
+        seed : int, optional
+            Random seed for reproducibility. Defaults to 0.
+        device : Union[str, torch.device], optional
+            Device to run the computation on. Defaults to "cpu".
+        **explainer_kwargs : Any
+            Additional keyword arguments passed to the explainer.
+
+        """
         logger.info("Initializing Captum TracInCPFastRandProj explainer...")
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)

@@ -31,19 +31,6 @@ projector_cls = {
 class TRAK(Explainer):
     """Interface for the TRAK (1) explainer as given by the official TRAK library (2).
 
-    Attributes
-    ----------
-    model : torch.nn.Module
-        The model to be explained.
-    dataset : torch.utils.data.Dataset
-        The training dataset used to train the model.
-    model_id : str
-        The model identifier.
-    cache_dir : str
-        The directory to save the TRAK cache.
-    traker: TRAKer
-        The TRAKer object that is used to explain the model.
-
     Notes
     -----
     We refer the user to the official TRAK library [2] for more information on the details of parameters explainer.
@@ -71,6 +58,7 @@ class TRAK(Explainer):
         batch_size: int = 32,
         params_ldr: Optional[Iterable] = None,
         load_from_disk: bool = True,
+        lambda_reg: float = 0.0,
     ):
         """Initializes the TRAK explainer.
 
@@ -98,6 +86,8 @@ class TRAK(Explainer):
             The batch size, by default 32
         params_ldr : Optional[Iterable], optional
             Generator of model parameters, by default None, which uses all parameters
+        lambda_reg : int, optional
+            Optional regularization term to add to the diagonals of X^TX to make it invertible
         """
 
         logging.info("Initializing TRAK explainer...")
@@ -112,7 +102,7 @@ class TRAK(Explainer):
         self.proj_dim = proj_dim
         self.batch_size = batch_size
         self.cache_dir = cache_dir if cache_dir is not None else f"./trak_{model_id}_cache"
-
+        self.lambda_reg = lambda_reg
         num_params_for_grad = 0
         params_iter = params_ldr if params_ldr is not None else self.model.parameters()
         for p in list(params_iter):
@@ -148,6 +138,7 @@ class TRAK(Explainer):
             device=str(self.device),
             use_half_precision=False,
             load_from_save_dir=load_from_disk,
+            lambda_reg=lambda_reg,
         )
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 
