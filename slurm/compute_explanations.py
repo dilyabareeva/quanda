@@ -93,7 +93,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     )
 
     # Load the TinyImageNet dataset
-    id_dict = {}
+    tiny_in_path = os.path.join(tiny_in_path, "tiny-imagenet-200/")
     with open(tiny_in_path + "wnids.txt", "r") as f:
         id_dict = {line.strip(): i for i, line in enumerate(f)}
 
