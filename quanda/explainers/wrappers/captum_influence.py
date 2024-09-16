@@ -69,7 +69,12 @@ class CaptumInfluence(Explainer, ABC):
         self.explain_kwargs = explain_kwargs
 
     def init_explainer(self, **explain_kwargs: Any):
-        """Initialize the Captum explainer."""
+        """Initialize the Captum explainer.
+
+        Parameters
+        ----------
+        **explain_kwargs : Any
+            Additional keyword arguments to be passed to the explainer."""
         self.captum_explainer = self.explainer_cls(**explain_kwargs)
 
     @abstractmethod
@@ -96,7 +101,7 @@ class CaptumSimilarity(CaptumInfluence):
     # TODO: incorporate SimilarityInfluence kwargs into init_kwargs
     # TODO: Check usage of 'replace_nan' in SimilarityInfluence
     """
-    Class for Similarity Influence wrapper.
+    Class for Similarity Influence wrapper. This explainer uses a similarity function on its inputs to rank the training data.
 
     Parameters
     ----------
@@ -120,6 +125,10 @@ class CaptumSimilarity(CaptumInfluence):
         Whether to replace NaN values in similarity scores. Defaults to False.
     **explainer_kwargs : Any
         Additional keyword arguments passed to the explainer.
+
+    References
+    ----------
+    1) https://captum.ai/api/influence.html#similarityinfluence
     """
 
     def __init__(
@@ -229,7 +238,7 @@ def captum_similarity_explain(
     **kwargs: Any,
 ) -> torch.Tensor:
     """
-    Generate explanations using SimilarityInfluence from Captum.
+    Functional interface for the `CaptumSimilarity` explainer.
 
     Parameters
     ----------
@@ -274,7 +283,7 @@ def captum_similarity_self_influence(
     **kwargs: Any,
 ) -> torch.Tensor:
     """
-    Generate self-influence scores using SimilarityInfluence from Captum.
+    Functional interface for the self-influence scores using the CaptumSimilarity explainer.
 
     Parameters
     ----------
@@ -310,7 +319,7 @@ def captum_similarity_self_influence(
 class CaptumArnoldi(CaptumInfluence):
     """
     Class for Arnoldi Influence Function wrapper.
-
+    This implements the ArnoldiInfluence method of (1) to compute influence function explanations (2).
     Parameters
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
@@ -376,6 +385,17 @@ class CaptumArnoldi(CaptumInfluence):
         Device to run the computation on. Defaults to "cpu".
     **explainer_kwargs : Any
         Additional keyword arguments passed to the explainer.
+
+    Notes
+    ------
+    The user is referred to captum's codebase for details on the specifics of the parameters.
+
+    References
+    ----------
+    (1) Schioppa, Andrea, et al. "Scaling up influence functions."
+        Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 36. No. 8. 2022.
+    (2) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions."
+        International conference on machine learning. PMLR, 2017.
     """
 
     def __init__(
@@ -506,7 +526,7 @@ def captum_arnoldi_explain(
     **kwargs: Any,
 ) -> torch.Tensor:
     """
-    Generate explanations using ArnoldiInfluenceFunction from Captum.
+    Functional interface for the `CaptumArnoldi` explainer.
 
     Parameters
     ----------
@@ -550,7 +570,7 @@ def captum_arnoldi_self_influence(
     **kwargs: Any,
 ) -> torch.Tensor:
     """
-    Generate self-influence scores using ArnoldiInfluenceFunction from Captum.
+    Functional interface for the self-influence scores using the `CaptumArnoldi` explainer.
 
     Parameters
     ----------
@@ -582,7 +602,7 @@ def captum_arnoldi_self_influence(
 
 class CaptumTracInCP(CaptumInfluence):
     """
-    Class for TracInCP wrapper.
+    Wrapper for the captum TracInCP explainer. This implements the TracIn method  (1).
 
     Parameters
     ----------
@@ -610,6 +630,12 @@ class CaptumTracInCP(CaptumInfluence):
         Device to run the computation on. Defaults to "cpu".
     **explainer_kwargs : Any
         Additional keyword arguments passed to the explainer.
+
+
+    References
+    ----------
+    (1) Pruthi, Garima, et al. "Estimating training data influence by tracing gradient descent."
+        Advances in Neural Information Processing Systems 33 (2020): 19920-19930.
     """
 
     def __init__(
@@ -726,7 +752,7 @@ def captum_tracincp_explain(
     **kwargs: Any,
 ) -> torch.Tensor:
     """
-    Generate explanations using TracInCP from Captum.
+    Functional interface for the `CaptumTracInCP` explainer.
 
     Parameters
     ----------
@@ -770,7 +796,7 @@ def captum_tracincp_self_influence(
     **kwargs: Any,
 ) -> torch.Tensor:
     """
-    Compute self-influence using CaptumTracInCP.
+    Functional interface for the self-influence scores using the `CaptumTracInCP` explainer.
 
     Parameters
     ----------
@@ -802,7 +828,7 @@ def captum_tracincp_self_influence(
 
 class CaptumTracInCPFast(CaptumInfluence):
     """
-    Class for TracInCPFast wrapper.
+    Wrapper for the captum TracInCPFast explainer. This implements the TracIn method (1) using only the final layer parameters.
 
     Parameters
     ----------
@@ -832,6 +858,11 @@ class CaptumTracInCPFast(CaptumInfluence):
         Device to run the computation on. Defaults to "cpu".
     **explainer_kwargs : Any
         Additional keyword arguments passed to the explainer.
+
+    References
+    ----------
+    (1) Pruthi, Garima, et al. "Estimating training data influence by tracing gradient descent."
+        Advances in Neural Information Processing Systems 33 (2020): 19920-19930.
     """
 
     def __init__(
@@ -946,7 +977,7 @@ def captum_tracincp_fast_explain(
     **kwargs: Any,
 ) -> torch.Tensor:
     """
-    Generate explanations using TracInCPFast from Captum.
+    Functional interface for the `CaptumTracInCPFast` explainer.
 
     Parameters
     ----------
@@ -991,7 +1022,7 @@ def captum_tracincp_fast_self_influence(
     **kwargs: Any,
 ) -> torch.Tensor:
     """
-    Compute self-influence using CaptumTracInCPFast.
+    Functional interface for the self-influence scores using the `CaptumTracInCPFast` explainer.
 
     Parameters
     ----------
@@ -1026,7 +1057,8 @@ def captum_tracincp_fast_self_influence(
 
 class CaptumTracInCPFastRandProj(CaptumInfluence):
     """
-    Class for TracInCPFastRandProj wrapper.
+    Wrapper for the captum TracInCPFastRandProj explainer.
+    This implements the TracIn method (1) using only the final layer parameters and random projections to speed up computation.
 
     Parameters
     ----------
@@ -1074,13 +1106,18 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         int, and random projection will be performed to ensure that the
         vector is of dimension no more than `projection_dim` * C.
         `projection_dim` corresponds to the variable d in the top of page
-        5 of the TracIn paper: https://arxiv.org/abs/2002.08484.
+        5 of the TracIn paper (1).
     seed : int, optional
         Random seed for reproducibility. Defaults to 0.
     device : Union[str, torch.device], optional
         Device to run the computation on. Defaults to "cpu".
     **explainer_kwargs : Any
         Additional keyword arguments passed to the explainer.
+
+    References
+    ----------
+    (1) Pruthi, Garima, et al. "Estimating training data influence by tracing gradient descent."
+        Advances in Neural Information Processing Systems 33 (2020): 19920-19930.
     """
 
     def __init__(
@@ -1183,7 +1220,7 @@ def captum_tracincp_fast_rand_proj_explain(
     **kwargs: Any,
 ) -> torch.Tensor:
     """
-    Generate explanations using TracInCPFastRandProj from Captum.
+    Functional interface for the `CaptumTracInCPFastRandProj` explainer.
 
     Parameters
     ----------
