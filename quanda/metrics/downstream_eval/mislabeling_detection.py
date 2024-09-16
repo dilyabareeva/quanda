@@ -17,7 +17,9 @@ class MislabelingDetectionMetric(Metric):
 
     References
     ----------
-    1) Kwon, Yongchan, et al. "Datainf: Efficiently estimating data influence in lora-tuned llms and diffusion models." arXiv preprint arXiv:2310.00902 (2023).
+    1) Kwon, Yongchan, et al.
+        "Datainf: Efficiently estimating data influence in lora-tuned llms and diffusion models."
+        arXiv preprint arXiv:2310.00902 (2023).
     """
 
     def __init__(

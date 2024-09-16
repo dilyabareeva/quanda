@@ -7,14 +7,17 @@ from quanda.tasks.aggregate_attributions import AggregateAttributions
 
 
 class ShortcutDetectionMetric(Metric):
-    """Metric for the shortcut detection evaluation task. Attributions of a  model with a shortcut is checked against the ground truth of shortcut samples.
+    """Metric for the shortcut detection evaluation task.
+    Attributions of a  model with a shortcut is checked against the ground truth of shortcut samples.
     This strategy is inspired by (1) and (2).
 
     References
     ----------
-    1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions." International conference on machine learning. PMLR, 2017.
+    1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions."
+        International conference on machine learning. PMLR, 2017.
     2) Søgaard, Anders. "Revisiting methods for finding influential examples." arXiv preprint arXiv:2111.04683 (2021).
     """
+
     def __init__(
         self,
         model: torch.nn.Module,

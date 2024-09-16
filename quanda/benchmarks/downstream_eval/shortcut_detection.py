@@ -26,22 +26,25 @@ class ShortcutDetection(Benchmark):
 
     Note that all explanations are generated with respect to the class of the poisoned samples, to detect the shortcut.
 
-    The average attributions for triggered examples from the class, clean examples from the class, and clean examples from other classes are computed.
-    
+    The average attributions for triggered examples from the class, clean examples from the class,
+    and clean examples from other classes are computed.
+
     This metric is inspired by the Domain Mismatch Detection Test of (1) and Backdoor Poisoning Detection of (2).
 
     Parameters
     ----------
-    1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions." International conference on machine learning. PMLR, 2017.
+    1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions."
+        International conference on machine learning. PMLR, 2017.
     2) Søgaard, Anders. "Revisiting methods for finding influential examples." arXiv preprint arXiv:2111.04683 (2021).
     """
+
     def __init__(
         self,
         *args,
         **kwargs,
     ):
-        """Initializer for the benchmark object. This initializer should not be used directly. To instantiate the benchmark, use the `generate`, `assemble` or `download` class methods instead.
-        """
+        """Initializer for the benchmark object. This initializer should not be used directly.
+        To instantiate the benchmark, use the `generate`, `assemble` or `download` class methods instead."""
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
