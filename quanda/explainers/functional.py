@@ -4,6 +4,8 @@ import torch
 
 
 class ExplainFunc(Protocol):
+    """Protocol for functional explainers."""
+
     def __call__(
         self,
         model: torch.nn.Module,
@@ -19,6 +21,8 @@ class ExplainFunc(Protocol):
 
 
 class ExplainFuncMini(Protocol):
+    """Explain function typing."""
+
     def __call__(
         self,
         test_tensor: torch.Tensor,
