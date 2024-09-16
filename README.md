@@ -27,6 +27,16 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
 
 While accounting for different evaluation strategies, Quanda also strives to provide a unifying interface for most prominent TDA methods.
 
+### Library Features
+
+- **Unified TDA Interface**: Quanda provides a unified interface for various TDA methods, allowing users to easily switch between different methods.
+- **Metrics**: Quanda provides a set of metrics to evaluate the effectiveness of TDA methods. These metrics are based on the latest research in the field.
+- **Benchmarking**: Quanda provides a benchmarking tool to evaluate the performance of TDA methods on a given model, dataset and problem. As many TDA evaluation methods require access to ground truth, our benchmarking tools allow to generate a controlled setting with ground truth, and then compare the performance of different TDA methods on this setting.
+
+### Supported TDA Methods
+
+TODO: table with links to original implementations
+
 ### Metrics
 
 - **Identical Class / Identical Subclass** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the proportion of identical classes or subclasses in the top-1 training samples over the test dataset. If the attributions are based on similarity, they are expected to be predictive of the class of the test datapoint, as well as different subclasses under a single label.
@@ -40,6 +50,18 @@ While accounting for different evaluation strategies, Quanda also strives to pro
 - **Mislabeled Data Detection** ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html)): Computes the proportion of noisy training labels detected as a function of the percentage of inspected training samples. The samples are inspected in order according to their global TDA ranking, which is computed using local attributions. This produces a cumulative mislabeling detection curve. We expect to see a curve that rapidly increases as we check more of the training data, thus we compute the area under this curve
 
 - **Mixed Datasets** ([Hammoudeh and Lowd, 2022](https://dl.acm.org/doi/abs/10.1145/3548606.3559335)): In a setting, where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example. The evaluation is done using the Area Under the Precision-Recall Curve (AUPRC).
+
+### Benchmarks
+
+TODO: table with available benchmarks
+
+### Common Pitfalls
+
+- **Controlled Setting Evaluation**: Many metrics require access to ground truth labels for datasets, such as the indices of the "shorcut samples" in the Shortcut Detection metric, or the mislabeling (noisy) label indices for the Mislabeling Detection Metric. However, users often may not have access to these labels. To address this, we recommend either using one of our pre-built benchmark (see Benchmarks section of this README) suites or generating (`generate` method) a custom benchmark for comparing explainers. Benchmarks provide a controlled environment for systematic evaluation.
+
+- **Caching**: Many of the Explaienrs in our library generate re-usable cache. The `cache_id` and `model_id` parameters passed to various class instances are used to store these intermediary results. Please ensure that each experiment is assigned a unique combination of these arguments. Failing to do so could lead to incorrect reuse of cached results. If you wish to avoid re-using cached results, you can set the `load_from_disk` parameter to `False`.
+
+- **Explainers Are Expensive To Calculate**: Certain Explainers, such as TracInCPRandomProj, may lead to OutOfMemory (OOM) issues when applied to large models or datasets. In such cases, we recommend adjusting memory usage by either reducing the dataset size or using smaller models to avoid these issues.
 
 
 ## 🔬 Getting Started
@@ -139,7 +161,6 @@ More detailed examples can be found in the following [tutorials](https://github.
 We have included a few  [tutorials](https://github.com/dilyabareeva/quanda/tree/main/tutorials) to demonstrate the usage of **quanda**:
 
 * [Explainers](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo.ipynb): shows how different explainers can be produced with **quanda**
-* [Applications](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_tasks.ipynb): explores the applications of TDA in different tasks using **quanda**
 * [Metrics](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_metrics.ipynb): demonstrates how to use the metrics in **quanda** to evaluate the performance of a model
 * [Benchmarks](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_benchmarks.ipynb): shows how to use the benchmarking tools in **quanda** to evaluate a data attribution method
 
