@@ -4,7 +4,7 @@ import random
 import subprocess
 from argparse import ArgumentParser
 
-import pytorch_lightning as pl
+import lightning as L
 import torch
 import torchvision.transforms as transforms
 from dotenv import load_dotenv
@@ -234,7 +234,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
     if method == "tracincpfast":
 
-        def load_state_dict(module: pl.LightningModule, path: str) -> int:
+        def load_state_dict(module: L.LightningModule, path: str) -> int:
             module = type(module).load_from_checkpoint(
                 path, n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
             )
