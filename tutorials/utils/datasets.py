@@ -98,7 +98,7 @@ def special_dataset(
         dataset=sc_dataset,
         n_classes=new_n_classes,
         dataset_transform=None,
-        poisoned_labels=flipping_transform_dict,
+        mislabeling_labels=flipping_transform_dict,
         p=p_flipping,
     )
 

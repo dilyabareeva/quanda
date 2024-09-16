@@ -246,7 +246,7 @@ class SubclassDetection(Benchmark):
                     targets = output.argmax(dim=-1)
             else:
                 targets = grouped_labels
-                
+
             explanations = explainer.explain(
                 test=inputs,
                 targets=targets,

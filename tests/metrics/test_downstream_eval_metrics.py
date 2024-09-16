@@ -99,7 +99,7 @@ def test_identical_subclass_metrics(
         (
             "mnist",
             "load_mnist_model",
-            "load_poisoned_mnist_dataset",
+            "load_mislabeling_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -110,7 +110,7 @@ def test_identical_subclass_metrics(
         (
             "mnist",
             "load_mnist_model",
-            "load_poisoned_mnist_dataset",
+            "load_mislabeling_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -121,7 +121,7 @@ def test_identical_subclass_metrics(
         (
             "mnist",
             "load_mnist_model",
-            "load_poisoned_mnist_dataset",
+            "load_mislabeling_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -153,7 +153,7 @@ def test_mislabeling_detection_metric(
         metric = MislabelingDetectionMetric(
             model=model,
             train_dataset=dataset,
-            poisoned_indices=dataset.transform_indices,
+            mislabeling_indices=dataset.transform_indices,
             global_method=global_method,
             device="cpu",
         )
@@ -163,7 +163,7 @@ def test_mislabeling_detection_metric(
             model=model,
             train_dataset=dataset,
             global_method=global_method,
-            poisoned_indices=dataset.transform_indices,
+            mislabeling_indices=dataset.transform_indices,
             explainer_cls=CaptumSimilarity,
             expl_kwargs=expl_kwargs,
             device="cpu",
