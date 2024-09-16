@@ -1,0 +1,18 @@
+Bootstrap: docker
+From: nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
+
+%environment
+  export "PATH=/opt/conda/bin:$PATH"
+
+%post
+  apt-get -y update
+  apt install -y git
+  apt-get -y install curl
+
+  curl -o ~/miniconda.sh -O https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-x86_64.sh
+
+  chmod +x ~/miniconda.sh
+  ~/miniconda.sh -b -u -p /opt/conda
+  rm ~/miniconda.sh
+  export "PATH=/opt/conda/bin:$PATH"
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
