@@ -216,7 +216,7 @@ class SubclassDetection(Benchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
@@ -246,6 +246,7 @@ class SubclassDetection(Benchmark):
                     targets = output.argmax(dim=-1)
             else:
                 targets = grouped_labels
+                
             explanations = explainer.explain(
                 test=inputs,
                 targets=targets,

@@ -361,7 +361,7 @@ class MislabelingDetection(Benchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         batch_size: int = 8,
         *args,
         **kwargs,

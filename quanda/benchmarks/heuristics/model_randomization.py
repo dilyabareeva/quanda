@@ -118,7 +118,7 @@ class ModelRandomization(Benchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         cache_dir: str = "./cache",

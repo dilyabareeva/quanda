@@ -86,7 +86,7 @@ class DatasetCleaning(Benchmark):
         explainer_cls: type,
         trainer: Union[L.Trainer, BaseTrainer],
         init_model: Optional[torch.nn.Module] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         expl_kwargs: Optional[dict] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         batch_size: int = 8,

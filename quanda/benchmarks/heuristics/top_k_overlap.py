@@ -82,7 +82,7 @@ class TopKOverlap(Benchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
