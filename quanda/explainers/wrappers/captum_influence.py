@@ -428,6 +428,7 @@ class CaptumArnoldi(CaptumInfluence):
         else:
             validate_checkpoints_load_func(checkpoints_load_func)
 
+        checkpoints_load_func(model, checkpoint)
         unsupported_args = ["k", "proponents"]
         for arg in unsupported_args:
             if arg in explainer_kwargs:
@@ -488,9 +489,8 @@ class CaptumArnoldi(CaptumInfluence):
         test = test.to(self.device)
 
         if targets is None:
-            raise ValueError("Targets are required for CaptumArnoldi explainer.")
-
-        if isinstance(targets, list):
+            targets = self.model(test).argmax(dim=1)
+        elif isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
         else:
             targets = targets.to(self.device)
@@ -659,6 +659,7 @@ class CaptumTracInCP(CaptumInfluence):
         else:
             validate_checkpoints_load_func(checkpoints_load_func)
 
+        checkpoints_load_func(model, checkpoints[-1])
         unsupported_args = ["k", "proponents", "aggregate"]
         for arg in unsupported_args:
             if arg in explainer_kwargs:
@@ -712,9 +713,8 @@ class CaptumTracInCP(CaptumInfluence):
         test = test.to(self.device)
 
         if targets is None:
-            raise ValueError("Targets are required for CaptumTracInCP explainer.")
-
-        if isinstance(targets, list):
+            targets = self.model(test).argmax(dim=1)
+        elif isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
         else:
             targets = targets.to(self.device)
@@ -886,6 +886,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         else:
             validate_checkpoints_load_func(checkpoints_load_func)
 
+        checkpoints_load_func(model, checkpoints[-1])
         unsupported_args = ["k", "proponents"]
         for arg in unsupported_args:
             if arg in explainer_kwargs:
@@ -937,9 +938,8 @@ class CaptumTracInCPFast(CaptumInfluence):
         test = test.to(self.device)
 
         if targets is None:
-            raise ValueError("Targets are required for CaptumTracInCPFast explainer.")
-
-        if isinstance(targets, list):
+            targets = self.model(test).argmax(dim=1)
+        elif isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
         else:
             targets = targets.to(self.device)
@@ -1144,6 +1144,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         else:
             validate_checkpoints_load_func(checkpoints_load_func)
 
+        checkpoints_load_func(model, checkpoints[-1])
         unsupported_args = ["k", "proponents"]
         for arg in unsupported_args:
             if arg in explainer_kwargs:
@@ -1199,9 +1200,8 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         test = test.to(self.device)
 
         if targets is None:
-            raise ValueError("Targets are required for CaptumTracInCPFastRandProj explainer.")
-
-        if isinstance(targets, list):
+            targets = self.model(test).argmax(dim=1)
+        elif isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
         else:
             targets = targets.to(self.device)
