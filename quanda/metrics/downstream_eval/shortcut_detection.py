@@ -88,7 +88,8 @@ class ShortcutDetectionMetric(Metric):
         """
         Aggregates current results and return a metric score.
         """
-        return {k: torch.cat(self.scores[k]).mean().item() for k in self.scores.keys()}
+        additional_results = {k: torch.cat(self.scores[k]).mean().item() for k in ["clean", "rest"]}
+        return {"score": torch.cat(self.scores["poisoned"]).mean().item(), **additional_results}
 
     def reset(self, *args, **kwargs):
         """

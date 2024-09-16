@@ -33,7 +33,7 @@ from quanda.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            {"poisoned": 0.32555, "clean": 0.0, "rest": 0.29015},
+            {"score": 0.32555, "clean": 0.0, "rest": 0.29015},
         ),
         (
             "mnist",
@@ -53,7 +53,7 @@ from quanda.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            {"poisoned": 0.32555, "clean": 0.0, "rest": 0.29015},
+            {"score": 0.32555, "clean": 0.0, "rest": 0.29015},
         ),
     ],
 )
@@ -127,6 +127,7 @@ def test_shortcut_detection(
         model_id="default_model_id",
         batch_size=batch_size,
     )
+    print(list(results.keys()))
     assertions = [math.isclose(results[k], expected_scores[k], abs_tol=0.00001) for k in expected_scores.keys()]
     assert all(assertions)
 
@@ -153,7 +154,7 @@ def test_shortcut_detection(
             8,
             CaptumSimilarity,
             {"layers": "model.fc_2", "similarity_metric": cosine_similarity},
-            {"poisoned": 0.32555, "clean": 0.0, "rest": 0.29015},
+            {"score": 0.32555, "clean": 0.0, "rest": 0.29015},
         ),
     ],
 )

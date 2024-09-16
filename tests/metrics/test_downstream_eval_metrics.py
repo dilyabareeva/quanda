@@ -432,11 +432,8 @@ def test_shortcut_detection_metric(
     rest_indices = list(set(range(metric.dataset_length)) - set(poisoned_ids) - set(clean_ids))
     rest = tda[:, rest_indices].mean()
     assertions = [
-        math.isclose(res["poisoned"], poisoned, abs_tol=0.00001),
+        math.isclose(res["score"], poisoned, abs_tol=0.00001),
         math.isclose(res["clean"], clean, abs_tol=0.00001),
         math.isclose(res["rest"], rest, abs_tol=0.00001),
     ]
-    assert assertions[0], "Expected (poisoned): {}, Got: {}".format(poisoned, res["poisoned"])
-    assert assertions[1], "Expected (clean): {}, Got: {}".format(clean, res["clean"])
-    assert assertions[2], "Expected (rest): {}, Got: {}".format(rest, res["rest"])
     assert all(assertions)
