@@ -3,7 +3,7 @@ import torch
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW, lr_scheduler
 from torchmetrics.functional import accuracy
-from torchvision.models import resnet18
+from torchvision.models import ResNet18_Weights, resnet18
 
 
 class LitModel(L.LightningModule):
@@ -20,7 +20,7 @@ class LitModel(L.LightningModule):
         self.save_hyperparameters()
 
     def _init_model(self, num_labels):
-        self.model = resnet18(pretrained=True)
+        self.model = resnet18(weights=ResNet18_Weights.DEFAULT)
         self.model.avgpool = torch.nn.AdaptiveAvgPool2d(1)
         num_ftrs = self.model.fc.in_features
         self.model.fc = torch.nn.Linear(num_ftrs, num_labels)
@@ -58,7 +58,7 @@ class LitModel(L.LightningModule):
 
     def configure_optimizers(self):
         optimizer = AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+        scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.epochs, eta_min=self.lr * 1e-4)
         return [optimizer], [scheduler]
 
     def on_save_checkpoint(self, checkpoint):

@@ -14,7 +14,7 @@ class LabelFlippingDataset(TransformedDataset):
         n_classes: int,
         dataset_transform: Optional[Callable] = None,
         transform_indices: Optional[List] = None,
-        poisoned_labels: Optional[Dict[int, int]] = None,
+        mislabeling_labels: Optional[Dict[int, int]] = None,
         cls_idx: Optional[int] = None,
         p: float = 1.0,  # TODO: decide on default value vis-à-vis subset_idx
         seed: int = 42,
@@ -31,7 +31,7 @@ class LabelFlippingDataset(TransformedDataset):
             Default transform of the dataset, defaults to None
         transform_indices : Optional[List], optional
             Indices to transform, defaults to None.
-        poisoned_labels : Optional[Dict[int, int]], optional
+        mislabeling_labels : Optional[Dict[int, int]], optional
             Dictionary of indices and poisoned labels. If None, the poisoned labels are generated randomly.
         cls_idx : Optional[int], optional
             Class to poison. If `transform_indices` is given, this parameter is ignored, defaults to None
@@ -47,12 +47,12 @@ class LabelFlippingDataset(TransformedDataset):
             p=p,
             cls_idx=cls_idx,
         )
-        if poisoned_labels is not None:
-            self._validate_poisoned_labels(poisoned_labels)
-            self.transform_indices = list(poisoned_labels.keys())
-            self.poisoned_labels = poisoned_labels
+        if mislabeling_labels is not None:
+            self._validate_mislabeling_labels(mislabeling_labels)
+            self.transform_indices = list(mislabeling_labels.keys())
+            self.mislabeling_labels = mislabeling_labels
         else:
-            self.poisoned_labels = {
+            self.mislabeling_labels = {
                 i: self._poison(self.dataset[i][1]) for i in range(len(self)) if i in self.transform_indices
             }
 
@@ -62,26 +62,26 @@ class LabelFlippingDataset(TransformedDataset):
         label_idx = self.rng.randint(0, len(label_arr) - 1)
         return label_arr[label_idx]
 
-    def _validate_poisoned_labels(self, poisoned_labels: Dict[int, int]):
+    def _validate_mislabeling_labels(self, mislabeling_labels: Dict[int, int]):
         """Validates the poisoned labels as they are supplied by the user.
 
         Parameters
         ----------
-        poisoned_labels : Dict[int, int]
+        mislabeling_labels : Dict[int, int]
             Dictionary of indices and poisoned labels.
 
         Raises
         ------
         ValueError
-            If the poisoned_labels are not a dictionary of integer keys and values
+            If the mislabeling_labels are not a dictionary of integer keys and values
         """
-        if not isinstance(poisoned_labels, dict):
+        if not isinstance(mislabeling_labels, dict):
             raise ValueError(
-                f"poisoned_labels should be a dictionary of integer keys and values, received {type(poisoned_labels)}"
+                f"mislabeling_labels should be a dictionary of integer keys and values, received {type(mislabeling_labels)}"
             )
 
     def __getitem__(self, index):
         x, y = self.dataset[index]
         if index in self.transform_indices:
-            y = self.poisoned_labels[index]
+            y = self.mislabeling_labels[index]
         return self.dataset_transform(x), y

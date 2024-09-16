@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Sized, Union
 
-import pytorch_lightning as pl
+import lightning as L
 import torch
 
 from quanda.utils.common import cache_result
@@ -29,7 +29,7 @@ class Explainer(ABC):
 
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         cache_dir: str = "./cache",
         model_id: Optional[str] = None,

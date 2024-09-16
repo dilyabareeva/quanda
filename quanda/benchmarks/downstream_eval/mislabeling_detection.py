@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Callable, Dict, List, Optional, Union
 
 import lightning as L
@@ -11,6 +12,8 @@ from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
 from quanda.utils.training.trainer import BaseTrainer
+
+logger = logging.getLogger(__name__)
 
 
 class MislabelingDetection(Benchmark):
@@ -36,6 +39,8 @@ class MislabelingDetection(Benchmark):
     (ERTS 2022) (pp. 1-8). Toulouse, France.
     """
 
+    name: str = "Mislabeling Detection"
+
     def __init__(
         self,
         *args,
@@ -51,12 +56,12 @@ class MislabelingDetection(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.train_dataset: torch.utils.data.Dataset
-        self.poisoned_dataset: LabelFlippingDataset
+        self.mislabeling_dataset: LabelFlippingDataset
         self.dataset_transform: Optional[Callable]
-        self.poisoned_indices: List[int]
-        self.poisoned_labels: Dict[int, int]
-        self.poisoned_train_dl: torch.utils.data.DataLoader
-        self.poisoned_val_dl: Optional[torch.utils.data.DataLoader]
+        self.mislabeling_indices: List[int]
+        self.mislabeling_labels: Dict[int, int]
+        self.mislabeling_train_dl: torch.utils.data.DataLoader
+        self.mislabeling_val_dl: Optional[torch.utils.data.DataLoader]
         self.original_train_dl: torch.utils.data.DataLoader
         self.p: float
         self.global_method: Union[str, type] = "self-influence"
@@ -121,6 +126,8 @@ class MislabelingDetection(Benchmark):
             The benchmark instance.
         """
 
+        logger.info(f"Generating {MislabelingDetection.name} benchmark components based on passed arguments...")
+
         obj = cls()
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
@@ -146,8 +153,8 @@ class MislabelingDetection(Benchmark):
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable],
-        poisoned_indices: Optional[List[int]] = None,
-        poisoned_labels: Optional[Dict[int, int]] = None,
+        mislabeling_indices: Optional[List[int]] = None,
+        mislabeling_labels: Optional[Dict[int, int]] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         p: float = 0.3,
         global_method: Union[str, type] = "self-influence",
@@ -174,9 +181,9 @@ class MislabelingDetection(Benchmark):
             Transform to be applied to the dataset, by default None
         val_dataset : Optional[torch.utils.data.Dataset], optional
             Validation dataset to be used for the benchmark, by default None
-        poisoned_indices : Optional[List[int]], optional
+        mislabeling_indices : Optional[List[int]], optional
             Optional list of indices to poison, by default None
-        poisoned_labels : Optional[Dict[int, int]], optional
+        mislabeling_labels : Optional[Dict[int, int]], optional
             Optional dictionary containing indices as keys and new labels as values, by default None
         global_method : Union[str, type], optional
             Method to generate a global ranking from local explainer.
@@ -205,26 +212,26 @@ class MislabelingDetection(Benchmark):
         self.global_method = global_method
         self.n_classes = n_classes
         self.dataset_transform = dataset_transform
-        self.poisoned_dataset = LabelFlippingDataset(
+        self.mislabeling_dataset = LabelFlippingDataset(
             dataset=self.train_dataset,
             p=p,
-            transform_indices=poisoned_indices,
+            transform_indices=mislabeling_indices,
             dataset_transform=dataset_transform,
-            poisoned_labels=poisoned_labels,
+            mislabeling_labels=mislabeling_labels,
             n_classes=n_classes,
             seed=seed,
         )
-        self.poisoned_indices = self.poisoned_dataset.transform_indices
-        self.poisoned_labels = self.poisoned_dataset.poisoned_labels
-        self.poisoned_train_dl = torch.utils.data.DataLoader(self.poisoned_dataset, batch_size=batch_size)
+        self.mislabeling_indices = self.mislabeling_dataset.transform_indices
+        self.mislabeling_labels = self.mislabeling_dataset.mislabeling_labels
+        self.mislabeling_train_dl = torch.utils.data.DataLoader(self.mislabeling_dataset, batch_size=batch_size)
         self.original_train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size)
         if val_dataset:
-            poisoned_val_dataset = LabelFlippingDataset(
+            mislabeling_val_dataset = LabelFlippingDataset(
                 dataset=self.train_dataset, dataset_transform=self.dataset_transform, p=self.p, n_classes=self.n_classes
             )
-            self.poisoned_val_dl = torch.utils.data.DataLoader(poisoned_val_dataset, batch_size=batch_size)
+            self.mislabeling_val_dl = torch.utils.data.DataLoader(mislabeling_val_dataset, batch_size=batch_size)
         else:
-            self.poisoned_val_dl = None
+            self.mislabeling_val_dl = None
 
         self.model = copy.deepcopy(model)
 
@@ -236,8 +243,8 @@ class MislabelingDetection(Benchmark):
 
             trainer.fit(
                 model=self.model,
-                train_dataloaders=self.poisoned_train_dl,
-                val_dataloaders=self.poisoned_val_dl,
+                train_dataloaders=self.mislabeling_train_dl,
+                val_dataloaders=self.mislabeling_val_dl,
                 **trainer_fit_kwargs,
             )
 
@@ -247,8 +254,8 @@ class MislabelingDetection(Benchmark):
 
             trainer.fit(
                 model=self.model,
-                train_dataloaders=self.poisoned_train_dl,
-                val_dataloaders=self.poisoned_val_dl,
+                train_dataloaders=self.mislabeling_train_dl,
+                val_dataloaders=self.mislabeling_val_dl,
                 **trainer_fit_kwargs,
             )
 
@@ -271,8 +278,8 @@ class MislabelingDetection(Benchmark):
             model=bench_state["model"],
             train_dataset=bench_state["train_dataset"],
             n_classes=bench_state["n_classes"],
-            poisoned_indices=bench_state["poisoned_indices"],
-            poisoned_labels=bench_state["poisoned_labels"],
+            mislabeling_indices=bench_state["mislabeling_indices"],
+            mislabeling_labels=bench_state["mislabeling_labels"],
             dataset_transform=bench_state["dataset_transform"],
             p=bench_state["p"],
             global_method=bench_state["global_method"],
@@ -286,8 +293,8 @@ class MislabelingDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         dataset_split: str = "train",
-        poisoned_indices: Optional[List[int]] = None,
-        poisoned_labels: Optional[Dict[int, int]] = None,
+        mislabeling_indices: Optional[List[int]] = None,
+        mislabeling_labels: Optional[Dict[int, int]] = None,
         dataset_transform: Optional[Callable] = None,
         p: float = 0.3,  # TODO: type specification
         global_method: Union[str, type] = "self-influence",
@@ -308,9 +315,9 @@ class MislabelingDetection(Benchmark):
             Number of classes in the dataset.
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
-        poisoned_indices : Optional[List[int]], optional
+        mislabeling_indices : Optional[List[int]], optional
             List of indices to poison, defaults to None
-        poisoned_labels : Optional[Dict[int, int]], optional
+        mislabeling_labels : Optional[Dict[int, int]], optional
             Dictionary containing indices as keys and new labels as values, defaults to None
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
@@ -331,18 +338,18 @@ class MislabelingDetection(Benchmark):
         obj.global_method = global_method
         obj.n_classes = n_classes
 
-        obj.poisoned_dataset = LabelFlippingDataset(
+        obj.mislabeling_dataset = LabelFlippingDataset(
             dataset=obj.train_dataset,
             p=p,
             dataset_transform=dataset_transform,
             n_classes=n_classes,
-            transform_indices=poisoned_indices,
-            poisoned_labels=poisoned_labels,
+            transform_indices=mislabeling_indices,
+            mislabeling_labels=mislabeling_labels,
         )
-        obj.poisoned_indices = obj.poisoned_dataset.transform_indices
-        obj.poisoned_labels = obj.poisoned_dataset.poisoned_labels
+        obj.mislabeling_indices = obj.mislabeling_dataset.transform_indices
+        obj.mislabeling_labels = obj.mislabeling_dataset.mislabeling_labels
 
-        obj.poisoned_train_dl = torch.utils.data.DataLoader(obj.poisoned_dataset, batch_size=batch_size)
+        obj.mislabeling_train_dl = torch.utils.data.DataLoader(obj.mislabeling_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
 
         obj.set_devices(model)
@@ -354,7 +361,7 @@ class MislabelingDetection(Benchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         batch_size: int = 8,
         *args,
         **kwargs,
@@ -382,15 +389,15 @@ class MislabelingDetection(Benchmark):
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
 
-        poisoned_expl_ds = LabelFlippingDataset(
+        mislabeling_expl_ds = LabelFlippingDataset(
             dataset=expl_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
         )
-        expl_dl = torch.utils.data.DataLoader(poisoned_expl_ds, batch_size=batch_size)
+        expl_dl = torch.utils.data.DataLoader(mislabeling_expl_ds, batch_size=batch_size)
         if self.global_method != "self-influence":
             metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
-                train_dataset=self.poisoned_dataset,
-                poisoned_indices=self.poisoned_indices,
+                train_dataset=self.mislabeling_dataset,
+                mislabeling_indices=self.mislabeling_indices,
                 aggregator_cls=self.global_method,
             )
 
@@ -407,12 +414,12 @@ class MislabelingDetection(Benchmark):
                 else:
                     targets = labels
                 explanations = explainer.explain(test=inputs, targets=targets)
-                metric.update(explanations)
+                metric.update(test_data=inputs, test_labels=labels, explanations=explanations)
         else:
             metric = MislabelingDetectionMetric.self_influence_based(
                 model=self.model,
-                train_dataset=self.poisoned_dataset,
-                poisoned_indices=self.poisoned_indices,
+                train_dataset=self.mislabeling_dataset,
+                mislabeling_indices=self.mislabeling_indices,
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
             )

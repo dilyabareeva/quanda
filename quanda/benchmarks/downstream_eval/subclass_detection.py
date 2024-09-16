@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Callable, Dict, Optional, Union
 
 import lightning as L
@@ -13,8 +14,16 @@ from quanda.utils.datasets.transformed.label_grouping import (
 )
 from quanda.utils.training.trainer import BaseTrainer
 
+logger = logging.getLogger(__name__)
+
 
 class SubclassDetection(Benchmark):
+    """
+    Benchmark for subclass detection tasks.
+    """
+
+    name: str = "Subclass Detection"
+
     def __init__(
         self,
         *args,
@@ -54,6 +63,8 @@ class SubclassDetection(Benchmark):
         """
         This method should generate all the benchmark components and persist them in the instance.
         """
+
+        logger.info(f"Generating {SubclassDetection.name} benchmark components based on passed arguments...")
 
         obj = cls()
         obj.set_devices(model)
@@ -205,7 +216,7 @@ class SubclassDetection(Benchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,
@@ -235,6 +246,7 @@ class SubclassDetection(Benchmark):
                     targets = output.argmax(dim=-1)
             else:
                 targets = grouped_labels
+
             explanations = explainer.explain(
                 test=inputs,
                 targets=targets,

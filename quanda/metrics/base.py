@@ -60,29 +60,6 @@ class Metric(ABC):
         """
         raise NotImplementedError
 
-    def explain_update(
-        self,
-        *args,
-        **kwargs,
-    ):
-        """
-        Used to update the metric with new data.
-
-        Parameters
-        ----------
-        *args: Any
-            Additional arguments.
-        **kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        None
-        """
-        if hasattr(self, "explainer"):
-            raise NotImplementedError
-        raise RuntimeError("No explainer is supplied to the metric.")
-
     @abstractmethod
     def compute(self, *args: Any, **kwargs: Any) -> Any:
         """

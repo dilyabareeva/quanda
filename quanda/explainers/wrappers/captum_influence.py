@@ -1,9 +1,11 @@
+import logging
 import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Iterator, List, Optional, Union
 
-import pytorch_lightning as pl
+import lightning as L
 import torch
+from captum._utils.av import AV  # type: ignore
 from captum.influence import (  # type: ignore
     SimilarityInfluence,
     TracInCP,
@@ -29,6 +31,8 @@ from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity
 from quanda.utils.validation import validate_checkpoints_load_func
 
+logger = logging.getLogger(__name__)
+
 
 class CaptumInfluence(Explainer, ABC):
     """
@@ -52,7 +56,7 @@ class CaptumInfluence(Explainer, ABC):
 
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         explain_kwargs: Any,
@@ -133,7 +137,7 @@ class CaptumSimilarity(CaptumInfluence):
 
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         model_id: str,
         train_dataset: torch.utils.data.Dataset,
         layers: Union[str, List[str]],
@@ -142,8 +146,11 @@ class CaptumSimilarity(CaptumInfluence):
         similarity_direction: str = "max",
         batch_size: int = 1,
         replace_nan: bool = False,
+        load_from_disk: bool = True,
         **explainer_kwargs: Any,
     ):
+        logger.info("Initializing Captum SimilarityInfluence explainer...")
+
         # extract and validate layer from kwargs
         self._layer: Optional[Union[List[str], str]] = None
         self.layer = layers
@@ -180,6 +187,18 @@ class CaptumSimilarity(CaptumInfluence):
 
         if "top_k" in explainer_kwargs:
             warnings.warn("top_k is not supported by CaptumSimilarity explainer. Ignoring the argument.")
+
+        # As opposed to the original implementation, we move the activation generation to the init method.
+        AV.generate_dataset_activations(
+            self.cache_dir,
+            self.model,
+            self.model_id,
+            self.layer,
+            torch.utils.data.DataLoader(self.train_dataset, batch_size, shuffle=False),
+            identifier="src",
+            load_from_disk=load_from_disk,
+            return_activations=True,
+        )
 
     @property
     def layer(self):
@@ -225,7 +244,7 @@ class CaptumSimilarity(CaptumInfluence):
 
 
 def captum_similarity_explain(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     model_id: str,
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
@@ -269,7 +288,7 @@ def captum_similarity_explain(
 
 
 def captum_similarity_self_influence(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     model_id: str,
     train_dataset: torch.utils.data.Dataset,
     cache_dir: str = "./cache",
@@ -394,7 +413,7 @@ class CaptumArnoldi(CaptumInfluence):
 
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         checkpoint: str,
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(reduction="none"),
@@ -417,6 +436,8 @@ class CaptumArnoldi(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        logger.info("Initializing Captum ArnoldiInfluence explainer...")
+
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
         else:
@@ -509,7 +530,7 @@ class CaptumArnoldi(CaptumInfluence):
 
 
 def captum_arnoldi_explain(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     test_tensor: torch.Tensor,
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
@@ -632,7 +653,7 @@ class CaptumTracInCP(CaptumInfluence):
 
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -646,6 +667,8 @@ class CaptumTracInCP(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        logger.info("Initializing Captum TracInCP explainer...")
+
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
         else:
@@ -733,7 +756,7 @@ class CaptumTracInCP(CaptumInfluence):
 
 
 def captum_tracincp_explain(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     test_tensor: torch.Tensor,
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
@@ -779,7 +802,7 @@ def captum_tracincp_explain(
 
 
 def captum_tracincp_self_influence(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     train_dataset: torch.utils.data.Dataset,
     model_id: Optional[str] = None,
     cache_dir: str = "./cache",
@@ -871,6 +894,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        logger.info("Initializing Captum TracInCPFast explainer...")
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
         else:
@@ -1110,7 +1134,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
@@ -1127,6 +1151,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
+        logger.info("Initializing Captum TracInCPFastRandProj explainer...")
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
         else:
@@ -1197,7 +1222,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 
 
 def captum_tracincp_fast_rand_proj_explain(
-    model: Union[torch.nn.Module, pl.LightningModule],
+    model: Union[torch.nn.Module, L.LightningModule],
     test_tensor: torch.Tensor,
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,

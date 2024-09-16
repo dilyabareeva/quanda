@@ -21,7 +21,7 @@ from quanda.utils.functions import cosine_similarity
         ),
     ],
 )
-def test_base_explainer_self_influence(test_id, model, dataset, dataset_xpl, method_kwargs, mocker, request):
+def test_base_explainer_self_influence(test_id, model, dataset, dataset_xpl, method_kwargs, mocker, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     dataset_xpl = request.getfixturevalue(dataset_xpl)
@@ -30,7 +30,7 @@ def test_base_explainer_self_influence(test_id, model, dataset, dataset_xpl, met
     explainer = Explainer(
         model=model,
         model_id="test_id",
-        cache_dir=os.path.join("./cache", "test_id"),
+        cache_dir=str(tmp_path),
         train_dataset=dataset,
         device="cpu",
         **method_kwargs,

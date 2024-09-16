@@ -1,3 +1,4 @@
+import logging
 from typing import Callable, Optional, Union
 
 import torch
@@ -8,6 +9,8 @@ from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
 from quanda.utils.functions import CorrelationFnLiterals
+
+logger = logging.getLogger(__name__)
 
 
 class ModelRandomization(Benchmark):
@@ -24,6 +27,8 @@ class ModelRandomization(Benchmark):
     2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., & Kim, B. (2018). Sanity checks for saliency
     maps. In Advances in Neural Information Processing Systems (Vol. 31).
     """
+
+    name: str = "Model Randomization"
 
     def __init__(
         self,
@@ -56,6 +61,8 @@ class ModelRandomization(Benchmark):
         dataset_split : str, optional
             The dataset split to use, by default "train". Only used if `train_dataset` is a string.
         """
+
+        logger.info(f"Generating {ModelRandomization.name} benchmark components based on passed arguments...")
 
         obj = cls()
         obj.set_devices(model)
@@ -111,7 +118,7 @@ class ModelRandomization(Benchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         cache_dir: str = "./cache",
@@ -153,7 +160,11 @@ class ModelRandomization(Benchmark):
         dict
             Dictionary containing the evaluation results.
         """
+
         expl_kwargs = expl_kwargs or {}
+        explainer = explainer_cls(
+            model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
+        )
         expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
 
         metric = ModelRandomizationMetric(
@@ -181,6 +192,11 @@ class ModelRandomization(Benchmark):
             else:
                 targets = labels
 
-            metric.explain_update(test_data=input, explanation_targets=targets)
+            explanations = explainer.explain(
+                test=input,
+                targets=targets,
+            )
+
+            metric.update(explanations=explanations, test_data=input, explanation_targets=targets)
 
         return metric.compute()

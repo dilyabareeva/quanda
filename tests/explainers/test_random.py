@@ -20,14 +20,14 @@ from quanda.utils.functions import cosine_similarity
         ),
     ],
 )
-def test_random_explainer_self_influence(test_id, model, dataset, method_kwargs, mocker, request):
+def test_random_explainer_self_influence(test_id, model, dataset, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
 
     explainer = RandomExplainer(
         model=model,
         model_id="test_id",
-        cache_dir=os.path.join("./cache", "test_id"),
+        cache_dir=str(tmp_path),
         train_dataset=dataset,
         device="cpu",
         **method_kwargs,
@@ -50,7 +50,7 @@ def test_random_explainer_self_influence(test_id, model, dataset, method_kwargs,
         ),
     ],
 )
-def test_random_explainer_explain(test_id, model, dataset, test_batch, method_kwargs, mocker, request):
+def test_random_explainer_explain(test_id, model, dataset, test_batch, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_batch = request.getfixturevalue(test_batch)
@@ -58,7 +58,7 @@ def test_random_explainer_explain(test_id, model, dataset, test_batch, method_kw
     explainer = RandomExplainer(
         model=model,
         model_id="test_id",
-        cache_dir=os.path.join("./cache", "test_id"),
+        cache_dir=str(tmp_path),
         train_dataset=dataset,
         device="cpu",
         **method_kwargs,

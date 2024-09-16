@@ -1,3 +1,4 @@
+import logging
 import warnings
 from importlib.util import find_spec
 from typing import Any, Iterable, List, Literal, Optional, Sized, Union
@@ -13,6 +14,9 @@ from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
+
+logger = logging.getLogger(__name__)
+
 
 TRAKProjectorLiteral = Literal["cuda", "noop", "basic"]
 TRAKProjectionTypeLiteral = Literal["rademacher", "normal"]
@@ -66,6 +70,7 @@ class TRAK(Explainer):
         seed: int = 42,
         batch_size: int = 32,
         params_ldr: Optional[Iterable] = None,
+        load_from_disk: bool = True,
     ):
         """Initializes the TRAK explainer.
 
@@ -94,6 +99,9 @@ class TRAK(Explainer):
         params_ldr : Optional[Iterable], optional
             Generator of model parameters, by default None, which uses all parameters
         """
+
+        logging.info("Initializing TRAK explainer...")
+
         super(TRAK, self).__init__(
             model=model,
             train_dataset=train_dataset,
@@ -139,6 +147,7 @@ class TRAK(Explainer):
             save_dir=self.cache_dir,
             device=str(self.device),
             use_half_precision=False,
+            load_from_save_dir=load_from_disk,
         )
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 
