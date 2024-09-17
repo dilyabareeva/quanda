@@ -12,6 +12,7 @@ from quanda.explainers.wrappers.captum_influence import (
     captum_tracincp_explain,
     captum_tracincp_fast_explain,
     captum_tracincp_fast_rand_proj_explain,
+    captum_tracincp_fast_rand_proj_self_influence,
     captum_tracincp_fast_self_influence,
     captum_tracincp_self_influence,
 )
@@ -41,5 +42,6 @@ __all__ = [
     "captum_tracincp_fast_self_influence",
     "CaptumTracInCPFastRandProj",
     "captum_tracincp_fast_rand_proj_explain",
+    "captum_tracincp_fast_rand_proj_self_influence",
     "RepresenterPoints",
 ]
