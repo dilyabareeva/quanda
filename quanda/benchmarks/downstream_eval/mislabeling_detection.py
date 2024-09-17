@@ -23,6 +23,7 @@ class MislabelingDetection(Benchmark):
     Afterward, it evaluates the effectiveness of a given data attributor
     for detecting the mislabeled examples using ´quanda.metrics.downstream_eval.MislabelingDetectionMetric´.
 
+    This is done by computing a cumulative detection curve (as in the below references), and calculating the AUC (as in (5))
     References
     ----------
     1) Koh, P. W., & Liang, P. (2017). Understanding black-box predictions via influence functions. In International
@@ -37,6 +38,9 @@ class MislabelingDetection(Benchmark):
     4) Picard, A. M., Vigouroux, D., Zamolodtchikov, P., Vincenot, Q., Loubes, J.-M., & Pauwels, E. (2022). Leveraging
     influence functions for dataset exploration and cleaning. In 11th European Congress on Embedded Real-Time Systems
     (ERTS 2022) (pp. 1-8). Toulouse, France.
+
+    5) Kwon, Y., Wu, E., Wu, K., & Zou, J. (2024). DataInf: Efficiently estimating data influence in LoRA-tuned LLMs and
+    diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).
     """
 
     name: str = "Mislabeling Detection"

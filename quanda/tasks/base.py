@@ -11,8 +11,6 @@ class Task(ABC):
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
-        model_id: Optional[str] = "0",
-        cache_dir: str = "./cache",
         **kwargs,
     ):
         self.device: Union[str, torch.device]
@@ -28,9 +26,7 @@ class Task(ABC):
         self.train_dataset = train_dataset
         self.expl_kwargs = expl_kwargs or {}
         if explainer_cls is not None:
-            self.explainer = explainer_cls(
-                model=self.model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
-            )
+            self.explainer = explainer_cls(model=self.model, train_dataset=train_dataset, **self.expl_kwargs)
 
     @abstractmethod
     def update(

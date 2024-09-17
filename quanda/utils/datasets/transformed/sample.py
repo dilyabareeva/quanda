@@ -1,10 +1,8 @@
-from typing import Callable, List, Literal, Optional
+from typing import Callable, List, Optional
 
 import torch
 
 from quanda.utils.datasets.transformed import TransformedDataset
-
-ClassToGroupLiterals = Literal["random"]
 
 
 class SampleTransformationDataset(TransformedDataset):
@@ -12,12 +10,12 @@ class SampleTransformationDataset(TransformedDataset):
         self,
         dataset: torch.utils.data.Dataset,
         n_classes: int,
+        sample_fn: Callable,
         dataset_transform: Optional[Callable] = None,
         transform_indices: Optional[List[int]] = None,
         cls_idx: Optional[int] = None,
         p: float = 1.0,
         seed: int = 42,
-        sample_fn: Optional[Callable] = None,
     ):
         super().__init__(
             dataset=dataset,

@@ -273,10 +273,19 @@ def load_fashion_mnist_path():
     return "tests/assets/fashion_mnist_examples"
 
 
+# @pytest.fixture
+# def mnist_white_square_transformation():
+#    def add_white_square(img):
+#        img[:, 10:13, 10:13] = 1.0  # Paste it onto the image at the specified position
+#        return img
+
+#    return add_white_square
+
+
 @pytest.fixture
 def mnist_white_square_transformation():
     def add_white_square(img):
-        img[:, 10:13, 10:13] = 1.0  # Paste it onto the image at the specified position
+        img[:, 8:13, 10:15] = 1.0  # Paste it onto the image at the specified position
         return img
 
     return add_white_square

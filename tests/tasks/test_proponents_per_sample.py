@@ -18,6 +18,7 @@ from quanda.utils.functions.similarities import cosine_similarity
             8,
             CaptumSimilarity,
             {
+                "model_id": "0",
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
@@ -69,6 +70,7 @@ def test_proponents_per_sample(
             8,
             CaptumSimilarity,
             {
+                "model_id": "0",
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
