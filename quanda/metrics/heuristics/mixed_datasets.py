@@ -50,11 +50,16 @@ class MixedDatasetsMetric(Metric):
             and adversarial examples. The labels of all adversarial examples should map
             to a single label from the clean examples.
         adversarial_indices: Union[List[int], torch.Tensor]
-            A binary list of ground truth adversarial indices of the `train_dataset`.
+            List of ground truth adversarial indices of the `train_dataset`.
         args: Any
             Additional positional arguments.
         kwargs: Any
             Additional keyword arguments.
+
+        Raises
+        ------
+        AssertionError
+            If the adversarial labels are not unique.
         """
         super().__init__(
             model=model,
@@ -66,10 +71,11 @@ class MixedDatasetsMetric(Metric):
             adversarial_indices = torch.tensor(adversarial_indices)
 
         self.adversarial_indices = adversarial_indices
+        self._validate_adversarial_labels()
 
     def _validate_adversarial_labels(self):
         """Validate the adversarial labels in the training dataset."""
-        adversarial_labels = set([self.train_dataset[i][1] for i in self.adversarial_indices])
+        adversarial_labels = set([self.train_dataset[i][1] for i in torch.where(self.adversarial_indices == 1)[0]])
         assert len(adversarial_labels) == 1, "Adversarial labels must be unique."
 
     def update(
@@ -77,17 +83,41 @@ class MixedDatasetsMetric(Metric):
         explanations: torch.Tensor,
         **kwargs,
     ):
+        """Update the metric state with the provided explanations.
+
+        Parameters
+        ----------
+        explanations : torch.Tensor
+            Explanations to be evaluated.
+        """
         explanations = explanations.to(self.device)
         self.auprc_scores.extend([binary_auprc(xpl, self.adversarial_indices) for xpl in explanations])
 
     def compute(self, *args, **kwargs):
+        """
+        Aggregates current results and return a metric score.
+
+        Returns
+        -------
+        Dict[str, float]
+            Dictionary containing the metric score.
+        """
         return {"score": torch.tensor(self.auprc_scores).mean().item()}
 
     def reset(self, *args, **kwargs):
+        """
+        Resets the metric state.
+        """
         self.auprc_scores = []
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
+        """
+        Loads the metric state.
+        """
         self.auprc_scores = state_dict["auprc_scores"]
 
     def state_dict(self, *args, **kwargs):
+        """
+        Returns the metric state.
+        """
         return {"auprc_scores": self.auprc_scores}
