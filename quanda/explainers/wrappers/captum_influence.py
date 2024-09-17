@@ -333,6 +333,7 @@ class CaptumArnoldi(CaptumInfluence):
     """
     Class for Arnoldi Influence Function wrapper.
     This implements the ArnoldiInfluence method of (1) to compute influence function explanations (2).
+
     Parameters
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
@@ -1047,7 +1048,7 @@ def captum_tracincp_fast_self_influence(
     cache_dir : str, optional
         Directory for caching results. Defaults to "./cache".
     outer_loop_by_checkpoints : bool, optional
-        Whether to use checkpoints for the outer loop. Defaults to False.
+        Whether to perform an outer loop over the checkpoints. Defaults to False.
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
 
@@ -1269,31 +1270,34 @@ def captum_tracincp_fast_rand_proj_explain(
 
 def captum_tracincp_fast_rand_proj_self_influence(
     model: torch.nn.Module,
-    model_id: str,
-    cache_dir: str,
     train_dataset: torch.utils.data.Dataset,
+    model_id: Optional[str] = None,
+    cache_dir: str = "./cache",
     outer_loop_by_checkpoints: bool = False,
     **kwargs: Any,
 ) -> torch.Tensor:
-    """Functional interface for the self-influence scores using the `CaptumTracInCPFastRandProj` explainer.
+    """
+    Functional interface for the self-influence scores using the `CaptumTracInCPFastRandProj` explainer.
 
     Parameters
     ----------
     model : torch.nn.Module
-        The model to be explained.
-    model_id :
-        Identifier for the model.
-    cache_dir : str
-        The directory to use for caching
+        The model to be used for the influence computation.
     train_dataset : torch.utils.data.Dataset
-        The training dataset used to train the model.
+        Training dataset to be used for the influence computation.
+    model_id : Optional[str], optional
+        Identifier for the model. Defaults to None.
+    cache_dir : str, optional
+        Directory for caching results. Defaults to "./cache".
     outer_loop_by_checkpoints : bool, optional
-        Whether to use the outer loop by checkpoints, by default False
+        Whether to perform an outer loop over the checkpoints. Defaults to False.
+    **kwargs : Any
+        Additional keyword arguments passed to the explainer.
 
     Returns
     -------
     torch.Tensor
-        _description_
+        Self-influence scores for each datapoint in train_dataset.
     """
     return self_influence_fn_from_explainer(
         explainer_cls=CaptumTracInCPFastRandProj,
