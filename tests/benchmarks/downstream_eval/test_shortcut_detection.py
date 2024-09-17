@@ -4,7 +4,6 @@ import lightning as L
 import pytest
 
 from quanda.benchmarks.downstream_eval import ShortcutDetection
-from quanda.explainers.aggregators import SumAggregator
 from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
 from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
@@ -24,7 +23,7 @@ from quanda.utils.training.trainer import Trainer
             "torch_cross_entropy_loss_object",
             0,
             "load_mnist_dataset",
-            "box_1c",
+            "mnist_white_square_transformation",
             10,
             1,
             None,
@@ -44,7 +43,7 @@ from quanda.utils.training.trainer import Trainer
             "torch_cross_entropy_loss_object",
             0,
             "load_mnist_dataset",
-            "box_1c",
+            "mnist_white_square_transformation",
             10,
             1,
             [3, 6],
@@ -83,6 +82,7 @@ def test_shortcut_detection(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
+    sample_fn = request.getfixturevalue(sample_fn)
     expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
     if init_method == "generate":
         trainer = Trainer(
@@ -104,7 +104,6 @@ def test_shortcut_detection(
             seed=seed,
             batch_size=batch_size,
         )
-
     elif init_method == "assemble":
         dst_eval = ShortcutDetection.assemble(
             model=model,
@@ -127,7 +126,6 @@ def test_shortcut_detection(
         model_id="default_model_id",
         batch_size=batch_size,
     )
-    print(list(results.keys()))
     assertions = [math.isclose(results[k], expected_scores[k], abs_tol=0.00001) for k in expected_scores.keys()]
     assert all(assertions)
 
@@ -145,7 +143,7 @@ def test_shortcut_detection(
             "torch_cross_entropy_loss_object",
             0,
             "load_mnist_dataset",
-            "box_1c",
+            "mnist_white_square_transformation",
             10,
             1,
             None,
@@ -183,7 +181,7 @@ def test_shortcut_detection_generate_from_pl_module(
     dataset = request.getfixturevalue(dataset)
     expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
     trainer = L.Trainer(max_epochs=max_epochs)
-
+    sample_fn = request.getfixturevalue(sample_fn)
     dst_eval = ShortcutDetection.generate(
         model=pl_module,
         trainer=trainer,

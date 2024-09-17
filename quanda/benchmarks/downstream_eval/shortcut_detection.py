@@ -10,9 +10,7 @@ from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
 from quanda.utils.datasets.transformed.sample import (
-    SampleFnLiterals,
     SampleTransformationDataset,
-    get_sample_fn,
 )
 from quanda.utils.training.trainer import BaseTrainer
 
@@ -68,7 +66,7 @@ class ShortcutDetection(Benchmark):
         n_classes: int,
         poisoned_cls: int,
         trainer: Union[L.Trainer, BaseTrainer],
-        sample_fn: Union[SampleFnLiterals, Callable],
+        sample_fn: Callable,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -93,7 +91,7 @@ class ShortcutDetection(Benchmark):
             The class to add triggers to.
         trainer : Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the model.
-        sample_fn : Union[SampleFnLiterals, Callable]
+        sample_fn : Callable
             Function to add triggers to samples of the dataset.
         dataset_split : str, optional
             Split used for HuggingFace datasets, defaults to "train"
@@ -140,7 +138,7 @@ class ShortcutDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         n_classes: int,
         poisoned_cls: int,
-        sample_fn: Union[SampleFnLiterals, Callable],
+        sample_fn: Callable,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable],
         val_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -163,7 +161,7 @@ class ShortcutDetection(Benchmark):
             The class to add triggers to.
         trainer : Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the model.
-        sample_fn : Union[SampleFnLiterals, Callable]
+        sample_fn : Callable
             Function to add triggers to samples of the dataset.
         dataset_transform : Optional[Callable], optional
             Default transform of the dataset, defaults to None
@@ -181,18 +179,12 @@ class ShortcutDetection(Benchmark):
         Raises
         ------
         ValueError
-            If the sample_fn is not a function or a valid literal.
-        ValueError
             If the model is not a LightningModule when the trainer is a Lightning Trainer.
         ValueError
             If the model is not a torch.nn.Module when the trainer is a BaseTrainer.
         ValueError
             If the trainer is neither a Lightning Trainer nor a BaseTrainer.
         """
-        if isinstance(sample_fn, str):
-            sample_fn = get_sample_fn(sample_fn)
-        elif not callable(sample_fn):
-            raise ValueError("sample_fn should be a function or a valid literal")
         self.p = p
         self.n_classes = n_classes
         self.dataset_transform = dataset_transform
@@ -283,7 +275,7 @@ class ShortcutDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
-        sample_fn: Union[SampleFnLiterals, Callable],
+        sample_fn: Callable,
         poisoned_cls: int,
         dataset_split: str = "train",
         poisoned_indices: Optional[List[int]] = None,
@@ -304,6 +296,8 @@ class ShortcutDetection(Benchmark):
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
+        sample_fn : Callable
+            Function to add triggers to samples of the dataset.
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         poisoned_indices : Optional[List[int]], optional
@@ -321,10 +315,6 @@ class ShortcutDetection(Benchmark):
         obj.p = p
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
-        if isinstance(sample_fn, str):
-            sample_fn = get_sample_fn(sample_fn)
-        elif not callable(sample_fn):
-            raise ValueError("sample_fn should be a function or a valid literal")
 
         obj.poisoned_dataset = SampleTransformationDataset(
             dataset=obj.train_dataset,

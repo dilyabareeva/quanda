@@ -7,9 +7,7 @@ from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
 from quanda.utils.datasets.transformed.sample import (
-    SampleFnLiterals,
     SampleTransformationDataset,
-    get_sample_fn,
 )
 
 __all__ = [
@@ -18,6 +16,4 @@ __all__ = [
     "LabelFlippingDataset",
     "LabelGroupingDataset",
     "ClassToGroupLiterals",
-    "SampleFnLiterals",
-    "get_sample_fn",
 ]
