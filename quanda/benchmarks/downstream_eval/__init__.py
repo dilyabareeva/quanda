@@ -3,8 +3,11 @@ from quanda.benchmarks.downstream_eval.dataset_cleaning import DatasetCleaning
 from quanda.benchmarks.downstream_eval.mislabeling_detection import (
     MislabelingDetection,
 )
+from quanda.benchmarks.downstream_eval.shortcut_detection import (
+    ShortcutDetection,
+)
 from quanda.benchmarks.downstream_eval.subclass_detection import (
     SubclassDetection,
 )
 
-__all__ = ["ClassDetection", "SubclassDetection", "MislabelingDetection", "DatasetCleaning"]
+__all__ = ["ClassDetection", "SubclassDetection", "MislabelingDetection", "DatasetCleaning", "ShortcutDetection"]

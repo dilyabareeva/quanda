@@ -251,7 +251,7 @@ class SubclassDetection(Benchmark):
                 test=inputs,
                 targets=targets,
             )
-
+            # Use original labels for metric score calculation
             metric.update(labels, explanations)
 
         return metric.compute()

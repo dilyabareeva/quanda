@@ -8,6 +8,7 @@ from quanda.metrics.downstream_eval import (
     ClassDetectionMetric,
     DatasetCleaningMetric,
     MislabelingDetectionMetric,
+    ShortcutDetectionMetric,
     SubclassDetectionMetric,
 )
 from quanda.utils.functions import cosine_similarity
@@ -401,3 +402,51 @@ def test_dataset_cleaning_aggr_based(
     score = metric.compute()["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.downstream_eval_metrics
+@pytest.mark.parametrize(
+    "test_id, model, dataset, labels, poisoned_ids, explanations",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_labels",
+            [3],
+            "load_mnist_explanations_similarity_1",
+        ),
+    ],
+)
+def test_shortcut_detection_metric(
+    test_id,
+    model,
+    dataset,
+    labels,
+    poisoned_ids,
+    explanations,
+    request,
+):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    labels = request.getfixturevalue(labels)
+    tda = request.getfixturevalue(explanations)
+
+    poisoned_cls = labels[poisoned_ids[0]]
+    clean_ids = [i for i in range(len(labels)) if i not in poisoned_ids and labels[i] == poisoned_cls]
+    rest_ids = list(set(range(len(dataset))) - set(poisoned_ids) - set(clean_ids))
+
+    poisoned = tda[:, poisoned_ids].mean()
+    clean = tda[:, clean_ids].mean()
+    rest = tda[:, rest_ids].mean()
+
+    metric = ShortcutDetectionMetric(model, dataset, poisoned_ids, poisoned_cls)
+    metric.update(tda)
+    scores = metric.compute()
+
+    assertions = [
+        math.isclose(scores["score"], poisoned, abs_tol=0.00001),
+        math.isclose(scores["clean"], clean, abs_tol=0.00001),
+        math.isclose(scores["rest"], rest, abs_tol=0.00001),
+    ]
+    assert all(assertions)
