@@ -818,4 +818,3 @@ def test_captum_tracincp_fast_rand_proj_self_influence(test_id, model, dataset, 
         **method_kwargs,
     )
     assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
-
