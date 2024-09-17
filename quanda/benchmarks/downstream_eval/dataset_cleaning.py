@@ -1,4 +1,5 @@
 import copy
+import logging
 from typing import Optional, Union
 
 import lightning as L
@@ -11,8 +12,16 @@ from quanda.metrics.downstream_eval.dataset_cleaning import (
 )
 from quanda.utils.training.trainer import BaseTrainer
 
+logger = logging.getLogger(__name__)
+
 
 class DatasetCleaning(Benchmark):
+    """
+    Benchmark for dataset cleaning tasks.
+    """
+
+    name: str = "Dataset Cleaning"
+
     def __init__(
         self,
         *args,
@@ -36,6 +45,7 @@ class DatasetCleaning(Benchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
+        logger.info(f"Generating {DatasetCleaning.name} benchmark components based on passed arguments...")
         obj = cls()
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
@@ -76,7 +86,7 @@ class DatasetCleaning(Benchmark):
         explainer_cls: type,
         trainer: Union[L.Trainer, BaseTrainer],
         init_model: Optional[torch.nn.Module] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         expl_kwargs: Optional[dict] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         batch_size: int = 8,

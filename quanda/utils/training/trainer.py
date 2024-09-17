@@ -4,6 +4,7 @@ from typing import Callable, Optional
 
 import lightning as L
 import torch
+from lightning import seed_everything
 
 from quanda.utils.training import BasicLightningModule
 
@@ -28,7 +29,12 @@ class BaseTrainer(metaclass=abc.ABCMeta):
 
 
 class Trainer(BaseTrainer):
-    """Simple class for training PyTorch models using Lightning."""
+    """
+    Simple class for training PyTorch models using Lightning. Supports only the most basic training arguments, such as
+    optimizer, learning rate, maximum number of epochs, and loss function, and single-device training.
+    For more complex training procedures, consider using PyTorch Lightning Module/ Trainer directly.
+
+    """
 
     def __init__(
         self,
@@ -39,6 +45,8 @@ class Trainer(BaseTrainer):
         scheduler: Optional[Callable] = None,
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
+        seed: int = 27,
+        accelerator: str = "cpu",
     ):
         """Constructor for the Trainer class.
 
@@ -66,6 +74,8 @@ class Trainer(BaseTrainer):
         self.scheduler = scheduler
         self.optimizer_kwargs = optimizer_kwargs or {}
         self.scheduler_kwargs = scheduler_kwargs or {}
+
+        seed_everything(seed, workers=True)
 
         super(Trainer, self).__init__()
 
@@ -98,7 +108,7 @@ class Trainer(BaseTrainer):
             scheduler_kwargs=self.scheduler_kwargs,
         )
 
-        trainer = L.Trainer(max_epochs=self.max_epochs)
+        trainer = L.Trainer(max_epochs=self.max_epochs, devices=1, accelerator="cpu")
         trainer.fit(module, train_dataloaders, val_dataloaders)
 
         model.load_state_dict(module.model.state_dict())

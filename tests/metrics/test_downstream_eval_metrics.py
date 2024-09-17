@@ -47,11 +47,6 @@ def test_identical_class_metrics(
     metric = ClassDetectionMetric(model=model, train_dataset=dataset, device="cpu")
     metric.update(test_labels=test_labels, explanations=tda)
     score = metric.compute()["score"]
-    # TODO: introduce a more meaningfull test, where the score is not zero
-    # Note from Galip:
-    # one idea could be: a random attributor should get approximately 1/( # of classes).
-    # With a big test dataset, the probability of failing a truly random test
-    # should diminish.
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
@@ -100,22 +95,26 @@ def test_identical_subclass_metrics(
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, explanations, global_method, expl_kwargs, expected_score",
+    "test_id, model, dataset, explanations, test_samples, test_labels, global_method, expl_kwargs, expected_score",
     [
         (
             "mnist",
             "load_mnist_model",
-            "load_poisoned_mnist_dataset",
+            "load_mislabeling_mnist_dataset",
             "load_mnist_explanations_similarity_1",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
             "self-influence",
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "model_id": "test", "cache_dir": "cache"},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "model_id": "test"},
             0.4921875,
         ),
         (
             "mnist",
             "load_mnist_model",
-            "load_poisoned_mnist_dataset",
+            "load_mislabeling_mnist_dataset",
             "load_mnist_explanations_similarity_1",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
             SumAggregator,
             None,
             0.4921875,
@@ -123,8 +122,10 @@ def test_identical_subclass_metrics(
         (
             "mnist",
             "load_mnist_model",
-            "load_poisoned_mnist_dataset",
+            "load_mislabeling_mnist_dataset",
             "load_mnist_explanations_similarity_1",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
             "sum_abs",
             None,
             0.4921875,
@@ -136,31 +137,37 @@ def test_mislabeling_detection_metric(
     model,
     dataset,
     explanations,
+    test_samples,
+    test_labels,
     global_method,
     expl_kwargs,
     expected_score,
     request,
+    tmp_path,
 ):
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
     model = request.getfixturevalue(model)
+    test_labels = request.getfixturevalue(test_labels)
+    test_samples = request.getfixturevalue(test_samples)
+
     if global_method != "self-influence":
         metric = MislabelingDetectionMetric(
             model=model,
             train_dataset=dataset,
-            poisoned_indices=dataset.transform_indices,
+            mislabeling_indices=dataset.transform_indices,
             global_method=global_method,
             device="cpu",
         )
-        metric.update(explanations=tda)
+        metric.update(test_data=test_samples, test_labels=test_labels, explanations=tda)
     else:
         metric = MislabelingDetectionMetric(
             model=model,
             train_dataset=dataset,
             global_method=global_method,
-            poisoned_indices=dataset.transform_indices,
+            mislabeling_indices=dataset.transform_indices,
             explainer_cls=CaptumSimilarity,
-            expl_kwargs=expl_kwargs,
+            expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
             device="cpu",
         )
     score = metric.compute()["score"]
@@ -199,7 +206,7 @@ def test_mislabeling_detection_metric(
             "load_mnist_explanations_similarity_1",
             "self-influence",
             50,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "model_id": "test"},
             8,
             0.0,
         ),
@@ -220,6 +227,7 @@ def test_dataset_cleaning(
     batch_size,
     expected_score,
     request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
@@ -258,7 +266,7 @@ def test_dataset_cleaning(
             trainer_fit_kwargs={"max_epochs": max_epochs},
             top_k=top_k,
             explainer_cls=CaptumSimilarity,
-            expl_kwargs=expl_kwargs,
+            expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
             device="cpu",
         )
 
@@ -281,7 +289,7 @@ def test_dataset_cleaning(
             "load_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             50,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "cache_dir": "cache", "model_id": "test"},
+            {"layers": "fc_2", "similarity_metric": cosine_similarity, "model_id": "test"},
             8,
             0.0,
         ),
@@ -301,6 +309,7 @@ def test_dataset_cleaning_self_influence_based(
     batch_size,
     expected_score,
     request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
@@ -315,7 +324,7 @@ def test_dataset_cleaning_self_influence_based(
         criterion=criterion,
     )
 
-    expl_kwargs = expl_kwargs or {}
+    expl_kwargs = {"cache_dir": str(tmp_path), **expl_kwargs} or {}
 
     metric = DatasetCleaningMetric.self_influence_based(
         model=model,

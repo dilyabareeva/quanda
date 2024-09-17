@@ -39,7 +39,7 @@ class MislabelingDetectionMetric(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        poisoned_indices: List[int],
+        mislabeling_indices: List[int],
         global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
@@ -56,7 +56,7 @@ class MislabelingDetectionMetric(Metric):
             The model associated with the attributions to be evaluated.
         train_dataset : torch.utils.data.Dataset
             The training dataset that was used to train `model`.
-        poisoned_indices : List[int]
+        mislabeling_indices : List[int]
             A list of ground truth mislabeled indices of the `train_dataset`.
         global_method : Union[str, type], optional
             The methodology to generate a global ranking from local explainer.
@@ -82,7 +82,7 @@ class MislabelingDetectionMetric(Metric):
             expl_kwargs=expl_kwargs,
             model_id="test",
         )
-        self.poisoned_indices = poisoned_indices
+        self.mislabeling_indices = mislabeling_indices
 
     @classmethod
     def self_influence_based(
@@ -90,7 +90,7 @@ class MislabelingDetectionMetric(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
-        poisoned_indices: List[int],
+        mislabeling_indices: List[int],
         expl_kwargs: Optional[dict] = None,
         *args: Any,
         **kwargs: Any,
@@ -106,7 +106,7 @@ class MislabelingDetectionMetric(Metric):
             The training dataset used to train `model`.
         explainer_cls : type
             The class of the explainer used for self-influence computation.
-        poisoned_indices : List[int]
+        mislabeling_indices : List[int]
             The indices of the poisoned samples in the training dataset.
         expl_kwargs : Optional[dict]
             Optional keyword arguments for the explainer class.
@@ -123,7 +123,7 @@ class MislabelingDetectionMetric(Metric):
         """
         return cls(
             model=model,
-            poisoned_indices=poisoned_indices,
+            mislabeling_indices=mislabeling_indices,
             train_dataset=train_dataset,
             global_method="self-influence",
             explainer_cls=explainer_cls,
@@ -135,7 +135,7 @@ class MislabelingDetectionMetric(Metric):
         cls,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        poisoned_indices: List[int],
+        mislabeling_indices: List[int],
         aggregator_cls: Union[str, type],
         *args,
         **kwargs,
@@ -149,7 +149,7 @@ class MislabelingDetectionMetric(Metric):
             The model to be evaluated.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train the model.
-        poisoned_indices : List[int]
+        mislabeling_indices : List[int]
             The indices of the poisoned samples in the training dataset.
         aggregator_cls : Union[str, type]
             The class of the aggregation method to be used, or a string indicating the method.
@@ -163,12 +163,14 @@ class MislabelingDetectionMetric(Metric):
         return cls(
             model=model,
             global_method=aggregator_cls,
-            poisoned_indices=poisoned_indices,
+            mislabeling_indices=mislabeling_indices,
             train_dataset=train_dataset,
         )
 
     def update(
         self,
+        test_data: torch.Tensor,
+        test_labels: torch.Tensor,
         explanations: torch.Tensor,
         **kwargs,
     ):
@@ -180,7 +182,13 @@ class MislabelingDetectionMetric(Metric):
         explanations : torch.Tensor
             The local attributions to be added to the aggregated scores.
         """
-        self.global_ranker.update(explanations, **kwargs)
+        # compute prediction labels
+        labels = self.model(test_data).argmax(dim=1)
+
+        # identify wrong prediction indices
+        wrong_indices = torch.where(labels != test_labels)[0]
+
+        self.global_ranker.update(explanations[wrong_indices], **kwargs)
 
     def reset(self, *args, **kwargs):
         """Reset the global ranking strategy."""
@@ -220,11 +228,11 @@ class MislabelingDetectionMetric(Metric):
             - `score`: The mislabeling detection score, i.e. the area under `curve`
         """
         global_ranking = self.global_ranker.compute()
-        success_arr = torch.tensor([elem in self.poisoned_indices for elem in global_ranking])
-        normalized_curve = torch.cumsum(success_arr * 1.0, dim=0) / len(self.poisoned_indices)
-        score = torch.trapezoid(normalized_curve) / len(self.poisoned_indices)
+        success_arr = torch.tensor([elem in self.mislabeling_indices for elem in global_ranking])
+        normalized_curve = torch.cumsum(success_arr * 1.0, dim=0) / len(self.mislabeling_indices)
+        score = torch.trapezoid(normalized_curve) / len(self.mislabeling_indices)
         return {
             "score": score.item(),
             "success_arr": success_arr,
-            "curve": normalized_curve / len(self.poisoned_indices),
+            "curve": normalized_curve / len(self.mislabeling_indices),
         }

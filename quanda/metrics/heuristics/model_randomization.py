@@ -72,10 +72,6 @@ class ModelRandomizationMetric(Metric):
         self.model_id = model_id
         self.cache_dir = cache_dir
 
-        self.explainer = explainer_cls(
-            model=self.model, train_dataset=train_dataset, model_id=model_id, cache_dir=cache_dir, **self.expl_kwargs
-        )
-
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
@@ -124,27 +120,6 @@ class ModelRandomizationMetric(Metric):
 
         corrs = self.corr_measure(explanations, rand_explanations)
         self.results["scores"].append(corrs)
-
-    def explain_update(
-        self,
-        test_data: torch.Tensor,
-        explanation_targets: Optional[torch.Tensor] = None,
-    ):
-        """Simple function combining calls to `explainer.explain` and `update`
-
-        Parameters
-        ----------
-        test_data : torch.Tensor
-            Test points to explain and use in evaluation.
-        explanation_targets : Optional[torch.Tensor], optional
-            The model outputs to explain. Some explainers do not need this.
-            Defaults to None.
-        """
-        explanations = self.explainer.explain(
-            test=test_data,
-            targets=explanation_targets,
-        )
-        self.update(test_data=test_data, explanations=explanations, explanation_targets=explanation_targets)
 
     def compute(self):
         """

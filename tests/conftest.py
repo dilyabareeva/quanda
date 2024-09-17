@@ -72,7 +72,7 @@ def range_ranking():
 
 
 @pytest.fixture
-def mnist_seed_27_poisoned_labels():
+def mnist_seed_27_mislabeling_labels():
     with open("tests/assets/mnist_test_suite_1/mnist_seed_27_poisoned_labels.json", "r") as f:
         return json.load(f)
 
@@ -171,7 +171,7 @@ def load_grouped_mnist_dataset():
 
 
 @pytest.fixture
-def load_poisoned_mnist_dataset():
+def load_mislabeling_mnist_dataset():
     x_batch = (np.loadtxt("tests/assets/mnist_x").astype(float).reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE)))[
         :MINI_BATCH_SIZE
     ]

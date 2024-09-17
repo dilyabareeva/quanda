@@ -1,3 +1,4 @@
+import logging
 from typing import Optional, Union
 
 import torch
@@ -6,8 +7,17 @@ from tqdm import tqdm
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import ClassDetectionMetric
 
+logger = logging.getLogger(__name__)
+
 
 class ClassDetection(Benchmark):
+    """
+    Benchmark for class detection tasks.
+
+    """
+
+    name: str = "Class Detection"
+
     def __init__(
         self,
         *args,
@@ -31,6 +41,7 @@ class ClassDetection(Benchmark):
         This method should generate all the benchmark components and persist them in the instance.
         """
 
+        logger.info(f"Generating {ClassDetection.name} benchmark components based on passed arguments...")
         obj = cls()
 
         obj.model = model
@@ -73,7 +84,7 @@ class ClassDetection(Benchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         cache_dir: str = "./cache",
         model_id: str = "default_model_id",
         batch_size: int = 8,

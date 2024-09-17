@@ -13,7 +13,7 @@ from quanda.utils.training import Trainer
 @pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, adversarial_path,"
-    "adversarial_indices, adversarial_label, adversarial_transforms, batch_size, explainer_cls, expl_kwargs,"
+    "adversarial_label, adversarial_transforms, batch_size, explainer_cls, expl_kwargs,"
     "expected_score",
     [
         (
@@ -26,8 +26,7 @@ from quanda.utils.training import Trainer
             3,
             "load_mnist_dataset",
             "load_fashion_mnist_path",
-            "load_mnist_adversarial_indices",
-            1,
+            3,
             "load_fashion_mnist_to_mnist_transform",
             8,
             CaptumSimilarity,
@@ -36,7 +35,7 @@ from quanda.utils.training import Trainer
                 "similarity_metric": cosine_similarity,
                 "model_id": "mnist",
             },
-            0.8064,
+            0.7923794984817505,
         ),
         (
             "mnist_assemble",
@@ -48,7 +47,6 @@ from quanda.utils.training import Trainer
             3,
             "load_mnist_dataset",
             "load_fashion_mnist_path",
-            "load_mnist_adversarial_indices",
             1,
             "load_fashion_mnist_to_mnist_transform",
             8,
@@ -72,7 +70,6 @@ def test_mixed_datasets(
     max_epochs,
     dataset,
     adversarial_path,
-    adversarial_indices,
     adversarial_label,
     adversarial_transforms,
     batch_size,
@@ -86,7 +83,6 @@ def test_mixed_datasets(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
-    adversarial_indices = request.getfixturevalue(adversarial_indices)
     adversarial_transforms = request.getfixturevalue(adversarial_transforms)
     adversarial_path = request.getfixturevalue(adversarial_path)
 

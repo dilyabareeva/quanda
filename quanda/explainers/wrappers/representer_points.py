@@ -16,19 +16,24 @@ SOFTWARE.
 
 """
 
+import logging
 import os
 import warnings
+from functools import reduce
 from typing import Any, Callable, List, Optional, Union
 
-import pytorch_lightning as pl
+import lightning as L
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from captum._utils.av import AV  # type: ignore
 from torch import Tensor
+from tqdm import tqdm
 
 from quanda.explainers.base import Explainer
 from quanda.utils.common import default_tensor_type
+
+logger = logging.getLogger(__name__)
 
 
 class RepresenterSoftmax(nn.Module):
@@ -89,10 +94,9 @@ class RepresenterPoints(Explainer):
 
     def __init__(
         self,
-        model: Union[torch.nn.Module, pl.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         model_id: str,
         train_dataset: torch.utils.data.Dataset,
-        train_labels: torch.Tensor,
         features_layer: str,
         classifier_layer: str,
         cache_dir: str = "./cache",
@@ -105,14 +109,15 @@ class RepresenterPoints(Explainer):
         normalize: bool = False,
         batch_size: int = 32,
         load_from_disk: bool = True,
+        show_progress: bool = True,
     ):
+        logger.info("Initializing Representer Point Selection explainer...")
         super(RepresenterPoints, self).__init__(
             model=model,
             train_dataset=train_dataset,
             model_id=model_id,
             cache_dir=cache_dir,
         )
-        self.train_labels = train_labels
         self.normalize = normalize
         self.features_layer = features_layer
         self.classifier_layer = classifier_layer
@@ -122,6 +127,7 @@ class RepresenterPoints(Explainer):
         self.min_loss: Any = min_loss
         self.epsilon = epsilon
         self.features_postprocess = features_postprocess
+        self.show_progress = show_progress
 
         self.dataloader = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size, shuffle=False)
 
@@ -148,7 +154,6 @@ class RepresenterPoints(Explainer):
         self.labels = torch.tensor([train_dataset[i][1] for i in range(self.dataset_length)], device=self.device).type(
             torch.int
         )
-        self.samples, self.labels = self.samples.to(self.device), self.labels.to(self.device)
 
         self.mean = self.samples.mean(dim=0)
         self.std_dev = torch.sqrt(torch.sum((self.samples - self.mean) ** 2, dim=0) / self.samples.shape[0])
@@ -194,14 +199,9 @@ class RepresenterPoints(Explainer):
 
         return self.current_acts
 
-    def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None) -> torch.Tensor:
+    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
         test = test.to(self.device)
-
-        if targets is None:
-            targets = self.model(test).argmax(dim=1)
-
-        if isinstance(targets, list):
-            targets = torch.tensor(targets, device=self.device)
+        targets = self._process_targets(targets)
 
         f = self._get_activations(test, self.features_layer)
 
@@ -219,36 +219,25 @@ class RepresenterPoints(Explainer):
         explanations = torch.gather(explanations, dim=-1, index=indices)
         return torch.squeeze(explanations)
 
-    def _get_classifier_weights(self) -> torch.Tensor:
-        """
-        Returns the weights of a specific layer in a PyTorch model by the layer name.
-
-        Args:
-            model (nn.Module): The PyTorch model containing the layers.
-            layer_name (str): The name of the layer whose weights are to be retrieved.
-
-        Returns:
-            torch.Tensor: The weights of the specified layer.
-        """
-        # Iterate over named parameters to find the desired layer
-        for name, param in self.model.named_parameters():
-            if name.endswith(f"{self.classifier_layer}.weight"):  # Check if it matches the layer's weight
-                return param.data
-
-        raise ValueError(f"Layer '{self.classifier_layer}' not found or does not have weights in the model.")
-
     def train(self):
-        samples = self.samples
-        logits = torch.cat([self.model(x) for x, _ in self.dataloader])
-        labels = softmax_torch(logits, samples.shape[0])
-        model = RepresenterSoftmax(self._get_classifier_weights().data.T, self.device)
+        samples_with_bias = torch.cat([self.samples, torch.ones((self.samples.shape[0], 1), device=self.device)], dim=1)
+        linear_classifier = reduce(getattr, self.classifier_layer.split("."), self.model)
+        logits = linear_classifier(self.samples)
+        labels = softmax_torch(logits, self.samples.shape[0])
 
-        x = nn.Parameter(samples.to(self.device))
+        weight_linear, bias_linear = linear_classifier.weight.data, linear_classifier.bias.data
+        w_and_b = torch.concatenate([weight_linear.T, bias_linear.unsqueeze(0)])
+        model = RepresenterSoftmax(w_and_b, self.device)
+
+        x = nn.Parameter(samples_with_bias.to(self.device))
         y = nn.Parameter(labels.to(self.device))
 
         N = len(labels)
         min_loss = self.min_loss
         optimizer = optim.SGD([model.W], lr=self.lr)
+        if self.show_progress:
+            pbar = tqdm(range(self.epoch), desc="Representer Training | Epoch: 0 | Loss: 0 | Phi Loss: 0 | Grad: 0")
+
         for epoch in range(self.epoch):
             phi_loss = 0
             optimizer.zero_grad()
@@ -270,15 +259,16 @@ class RepresenterPoints(Explainer):
                 min_loss = grad_loss
                 best_W = temp_W
                 if min_loss < init_grad / 200:
-                    print("stopping criteria reached in epoch :{}".format(epoch))
+                    logger.info("Stopping criteria reached in epoch :{}".format(epoch))
                     break
             self.backtracking_line_search(model, model.W.grad, x, y, loss, N)
-            if epoch % 100 == 0:
-                print(
-                    "Epoch:{:4d}\tloss:{}\tphi_loss:{}\tgrad:{}".format(
-                        epoch, loss.detach().cpu().numpy(), phi_loss, grad_loss
-                    )
+            if self.show_progress:
+                pbar.set_description(
+                    f"Representer Training | Epoch: {epoch:4d} | Loss: {loss.detach().cpu().numpy():.4f} |"
+                    f" Phi Loss: {phi_loss:.4f} | Grad: {grad_loss:.4f}"
                 )
+
+                pbar.update(1)
 
         # calculate w based on the representer theorem's decomposition
         temp = torch.matmul(x, nn.Parameter(best_W.to(self.device), requires_grad=True))
