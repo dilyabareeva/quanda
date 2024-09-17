@@ -431,18 +431,22 @@ def test_shortcut_detection_metric(
     dataset = request.getfixturevalue(dataset)
     labels = request.getfixturevalue(labels)
     tda = request.getfixturevalue(explanations)
+
     poisoned_cls = labels[poisoned_ids[0]]
+    clean_ids = [i for i in range(len(labels)) if i not in poisoned_ids and labels[i] == poisoned_cls]
+    rest_ids = list(set(range(len(dataset))) - set(poisoned_ids) - set(clean_ids))
+
+    poisoned = tda[:, poisoned_ids].mean()
+    clean = tda[:, clean_ids].mean()
+    rest = tda[:, rest_ids].mean()
+
     metric = ShortcutDetectionMetric(model, dataset, poisoned_ids, poisoned_cls)
     metric.update(tda)
-    res = metric.compute()
-    poisoned = tda[:, poisoned_ids].mean()
-    clean_ids = [i for i in range(len(labels)) if i not in poisoned_ids and labels[i] == poisoned_cls]
-    clean = tda[:, clean_ids].mean()
-    rest_indices = list(set(range(metric.dataset_length)) - set(poisoned_ids) - set(clean_ids))
-    rest = tda[:, rest_indices].mean()
+    scores = metric.compute()
+
     assertions = [
-        math.isclose(res["score"], poisoned, abs_tol=0.00001),
-        math.isclose(res["clean"], clean, abs_tol=0.00001),
-        math.isclose(res["rest"], rest, abs_tol=0.00001),
+        math.isclose(scores["score"], poisoned, abs_tol=0.00001),
+        math.isclose(scores["clean"], clean, abs_tol=0.00001),
+        math.isclose(scores["rest"], rest, abs_tol=0.00001),
     ]
     assert all(assertions)
