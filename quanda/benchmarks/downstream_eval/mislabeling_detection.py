@@ -39,9 +39,8 @@ class MislabelingDetection(Benchmark):
     influence functions for dataset exploration and cleaning. In 11th European Congress on Embedded Real-Time Systems
     (ERTS 2022) (pp. 1-8). Toulouse, France.
 
-    5) Kwon, Yongchan, et al.
-        "Datainf: Efficiently estimating data influence in lora-tuned llms and diffusion models."
-        arXiv preprint arXiv:2310.00902 (2023).
+    5) Kwon, Y., Wu, E., Wu, K., & Zou, J. (2024). DataInf: Efficiently estimating data influence in LoRA-tuned LLMs and
+    diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).
     """
 
     name: str = "Mislabeling Detection"
