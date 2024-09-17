@@ -18,6 +18,7 @@ class BaseTrainer(metaclass=abc.ABCMeta):
         model: torch.nn.Module,
         train_dataloaders: torch.utils.data.dataloader.DataLoader,
         val_dataloaders: Optional[torch.utils.data.dataloader.DataLoader] = None,
+        accelerator: str = "cpu",
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,

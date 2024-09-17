@@ -60,10 +60,10 @@ class ShortcutDetectionMetric(Metric):
         self.poisoned_cls = poisoned_cls
 
     def update(
-            self,
-            explanations: torch.Tensor,
-            test_tensor: Optional[Union[List, torch.Tensor]] = None,
-            test_labels: Optional[torch.Tensor] = None,
+        self,
+        explanations: torch.Tensor,
+        test_tensor: Optional[Union[List, torch.Tensor]] = None,
+        test_labels: Optional[torch.Tensor] = None,
     ):
         """Update the metric state with the provided explanations.
 
@@ -86,9 +86,9 @@ class ShortcutDetectionMetric(Metric):
 
         if self.filter_by_prediction:
             pred_cls = self.model(test_tensor).argmax(dim=1)
-            select_idx *= (pred_cls == self.poisoned_cls)
+            select_idx *= pred_cls == self.poisoned_cls
         if self.filter_by_class:
-            select_idx *= (test_labels != self.poisoned_indices)
+            select_idx *= test_labels != self.poisoned_indices
 
         explanations = explanations[select_idx].to(self.device)
 
