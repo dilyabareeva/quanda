@@ -9,7 +9,7 @@ from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
 
 
-@pytest.mark.benchmarks
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, poisoned_cls,"
     "poisoned_indices, p, seed, batch_size, explainer_cls, expl_kwargs, expected_scores",
@@ -32,7 +32,7 @@ from quanda.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            {"score": 0.21558766, "clean": 0.0, "rest": 0.233016774},
+            {"score": 0.7973321676254272, "clean": 0.0, "rest": 0.15467853844165802},
         ),
         (
             "mnist",
@@ -52,7 +52,7 @@ from quanda.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            {"score": 0.21558766, "clean": 0.0, "rest": 0.233016774},
+            {"score": 0.7973321676254272, "clean": 0.0, "rest": 0.15467853844165802},
         ),
     ],
 )
@@ -130,7 +130,7 @@ def test_shortcut_detection(
     assert all(assertions)
 
 
-@pytest.mark.benchmarks
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, pl_module, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, poisoned_cls,"
     "poisoned_indices, p, seed, batch_size, explainer_cls, expl_kwargs, expected_scores",
@@ -152,7 +152,7 @@ def test_shortcut_detection(
             8,
             CaptumSimilarity,
             {"layers": "model.fc_2", "similarity_metric": cosine_similarity},
-            {"score": 0.21558766, "clean": 0.0, "rest": 0.233016774},
+            {"score": 0.7973321676254272, "clean": 0.0, "rest": 0.15467853844165802},
         ),
     ],
 )

@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 import torch
 
@@ -23,33 +23,28 @@ class ShortcutDetectionMetric(Metric):
         train_dataset: torch.utils.data.Dataset,
         poisoned_indices: List[int],
         poisoned_cls: int,
-        explainer_cls: Optional[type] = None,
-        expl_kwargs: Optional[dict] = None,
-        model_id: Optional[str] = "0",
-        cache_dir: str = "./cache",
-        *args,
-        **kwargs,
+        filter_by_prediction: bool = False,
+        filter_by_class: bool = False,
     ):
         """Initializer for the Shortcut Detection metric.
 
         Parameters
         ----------
         model : torch.nn.Module
-            Model associated with the attributions to be evaluated.
+            Model associated with the attributions to be evaluated. The checkpoint of the model should be loaded.
         train_dataset : torch.utils.data.Dataset
-            Training dataset used to train `model`.
+            Training dataset used to train `model`. Each item of the dataset should be a tuple of the form
+            (input_tensor, label_tensor).
         poisoned_indices : List[int]
             Ground truth of shortcut indices of the `train_dataset`.
         poisoned_cls : int
             Class of the poisoned samples.
-        explainer_cls : Optional[type], optional
-            Optional explainer class to be evaluated, defaults to None
-        expl_kwargs : Optional[dict], optional
-            Optional keyword arguments for explainers, defaults to None
-        model_id : Optional[str], optional
-            Optional model_id
-        cache_dir : str, optional
-            Optional cache directory
+        filter_by_prediction : bool, optional
+            Whether to filter the test samples to only calculate the metric on those samples, where the poisoned class
+            is predicted, by default True
+        filter_by_class: bool, optional
+            Whether to filter the test samples to only calculate the metric on those samples, where the poisoned class
+            is not assigned as the class, by default True
         """
         super().__init__(model=model, train_dataset=train_dataset)
         self.scores: Dict[str, List[torch.Tensor]] = {k: [] for k in ["poisoned", "clean", "rest"]}
@@ -60,15 +55,42 @@ class ShortcutDetectionMetric(Metric):
         self.aggr_indices = {"poisoned": poisoned_indices, "clean": clean_indices, "rest": rest_indices}
         self.poisoned_indices = poisoned_indices
 
-    def update(self, explanations: torch.Tensor):
+        self.filter_by_prediction = filter_by_prediction
+        self.filter_by_class = filter_by_class
+        self.poisoned_cls = poisoned_cls
+
+    def update(
+            self,
+            explanations: torch.Tensor,
+            test_tensor: Optional[Union[List, torch.Tensor]] = None,
+            test_labels: Optional[torch.Tensor] = None,
+    ):
         """Update the metric state with the provided explanations.
 
         Parameters
         ----------
         explanations : torch.Tensor
             Explanations to be evaluated.
+        test_tensor : Union[List, torch.Tensor], optional
+            Test samples for which the explanations were computed. Not optional if `filter_by_prediction` is True.
+        test_labels : torch.Tensor, optional
+            Labels of the test samples. Not optional if `filter_by_prediction` or `filter_by_class` is True.
         """
-        explanations = explanations.to(self.device)
+
+        if test_tensor is None and self.filter_by_prediction:
+            raise ValueError("test_tensor must be provided if filter_by_prediction is True")
+        if test_labels is None and (self.filter_by_prediction or self.filter_by_class):
+            raise ValueError("test_labels must be provided if filter_by_prediction or filter_by_class is True")
+
+        select_idx = torch.tensor([True] * len(explanations))
+
+        if self.filter_by_prediction:
+            pred_cls = self.model(test_tensor).argmax(dim=1)
+            select_idx *= (pred_cls == self.poisoned_cls)
+        if self.filter_by_class:
+            select_idx *= (test_labels != self.poisoned_indices)
+
+        explanations = explanations[select_idx].to(self.device)
 
         for k, ind in self.aggr_indices.items():
             if len(ind) > 0:

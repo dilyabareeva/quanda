@@ -340,7 +340,8 @@ class ShortcutDetection(Benchmark):
         expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        # use_predictions: bool = False,
+        filter_by_prediction: bool = True,
+        filter_by_class: bool = True,
         batch_size: int = 8,
         *args,
         **kwargs,
@@ -356,6 +357,12 @@ class ShortcutDetection(Benchmark):
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None
+        filter_by_prediction : bool, optional
+            Whether to filter the test samples to only calculate the metric on those samples, where the poisoned class
+            is predicted, by default True
+        filter_by_class: bool, optional
+            Whether to filter the test samples to only calculate the metric on those samples, where the poisoned class
+            is not assigned as the class, by default True
         batch_size : int, optional
             Batch size to be used for the evaluation, default to 8
         Returns
@@ -379,8 +386,8 @@ class ShortcutDetection(Benchmark):
             train_dataset=self.poisoned_dataset,
             poisoned_indices=self.poisoned_indices,
             poisoned_cls=self.poisoned_cls,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
+            filter_by_prediction=filter_by_prediction,
+            filter_by_class=filter_by_class,
         )
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
@@ -395,6 +402,6 @@ class ShortcutDetection(Benchmark):
                 test=input,
                 targets=targets,
             )
-            metric.update(explanations)
+            metric.update(explanations, test_tensor=input, test_labels=labels)
 
         return metric.compute()
