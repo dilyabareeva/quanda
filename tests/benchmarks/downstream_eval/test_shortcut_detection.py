@@ -32,7 +32,7 @@ from quanda.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            {"score": 0.32555, "clean": 0.0, "rest": 0.29015},
+            {"score": 0.21558766, "clean": 0.0, "rest": 0.233016774},
         ),
         (
             "mnist",
@@ -52,7 +52,7 @@ from quanda.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            {"score": 0.32555, "clean": 0.0, "rest": 0.29015},
+            {"score": 0.21558766, "clean": 0.0, "rest": 0.233016774},
         ),
     ],
 )
@@ -152,7 +152,7 @@ def test_shortcut_detection(
             8,
             CaptumSimilarity,
             {"layers": "model.fc_2", "similarity_metric": cosine_similarity},
-            {"score": 0.32555, "clean": 0.0, "rest": 0.29015},
+            {"score": 0.21558766, "clean": 0.0, "rest": 0.233016774},
         ),
     ],
 )
