@@ -18,6 +18,7 @@ from quanda.explainers.wrappers import (
     captum_tracincp_explain,
     captum_tracincp_fast_explain,
     captum_tracincp_fast_rand_proj_explain,
+    captum_tracincp_fast_rand_proj_self_influence,
     captum_tracincp_fast_self_influence,
     captum_tracincp_self_influence,
 )
@@ -770,3 +771,50 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
         **method_kwargs,
     )
     assert torch.allclose(explanations_complex, explanations_exp_complex), "Training data attributions are not as expected"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, checkpoints, method_kwargs",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "get_mnist_checkpoints",
+            {
+                "batch_size": 1,
+                "loss_fn": torch.nn.CrossEntropyLoss(reduction="sum"),
+            },
+        ),
+    ],
+)
+def test_captum_tracincp_fast_rand_proj_self_influence(test_id, model, dataset, checkpoints, method_kwargs, request, tmp_path):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    checkpoints = request.getfixturevalue(checkpoints)
+    final_fc_layer = model.fc_3
+
+    explainer_captum = TracInCPFast(
+        model=model,
+        final_fc_layer=final_fc_layer,
+        train_dataset=dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        **method_kwargs,
+    )
+    explanations_exp = explainer_captum.self_influence(outer_loop_by_checkpoints=True)
+
+    explanations = captum_tracincp_fast_rand_proj_self_influence(
+        model=model,
+        model_id="test_id",
+        cache_dir=str(tmp_path),
+        final_fc_layer=final_fc_layer,
+        train_dataset=dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        device="cpu",
+        outer_loop_by_checkpoints=True,
+        **method_kwargs,
+    )
+    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
