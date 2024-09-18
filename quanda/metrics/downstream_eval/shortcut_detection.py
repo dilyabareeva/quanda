@@ -1,6 +1,7 @@
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 import torch
+from torcheval.metrics.functional import binary_auprc
 
 from quanda.metrics.base import Metric
 
@@ -14,14 +15,14 @@ class ShortcutDetectionMetric(Metric):
     ----------
     1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions."
         International conference on machine learning. PMLR, 2017.
-    2) Søgaard, Anders. "Revisiting methods for finding influential examples." arXiv preprint arXiv:2111.04683 (2021).
+    2) TODO: Add the reference of the paper that introduced the shortcut detection task, after acceptance.
     """
 
     def __init__(
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        shortcut_indices: List[int],
+        shortcut_indices: Union[List[int], torch.Tensor],
         shortcut_cls: int,
         filter_by_prediction: bool = False,
         filter_by_class: bool = False,
@@ -35,8 +36,8 @@ class ShortcutDetectionMetric(Metric):
         train_dataset : torch.utils.data.Dataset
             Training dataset used to train `model`. Each item of the dataset should be a tuple of the form
             (input_tensor, label_tensor).
-        shortcut_indices : List[int]
-            Ground truth of shortcut indices of the `train_dataset`.
+        shortcut_indices : Union[List[int], torch.Tensor]
+            A list of ground truth shortcut indices of the `train_dataset`.
         shortcut_cls : int
             Class of the poisoned samples.
         filter_by_prediction : bool, optional
@@ -45,19 +46,33 @@ class ShortcutDetectionMetric(Metric):
         filter_by_class: bool, optional
             Whether to filter the test samples to only calculate the metric on those samples, where the poisoned class
             is not assigned as the class, by default True
+
+        Raises
+        ------
+        AssertionError
+            If the poisoned samples are not all from to the poisoned class.
         """
         super().__init__(model=model, train_dataset=train_dataset)
-        self.scores: Dict[str, List[torch.Tensor]] = {k: [] for k in ["poisoned", "clean", "rest"]}
-        clean_indices = [
-            i for i in range(self.dataset_length) if (i not in shortcut_indices) and train_dataset[i][1] == shortcut_cls
-        ]
-        rest_indices = list(set(range(self.dataset_length)) - set(shortcut_indices) - set(clean_indices))
-        self.aggr_indices = {"poisoned": shortcut_indices, "clean": clean_indices, "rest": rest_indices}
-        self.poisoned_indices = shortcut_indices
+        if isinstance(shortcut_indices, list):
+            shortcut_indices = torch.tensor(shortcut_indices)
+        self.auprc_scores: List[torch.Tensor] = []
+        self.shortcut_indices = shortcut_indices
+        self.binary_poisoned_indices: torch.Tensor = torch.tensor(
+            [1 if i in self.poisoned_indices else 0 for i in range(self.dataset_length)], device=self.device
+        )
+        self.shortcut_cls = shortcut_cls
+        self._validate_poisoned_labels()
 
         self.filter_by_prediction = filter_by_prediction
         self.filter_by_class = filter_by_class
-        self.poisoned_cls = shortcut_cls
+
+    def _validate_poisoned_labels(self):
+        """Validate the adversarial labels in the training dataset."""
+        shortcut_labels = torch.tensor([self.train_dataset[i][1] for i in self.poisoned_indices], device=self.device)
+        assert torch.all(
+            shortcut_labels == self.shortcut_cls
+        ), f"Poisoned indices don't have the correct class.\
+            Expected only {self.shortcut_cls}, got {set(shortcut_labels)}."
 
     def update(
         self,
@@ -88,38 +103,39 @@ class ShortcutDetectionMetric(Metric):
             pred_cls = self.model(test_tensor).argmax(dim=1)
             select_idx *= pred_cls == self.poisoned_cls
         if self.filter_by_class:
-            select_idx *= test_labels != self.poisoned_indices
+            select_idx *= test_labels != self.poisoned_cls
 
         explanations = explanations[select_idx].to(self.device)
 
-        for k, ind in self.aggr_indices.items():
-            if len(ind) > 0:
-                aggr_attr = explanations[:, ind].mean(dim=1)
-            else:
-                aggr_attr = torch.zeros(explanations.shape[0], device=self.device)
-            self.scores[k].append(aggr_attr)
+        self.auprc_scores.extend([binary_auprc(xpl, self.binary_poisoned_indices) for xpl in explanations])
 
-    def compute(self):
+    def compute(self, *args, **kwargs):
         """
         Aggregates current results and return a metric score.
+
+        Returns
+        -------
+        Dict[str, float]
+            Dictionary containing the metric score.
         """
-        additional_results = {k: torch.cat(self.scores[k]).mean().item() for k in ["clean", "rest"]}
-        return {"score": torch.cat(self.scores["poisoned"]).mean().item(), **additional_results}
+        if len(self.auprc_scores) == 0:
+            return {"score": 0.0}
+        return {"score": torch.tensor(self.auprc_scores).mean().item()}
 
     def reset(self, *args, **kwargs):
         """
         Resets the metric state.
         """
-        {k: [] for k in ["poisoned", "clean", "rest"]}
+        self.auprc_scores = []
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
         Loads the metric state.
         """
-        self.scores = state_dict["scores"]
+        self.auprc_scores = state_dict["auprc_scores"]
 
     def state_dict(self, *args, **kwargs):
         """
         Returns the metric state.
         """
-        return {"scores": self.scores}
+        return {"auprc_scores": self.auprc_scores}

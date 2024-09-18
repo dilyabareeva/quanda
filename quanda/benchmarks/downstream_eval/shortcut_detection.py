@@ -49,7 +49,7 @@ class ShortcutDetection(Benchmark):
         self.train_dataset: torch.utils.data.Dataset
         self.shortcut_dataset: SampleTransformationDataset
         self.dataset_transform: Optional[Callable]
-        self.shortcut_indices: List[int]
+        self.shortcut_indices: Union[List[int], torch.Tensor]
         self.shortcut_cls: int
         self.shortcut_train_dl: torch.utils.data.DataLoader
         self.shortcut_val_dl: Optional[torch.utils.data.DataLoader]
@@ -301,7 +301,7 @@ class ShortcutDetection(Benchmark):
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         shortcut_indices : Optional[List[int]], optional
-            List of indices to poison, defaults to None
+            Binary list of indices to poison, defaults to None
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
         p : float, optional

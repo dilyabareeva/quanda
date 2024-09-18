@@ -2,6 +2,7 @@ import math
 
 import lightning as L
 import pytest
+import torch
 
 from quanda.benchmarks.downstream_eval import ShortcutDetection
 from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
@@ -12,7 +13,7 @@ from quanda.utils.training.trainer import Trainer
 @pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, poisoned_cls,"
-    "poisoned_indices, p, seed, batch_size, explainer_cls, expl_kwargs, expected_scores",
+    "poisoned_indices, p, seed, batch_size, explainer_cls, expl_kwargs, filter_by_class, expected_score",
     [
         (
             "mnist",
@@ -32,7 +33,8 @@ from quanda.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            {"score": 0.7973321676254272, "clean": 0.0, "rest": 0.15467853844165802},
+            True,
+            0.0,
         ),
         (
             "mnist",
@@ -52,7 +54,8 @@ from quanda.utils.training.trainer import Trainer
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            {"score": 0.7973321676254272, "clean": 0.0, "rest": 0.15467853844165802},
+            False,
+            1.0,
         ),
     ],
 )
@@ -74,7 +77,8 @@ def test_shortcut_detection(
     batch_size,
     explainer_cls,
     expl_kwargs,
-    expected_scores,
+    filter_by_class,
+    expected_score,
     tmp_path,
     request,
 ):
@@ -124,16 +128,16 @@ def test_shortcut_detection(
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),
         model_id="default_model_id",
+        filter_by_class=filter_by_class,
         batch_size=batch_size,
     )
-    assertions = [math.isclose(results[k], expected_scores[k], abs_tol=0.00001) for k in expected_scores.keys()]
-    assert all(assertions)
+    assert math.isclose(results["score"], expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, pl_module, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, poisoned_cls,"
-    "poisoned_indices, p, seed, batch_size, explainer_cls, expl_kwargs, expected_scores",
+    "poisoned_indices, p, seed, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
         (
             "mnist",
@@ -152,7 +156,7 @@ def test_shortcut_detection(
             8,
             CaptumSimilarity,
             {"layers": "model.fc_2", "similarity_metric": cosine_similarity},
-            {"score": 0.7973321676254272, "clean": 0.0, "rest": 0.15467853844165802},
+            0.29325,
         ),
     ],
 )
@@ -173,7 +177,7 @@ def test_shortcut_detection_generate_from_pl_module(
     batch_size,
     explainer_cls,
     expl_kwargs,
-    expected_scores,
+    expected_score,
     tmp_path,
     request,
 ):
@@ -202,6 +206,7 @@ def test_shortcut_detection_generate_from_pl_module(
         cache_dir=str(tmp_path),
         model_id="default_model_id",
         batch_size=batch_size,
+        filter_by_class=True,
+        filter_by_prediction=False,
     )
-    assertions = [math.isclose(results[k], expected_scores[k], abs_tol=0.00001) for k in expected_scores.keys()]
-    assert all(assertions)
+    assert math.isclose(results["score"], expected_score, abs_tol=0.00001)

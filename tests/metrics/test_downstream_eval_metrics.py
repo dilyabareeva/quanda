@@ -1,6 +1,8 @@
 import math
 
 import pytest
+import torch
+from torcheval.metrics.functional import binary_auprc
 
 from quanda.explainers import SumAggregator
 from quanda.explainers.wrappers import CaptumSimilarity
@@ -406,7 +408,7 @@ def test_dataset_cleaning_aggr_based(
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, labels, poisoned_ids, explanations",
+    "test_id, model, dataset, labels, poisoned_ids, poisoned_cls, explanations, assert_err",
     [
         (
             "mnist",
@@ -414,7 +416,19 @@ def test_dataset_cleaning_aggr_based(
             "load_mnist_dataset",
             "load_mnist_labels",
             [3],
+            1,
             "load_mnist_explanations_similarity_1",
+            False,
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_labels",
+            [3],
+            0,
+            "load_mnist_explanations_similarity_1",
+            True,
         ),
     ],
 )
@@ -424,29 +438,22 @@ def test_shortcut_detection_metric(
     dataset,
     labels,
     poisoned_ids,
+    poisoned_cls,
     explanations,
+    assert_err,
     request,
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     labels = request.getfixturevalue(labels)
     tda = request.getfixturevalue(explanations)
-
-    poisoned_cls = labels[poisoned_ids[0]]
-    clean_ids = [i for i in range(len(labels)) if i not in poisoned_ids and labels[i] == poisoned_cls]
-    rest_ids = list(set(range(len(dataset))) - set(poisoned_ids) - set(clean_ids))
-
-    poisoned = tda[:, poisoned_ids].mean()
-    clean = tda[:, clean_ids].mean()
-    rest = tda[:, rest_ids].mean()
-
-    metric = ShortcutDetectionMetric(model, dataset, poisoned_ids, poisoned_cls)
-    metric.update(tda)
-    scores = metric.compute()
-
-    assertions = [
-        math.isclose(scores["score"], poisoned, abs_tol=0.00001),
-        math.isclose(scores["clean"], clean, abs_tol=0.00001),
-        math.isclose(scores["rest"], rest, abs_tol=0.00001),
-    ]
-    assert all(assertions)
+    if assert_err:
+        with pytest.raises(AssertionError):
+            metric = ShortcutDetectionMetric(model, dataset, poisoned_ids, poisoned_cls)
+    else:
+        metric = ShortcutDetectionMetric(model, dataset, poisoned_ids, poisoned_cls)
+        metric.update(tda)
+        score = metric.compute()["score"]
+        binary_ids = torch.tensor([1 if i in poisoned_ids else 0 for i in range(len(dataset))])
+        expected_score = torch.tensor([binary_auprc(tda[i], binary_ids) for i in range(tda.shape[0])]).mean().item()
+        assert math.isclose(score, expected_score, abs_tol=0.00001)
