@@ -136,7 +136,7 @@ def _load_flexible_state_dict(model: torch.nn.Module, path: str, device: Union[s
     if isinstance(device, str):
         device = torch.device(device)
 
-    checkpoint = torch.load(path, map_location=device)
+    checkpoint = torch.load(path, map_location=device, weights_only=True)
 
     learning_rate = checkpoint.get("learning_rate", 1.0)
 
