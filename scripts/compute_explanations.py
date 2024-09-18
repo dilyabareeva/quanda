@@ -58,7 +58,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         subprocess.run(
             [
                 "wget",
-                "-P",
+                "-qP",
                 checkpoints_dir,
                 "https://datacloud.hhi.fraunhofer.de/s/ZE5dBnfzW94Xkoo/download/tiny_inet_resnet18.zip",
             ]
