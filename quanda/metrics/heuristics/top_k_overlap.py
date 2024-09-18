@@ -3,7 +3,6 @@ from typing import Optional
 import torch
 
 from quanda.metrics.base import Metric
-from quanda.tasks.proponents_per_sample import ProponentsPerSample
 
 
 class TopKOverlapMetric(Metric):
@@ -20,15 +19,6 @@ class TopKOverlapMetric(Metric):
         **kwargs,
     ):
         super().__init__(model=model, train_dataset=train_dataset)
-        self.task = ProponentsPerSample(
-            model=model,
-            train_dataset=train_dataset,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            top_k=top_k,
-        )
         self.top_k = top_k
         self.all_top_k_examples = torch.empty(0, top_k).to(self.device)
 
@@ -39,7 +29,7 @@ class TopKOverlapMetric(Metric):
     ):
         explanations = explanations.to(self.device)
 
-        top_k_indices = self.task.update(explanations=explanations, return_intermediate=True)
+        _, top_k_indices = explanations.topk(k=self.top_k, dim=1)
         self.all_top_k_examples = torch.concat((self.all_top_k_examples, top_k_indices), dim=0)
 
     def compute(self, *args, **kwargs):

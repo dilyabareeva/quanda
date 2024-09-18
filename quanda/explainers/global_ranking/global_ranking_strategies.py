@@ -4,7 +4,8 @@ from typing import Optional
 
 import torch
 
-from quanda.explainers import BaseAggregator, Explainer
+from quanda.explainers.base import Explainer
+from quanda.explainers.global_ranking.aggregators import BaseAggregator
 
 
 class GlobalSelfInfluenceStrategy:
