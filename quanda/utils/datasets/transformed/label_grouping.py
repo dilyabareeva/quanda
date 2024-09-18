@@ -28,7 +28,7 @@ class LabelGroupingDataset(TransformedDataset):
         dataset : torch.utils.data.Dataset
             Dataset to group classes.
         n_classes : int
-            Number of classes in the dataset.
+            Number of classes in the (original, ungrouped) dataset.
         dataset_transform : Optional[Callable], optional
             Default transform of the dataset, defaults to None
         transform_indices : Optional[List], optional

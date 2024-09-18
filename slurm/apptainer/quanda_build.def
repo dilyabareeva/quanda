@@ -17,4 +17,4 @@ From: ./quanda_pre_build.sif
 
 %runscript
   cd /opt/quanda
-  python -u slurm/compute_explanations.py "$@"
+  python -u scripts/compute_explanations.py "$@"

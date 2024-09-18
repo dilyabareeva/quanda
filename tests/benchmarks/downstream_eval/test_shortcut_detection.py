@@ -12,8 +12,8 @@ from quanda.utils.training.trainer import Trainer
 
 @pytest.mark.tested
 @pytest.mark.parametrize(
-    "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, poisoned_cls,"
-    "poisoned_indices, p, seed, batch_size, explainer_cls, expl_kwargs, filter_by_class, expected_score",
+    "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, shortcut_cls,"
+    "shortcut_indices, p, seed, batch_size, explainer_cls, expl_kwargs, filter_by_class, expected_score",
     [
         (
             "mnist",
@@ -70,8 +70,8 @@ def test_shortcut_detection(
     dataset,
     sample_fn,
     n_classes,
-    poisoned_cls,
-    poisoned_indices,
+    shortcut_cls,
+    shortcut_indices,
     p,
     seed,
     batch_size,
@@ -101,7 +101,7 @@ def test_shortcut_detection(
             trainer=trainer,
             train_dataset=dataset,
             n_classes=n_classes,
-            poisoned_cls=poisoned_cls,
+            shortcut_cls=shortcut_cls,
             p=p,
             sample_fn=sample_fn,
             trainer_fit_kwargs={"max_epochs": max_epochs},
@@ -114,8 +114,8 @@ def test_shortcut_detection(
             train_dataset=dataset,
             n_classes=n_classes,
             p=p,
-            poisoned_cls=poisoned_cls,
-            poisoned_indices=poisoned_indices,
+            shortcut_cls=shortcut_cls,
+            shortcut_indices=shortcut_indices,
             sample_fn=sample_fn,
             batch_size=batch_size,
         )
@@ -136,8 +136,8 @@ def test_shortcut_detection(
 
 @pytest.mark.tested
 @pytest.mark.parametrize(
-    "test_id, pl_module, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, poisoned_cls,"
-    "poisoned_indices, p, seed, batch_size, explainer_cls, expl_kwargs, expected_score",
+    "test_id, pl_module, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, shortcut_cls,"
+    "shortcut_indices, p, seed, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
         (
             "mnist",
@@ -170,8 +170,8 @@ def test_shortcut_detection_generate_from_pl_module(
     dataset,
     sample_fn,
     n_classes,
-    poisoned_cls,
-    poisoned_indices,
+    shortcut_cls,
+    shortcut_indices,
     p,
     seed,
     batch_size,
@@ -191,7 +191,7 @@ def test_shortcut_detection_generate_from_pl_module(
         trainer=trainer,
         train_dataset=dataset,
         n_classes=n_classes,
-        poisoned_cls=poisoned_cls,
+        shortcut_cls=shortcut_cls,
         p=p,
         sample_fn=sample_fn,
         trainer_fit_kwargs={},

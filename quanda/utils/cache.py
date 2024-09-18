@@ -56,7 +56,7 @@ class BatchedCachedExplanations:
 
         self.av_filesearch = os.path.join(cache_dir, "*.pt")
         self.files = glob.glob(self.av_filesearch)
-        self.batch_size = torch.load(self.files[0], map_location=self.device).shape[0]
+        self.batch_size = torch.load(self.files[0], map_location=self.device, weights_only=True).shape[0]
 
     def __getitem__(self, idx: int) -> torch.Tensor:
         """
@@ -75,7 +75,7 @@ class BatchedCachedExplanations:
 
         assert idx < len(self.files), "Layer index is out of bounds!"
         fl = self.files[idx]
-        xpl = torch.load(fl, map_location=self.device)
+        xpl = torch.load(fl, map_location=self.device, weights_only=True)
 
         return xpl
 
@@ -172,4 +172,4 @@ class ExplanationsCache(Cache):
             xpl_dataset = BatchedCachedExplanations(cache_dir=path, device=device)
             return xpl_dataset
         else:
-            raise RuntimeError(f"Activation vectors were not found at path {path}")
+            raise RuntimeError(f"Explanations were not found at path {path}")
