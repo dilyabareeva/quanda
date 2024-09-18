@@ -49,7 +49,7 @@ def special_dataset(
     train_set: torch.utils.data.Dataset,
     n_classes: int,
     new_n_classes: int,
-    regular_transforms: torch.nn.Module,
+    regular_transforms,
     class_to_group: Dict[int, int],
     shortcut_fn: Callable,
     backdoor_dataset: torch.utils.data.Dataset,
