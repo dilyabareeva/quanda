@@ -4,6 +4,7 @@ from typing import Callable, Dict, List, Optional, Union
 
 import lightning as L
 import torch
+import torch.utils
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
@@ -60,6 +61,7 @@ class MislabelingDetection(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.train_dataset: torch.utils.data.Dataset
+        self.eval_dataset: torch.utils.data.Dataset
         self.mislabeling_dataset: LabelFlippingDataset
         self.dataset_transform: Optional[Callable]
         self.mislabeling_indices: List[int]
@@ -77,6 +79,7 @@ class MislabelingDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
+        eval_dataset: torch.utils.data.Dataset,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
@@ -102,6 +105,8 @@ class MislabelingDetection(Benchmark):
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
+        eval_dataset : torch.utils.data.Dataset
+            Dataset to be used for the evaluation.
         trainer : Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the model. Can be a Lightning Trainer or a `BaseTrainer`.
         dataset_split : str, optional
@@ -135,6 +140,7 @@ class MislabelingDetection(Benchmark):
         obj = cls()
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.eval_dataset = eval_dataset
         obj._generate(
             model=model,
             train_dataset=train_dataset,
@@ -267,7 +273,7 @@ class MislabelingDetection(Benchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 
@@ -275,12 +281,14 @@ class MislabelingDetection(Benchmark):
         ----------
         name : str
             Name of the benchmark to be loaded.
+        eval_dataset : torch.utils.data.Dataset
+            Dataset to be used for the evaluation.
         """
         bench_state = cls.download_bench_state(name)
-
         return cls.assemble(
             model=bench_state["model"],
             train_dataset=bench_state["train_dataset"],
+            eval_dataset=eval_dataset,
             n_classes=bench_state["n_classes"],
             mislabeling_indices=bench_state["mislabeling_indices"],
             mislabeling_labels=bench_state["mislabeling_labels"],
@@ -296,6 +304,7 @@ class MislabelingDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
+        eval_dataset=torch.utils.data.Dataset,
         dataset_split: str = "train",
         mislabeling_indices: Optional[List[int]] = None,
         mislabeling_labels: Optional[Dict[int, int]] = None,
@@ -317,6 +326,8 @@ class MislabelingDetection(Benchmark):
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
+        eval_dataset : torch.utils.data.Dataset
+            Dataset to be used for the evaluation.
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         mislabeling_indices : Optional[List[int]], optional
@@ -341,6 +352,7 @@ class MislabelingDetection(Benchmark):
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
         obj.n_classes = n_classes
+        obj.eval_dataset = eval_dataset
 
         obj.mislabeling_dataset = LabelFlippingDataset(
             dataset=obj.train_dataset,
@@ -362,7 +374,6 @@ class MislabelingDetection(Benchmark):
 
     def evaluate(
         self,
-        expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         use_predictions: bool = True,
@@ -375,8 +386,6 @@ class MislabelingDetection(Benchmark):
 
         Parameters
         ----------
-        expl_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
         explainer_cls : type
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
@@ -394,7 +403,7 @@ class MislabelingDetection(Benchmark):
         explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
 
         mislabeling_expl_ds = LabelFlippingDataset(
-            dataset=expl_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
+            dataset=self.eval_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
         )
         expl_dl = torch.utils.data.DataLoader(mislabeling_expl_ds, batch_size=batch_size)
         if self.global_method != "self-influence":

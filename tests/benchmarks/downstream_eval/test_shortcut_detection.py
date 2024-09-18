@@ -101,6 +101,7 @@ def test_shortcut_detection(
             trainer=trainer,
             train_dataset=dataset,
             n_classes=n_classes,
+            eval_dataset=dataset,
             poisoned_cls=poisoned_cls,
             p=p,
             sample_fn=sample_fn,
@@ -113,6 +114,7 @@ def test_shortcut_detection(
             model=model,
             train_dataset=dataset,
             n_classes=n_classes,
+            eval_dataset=dataset,
             p=p,
             poisoned_cls=poisoned_cls,
             poisoned_indices=poisoned_indices,
@@ -123,7 +125,6 @@ def test_shortcut_detection(
         raise ValueError(f"Invalid init_method: {init_method}")
 
     results = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),
@@ -191,6 +192,7 @@ def test_shortcut_detection_generate_from_pl_module(
         trainer=trainer,
         train_dataset=dataset,
         n_classes=n_classes,
+        eval_dataset=dataset,
         poisoned_cls=poisoned_cls,
         p=p,
         sample_fn=sample_fn,
@@ -200,7 +202,6 @@ def test_shortcut_detection_generate_from_pl_module(
     )
 
     results = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),

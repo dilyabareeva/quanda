@@ -36,7 +36,7 @@ class Benchmark(ABC):
 
     @classmethod
     @abstractmethod
-    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """

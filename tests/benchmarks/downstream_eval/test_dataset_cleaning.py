@@ -94,14 +94,12 @@ def test_dataset_cleaning(
         dst_eval = DatasetCleaning.generate(
             model=model,
             train_dataset=dataset,
+            eval_dataset=dataset,
             device="cpu",
         )
 
     elif init_method == "assemble":
-        dst_eval = DatasetCleaning.assemble(
-            model=model,
-            train_dataset=dataset,
-        )
+        dst_eval = DatasetCleaning.assemble(model=model, train_dataset=dataset, eval_dataset=dataset)
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
@@ -112,7 +110,6 @@ def test_dataset_cleaning(
         criterion=criterion,
     )
     score = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         trainer=trainer,
         expl_kwargs=expl_kwargs,
@@ -177,12 +174,12 @@ def test_dataset_cleaning_generate_from_pl_module(
 
     dst_eval = DatasetCleaning.generate(
         model=pl_module,
+        eval_dataset=dataset,
         train_dataset=dataset,
         device="cpu",
     )
 
     score = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         trainer=trainer,
         expl_kwargs=expl_kwargs,
