@@ -14,7 +14,7 @@ source "/etc/slurm/local_job_dir.sh"
 echo "$PWD/${SLURM_JOB_ID}_stats.out" > $LOCAL_JOB_DIR/stats_file_loc_cfg
 
 echo "Extract tiny-imagegetnet-200.tar to ${LOCAL_JOB_DIR}"
-time unzip $DATAPOOL3/datasets/tiny-imagenet-200.zip -d $LOCAL_JOB_DIR
+time unzip -qq $DATAPOOL3/datasets/tiny-imagenet-200.zip -d $LOCAL_JOB_DIR
 
 # Make a folder locally on the node for job_results. This folder ensures that data is copied back even when the job fails
 mkdir -p "${LOCAL_JOB_DIR}/job_results"

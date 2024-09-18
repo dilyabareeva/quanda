@@ -56,11 +56,11 @@ def compute_randomization_metric(
         # os.makedirs(tiny_in_path, exist_ok=True)
 
         # subprocess.run(["wget", "-P", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
-        # subprocess.run(["unzip", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
+        # subprocess.run(["unzip", "-qq", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
         subprocess.run(
-            ["wget", "-P", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"]
+            ["wget", "-P", "-nv", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"]
         )
-        subprocess.run(["unzip", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
+        subprocess.run(["unzip", "-qq", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
 
         # Next we download all the necessary checkpoints and the dataset metadata
         subprocess.run(
@@ -71,11 +71,11 @@ def compute_randomization_metric(
                 "https://datacloud.hhi.fraunhofer.de/s/ZE5dBnfzW94Xkoo/download/tiny_inet_resnet18.zip",
             ]
         )
-        subprocess.run(["unzip", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18.zip"), "-d", metadata_dir])
+        subprocess.run(["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18.zip"), "-d", metadata_dir])
         subprocess.run(
-            ["wget", "-P", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/AmnCXAC8zx3YQgP/download/dataset_indices.zip"]
+            ["wget", "-P", "-nv", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/AmnCXAC8zx3YQgP/download/dataset_indices.zip"]
         )
-        subprocess.run(["unzip", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
+        subprocess.run(["unzip", "-qq", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
 
     n_epochs = 10
     checkpoints = [

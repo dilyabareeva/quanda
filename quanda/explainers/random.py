@@ -42,7 +42,7 @@ class RandomExplainer(Explainer):
             train_dataset=train_dataset,
         )
         self.seed = seed
-        self.generator = torch.Generator()
+        self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
 
     def explain(self, test: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):

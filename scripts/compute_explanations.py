@@ -48,11 +48,11 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         # os.makedirs(tiny_in_path, exist_ok=True)
 
         # subprocess.run(["wget", "-P", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
-        # subprocess.run(["unzip", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
+        # subprocess.run(["unzip", "-qq", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
         subprocess.run(
-            ["wget", "-P", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"]
+            ["wget", "-P", "-nv", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"]
         )
-        subprocess.run(["unzip", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
+        subprocess.run(["unzip", "-qq", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
 
         # Next we download all the necessary checkpoints and the dataset metadata
         subprocess.run(
@@ -63,11 +63,11 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 "https://datacloud.hhi.fraunhofer.de/s/ZE5dBnfzW94Xkoo/download/tiny_inet_resnet18.zip",
             ]
         )
-        subprocess.run(["unzip", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18.zip"), "-d", metadata_dir])
+        subprocess.run(["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18.zip"), "-d", metadata_dir])
         subprocess.run(
-            ["wget", "-P", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/AmnCXAC8zx3YQgP/download/dataset_indices.zip"]
+            ["wget", "-P", "-nv", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/AmnCXAC8zx3YQgP/download/dataset_indices.zip"]
         )
-        subprocess.run(["unzip", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
+        subprocess.run(["unzip", "-qq", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
 
     n_epochs = 10
     checkpoints = [
@@ -252,8 +252,8 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
     test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
     cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
-    dataloaders["cat_dog"] = torch.utils.data.DataLoader(cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers)
-    # vis_dataloader(dataloaders["cat_dog"])
+    dataloaders["subclass"] = torch.utils.data.DataLoader(cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers)
+    # vis_dataloader(dataloaders["subclass"])
 
     # Dataloader for Model Randomization, Top-K Overlap
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
