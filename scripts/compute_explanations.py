@@ -10,6 +10,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 from torch.utils.data import Subset
 
+from quanda.explainers import RandomExplainer
 from quanda.explainers.wrappers import (
     TRAK,
     CaptumArnoldi,
@@ -430,6 +431,29 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 ]
                 explanations_trak = explainer_trak.explain(test=test_tensor, targets=explanation_targets)
                 EC.save(subset_save_dir, explanations_trak, i)
+
+    if method == "random":
+
+        explainer_rand = RandomExplainer(
+            model=lit_model,
+            cache_dir=output_dir,
+            train_dataset=train_dataloader.dataset,
+            model_id="0",
+            seed=27,
+        )
+
+        method_save_dir = os.path.join(output_dir, method)
+        os.makedirs(method_save_dir, exist_ok=True)
+        # Explain test samples
+        for subset in dataloaders:
+            for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
+                subset_save_dir = os.path.join(method_save_dir, subset)
+                os.makedirs(subset_save_dir, exist_ok=True)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
+                ]
+                explanations_rand = explainer_rand.explain(test=test_tensor, targets=explanation_targets)
+                EC.save(subset_save_dir, explanations_rand, i)
 
 
 if __name__ == "__main__":
