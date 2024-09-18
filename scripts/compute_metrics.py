@@ -328,7 +328,7 @@ if __name__ == "__main__":
 
     # Define argument for metric with choices
     parser.add_argument(
-        "--metri",
+        "--metric",
         required=True,
         choices=["mislabeling", "shortcut", "subclass", "top_k_overlap", "mixed_dataset"],
         help="Choose the explanation metric to use.",
