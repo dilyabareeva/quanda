@@ -21,8 +21,8 @@ class ShortcutDetectionMetric(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        poisoned_indices: List[int],
-        poisoned_cls: int,
+        shortcut_indices: List[int],
+        shortcut_cls: int,
         filter_by_prediction: bool = False,
         filter_by_class: bool = False,
     ):
@@ -35,9 +35,9 @@ class ShortcutDetectionMetric(Metric):
         train_dataset : torch.utils.data.Dataset
             Training dataset used to train `model`. Each item of the dataset should be a tuple of the form
             (input_tensor, label_tensor).
-        poisoned_indices : List[int]
+        shortcut_indices : List[int]
             Ground truth of shortcut indices of the `train_dataset`.
-        poisoned_cls : int
+        shortcut_cls : int
             Class of the poisoned samples.
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on those samples, where the poisoned class
@@ -49,15 +49,15 @@ class ShortcutDetectionMetric(Metric):
         super().__init__(model=model, train_dataset=train_dataset)
         self.scores: Dict[str, List[torch.Tensor]] = {k: [] for k in ["poisoned", "clean", "rest"]}
         clean_indices = [
-            i for i in range(self.dataset_length) if (i not in poisoned_indices) and train_dataset[i][1] == poisoned_cls
+            i for i in range(self.dataset_length) if (i not in shortcut_indices) and train_dataset[i][1] == shortcut_cls
         ]
-        rest_indices = list(set(range(self.dataset_length)) - set(poisoned_indices) - set(clean_indices))
-        self.aggr_indices = {"poisoned": poisoned_indices, "clean": clean_indices, "rest": rest_indices}
-        self.poisoned_indices = poisoned_indices
+        rest_indices = list(set(range(self.dataset_length)) - set(shortcut_indices) - set(clean_indices))
+        self.aggr_indices = {"poisoned": shortcut_indices, "clean": clean_indices, "rest": rest_indices}
+        self.poisoned_indices = shortcut_indices
 
         self.filter_by_prediction = filter_by_prediction
         self.filter_by_class = filter_by_class
-        self.poisoned_cls = poisoned_cls
+        self.poisoned_cls = shortcut_cls
 
     def update(
         self,
