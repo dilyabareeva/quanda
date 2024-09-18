@@ -7,7 +7,6 @@ from argparse import ArgumentParser
 import lightning as L
 import torch
 import torchvision.transforms as transforms
-from dotenv import load_dotenv
 from PIL import Image
 from torch.utils.data import Subset
 
@@ -19,6 +18,7 @@ from quanda.explainers.wrappers import (
     RepresenterPoints,
 )
 from quanda.utils.cache import ExplanationsCache as EC
+from quanda.utils.datasets.transformed import LabelGroupingDataset, SampleTransformationDataset, TransformedDataset
 from quanda.utils.functions import cosine_similarity
 from tutorials.utils.datasets import (
     AnnotatedDataset,
@@ -75,9 +75,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     # Loading the dataset metadata
     class_to_group = torch.load(os.path.join(metadata_dir, "class_to_group.pth"))
     test_split = torch.load(os.path.join(metadata_dir, "test_indices.pth"))
+    panda_train_indices = torch.load(os.path.join(metadata_dir, "panda_train_indices.pth"))
+    panda_test_indices = torch.load(os.path.join(metadata_dir, "panda_test_indices.pth"))
 
-    # Optional: load environmental variable from .env file (incl. wandb api key)
-    load_dotenv()
 
     n_classes = 200
     new_n_classes = len(set(list(class_to_group.values())))
@@ -90,6 +90,11 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     # Define transformations
     regular_transforms = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
+    )
+
+    denormalize = transforms.Compose(
+        [transforms.Normalize(mean=[0, 0, 0], std=[1 / 0.229, 1 / 0.224, 1 / 0.225])]
+        + [transforms.Normalize(mean=[-0.485, -0.456, -0.406], std=[1, 1, 1])]
     )
 
     # Load the TinyImageNet dataset
@@ -115,12 +120,26 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         ]
     )
 
+    backdoor_transforms_flipped = transforms.Compose(
+        [
+            transforms.Resize((64, 64)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+            transforms.RandomHorizontalFlip(1.0),
+        ]
+    )
+
     panda_dataset = CustomDataset(
         panda_sketch_path, classes=["n02510455"], classes_to_idx={"n02510455": 5}, transform=backdoor_transforms
     )
-    panda_set, panda_dataset = torch.utils.data.random_split(panda_dataset, [30, len(panda_dataset) - 30], generator=torch_rng)
-    panda_val, panda_dataset = torch.utils.data.random_split(panda_dataset, [10, len(panda_dataset) - 10], generator=torch_rng)
-    panda_test, _ = torch.utils.data.random_split(panda_dataset, [10, len(panda_dataset) - 10], generator=torch_rng)
+    panda_twin_dataset = CustomDataset(
+        panda_sketch_path, classes=["n02510455"], classes_to_idx={"n02510455": 5}, transform=backdoor_transforms_flipped
+    )
+
+    panda_set = torch.utils.data.Subset(panda_dataset, panda_train_indices)
+    panda_test = torch.utils.data.Subset(panda_dataset, panda_test_indices)
+    panda_twin = torch.utils.data.Subset(panda_twin_dataset, panda_test_indices)
+    all_panda = torch.utils.data.ConcatDataset([panda_test, panda_twin])
 
     def add_yellow_square(img):
         square_size = (15, 15)  # Size of the square
@@ -140,47 +159,114 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         flipping_transform_dict=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
     )
 
-    test_set = special_dataset(
-        test_set,
-        n_classes,
-        new_n_classes,
-        regular_transforms,
+    test_set_grouped = LabelGroupingDataset(
+        dataset=test_set,
+        n_classes=n_classes,
+        dataset_transform=regular_transforms,
         class_to_group=class_to_group,
-        shortcut_fn=add_yellow_square,
-        backdoor_dataset=panda_test,
-        shortcut_transform_indices=torch.load(os.path.join(metadata_dir, "all_test_shortcut_indices_for_generation.pth")),
-        flipping_transform_dict={},
     )
 
-    test_indices = (
-        torch.load(os.path.join(metadata_dir, "big_eval_test_backdoor_indices.pth"))
-        + torch.load(os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
-        + torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
-        + torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
-        + torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
-    )
-    target_test_set = torch.utils.data.Subset(test_set, test_indices)
-
-    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
-    test_dataloader = torch.utils.data.DataLoader(
-        target_test_set, batch_size=len(test_indices), shuffle=False, num_workers=num_workers
-    )
-
-    import matplotlib.pyplot as plt
-    from torchvision.utils import make_grid
-
-    images, labels = next(iter(test_dataloader))
-    fig, ax = plt.subplots(figsize=(12, 6))
-    plt.title("Sample images from CIFAR10 dataset")
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
-    plt.show()
-
+    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False,
+                                                   num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
         checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
     )
     lit_model.model = lit_model.model.eval()
+    """
+    # Select tet
+    random_rng = random.Random(27)
+
+    # get all cat classes
+    cat_classes = [class_to_group[s] for s in class_to_group if class_to_group[s] == new_n_classes - 1]
+    dog_classes = [class_to_group[s] for s in class_to_group if class_to_group[s] == new_n_classes - 2]
+
+    all_cats = [s for s in range(len(test_set_grouped)) if test_set_grouped[s][1] in cat_classes]
+    all_dogs = [s for s in range(len(test_set_grouped)) if test_set_grouped[s][1] in dog_classes]
+
+    all_clean_samples = [i for i in range(len(test_set_grouped)) if i not in all_cats + all_dogs]
+    clean_samples = random_rng.sample(all_clean_samples, 128)
+    test_backdoor = random_rng.sample(all_clean_samples, 64)
+    test_shortcut = random_rng.sample(all_clean_samples, 64)
+
+    test_dogs = random_rng.sample(all_cats, 64)
+    test_cats = random_rng.sample(all_dogs, 64)
+
+    mispredicted_clean = [
+        i for i in all_clean_samples if lit_model.model(
+            test_set_grouped[i][0].unsqueeze(0).to("cuda:0")
+        ).argmax().item() != test_set[i][1]
+    ]
+    test_mispredicted = random_rng.sample(mispredicted_clean, 128)
+
+    torch.save(test_mispredicted, os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
+    torch.save(test_shortcut, os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
+    torch.save(test_dogs, os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
+    torch.save(test_cats, os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
+    torch.save(clean_samples, os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
+
+    import matplotlib.pyplot as plt
+    from torchvision.utils import make_grid
+
+    def vis_dataloader(dataloader):
+        images, labels = next(iter(dataloader))
+        images = denormalize(images)
+        fig, ax = plt.subplots(figsize=(12, 6))
+        plt.title("Sample images from CIFAR10 dataset")
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
+        plt.show()
+
+    """
+    # Define Dataloader for different metrics
+    dataloaders = {}
+    # Dataloader for Mislabeling Detection
+    test_mispredicted = torch.load(os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
+    mispredicted_dataset = torch.utils.data.Subset(test_set_grouped, test_mispredicted)
+    dataloaders["mislabeling"] = torch.utils.data.DataLoader(
+        mispredicted_dataset, batch_size=64, shuffle=False, num_workers=num_workers,
+    )
+    #vis_dataloader(dataloaders["mislabeling"])
+
+    # Dataloder for Shortcut Detection
+    test_shortcut = torch.load(os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
+    shortcut_dataset = TransformedDataset(
+        dataset=torch.utils.data.Subset(test_set, test_shortcut),
+        n_classes=new_n_classes,
+        dataset_transform=regular_transforms,
+        transform_indices=list(range(len(test_shortcut))),
+        sample_fn=add_yellow_square,
+        label_fn=lambda x: class_to_group[x],
+    )
+    dataloaders["shortcut"] = torch.utils.data.DataLoader(
+        shortcut_dataset, batch_size=64, shuffle=False, num_workers=num_workers
+    )
+    #vis_dataloader(dataloaders["shortcut"])
+
+    # Dataloader for subclass detection
+    test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
+    test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
+    cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
+    dataloaders["cat_dog"] = torch.utils.data.DataLoader(
+        cat_dog_dataset, batch_size=64, shuffle=False, num_workers=num_workers
+    )
+    #vis_dataloader(dataloaders["cat_dog"])
+
+    # Dataloader for Model Randomization, Top-K Overlap
+    clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
+    clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
+    dataloaders["randomization"] = torch.utils.data.DataLoader(
+        clean_dataset, batch_size=64, shuffle=False, num_workers=num_workers
+    )
+    dataloaders["top_k_overlap"] = dataloaders["randomization"]
+    #vis_dataloader(dataloaders["randomization"])
+
+    # Dataloader for Mixed Datasets
+    dataloaders["mixed_dataset"] = torch.utils.data.DataLoader(
+        all_panda, batch_size=len(all_panda), shuffle=False, num_workers=num_workers, 
+    )
+    #vis_dataloader(dataloaders["mixed_dataset"])
+
 
     if method == "similarity":
         # Initialize Explainer
@@ -200,12 +286,15 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
         logger.info("Explaining test samples")
-        for i, (test_tensor, test_labels) in enumerate(test_dataloader):
-            explanation_targets = [
-                lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
-            ]
-            explanations_similarity = explainer_similarity.explain(test_tensor)
-            EC.save(method_save_dir, explanations_similarity, i)
+        for subset in dataloaders:
+            for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
+                subset_save_dir = os.path.join(method_save_dir, subset)
+                os.makedirs(subset_save_dir, exist_ok=True)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
+                ]
+                explanations_similarity = explainer_similarity.explain(test_tensor)
+                EC.save(subset_save_dir, explanations_similarity, i)
 
     if method == "representer_points":
         explainer_repr = RepresenterPoints(
@@ -225,12 +314,15 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
         logger.info("Explaining test samples")
-        for i, (test_tensor, test_labels) in enumerate(test_dataloader):
-            explanation_targets = [
-                lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
-            ]
-            explanations_repr = explainer_repr.explain(test_tensor, explanation_targets)
-            EC.save(method_save_dir, explanations_repr, i)
+        for subset in dataloaders:
+            for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
+                subset_save_dir = os.path.join(method_save_dir, subset)
+                os.makedirs(subset_save_dir, exist_ok=True)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
+                ]
+                explanations_repr = explainer_repr.explain(test_tensor, explanation_targets)
+                EC.save(subset_save_dir, explanations_repr, i)
 
     if method == "tracincpfast":
 
@@ -259,12 +351,15 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         method_save_dir = os.path.join(output_dir, "expl_tracincpfast")
         os.makedirs(method_save_dir, exist_ok=True)
 
-        for i, (test_tensor, test_labels) in enumerate(test_dataloader):
-            explanation_targets = [
-                lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
-            ]
-            explanations_tracincpfast = explainer_tracincpfast.explain(test_tensor, targets=explanation_targets)
-            EC.save(method_save_dir, explanations_tracincpfast, i)
+        for subset in dataloaders:
+            for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
+                subset_save_dir = os.path.join(method_save_dir, subset)
+                os.makedirs(subset_save_dir, exist_ok=True)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
+                ]
+                explanations_tracincpfast = explainer_tracincpfast.explain(test_tensor, targets=explanation_targets)
+                EC.save(subset_save_dir, explanations_tracincpfast, i)
 
     if method == "arnoldi":
         train_dataset = train_dataloader.dataset
@@ -290,12 +385,15 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
         logger.info("Explaining test samples")
-        for i, (test_tensor, test_labels) in enumerate(test_dataloader):
-            explanation_targets = [
-                lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
-            ]
-            explanations_arnoldi = explainer_arnoldi.explain(test=test_tensor, targets=explanation_targets)
-            EC.save(method_save_dir, explanations_arnoldi, i)
+        for subset in dataloaders:
+            for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
+                subset_save_dir = os.path.join(method_save_dir, subset)
+                os.makedirs(subset_save_dir, exist_ok=True)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
+                ]
+                explanations_arnoldi = explainer_arnoldi.explain(test=test_tensor, targets=explanation_targets)
+                EC.save(subset_save_dir, explanations_arnoldi, i)
 
     if method == "trak":
         explainer_trak = TRAK(
@@ -310,12 +408,15 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         method_save_dir = os.path.join(output_dir, "expl_trak")
         os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
-        for i, (test_tensor, test_labels) in enumerate(test_dataloader):
-            explanation_targets = [
-                lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
-            ]
-            explanations_trak = explainer_trak.explain(test=test_tensor, targets=explanation_targets)
-            EC.save(method_save_dir, explanations_trak, i)
+        for subset in dataloaders:
+            for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
+                subset_save_dir = os.path.join(method_save_dir, subset)
+                os.makedirs(subset_save_dir, exist_ok=True)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
+                ]
+                explanations_trak = explainer_trak.explain(test=test_tensor, targets=explanation_targets)
+                EC.save(subset_save_dir, explanations_trak, i)
 
 
 if __name__ == "__main__":
