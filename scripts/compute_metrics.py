@@ -41,7 +41,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     # Downloading the datasets and checkpoints
 
     # Initialize WandbLogger
-    wandb.init(project="quanda", name="tiny_inet_resnet18", id="tiny_inet_resnet18", reinit=False)
+    wandb.init(project="quanda", name="tiny_inet_resnet18")
 
     # We first download the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
     os.makedirs(explanations_dir, exist_ok=True)
@@ -104,7 +104,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     with open(tiny_in_path + "val/val_annotations.txt", "r") as f:
         val_annotations = {line.split("\t")[0]: line.split("\t")[1] for line in f}
 
-    train_set = CustomDataset(tiny_in_path + "train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None)
+    train_set_raw = CustomDataset(tiny_in_path + "train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None)
     holdout_set = AnnotatedDataset(
         local_path=tiny_in_path + "val", transforms=None, id_dict=id_dict, annotation=val_annotations
     )
@@ -146,7 +146,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         return img
 
     train_set = special_dataset(
-        train_set,
+        train_set_raw,
         n_classes,
         new_n_classes,
         regular_transforms,
@@ -268,6 +268,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             wandb.log({f"{method}_{metric}": score})
 
     if metric == "subclass":
+        subclass_labels = torch.tensor([5 for s in panda_set] + [s[1] for s in train_set_raw])
         for method in explanation_methods:
             method_save_dir = os.path.join(explanations_dir, method)
             subset_save_dir = os.path.join(method_save_dir, metric)
@@ -275,14 +276,15 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             id_subclass = SubclassDetectionMetric(
                 model=lit_model,
                 train_dataset=train_set,
-                subclass_labels=torch.tensor([test_set[i][1] for i in test_cats + test_dogs]),
+                subclass_labels=subclass_labels,
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
+                test_sublabels = [test_set[(test_cats + test_dogs)[s]][1] for s in range(i * 8, (i + 1) * 8)]
                 test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
                 explanation_targets = [
                     lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
                 ]
-                id_subclass.update(explanations[i], torch.tensor(explanation_targets))
+                id_subclass.update(test_sublabels, explanations[i])
 
             score = id_subclass.compute()
             wandb.log({f"{method}_{metric}": score})
@@ -304,6 +306,11 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             wandb.log({f"{method}_{metric}": score})
 
     if metric == "mixed_dataset":
+
+        all_adv_indices = torch.load(os.path.join(metadata_dir, "all_train_backdoor_indices.pth"))
+        # to binary
+        adv_indices = torch.tensor([1 if i in all_adv_indices else 0 for i in range(len(train_set))])
+
         for method in explanation_methods:
             method_save_dir = os.path.join(explanations_dir, method)
             subset_save_dir = os.path.join(method_save_dir, metric)
@@ -311,7 +318,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             mixed_dataset = MixedDatasetsMetric(
                 train_dataset=train_set,
                 model=lit_model,
-                adversarial_indices=torch.load(os.path.join(metadata_dir, "all_train_backdoor_indices.pth")),
+                adversarial_indices=adv_indices,
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
                 test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")

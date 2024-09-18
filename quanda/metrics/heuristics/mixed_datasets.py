@@ -50,7 +50,7 @@ class MixedDatasetsMetric(Metric):
             and adversarial examples. The labels of all adversarial examples should map
             to a single label from the clean examples.
         adversarial_indices: Union[List[int], torch.Tensor]
-            List of ground truth adversarial indices of the `train_dataset`.
+            A binary vector of ground truth adversarial indices of the `train_dataset`.
         args: Any
             Additional positional arguments.
         kwargs: Any
@@ -70,7 +70,7 @@ class MixedDatasetsMetric(Metric):
         if isinstance(adversarial_indices, list):
             adversarial_indices = torch.tensor(adversarial_indices)
 
-        self.adversarial_indices = adversarial_indices
+        self.adversarial_indices = adversarial_indices.to(self.device)
         self._validate_adversarial_labels()
 
     def _validate_adversarial_labels(self):
