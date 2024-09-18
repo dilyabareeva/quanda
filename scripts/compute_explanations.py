@@ -18,7 +18,10 @@ from quanda.explainers.wrappers import (
     RepresenterPoints,
 )
 from quanda.utils.cache import ExplanationsCache as EC
-from quanda.utils.datasets.transformed import LabelGroupingDataset, SampleTransformationDataset, TransformedDataset
+from quanda.utils.datasets.transformed import (
+    LabelGroupingDataset,
+    TransformedDataset,
+)
 from quanda.utils.functions import cosine_similarity
 from tutorials.utils.datasets import (
     AnnotatedDataset,
@@ -41,10 +44,10 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     if download:
         os.makedirs(metadata_dir, exist_ok=True)
         os.makedirs(checkpoints_dir, exist_ok=True)
-        os.makedirs(tiny_in_path, exist_ok=True)
+        # os.makedirs(tiny_in_path, exist_ok=True)
 
-        subprocess.run(["wget", "-P", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
-        subprocess.run(["unzip", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
+        # subprocess.run(["wget", "-P", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
+        # subprocess.run(["unzip", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
         subprocess.run(
             ["wget", "-P", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"]
         )
@@ -77,7 +80,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     test_split = torch.load(os.path.join(metadata_dir, "test_indices.pth"))
     panda_train_indices = torch.load(os.path.join(metadata_dir, "panda_train_indices.pth"))
     panda_test_indices = torch.load(os.path.join(metadata_dir, "panda_test_indices.pth"))
-
 
     n_classes = 200
     new_n_classes = len(set(list(class_to_group.values())))
@@ -166,8 +168,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         class_to_group=class_to_group,
     )
 
-    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False,
-                                                   num_workers=num_workers)
+    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
         checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
     )
@@ -224,9 +225,12 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     test_mispredicted = torch.load(os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
     mispredicted_dataset = torch.utils.data.Subset(test_set_grouped, test_mispredicted)
     dataloaders["mislabeling"] = torch.utils.data.DataLoader(
-        mispredicted_dataset, batch_size=64, shuffle=False, num_workers=num_workers,
+        mispredicted_dataset,
+        batch_size=8,
+        shuffle=False,
+        num_workers=num_workers,
     )
-    #vis_dataloader(dataloaders["mislabeling"])
+    # vis_dataloader(dataloaders["mislabeling"])
 
     # Dataloder for Shortcut Detection
     test_shortcut = torch.load(os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
@@ -239,34 +243,34 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         label_fn=lambda x: class_to_group[x],
     )
     dataloaders["shortcut"] = torch.utils.data.DataLoader(
-        shortcut_dataset, batch_size=64, shuffle=False, num_workers=num_workers
+        shortcut_dataset, batch_size=8, shuffle=False, num_workers=num_workers
     )
-    #vis_dataloader(dataloaders["shortcut"])
+    # vis_dataloader(dataloaders["shortcut"])
 
     # Dataloader for subclass detection
     test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
     test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
     cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
-    dataloaders["cat_dog"] = torch.utils.data.DataLoader(
-        cat_dog_dataset, batch_size=64, shuffle=False, num_workers=num_workers
-    )
-    #vis_dataloader(dataloaders["cat_dog"])
+    dataloaders["cat_dog"] = torch.utils.data.DataLoader(cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers)
+    # vis_dataloader(dataloaders["cat_dog"])
 
     # Dataloader for Model Randomization, Top-K Overlap
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
     clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
     dataloaders["randomization"] = torch.utils.data.DataLoader(
-        clean_dataset, batch_size=64, shuffle=False, num_workers=num_workers
+        clean_dataset, batch_size=8, shuffle=False, num_workers=num_workers
     )
     dataloaders["top_k_overlap"] = dataloaders["randomization"]
-    #vis_dataloader(dataloaders["randomization"])
+    # vis_dataloader(dataloaders["randomization"])
 
     # Dataloader for Mixed Datasets
     dataloaders["mixed_dataset"] = torch.utils.data.DataLoader(
-        all_panda, batch_size=len(all_panda), shuffle=False, num_workers=num_workers, 
+        all_panda,
+        batch_size=len(all_panda),
+        shuffle=False,
+        num_workers=num_workers,
     )
-    #vis_dataloader(dataloaders["mixed_dataset"])
-
+    # vis_dataloader(dataloaders["mixed_dataset"])
 
     if method == "similarity":
         # Initialize Explainer
@@ -279,10 +283,10 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             similarity_metric=cosine_similarity,
             device="cuda:0",
             batch_size=10,
-            load_from_disk=True,
+            load_from_disk=False,
         )
 
-        method_save_dir = os.path.join(output_dir, "expl_similarity")
+        method_save_dir = os.path.join(output_dir, method)
         os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
         logger.info("Explaining test samples")
@@ -310,7 +314,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             show_progress=False,
         )
 
-        method_save_dir = os.path.join(output_dir, "expl_representer_points")
+        method_save_dir = os.path.join(output_dir, method)
         os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
         logger.info("Explaining test samples")
@@ -345,10 +349,10 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             loss_fn=torch.nn.CrossEntropyLoss(reduction="mean"),
             final_fc_layer=list(lit_model.model.children())[-1],
             device="cuda:0",
-            batch_size=64,
+            batch_size=8,
         )
 
-        method_save_dir = os.path.join(output_dir, "expl_tracincpfast")
+        method_save_dir = os.path.join(output_dir, method)
         os.makedirs(method_save_dir, exist_ok=True)
 
         for subset in dataloaders:
@@ -362,6 +366,14 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 EC.save(subset_save_dir, explanations_tracincpfast, i)
 
     if method == "arnoldi":
+
+        def load_state_dict(module: L.LightningModule, path: str) -> int:
+            module = type(module).load_from_checkpoint(
+                path, n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
+            )
+            module.model.eval()
+            return module.lr
+
         train_dataset = train_dataloader.dataset
         num_samples = 1000
         indices = generator.sample(range(len(train_dataset)), num_samples)
@@ -381,7 +393,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             device="cuda:0",
         )
 
-        method_save_dir = os.path.join(output_dir, "expl_arnoldi")
+        method_save_dir = os.path.join(output_dir, method)
         os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
         logger.info("Explaining test samples")
@@ -401,11 +413,12 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             model_id="test_model",
             cache_dir=output_dir,
             train_dataset=train_dataloader.dataset,
+            projector="cuda",
             proj_dim=4096,
             load_from_disk=False,
         )
 
-        method_save_dir = os.path.join(output_dir, "expl_trak")
+        method_save_dir = os.path.join(output_dir, method)
         os.makedirs(method_save_dir, exist_ok=True)
         # Explain test samples
         for subset in dataloaders:
