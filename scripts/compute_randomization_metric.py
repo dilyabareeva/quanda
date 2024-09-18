@@ -55,10 +55,10 @@ def compute_randomization_metric(
         os.makedirs(checkpoints_dir, exist_ok=True)
         # os.makedirs(tiny_in_path, exist_ok=True)
 
-        # subprocess.run(["wget", "-P", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
+        # subprocess.run(["wget", "-qP", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
         # subprocess.run(["unzip", "-qq", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
         subprocess.run(
-            ["wget", "-P", "-nv", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"]
+            ["wget", "-qP", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"]
         )
         subprocess.run(["unzip", "-qq", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
 
@@ -73,7 +73,7 @@ def compute_randomization_metric(
         )
         subprocess.run(["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18.zip"), "-d", metadata_dir])
         subprocess.run(
-            ["wget", "-P", "-nv", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/AmnCXAC8zx3YQgP/download/dataset_indices.zip"]
+            ["wget", "-qP", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/AmnCXAC8zx3YQgP/download/dataset_indices.zip"]
         )
         subprocess.run(["unzip", "-qq", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
 
