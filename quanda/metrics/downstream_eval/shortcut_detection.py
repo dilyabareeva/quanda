@@ -91,6 +91,7 @@ class ShortcutDetectionMetric(Metric):
         test_labels : torch.Tensor, optional
             Labels of the test samples. Not optional if `filter_by_prediction` or `filter_by_class` is True.
         """
+        explanations = explanations.to(self.device)
 
         if test_tensor is None and self.filter_by_prediction:
             raise ValueError("test_tensor must be provided if filter_by_prediction is True")
@@ -100,9 +101,11 @@ class ShortcutDetectionMetric(Metric):
         select_idx = torch.tensor([True] * len(explanations))
 
         if self.filter_by_prediction:
+            test_tensor = test_tensor.to(self.device)
             pred_cls = self.model(test_tensor).argmax(dim=1)
             select_idx *= pred_cls == self.shortcut_cls
         if self.filter_by_class:
+            test_labels = test_labels.to(self.device)
             select_idx *= test_labels != self.shortcut_cls
 
         explanations = explanations[select_idx].to(self.device)

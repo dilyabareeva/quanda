@@ -28,6 +28,9 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             test_subclasses.shape[0] == explanations.shape[0]
         ), f"Number of explanations ({explanations.shape[0]}) exceeds the number of test labels ({test_subclasses.shape[0]})."
 
+        test_subclasses = test_subclasses.to(self.device)
+        explanations = explanations.to(self.device)
+
         top_one_xpl_indices = explanations.argmax(dim=1)
         top_one_xpl_targets = torch.stack([self.subclass_labels[i] for i in top_one_xpl_indices])
 

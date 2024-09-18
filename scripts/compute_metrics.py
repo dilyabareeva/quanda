@@ -41,7 +41,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     # Downloading the datasets and checkpoints
 
     # Initialize WandbLogger
-    wandb.init(project="quanda", name="tiny_inet_resnet18", id="tiny_inet_resnet18", reinit=True)
+    wandb.init(project="quanda", name="tiny_inet_resnet18", id="tiny_inet_resnet18", reinit=False)
 
     # We first download the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
     os.makedirs(explanations_dir, exist_ok=True)
@@ -168,6 +168,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     lit_model = LitModel.load_from_checkpoint(
         checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
     )
+    lit_model.to("cuda:0")
     lit_model.model = lit_model.model.eval()
 
     # Define Dataloader for different metrics
@@ -223,8 +224,8 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     )
     # vis_dataloader(dataloaders["mixed_dataset"])
 
-    explanation_methods = ["similarity", "representer_points", "tracincpfast", "trak", "random"]
-
+    explanation_methods = ["similarity", "representer_points", "trak", "random"]
+    #, "tracincpfast", "arnoldi"
     if metric == "mislabeling":
         for method in explanation_methods:
             method_save_dir = os.path.join(explanations_dir, method)
@@ -233,14 +234,12 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             mislabeled = MislabelingDetectionMetric(
                 model=lit_model,
                 train_dataset=train_set,
-                mislabeling_indices=torch.load(os.path.join(metadata_dir, "dataset_indices/all_train_flipped_dict.pth")),
+                mislabeling_indices=torch.load(os.path.join(metadata_dir, "all_train_flipped_indices.pth")),
                 global_method="sum_abs",
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
-                explanation_targets = [
-                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
-                ]
-                mislabeled.update(explanations[i], torch.tensor(explanation_targets))
+                test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
+                mislabeled.update(test_tensor, test_labels, explanations[i].to("cuda:0"))
 
             score = mislabeled.compute()
             wandb.log({f"{method}_{metric}": score})
@@ -253,16 +252,17 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             shortcut = ShortcutDetectionMetric(
                 model=lit_model,
                 train_dataset=train_set,
-                shortcut_indices=torch.load(os.path.join(metadata_dir, "dataset_indices/all_train_shortcut_indices.pth")),
+                shortcut_indices=torch.load(os.path.join(metadata_dir, "all_train_shortcut_indices.pth")),
                 shortcut_cls=162,
                 filter_by_prediction=False,
                 filter_by_class=False,
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
+                test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
                 explanation_targets = [
                     lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
                 ]
-                shortcut.update(explanations[i])
+                shortcut.update(explanations[i].to("cuda:0"))
 
             score = shortcut.compute()
             wandb.log({f"{method}_{metric}": score})
@@ -278,6 +278,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
                 subclass_labels=torch.tensor([test_set[i][1] for i in test_cats + test_dogs]),
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
+                test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
                 explanation_targets = [
                     lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
                 ]
@@ -293,10 +294,11 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             explanations = EC.load(subset_save_dir)
             top_k = TopKOverlapMetric(model=lit_model, train_dataset=train_set, top_k=1)
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
+                test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
                 explanation_targets = [
                     lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
                 ]
-                top_k.update(explanations[i])
+                top_k.update(explanations[i].to("cuda:0"))
 
             score = top_k.compute()
             wandb.log({f"{method}_{metric}": score})
@@ -309,13 +311,14 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             mixed_dataset = MixedDatasetsMetric(
                 train_dataset=train_set,
                 model=lit_model,
-                adversarial_indices=torch.load(os.path.join(metadata_dir, "dataset_indices/all_train_backdoor.pth")),
+                adversarial_indices=torch.load(os.path.join(metadata_dir, "all_train_backdoor_indices.pth")),
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
+                test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
                 explanation_targets = [
                     lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
                 ]
-                mixed_dataset.update(explanations[i])
+                mixed_dataset.update(explanations[i].to("cuda:0"))
 
             score = mixed_dataset.compute()
             wandb.log({f"{method}_{metric}": score})

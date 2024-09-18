@@ -115,6 +115,8 @@ class ModelRandomizationMetric(Metric):
             The target values for the explanations, by default None.
         """
         explanations = explanations.to(self.device)
+        test_data = test_data.to(self.device)
+        explanation_targets = explanation_targets.to(self.device) if explanation_targets is not None else None
 
         rand_explanations = self.rand_explainer.explain(test=test_data, targets=explanation_targets).to(self.device)
 
