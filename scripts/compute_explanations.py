@@ -344,8 +344,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             model=lit_model,
             train_dataset=train_dataloader.dataset,
             checkpoints=checkpoints,
-            model_id="0",
-            cache_dir=output_dir,
             checkpoints_load_func=load_state_dict,
             loss_fn=torch.nn.CrossEntropyLoss(reduction="mean"),
             final_fc_layer=list(lit_model.model.children())[-1],
