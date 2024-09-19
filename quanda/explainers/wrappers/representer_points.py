@@ -162,7 +162,9 @@ class RepresenterPoints(Explainer):
         """
         if load_from_disk:
             try:
-                self.coefficients = torch.load(os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"))
+                self.coefficients = torch.load(
+                os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"
+                ), weights_only=True)
             except FileNotFoundError:
                 self.train()
         else:

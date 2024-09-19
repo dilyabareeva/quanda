@@ -22,8 +22,8 @@ class ShortcutDetectionMetric(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        poisoned_indices: Union[List[int], torch.Tensor],
-        poisoned_cls: int,
+        shortcut_indices: Union[List[int], torch.Tensor],
+        shortcut_cls: int,
         filter_by_prediction: bool = False,
         filter_by_class: bool = False,
     ):
@@ -36,43 +36,43 @@ class ShortcutDetectionMetric(Metric):
         train_dataset : torch.utils.data.Dataset
             Training dataset used to train `model`. Each item of the dataset should be a tuple of the form
             (input_tensor, label_tensor).
-        poisoned_indices : Union[List[int], torch.Tensor]
+        shortcut_indices : Union[List[int], torch.Tensor]
             A list of ground truth shortcut indices of the `train_dataset`.
-        poisoned_cls : int
-            Class of the poisoned samples.
+        shortcut_cls : int
+            Class of the shortcut samples.
         filter_by_prediction : bool, optional
-            Whether to filter the test samples to only calculate the metric on those samples, where the poisoned class
+            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
             is predicted, by default True
         filter_by_class: bool, optional
-            Whether to filter the test samples to only calculate the metric on those samples, where the poisoned class
+            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
             is not assigned as the class, by default True
 
         Raises
         ------
         AssertionError
-            If the poisoned samples are not all from to the poisoned class.
+            If the shortcut samples are not all from to the shortcut class.
         """
         super().__init__(model=model, train_dataset=train_dataset)
-        if isinstance(poisoned_indices, list):
-            poisoned_indices = torch.tensor(poisoned_indices)
+        if isinstance(shortcut_indices, list):
+            shortcut_indices = torch.tensor(shortcut_indices)
         self.auprc_scores: List[torch.Tensor] = []
-        self.poisoned_indices = poisoned_indices
-        self.binary_poisoned_indices: torch.Tensor = torch.tensor(
-            [1 if i in self.poisoned_indices else 0 for i in range(self.dataset_length)], device=self.device
+        self.shortcut_indices = shortcut_indices
+        self.binary_shortcut_indices: torch.Tensor = torch.tensor(
+            [1 if i in self.shortcut_indices else 0 for i in range(self.dataset_length)], device=self.device
         )
-        self.poisoned_cls = poisoned_cls
-        self._validate_poisoned_labels()
+        self.shortcut_cls = shortcut_cls
+        self._validate_shortcut_labels()
 
         self.filter_by_prediction = filter_by_prediction
         self.filter_by_class = filter_by_class
 
-    def _validate_poisoned_labels(self):
+    def _validate_shortcut_labels(self):
         """Validate the adversarial labels in the training dataset."""
-        poisoned_labels = torch.tensor([self.train_dataset[i][1] for i in self.poisoned_indices], device=self.device)
+        shortcut_labels = torch.tensor([self.train_dataset[i][1] for i in self.shortcut_indices], device=self.device)
         assert torch.all(
-            poisoned_labels == self.poisoned_cls
-        ), f"Poisoned indices don't have the correct class.\
-            Expected only {self.poisoned_cls}, got {set(poisoned_labels)}."
+            shortcut_labels == self.shortcut_cls
+        ), f"shortcut indices don't have the correct class.\
+            Expected only {self.shortcut_cls}, got {set(shortcut_labels)}."
 
     def update(
         self,
@@ -101,13 +101,13 @@ class ShortcutDetectionMetric(Metric):
 
         if self.filter_by_prediction:
             pred_cls = self.model(test_tensor).argmax(dim=1)
-            select_idx *= pred_cls == self.poisoned_cls
+            select_idx *= pred_cls == self.shortcut_cls
         if self.filter_by_class:
-            select_idx *= test_labels != self.poisoned_cls
+            select_idx *= test_labels != self.shortcut_cls
 
         explanations = explanations[select_idx].to(self.device)
 
-        self.auprc_scores.extend([binary_auprc(xpl, self.binary_poisoned_indices) for xpl in explanations])
+        self.auprc_scores.extend([binary_auprc(xpl, self.binary_shortcut_indices) for xpl in explanations])
 
     def compute(self, *args, **kwargs):
         """

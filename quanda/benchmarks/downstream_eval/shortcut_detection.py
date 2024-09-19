@@ -22,7 +22,7 @@ class ShortcutDetection(Benchmark):
     The model is then trained on this dataset, and learns a shortcut to use the trigger to predict the class.
     The goal is to detect this shortcut using the attributions of the model.
 
-    Note that all explanations are generated with respect to the class of the poisoned samples, to detect the shortcut.
+    Note that all explanations are generated with respect to the class of the shortcut samples, to detect the shortcut.
 
     The average attributions for triggered examples from the class, clean examples from the class,
     and clean examples from other classes are computed.
@@ -50,10 +50,10 @@ class ShortcutDetection(Benchmark):
         self.eval_dataset: torch.utils.data.Dataset
         self.shortcut_dataset: SampleTransformationDataset
         self.dataset_transform: Optional[Callable]
-        self.poisoned_indices: Union[List[int], torch.Tensor]
-        self.poisoned_cls: int
-        self.poisoned_train_dl: torch.utils.data.DataLoader
-        self.poisoned_val_dl: Optional[torch.utils.data.DataLoader]
+        self.shortcut_indices: Union[List[int], torch.Tensor]
+        self.shortcut_cls: int
+        self.shortcut_train_dl: torch.utils.data.DataLoader
+        self.shortcut_val_dl: Optional[torch.utils.data.DataLoader]
         self.original_train_dl: torch.utils.data.DataLoader
         self.p: float
         self.sample_fn: Callable
@@ -66,7 +66,7 @@ class ShortcutDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         eval_dataset: torch.utils.data.Dataset,
-        poisoned_cls: int,
+        shortcut_cls: int,
         trainer: Union[L.Trainer, BaseTrainer],
         sample_fn: Callable,
         dataset_split: str = "train",
@@ -91,7 +91,9 @@ class ShortcutDetection(Benchmark):
             Number of classes in the dataset.
         eval_dataset : torch.utils.data.Dataset
             Dataset to be used for the evaluation.
-        poisoned_cls : int
+        eval_dataset : torch.utils.data.Dataset
+            Dataset to be used for the evaluation.
+        shortcut_cls : int
             The class to add triggers to.
         trainer : Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the model.
@@ -126,7 +128,7 @@ class ShortcutDetection(Benchmark):
             train_dataset=train_dataset,
             val_dataset=val_dataset,
             p=p,
-            poisoned_cls=poisoned_cls,
+            shortcut_cls=shortcut_cls,
             sample_fn=sample_fn,
             dataset_transform=dataset_transform,
             n_classes=n_classes,
@@ -142,7 +144,7 @@ class ShortcutDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         model: Union[torch.nn.Module, L.LightningModule],
         n_classes: int,
-        poisoned_cls: int,
+        shortcut_cls: int,
         sample_fn: Callable,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable],
@@ -162,7 +164,7 @@ class ShortcutDetection(Benchmark):
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
-        poisoned_cls : int
+        shortcut_cls : int
             The class to add triggers to.
         trainer : Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the model.
@@ -193,32 +195,32 @@ class ShortcutDetection(Benchmark):
         self.p = p
         self.n_classes = n_classes
         self.dataset_transform = dataset_transform
-        self.poisoned_dataset = SampleTransformationDataset(
+        self.shortcut_dataset = SampleTransformationDataset(
             dataset=self.train_dataset,
             p=p,
             dataset_transform=dataset_transform,
-            cls_idx=poisoned_cls,
+            cls_idx=shortcut_cls,
             n_classes=n_classes,
             sample_fn=sample_fn,
             seed=seed,
         )
-        self.poisoned_indices = self.poisoned_dataset.transform_indices
-        self.poisoned_cls = poisoned_cls
+        self.shortcut_indices = self.shortcut_dataset.transform_indices
+        self.shortcut_cls = shortcut_cls
         self.sample_fn = sample_fn
-        self.poisoned_train_dl = torch.utils.data.DataLoader(self.poisoned_dataset, batch_size=batch_size)
+        self.shortcut_train_dl = torch.utils.data.DataLoader(self.shortcut_dataset, batch_size=batch_size)
         self.original_train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size)
         if val_dataset:
-            poisoned_val_dataset = SampleTransformationDataset(
+            shortcut_val_dataset = SampleTransformationDataset(
                 dataset=self.train_dataset,
                 dataset_transform=self.dataset_transform,
                 p=self.p,
-                cls_idx=poisoned_cls,
+                cls_idx=shortcut_cls,
                 sample_fn=sample_fn,
                 n_classes=self.n_classes,
             )
-            self.poisoned_val_dl = torch.utils.data.DataLoader(poisoned_val_dataset, batch_size=batch_size)
+            self.shortcut_val_dl = torch.utils.data.DataLoader(shortcut_val_dataset, batch_size=batch_size)
         else:
-            self.poisoned_val_dl = None
+            self.shortcut_val_dl = None
 
         self.model = copy.deepcopy(model)
 
@@ -230,8 +232,8 @@ class ShortcutDetection(Benchmark):
 
             trainer.fit(
                 model=self.model,
-                train_dataloaders=self.poisoned_train_dl,
-                val_dataloaders=self.poisoned_val_dl,
+                train_dataloaders=self.shortcut_train_dl,
+                val_dataloaders=self.shortcut_val_dl,
                 **trainer_fit_kwargs,
             )
 
@@ -241,8 +243,8 @@ class ShortcutDetection(Benchmark):
 
             trainer.fit(
                 model=self.model,
-                train_dataloaders=self.poisoned_train_dl,
-                val_dataloaders=self.poisoned_val_dl,
+                train_dataloaders=self.shortcut_train_dl,
+                val_dataloaders=self.shortcut_val_dl,
                 **trainer_fit_kwargs,
             )
 
@@ -268,8 +270,8 @@ class ShortcutDetection(Benchmark):
             train_dataset=bench_state["train_dataset"],
             n_classes=bench_state["n_classes"],
             eval_dataset=eval_dataset,
-            poisoned_indices=bench_state["poisoned_indices"],
-            poisoned_cls=bench_state["poisoned_cls"],
+            shortcut_indices=bench_state["shortcut_indices"],
+            shortcut_cls=bench_state["shortcut_cls"],
             sample_fn=bench_state["sample_fn"],
             dataset_transform=bench_state["dataset_transform"],
             p=bench_state["p"],
@@ -285,9 +287,9 @@ class ShortcutDetection(Benchmark):
         n_classes: int,
         eval_dataset: torch.utils.data.Dataset,
         sample_fn: Callable,
-        poisoned_cls: int,
+        shortcut_cls: int,
         dataset_split: str = "train",
-        poisoned_indices: Optional[List[int]] = None,
+        shortcut_indices: Optional[List[int]] = None,
         dataset_transform: Optional[Callable] = None,
         p: float = 0.3,  # TODO: type specification
         batch_size: int = 8,
@@ -311,7 +313,7 @@ class ShortcutDetection(Benchmark):
             Function to add triggers to samples of the dataset.
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
-        poisoned_indices : Optional[List[int]], optional
+        shortcut_indices : Optional[List[int]], optional
             Binary list of indices to poison, defaults to None
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
@@ -328,19 +330,19 @@ class ShortcutDetection(Benchmark):
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
 
-        obj.poisoned_dataset = SampleTransformationDataset(
+        obj.shortcut_dataset = SampleTransformationDataset(
             dataset=obj.train_dataset,
             p=p,
-            cls_idx=poisoned_cls,
+            cls_idx=shortcut_cls,
             dataset_transform=dataset_transform,
             sample_fn=sample_fn,
             n_classes=n_classes,
-            transform_indices=poisoned_indices,
+            transform_indices=shortcut_indices,
         )
-        obj.poisoned_cls = poisoned_cls
-        obj.poisoned_indices = obj.poisoned_dataset.transform_indices
+        obj.shortcut_cls = shortcut_cls
+        obj.shortcut_indices = obj.shortcut_dataset.transform_indices
         obj.sample_fn = sample_fn
-        obj.poisoned_train_dl = torch.utils.data.DataLoader(obj.poisoned_dataset, batch_size=batch_size)
+        obj.shortcut_train_dl = torch.utils.data.DataLoader(obj.shortcut_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
 
         obj.set_devices(model)
@@ -367,10 +369,10 @@ class ShortcutDetection(Benchmark):
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None
         filter_by_prediction : bool, optional
-            Whether to filter the test samples to only calculate the metric on those samples, where the poisoned class
+            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
             is predicted, by default True
         filter_by_class: bool, optional
-            Whether to filter the test samples to only calculate the metric on those samples, where the poisoned class
+            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
             is not assigned as the class, by default True
         batch_size : int, optional
             Batch size to be used for the evaluation, default to 8
@@ -382,19 +384,19 @@ class ShortcutDetection(Benchmark):
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
 
-        poisoned_expl_ds = SampleTransformationDataset(
+        shortcut_expl_ds = SampleTransformationDataset(
             dataset=self.eval_dataset,
             dataset_transform=self.dataset_transform,
             n_classes=self.n_classes,
             sample_fn=self.sample_fn,
             p=1.0,
         )
-        expl_dl = torch.utils.data.DataLoader(poisoned_expl_ds, batch_size=batch_size)
+        expl_dl = torch.utils.data.DataLoader(shortcut_expl_ds, batch_size=batch_size)
         metric = ShortcutDetectionMetric(
             model=self.model,
-            train_dataset=self.poisoned_dataset,
-            poisoned_indices=self.poisoned_indices,
-            poisoned_cls=self.poisoned_cls,
+            train_dataset=self.shortcut_dataset,
+            shortcut_indices=self.shortcut_indices,
+            shortcut_cls=self.shortcut_cls,
             filter_by_prediction=filter_by_prediction,
             filter_by_class=filter_by_class,
         )
@@ -405,7 +407,7 @@ class ShortcutDetection(Benchmark):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
             input, labels = input.to(self.device), labels.to(self.device)
-            targets = torch.ones_like(labels) * self.poisoned_cls
+            targets = torch.ones_like(labels) * self.shortcut_cls
 
             explanations = explainer.explain(
                 test=input,

@@ -23,9 +23,7 @@
 **Training data attribution** (TDA) methods attribute model output to its training samples ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html); [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html); [Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html); [Bae et al., 2024](https://arxiv.org/abs/2405.12186)). Outside of being used for understanding models, TDA has also found usage in a large variety of applications such as debugging model behavior ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html); [K and Søgaard, 2021](https://arxiv.org/abs/2111.04683); [Guo et al., 2021](https://aclanthology.org/2021.emnlp-main.808)), data summarization ([Khanna et al., 2019](https://proceedings.mlr.press/v89/khanna19a.html); [Marion et al., 2023](https://openreview.net/forum?id=XUIYn3jo5T); [Yang et al., 2023](https://openreview.net/forum?id=4wZiAXD29TQ)), dataset selection ([Engstrom et al., 2024](https://openreview.net/forum?id=GC8HkKeH8s); [Chhabra et al., 2024](https://openreview.net/forum?id=HE9eUQlAvo)), fact tracing ([Akyurek et al., 2022](https://aclanthology.org/2022.findings-emnlp.180)) and machine unlearning ([Warnecke
 et al., 2023](https://arxiv.org/abs/2108.11577)).
 
-The evaluation of TDA methods is a difficult task, especially due to the computationally demanding and noisy nature of the ground truths. ([Basu et al.](https://arxiv.org/abs/2006.14651); [Nguyen et al.](https://arxiv.org/abs/2305.19765)). For this reason, the community has proposed various sanity checks ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)) and downstream tasks ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html);[Khanna et al., 2019](https://proceedings.mlr.press/v89/khanna19a.html);[Karthikeyan et al.](https://arxiv.org/abs/2111.04683)) to evaluate the effectiveness of TDA methods. Quanda provides a unified framework to evaluate TDA methods to help researchers and practitioners choose between the proposed methods.
-
-While accounting for different evaluation strategies, Quanda also strives to provide a unifying interface for most prominent TDA methods.
+The evaluation of TDA methods is a difficult task, especially due to the computationally demanding and noisy nature of the ground truths. ([Basu et al.](https://arxiv.org/abs/2006.14651); [Nguyen et al.](https://arxiv.org/abs/2305.19765)). For this reason, the community has proposed various sanity checks ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)) and downstream tasks ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html);[Khanna et al., 2019](https://proceedings.mlr.press/v89/khanna19a.html);[Karthikeyan et al.](https://arxiv.org/abs/2111.04683)) to evaluate the effectiveness of TDA methods. 
 
 ### Library Features
 
@@ -54,15 +52,6 @@ TODO: table with links to original implementations
 ### Benchmarks
 
 TODO: table with available benchmarks
-
-### Common Pitfalls
-
-- **Controlled Setting Evaluation**: Many metrics require access to ground truth labels for datasets, such as the indices of the "shorcut samples" in the Shortcut Detection metric, or the mislabeling (noisy) label indices for the Mislabeling Detection Metric. However, users often may not have access to these labels. To address this, we recommend either using one of our pre-built benchmark (see Benchmarks section of this README) suites or generating (`generate` method) a custom benchmark for comparing explainers. Benchmarks provide a controlled environment for systematic evaluation.
-
-- **Caching**: Many of the Explaienrs in our library generate re-usable cache. The `cache_id` and `model_id` parameters passed to various class instances are used to store these intermediary results. Please ensure that each experiment is assigned a unique combination of these arguments. Failing to do so could lead to incorrect reuse of cached results. If you wish to avoid re-using cached results, you can set the `load_from_disk` parameter to `False`.
-
-- **Explainers Are Expensive To Calculate**: Certain Explainers, such as TracInCPRandomProj, may lead to OutOfMemory (OOM) issues when applied to large models or datasets. In such cases, we recommend adjusting memory usage by either reducing the dataset size or using smaller models to avoid these issues.
-
 
 ## 🔬 Getting Started
 
@@ -156,6 +145,15 @@ print("Model heuristics metric output:", model_rand.compute())
 
 More detailed examples can be found in the following [tutorials](https://github.com/dilyabareeva/quanda/tree/main/tutorials) section.
 
+
+## ⚠️ Usage Tips and Caveats
+
+- **Controlled Setting Evaluation**: Many metrics require access to ground truth labels for datasets, such as the indices of the "shorcut samples" in the Shortcut Detection metric, or the mislabeling (noisy) label indices for the Mislabeling Detection Metric. However, users often may not have access to these labels. To address this, we recommend either using one of our pre-built benchmark (see Benchmarks section of this README) suites or generating (`generate` method) a custom benchmark for comparing explainers. Benchmarks provide a controlled environment for systematic evaluation.
+
+- **Caching**: Many of the Explaienrs in our library generate re-usable cache. The `cache_id` and `model_id` parameters passed to various class instances are used to store these intermediary results. Please ensure that each experiment is assigned a unique combination of these arguments. Failing to do so could lead to incorrect reuse of cached results. If you wish to avoid re-using cached results, you can set the `load_from_disk` parameter to `False`.
+
+- **Explainers Are Expensive To Calculate**: Certain Explainers, such as TracInCPRandomProj, may lead to OutOfMemory (OOM) issues when applied to large models or datasets. In such cases, we recommend adjusting memory usage by either reducing the dataset size or using smaller models to avoid these issues.
+- 
 ## 📓 Tutorials
 
 We have included a few  [tutorials](https://github.com/dilyabareeva/quanda/tree/main/tutorials) to demonstrate the usage of **quanda**:
