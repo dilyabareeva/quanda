@@ -47,6 +47,7 @@ class ShortcutDetection(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.train_dataset: torch.utils.data.Dataset
+        self.eval_dataset: torch.utils.data.Dataset
         self.shortcut_dataset: SampleTransformationDataset
         self.dataset_transform: Optional[Callable]
         self.shortcut_indices: Union[List[int], torch.Tensor]
@@ -64,6 +65,7 @@ class ShortcutDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
+        eval_dataset: torch.utils.data.Dataset,
         shortcut_cls: int,
         trainer: Union[L.Trainer, BaseTrainer],
         sample_fn: Callable,
@@ -87,6 +89,10 @@ class ShortcutDetection(Benchmark):
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
+        eval_dataset : torch.utils.data.Dataset
+            Dataset to be used for the evaluation.
+        eval_dataset : torch.utils.data.Dataset
+            Dataset to be used for the evaluation.
         shortcut_cls : int
             The class to add triggers to.
         trainer : Union[L.Trainer, BaseTrainer]
@@ -116,6 +122,7 @@ class ShortcutDetection(Benchmark):
         obj = cls()
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.eval_dataset = eval_dataset
         obj._generate(
             model=model,
             train_dataset=train_dataset,
@@ -245,7 +252,7 @@ class ShortcutDetection(Benchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 
@@ -253,6 +260,8 @@ class ShortcutDetection(Benchmark):
         ----------
         name : str
             Name of the benchmark to be loaded.
+        eval_dataset : torch.utils.data.Dataset
+            Dataset to be used for the evaluation.
         """
         bench_state = cls.download_bench_state(name)
 
@@ -260,6 +269,7 @@ class ShortcutDetection(Benchmark):
             model=bench_state["model"],
             train_dataset=bench_state["train_dataset"],
             n_classes=bench_state["n_classes"],
+            eval_dataset=eval_dataset,
             shortcut_indices=bench_state["shortcut_indices"],
             shortcut_cls=bench_state["shortcut_cls"],
             sample_fn=bench_state["sample_fn"],
@@ -275,6 +285,7 @@ class ShortcutDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
+        eval_dataset: torch.utils.data.Dataset,
         sample_fn: Callable,
         shortcut_cls: int,
         dataset_split: str = "train",
@@ -296,6 +307,8 @@ class ShortcutDetection(Benchmark):
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
+        eval_dataset : torch.utils.data.Dataset
+            Dataset to be used for the evaluation.
         sample_fn : Callable
             Function to add triggers to samples of the dataset.
         dataset_split : str, optional
@@ -312,6 +325,7 @@ class ShortcutDetection(Benchmark):
         obj = cls()
         obj.model = model
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.eval_dataset = eval_dataset
         obj.p = p
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
@@ -337,7 +351,6 @@ class ShortcutDetection(Benchmark):
 
     def evaluate(
         self,
-        expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         filter_by_prediction: bool = True,
@@ -351,8 +364,6 @@ class ShortcutDetection(Benchmark):
 
         Parameters
         ----------
-        expl_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
         explainer_cls : type
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
@@ -374,7 +385,7 @@ class ShortcutDetection(Benchmark):
         explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
 
         shortcut_expl_ds = SampleTransformationDataset(
-            dataset=expl_dataset,
+            dataset=self.eval_dataset,
             dataset_transform=self.dataset_transform,
             n_classes=self.n_classes,
             sample_fn=self.sample_fn,

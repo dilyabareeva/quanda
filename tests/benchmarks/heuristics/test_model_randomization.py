@@ -74,6 +74,7 @@ def test_model_randomization(
         dst_eval = ModelRandomization.generate(
             model=model,
             train_dataset=dataset,
+            eval_dataset=dataset,
             device="cpu",
         )
 
@@ -81,12 +82,12 @@ def test_model_randomization(
         dst_eval = ModelRandomization.assemble(
             model=model,
             train_dataset=dataset,
+            eval_dataset=dataset,
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
     score = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),

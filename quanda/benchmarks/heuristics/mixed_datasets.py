@@ -61,6 +61,7 @@ class MixedDatasets(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.clean_dataset: torch.utils.data.Dataset
+        self.eval_dataset: torch.utils.data.Dataset
         self.mixed_dataset: torch.utils.data.Dataset
         self.adversarial_indices: List[int]
 
@@ -69,6 +70,7 @@ class MixedDatasets(Benchmark):
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
         clean_dataset: Union[str, torch.utils.data.Dataset],
+        eval_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
         trainer: Union[L.Trainer, BaseTrainer],
@@ -91,6 +93,9 @@ class MixedDatasets(Benchmark):
         clean_dataset: Union[str, torch.utils.data.Dataset]
             Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
             If a torch Dataset is passed, every item of the dataset is a tuple of the form (input, label).
+        eval_dataset: torch.utils.data.Dataset
+            The dataset containing the adversarial examples used for evaluation. They should belong to
+            the same dataset and the same class as the samples in the adversarial dataset.
         adversarial_dir: str
             Path to directory containing the adversarial dataset. Typically consists of the same class of objects
             (e.g. images of the same class).
@@ -132,7 +137,7 @@ class MixedDatasets(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-
+        obj.eval_dataset = eval_dataset
         pr_clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
 
         adversarial_dataset = SingleClassImageDataset(
@@ -180,7 +185,7 @@ class MixedDatasets(Benchmark):
         return obj
 
     @classmethod
-    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance
         from the state dictionary.
@@ -195,6 +200,7 @@ class MixedDatasets(Benchmark):
         return cls.assemble(
             model=bench_state["model"],
             clean_dataset=bench_state["train_dataset"],
+            eval_dataset=eval_dataset,
             adversarial_dir=bench_state["adversarial_dir"],
             adversarial_label=bench_state["adversarial_label"],
             adversarial_transform=bench_state["adversarial_transform"],
@@ -205,6 +211,7 @@ class MixedDatasets(Benchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
+        eval_dataset: torch.utils.data.Dataset,
         clean_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
@@ -222,6 +229,9 @@ class MixedDatasets(Benchmark):
             Model to be used for the benchmark.
         clean_dataset: Union[str, torch.utils.data.Dataset]
             Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
+        eval_dataset: torch.utils.data.Dataset
+            The dataset containing the adversarial examples used for evaluation. They should belong to
+            the same dataset and the same class as the samples in the adversarial dataset.
         adversarial_dir: str
             Path to the adversarial dataset of a single class.
         adversarial_label: int
@@ -243,6 +253,7 @@ class MixedDatasets(Benchmark):
         obj = cls()
         obj.model = model
         obj.clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
+        obj.eval_dataset = eval_dataset
 
         adversarial_dataset = SingleClassImageDataset(
             root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
@@ -256,7 +267,6 @@ class MixedDatasets(Benchmark):
 
     def evaluate(
         self,
-        eval_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         use_predictions: bool = True,
@@ -267,9 +277,6 @@ class MixedDatasets(Benchmark):
 
         Parameters
         ----------
-        eval_dataset: torch.utils.data.Dataset
-            The dataset containing the adversarial examples used for evaluation. They should belong to
-            the same dataset and the same class as the samples in the adversarial dataset.
         explainer_cls: type
             The explanation class inheriting from the base Explainer class to be used for evaluation.
         expl_kwargs: Optional[dict], optional
@@ -287,7 +294,7 @@ class MixedDatasets(Benchmark):
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.mixed_dataset, **expl_kwargs)
 
-        adversarial_expl_dl = torch.utils.data.DataLoader(eval_dataset, batch_size=batch_size)
+        adversarial_expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
         metric = MixedDatasetsMetric(
             model=self.model,

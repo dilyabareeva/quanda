@@ -2,8 +2,12 @@ from typing import Any, List, Optional, Union
 
 import torch
 
+from quanda.explainers.global_ranking import (
+    GlobalAggrStrategy,
+    GlobalSelfInfluenceStrategy,
+    aggr_types,
+)
 from quanda.metrics.base import Metric
-from quanda.tasks.global_ranking import GlobalRanking
 
 
 class MislabelingDetectionMetric(Metric):
@@ -73,14 +77,29 @@ class MislabelingDetectionMetric(Metric):
             model=model,
             train_dataset=train_dataset,
         )
-        self.global_ranker = GlobalRanking(
-            model=model,
-            train_dataset=train_dataset,
-            global_method=global_method,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
-            model_id="test",
+        strategies = {
+            "self-influence": GlobalSelfInfluenceStrategy,
+            "aggr": GlobalAggrStrategy,
+        }
+        if expl_kwargs is None:
+            expl_kwargs = {}
+        self.explainer = (
+            None if explainer_cls is None else explainer_cls(model=model, train_dataset=train_dataset, **expl_kwargs)
         )
+
+        if isinstance(global_method, str):
+            if global_method == "self-influence":
+                self.strategy = strategies[global_method](explainer=self.explainer)
+
+            elif global_method in aggr_types.keys():
+                aggr_type = aggr_types[global_method]
+                self.strategy = strategies["aggr"](aggr_type=aggr_type)
+            else:
+                raise ValueError(f"Global method {global_method} is not supported.")
+        elif isinstance(global_method, type):
+            self.strategy = strategies["aggr"](
+                aggr_type=global_method,
+            )
         self.mislabeling_indices = mislabeling_indices
 
     @classmethod
@@ -187,11 +206,11 @@ class MislabelingDetectionMetric(Metric):
         # identify wrong prediction indices
         wrong_indices = torch.where(labels != test_labels)[0]
 
-        self.global_ranker.update(explanations[wrong_indices], **kwargs)
+        self.strategy.update(explanations[wrong_indices], **kwargs)
 
     def reset(self, *args, **kwargs):
         """Reset the global ranking strategy."""
-        self.global_ranker.reset()
+        self.strategy.reset(*args, **kwargs)
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
@@ -201,7 +220,7 @@ class MislabelingDetectionMetric(Metric):
         state_dict : dict
             A state dictionary for `global_ranker`
         """
-        self.global_ranker.load_state_dict(state_dict)
+        self.strategy.load_state_dict(state_dict)
 
     def state_dict(self, *args, **kwargs):
         """
@@ -212,7 +231,7 @@ class MislabelingDetectionMetric(Metric):
         dict
             The state dictionary of the global ranker.
         """
-        return self.global_ranker.state_dict()
+        return self.strategy.state_dict()
 
     def compute(self, *args, **kwargs):
         """
@@ -226,7 +245,7 @@ class MislabelingDetectionMetric(Metric):
             - `curve`: The normalized curve of cumulative success rate.
             - `score`: The mislabeling detection score, i.e. the area under `curve`
         """
-        global_ranking = self.global_ranker.compute()
+        global_ranking = self.strategy.get_global_rank(*args, **kwargs)
         success_arr = torch.tensor([elem in self.mislabeling_indices for elem in global_ranking])
         normalized_curve = torch.cumsum(success_arr * 1.0, dim=0) / len(self.mislabeling_indices)
         score = torch.trapezoid(normalized_curve) / len(self.mislabeling_indices)

@@ -4,8 +4,12 @@ from typing import Optional, Union
 import lightning as L
 import torch
 
+from quanda.explainers.global_ranking import (
+    GlobalAggrStrategy,
+    GlobalSelfInfluenceStrategy,
+    aggr_types,
+)
 from quanda.metrics.base import Metric
-from quanda.tasks.global_ranking import GlobalRanking
 from quanda.utils.common import class_accuracy
 from quanda.utils.training import BaseTrainer
 
@@ -41,14 +45,34 @@ class DatasetCleaningMetric(Metric):
             model=model,
             train_dataset=train_dataset,
         )
-        self.global_ranker = GlobalRanking(
-            model=model,
-            train_dataset=train_dataset,
-            global_method=global_method,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
-            model_id="test",
+        strategies = {
+            "self-influence": GlobalSelfInfluenceStrategy,
+            "aggr": GlobalAggrStrategy,
+        }
+        self.explainer = (
+            None if explainer_cls is None else explainer_cls(model=model, train_dataset=train_dataset, **expl_kwargs)
         )
+        if isinstance(global_method, str):
+            if global_method == "self-influence":
+                self.strategy = strategies[global_method](explainer=self.explainer)
+
+            elif global_method in aggr_types:
+                aggr_type = aggr_types[global_method]
+                self.strategy = strategies["aggr"](aggr_type=aggr_type)
+
+            else:
+                raise ValueError(f"Global method {global_method} is not supported.")
+
+        elif isinstance(global_method, type):
+            self.strategy = strategies["aggr"](
+                aggr_type=global_method,
+            )
+        else:
+            raise ValueError(
+                f"Global method {global_method} is not supported. When passing a custom aggregator, "
+                "it should be a subclass of BaseAggregator. When passing a string, it should be one of "
+                f"{list(aggr_types.keys() + 'self-influence')}."
+            )
         self.top_k = min(top_k, self.dataset_length - 1)
         self.trainer = trainer
         self.trainer_fit_kwargs = trainer_fit_kwargs or {}
@@ -109,19 +133,19 @@ class DatasetCleaningMetric(Metric):
         explanations: torch.Tensor,
         **kwargs,
     ):
-        self.global_ranker.update(explanations, **kwargs)
+        self.strategy.update(explanations, **kwargs)
 
     def reset(self, *args, **kwargs):
-        self.global_ranker.reset()
+        self.strategy.reset()
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
-        self.global_ranker.load_state_dict(state_dict)
+        self.strategy.load_state_dict(state_dict)
 
     def state_dict(self, *args, **kwargs):
-        return self.global_ranker.state_dict()
+        return self.strategy.state_dict()
 
     def compute(self, *args, **kwargs):
-        global_ranking = self.global_ranker.compute()
+        global_ranking = self.strategy.get_global_rank()
         top_k_indices = torch.topk(global_ranking, self.top_k).indices
         clean_indices = [i for i in range(self.dataset_length) if i not in top_k_indices]
         clean_subset = torch.utils.data.Subset(self.train_dataset, clean_indices)

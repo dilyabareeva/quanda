@@ -34,6 +34,7 @@ class SubclassDetection(Benchmark):
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.group_model: Union[torch.nn.Module, L.LightningModule]
         self.train_dataset: torch.utils.data.Dataset
+        self.eval_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
         self.grouped_train_dl: torch.utils.data.DataLoader
         self.grouped_val_dl: Optional[torch.utils.data.DataLoader]
@@ -48,6 +49,7 @@ class SubclassDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         model: Union[torch.nn.Module, L.LightningModule],
         trainer: Union[L.Trainer, BaseTrainer],
+        eval_dataset: torch.utils.data.Dataset,
         dataset_split: str = "train",
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
@@ -70,6 +72,7 @@ class SubclassDetection(Benchmark):
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.model = model
+        obj.eval_dataset = eval_dataset
         obj._generate(
             trainer=trainer,
             train_dataset=train_dataset,
@@ -156,7 +159,7 @@ class SubclassDetection(Benchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -167,6 +170,7 @@ class SubclassDetection(Benchmark):
             train_dataset=bench_state["train_dataset"],
             n_classes=bench_state["n_classes"],
             n_groups=bench_state["n_groups"],
+            eval_dataset=eval_dataset,
             class_to_group=bench_state["class_to_group"],
             dataset_transform=bench_state["dataset_transform"],
             batch_size=batch_size,
@@ -180,6 +184,7 @@ class SubclassDetection(Benchmark):
         n_classes: int,
         n_groups: int,
         class_to_group: Dict[int, int],  # TODO: type specification
+        eval_dataset: torch.utils.data.Dataset,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
@@ -196,6 +201,7 @@ class SubclassDetection(Benchmark):
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
         obj.n_groups = n_groups
+        obj.eval_dataset = eval_dataset
 
         obj.grouped_dataset = LabelGroupingDataset(
             dataset=obj.train_dataset,
@@ -213,7 +219,6 @@ class SubclassDetection(Benchmark):
 
     def evaluate(
         self,
-        expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         use_predictions: bool = True,
@@ -228,7 +233,7 @@ class SubclassDetection(Benchmark):
             model=self.group_model, train_dataset=self.grouped_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
         )
 
-        expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
+        expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
         metric = ClassDetectionMetric(model=self.group_model, train_dataset=self.train_dataset, device=self.device)
 

@@ -52,7 +52,7 @@ from quanda.utils.functions import cosine_similarity
         ),
     ],
 )
-def test_class_detection(
+def test_topk_overlap(
     test_id,
     init_method,
     model,
@@ -77,6 +77,7 @@ def test_class_detection(
         dst_eval = TopKOverlap.generate(
             model=model,
             train_dataset=dataset,
+            eval_dataset=dataset,
             device="cpu",
         )
 
@@ -84,12 +85,12 @@ def test_class_detection(
         dst_eval = TopKOverlap.assemble(
             model=model,
             train_dataset=dataset,
+            eval_dataset=dataset,
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
     score = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         use_predictions=use_predictions,

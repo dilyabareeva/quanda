@@ -6,7 +6,7 @@ import pytest
 from quanda.benchmarks.downstream_eval.mislabeling_detection import (
     MislabelingDetection,
 )
-from quanda.explainers.aggregators import SumAggregator
+from quanda.explainers.global_ranking.aggregators import SumAggregator
 from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
 from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
@@ -118,6 +118,7 @@ def test_mislabeling_detection(
             model=model,
             trainer=trainer,
             train_dataset=dataset,
+            eval_dataset=dataset,
             n_classes=n_classes,
             p=p,
             global_method=global_method,
@@ -130,13 +131,18 @@ def test_mislabeling_detection(
 
     elif init_method == "assemble":
         dst_eval = MislabelingDetection.assemble(
-            model=model, train_dataset=dataset, n_classes=n_classes, p=p, global_method=global_method, batch_size=batch_size
+            model=model,
+            train_dataset=dataset,
+            eval_dataset=dataset,
+            n_classes=n_classes,
+            p=p,
+            global_method=global_method,
+            batch_size=batch_size,
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
     score = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),
@@ -200,6 +206,7 @@ def test_mislabeling_detection_generate_from_pl_module(
         trainer=trainer,
         train_dataset=dataset,
         n_classes=n_classes,
+        eval_dataset=dataset,
         p=p,
         global_method=global_method,
         class_to_group="random",
@@ -210,7 +217,6 @@ def test_mislabeling_detection_generate_from_pl_module(
     )
 
     score = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),
