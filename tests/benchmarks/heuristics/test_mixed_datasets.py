@@ -85,6 +85,7 @@ def test_mixed_datasets(
     dataset = request.getfixturevalue(dataset)
     adversarial_transforms = request.getfixturevalue(adversarial_transforms)
     adversarial_path = request.getfixturevalue(adversarial_path)
+    eval_dataset = SingleClassImageDataset(root=adversarial_path, label=adversarial_label, transform=adversarial_transforms)
 
     if init_method == "generate":
         trainer = Trainer(
@@ -98,6 +99,7 @@ def test_mixed_datasets(
             model=model,
             trainer=trainer,
             clean_dataset=dataset,
+            eval_dataset=eval_dataset,
             adversarial_label=adversarial_label,
             adversarial_dir=adversarial_path,
             adversarial_transform=adversarial_transforms,
@@ -109,6 +111,7 @@ def test_mixed_datasets(
         dst_eval = MixedDatasets.assemble(
             model=model,
             clean_dataset=dataset,
+            eval_dataset=eval_dataset,
             adversarial_label=adversarial_label,
             adversarial_dir=adversarial_path,
             adversarial_transform=adversarial_transforms,
@@ -116,10 +119,7 @@ def test_mixed_datasets(
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
-    eval_dataset = SingleClassImageDataset(root=adversarial_path, label=adversarial_label, transform=adversarial_transforms)
-
     score = dst_eval.evaluate(
-        eval_dataset=eval_dataset,
         explainer_cls=explainer_cls,
         expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
     )["score"]

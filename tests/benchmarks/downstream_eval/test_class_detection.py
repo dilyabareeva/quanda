@@ -75,19 +75,16 @@ def test_class_detection(
         dst_eval = ClassDetection.generate(
             model=model,
             train_dataset=dataset,
+            eval_dataset=dataset,
             device="cpu",
         )
 
     elif init_method == "assemble":
-        dst_eval = ClassDetection.assemble(
-            model=model,
-            train_dataset=dataset,
-        )
+        dst_eval = ClassDetection.assemble(model=model, train_dataset=dataset, eval_dataset=dataset)
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
     score = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),
@@ -169,6 +166,7 @@ def test_class_detection_hugging_face(
         dst_eval = ClassDetection.generate(
             model=model,
             train_dataset=dataset,
+            eval_dataset=dataset,
             dataset_split=dataset_split,
             device="cpu",
         )
@@ -177,6 +175,7 @@ def test_class_detection_hugging_face(
         dst_eval = ClassDetection.assemble(
             model=model,
             train_dataset=dataset,
+            eval_dataset=dataset,
             dataset_split=dataset_split,
         )
     else:

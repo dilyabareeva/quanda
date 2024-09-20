@@ -103,6 +103,7 @@ def test_subclass_detection(
             model=model,
             trainer=trainer,
             train_dataset=dataset,
+            eval_dataset=dataset,
             n_classes=n_classes,
             n_groups=n_groups,
             class_to_group=class_to_group,
@@ -114,13 +115,17 @@ def test_subclass_detection(
 
     elif init_method == "assemble":
         dst_eval = SubclassDetection.assemble(
-            group_model=model, train_dataset=dataset, n_classes=n_classes, n_groups=n_groups, class_to_group=class_to_group
+            group_model=model,
+            train_dataset=dataset,
+            eval_dataset=dataset,
+            n_classes=n_classes,
+            n_groups=n_groups,
+            class_to_group=class_to_group,
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
     score = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),
@@ -186,6 +191,7 @@ def test_subclass_detection_generate_lightning_model(
         model=pl_module,
         trainer=trainer,
         train_dataset=dataset,
+        eval_dataset=dataset,
         n_classes=n_classes,
         n_groups=n_groups,
         class_to_group=class_to_group,
@@ -196,7 +202,6 @@ def test_subclass_detection_generate_lightning_model(
     )
 
     score = dst_eval.evaluate(
-        expl_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),

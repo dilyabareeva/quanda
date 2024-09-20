@@ -27,11 +27,13 @@ class ClassDetection(Benchmark):
 
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
+        self.eval_dataset: torch.utils.data.Dataset
 
     @classmethod
     def generate(
         cls,
         train_dataset: Union[str, torch.utils.data.Dataset],
+        eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
         dataset_split: str = "train",
         *args,
@@ -45,25 +47,27 @@ class ClassDetection(Benchmark):
         obj = cls()
 
         obj.model = model
+        obj.eval_dataset = eval_dataset
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
 
         return obj
 
     @classmethod
-    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
         bench_state = cls.download_bench_state(name)
 
-        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"])
+        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"], eval_dataset=eval_dataset)
 
     @classmethod
     def assemble(
         cls,
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
+        eval_dataset: torch.utils.data.Dataset,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -74,6 +78,7 @@ class ClassDetection(Benchmark):
 
         obj = cls()
         obj.model = model
+        obj.eval_dataset = eval_dataset
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.set_devices(model)
 
@@ -81,7 +86,6 @@ class ClassDetection(Benchmark):
 
     def evaluate(
         self,
-        expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         use_predictions: bool = True,
@@ -96,7 +100,7 @@ class ClassDetection(Benchmark):
             model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
         )
 
-        expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
+        expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
         metric = ClassDetectionMetric(model=self.model, train_dataset=self.train_dataset, device=self.device)
 

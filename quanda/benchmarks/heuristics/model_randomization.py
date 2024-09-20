@@ -39,11 +39,13 @@ class ModelRandomization(Benchmark):
 
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
+        self.eval_dataset: torch.utils.data.Dataset
 
     @classmethod
     def generate(
         cls,
         train_dataset: Union[str, torch.utils.data.Dataset],
+        eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
         dataset_split: str = "train",
         *args,
@@ -58,6 +60,8 @@ class ModelRandomization(Benchmark):
             The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.
         model : torch.nn.Module
             The model used to generate attributions.
+        eval_dataset : torch.utils.data.Dataset
+            The evaluation dataset to be used for the benchmark.
         dataset_split : str, optional
             The dataset split to use, by default "train". Only used if `train_dataset` is a string.
         """
@@ -67,12 +71,13 @@ class ModelRandomization(Benchmark):
         obj = cls()
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.eval_dataset = eval_dataset
         obj.model = model
 
         return obj
 
     @classmethod
-    def download(cls, name: str, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 
@@ -80,16 +85,19 @@ class ModelRandomization(Benchmark):
         ----------
         name : str
             Name of the benchmark to be loaded.
+        eval_dataset : torch.utils.data.Dataset
+            The evaluation dataset to be used for the benchmark.
         """
         bench_state = cls.download_bench_state(name)
 
-        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"])
+        return cls.assemble(model=bench_state["model"], eval_dataset=eval_dataset, train_dataset=bench_state["train_dataset"])
 
     @classmethod
     def assemble(
         cls,
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
+        eval_dataset: torch.utils.data.Dataset,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -103,11 +111,14 @@ class ModelRandomization(Benchmark):
             Model to be used for the benchmark. This model should be trained on the mislabeled dataset.
         train_dataset : Union[str, torch.utils.data.Dataset]
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
+        eval_dataset : torch.utils.data.Dataset
+            Evaluation dataset to be used for the benchmark.
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         """
         obj = cls()
         obj.model = model
+        obj.eval_dataset = eval_dataset
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.set_devices(model)
 
@@ -115,7 +126,6 @@ class ModelRandomization(Benchmark):
 
     def evaluate(
         self,
-        expl_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         use_predictions: bool = True,
@@ -132,8 +142,6 @@ class ModelRandomization(Benchmark):
 
         Parameters
         ----------
-        expl_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
         explainer_cls : type
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
@@ -165,7 +173,7 @@ class ModelRandomization(Benchmark):
         explainer = explainer_cls(
             model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
         )
-        expl_dl = torch.utils.data.DataLoader(expl_dataset, batch_size=batch_size)
+        expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
         metric = ModelRandomizationMetric(
             model=self.model,
