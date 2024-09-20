@@ -31,8 +31,6 @@ class Explainer(ABC):
         self,
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
-        cache_dir: str = "./cache",
-        model_id: Optional[str] = None,
         **kwargs,
     ):
         self.device: Union[str, torch.device]
@@ -44,8 +42,6 @@ class Explainer(ABC):
         else:
             self.device = torch.device("cpu")
 
-        self.model_id = model_id
-        self.cache_dir = cache_dir
 
         # if dataset return samples not on device, move them to device
         if train_dataset[0][0].device != self.device:
