@@ -21,7 +21,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         )
         self.subclass_labels = subclass_labels
 
-    def update(self, test_subclasses: Union[List[int],torch.Tensor], explanations: torch.Tensor):
+    def update(self, test_subclasses: Union[List[int], torch.Tensor], explanations: torch.Tensor):
         """
         Used to implement metric-specific logic.
         """

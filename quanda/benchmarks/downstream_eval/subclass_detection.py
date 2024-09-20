@@ -50,6 +50,7 @@ class SubclassDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         trainer: Union[L.Trainer, BaseTrainer],
         eval_dataset: torch.utils.data.Dataset,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
@@ -73,6 +74,7 @@ class SubclassDetection(Benchmark):
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.model = model
         obj.eval_dataset = eval_dataset
+        obj.use_predictions = use_predictions
         obj._generate(
             trainer=trainer,
             train_dataset=train_dataset,
@@ -171,6 +173,7 @@ class SubclassDetection(Benchmark):
             n_classes=bench_state["n_classes"],
             n_groups=bench_state["n_groups"],
             eval_dataset=eval_dataset,
+            use_predictions=bench_state["use_predictions"],
             class_to_group=bench_state["class_to_group"],
             dataset_transform=bench_state["dataset_transform"],
             batch_size=batch_size,
@@ -185,11 +188,10 @@ class SubclassDetection(Benchmark):
         n_groups: int,
         class_to_group: Dict[int, int],  # TODO: type specification
         eval_dataset: torch.utils.data.Dataset,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
-        *args,
-        **kwargs,
     ):
         """
         This method should assemble the benchmark components from arguments and persist them in the instance.
@@ -202,6 +204,7 @@ class SubclassDetection(Benchmark):
         obj.n_classes = n_classes
         obj.n_groups = n_groups
         obj.eval_dataset = eval_dataset
+        obj.use_predictions = use_predictions
 
         obj.grouped_dataset = LabelGroupingDataset(
             dataset=obj.train_dataset,
@@ -221,16 +224,13 @@ class SubclassDetection(Benchmark):
         self,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = True,
-        cache_dir: str = "./cache",
-        model_id: str = "default_model_id",
         batch_size: int = 8,
         *args,
         **kwargs,
     ):
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(
-            model=self.group_model, train_dataset=self.grouped_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
+            model=self.group_model, train_dataset=self.grouped_dataset, **expl_kwargs
         )
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
@@ -245,7 +245,7 @@ class SubclassDetection(Benchmark):
 
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             grouped_labels = torch.tensor([self.class_to_group[i.item()] for i in labels], device=labels.device)
-            if use_predictions:
+            if self.use_predictions:
                 with torch.no_grad():
                     output = self.group_model(inputs)
                     targets = output.argmax(dim=-1)

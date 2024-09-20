@@ -61,19 +61,19 @@ def test_randomization_metric(
     test_labels,
     correlation_fn,
     tmp_path,
-    request,
+    request, 
 ):
     model = request.getfixturevalue(model)
     test_data = request.getfixturevalue(test_data)
     dataset = request.getfixturevalue(dataset)
     test_labels = request.getfixturevalue(test_labels)
     tda = request.getfixturevalue(explanations)
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     metric = ModelRandomizationMetric(
         model=model,
         train_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
-        correlation_fn=correlation_fn,
         cache_dir=str(tmp_path),
         seed=42,
         device="cpu",
@@ -112,9 +112,10 @@ def test_randomization_metric(
         ),
     ],
 )
-def test_randomization_metric_model_randomization(test_id, model, dataset, explainer_cls, expl_kwargs, corr_fn, request):
+def test_randomization_metric_model_randomization(test_id, model, dataset, explainer_cls, expl_kwargs, corr_fn, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     metric = ModelRandomizationMetric(
         model=model,
         train_dataset=dataset,

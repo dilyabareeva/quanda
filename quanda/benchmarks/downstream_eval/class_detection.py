@@ -35,6 +35,7 @@ class ClassDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -50,6 +51,7 @@ class ClassDetection(Benchmark):
         obj.eval_dataset = eval_dataset
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.use_predictions = use_predictions
 
         return obj
 
@@ -60,7 +62,12 @@ class ClassDetection(Benchmark):
         """
         bench_state = cls.download_bench_state(name)
 
-        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"], eval_dataset=eval_dataset)
+        return cls.assemble(
+            model=bench_state["model"],
+            train_dataset=bench_state["train_dataset"],
+            eval_dataset=eval_dataset,
+            use_predictions=bench_state["use_predictions"],
+        )
 
     @classmethod
     def assemble(
@@ -68,6 +75,7 @@ class ClassDetection(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -80,6 +88,7 @@ class ClassDetection(Benchmark):
         obj.model = model
         obj.eval_dataset = eval_dataset
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.use_predictions = use_predictions
         obj.set_devices(model)
 
         return obj
@@ -88,16 +97,11 @@ class ClassDetection(Benchmark):
         self,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = True,
-        cache_dir: str = "./cache",
-        model_id: str = "default_model_id",
         batch_size: int = 8,
-        *args,
-        **kwargs,
     ):
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(
-            model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
+            model=self.model, train_dataset=self.train_dataset, **expl_kwargs
         )
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
@@ -112,7 +116,7 @@ class ClassDetection(Benchmark):
 
             input, labels = input.to(self.device), labels.to(self.device)
 
-            if use_predictions:
+            if self.use_predictions:
                 with torch.no_grad():
                     output = self.model(input)
                     targets = output.argmax(dim=-1)

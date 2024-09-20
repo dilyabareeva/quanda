@@ -35,6 +35,8 @@ class TopKOverlap(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         model: torch.nn.Module,
         eval_dataset: torch.utils.data.Dataset,
+        top_k: int = 1,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -49,17 +51,32 @@ class TopKOverlap(Benchmark):
         obj.set_devices(model)
         obj.eval_dataset = eval_dataset
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.top_k = top_k
+        obj.use_predictions = use_predictions
         obj.model = model
 
         return obj
 
     @classmethod
-    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(
+        cls,
+        name: str,
+        eval_dataset: torch.utils.data.Dataset,
+        use_predictions: bool = True,
+        batch_size: int = 32,
+        *args,
+        **kwargs,
+    ):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
         bench_state = cls.download_bench_state(name)
-        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"], eval_dataset=eval_dataset)
+        return cls.assemble(
+            model=bench_state["model"],
+            use_predictions=bench_state["use_predictions"],
+            train_dataset=bench_state["train_dataset"],
+            eval_dataset=eval_dataset,
+        )
 
     @classmethod
     def assemble(
@@ -67,6 +84,8 @@ class TopKOverlap(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+            top_k: int = 1,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -78,7 +97,9 @@ class TopKOverlap(Benchmark):
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.eval_dataset = eval_dataset
+        obj.use_predictions = use_predictions
         obj.model = model
+        obj.top_k = top_k
         obj.set_devices(model)
 
         return obj
@@ -87,22 +108,16 @@ class TopKOverlap(Benchmark):
         self,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = True,
-        cache_dir: str = "./cache",
-        model_id: str = "default_model_id",
         batch_size: int = 8,
-        top_k: int = 1,
-        *args,
-        **kwargs,
     ):
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(
-            model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
+            model=self.model, train_dataset=self.train_dataset, **expl_kwargs
         )
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
-        metric = TopKOverlapMetric(model=self.model, train_dataset=self.train_dataset, top_k=top_k)
+        metric = TopKOverlapMetric(model=self.model, train_dataset=self.train_dataset, top_k=self.top_k)
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
@@ -112,7 +127,7 @@ class TopKOverlap(Benchmark):
 
             input, labels = input.to(self.device), labels.to(self.device)
 
-            if use_predictions:
+            if self.use_predictions:
                 with torch.no_grad():
                     output = self.model(input)
                     targets = output.argmax(dim=-1)

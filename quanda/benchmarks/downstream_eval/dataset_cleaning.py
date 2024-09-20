@@ -39,6 +39,7 @@ class DatasetCleaning(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -53,6 +54,7 @@ class DatasetCleaning(Benchmark):
         obj.eval_dataset = eval_dataset
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.model = model
+        obj.use_predictions = use_predictions
 
         return obj
 
@@ -62,7 +64,12 @@ class DatasetCleaning(Benchmark):
         This method should load the benchmark components from a file and persist them in the instance.
         """
         bench_state = cls.download_bench_state(name)
-        return cls.assemble(model=bench_state["model"], train_dataset=bench_state["train_dataset"], eval_dataset=eval_dataset)
+        return cls.assemble(
+            model=bench_state["model"],
+            use_predictions=bench_state["use_predictions"],
+            train_dataset=bench_state["train_dataset"],
+            eval_dataset=eval_dataset,
+        )
 
     @classmethod
     def assemble(
@@ -70,6 +77,7 @@ class DatasetCleaning(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -81,6 +89,7 @@ class DatasetCleaning(Benchmark):
         obj.model = model
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.eval_dataset = eval_dataset
+        obj.use_predictions = use_predictions
         obj.set_devices(model)
 
         return obj
@@ -90,7 +99,6 @@ class DatasetCleaning(Benchmark):
         explainer_cls: type,
         trainer: Union[L.Trainer, BaseTrainer],
         init_model: Optional[torch.nn.Module] = None,
-        use_predictions: bool = True,
         expl_kwargs: Optional[dict] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         batch_size: int = 8,
@@ -123,7 +131,7 @@ class DatasetCleaning(Benchmark):
 
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
 
-                if use_predictions:
+                if self.use_predictions:
                     with torch.no_grad():
                         output = self.model(inputs)
                         targets = output.argmax(dim=-1)

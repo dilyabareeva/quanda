@@ -69,6 +69,9 @@ class ShortcutDetection(Benchmark):
         shortcut_cls: int,
         trainer: Union[L.Trainer, BaseTrainer],
         sample_fn: Callable,
+            filter_by_prediction: bool = True,
+            filter_by_class: bool = True,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -123,6 +126,9 @@ class ShortcutDetection(Benchmark):
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.eval_dataset = eval_dataset
+        obj.filter_by_prediction = filter_by_prediction
+        obj.filter_by_class = filter_by_class
+
         obj._generate(
             model=model,
             train_dataset=train_dataset,
@@ -270,6 +276,7 @@ class ShortcutDetection(Benchmark):
             train_dataset=bench_state["train_dataset"],
             n_classes=bench_state["n_classes"],
             eval_dataset=eval_dataset,
+            use_predictions=bench_state["use_predictions"],
             shortcut_indices=bench_state["shortcut_indices"],
             shortcut_cls=bench_state["shortcut_cls"],
             sample_fn=bench_state["sample_fn"],
@@ -288,6 +295,9 @@ class ShortcutDetection(Benchmark):
         eval_dataset: torch.utils.data.Dataset,
         sample_fn: Callable,
         shortcut_cls: int,
+            filter_by_prediction: bool = True,
+            filter_by_class: bool = True,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         shortcut_indices: Optional[List[int]] = None,
         dataset_transform: Optional[Callable] = None,
@@ -329,7 +339,9 @@ class ShortcutDetection(Benchmark):
         obj.p = p
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
-
+        obj.use_predictions = use_predictions
+        obj.filter_by_prediction = filter_by_prediction
+        obj.filter_by_class = filter_by_class
         obj.shortcut_dataset = SampleTransformationDataset(
             dataset=obj.train_dataset,
             p=p,
@@ -353,11 +365,7 @@ class ShortcutDetection(Benchmark):
         self,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        filter_by_prediction: bool = True,
-        filter_by_class: bool = True,
         batch_size: int = 8,
-        *args,
-        **kwargs,
     ):
         """
         Evaluate the given data attributor.
@@ -397,8 +405,8 @@ class ShortcutDetection(Benchmark):
             train_dataset=self.shortcut_dataset,
             shortcut_indices=self.shortcut_indices,
             shortcut_cls=self.shortcut_cls,
-            filter_by_prediction=filter_by_prediction,
-            filter_by_class=filter_by_class,
+            filter_by_prediction=self.filter_by_prediction,
+            filter_by_class=self.filter_by_class,
         )
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)

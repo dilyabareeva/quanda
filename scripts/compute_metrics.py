@@ -203,7 +203,9 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
     test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
     cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
-    dataloaders["subclass"] = torch.utils.data.DataLoader(cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers)
+    dataloaders["subclass"] = torch.utils.data.DataLoader(
+        cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+    )
     # vis_dataloader(dataloaders["cat_dog"])
 
     # Dataloader for Model Randomization, Top-K Overlap
@@ -225,7 +227,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     # vis_dataloader(dataloaders["mixed_dataset"])
 
     explanation_methods = ["similarity", "representer_points", "trak", "random"]
-    #, "tracincpfast", "arnoldi"
+    # , "tracincpfast", "arnoldi"
     if metric == "mislabeling":
         for method in explanation_methods:
             method_save_dir = os.path.join(explanations_dir, method)
@@ -306,7 +308,6 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             wandb.log({f"{method}_{metric}": score})
 
     if metric == "mixed_dataset":
-
         all_adv_indices = torch.load(os.path.join(metadata_dir, "all_train_backdoor_indices.pth"))
         # to binary
         adv_indices = torch.tensor([1 if i in all_adv_indices else 0 for i in range(len(train_set))])

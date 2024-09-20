@@ -47,6 +47,9 @@ class ModelRandomization(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
+            correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
+            seed: int = 42,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -72,6 +75,9 @@ class ModelRandomization(Benchmark):
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.eval_dataset = eval_dataset
+        obj.correlation_fn = correlation_fn
+        obj.seed = seed
+        obj.use_predictions = use_predictions
         obj.model = model
 
         return obj
@@ -90,7 +96,12 @@ class ModelRandomization(Benchmark):
         """
         bench_state = cls.download_bench_state(name)
 
-        return cls.assemble(model=bench_state["model"], eval_dataset=eval_dataset, train_dataset=bench_state["train_dataset"])
+        return cls.assemble(
+            model=bench_state["model"],
+            eval_dataset=eval_dataset,
+            use_predictions=bench_state["use_predictions"],
+            train_dataset=bench_state["train_dataset"],
+        )
 
     @classmethod
     def assemble(
@@ -98,6 +109,9 @@ class ModelRandomization(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+            correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
+            seed: int = 42,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -119,6 +133,9 @@ class ModelRandomization(Benchmark):
         obj = cls()
         obj.model = model
         obj.eval_dataset = eval_dataset
+        obj.use_predictions = use_predictions
+        obj.correlation_fn = correlation_fn
+        obj.seed = seed
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.set_devices(model)
 
@@ -128,14 +145,7 @@ class ModelRandomization(Benchmark):
         self,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = True,
-        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-        seed: int = 42,
-        cache_dir: str = "./cache",
-        model_id: str = "default_model_id",
         batch_size: int = 8,
-        *args,
-        **kwargs,
     ):
         """
         Evaluate the given data attributor.
@@ -171,7 +181,7 @@ class ModelRandomization(Benchmark):
 
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(
-            model=self.model, train_dataset=self.train_dataset, model_id=model_id, cache_dir=cache_dir, **expl_kwargs
+            model=self.model, train_dataset=self.train_dataset, **expl_kwargs
         )
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
@@ -180,10 +190,8 @@ class ModelRandomization(Benchmark):
             train_dataset=self.train_dataset,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
-            correlation_fn=correlation_fn,
-            seed=seed,
-            model_id=model_id,
-            cache_dir=cache_dir,
+            correlation_fn=self.correlation_fn,
+            seed=self.seed,
         )
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
@@ -193,7 +201,7 @@ class ModelRandomization(Benchmark):
 
             input, labels = input.to(self.device), labels.to(self.device)
 
-            if use_predictions:
+            if self.use_predictions:
                 with torch.no_grad():
                     output = self.model(input)
                     targets = output.argmax(dim=-1)
