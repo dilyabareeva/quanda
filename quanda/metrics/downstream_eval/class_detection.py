@@ -6,6 +6,19 @@ from quanda.metrics.base import Metric
 
 
 class ClassDetectionMetric(Metric):
+    """Metric that measures the performance of a given data attribution method in detecting the class of a test sample
+    from its highest attributed training point.
+    Intuitively, a good attribution method should assign the highest attribution to the class of the test sample,
+    as argued in (1) and (2).
+
+    References
+    ----------
+    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations.
+    In International Conference on Learning Representations.
+    2) Kwon, Y., Wu, E., Wu, K., Zou, J., 2024. "DataInf: Efficiently Estimating Data Influence in
+    LoRA-tuned LLMs and Diffusion Models." The Twelfth International Conference on Learning Representations.
+    """
+
     def __init__(
         self,
         model: torch.nn.Module,
@@ -17,12 +30,35 @@ class ClassDetectionMetric(Metric):
         *args,
         **kwargs,
     ):
+        """Initializer for the Class Detection metric.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model associated with the attributions to be evaluated.
+        train_dataset : torch.utils.data.Dataset
+            The training dataset that was used to train `model`.
+        explainer_cls : Optional[type], optional
+            The explainer class. Defaults to None.
+        expl_kwargs : Optional[dict], optional
+            Additional keyword arguments for the explainer class.
+        model_id : Optional[str], optional
+            An identifier for the model, by default "0".
+        cache_dir : str, optional
+            The cache directory, by default "./cache".
+        """
         super().__init__(model=model, train_dataset=train_dataset)
         self.scores: List[torch.Tensor] = []
 
     def update(self, test_labels: torch.Tensor, explanations: torch.Tensor):
-        """
-        Used to implement metric-specific logic.
+        """Update the metric state with the provided explanations.
+
+        Parameters
+        ----------
+        test_labels : torch.Tensor
+            Labels of the test samples.
+        explanations : torch.Tensor
+            Explanations of the test samples.
         """
 
         assert (
@@ -40,25 +76,32 @@ class ClassDetectionMetric(Metric):
         self.scores.append(scores)
 
     def compute(self):
-        """
-        Used to aggregate current results and return a metric score.
+        """Aggregate the metric state and return the final score.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the final score in the `score` field.
         """
         return {"score": torch.cat(self.scores).mean().item()}
 
     def reset(self, *args, **kwargs):
-        """
-        Used to reset the metric state.
-        """
+        """Reset the metric state."""
         self.scores = []
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
-        Used to load the metric state.
+        Load previously computed state for the metric.
+
+        Parameters
+        ----------
+        state_dict : dict
+            A state dictionary for the metric
         """
         self.scores = state_dict["scores"]
 
     def state_dict(self, *args, **kwargs):
         """
-        Used to return the metric state.
+        Return the metric state.
         """
         return {"scores": self.scores}

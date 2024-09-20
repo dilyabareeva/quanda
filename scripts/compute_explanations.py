@@ -252,7 +252,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
     test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
     cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
-    dataloaders["subclass"] = torch.utils.data.DataLoader(cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers)
+    dataloaders["subclass"] = torch.utils.data.DataLoader(
+        cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+    )
     # vis_dataloader(dataloaders["subclass"])
 
     # Dataloader for Model Randomization, Top-K Overlap

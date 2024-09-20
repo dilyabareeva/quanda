@@ -174,8 +174,6 @@ class ModelRandomizationMetric(Metric):
         """
         Randomize the model parameters. Currently, only linear and convolutional layers are supported.
 
-        TODO: Add support for other layer types.
-
         Parameters
         ----------
         model: torch.nn.Module
@@ -187,6 +185,7 @@ class ModelRandomizationMetric(Metric):
             The randomized model.
 
         """
+        # TODO: Add support for other layer types.
         rand_model = copy.deepcopy(model)
         for name, param in list(rand_model.named_parameters()):
             parent = get_parent_module_from_name(rand_model, name)
