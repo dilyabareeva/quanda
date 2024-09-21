@@ -185,12 +185,14 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     # Dataloader for Mislabeling Detection
     test_mispredicted = torch.load(os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
     mispredicted_dataset = torch.utils.data.Subset(test_set_grouped, test_mispredicted)
+
     dataloaders["mislabeling"] = torch.utils.data.DataLoader(
         mispredicted_dataset,
-        batch_size=8,
+        batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
     )
+
     # vis_dataloader(dataloaders["mislabeling"])
 
     # Dataloder for Shortcut Detection
@@ -204,7 +206,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         label_fn=lambda x: class_to_group[x],
     )
     dataloaders["shortcut"] = torch.utils.data.DataLoader(
-        shortcut_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+        shortcut_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
     # vis_dataloader(dataloaders["shortcut"])
 
@@ -213,7 +215,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
     cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
     dataloaders["subclass"] = torch.utils.data.DataLoader(
-        cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+        cat_dog_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
     # vis_dataloader(dataloaders["subclass"])
 
@@ -221,7 +223,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
     clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
     dataloaders["randomization"] = torch.utils.data.DataLoader(
-        clean_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+        clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
     dataloaders["top_k_overlap"] = dataloaders["randomization"]
     # vis_dataloader(dataloaders["randomization"])
@@ -230,14 +232,14 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     correct_predict_panda = torch.load(os.path.join(metadata_dir, "big_eval_test_correct_predict_panda_indices.pth"))
     dataloaders["mixed_dataset"] = torch.utils.data.DataLoader(
         torch.utils.data.Subset(all_panda, correct_predict_panda),
-        batch_size=8,
+        batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
     )
     # vis_dataloader(dataloaders["mixed_dataset"])
 
-    explanation_methods = ["similarity", "representer_points", "trak", "random"]
-    # , "tracincpfast", "arnoldi"
+
+    explanation_methods = ["similarity", "representer_points", "trak", "random", "tracincpfast", "arnoldi"]
     if metric == "mislabeling":
         for method in explanation_methods:
             method_save_dir = os.path.join(explanations_dir, method)

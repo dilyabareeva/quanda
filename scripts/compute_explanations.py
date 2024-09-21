@@ -85,7 +85,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     new_n_classes = len(set(list(class_to_group.values())))
     batch_size = 64
     num_workers = 1
-    device = "cuda:1"
+    device = "cuda:0"
 
     torch_rng = torch.Generator().manual_seed(27)
     generator = random.Random(27)

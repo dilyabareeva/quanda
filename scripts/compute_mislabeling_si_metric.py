@@ -39,7 +39,7 @@ from tutorials.utils.modules import LitModel
 logger = logging.getLogger(__name__)
 
 
-def compute_randomization_metric(
+def compute_mislabeling_metric(
     method, tiny_in_path, panda_sketch_path, explanations_dir, checkpoints_dir, metadata_dir, download
 ):
     torch.set_float32_matmul_precision("medium")
@@ -163,13 +163,7 @@ def compute_randomization_metric(
     )
     lit_model.model = lit_model.model.eval()
 
-    # Dataloader for Model Randomization, Top-K Overlap
-    clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
-    clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
-    dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=8, shuffle=False, num_workers=num_workers)
-
-    model_id = "0"
-    randomization_dir = os.path.join(explanations_dir, "randomization_explanations")
+    mislabeling_dir = os.path.join(explanations_dir, "mislabeling_explanations")
 
     if method == "similarity":
         # Initialize Explainer
@@ -177,29 +171,29 @@ def compute_randomization_metric(
         explain_kwargs = {
             "layers": "model.avgpool",
             "similarity_metric": cosine_similarity,
-            "batch_size": 10,
+            "batch_size": batch_size,
             "load_from_disk": False,
         }
 
-        cache_dir = os.path.join(randomization_dir, method)
+        cache_dir = os.path.join(mislabeling_dir, method)
         os.makedirs(cache_dir, exist_ok=True)
 
     if method == "representer_points":
-        cache_dir = os.path.join(randomization_dir, method)
+        cache_dir = os.path.join(mislabeling_dir, method)
         os.makedirs(cache_dir, exist_ok=True)
 
         explainer_cls = RepresenterPoints
         explain_kwargs = {
             "features_layer": "model.avgpool",
             "classifier_layer": "model.fc",
-            "batch_size": 32,
+            "batch_size": batch_size,
             "features_postprocess": lambda x: x[:, :, 0, 0],
             "load_from_disk": False,
             "show_progress": False,
         }
 
     if method == "tracincpfast":
-        cache_dir = os.path.join(randomization_dir, method)
+        cache_dir = os.path.join(mislabeling_dir, method)
         os.makedirs(cache_dir, exist_ok=True)
 
         def load_state_dict(module, path: str) -> int:
@@ -215,11 +209,11 @@ def compute_randomization_metric(
             "checkpoints_load_func": load_state_dict,
             "loss_fn": torch.nn.CrossEntropyLoss(reduction="mean"),
             "final_fc_layer": list(lit_model.model.children())[-1],
-            "batch_size": 64,
+            "batch_size": batch_size*4,
         }
 
     if method == "arnoldi":
-        cache_dir = os.path.join(randomization_dir, method)
+        cache_dir = os.path.join(mislabeling_dir, method)
         os.makedirs(cache_dir, exist_ok=True)
 
         def load_state_dict(module, path: str) -> int:
@@ -242,12 +236,13 @@ def compute_randomization_metric(
             "checkpoints_load_func": load_state_dict,
             "projection_dim": 100,
             "arnoldi_dim": 200,
+            "batch_size": batch_size*4,
             "layers": ["model.fc"],  # only the last layer
             "device": device,
         }
 
     if method == "trak":
-        cache_dir = os.path.join(randomization_dir, method)
+        cache_dir = os.path.join(mislabeling_dir, method)
         os.makedirs(cache_dir, exist_ok=True)
 
         explainer_cls = TRAK
@@ -258,6 +253,7 @@ def compute_randomization_metric(
             "train_dataset": train_dataloader.dataset,
             "projector": "cuda",
             "proj_dim": 4096,
+            "batch_size": batch_size,
             "load_from_disk": False,
         }
 
@@ -275,7 +271,7 @@ def compute_randomization_metric(
     )
 
     score = mislabeled.compute()
-    wandb.log({f"{method}_randomization": score})
+    wandb.log({f"{method}_mislabeling": score})
 
 
 if __name__ == "__main__":
@@ -299,7 +295,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Call the function with parsed arguments
-    compute_randomization_metric(
+    compute_mislabeling_metric(
         args.method,
         args.tiny_in_path,
         args.panda_sketch_path,

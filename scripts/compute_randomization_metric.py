@@ -165,7 +165,7 @@ def compute_randomization_metric(
     # Dataloader for Model Randomization, Top-K Overlap
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
     clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
-    dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=8, shuffle=False, num_workers=num_workers)
+    dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     model_id = "0"
     randomization_dir = os.path.join(explanations_dir, "randomization_explanations")
@@ -176,7 +176,7 @@ def compute_randomization_metric(
         explain_kwargs = {
             "layers": "model.avgpool",
             "similarity_metric": cosine_similarity,
-            "batch_size": 10,
+            "batch_size": batch_size,
             "load_from_disk": False,
         }
 
@@ -191,7 +191,7 @@ def compute_randomization_metric(
         explain_kwargs = {
             "features_layer": "model.avgpool",
             "classifier_layer": "model.fc",
-            "batch_size": 32,
+            "batch_size": batch_size,
             "features_postprocess": lambda x: x[:, :, 0, 0],
             "load_from_disk": False,
             "show_progress": False,
@@ -214,7 +214,7 @@ def compute_randomization_metric(
             "checkpoints_load_func": load_state_dict,
             "loss_fn": torch.nn.CrossEntropyLoss(reduction="mean"),
             "final_fc_layer": list(lit_model.model.children())[-1],
-            "batch_size": 64,
+            "batch_size": batch_size*4,
         }
 
     if method == "arnoldi":
@@ -241,6 +241,7 @@ def compute_randomization_metric(
             "checkpoints_load_func": load_state_dict,
             "projection_dim": 100,
             "arnoldi_dim": 200,
+            "batch_size": batch_size*4,
             "layers": ["model.fc"],  # only the last layer
             "device": device,
         }
