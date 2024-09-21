@@ -7,9 +7,9 @@ from torchvision.models import ResNet18_Weights, resnet18
 
 
 class LitModel(L.LightningModule):
-    def __init__(self, n_batches, lr=1e-4, epochs=24, weight_decay=0.01, num_labels=64, device="cuda:0"):
+    def __init__(self, n_batches, lr=1e-4, epochs=24, weight_decay=0.01, num_labels=64, pretrained=True, device="cuda:0"):
         super(LitModel, self).__init__()
-        self._init_model(num_labels)
+        self._init_model(num_labels, pretrained)
         self.model.to(device)
         self.lr = lr
         self.epochs = epochs
@@ -19,8 +19,11 @@ class LitModel(L.LightningModule):
         self.num_labels = num_labels
         self.save_hyperparameters()
 
-    def _init_model(self, num_labels):
-        self.model = resnet18(weights=ResNet18_Weights.DEFAULT)
+    def _init_model(self, num_labels, pretrained):
+        if pretrained:
+            self.model = resnet18(weights=ResNet18_Weights.DEFAULT)
+        else:
+            self.model = resnet18()
         self.model.avgpool = torch.nn.AdaptiveAvgPool2d(1)
         num_ftrs = self.model.fc.in_features
         self.model.fc = torch.nn.Linear(num_ftrs, num_labels)

@@ -29,8 +29,6 @@ class ModelRandomizationMetric(Metric):
         expl_kwargs: Optional[dict] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
-        model_id: str = "0",
-        cache_dir: str = "./cache",
         *args,
         **kwargs,
     ):
@@ -69,17 +67,17 @@ class ModelRandomizationMetric(Metric):
         self.train_dataset = train_dataset
         self.expl_kwargs = expl_kwargs or {}
         self.seed = seed
-        self.model_id = model_id
-        self.cache_dir = cache_dir
 
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
         self.rand_model = self._randomize_model(model)
+
+        if "model_id" in self.expl_kwargs:
+            self.expl_kwargs["model_id"] += "_rand"
+
         self.rand_explainer = explainer_cls(
             model=self.rand_model,
             train_dataset=train_dataset,
-            model_id=model_id + "_random",
-            cache_dir=cache_dir,
             **self.expl_kwargs,
         )
 
@@ -115,6 +113,8 @@ class ModelRandomizationMetric(Metric):
             The target values for the explanations, by default None.
         """
         explanations = explanations.to(self.device)
+        test_data = test_data.to(self.device)
+        explanation_targets = explanation_targets.to(self.device) if explanation_targets is not None else None
 
         rand_explanations = self.rand_explainer.explain(test=test_data, targets=explanation_targets).to(self.device)
 

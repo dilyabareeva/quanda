@@ -33,7 +33,11 @@ class ShortcutDetection(Benchmark):
     ----------
     1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions."
         International conference on machine learning. PMLR, 2017.
-    2) Søgaard, Anders. "Revisiting methods for finding influential examples." arXiv preprint arXiv:2111.04683 (2021).
+    2) Hammoudeh, Z., & Lowd, D. (2022). Identifying a training-set attack's target using renormalized influence
+    estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
+    (pp. 1367-1381).
+
+    TODO: remove FILTER BY "CORRECT" PREDICTION FOR SHORTCUT implied https://arxiv.org/pdf/2201.10055
     """
 
     def __init__(
@@ -58,6 +62,9 @@ class ShortcutDetection(Benchmark):
         self.p: float
         self.sample_fn: Callable
         self.n_classes: int
+        self.use_predictions: bool
+        self.filter_by_prediction: bool
+        self.filter_by_class: bool
 
     @classmethod
     def generate(
@@ -69,6 +76,9 @@ class ShortcutDetection(Benchmark):
         shortcut_cls: int,
         trainer: Union[L.Trainer, BaseTrainer],
         sample_fn: Callable,
+        filter_by_prediction: bool = True,
+        filter_by_class: bool = False,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -123,6 +133,10 @@ class ShortcutDetection(Benchmark):
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.eval_dataset = eval_dataset
+        obj.filter_by_prediction = filter_by_prediction
+        obj.filter_by_class = filter_by_class
+        obj.use_predictions = use_predictions
+
         obj._generate(
             model=model,
             train_dataset=train_dataset,
@@ -270,6 +284,7 @@ class ShortcutDetection(Benchmark):
             train_dataset=bench_state["train_dataset"],
             n_classes=bench_state["n_classes"],
             eval_dataset=eval_dataset,
+            use_predictions=bench_state["use_predictions"],
             shortcut_indices=bench_state["shortcut_indices"],
             shortcut_cls=bench_state["shortcut_cls"],
             sample_fn=bench_state["sample_fn"],
@@ -288,6 +303,9 @@ class ShortcutDetection(Benchmark):
         eval_dataset: torch.utils.data.Dataset,
         sample_fn: Callable,
         shortcut_cls: int,
+        filter_by_prediction: bool = True,
+        filter_by_class: bool = False,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         shortcut_indices: Optional[List[int]] = None,
         dataset_transform: Optional[Callable] = None,
@@ -329,7 +347,9 @@ class ShortcutDetection(Benchmark):
         obj.p = p
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
-
+        obj.use_predictions = use_predictions
+        obj.filter_by_prediction = filter_by_prediction
+        obj.filter_by_class = filter_by_class
         obj.shortcut_dataset = SampleTransformationDataset(
             dataset=obj.train_dataset,
             p=p,
@@ -353,11 +373,7 @@ class ShortcutDetection(Benchmark):
         self,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        filter_by_prediction: bool = True,
-        filter_by_class: bool = True,
         batch_size: int = 8,
-        *args,
-        **kwargs,
     ):
         """
         Evaluate the given data attributor.
@@ -397,8 +413,8 @@ class ShortcutDetection(Benchmark):
             train_dataset=self.shortcut_dataset,
             shortcut_indices=self.shortcut_indices,
             shortcut_cls=self.shortcut_cls,
-            filter_by_prediction=filter_by_prediction,
-            filter_by_class=filter_by_class,
+            filter_by_prediction=self.filter_by_prediction,
+            filter_by_class=self.filter_by_class,
         )
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
@@ -407,7 +423,13 @@ class ShortcutDetection(Benchmark):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
             input, labels = input.to(self.device), labels.to(self.device)
-            targets = torch.ones_like(labels) * self.shortcut_cls
+
+            if self.use_predictions:
+                with torch.no_grad():
+                    output = self.model(input)
+                    targets = output.argmax(dim=-1)
+            else:
+                targets = labels
 
             explanations = explainer.explain(
                 test=input,

@@ -37,6 +37,8 @@ class MixedDatasets(Benchmark):
     1) Hammoudeh, Z., & Lowd, D. (2022). Identifying a training-set attack's target using renormalized influence
     estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
     (pp. 1367-1381).
+
+    TODO: remove FILTER BY "CORRECT" PREDICTION FOR BACKDOOR implied https://arxiv.org/pdf/2201.10055
     """
 
     name: str = "Mixed Datasets"
@@ -64,6 +66,9 @@ class MixedDatasets(Benchmark):
         self.eval_dataset: torch.utils.data.Dataset
         self.mixed_dataset: torch.utils.data.Dataset
         self.adversarial_indices: List[int]
+        self.use_predictions: bool
+        self.adversarial_label: int
+        self.filter_by_prediction: bool
 
     @classmethod
     def generate(
@@ -74,6 +79,8 @@ class MixedDatasets(Benchmark):
         adversarial_dir: str,
         adversarial_label: int,
         trainer: Union[L.Trainer, BaseTrainer],
+        use_predictions: bool = True,
+        filter_by_prediction: bool = True,
         dataset_split: str = "train",
         adversarial_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -138,6 +145,10 @@ class MixedDatasets(Benchmark):
         obj = cls()
         obj.set_devices(model)
         obj.eval_dataset = eval_dataset
+        obj.use_predictions = use_predictions
+        obj.adversarial_label = adversarial_label
+        obj.filter_by_prediction = filter_by_prediction
+
         pr_clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
 
         adversarial_dataset = SingleClassImageDataset(
@@ -146,6 +157,7 @@ class MixedDatasets(Benchmark):
 
         obj.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, pr_clean_dataset])
         obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [0] * ds_len(pr_clean_dataset)
+
         mixed_train_dl = torch.utils.data.DataLoader(obj.mixed_dataset, batch_size=batch_size)
 
         if val_dataset is not None:
@@ -201,6 +213,7 @@ class MixedDatasets(Benchmark):
             model=bench_state["model"],
             clean_dataset=bench_state["train_dataset"],
             eval_dataset=eval_dataset,
+            use_predictions=bench_state["use_predictions"],
             adversarial_dir=bench_state["adversarial_dir"],
             adversarial_label=bench_state["adversarial_label"],
             adversarial_transform=bench_state["adversarial_transform"],
@@ -215,6 +228,8 @@ class MixedDatasets(Benchmark):
         clean_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
+        use_predictions: bool = True,
+        filter_by_prediction: bool = True,
         adversarial_transform: Optional[Callable] = None,
         dataset_split: str = "train",
         *args,
@@ -254,6 +269,9 @@ class MixedDatasets(Benchmark):
         obj.model = model
         obj.clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
         obj.eval_dataset = eval_dataset
+        obj.use_predictions = use_predictions
+        obj.filter_by_prediction = filter_by_prediction
+        obj.adversarial_label = adversarial_label
 
         adversarial_dataset = SingleClassImageDataset(
             root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
@@ -269,7 +287,6 @@ class MixedDatasets(Benchmark):
         self,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = True,
         batch_size: int = 8,
     ):
         """
@@ -300,6 +317,8 @@ class MixedDatasets(Benchmark):
             model=self.model,
             train_dataset=self.mixed_dataset,
             adversarial_indices=self.adversarial_indices,
+            filter_by_prediction=self.filter_by_prediction,
+            adversarial_cls=self.adversarial_label,
         )
 
         pbar = tqdm(adversarial_expl_dl)
@@ -309,12 +328,12 @@ class MixedDatasets(Benchmark):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
             inputs, labels = inputs.to(self.device), labels.to(self.device)
-            if use_predictions:
+            if self.use_predictions:
                 with torch.no_grad():
                     targets = self.model(inputs).argmax(dim=-1)
             else:
                 targets = labels
             explanations = explainer.explain(test=inputs, targets=targets)
-            metric.update(explanations)
+            metric.update(explanations, test_tensor=inputs, test_labels=labels)
 
         return metric.compute()

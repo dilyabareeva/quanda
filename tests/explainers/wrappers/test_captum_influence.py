@@ -112,7 +112,7 @@ def test_captum_similarity_self_influence(test_id, model, dataset, explanations,
         ),
     ],
 )
-def test_captum_influence_explain_functional(
+def test_captum_similarity_explain_functional(
     test_id, model, dataset, test_tensor, method_kwargs, explanations, request, tmp_path
 ):
     model = request.getfixturevalue(model)
@@ -398,8 +398,6 @@ def test_captum_tracincp_explain_functional(
 
     explanations = captum_tracincp_explain(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoints=checkpoints,
         test_tensor=test_tensor,
@@ -494,8 +492,6 @@ def test_captum_tracincp_fast(
 
     explainer = CaptumTracInCPFast(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
@@ -549,8 +545,6 @@ def test_captum_tracincp_fast_explain_functional(
 
     explanations_simple = captum_tracincp_fast_explain(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoints=checkpoints,
         test_tensor=test_tensor,
@@ -574,8 +568,6 @@ def test_captum_tracincp_fast_explain_functional(
 
     explanations_complex = captum_tracincp_fast_explain(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
@@ -622,8 +614,6 @@ def test_captum_tracincp_fast_self_influence(test_id, model, dataset, checkpoint
 
     explanations = captum_tracincp_fast_self_influence(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
@@ -677,8 +667,6 @@ def test_captum_tracincp_fast_rand_proj(
 
     explainer = CaptumTracInCPFastRandProj(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
@@ -734,8 +722,6 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
 
     explanations_simple = captum_tracincp_fast_rand_proj_explain(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
         checkpoints=checkpoints,
         test_tensor=test_tensor,
@@ -759,8 +745,6 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
 
     explanations_complex = captum_tracincp_fast_rand_proj_explain(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
@@ -807,8 +791,6 @@ def test_captum_tracincp_fast_rand_proj_self_influence(test_id, model, dataset, 
 
     explanations = captum_tracincp_fast_rand_proj_self_influence(
         model=model,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,

@@ -47,7 +47,7 @@ from quanda.utils.training import Trainer
             3,
             "load_mnist_dataset",
             "load_fashion_mnist_path",
-            1,
+            4,
             "load_fashion_mnist_to_mnist_transform",
             8,
             CaptumSimilarity,
@@ -56,7 +56,7 @@ from quanda.utils.training import Trainer
                 "similarity_metric": cosine_similarity,
                 "model_id": "mnist",
             },
-            0.8336666822433472,
+            0.8333333730697632,
         ),
     ],
 )

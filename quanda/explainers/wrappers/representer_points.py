@@ -204,9 +204,9 @@ class RepresenterPoints(Explainer):
         super(RepresenterPoints, self).__init__(
             model=model,
             train_dataset=train_dataset,
-            model_id=model_id,
-            cache_dir=cache_dir,
         )
+        self.model_id = model_id
+        self.cache_dir = cache_dir
         self.normalize = normalize
         self.features_layer = features_layer
         self.classifier_layer = classifier_layer

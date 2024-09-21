@@ -200,6 +200,11 @@ class MislabelingDetectionMetric(Metric):
         explanations : torch.Tensor
             The local attributions to be added to the aggregated scores.
         """
+
+        explanations = explanations.to(self.device)
+        test_data = test_data.to(self.device)
+        test_labels = test_labels.to(self.device)
+
         # compute prediction labels
         labels = self.model(test_data).argmax(dim=1)
 
@@ -246,7 +251,8 @@ class MislabelingDetectionMetric(Metric):
             - `score`: The mislabeling detection score, i.e. the area under `curve`
         """
         global_ranking = self.strategy.get_global_rank(*args, **kwargs)
-        success_arr = torch.tensor([elem in self.mislabeling_indices for elem in global_ranking])
+        mislabeling_set = set(self.mislabeling_indices)
+        success_arr = torch.tensor([elem.item() in mislabeling_set for elem in global_ranking])
         normalized_curve = torch.cumsum(success_arr * 1.0, dim=0) / len(self.mislabeling_indices)
         score = torch.trapezoid(normalized_curve) / len(self.mislabeling_indices)
         return {

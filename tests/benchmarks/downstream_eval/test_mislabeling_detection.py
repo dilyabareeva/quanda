@@ -145,11 +145,7 @@ def test_mislabeling_detection(
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
-        cache_dir=str(tmp_path),
-        model_id="default_model_id",
-        use_predictions=use_pred,
         batch_size=batch_size,
-        device="cpu",
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
@@ -216,14 +212,11 @@ def test_mislabeling_detection_generate_from_pl_module(
         device="cpu",
     )
 
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
-        cache_dir=str(tmp_path),
-        model_id="default_model_id",
-        use_predictions=use_pred,
         batch_size=batch_size,
-        device="cpu",
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
