@@ -319,7 +319,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             batch_size=batch_size,
             features_postprocess=lambda x: x[:, :, 0, 0],
             model_id="demo",
-            load_from_disk=True,
+            load_from_disk=False,
             show_progress=False,
         )
 

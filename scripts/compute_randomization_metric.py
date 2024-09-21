@@ -38,13 +38,16 @@ from tutorials.utils.modules import LitModel
 logger = logging.getLogger(__name__)
 
 
+load_dotenv()
+
+
 def compute_randomization_metric(
     method, tiny_in_path, panda_sketch_path, explanations_dir, checkpoints_dir, metadata_dir, download
 ):
     torch.set_float32_matmul_precision("medium")
 
     # Initialize WandbLogger
-    wandb.init(project="quanda", name="tiny_inet_resnet18", id="tiny_inet_resnet18", reinit=True)
+    wandb.init(project="quanda", name="tiny_inet_resnet18")
 
     # Downloading the datasets and checkpoints
 
@@ -171,6 +174,9 @@ def compute_randomization_metric(
     randomization_dir = os.path.join(explanations_dir, "randomization_explanations")
 
     if method == "similarity":
+        cache_dir = os.path.join(randomization_dir, method)
+        os.makedirs(cache_dir, exist_ok=True)
+
         # Initialize Explainer
         explainer_cls = CaptumSimilarity
         explain_kwargs = {
@@ -178,10 +184,10 @@ def compute_randomization_metric(
             "similarity_metric": cosine_similarity,
             "batch_size": batch_size,
             "load_from_disk": False,
+            "model_id": model_id,
+            "cache_dir": cache_dir,
         }
 
-        cache_dir = os.path.join(randomization_dir, method)
-        os.makedirs(cache_dir, exist_ok=True)
 
     if method == "representer_points":
         cache_dir = os.path.join(randomization_dir, method)
@@ -195,11 +201,12 @@ def compute_randomization_metric(
             "features_postprocess": lambda x: x[:, :, 0, 0],
             "load_from_disk": False,
             "show_progress": False,
+            "model_id": model_id,
+            "cache_dir": cache_dir,
         }
 
     if method == "tracincpfast":
-        cache_dir = os.path.join(randomization_dir, method)
-        os.makedirs(cache_dir, exist_ok=True)
+
 
         def load_state_dict(module, path: str) -> int:
             module = type(module).load_from_checkpoint(
@@ -213,13 +220,12 @@ def compute_randomization_metric(
             "checkpoints": checkpoints,
             "checkpoints_load_func": load_state_dict,
             "loss_fn": torch.nn.CrossEntropyLoss(reduction="mean"),
-            "final_fc_layer": list(lit_model.model.children())[-1],
+            "final_fc_layer": "model.fc",
+            "device": device,
             "batch_size": batch_size*4,
         }
 
     if method == "arnoldi":
-        cache_dir = os.path.join(randomization_dir, method)
-        os.makedirs(cache_dir, exist_ok=True)
 
         def load_state_dict(module, path: str) -> int:
             module = type(module).load_from_checkpoint(
@@ -252,10 +258,8 @@ def compute_randomization_metric(
 
         explainer_cls = TRAK
         explain_kwargs = {
-            "model": lit_model.model,
-            "model_id": "test_model",
-            "cache_dir": explanations_dir,
-            "train_dataset": train_dataloader.dataset,
+            "model_id": model_id,
+            "cache_dir": cache_dir,
             "projector": "cuda",
             "proj_dim": 4096,
             "load_from_disk": False,
@@ -279,7 +283,11 @@ def compute_randomization_metric(
     explanations = EC.load(subset_save_dir)
 
     for i, (test_tensor, test_labels) in enumerate(dataloader):
-        model_rand.update(test_tensor, explanations[i])
+        test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
+        explanation_targets = torch.tensor([
+            lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
+        ])
+        model_rand.update(test_tensor, explanations[i], explanation_targets)
 
     score = model_rand.compute()
     wandb.log({f"{method}_randomization": score})
