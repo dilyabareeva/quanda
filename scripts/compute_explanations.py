@@ -176,7 +176,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     lit_model.model = lit_model.model.eval()
 
     # Select test
-    """
+
     random_rng = random.Random(27)
 
     # get all cat classes
@@ -215,7 +215,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     import matplotlib.pyplot as plt
     from torchvision.utils import make_grid
 
-    def #vis_dataloader(dataloader):
+    def vis_dataloader(dataloader):
         images, labels = next(iter(dataloader))
         images = denormalize(images)
         fig, ax = plt.subplots(figsize=(12, 6))
@@ -225,7 +225,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
         plt.show()
 
-    """
+
     # Define Dataloader for different metrics
     dataloaders = {}
     # Dataloader for Mislabeling Detection

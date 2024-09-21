@@ -84,7 +84,6 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     class_to_group = torch.load(os.path.join(metadata_dir, "class_to_group.pth"))
     test_split = torch.load(os.path.join(metadata_dir, "test_indices.pth"))
     panda_train_indices = torch.load(os.path.join(metadata_dir, "panda_train_indices.pth"))
-    panda_test_indices = torch.load(os.path.join(metadata_dir, "panda_test_indices.pth"))
 
     n_classes = 200
     new_n_classes = len(set(list(class_to_group.values())))
@@ -136,9 +135,11 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     )
 
     panda_set = torch.utils.data.Subset(panda_dataset, panda_train_indices)
-    panda_test = torch.utils.data.Subset(panda_dataset, panda_test_indices)
-    panda_twin = torch.utils.data.Subset(panda_twin_dataset, panda_test_indices)
+    panda_rest_indices = [i for i in range(len(panda_dataset)) if i not in panda_train_indices]
+    panda_test = torch.utils.data.Subset(panda_dataset, panda_rest_indices)
+    panda_twin = torch.utils.data.Subset(panda_twin_dataset, panda_rest_indices)
     all_panda = torch.utils.data.ConcatDataset([panda_test, panda_twin])
+
 
     def add_yellow_square(img):
         square_size = (15, 15)  # Size of the square
@@ -214,10 +215,14 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
     test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
     cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
+    cat_dog_ungrouped_dataset = torch.utils.data.Subset(test_set_transform, test_cats + test_dogs)
     dataloaders["subclass"] = torch.utils.data.DataLoader(
         cat_dog_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
-    # vis_dataloader(dataloaders["subclass"])
+    dataloaders["subclass_ungrouped"] = torch.utils.data.DataLoader(
+        cat_dog_ungrouped_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
+    )
+    # vis_dataloader(dataloaders["cat_dog"])
 
     # Dataloader for Model Randomization, Top-K Overlap
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
