@@ -95,6 +95,7 @@ def compute_randomization_metric(
     new_n_classes = len(set(list(class_to_group.values())))
     batch_size = 64
     num_workers = 1
+    device = "cuda:0"
 
     generator = random.Random(27)
 
@@ -158,7 +159,7 @@ def compute_randomization_metric(
 
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
-        checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
+        checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
     )
     lit_model.model = lit_model.model.eval()
 
@@ -203,7 +204,7 @@ def compute_randomization_metric(
 
         def load_state_dict(module, path: str) -> int:
             module = type(module).load_from_checkpoint(
-                path, n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
+                path, n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
             )
             module.model.eval()
             return module.lr
@@ -223,7 +224,7 @@ def compute_randomization_metric(
 
         def load_state_dict(module, path: str) -> int:
             module = type(module).load_from_checkpoint(
-                path, n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
+                path, n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
             )
             module.model.eval()
             return module.lr
@@ -242,7 +243,7 @@ def compute_randomization_metric(
             "projection_dim": 100,
             "arnoldi_dim": 200,
             "layers": ["model.fc"],  # only the last layer
-            "device": "cuda:0",
+            "device": device,
         }
 
     if method == "trak":
