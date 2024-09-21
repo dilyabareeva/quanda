@@ -114,7 +114,6 @@ class TopKOverlap(Benchmark):
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
     ):
-
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
