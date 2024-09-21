@@ -197,12 +197,16 @@ def default_tensor_type(device: Union[str, torch.device]):
 
     # Set the new tensor type
     torch.set_default_tensor_type(new_tensor_type)
-    try:
-        # Yield control back to the calling context
-        yield
-    finally:
-        # Restore the original tensor type
-        torch.set_default_tensor_type(original_tensor_type)
+    if 'cuda' in device.type:
+        torch.cuda.set_device(device)
+
+    with torch.device(device):
+        try:
+            # Yield control back to the calling context
+            yield
+        finally:
+            # Restore the original tensor type
+            torch.set_default_tensor_type(original_tensor_type)
 
 
 @contextmanager
