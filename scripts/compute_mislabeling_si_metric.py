@@ -20,6 +20,7 @@ from quanda.explainers.wrappers import (
     CaptumTracInCPFast,
     RepresenterPoints,
 )
+from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.metrics.heuristics import ModelRandomizationMetric
 from quanda.utils.cache import ExplanationsCache as EC
 from quanda.utils.datasets.transformed import (
@@ -263,23 +264,16 @@ def compute_randomization_metric(
         explainer_cls = RandomExplainer
         explain_kwargs = {"seed": 28}
 
-    model_rand = ModelRandomizationMetric(
+    mislabeled = MislabelingDetectionMetric(
         model=lit_model,
         train_dataset=train_set,
+        mislabeling_indices=torch.load(os.path.join(metadata_dir, "all_train_flipped_indices.pth")),
+        global_method="self-influence",
         explainer_cls=explainer_cls,
-        expl_kwargs=explain_kwargs,
-        correlation_fn="spearman",
-        seed=42,
+        explain_kwargs=explain_kwargs,
     )
 
-    method_save_dir = os.path.join(explanations_dir, method)
-    subset_save_dir = os.path.join(method_save_dir, "randomization")
-    explanations = EC.load(subset_save_dir)
-
-    for i, (test_tensor, test_labels) in enumerate(dataloader):
-        model_rand.update(test_tensor, explanations[i])
-
-    score = model_rand.compute()
+    score = mislabeled.compute()
     wandb.log({f"{method}_randomization": score})
 
 

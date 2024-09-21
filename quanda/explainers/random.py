@@ -15,8 +15,6 @@ class RandomExplainer(Explainer):
     def __init__(
         self,
         model: torch.nn.Module,
-        model_id: str,
-        cache_dir: str,
         train_dataset: torch.utils.data.Dataset,
         seed: int = 27,
         **kwargs,
@@ -37,8 +35,6 @@ class RandomExplainer(Explainer):
         """
         super().__init__(
             model=model,
-            model_id=model_id,
-            cache_dir=cache_dir,
             train_dataset=train_dataset,
         )
         self.seed = seed

@@ -89,7 +89,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     n_classes = 200
     new_n_classes = len(set(list(class_to_group.values())))
     batch_size = 64
-    num_workers = 8
+    num_workers = 1
 
     # Define transformations
     regular_transforms = transforms.Compose(
@@ -190,7 +190,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         shuffle=False,
         num_workers=num_workers,
     )
-    # vis_dataloader(dataloaders["mislabeling"])
+    #vis_dataloader(dataloaders["mislabeling"])
 
     # Dataloder for Shortcut Detection
     test_shortcut = torch.load(os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
@@ -205,20 +205,16 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     dataloaders["shortcut"] = torch.utils.data.DataLoader(
         shortcut_dataset, batch_size=8, shuffle=False, num_workers=num_workers
     )
-    # vis_dataloader(dataloaders["shortcut"])
+    #vis_dataloader(dataloaders["shortcut"])
 
     # Dataloader for subclass detection
     test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
     test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
     cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
-    cat_dog_ungrouped_dataset = torch.utils.data.Subset(test_set_transform, test_cats + test_dogs)
     dataloaders["subclass"] = torch.utils.data.DataLoader(
         cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers
     )
-    dataloaders["subclass_ungrouped"] = torch.utils.data.DataLoader(
-        cat_dog_ungrouped_dataset, batch_size=8, shuffle=False, num_workers=num_workers
-    )
-    # vis_dataloader(dataloaders["cat_dog"])
+    #vis_dataloader(dataloaders["subclass"])
 
     # Dataloader for Model Randomization, Top-K Overlap
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
@@ -227,16 +223,17 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         clean_dataset, batch_size=8, shuffle=False, num_workers=num_workers
     )
     dataloaders["top_k_overlap"] = dataloaders["randomization"]
-    # vis_dataloader(dataloaders["randomization"])
+    #vis_dataloader(dataloaders["randomization"])
 
     # Dataloader for Mixed Datasets
+    correct_predict_panda = torch.load(os.path.join(metadata_dir, "big_eval_test_correct_predict_panda_indices.pth"))
     dataloaders["mixed_dataset"] = torch.utils.data.DataLoader(
-        all_panda,
-        batch_size=len(all_panda),
+        torch.utils.data.Subset(all_panda, correct_predict_panda),
+        batch_size=8,
         shuffle=False,
         num_workers=num_workers,
     )
-    # vis_dataloader(dataloaders["mixed_dataset"])
+    #vis_dataloader(dataloaders["mixed_dataset"])
 
     explanation_methods = ["similarity", "representer_points", "trak", "random"]
     # , "tracincpfast", "arnoldi"

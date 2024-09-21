@@ -80,7 +80,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     class_to_group = torch.load(os.path.join(metadata_dir, "class_to_group.pth"))
     test_split = torch.load(os.path.join(metadata_dir, "test_indices.pth"))
     panda_train_indices = torch.load(os.path.join(metadata_dir, "panda_train_indices.pth"))
-    panda_test_indices = torch.load(os.path.join(metadata_dir, "panda_test_indices.pth"))
 
     n_classes = 200
     new_n_classes = len(set(list(class_to_group.values())))
@@ -105,7 +104,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     with open(tiny_in_path + "wnids.txt", "r") as f:
         id_dict = {line.strip(): i for i, line in enumerate(f)}
 
-    val_annotations = {}
     with open(tiny_in_path + "val/val_annotations.txt", "r") as f:
         val_annotations = {line.split("\t")[0]: line.split("\t")[1] for line in f}
 
@@ -140,8 +138,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     )
 
     panda_set = torch.utils.data.Subset(panda_dataset, panda_train_indices)
-    panda_test = torch.utils.data.Subset(panda_dataset, panda_test_indices)
-    panda_twin = torch.utils.data.Subset(panda_twin_dataset, panda_test_indices)
+    panda_rest_indices = [i for i in range(len(panda_dataset)) if i not in panda_train_indices]
+    panda_test = torch.utils.data.Subset(panda_dataset, panda_rest_indices)
+    panda_twin = torch.utils.data.Subset(panda_twin_dataset, panda_rest_indices)
     all_panda = torch.utils.data.ConcatDataset([panda_test, panda_twin])
 
     def add_yellow_square(img):
@@ -175,7 +174,8 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     )
     lit_model.model = lit_model.model.eval()
 
-    # Select tet
+    # Select test
+    """
     random_rng = random.Random(27)
 
     # get all cat classes
@@ -185,30 +185,36 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     all_cats = [s for s in range(len(test_set_grouped)) if test_set_grouped[s][1] in cat_classes]
     all_dogs = [s for s in range(len(test_set_grouped)) if test_set_grouped[s][1] in dog_classes]
 
+    # find some correctly predicted cats and dogs
+    correct_pred_cats = [i for i in all_cats if lit_model.model(test_set_grouped[i][0].unsqueeze(0).to("cuda:0")).argmax().item() == test_set_grouped[i][1]]
+    correct_pred_dogs = [i for i in all_dogs if lit_model.model(test_set_grouped[i][0].unsqueeze(0).to("cuda:0")).argmax().item() == test_set_grouped[i][1]]
+    test_dogs = random_rng.sample(correct_pred_dogs, 32)
+    test_cats = random_rng.sample(correct_pred_cats, 32)
+
+    # find regular samples
     all_clean_samples = [i for i in range(len(test_set_grouped)) if i not in all_cats + all_dogs]
     clean_samples = random_rng.sample(all_clean_samples, 64)
     test_shortcut = random_rng.sample(all_clean_samples, 64)
 
-    test_dogs = random_rng.sample(all_cats, 32)
-    test_cats = random_rng.sample(all_dogs, 32)
-
     mispredicted_clean = [
         i
         for i in all_clean_samples
-        if lit_model.model(test_set_grouped[i][0].unsqueeze(0).to("cuda:0")).argmax().item() != test_set[i][1]
+        if lit_model.model(test_set_grouped[i][0].unsqueeze(0).to("cuda:0")).argmax().item() != test_set_grouped[i][1]
     ]
     test_mispredicted = random_rng.sample(mispredicted_clean, 64)
 
+    correct_predict_panda = [i for i in range(len(all_panda)) if lit_model(all_panda[i][0].unsqueeze(0).to("cuda:0")).argmax().item() == all_panda[i][1]]
     torch.save(test_mispredicted, os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
     torch.save(test_shortcut, os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
     torch.save(test_dogs, os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
     torch.save(test_cats, os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
     torch.save(clean_samples, os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
+    torch.save(correct_predict_panda, os.path.join(metadata_dir, "big_eval_test_correct_predict_panda_indices.pth"))
 
     import matplotlib.pyplot as plt
     from torchvision.utils import make_grid
 
-    def vis_dataloader(dataloader):
+    def #vis_dataloader(dataloader):
         images, labels = next(iter(dataloader))
         images = denormalize(images)
         fig, ax = plt.subplots(figsize=(12, 6))
@@ -218,18 +224,21 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
         plt.show()
 
+    """
     # Define Dataloader for different metrics
     dataloaders = {}
     # Dataloader for Mislabeling Detection
     test_mispredicted = torch.load(os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
     mispredicted_dataset = torch.utils.data.Subset(test_set_grouped, test_mispredicted)
+
     dataloaders["mislabeling"] = torch.utils.data.DataLoader(
         mispredicted_dataset,
         batch_size=8,
         shuffle=False,
         num_workers=num_workers,
     )
-    # vis_dataloader(dataloaders["mislabeling"])
+
+    #vis_dataloader(dataloaders["mislabeling"])
 
     # Dataloder for Shortcut Detection
     test_shortcut = torch.load(os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
@@ -244,7 +253,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     dataloaders["shortcut"] = torch.utils.data.DataLoader(
         shortcut_dataset, batch_size=8, shuffle=False, num_workers=num_workers
     )
-    # vis_dataloader(dataloaders["shortcut"])
+    #vis_dataloader(dataloaders["shortcut"])
 
     # Dataloader for subclass detection
     test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
@@ -253,7 +262,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     dataloaders["subclass"] = torch.utils.data.DataLoader(
         cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers
     )
-    # vis_dataloader(dataloaders["subclass"])
+    #vis_dataloader(dataloaders["subclass"])
 
     # Dataloader for Model Randomization, Top-K Overlap
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
@@ -262,16 +271,17 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         clean_dataset, batch_size=8, shuffle=False, num_workers=num_workers
     )
     dataloaders["top_k_overlap"] = dataloaders["randomization"]
-    # vis_dataloader(dataloaders["randomization"])
+    #vis_dataloader(dataloaders["randomization"])
 
     # Dataloader for Mixed Datasets
+    correct_predict_panda = torch.load(os.path.join(metadata_dir, "big_eval_test_correct_predict_panda_indices.pth"))
     dataloaders["mixed_dataset"] = torch.utils.data.DataLoader(
-        all_panda,
-        batch_size=len(all_panda),
+        torch.utils.data.Subset(all_panda, correct_predict_panda),
+        batch_size=8,
         shuffle=False,
         num_workers=num_workers,
     )
-    # vis_dataloader(dataloaders["mixed_dataset"])
+    #vis_dataloader(dataloaders["mixed_dataset"])
 
     if method == "similarity":
         # Initialize Explainer
@@ -295,9 +305,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
-                explanation_targets = [
-                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
-                ]
                 explanations_similarity = explainer_similarity.explain(test_tensor)
                 EC.save(subset_save_dir, explanations_similarity, i)
 
@@ -361,14 +368,14 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 explanation_targets = [
                     lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
                 ]
-                import time
+                #import time
 
                 # Explain test samples
-                start_time = time.time()
+                #start_time = time.time()
                 explanations_tracincpfast = explainer_tracincpfast.explain(test_tensor, targets=explanation_targets)
-                end_time = time.time()
+                #end_time = time.time()
                 EC.save(subset_save_dir, explanations_tracincpfast, i)
-                print(f"Time taken for subset {subset} is {end_time - start_time}")
+                #print(f"Time taken for subset {subset} is {end_time - start_time}")
 
     if method == "arnoldi":
 
@@ -380,7 +387,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             return module.lr
 
         train_dataset = train_dataloader.dataset
-        num_samples = 1000
+        num_samples = 5000
         indices = generator.sample(range(len(train_dataset)), num_samples)
         hessian_dataset = Subset(train_dataset, indices)
 
@@ -392,7 +399,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             checkpoint=checkpoints[-1],
             loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
             checkpoints_load_func=load_state_dict,
-            projection_dim=10,
+            projection_dim=100,
             arnoldi_dim=200,
             layers=["model.fc"],  # only the last layer
             device="cuda:0",
@@ -439,9 +446,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     if method == "random":
         explainer_rand = RandomExplainer(
             model=lit_model,
-            cache_dir=output_dir,
             train_dataset=train_dataloader.dataset,
-            model_id="0",
             seed=27,
         )
 
