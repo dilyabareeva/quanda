@@ -37,7 +37,7 @@ from tutorials.utils.datasets import (
 from tutorials.utils.modules import LitModel
 
 logger = logging.getLogger(__name__)
-
+load_dotenv()
 
 def compute_mislabeling_metric(
     method, tiny_in_path, panda_sketch_path, explanations_dir, checkpoints_dir, metadata_dir, download
@@ -95,7 +95,7 @@ def compute_mislabeling_metric(
     new_n_classes = len(set(list(class_to_group.values())))
     batch_size = 64
     num_workers = 1
-    device = "cuda:0"
+    device = "cuda:1"
 
     generator = random.Random(27)
 
@@ -272,7 +272,7 @@ def compute_mislabeling_metric(
         mislabeling_indices=torch.load(os.path.join(metadata_dir, "all_train_flipped_indices.pth")),
         global_method="self-influence",
         explainer_cls=explainer_cls,
-        explain_kwargs=explain_kwargs,
+        expl_kwargs=explain_kwargs,
     )
 
     score = mislabeled.compute()
