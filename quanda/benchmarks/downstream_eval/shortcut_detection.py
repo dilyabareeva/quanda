@@ -236,7 +236,7 @@ class ShortcutDetection(Benchmark):
         else:
             self.shortcut_val_dl = None
 
-        self.model = copy.deepcopy(model)
+        self.model = copy.deepcopy(model).train()
 
         trainer_fit_kwargs = trainer_fit_kwargs or {}
 
@@ -397,6 +397,8 @@ class ShortcutDetection(Benchmark):
         dict
             Dictionary containing the evaluation results.
         """
+        self.model.eval()
+
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
 

@@ -189,7 +189,8 @@ class ModelRandomizationMetric(Metric):
         rand_model = copy.deepcopy(model)
         for name, param in list(rand_model.named_parameters()):
             parent = get_parent_module_from_name(rand_model, name)
-            if isinstance(parent, (torch.nn.Linear, torch.nn.Conv2d)):
+            # TODO: currently only linear layer is randomized, due to expplainer's convergence issues
+            if isinstance(parent, (torch.nn.Linear)):
                 random_param_tensor = torch.nn.init.normal_(param, generator=self.generator)
                 parent.__setattr__(name.split(".")[-1], torch.nn.Parameter(random_param_tensor))
 

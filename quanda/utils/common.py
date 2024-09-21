@@ -205,6 +205,36 @@ def default_tensor_type(device: Union[str, torch.device]):
         torch.set_default_tensor_type(original_tensor_type)
 
 
+@contextmanager
+def map_location_context(device: Union[str, torch.device]):
+    """
+    Context manager to temporarily change the map_location parameter of torch.load.
+
+    Parameters
+    ----------
+    device: Union[str, torch.device]
+        The device to which the tensors should be loaded.
+
+    Returns
+    -------
+    None
+    """
+    original_load = torch.load
+
+    # Custom function that wraps torch.load with a fixed map_location
+    def load_with_map_location(f, *args, **kwargs):
+        kwargs["map_location"] = device
+        return original_load(f, *args, **kwargs)
+
+    # Temporarily replace torch.load with our custom version
+    torch.load = load_with_map_location
+    try:
+        yield  # Control returns to the code block within the `with` statement
+    finally:
+        # Restore the original torch.load function
+        torch.load = original_load
+
+
 def ds_len(dataset: torch.utils.data.Dataset) -> int:
     """
     Get the length of the dataset.

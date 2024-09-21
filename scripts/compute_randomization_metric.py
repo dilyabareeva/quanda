@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from PIL import Image
 from torch.utils.data import Subset
 
+from quanda.explainers import RandomExplainer
 from quanda.explainers.wrappers import (
     TRAK,
     CaptumArnoldi,
@@ -37,13 +38,16 @@ from tutorials.utils.modules import LitModel
 logger = logging.getLogger(__name__)
 
 
+load_dotenv()
+
+
 def compute_randomization_metric(
     method, tiny_in_path, panda_sketch_path, explanations_dir, checkpoints_dir, metadata_dir, download
 ):
     torch.set_float32_matmul_precision("medium")
 
     # Initialize WandbLogger
-    wandb.init(project="quanda", name="tiny_inet_resnet18", id="tiny_inet_resnet18", reinit=True)
+    wandb.init(project="quanda", name="tiny_inet_resnet18")
 
     # Downloading the datasets and checkpoints
 
@@ -88,24 +92,18 @@ def compute_randomization_metric(
     class_to_group = torch.load(os.path.join(metadata_dir, "class_to_group.pth"))
     test_split = torch.load(os.path.join(metadata_dir, "test_indices.pth"))
     panda_train_indices = torch.load(os.path.join(metadata_dir, "panda_train_indices.pth"))
-    panda_test_indices = torch.load(os.path.join(metadata_dir, "panda_test_indices.pth"))
 
     n_classes = 200
     new_n_classes = len(set(list(class_to_group.values())))
     batch_size = 64
-    num_workers = 8
+    num_workers = 1
+    device = "cuda:0"
 
-    torch_rng = torch.Generator().manual_seed(27)
     generator = random.Random(27)
 
     # Define transformations
     regular_transforms = transforms.Compose(
         [transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
-    )
-
-    denormalize = transforms.Compose(
-        [transforms.Normalize(mean=[0, 0, 0], std=[1 / 0.229, 1 / 0.224, 1 / 0.225])]
-        + [transforms.Normalize(mean=[-0.485, -0.456, -0.406], std=[1, 1, 1])]
     )
 
     # Load the TinyImageNet dataset
@@ -131,26 +129,10 @@ def compute_randomization_metric(
         ]
     )
 
-    backdoor_transforms_flipped = transforms.Compose(
-        [
-            transforms.Resize((64, 64)),
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-            transforms.RandomHorizontalFlip(1.0),
-        ]
-    )
-
     panda_dataset = CustomDataset(
         panda_sketch_path, classes=["n02510455"], classes_to_idx={"n02510455": 5}, transform=backdoor_transforms
     )
-    panda_twin_dataset = CustomDataset(
-        panda_sketch_path, classes=["n02510455"], classes_to_idx={"n02510455": 5}, transform=backdoor_transforms_flipped
-    )
-
     panda_set = torch.utils.data.Subset(panda_dataset, panda_train_indices)
-    panda_test = torch.utils.data.Subset(panda_dataset, panda_test_indices)
-    panda_twin = torch.utils.data.Subset(panda_twin_dataset, panda_test_indices)
-    all_panda = torch.utils.data.ConcatDataset([panda_test, panda_twin])
 
     def add_yellow_square(img):
         square_size = (15, 15)  # Size of the square
@@ -179,176 +161,106 @@ def compute_randomization_metric(
 
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
-        checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
+        checkpoints[-1],
+        n_batches=len(train_dataloader),
+        num_labels=new_n_classes,
+        device=device,
+        map_location=torch.device(device),
     )
     lit_model.model = lit_model.model.eval()
 
     # Dataloader for Model Randomization, Top-K Overlap
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
     clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
-    dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=8, shuffle=False, num_workers=num_workers)
+    dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     model_id = "0"
     randomization_dir = os.path.join(explanations_dir, "randomization_explanations")
 
     if method == "similarity":
+        cache_dir = os.path.join(randomization_dir, method)
+        os.makedirs(cache_dir, exist_ok=True)
+
         # Initialize Explainer
         explainer_cls = CaptumSimilarity
         explain_kwargs = {
             "layers": "model.avgpool",
             "similarity_metric": cosine_similarity,
-            "batch_size": 10,
+            "batch_size": batch_size,
             "load_from_disk": False,
+            "model_id": model_id,
+            "cache_dir": cache_dir,
         }
-
-        cache_dir = os.path.join(randomization_dir, method)
-        os.makedirs(cache_dir, exist_ok=True)
-
-        model_rand = ModelRandomizationMetric(
-            model=lit_model,
-            train_dataset=train_set,
-            explainer_cls=explainer_cls,
-            expl_kwargs=explain_kwargs,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            correlation_fn="spearman",
-            seed=42,
-        )
-
-        method_save_dir = os.path.join(explanations_dir, method)
-        subset_save_dir = os.path.join(method_save_dir, "randomization")
-        explanations = EC.load(subset_save_dir)
-
-        for i, (test_tensor, test_labels) in enumerate(dataloader):
-            model_rand.update(test_tensor, explanations[i])
-
-        score = model_rand.compute()
-        wandb.log({f"{method}_randomization": score})
 
     if method == "representer_points":
         cache_dir = os.path.join(randomization_dir, method)
         os.makedirs(cache_dir, exist_ok=True)
 
-        explainerc_cls = RepresenterPoints
+        explainer_cls = RepresenterPoints
         explain_kwargs = {
             "features_layer": "model.avgpool",
             "classifier_layer": "model.fc",
-            "batch_size": 32,
+            "batch_size": batch_size,
             "features_postprocess": lambda x: x[:, :, 0, 0],
             "load_from_disk": False,
             "show_progress": False,
+            "model_id": model_id,
+            "cache_dir": cache_dir,
         }
 
-        model_rand = ModelRandomizationMetric(
-            model=lit_model,
-            train_dataset=train_set,
-            explainer_cls=explainer_cls,
-            expl_kwargs=explain_kwargs,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            correlation_fn="spearman",
-            seed=42,
-        )
-
-        method_save_dir = os.path.join(explanations_dir, method)
-        subset_save_dir = os.path.join(method_save_dir, "randomization")
-        explanations = EC.load(subset_save_dir)
-
-        for i, (test_tensor, test_labels) in enumerate(dataloader):
-            model_rand.update(test_tensor, explanations[i])
-
-        score = model_rand.compute()
-        wandb.log({f"{method}_randomization": score})
-
     if method == "tracincpfast":
-        cache_dir = os.path.join(randomization_dir, method)
-        os.makedirs(cache_dir, exist_ok=True)
 
-        def load_state_dict(module: L.LightningModule, path: str) -> int:
+        def load_state_dict(module, path: str) -> int:
             module = type(module).load_from_checkpoint(
-                path, n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
+                path,
+                n_batches=len(train_dataloader),
+                num_labels=new_n_classes,
+                device=device,
+                map_location=torch.device(device),
             )
             module.model.eval()
             return module.lr
 
-        explainerc_cls = CaptumTracInCPFast
+        explainer_cls = CaptumTracInCPFast
         explain_kwargs = {
             "checkpoints": checkpoints,
             "checkpoints_load_func": load_state_dict,
             "loss_fn": torch.nn.CrossEntropyLoss(reduction="mean"),
-            "final_fc_layer": list(lit_model.model.children())[-1],
-            "batch_size": 8,
+            "final_fc_layer": "model.fc",
+            "device": device,
+            "batch_size": batch_size * 4,
         }
 
-        model_rand = ModelRandomizationMetric(
-            model=lit_model,
-            train_dataset=train_set,
-            explainer_cls=explainer_cls,
-            expl_kwargs=explain_kwargs,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            correlation_fn="spearman",
-            seed=42,
-        )
-
-        method_save_dir = os.path.join(explanations_dir, method)
-        subset_save_dir = os.path.join(method_save_dir, "randomization")
-        explanations = EC.load(subset_save_dir)
-
-        for i, (test_tensor, test_labels) in enumerate(dataloader):
-            model_rand.update(test_tensor, explanations[i])
-
-        score = model_rand.compute()
-        wandb.log({f"{method}_randomization": score})
-
     if method == "arnoldi":
-        cache_dir = os.path.join(randomization_dir, method)
-        os.makedirs(cache_dir, exist_ok=True)
 
-        def load_state_dict(module: L.LightningModule, path: str) -> int:
+        def load_state_dict(module, path: str) -> int:
             module = type(module).load_from_checkpoint(
-                path, n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
+                path,
+                n_batches=len(train_dataloader),
+                num_labels=new_n_classes,
+                device=device,
+                map_location=torch.device(device),
             )
             module.model.eval()
             return module.lr
 
         train_dataset = train_dataloader.dataset
-        num_samples = 1000
+        num_samples = 5000
         indices = generator.sample(range(len(train_dataset)), num_samples)
         hessian_dataset = Subset(train_dataset, indices)
 
         explainer_cls = CaptumArnoldi
         explain_kwargs = {
             "hessian_dataset": hessian_dataset,
-            "checkpoint": checkpoints[0],
+            "checkpoint": checkpoints[-1],
             "loss_fn": torch.nn.CrossEntropyLoss(reduction="none"),
             "checkpoints_load_func": load_state_dict,
-            "projection_dim": 10,
+            "projection_dim": 100,
             "arnoldi_dim": 200,
+            "batch_size": batch_size * 4,
             "layers": ["model.fc"],  # only the last layer
-            "device": "cuda:0",
+            "device": device,
         }
-
-        model_rand = ModelRandomizationMetric(
-            model=lit_model,
-            train_dataset=train_set,
-            explainer_cls=explainer_cls,
-            expl_kwargs=explain_kwargs,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            correlation_fn="spearman",
-            seed=42,
-        )
-
-        method_save_dir = os.path.join(explanations_dir, method)
-        subset_save_dir = os.path.join(method_save_dir, "randomization")
-        explanations = EC.load(subset_save_dir)
-
-        for i, (test_tensor, test_labels) in enumerate(dataloader):
-            model_rand.update(test_tensor, explanations[i])
-
-        score = model_rand.compute()
-        wandb.log({f"{method}_randomization": score})
 
     if method == "trak":
         cache_dir = os.path.join(randomization_dir, method)
@@ -356,35 +268,39 @@ def compute_randomization_metric(
 
         explainer_cls = TRAK
         explain_kwargs = {
-            "model": lit_model.model,
-            "model_id": "test_model",
-            "cache_dir": explanations_dir,
-            "train_dataset": train_dataloader.dataset,
+            "model_id": model_id,
+            "cache_dir": cache_dir,
             "projector": "cuda",
             "proj_dim": 4096,
             "load_from_disk": False,
         }
 
-        model_rand = ModelRandomizationMetric(
-            model=lit_model,
-            train_dataset=train_set,
-            explainer_cls=explainer_cls,
-            expl_kwargs=explain_kwargs,
-            model_id=model_id,
-            cache_dir=cache_dir,
-            correlation_fn="spearman",
-            seed=42,
+    if method == "random":
+        explainer_cls = RandomExplainer
+        explain_kwargs = {"seed": 28}
+
+    model_rand = ModelRandomizationMetric(
+        model=lit_model,
+        train_dataset=train_set,
+        explainer_cls=explainer_cls,
+        expl_kwargs=explain_kwargs,
+        correlation_fn="spearman",
+        seed=42,
+    )
+
+    method_save_dir = os.path.join(explanations_dir, method)
+    subset_save_dir = os.path.join(method_save_dir, "randomization")
+    explanations = EC.load(subset_save_dir)
+
+    for i, (test_tensor, test_labels) in enumerate(dataloader):
+        test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
+        explanation_targets = torch.tensor(
+            [lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))]
         )
+        model_rand.update(test_tensor, explanations[i], explanation_targets)
 
-        method_save_dir = os.path.join(explanations_dir, method)
-        subset_save_dir = os.path.join(method_save_dir, "randomization")
-        explanations = EC.load(subset_save_dir)
-
-        for i, (test_tensor, test_labels) in enumerate(dataloader):
-            model_rand.update(test_tensor, explanations[i])
-
-        score = model_rand.compute()
-        wandb.log({f"{method}_randomization": score})
+    score = model_rand.compute()
+    wandb.log({f"{method}_randomization": score})
 
 
 if __name__ == "__main__":

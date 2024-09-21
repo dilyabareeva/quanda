@@ -28,7 +28,7 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset,  explanations, test_tensor, method_kwargs",
+    "test_id, model, dataset,  explanations, test_tensor, batch_size, method_kwargs",
     [
         (
             "mnist",
@@ -36,6 +36,16 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
             "load_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_1",
+            4,
+            {"layers": "relu_4", "similarity_metric": cosine_similarity},
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_test_samples_1",
+            3,
             {"layers": "relu_4", "similarity_metric": cosine_similarity},
         ),
         (
@@ -44,11 +54,14 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
             "load_mnist_dataset",
             "load_mnist_explanations_dot_similarity_1",
             "load_mnist_test_samples_1",
+            8,
             {"layers": "relu_4", "similarity_metric": dot_product_similarity},
         ),
     ],
 )
-def test_captum_similarity_explain(test_id, model, dataset, explanations, test_tensor, method_kwargs, request, tmp_path):
+def test_captum_similarity_explain(
+    test_id, model, dataset, explanations, test_tensor, batch_size, method_kwargs, request, tmp_path
+):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
@@ -59,6 +72,7 @@ def test_captum_similarity_explain(test_id, model, dataset, explanations, test_t
         model_id="test_id",
         cache_dir=str(tmp_path),
         train_dataset=dataset,
+        batch_size=batch_size,
         device="cpu",
         **method_kwargs,
     )

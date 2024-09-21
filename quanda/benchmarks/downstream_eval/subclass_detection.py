@@ -138,7 +138,7 @@ class SubclassDetection(Benchmark):
         else:
             self.grouped_val_dl = None
 
-        self.group_model = copy.deepcopy(self.model)
+        self.group_model = copy.deepcopy(self.model).train()
 
         trainer_fit_kwargs = trainer_fit_kwargs or {}
 
@@ -237,6 +237,8 @@ class SubclassDetection(Benchmark):
         *args,
         **kwargs,
     ):
+        self.group_model.eval()
+
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.group_model, train_dataset=self.grouped_dataset, **expl_kwargs)
 

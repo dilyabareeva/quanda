@@ -31,7 +31,7 @@ from torch import Tensor
 from tqdm import tqdm
 
 from quanda.explainers.base import Explainer
-from quanda.utils.common import default_tensor_type
+from quanda.utils.common import default_tensor_type, map_location_context
 
 logger = logging.getLogger(__name__)
 
@@ -235,7 +235,8 @@ class RepresenterPoints(Explainer):
         self.learned_weights: torch.Tensor
         self.coefficients: torch.Tensor
 
-        self.samples = av_samples(act_dataset)
+        with map_location_context(self.device), default_tensor_type(self.device):
+            self.samples = av_samples(act_dataset)
 
         if self.features_postprocess is not None:
             self.samples = self.features_postprocess(self.samples)

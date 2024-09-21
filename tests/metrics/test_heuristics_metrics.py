@@ -9,6 +9,7 @@ from quanda.metrics.heuristics import (
     TopKOverlapMetric,
 )
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
+from quanda.utils.common import get_parent_module_from_name
 from quanda.utils.functions import correlation_functions, cosine_similarity
 
 
@@ -128,8 +129,10 @@ def test_randomization_metric_model_randomization(
         correlation_fn=corr_fn,
     )
     rand_model = metric.rand_model
-    for param1, param2 in zip(model.parameters(), rand_model.parameters()):
-        assert not torch.allclose(param1.data, param2.data), "Test failed."
+    for (name1, param1), (name2, param2) in zip(model.named_parameters(), rand_model.named_parameters()):
+        parent = get_parent_module_from_name(rand_model, name1)
+        if isinstance(parent, (torch.nn.Linear)):
+            assert not torch.allclose(param1.data, param2.data), "Test failed."
 
 
 @pytest.mark.heuristic_metrics

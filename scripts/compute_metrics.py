@@ -84,12 +84,12 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     class_to_group = torch.load(os.path.join(metadata_dir, "class_to_group.pth"))
     test_split = torch.load(os.path.join(metadata_dir, "test_indices.pth"))
     panda_train_indices = torch.load(os.path.join(metadata_dir, "panda_train_indices.pth"))
-    panda_test_indices = torch.load(os.path.join(metadata_dir, "panda_test_indices.pth"))
 
     n_classes = 200
     new_n_classes = len(set(list(class_to_group.values())))
     batch_size = 64
-    num_workers = 8
+    num_workers = 1
+    device = "cuda:0"
 
     # Define transformations
     regular_transforms = transforms.Compose(
@@ -135,8 +135,9 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     )
 
     panda_set = torch.utils.data.Subset(panda_dataset, panda_train_indices)
-    panda_test = torch.utils.data.Subset(panda_dataset, panda_test_indices)
-    panda_twin = torch.utils.data.Subset(panda_twin_dataset, panda_test_indices)
+    panda_rest_indices = [i for i in range(len(panda_dataset)) if i not in panda_train_indices]
+    panda_test = torch.utils.data.Subset(panda_dataset, panda_rest_indices)
+    panda_twin = torch.utils.data.Subset(panda_twin_dataset, panda_rest_indices)
     all_panda = torch.utils.data.ConcatDataset([panda_test, panda_twin])
 
     def add_yellow_square(img):
@@ -174,9 +175,13 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
 
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
-        checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
+        checkpoints[-1],
+        n_batches=len(train_dataloader),
+        num_labels=new_n_classes,
+        device=device,
+        map_location=torch.device(device),
     )
-    lit_model.to("cuda:0")
+    lit_model.to(device)
     lit_model.model = lit_model.model.eval()
 
     # Define Dataloader for different metrics
@@ -184,12 +189,14 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     # Dataloader for Mislabeling Detection
     test_mispredicted = torch.load(os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
     mispredicted_dataset = torch.utils.data.Subset(test_set_grouped, test_mispredicted)
+
     dataloaders["mislabeling"] = torch.utils.data.DataLoader(
         mispredicted_dataset,
-        batch_size=8,
+        batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
     )
+
     # vis_dataloader(dataloaders["mislabeling"])
 
     # Dataloder for Shortcut Detection
@@ -203,7 +210,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         label_fn=lambda x: class_to_group[x],
     )
     dataloaders["shortcut"] = torch.utils.data.DataLoader(
-        shortcut_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+        shortcut_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
     # vis_dataloader(dataloaders["shortcut"])
 
@@ -213,10 +220,10 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
     cat_dog_ungrouped_dataset = torch.utils.data.Subset(test_set_transform, test_cats + test_dogs)
     dataloaders["subclass"] = torch.utils.data.DataLoader(
-        cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+        cat_dog_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
     dataloaders["subclass_ungrouped"] = torch.utils.data.DataLoader(
-        cat_dog_ungrouped_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+        cat_dog_ungrouped_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
     # vis_dataloader(dataloaders["cat_dog"])
 
@@ -224,22 +231,22 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
     clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
     dataloaders["randomization"] = torch.utils.data.DataLoader(
-        clean_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+        clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
     dataloaders["top_k_overlap"] = dataloaders["randomization"]
     # vis_dataloader(dataloaders["randomization"])
 
     # Dataloader for Mixed Datasets
+    correct_predict_panda = torch.load(os.path.join(metadata_dir, "big_eval_test_correct_predict_panda_indices.pth"))
     dataloaders["mixed_dataset"] = torch.utils.data.DataLoader(
-        all_panda,
-        batch_size=len(all_panda),
+        torch.utils.data.Subset(all_panda, correct_predict_panda),
+        batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
     )
     # vis_dataloader(dataloaders["mixed_dataset"])
 
-    explanation_methods = ["similarity", "representer_points", "trak", "random"]
-    # , "tracincpfast", "arnoldi"
+    explanation_methods = ["similarity", "representer_points", "trak", "random", "tracincpfast", "arnoldi"]
     if metric == "mislabeling":
         for method in explanation_methods:
             method_save_dir = os.path.join(explanations_dir, method)
@@ -252,8 +259,8 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
                 global_method="sum_abs",
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
-                test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
-                mislabeled.update(test_tensor, test_labels, explanations[i].to("cuda:0"))
+                test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
+                mislabeled.update(test_tensor, test_labels, explanations[i].to(device))
 
             score = mislabeled.compute()
             wandb.log({f"{method}_{metric}": score})
@@ -272,11 +279,11 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
                 filter_by_class=False,
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
-                test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
+                test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
                 explanation_targets = [
-                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
+                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
                 ]
-                shortcut.update(explanations[i].to("cuda:0"))
+                shortcut.update(explanations[i].to(device))
 
             score = shortcut.compute()
             wandb.log({f"{method}_{metric}": score})
@@ -296,9 +303,9 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
                 test_sublabels = next(ungrouped_iter)[1]
-                test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
+                test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
                 explanation_targets = [
-                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
+                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
                 ]
                 id_subclass.update(test_sublabels, explanations[i])
 
@@ -312,11 +319,11 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             explanations = EC.load(subset_save_dir)
             top_k = TopKOverlapMetric(model=lit_model, train_dataset=train_set, top_k=1)
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
-                test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
+                test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
                 explanation_targets = [
-                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
+                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
                 ]
-                top_k.update(explanations[i].to("cuda:0"))
+                top_k.update(explanations[i].to(device))
 
             score = top_k.compute()
             wandb.log({f"{method}_{metric}": score})
@@ -336,11 +343,11 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
                 adversarial_indices=adv_indices,
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
-                test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
+                test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
                 explanation_targets = [
-                    lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
+                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
                 ]
-                mixed_dataset.update(explanations[i].to("cuda:0"))
+                mixed_dataset.update(explanations[i].to(device))
 
             score = mixed_dataset.compute()
             wandb.log({f"{method}_{metric}": score})
