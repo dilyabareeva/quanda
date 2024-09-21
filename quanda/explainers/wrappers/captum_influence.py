@@ -26,7 +26,7 @@ from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
-from quanda.utils.common import default_tensor_type, get_load_state_dict_func
+from quanda.utils.common import default_tensor_type, get_load_state_dict_func, ds_len
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity
 from quanda.utils.validation import validate_checkpoints_load_func
@@ -134,6 +134,10 @@ class CaptumSimilarity(CaptumInfluence):
     ):
         """Initializer for the `CaptumSimilarity` explainer.
 
+        The Captum implementation includes a bug in the batch processing of the dataset, which leads to an error
+        if the dataset size is not divisible by the batch size. To circumvent this issue, we divide the dataset into
+        two subsets and process them separately.
+
         Parameters
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
@@ -163,7 +167,7 @@ class CaptumSimilarity(CaptumInfluence):
         self._layer: Optional[Union[List[str], str]] = None
         self.layer = layers
 
-        # TODO: validate SimilarityInfluence kwargs
+        model_id += "_main"
 
         super().__init__(
             model=model,
@@ -174,10 +178,20 @@ class CaptumSimilarity(CaptumInfluence):
         self.model_id = model_id
         self.cache_dir = cache_dir
 
+        # divide train_dataset into two subsets to make up for a batching bug
+        self.train_set_1 = torch.utils.data.Subset(
+            self.train_dataset,
+            [i for i in range(len(train_dataset) - len(train_dataset) % batch_size)]
+        )
+        self.train_set_2 = torch.utils.data.Subset(
+            self.train_dataset,
+            [i for i in range(len(train_dataset) - len(train_dataset) % batch_size, len(train_dataset))]
+        )
+
         explainer_kwargs.update(
             {
                 "module": model,
-                "influence_src_dataset": self.train_dataset,
+                "influence_src_dataset": self.train_set_1,
                 "activation_dir": cache_dir,
                 "model_id": model_id,
                 "layers": self.layer,
@@ -189,9 +203,15 @@ class CaptumSimilarity(CaptumInfluence):
             }
         )
 
-        self.init_explainer(**explainer_kwargs)
+        self.captum_explainer_1 = self.explainer_cls(**explainer_kwargs)
+
+        explainer_kwargs_2 = explainer_kwargs.copy()
+        explainer_kwargs_2["influence_src_dataset"] = self.train_set_2
+        explainer_kwargs_2["batch_size"] = ds_len(self.train_set_2)
+        explainer_kwargs_2["model_id"] = model_id + "_suppl_act"
+
+        self.captum_explainer_2 = self.explainer_cls(**explainer_kwargs_2)
         # explicitly specifying explain method kwargs as instance attributes
-        self.top_k = self.dataset_length
 
         if "top_k" in explainer_kwargs:
             warnings.warn("top_k is not supported by CaptumSimilarity explainer. Ignoring the argument.")
@@ -202,7 +222,18 @@ class CaptumSimilarity(CaptumInfluence):
             self.model,
             self.model_id,
             self.layer,
-            torch.utils.data.DataLoader(self.train_dataset, batch_size, shuffle=False),
+            torch.utils.data.DataLoader(self.train_set_1, batch_size, shuffle=False),
+            identifier="src",
+            load_from_disk=load_from_disk,
+            return_activations=True,
+        )
+
+        AV.generate_dataset_activations(
+            self.cache_dir,
+            self.model,
+            self.model_id + "_suppl_act",
+            self.layer,
+            torch.utils.data.DataLoader(self.train_set_2, ds_len(self.train_set_2), shuffle=False),
             identifier="src",
             load_from_disk=load_from_disk,
             return_activations=True,
@@ -245,10 +276,13 @@ class CaptumSimilarity(CaptumInfluence):
         test = test.to(self.device)
 
         with default_tensor_type(self.device):
-            topk_idx, topk_val = self.captum_explainer.influence(inputs=test, top_k=self.top_k)[self.layer]
+            topk_idx_1, topk_val_1 = self.captum_explainer_1.influence(inputs=test, top_k=ds_len(self.train_set_1))[self.layer]
+            topk_idx_2, topk_val_2 = self.captum_explainer_2.influence(inputs=test, top_k=ds_len(self.train_set_2))[self.layer]
+            #topk_idx, topk_val = torch.cat([topk_idx_1, topk_idx_2]), torch.cat([topk_val_1, topk_val_2])
 
-        _, inverted_idx = topk_idx.sort()
-        return torch.gather(topk_val, 1, inverted_idx)
+        _, inverted_idx_1 = topk_idx_1.sort()
+        _, inverted_idx_2 = topk_idx_2.sort()
+        return torch.cat([torch.gather(topk_val_1, 1, inverted_idx_1), torch.gather(topk_val_2, 1, inverted_idx_2)], dim=1)
 
 
 def captum_similarity_explain(
