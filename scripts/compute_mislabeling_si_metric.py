@@ -286,7 +286,7 @@ def compute_mislabeling_metric(
     )
 
     score = mislabeled.compute()
-    wandb.log({f"{method}_mislabeling": score})
+    wandb.log({f"{method}_mislabeling_si": score})
 
 
 if __name__ == "__main__":
