@@ -184,6 +184,8 @@ class ModelRandomization(Benchmark):
             Dictionary containing the evaluation results.
         """
 
+        self.model.eval()
+
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)

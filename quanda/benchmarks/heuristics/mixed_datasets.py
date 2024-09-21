@@ -165,7 +165,7 @@ class MixedDatasets(Benchmark):
         else:
             val_dl = None
 
-        obj.model = copy.deepcopy(model)
+        obj.model = copy.deepcopy(model).train()
 
         trainer_fit_kwargs = trainer_fit_kwargs or {}
 
@@ -308,6 +308,8 @@ class MixedDatasets(Benchmark):
         -------
 
         """
+        self.model.eval()
+
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.mixed_dataset, **expl_kwargs)
 

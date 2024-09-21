@@ -108,7 +108,9 @@ class DatasetCleaning(Benchmark):
         *args,
         **kwargs,
     ):
+        self.model.eval()
         init_model = init_model or copy.deepcopy(self.model)
+        init_model.eval()
 
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
