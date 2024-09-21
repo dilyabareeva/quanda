@@ -87,7 +87,7 @@ def test_identical_subclass_metrics(
     metric = SubclassDetectionMetric(
         model=model,
         train_dataset=dataset,
-        subclass_labels=subclass_labels,
+        train_subclass_labels=subclass_labels,
         device="cpu",
     )
     metric.update(test_subclasses=test_labels, explanations=tda)

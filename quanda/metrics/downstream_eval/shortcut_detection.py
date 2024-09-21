@@ -77,7 +77,7 @@ class ShortcutDetectionMetric(Metric):
     def update(
         self,
         explanations: torch.Tensor,
-        test_tensor: Optional[Union[List, torch.Tensor]] = None,
+        test_tensor: Optional[torch.Tensor] = None,
         test_labels: Optional[torch.Tensor] = None,
     ):
         """Update the metric state with the provided explanations.
@@ -91,11 +91,17 @@ class ShortcutDetectionMetric(Metric):
         test_labels : torch.Tensor, optional
             Labels of the test samples. Not optional if `filter_by_prediction` or `filter_by_class` is True.
         """
+        explanations = explanations.to(self.device)
 
         if test_tensor is None and self.filter_by_prediction:
             raise ValueError("test_tensor must be provided if filter_by_prediction is True")
         if test_labels is None and (self.filter_by_prediction or self.filter_by_class):
             raise ValueError("test_labels must be provided if filter_by_prediction or filter_by_class is True")
+
+        if test_tensor is not None:
+            test_tensor = test_tensor.to(self.device)
+        if test_labels is not None:
+            test_labels = test_labels.to(self.device)
 
         select_idx = torch.tensor([True] * len(explanations))
 

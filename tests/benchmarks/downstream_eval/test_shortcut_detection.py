@@ -16,7 +16,7 @@ from quanda.utils.training.trainer import Trainer
     "shortcut_indices, p, seed, batch_size, explainer_cls, expl_kwargs, filter_by_class, expected_score",
     [
         (
-            "mnist",
+            "mnist_generate",
             "generate",
             "load_mnist_model",
             "torch_sgd_optimizer",
@@ -37,7 +37,7 @@ from quanda.utils.training.trainer import Trainer
             0.0,
         ),
         (
-            "mnist",
+            "mnist_assemble",
             "assemble",
             "load_mnist_model",
             "torch_sgd_optimizer",
@@ -102,6 +102,8 @@ def test_shortcut_detection(
             train_dataset=dataset,
             n_classes=n_classes,
             eval_dataset=dataset,
+            filter_by_class=filter_by_class,
+            filter_by_prediction=True,
             shortcut_cls=shortcut_cls,
             p=p,
             sample_fn=sample_fn,
@@ -115,6 +117,8 @@ def test_shortcut_detection(
             train_dataset=dataset,
             n_classes=n_classes,
             eval_dataset=dataset,
+            filter_by_class=filter_by_class,
+            filter_by_prediction=True,
             p=p,
             shortcut_cls=shortcut_cls,
             shortcut_indices=shortcut_indices,
@@ -127,9 +131,6 @@ def test_shortcut_detection(
     results = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
-        cache_dir=str(tmp_path),
-        model_id="default_model_id",
-        filter_by_class=filter_by_class,
         batch_size=batch_size,
     )
     assert math.isclose(results["score"], expected_score, abs_tol=0.00001)
@@ -193,6 +194,8 @@ def test_shortcut_detection_generate_from_pl_module(
         train_dataset=dataset,
         n_classes=n_classes,
         eval_dataset=dataset,
+        filter_by_class=True,
+        filter_by_prediction=False,
         shortcut_cls=shortcut_cls,
         p=p,
         sample_fn=sample_fn,
@@ -204,10 +207,6 @@ def test_shortcut_detection_generate_from_pl_module(
     results = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
-        cache_dir=str(tmp_path),
-        model_id="default_model_id",
         batch_size=batch_size,
-        filter_by_class=True,
-        filter_by_prediction=False,
     )
     assert math.isclose(results["score"], expected_score, abs_tol=0.00001)

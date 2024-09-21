@@ -71,7 +71,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
     n_epochs = 10
     checkpoints = [
-        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(1, n_epochs, 2)
+        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(5, n_epochs, 1)
     ]
 
     # Dataset Construction
@@ -85,7 +85,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     n_classes = 200
     new_n_classes = len(set(list(class_to_group.values())))
     batch_size = 64
-    num_workers = 8
+    num_workers = 1
 
     torch_rng = torch.Generator().manual_seed(27)
     generator = random.Random(27)
@@ -174,7 +174,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
     )
     lit_model.model = lit_model.model.eval()
-    """
+
     # Select tet
     random_rng = random.Random(27)
 
@@ -186,19 +186,18 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     all_dogs = [s for s in range(len(test_set_grouped)) if test_set_grouped[s][1] in dog_classes]
 
     all_clean_samples = [i for i in range(len(test_set_grouped)) if i not in all_cats + all_dogs]
-    clean_samples = random_rng.sample(all_clean_samples, 128)
-    test_backdoor = random_rng.sample(all_clean_samples, 64)
+    clean_samples = random_rng.sample(all_clean_samples, 64)
     test_shortcut = random_rng.sample(all_clean_samples, 64)
 
-    test_dogs = random_rng.sample(all_cats, 64)
-    test_cats = random_rng.sample(all_dogs, 64)
+    test_dogs = random_rng.sample(all_cats, 32)
+    test_cats = random_rng.sample(all_dogs, 32)
 
     mispredicted_clean = [
-        i for i in all_clean_samples if lit_model.model(
-            test_set_grouped[i][0].unsqueeze(0).to("cuda:0")
-        ).argmax().item() != test_set[i][1]
+        i
+        for i in all_clean_samples
+        if lit_model.model(test_set_grouped[i][0].unsqueeze(0).to("cuda:0")).argmax().item() != test_set[i][1]
     ]
-    test_mispredicted = random_rng.sample(mispredicted_clean, 128)
+    test_mispredicted = random_rng.sample(mispredicted_clean, 64)
 
     torch.save(test_mispredicted, os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
     torch.save(test_shortcut, os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
@@ -219,7 +218,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
         plt.show()
 
-    """
     # Define Dataloader for different metrics
     dataloaders = {}
     # Dataloader for Mislabeling Detection
@@ -252,7 +250,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
     test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
     cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
-    dataloaders["subclass"] = torch.utils.data.DataLoader(cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers)
+    dataloaders["subclass"] = torch.utils.data.DataLoader(
+        cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+    )
     # vis_dataloader(dataloaders["subclass"])
 
     # Dataloader for Model Randomization, Top-K Overlap
@@ -344,16 +344,14 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             model=lit_model,
             train_dataset=train_dataloader.dataset,
             checkpoints=checkpoints,
-            model_id="0",
-            cache_dir=output_dir,
             checkpoints_load_func=load_state_dict,
             loss_fn=torch.nn.CrossEntropyLoss(reduction="mean"),
             final_fc_layer=list(lit_model.model.children())[-1],
             device="cuda:0",
-            batch_size=8,
+            batch_size=64,
         )
 
-        method_save_dir = os.path.join(output_dir, method)
+        method_save_dir = os.path.join(output_dir, method + "_1_bs")
         os.makedirs(method_save_dir, exist_ok=True)
 
         for subset in dataloaders:
@@ -363,8 +361,14 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 explanation_targets = [
                     lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
                 ]
+                import time
+
+                # Explain test samples
+                start_time = time.time()
                 explanations_tracincpfast = explainer_tracincpfast.explain(test_tensor, targets=explanation_targets)
+                end_time = time.time()
                 EC.save(subset_save_dir, explanations_tracincpfast, i)
+                print(f"Time taken for subset {subset} is {end_time - start_time}")
 
     if method == "arnoldi":
 
@@ -385,7 +389,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             model=lit_model,
             train_dataset=train_dataloader.dataset,
             hessian_dataset=hessian_dataset,
-            checkpoint=checkpoints[0],
+            checkpoint=checkpoints[-1],
             loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
             checkpoints_load_func=load_state_dict,
             projection_dim=10,

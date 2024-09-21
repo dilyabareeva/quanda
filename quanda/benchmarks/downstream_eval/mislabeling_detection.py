@@ -42,6 +42,8 @@ class MislabelingDetection(Benchmark):
 
     5) Kwon, Y., Wu, E., Wu, K., & Zou, J. (2024). DataInf: Efficiently estimating data influence in LoRA-tuned LLMs and
     diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).
+
+    TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE PREDICRIONS
     """
 
     name: str = "Mislabeling Detection"
@@ -72,6 +74,7 @@ class MislabelingDetection(Benchmark):
         self.p: float
         self.global_method: Union[str, type] = "self-influence"
         self.n_classes: int
+        self.use_predictions: bool
 
     @classmethod
     def generate(
@@ -81,6 +84,7 @@ class MislabelingDetection(Benchmark):
         n_classes: int,
         eval_dataset: torch.utils.data.Dataset,
         trainer: Union[L.Trainer, BaseTrainer],
+        use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -141,6 +145,7 @@ class MislabelingDetection(Benchmark):
         obj.set_devices(model)
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.eval_dataset = eval_dataset
+        obj.use_predictions = use_predictions
         obj._generate(
             model=model,
             train_dataset=train_dataset,
@@ -289,6 +294,7 @@ class MislabelingDetection(Benchmark):
             model=bench_state["model"],
             train_dataset=bench_state["train_dataset"],
             eval_dataset=eval_dataset,
+            use_predictions=bench_state["use_predictions"],
             n_classes=bench_state["n_classes"],
             mislabeling_indices=bench_state["mislabeling_indices"],
             mislabeling_labels=bench_state["mislabeling_labels"],
@@ -304,7 +310,8 @@ class MislabelingDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
-        eval_dataset=torch.utils.data.Dataset,
+        eval_dataset: torch.utils.data.Dataset,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         mislabeling_indices: Optional[List[int]] = None,
         mislabeling_labels: Optional[Dict[int, int]] = None,
@@ -353,6 +360,7 @@ class MislabelingDetection(Benchmark):
         obj.global_method = global_method
         obj.n_classes = n_classes
         obj.eval_dataset = eval_dataset
+        obj.use_predictions = use_predictions
 
         obj.mislabeling_dataset = LabelFlippingDataset(
             dataset=obj.train_dataset,
@@ -376,10 +384,7 @@ class MislabelingDetection(Benchmark):
         self,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
-        use_predictions: bool = True,
         batch_size: int = 8,
-        *args,
-        **kwargs,
     ):
         """
         Evaluate the given data attributor.
@@ -421,7 +426,7 @@ class MislabelingDetection(Benchmark):
                 pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
-                if use_predictions:
+                if self.use_predictions:
                     with torch.no_grad():
                         targets = self.model(inputs).argmax(dim=-1)
                 else:

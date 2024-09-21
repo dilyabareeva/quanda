@@ -95,9 +95,9 @@ class TRAK(Explainer):
         super(TRAK, self).__init__(
             model=model,
             train_dataset=train_dataset,
-            model_id=model_id,
-            cache_dir=cache_dir,
         )
+        self.model_id = model_id
+        self.cache_dir = cache_dir
         self.dataset = train_dataset
         self.proj_dim = proj_dim
         self.batch_size = batch_size

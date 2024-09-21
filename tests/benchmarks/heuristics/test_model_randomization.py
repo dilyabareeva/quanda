@@ -87,13 +87,11 @@ def test_model_randomization(
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
-        cache_dir=str(tmp_path),
-        model_id="default_model_id",
         batch_size=batch_size,
-        device="cpu",
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
