@@ -32,6 +32,7 @@ class DatasetCleaning(Benchmark):
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
+        self.use_predictions: bool
 
     @classmethod
     def generate(

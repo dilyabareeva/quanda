@@ -29,6 +29,7 @@ class ClassDetection(Benchmark):
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
+        self.use_predictions: bool
 
     @classmethod
     def generate(
@@ -101,9 +102,7 @@ class ClassDetection(Benchmark):
         batch_size: int = 8,
     ):
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model, train_dataset=self.train_dataset, **expl_kwargs
-        )
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 

@@ -42,6 +42,9 @@ class ModelRandomization(Benchmark):
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
+        self.use_predictions: bool
+        self.correlation_fn: Union[Callable, CorrelationFnLiterals]
+        self.seed: int
 
     @classmethod
     def generate(
@@ -49,8 +52,8 @@ class ModelRandomization(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
-            correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-            seed: int = 42,
+        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
+        seed: int = 42,
         use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
@@ -111,8 +114,8 @@ class ModelRandomization(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
-            correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-            seed: int = 42,
+        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
+        seed: int = 42,
         use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
@@ -182,9 +185,7 @@ class ModelRandomization(Benchmark):
         """
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model, train_dataset=self.train_dataset, **expl_kwargs
-        )
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
         metric = ModelRandomizationMetric(

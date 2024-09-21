@@ -30,6 +30,8 @@ class TopKOverlap(Benchmark):
         self.model: torch.nn.Module
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
+        self.use_predictions: bool
+        self.top_k: int
 
     @classmethod
     def generate(
@@ -64,8 +66,8 @@ class TopKOverlap(Benchmark):
         cls,
         name: str,
         eval_dataset: torch.utils.data.Dataset,
-        use_predictions: bool = True,
         batch_size: int = 32,
+        use_predictions: bool = True,
         *args,
         **kwargs,
     ):
@@ -86,7 +88,7 @@ class TopKOverlap(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
-            top_k: int = 1,
+        top_k: int = 1,
         use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
@@ -113,9 +115,7 @@ class TopKOverlap(Benchmark):
         batch_size: int = 8,
     ):
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model, train_dataset=self.train_dataset, **expl_kwargs
-        )
+        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 

@@ -1,4 +1,4 @@
-from typing import Any, List, Union, Optional
+from typing import Any, List, Optional, Union
 
 import torch
 from torcheval.metrics.functional import binary_auprc
@@ -34,7 +34,7 @@ class MixedDatasetsMetric(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         adversarial_indices: Union[List[int], torch.Tensor],
-            filter_by_prediction: bool = False,
+        filter_by_prediction: bool = False,
         adversarial_label: Optional[int] = None,
         *args: Any,
         **kwargs: Any,
@@ -73,7 +73,7 @@ class MixedDatasetsMetric(Metric):
             adversarial_indices = torch.tensor(adversarial_indices)
 
         self.adversarial_indices = adversarial_indices.to(self.device)
-            
+
         induced_adv_label = self._validate_adversarial_labels()
         if adversarial_label is None:
             adversarial_label = induced_adv_label
@@ -89,7 +89,7 @@ class MixedDatasetsMetric(Metric):
     def update(
         self,
         explanations: torch.Tensor,
-        test_tensor: Optional[Union[List, torch.Tensor]] = None,
+        test_tensor: Optional[torch.Tensor] = None,
         test_labels: Optional[torch.Tensor] = None,
         **kwargs,
     ):
@@ -101,14 +101,15 @@ class MixedDatasetsMetric(Metric):
             Explanations to be evaluated.
         """
         explanations = explanations.to(self.device)
-        
+
         if (test_tensor is None or test_labels is None) and self.filter_by_prediction:
             raise ValueError("test_tensor must be provided if filter_by_prediction is True")
 
+        if test_tensor is not None:
+            test_tensor = test_tensor.to(self.device)
         select_idx = torch.tensor([True] * len(explanations))
 
         if self.filter_by_prediction:
-            test_tensor = test_tensor.to(self.device)
             pred_cls = self.model(test_tensor).argmax(dim=1)
             select_idx *= pred_cls == self.adversarial_label
 

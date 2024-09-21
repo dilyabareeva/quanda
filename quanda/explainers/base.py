@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional, Sized, Union
+from typing import List, Sized, Union
 
 import lightning as L
 import torch
@@ -41,7 +41,6 @@ class Explainer(ABC):
             self.device = next(model.parameters()).device
         else:
             self.device = torch.device("cpu")
-
 
         # if dataset return samples not on device, move them to device
         if train_dataset[0][0].device != self.device:

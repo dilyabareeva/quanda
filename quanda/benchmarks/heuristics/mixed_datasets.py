@@ -66,6 +66,9 @@ class MixedDatasets(Benchmark):
         self.eval_dataset: torch.utils.data.Dataset
         self.mixed_dataset: torch.utils.data.Dataset
         self.adversarial_indices: List[int]
+        self.use_predictions: bool
+        self.adversarial_label: int
+        self.filter_by_prediction: bool
 
     @classmethod
     def generate(
@@ -77,7 +80,7 @@ class MixedDatasets(Benchmark):
         adversarial_label: int,
         trainer: Union[L.Trainer, BaseTrainer],
         use_predictions: bool = True,
-            filter_by_prediction: bool = True,
+        filter_by_prediction: bool = True,
         dataset_split: str = "train",
         adversarial_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -226,7 +229,7 @@ class MixedDatasets(Benchmark):
         adversarial_dir: str,
         adversarial_label: int,
         use_predictions: bool = True,
-            filter_by_prediction: bool = True,
+        filter_by_prediction: bool = True,
         adversarial_transform: Optional[Callable] = None,
         dataset_split: str = "train",
         *args,

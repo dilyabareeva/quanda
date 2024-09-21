@@ -62,6 +62,9 @@ class ShortcutDetection(Benchmark):
         self.p: float
         self.sample_fn: Callable
         self.n_classes: int
+        self.use_predictions: bool
+        self.filter_by_prediction: bool
+        self.filter_by_class: bool
 
     @classmethod
     def generate(
@@ -73,8 +76,8 @@ class ShortcutDetection(Benchmark):
         shortcut_cls: int,
         trainer: Union[L.Trainer, BaseTrainer],
         sample_fn: Callable,
-            filter_by_prediction: bool = True,
-            filter_by_class: bool = False,
+        filter_by_prediction: bool = True,
+        filter_by_class: bool = False,
         use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
@@ -300,8 +303,8 @@ class ShortcutDetection(Benchmark):
         eval_dataset: torch.utils.data.Dataset,
         sample_fn: Callable,
         shortcut_cls: int,
-            filter_by_prediction: bool = True,
-            filter_by_class: bool = False,
+        filter_by_prediction: bool = True,
+        filter_by_class: bool = False,
         use_predictions: bool = True,
         dataset_split: str = "train",
         shortcut_indices: Optional[List[int]] = None,
@@ -418,7 +421,6 @@ class ShortcutDetection(Benchmark):
 
         for i, (input, labels) in enumerate(pbar):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
-
 
             input, labels = input.to(self.device), labels.to(self.device)
 

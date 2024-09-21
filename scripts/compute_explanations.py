@@ -193,9 +193,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     test_cats = random_rng.sample(all_dogs, 32)
 
     mispredicted_clean = [
-        i for i in all_clean_samples if lit_model.model(
-            test_set_grouped[i][0].unsqueeze(0).to("cuda:0")
-        ).argmax().item() != test_set[i][1]
+        i
+        for i in all_clean_samples
+        if lit_model.model(test_set_grouped[i][0].unsqueeze(0).to("cuda:0")).argmax().item() != test_set[i][1]
     ]
     test_mispredicted = random_rng.sample(mispredicted_clean, 64)
 
@@ -217,7 +217,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         ax.set_yticks([])
         ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
         plt.show()
-
 
     # Define Dataloader for different metrics
     dataloaders = {}
@@ -363,6 +362,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                     lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
                 ]
                 import time
+
                 # Explain test samples
                 start_time = time.time()
                 explanations_tracincpfast = explainer_tracincpfast.explain(test_tensor, targets=explanation_targets)

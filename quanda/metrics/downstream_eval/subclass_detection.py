@@ -1,4 +1,4 @@
-from typing import Union, List, Optional
+from typing import List, Optional, Union
 
 import torch
 
@@ -11,7 +11,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         train_subclass_labels: torch.Tensor,
-            filter_by_prediction: bool = False,
+        filter_by_prediction: bool = False,
         *args,
         **kwargs,
     ):
@@ -49,7 +49,6 @@ class SubclassDetectionMetric(ClassDetectionMetric):
 
         select_idx = torch.tensor([True] * len(explanations))
         if self.filter_by_prediction:
-            test_tensor = test_tensor.to(self.device)
             pred_cls = self.model(test_tensor).argmax(dim=1)
             select_idx *= pred_cls == test_classes
 

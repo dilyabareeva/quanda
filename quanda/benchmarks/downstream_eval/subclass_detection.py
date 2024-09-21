@@ -7,7 +7,7 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.metrics.downstream_eval import ClassDetectionMetric, SubclassDetectionMetric
+from quanda.metrics.downstream_eval import SubclassDetectionMetric
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
@@ -44,6 +44,8 @@ class SubclassDetection(Benchmark):
         self.class_to_group: Dict[int, int]
         self.n_classes: int
         self.n_groups: int
+        self.use_predictions: bool
+        self.filter_by_prediction: bool
 
     @classmethod
     def generate(
@@ -53,7 +55,7 @@ class SubclassDetection(Benchmark):
         trainer: Union[L.Trainer, BaseTrainer],
         eval_dataset: torch.utils.data.Dataset,
         use_predictions: bool = True,
-            filter_by_prediction: bool = True,
+        filter_by_prediction: bool = True,
         dataset_split: str = "train",
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
@@ -194,7 +196,7 @@ class SubclassDetection(Benchmark):
         class_to_group: Dict[int, int],  # TODO: type specification
         eval_dataset: torch.utils.data.Dataset,
         use_predictions: bool = True,
-            filter_by_prediction: bool = True,
+        filter_by_prediction: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
@@ -236,17 +238,17 @@ class SubclassDetection(Benchmark):
         **kwargs,
     ):
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.group_model, train_dataset=self.grouped_dataset, **expl_kwargs
-        )
+        explainer = explainer_cls(model=self.group_model, train_dataset=self.grouped_dataset, **expl_kwargs)
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
-        metric = SubclassDetectionMetric(model=self.group_model, train_dataset=self.grouped_dataset,
-                                         train_subclass_labels=torch.tensor([s[1] for s in self.grouped_dataset]),
-                                         filter_by_prediction=self.filter_by_prediction,
-                                        device=self.device
-                                         )
+        metric = SubclassDetectionMetric(
+            model=self.group_model,
+            train_dataset=self.grouped_dataset,
+            train_subclass_labels=torch.tensor([self.grouped_dataset[s][1] for s in range(len(self.grouped_dataset))]),
+            filter_by_prediction=self.filter_by_prediction,
+            device=self.device,
+        )
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)

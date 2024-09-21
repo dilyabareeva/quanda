@@ -74,6 +74,7 @@ class MislabelingDetection(Benchmark):
         self.p: float
         self.global_method: Union[str, type] = "self-influence"
         self.n_classes: int
+        self.use_predictions: bool
 
     @classmethod
     def generate(

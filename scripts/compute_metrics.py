@@ -172,7 +172,6 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         transform_indices=[],
     )
 
-
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
         checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
