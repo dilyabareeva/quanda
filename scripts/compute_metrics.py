@@ -140,7 +140,6 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     panda_twin = torch.utils.data.Subset(panda_twin_dataset, panda_rest_indices)
     all_panda = torch.utils.data.ConcatDataset([panda_test, panda_twin])
 
-
     def add_yellow_square(img):
         square_size = (15, 15)  # Size of the square
         yellow_square = Image.new("RGB", square_size, (255, 255, 0))  # Create a yellow square
@@ -176,7 +175,11 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
 
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
-        checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
+        checkpoints[-1],
+        n_batches=len(train_dataloader),
+        num_labels=new_n_classes,
+        device=device,
+        map_location=torch.device(device),
     )
     lit_model.to(device)
     lit_model.model = lit_model.model.eval()
@@ -242,7 +245,6 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         num_workers=num_workers,
     )
     # vis_dataloader(dataloaders["mixed_dataset"])
-
 
     explanation_methods = ["similarity", "representer_points", "trak", "random", "tracincpfast", "arnoldi"]
     if metric == "mislabeling":

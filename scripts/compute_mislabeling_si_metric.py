@@ -39,6 +39,7 @@ from tutorials.utils.modules import LitModel
 logger = logging.getLogger(__name__)
 load_dotenv()
 
+
 def compute_mislabeling_metric(
     method, tiny_in_path, panda_sketch_path, explanations_dir, checkpoints_dir, metadata_dir, download
 ):
@@ -159,7 +160,11 @@ def compute_mislabeling_metric(
 
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
-        checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
+        checkpoints[-1],
+        n_batches=len(train_dataloader),
+        num_labels=new_n_classes,
+        device=device,
+        map_location=torch.device(device),
     )
     lit_model.model = lit_model.model.eval()
 
@@ -181,7 +186,6 @@ def compute_mislabeling_metric(
             "cache_dir": cache_dir,
         }
 
-
     if method == "representer_points":
         cache_dir = os.path.join(mislabeling_dir, method)
         os.makedirs(cache_dir, exist_ok=True)
@@ -200,10 +204,13 @@ def compute_mislabeling_metric(
 
     if method == "tracincpfast":
 
-
         def load_state_dict(module, path: str) -> int:
             module = type(module).load_from_checkpoint(
-                path, n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
+                path,
+                n_batches=len(train_dataloader),
+                num_labels=new_n_classes,
+                device=device,
+                map_location=torch.device(device),
             )
             module.model.eval()
             return module.lr
@@ -215,14 +222,18 @@ def compute_mislabeling_metric(
             "loss_fn": torch.nn.CrossEntropyLoss(reduction="mean"),
             "final_fc_layer": "model.fc",
             "device": device,
-            "batch_size": batch_size*4,
+            "batch_size": batch_size * 4,
         }
 
     if method == "arnoldi":
 
         def load_state_dict(module, path: str) -> int:
             module = type(module).load_from_checkpoint(
-                path, n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
+                path,
+                n_batches=len(train_dataloader),
+                num_labels=new_n_classes,
+                device=device,
+                map_location=torch.device(device),
             )
             module.model.eval()
             return module.lr
@@ -240,7 +251,7 @@ def compute_mislabeling_metric(
             "checkpoints_load_func": load_state_dict,
             "projection_dim": 100,
             "arnoldi_dim": 200,
-            "batch_size": batch_size*4,
+            "batch_size": batch_size * 4,
             "layers": ["model.fc"],  # only the last layer
             "device": device,
         }
@@ -264,7 +275,6 @@ def compute_mislabeling_metric(
     if method == "random":
         explainer_cls = RandomExplainer
         explain_kwargs = {"seed": 28}
-
 
     mislabeled = MislabelingDetectionMetric(
         model=lit_model,

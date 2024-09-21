@@ -1,9 +1,6 @@
 import inspect
 from typing import Any, Callable
 
-import lightning as L
-import torch
-
 """
 This module contains utility functions for validation. The plan is to
 move the validation logic into a validation decorator at a later point.

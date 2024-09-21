@@ -29,7 +29,8 @@ from quanda.explainers.utils import (
 from quanda.utils.common import (
     default_tensor_type,
     ds_len,
-    get_load_state_dict_func, map_location_context,
+    get_load_state_dict_func,
+    map_location_context,
 )
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity

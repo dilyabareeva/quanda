@@ -171,7 +171,11 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
-        checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
+        checkpoints[-1],
+        n_batches=len(train_dataloader),
+        num_labels=new_n_classes,
+        device=device,
+        map_location=torch.device(device),
     )
     lit_model.model = lit_model.model.eval()
 
@@ -187,8 +191,16 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     all_dogs = [s for s in range(len(test_set_grouped)) if test_set_grouped[s][1] in dog_classes]
 
     # find some correctly predicted cats and dogs
-    correct_pred_cats = [i for i in all_cats if lit_model.model(test_set_grouped[i][0].unsqueeze(0).to(device)).argmax().item() == test_set_grouped[i][1]]
-    correct_pred_dogs = [i for i in all_dogs if lit_model.model(test_set_grouped[i][0].unsqueeze(0).to(device)).argmax().item() == test_set_grouped[i][1]]
+    correct_pred_cats = [
+        i
+        for i in all_cats
+        if lit_model.model(test_set_grouped[i][0].unsqueeze(0).to(device)).argmax().item() == test_set_grouped[i][1]
+    ]
+    correct_pred_dogs = [
+        i
+        for i in all_dogs
+        if lit_model.model(test_set_grouped[i][0].unsqueeze(0).to(device)).argmax().item() == test_set_grouped[i][1]
+    ]
     test_dogs = random_rng.sample(correct_pred_dogs, 32)
     test_cats = random_rng.sample(correct_pred_cats, 32)
 
@@ -204,7 +216,11 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     ]
     test_mispredicted = random_rng.sample(mispredicted_clean, 64)
 
-    correct_predict_panda = [i for i in range(len(all_panda)) if lit_model(all_panda[i][0].unsqueeze(0).to(device)).argmax().item() == all_panda[i][1]]
+    correct_predict_panda = [
+        i
+        for i in range(len(all_panda))
+        if lit_model(all_panda[i][0].unsqueeze(0).to(device)).argmax().item() == all_panda[i][1]
+    ]
     torch.save(test_mispredicted, os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
     torch.save(test_shortcut, os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
     torch.save(test_dogs, os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
@@ -224,7 +240,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         ax.set_yticks([])
         ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
         plt.show()
-
 
     # Define Dataloader for different metrics
     dataloaders = {}
@@ -356,7 +371,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             loss_fn=torch.nn.CrossEntropyLoss(reduction="mean"),
             final_fc_layer=list(lit_model.model.children())[-1],
             device=device,
-            batch_size=batch_size*4,
+            batch_size=batch_size * 4,
         )
 
         method_save_dir = os.path.join(output_dir, method + "_1_bs")
@@ -402,7 +417,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             checkpoints_load_func=load_state_dict,
             projection_dim=100,
             arnoldi_dim=200,
-            batch_size=batch_size*4,
+            batch_size=batch_size * 4,
             layers=["model.fc"],  # only the last layer
             device=device,
         )

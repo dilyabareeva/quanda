@@ -161,7 +161,11 @@ def compute_randomization_metric(
 
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
-        checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
+        checkpoints[-1],
+        n_batches=len(train_dataloader),
+        num_labels=new_n_classes,
+        device=device,
+        map_location=torch.device(device),
     )
     lit_model.model = lit_model.model.eval()
 
@@ -188,7 +192,6 @@ def compute_randomization_metric(
             "cache_dir": cache_dir,
         }
 
-
     if method == "representer_points":
         cache_dir = os.path.join(randomization_dir, method)
         os.makedirs(cache_dir, exist_ok=True)
@@ -207,10 +210,13 @@ def compute_randomization_metric(
 
     if method == "tracincpfast":
 
-
         def load_state_dict(module, path: str) -> int:
             module = type(module).load_from_checkpoint(
-                path, n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
+                path,
+                n_batches=len(train_dataloader),
+                num_labels=new_n_classes,
+                device=device,
+                map_location=torch.device(device),
             )
             module.model.eval()
             return module.lr
@@ -222,14 +228,18 @@ def compute_randomization_metric(
             "loss_fn": torch.nn.CrossEntropyLoss(reduction="mean"),
             "final_fc_layer": "model.fc",
             "device": device,
-            "batch_size": batch_size*4,
+            "batch_size": batch_size * 4,
         }
 
     if method == "arnoldi":
 
         def load_state_dict(module, path: str) -> int:
             module = type(module).load_from_checkpoint(
-                path, n_batches=len(train_dataloader), num_labels=new_n_classes, device=device, map_location=torch.device(device)
+                path,
+                n_batches=len(train_dataloader),
+                num_labels=new_n_classes,
+                device=device,
+                map_location=torch.device(device),
             )
             module.model.eval()
             return module.lr
@@ -247,7 +257,7 @@ def compute_randomization_metric(
             "checkpoints_load_func": load_state_dict,
             "projection_dim": 100,
             "arnoldi_dim": 200,
-            "batch_size": batch_size*4,
+            "batch_size": batch_size * 4,
             "layers": ["model.fc"],  # only the last layer
             "device": device,
         }
@@ -284,9 +294,9 @@ def compute_randomization_metric(
 
     for i, (test_tensor, test_labels) in enumerate(dataloader):
         test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
-        explanation_targets = torch.tensor([
-            lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
-        ])
+        explanation_targets = torch.tensor(
+            [lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))]
+        )
         model_rand.update(test_tensor, explanations[i], explanation_targets)
 
     score = model_rand.compute()

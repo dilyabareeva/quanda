@@ -223,7 +223,7 @@ def map_location_context(device: Union[str, torch.device]):
 
     # Custom function that wraps torch.load with a fixed map_location
     def load_with_map_location(f, *args, **kwargs):
-        kwargs['map_location'] = device
+        kwargs["map_location"] = device
         return original_load(f, *args, **kwargs)
 
     # Temporarily replace torch.load with our custom version
