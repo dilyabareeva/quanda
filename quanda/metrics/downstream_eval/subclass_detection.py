@@ -6,6 +6,17 @@ from quanda.metrics.downstream_eval import ClassDetectionMetric
 
 
 class SubclassDetectionMetric(ClassDetectionMetric):
+    """Subclass Detection Metric as defined in (1).
+    A model is trained on a dataset where labels are grouped into superclasses.
+    The metric evaluates the performance of an attribution method in detecting the subclass of a test sample
+    from its highest attributed training point.
+
+    References
+    ----------
+    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations. In International
+    Conference on Learning Representations.
+    """
+
     def __init__(
         self,
         model: torch.nn.Module,
@@ -15,6 +26,17 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         *args,
         **kwargs,
     ):
+        """Initializer for the Subclass Detection metric.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model associated with the attributions to be evaluated.
+        train_dataset : torch.utils.data.Dataset
+            The training dataset that was used to train `model`.
+        subclass_labels : torch.Tensor
+            The subclass labels of the training dataset.
+        """
         super().__init__(model, train_dataset)
         assert len(train_subclass_labels) == self.dataset_length, (
             f"Number of subclass labels ({len(train_subclass_labels)}) "
@@ -30,8 +52,14 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         test_tensor: Optional[torch.Tensor] = None,
         test_classes: Optional[torch.Tensor] = None,
     ):
-        """
-        Used to implement metric-specific logic.
+        """Update the metric state with the provided explanations.
+
+        Parameters
+        ----------
+        test_subclasses : torch.Tensor
+            Original labels of the test samples
+        explanations : torch.Tensor
+            Explanations of the test samples
         """
 
         if (test_tensor is None or test_classes is None) and self.filter_by_prediction:

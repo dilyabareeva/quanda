@@ -37,11 +37,36 @@ logger = logging.getLogger(__name__)
 
 
 class RepresenterSoftmax(nn.Module):
-    def __init__(self, W, device):
+    """Internal class for classification model training to use within Representer Points explainer."""
+
+    def __init__(self, W: torch.Tensor, device: Union[torch.device, str]):
+        """Initializer for the RepresenterSoftmax class.
+
+        Parameters
+        ----------
+        W : torch.Tensor
+            Final linear layer parameters, including biases.
+        device : Union[torch.device, str]
+            Device to use.
+        """
         super(RepresenterSoftmax, self).__init__()
         self.W = nn.Parameter(W.to(device), requires_grad=True)
 
-    def forward(self, x, y):
+    def forward(self, x: torch.Tensor, y: torch.Tensor):
+        """Forward pass implementation of the RepresenterSoftmax class. Implements final linear layer and softmax.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            The input tensor.
+        y : torch.Tensor
+            Classes for the input tensor.
+
+        Returns
+        -------
+        Tuple[torch.Tensor, torch.Tensor]
+            Tuple of the loss and the L2 regularization term.
+        """
         # Compute logits and apply numerical stability trick
         D = x @ self.W
         D = D - D.max(dim=1, keepdim=True).values
@@ -55,7 +80,21 @@ class RepresenterSoftmax(nn.Module):
         return Phi, L2
 
 
-def softmax_torch(temp, N):
+def softmax_torch(temp: torch.Tensor, N: int):
+    """Torch implementation of the softmax function.
+
+    Parameters
+    ----------
+    temp : torch.Tensor
+        The input tensor.
+    N : int
+        The number of samples.
+
+    Returns
+    -------
+    torch.Tensor
+        The softmax output.
+    """
     max_value, _ = torch.max(temp, 1, keepdim=True)
     temp = temp - max_value
     D_exp = torch.exp(temp)
@@ -64,6 +103,18 @@ def softmax_torch(temp, N):
 
 
 def av_samples(av_dataset: AV.AVDataset) -> Tensor:
+    """Concatenates the samples of an captum AV dataset.
+
+    Parameters
+    ----------
+    av_dataset : AV.AVDataset
+        The captum AV dataset.
+
+    Returns
+    -------
+    Tensor
+        The concatenated samples.
+    """
     warnings.warn(
         "This method is only a good idea for small datasets and small architectures. Otherwise, this will consume "
         "a lot of memory."
@@ -111,6 +162,44 @@ class RepresenterPoints(Explainer):
         load_from_disk: bool = True,
         show_progress: bool = True,
     ):
+        """Initializer for the RepresenterPoints class.
+
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, L.LightningModule]
+            The model to be explained.
+        model_id : str
+            The model identifier.
+        train_dataset : torch.utils.data.Dataset
+            The training dataset used to train the model.
+        features_layer : str
+            The name of the penuultimate layer of the model.
+        classifier_layer : str
+            The name of the final classifier layer of the model.
+        cache_dir : str, optional
+            The directory to save the cache, defaults to "./cache"
+        features_postprocess : Optional[Callable], optional
+            A postprocessing function for the features, defaults to None
+        lmbd : float, optional
+            Regularization constant, defaults to 0.003
+        epoch : int, optional
+            Number of epochs, defaults to 3000
+        lr : float, optional
+            Learning rate, defaults to 3e-4
+        min_loss : float, optional
+            Initial minimum loss value to start training loop, defaults to 10000.0
+        epsilon : float, optional
+            Epsilon value for backtracking line search, defaults to 1e-10
+        normalize : bool, optional
+            Whether to normalize the features, defaults to False
+        batch_size : int, optional
+            Batch size for training, defaults to 32
+        load_from_disk : bool, optional
+            Whether to load the activations from disk, defaults to True
+        show_progress : bool, optional
+            Whether to show the training progress, defaults to True
+        """
+
         logger.info("Initializing Representer Point Selection explainer...")
         super(RepresenterPoints, self).__init__(
             model=model,
@@ -171,18 +260,34 @@ class RepresenterPoints(Explainer):
         """
         self.train()
 
-    def _normalize_features(self, features):
+    def _normalize_features(self, features: torch.Tensor):
+        """Internal method to normalize the features.
+
+        Parameters
+        ----------
+        features :
+            The input features.
+
+        Returns
+        -------
+        torch.Tensor
+            The normalized features
+        """
         return (features - self.mean) / self.std_dev
 
     def _get_activations(self, x: torch.Tensor, layer: str) -> torch.Tensor:
         """
         Returns the activations of a specific layer for a given input batch.
 
-        Args:
-            x (torch.Tensor): The input batch of data.
+        Parameters
+        ----------
+        x : torch.Tensor
+            The input batch of data.
 
-        Returns:
-            torch.Tensor: The activations of the specified layer.
+        Returns
+        -------
+        torch.Tensor:
+            The activations of the specified layer.
         """
 
         # Define a hook function to store the activations
@@ -202,6 +307,20 @@ class RepresenterPoints(Explainer):
         return self.current_acts
 
     def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
+        """Explain the predictions of the model for a given test batch.
+
+        Parameters
+        ----------
+        test : torch.Tensor
+            The test batch for which explanations are generated.
+        targets : Union[List[int], torch.Tensor]
+            The target values for the explanations.
+
+        Returns
+        -------
+        torch.Tensor
+            The explanations for the test batch.
+        """
         test = test.to(self.device)
         targets = self._process_targets(targets)
 
@@ -222,6 +341,13 @@ class RepresenterPoints(Explainer):
         return torch.squeeze(explanations)
 
     def train(self):
+        """Train the model to obtain the representer point coefficients.
+
+        Raises
+        ------
+        ValueError
+            If the gradient of the final layer parameters can not be obtained.
+        """
         samples_with_bias = torch.cat([self.samples, torch.ones((self.samples.shape[0], 1), device=self.device)], dim=1)
         linear_classifier = reduce(getattr, self.classifier_layer.split("."), self.model)
         logits = linear_classifier(self.samples)
@@ -285,7 +411,26 @@ class RepresenterPoints(Explainer):
         # save weight matrix to cache
         torch.save(weight_matrix, os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"))
 
-    def backtracking_line_search(self, model, grad, x, y, val, N):
+    def backtracking_line_search(
+        self, model: torch.nn.Module, grad: torch.Tensor, x: torch.Tensor, y: torch.Tensor, val: torch.Tensor, N: int
+    ):
+        """Implementation of the backtracking line search algorithm.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model to be trained.
+        grad : torch.Tensor
+            The gradient of the model.
+        x : torch.Tensor
+            The input tensor.
+        y : torch.Tensor
+            The target tensor.
+        val : torch.Tensor
+            The loss value.
+        N : int
+            The number of samples.
+        """
         t = 10.0
         beta = 0.5
         W_O = model.W.detach().cpu().numpy()
@@ -307,9 +452,11 @@ class RepresenterPoints(Explainer):
         For representer points, we define the self-influence as the coefficients of
         the representer points, as per Sec. 4.1 of the original paper (Yeh et al., 2018).
 
-        :param batch_size:
-        :param kwargs:
-        :return:
+        Returns
+        -------
+        torch.Tensor
+            The self-influence (global attribution) values for the representer points.
+            Used in metrics that require a global ranking, e.g. MislabelingDetecion.
         """
 
         # coefficients for each training label

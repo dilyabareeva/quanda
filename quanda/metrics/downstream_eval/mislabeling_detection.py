@@ -219,22 +219,22 @@ class MislabelingDetectionMetric(Metric):
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
-        Load previously computed state for the `global_ranker`
+        Load previously computed state for the metric.
         Parameters
         ----------
         state_dict : dict
-            A state dictionary for `global_ranker`
+            A state dictionary for the metric
         """
         self.strategy.load_state_dict(state_dict)
 
     def state_dict(self, *args, **kwargs):
         """
-        Returns the state dictionary of the global ranker.
+        Returns the state dictionary of the metric.
 
         Returns:
         -------
         dict
-            The state dictionary of the global ranker.
+            The state dictionary of the metric.
         """
         return self.strategy.state_dict()
 

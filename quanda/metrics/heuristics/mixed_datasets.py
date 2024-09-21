@@ -142,5 +142,10 @@ class MixedDatasetsMetric(Metric):
     def state_dict(self, *args, **kwargs):
         """
         Returns the metric state.
+
+        Returns:
+        -------
+        dict
+            The state dictionary of the global ranker.
         """
         return {"auprc_scores": self.auprc_scores}
