@@ -85,7 +85,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     n_classes = 200
     new_n_classes = len(set(list(class_to_group.values())))
     batch_size = 64
-    num_workers = 8
+    num_workers = 1
 
     torch_rng = torch.Generator().manual_seed(27)
     generator = random.Random(27)
@@ -350,7 +350,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             loss_fn=torch.nn.CrossEntropyLoss(reduction="mean"),
             final_fc_layer=list(lit_model.model.children())[-1],
             device="cuda:0",
-            batch_size=1,
+            batch_size=64,
         )
 
         method_save_dir = os.path.join(output_dir, method + "_1_bs")
@@ -363,8 +363,13 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 explanation_targets = [
                     lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
                 ]
+                import time
+                # Explain test samples
+                start_time = time.time()
                 explanations_tracincpfast = explainer_tracincpfast.explain(test_tensor, targets=explanation_targets)
+                end_time = time.time()
                 EC.save(subset_save_dir, explanations_tracincpfast, i)
+                print(f"Time taken for subset {subset} is {end_time - start_time}")
 
     if method == "arnoldi":
 
