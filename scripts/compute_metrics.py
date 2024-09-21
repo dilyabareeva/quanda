@@ -164,6 +164,15 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         class_to_group=class_to_group,
     )
 
+    # add regular_transforms to test_set
+    test_set_transform = TransformedDataset(
+        dataset=test_set,
+        n_classes=new_n_classes,
+        dataset_transform=regular_transforms,
+        transform_indices=[],
+    )
+
+
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
         checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
@@ -203,8 +212,12 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
     test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
     cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
+    cat_dog_ungrouped_dataset = torch.utils.data.Subset(test_set_transform, test_cats + test_dogs)
     dataloaders["subclass"] = torch.utils.data.DataLoader(
         cat_dog_dataset, batch_size=8, shuffle=False, num_workers=num_workers
+    )
+    dataloaders["subclass_ungrouped"] = torch.utils.data.DataLoader(
+        cat_dog_ungrouped_dataset, batch_size=8, shuffle=False, num_workers=num_workers
     )
     # vis_dataloader(dataloaders["cat_dog"])
 
@@ -270,18 +283,20 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             wandb.log({f"{method}_{metric}": score})
 
     if metric == "subclass":
-        subclass_labels = torch.tensor([5 for s in panda_set] + [s[1] for s in train_set_raw])
+        train_subclass = torch.tensor([5 for s in panda_set] + [s[1] for s in train_set_raw])
+
         for method in explanation_methods:
+            ungrouped_iter = iter(dataloaders["subclass_ungrouped"])
             method_save_dir = os.path.join(explanations_dir, method)
             subset_save_dir = os.path.join(method_save_dir, metric)
             explanations = EC.load(subset_save_dir)
             id_subclass = SubclassDetectionMetric(
                 model=lit_model,
                 train_dataset=train_set,
-                subclass_labels=subclass_labels,
+                train_subclass_labels=train_subclass,
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
-                test_sublabels = [test_set[(test_cats + test_dogs)[s]][1] for s in range(i * 8, (i + 1) * 8)]
+                test_sublabels = next(ungrouped_iter)[1]
                 test_tensor, test_labels = test_tensor.to("cuda:0"), test_labels.to("cuda:0")
                 explanation_targets = [
                     lit_model.model(test_tensor[i].unsqueeze(0).to("cuda:0")).argmax().item() for i in range(len(test_tensor))
