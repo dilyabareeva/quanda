@@ -42,6 +42,8 @@ class MislabelingDetection(Benchmark):
 
     5) Kwon, Y., Wu, E., Wu, K., & Zou, J. (2024). DataInf: Efficiently estimating data influence in LoRA-tuned LLMs and
     diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).
+
+    TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE PREDICRIONS
     """
 
     name: str = "Mislabeling Detection"

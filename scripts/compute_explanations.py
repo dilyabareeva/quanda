@@ -71,7 +71,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
     n_epochs = 10
     checkpoints = [
-        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(1, n_epochs, 2)
+        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(5, n_epochs, 1)
     ]
 
     # Dataset Construction
@@ -174,7 +174,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         checkpoints[-1], n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device("cuda:0")
     )
     lit_model.model = lit_model.model.eval()
-    """
+
     # Select tet
     random_rng = random.Random(27)
 
@@ -186,19 +186,18 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     all_dogs = [s for s in range(len(test_set_grouped)) if test_set_grouped[s][1] in dog_classes]
 
     all_clean_samples = [i for i in range(len(test_set_grouped)) if i not in all_cats + all_dogs]
-    clean_samples = random_rng.sample(all_clean_samples, 128)
-    test_backdoor = random_rng.sample(all_clean_samples, 64)
+    clean_samples = random_rng.sample(all_clean_samples, 64)
     test_shortcut = random_rng.sample(all_clean_samples, 64)
 
-    test_dogs = random_rng.sample(all_cats, 64)
-    test_cats = random_rng.sample(all_dogs, 64)
+    test_dogs = random_rng.sample(all_cats, 32)
+    test_cats = random_rng.sample(all_dogs, 32)
 
     mispredicted_clean = [
         i for i in all_clean_samples if lit_model.model(
             test_set_grouped[i][0].unsqueeze(0).to("cuda:0")
         ).argmax().item() != test_set[i][1]
     ]
-    test_mispredicted = random_rng.sample(mispredicted_clean, 128)
+    test_mispredicted = random_rng.sample(mispredicted_clean, 64)
 
     torch.save(test_mispredicted, os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
     torch.save(test_shortcut, os.path.join(metadata_dir, "big_eval_test_shortcut_indices.pth"))
@@ -219,7 +218,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         ax.imshow(make_grid(images, nrow=16).permute(1, 2, 0))
         plt.show()
 
-    """
+
     # Define Dataloader for different metrics
     dataloaders = {}
     # Dataloader for Mislabeling Detection
@@ -390,7 +389,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             model=lit_model,
             train_dataset=train_dataloader.dataset,
             hessian_dataset=hessian_dataset,
-            checkpoint=checkpoints[0],
+            checkpoint=checkpoints[-1],
             loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
             checkpoints_load_func=load_state_dict,
             projection_dim=10,

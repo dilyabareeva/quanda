@@ -7,7 +7,7 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.metrics.downstream_eval import ClassDetectionMetric
+from quanda.metrics.downstream_eval import ClassDetectionMetric, SubclassDetectionMetric
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 class SubclassDetection(Benchmark):
     """
     Benchmark for subclass detection tasks.
+
+    TODO: remove USES PREDICTED LABELS, FILTERS BY CORRECT PREDICTIONS https://arxiv.org/pdf/2006.04528
     """
 
     name: str = "Subclass Detection"
@@ -51,6 +53,7 @@ class SubclassDetection(Benchmark):
         trainer: Union[L.Trainer, BaseTrainer],
         eval_dataset: torch.utils.data.Dataset,
         use_predictions: bool = True,
+            filter_by_prediction: bool = True,
         dataset_split: str = "train",
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
@@ -75,6 +78,8 @@ class SubclassDetection(Benchmark):
         obj.model = model
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
+        obj.filter_by_prediction = filter_by_prediction
+
         obj._generate(
             trainer=trainer,
             train_dataset=train_dataset,
@@ -189,6 +194,7 @@ class SubclassDetection(Benchmark):
         class_to_group: Dict[int, int],  # TODO: type specification
         eval_dataset: torch.utils.data.Dataset,
         use_predictions: bool = True,
+            filter_by_prediction: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
@@ -205,6 +211,7 @@ class SubclassDetection(Benchmark):
         obj.n_groups = n_groups
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
+        obj.filter_by_prediction = filter_by_prediction
 
         obj.grouped_dataset = LabelGroupingDataset(
             dataset=obj.train_dataset,
@@ -235,7 +242,11 @@ class SubclassDetection(Benchmark):
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
-        metric = ClassDetectionMetric(model=self.group_model, train_dataset=self.train_dataset, device=self.device)
+        metric = SubclassDetectionMetric(model=self.group_model, train_dataset=self.grouped_dataset,
+                                         train_subclass_labels=torch.tensor([s[1] for s in self.grouped_dataset]),
+                                         filter_by_prediction=self.filter_by_prediction,
+                                        device=self.device
+                                         )
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
@@ -257,6 +268,6 @@ class SubclassDetection(Benchmark):
                 targets=targets,
             )
             # Use original labels for metric score calculation
-            metric.update(labels, explanations)
+            metric.update(grouped_labels, explanations, test_tensor=inputs, test_classes=labels)
 
         return metric.compute()

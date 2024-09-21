@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 class TopKOverlap(Benchmark):
     """
     Benchmark for top-k overlap heuristic.
+
+    TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     """
 
     name: str = "Top-K Overlap"

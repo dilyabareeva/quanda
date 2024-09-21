@@ -26,6 +26,8 @@ class ModelRandomization(Benchmark):
 
     2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., & Kim, B. (2018). Sanity checks for saliency
     maps. In Advances in Neural Information Processing Systems (Vol. 31).
+
+    TODO: remove UNKNOWN IF PREDICTED LABELS ARE USED https://arxiv.org/pdf/2006.04528
     """
 
     name: str = "Model Randomization"

@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, List, Union, Optional
 
 import torch
 from torcheval.metrics.functional import binary_auprc
@@ -34,6 +34,8 @@ class MixedDatasetsMetric(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         adversarial_indices: Union[List[int], torch.Tensor],
+            filter_by_prediction: bool = False,
+        adversarial_label: Optional[int] = None,
         *args: Any,
         **kwargs: Any,
     ):
@@ -71,16 +73,24 @@ class MixedDatasetsMetric(Metric):
             adversarial_indices = torch.tensor(adversarial_indices)
 
         self.adversarial_indices = adversarial_indices.to(self.device)
-        self._validate_adversarial_labels()
+            
+        induced_adv_label = self._validate_adversarial_labels()
+        if adversarial_label is None:
+            adversarial_label = induced_adv_label
+        self.adversarial_label = adversarial_label
+        self.filter_by_prediction = filter_by_prediction
 
-    def _validate_adversarial_labels(self):
+    def _validate_adversarial_labels(self) -> int:
         """Validate the adversarial labels in the training dataset."""
         adversarial_labels = set([self.train_dataset[i][1] for i in torch.where(self.adversarial_indices == 1)[0]])
         assert len(adversarial_labels) == 1, "Adversarial labels must be unique."
+        return adversarial_labels.pop()
 
     def update(
         self,
         explanations: torch.Tensor,
+        test_tensor: Optional[Union[List, torch.Tensor]] = None,
+        test_labels: Optional[torch.Tensor] = None,
         **kwargs,
     ):
         """Update the metric state with the provided explanations.
@@ -91,6 +101,18 @@ class MixedDatasetsMetric(Metric):
             Explanations to be evaluated.
         """
         explanations = explanations.to(self.device)
+        
+        if (test_tensor is None or test_labels is None) and self.filter_by_prediction:
+            raise ValueError("test_tensor must be provided if filter_by_prediction is True")
+
+        select_idx = torch.tensor([True] * len(explanations))
+
+        if self.filter_by_prediction:
+            test_tensor = test_tensor.to(self.device)
+            pred_cls = self.model(test_tensor).argmax(dim=1)
+            select_idx *= pred_cls == self.adversarial_label
+
+        explanations = explanations[select_idx].to(self.device)
         self.auprc_scores.extend([binary_auprc(xpl, self.adversarial_indices) for xpl in explanations])
 
     def compute(self, *args, **kwargs):

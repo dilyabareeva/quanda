@@ -33,7 +33,11 @@ class ShortcutDetection(Benchmark):
     ----------
     1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions."
         International conference on machine learning. PMLR, 2017.
-    2) Søgaard, Anders. "Revisiting methods for finding influential examples." arXiv preprint arXiv:2111.04683 (2021).
+    2) Hammoudeh, Z., & Lowd, D. (2022). Identifying a training-set attack's target using renormalized influence
+    estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
+    (pp. 1367-1381).
+
+    TODO: remove FILTER BY "CORRECT" PREDICTION FOR SHORTCUT implied https://arxiv.org/pdf/2201.10055
     """
 
     def __init__(
@@ -70,7 +74,7 @@ class ShortcutDetection(Benchmark):
         trainer: Union[L.Trainer, BaseTrainer],
         sample_fn: Callable,
             filter_by_prediction: bool = True,
-            filter_by_class: bool = True,
+            filter_by_class: bool = False,
         use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
@@ -128,6 +132,7 @@ class ShortcutDetection(Benchmark):
         obj.eval_dataset = eval_dataset
         obj.filter_by_prediction = filter_by_prediction
         obj.filter_by_class = filter_by_class
+        obj.use_predictions = use_predictions
 
         obj._generate(
             model=model,
@@ -296,7 +301,7 @@ class ShortcutDetection(Benchmark):
         sample_fn: Callable,
         shortcut_cls: int,
             filter_by_prediction: bool = True,
-            filter_by_class: bool = True,
+            filter_by_class: bool = False,
         use_predictions: bool = True,
         dataset_split: str = "train",
         shortcut_indices: Optional[List[int]] = None,
@@ -414,8 +419,15 @@ class ShortcutDetection(Benchmark):
         for i, (input, labels) in enumerate(pbar):
             pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
 
+
             input, labels = input.to(self.device), labels.to(self.device)
-            targets = torch.ones_like(labels) * self.shortcut_cls
+
+            if self.use_predictions:
+                with torch.no_grad():
+                    output = self.model(input)
+                    targets = output.argmax(dim=-1)
+            else:
+                targets = labels
 
             explanations = explainer.explain(
                 test=input,

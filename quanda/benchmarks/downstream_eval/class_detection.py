@@ -14,6 +14,7 @@ class ClassDetection(Benchmark):
     """
     Benchmark for class detection tasks.
 
+    TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     """
 
     name: str = "Class Detection"
@@ -35,7 +36,7 @@ class ClassDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
         **kwargs,
@@ -75,7 +76,7 @@ class ClassDetection(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
-        use_predictions: bool = False,
+        use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
         **kwargs,

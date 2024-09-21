@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Optional
 
 import torch
 
@@ -11,6 +11,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         train_subclass_labels: torch.Tensor,
+            filter_by_prediction: bool = False,
         *args,
         **kwargs,
     ):
@@ -20,21 +21,40 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             f"does not match the number of train dataset samples ({self.dataset_length})."
         )
         self.subclass_labels = train_subclass_labels
+        self.filter_by_prediction = filter_by_prediction
 
-    def update(self, test_subclasses: Union[List[int], torch.Tensor], explanations: torch.Tensor):
+    def update(
+        self,
+        test_subclasses: Union[List[int], torch.Tensor],
+        explanations: torch.Tensor,
+        test_tensor: Optional[torch.Tensor] = None,
+        test_classes: Optional[torch.Tensor] = None,
+    ):
         """
         Used to implement metric-specific logic.
         """
 
+        if (test_tensor is None or test_classes is None) and self.filter_by_prediction:
+            raise ValueError("test_tensor and test_classes must be provided if filter_by_prediction is True")
+
         if isinstance(test_subclasses, list):
             test_subclasses = torch.tensor(test_subclasses)
 
-        assert (
-            test_subclasses.shape[0] == explanations.shape[0]
-        ), f"Number of explanations ({explanations.shape[0]}) exceeds the number of test labels ({test_subclasses.shape[0]})."
+        if test_tensor is not None:
+            test_tensor = test_tensor.to(self.device)
+        if test_classes is not None:
+            if isinstance(test_classes, list):
+                test_classes = torch.tensor(test_classes)
+            test_classes = test_classes.to(self.device)
 
-        test_subclasses = test_subclasses.to(self.device)
-        explanations = explanations.to(self.device)
+        select_idx = torch.tensor([True] * len(explanations))
+        if self.filter_by_prediction:
+            test_tensor = test_tensor.to(self.device)
+            pred_cls = self.model(test_tensor).argmax(dim=1)
+            select_idx *= pred_cls == test_classes
+
+        explanations = explanations[select_idx].to(self.device)
+        test_subclasses = test_subclasses[select_idx].to(self.device)
 
         top_one_xpl_indices = explanations.argmax(dim=1)
         top_one_xpl_targets = torch.stack([self.subclass_labels[i] for i in top_one_xpl_indices]).to(self.device)

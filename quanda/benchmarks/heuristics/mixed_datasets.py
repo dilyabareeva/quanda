@@ -37,6 +37,8 @@ class MixedDatasets(Benchmark):
     1) Hammoudeh, Z., & Lowd, D. (2022). Identifying a training-set attack's target using renormalized influence
     estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
     (pp. 1367-1381).
+
+    TODO: remove FILTER BY "CORRECT" PREDICTION FOR BACKDOOR implied https://arxiv.org/pdf/2201.10055
     """
 
     name: str = "Mixed Datasets"
@@ -75,6 +77,7 @@ class MixedDatasets(Benchmark):
         adversarial_label: int,
         trainer: Union[L.Trainer, BaseTrainer],
         use_predictions: bool = True,
+            filter_by_prediction: bool = True,
         dataset_split: str = "train",
         adversarial_transform: Optional[Callable] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -140,6 +143,9 @@ class MixedDatasets(Benchmark):
         obj.set_devices(model)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
+        obj.adversarial_label = adversarial_label
+        obj.filter_by_prediction = filter_by_prediction
+
         pr_clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
 
         adversarial_dataset = SingleClassImageDataset(
@@ -220,6 +226,7 @@ class MixedDatasets(Benchmark):
         adversarial_dir: str,
         adversarial_label: int,
         use_predictions: bool = True,
+            filter_by_prediction: bool = True,
         adversarial_transform: Optional[Callable] = None,
         dataset_split: str = "train",
         *args,
@@ -260,6 +267,8 @@ class MixedDatasets(Benchmark):
         obj.clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
+        obj.filter_by_prediction = filter_by_prediction
+        obj.adversarial_label = adversarial_label
 
         adversarial_dataset = SingleClassImageDataset(
             root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
@@ -305,6 +314,8 @@ class MixedDatasets(Benchmark):
             model=self.model,
             train_dataset=self.mixed_dataset,
             adversarial_indices=self.adversarial_indices,
+            filter_by_prediction=self.filter_by_prediction,
+            adversarial_cls=self.adversarial_label,
         )
 
         pbar = tqdm(adversarial_expl_dl)
@@ -320,6 +331,6 @@ class MixedDatasets(Benchmark):
             else:
                 targets = labels
             explanations = explainer.explain(test=inputs, targets=targets)
-            metric.update(explanations)
+            metric.update(explanations, test_tensor=inputs, test_labels=labels)
 
         return metric.compute()
