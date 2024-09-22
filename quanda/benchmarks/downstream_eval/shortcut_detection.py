@@ -6,6 +6,7 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.resources import sample_transforms
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
@@ -266,7 +267,7 @@ class ShortcutDetection(Benchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 
@@ -277,7 +278,16 @@ class ShortcutDetection(Benchmark):
         eval_dataset : torch.utils.data.Dataset
             Dataset to be used for the evaluation.
         """
-        bench_state = cls.download_bench_state(name)
+        bench_state = super().download(name, cache_dir, *args, **kwargs)
+
+        eval_dataset = cls.build_eval_dataset(
+            dataset_str=bench_state["dataset_str"],
+            eval_indices=bench_state["eval_test_indices"],
+            dataset_split="test",
+        )
+
+        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
+        sample_fn = sample_transforms[bench_state["sample_fn"]]
 
         return cls.assemble(
             model=bench_state["model"],
@@ -288,8 +298,7 @@ class ShortcutDetection(Benchmark):
             shortcut_indices=bench_state["shortcut_indices"],
             shortcut_cls=bench_state["shortcut_cls"],
             sample_fn=bench_state["sample_fn"],
-            dataset_transform=bench_state["dataset_transform"],
-            batch_size=batch_size,
+            dataset_transform=dataset_transform,
         )
 
     @classmethod

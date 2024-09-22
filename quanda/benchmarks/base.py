@@ -1,12 +1,13 @@
+import os
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 import requests
 import torch
 from datasets import load_dataset  # type: ignore
 from tqdm import tqdm
 
-from quanda.resources import benchmark_urls
+from quanda.benchmarks.resources import benchmark_urls
 
 
 class Benchmark(ABC):
@@ -23,7 +24,6 @@ class Benchmark(ABC):
     def __init__(self, *args, **kwargs):
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
-        self.hf_dataset_bool: bool = True
         self.dataset_str: Optional[str] = None
 
     @classmethod
@@ -36,12 +36,39 @@ class Benchmark(ABC):
 
     @classmethod
     @abstractmethod
-    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
 
-        raise NotImplementedError
+        # check if file exists
+        if os.path.exists(os.path.join(cache_dir, name + ".pth")):
+            return torch.load(os.path.join(cache_dir, name + ".pth"))
+
+        url = benchmark_urls[name]
+        os.makedirs(os.path.join(cache_dir, name), exist_ok=True)
+
+        # download to cache_dir
+        response = requests.get(url)
+        response.raise_for_status()  # Check for HTTP errors
+
+        # Get the total size of the content for the progress bar
+        total_size = int(response.headers.get("content-length", 0))
+        block_size = 1024
+
+        # Initialize a bytes object to store the downloaded content
+        content = bytes()
+
+        # Progress bar setup
+        with tqdm(total=total_size, unit="iB", unit_scale=True, unit_divisor=1024) as bar:
+            for data in response.iter_content(block_size):
+                content += data
+                bar.update(len(data))
+
+        torch.save(content, os.path.join(cache_dir, name + ".pth"))
+
+        return content
+
 
     @classmethod
     @abstractmethod
@@ -79,34 +106,14 @@ class Benchmark(ABC):
         cls, train_dataset: Union[str, torch.utils.data.Dataset], dataset_split: str = "train", *args, **kwargs
     ):
         if isinstance(train_dataset, str):
-            cls.hf_dataset_bool = bool(cls.hf_dataset_bool * True)
             cls.dataset_str = train_dataset
             return load_dataset(train_dataset, split=dataset_split)
         else:
-            cls.hf_dataset_bool = False
             return train_dataset
 
-    @staticmethod
-    def download_bench_state(name: str):
-        """
-        This method should load the benchmark components from a file and persist them in the instance.
-        """
-        url = benchmark_urls[name]
-        # Send a GET request to the URL with streaming enabled
-        response = requests.get(url, stream=True)
-        response.raise_for_status()  # Check for HTTP errors
+    def build_eval_dataset(
+        self, dataset_str: str, eval_indices: List[int], dataset_split: str = "test", *args, **kwargs
+    ):
+        test_dataset = load_dataset(dataset_str, split=dataset_split)
+        return torch.utils.data.Subset(test_dataset, eval_indices)
 
-        # Get the total size of the content for the progress bar
-        total_size = int(response.headers.get("content-length", 0))
-        block_size = 1024
-
-        # Initialize a bytes object to store the downloaded content
-        content = bytes()
-
-        # Progress bar setup
-        with tqdm(total=total_size, unit="iB", unit_scale=True, unit_divisor=1024) as bar:
-            for data in response.iter_content(block_size):
-                content += data
-                bar.update(len(data))
-
-        return content

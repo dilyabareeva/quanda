@@ -7,6 +7,7 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.resources import sample_transforms
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
@@ -168,11 +169,19 @@ class SubclassDetection(Benchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        bench_state = cls.download_bench_state(name)
+        bench_state = super().download(name, cache_dir, *args, **kwargs)
+
+        eval_dataset = cls.build_eval_dataset(
+            dataset_str=bench_state["dataset_str"],
+            eval_indices=bench_state["eval_test_indices"],
+            dataset_split="test",
+        )
+
+        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
 
         return cls.assemble(
             group_model=bench_state["group_model"],
@@ -182,8 +191,7 @@ class SubclassDetection(Benchmark):
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
             class_to_group=bench_state["class_to_group"],
-            dataset_transform=bench_state["dataset_transform"],
-            batch_size=batch_size,
+            dataset_transform=dataset_transform,
         )
 
     @classmethod
