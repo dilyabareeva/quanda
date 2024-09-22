@@ -17,6 +17,7 @@ dependencies = [
     "annoy>=1.17.0",
     "datasets>=2.0.0",
     "torcheval>=0.0.6",
+    "torchvision>=0.10.0",
 ]
 dynamic = ["version"]
 
