@@ -310,7 +310,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             similarity_metric=cosine_similarity,
             device=device,
             batch_size=batch_size,
-            load_from_disk=True,
+            load_from_disk=False,
         )
 
         method_save_dir = os.path.join(output_dir, method)

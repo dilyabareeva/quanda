@@ -47,7 +47,7 @@ def compute_randomization_metric(
     torch.set_float32_matmul_precision("medium")
 
     # Initialize WandbLogger
-    wandb.init(project="quanda", name="tiny_inet_resnet18")
+    wandb.init(project="quanda", name="tiny_inet_resnet18_big_eval")
 
     # Downloading the datasets and checkpoints
 

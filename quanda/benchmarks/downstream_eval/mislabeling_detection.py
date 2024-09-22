@@ -279,7 +279,7 @@ class MislabelingDetection(Benchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def download(cls, name: str, cache_dir:str, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 

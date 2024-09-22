@@ -220,7 +220,9 @@ class MixedDatasets(Benchmark):
         )
 
         adversarial_dir_url = bench_state["adversarial_dir_url"]
-        adversarial_dir = cls._download_adversarial_dataset(name=name, adversarial_dir_url=adversarial_dir_url, cache_dir=cache_dir)
+        adversarial_dir = cls._download_adversarial_dataset(
+            name=name, adversarial_dir_url=adversarial_dir_url, cache_dir=cache_dir
+        )
 
         adversarial_transform = sample_transforms[bench_state["dataset_transform"]]
 
@@ -264,7 +266,7 @@ class MixedDatasets(Benchmark):
             f.write(response.content)
 
         # extract
-        with zipfile.ZipFile(adversarial_dir_zip, 'r') as zip_ref:
+        with zipfile.ZipFile(adversarial_dir_zip, "r") as zip_ref:
             zip_ref.extractall(adversarial_dir)
 
         return adversarial_dir

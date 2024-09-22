@@ -297,7 +297,7 @@ class ShortcutDetection(Benchmark):
             use_predictions=bench_state["use_predictions"],
             shortcut_indices=bench_state["shortcut_indices"],
             shortcut_cls=bench_state["shortcut_cls"],
-            sample_fn=bench_state["sample_fn"],
+            sample_fn=sample_fn,
             dataset_transform=dataset_transform,
         )
 
