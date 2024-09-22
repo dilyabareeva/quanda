@@ -41,7 +41,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     # Downloading the datasets and checkpoints
 
     # Initialize WandbLogger
-    wandb.init(project="quanda", name="tiny_inet_resnet18")
+    wandb.init(project="quanda", name="tiny_inet_resnet18_big_eval")
 
     # We first download the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
     os.makedirs(explanations_dir, exist_ok=True)

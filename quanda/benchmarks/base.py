@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Optional, Union, List
+from typing import List, Optional, Union
 
 import requests
 import torch
@@ -36,7 +36,9 @@ class Benchmark(ABC):
 
     @classmethod
     @abstractmethod
-    def download(cls, name: str, cache_dir: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(
+        cls, name: str, cache_dir: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs
+    ):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
@@ -68,7 +70,6 @@ class Benchmark(ABC):
         torch.save(content, os.path.join(cache_dir, name + ".pth"))
 
         return content
-
 
     @classmethod
     @abstractmethod
@@ -111,9 +112,6 @@ class Benchmark(ABC):
         else:
             return train_dataset
 
-    def build_eval_dataset(
-        self, dataset_str: str, eval_indices: List[int], dataset_split: str = "test", *args, **kwargs
-    ):
+    def build_eval_dataset(self, dataset_str: str, eval_indices: List[int], dataset_split: str = "test", *args, **kwargs):
         test_dataset = load_dataset(dataset_str, split=dataset_split)
         return torch.utils.data.Subset(test_dataset, eval_indices)
-
