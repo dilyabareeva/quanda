@@ -168,7 +168,6 @@ class MislabelingDetection(Benchmark):
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable],
-        mislabeling_indices: Optional[List[int]] = None,
         mislabeling_labels: Optional[Dict[int, int]] = None,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         p: float = 0.3,
@@ -196,8 +195,6 @@ class MislabelingDetection(Benchmark):
             Transform to be applied to the dataset, by default None
         val_dataset : Optional[torch.utils.data.Dataset], optional
             Validation dataset to be used for the benchmark, by default None
-        mislabeling_indices : Optional[List[int]], optional
-            Optional list of indices to poison, by default None
         mislabeling_labels : Optional[Dict[int, int]], optional
             Optional dictionary containing indices as keys and new labels as values, by default None
         global_method : Union[str, type], optional
@@ -227,6 +224,8 @@ class MislabelingDetection(Benchmark):
         self.global_method = global_method
         self.n_classes = n_classes
         self.dataset_transform = dataset_transform
+        mislabeling_indices = list(mislabeling_labels.keys()) if mislabeling_labels is not None else None
+
         self.mislabeling_dataset = LabelFlippingDataset(
             dataset=self.train_dataset,
             p=p,
@@ -236,6 +235,7 @@ class MislabelingDetection(Benchmark):
             n_classes=n_classes,
             seed=seed,
         )
+
         self.mislabeling_indices = self.mislabeling_dataset.transform_indices
         self.mislabeling_labels = self.mislabeling_dataset.mislabeling_labels
         self.mislabeling_train_dl = torch.utils.data.DataLoader(self.mislabeling_dataset, batch_size=batch_size)
@@ -296,7 +296,6 @@ class MislabelingDetection(Benchmark):
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
             n_classes=bench_state["n_classes"],
-            mislabeling_indices=bench_state["mislabeling_indices"],
             mislabeling_labels=bench_state["mislabeling_labels"],
             dataset_transform=bench_state["dataset_transform"],
             p=bench_state["p"],
@@ -313,7 +312,6 @@ class MislabelingDetection(Benchmark):
         eval_dataset: torch.utils.data.Dataset,
         use_predictions: bool = True,
         dataset_split: str = "train",
-        mislabeling_indices: Optional[List[int]] = None,
         mislabeling_labels: Optional[Dict[int, int]] = None,
         dataset_transform: Optional[Callable] = None,
         p: float = 0.3,  # TODO: type specification
@@ -337,8 +335,6 @@ class MislabelingDetection(Benchmark):
             Dataset to be used for the evaluation.
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
-        mislabeling_indices : Optional[List[int]], optional
-            List of indices to poison, defaults to None
         mislabeling_labels : Optional[Dict[int, int]], optional
             Dictionary containing indices as keys and new labels as values, defaults to None
         dataset_transform : Optional[Callable], optional
@@ -361,15 +357,17 @@ class MislabelingDetection(Benchmark):
         obj.n_classes = n_classes
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
+        mislabeling_indices = list(mislabeling_labels.keys()) if mislabeling_labels is not None else None
 
         obj.mislabeling_dataset = LabelFlippingDataset(
             dataset=obj.train_dataset,
             p=p,
             dataset_transform=dataset_transform,
-            n_classes=n_classes,
             transform_indices=mislabeling_indices,
+            n_classes=n_classes,
             mislabeling_labels=mislabeling_labels,
         )
+
         obj.mislabeling_indices = obj.mislabeling_dataset.transform_indices
         obj.mislabeling_labels = obj.mislabeling_dataset.mislabeling_labels
 
