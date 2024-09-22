@@ -15,7 +15,7 @@ from quanda.utils.training.trainer import Trainer
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, p, seed, "
-    "global_method, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
+    "global_method, mislabeling_labels, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
     [
         (
             "mnist",
@@ -30,6 +30,7 @@ from quanda.utils.training.trainer import Trainer
             1.0,
             27,
             "self-influence",
+            "mnist_seed_27_mislabeling_labels",
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
@@ -50,12 +51,13 @@ from quanda.utils.training.trainer import Trainer
             1.0,
             27,
             SumAggregator,
+            "mnist_seed_27_mislabeling_labels",
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             False,
             None,
-            0.4921875,
+            0.0,
         ),
         (
             "mnist",
@@ -70,12 +72,13 @@ from quanda.utils.training.trainer import Trainer
             1.0,
             27,
             SumAggregator,
+            "mnist_seed_27_mislabeling_labels",
             8,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             True,
             None,
-            0.4921875,
+            0.0,
         ),
     ],
 )
@@ -93,6 +96,7 @@ def test_mislabeling_detection(
     seed,
     batch_size,
     global_method,
+    mislabeling_labels,
     explainer_cls,
     expl_kwargs,
     use_pred,
@@ -105,6 +109,8 @@ def test_mislabeling_detection(
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
+    mislabeling_labels = request.getfixturevalue(mislabeling_labels)
+
     expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
     if init_method == "generate":
         trainer = Trainer(
@@ -136,6 +142,7 @@ def test_mislabeling_detection(
             eval_dataset=dataset,
             n_classes=n_classes,
             p=p,
+            mislabeling_labels=mislabeling_labels,
             global_method=global_method,
             batch_size=batch_size,
         )
