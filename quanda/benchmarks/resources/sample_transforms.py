@@ -1,4 +1,4 @@
-import torchvision.transforms as transforms # type: ignore
+import torchvision.transforms as transforms  # type: ignore
 from PIL import Image
 
 

@@ -63,14 +63,15 @@ class ClassDetection(Benchmark):
         This method should load the benchmark components from a file and persist them in the instance.
         """
         bench_state = super().download(name, cache_dir, *args, **kwargs)
+        obj = cls()
 
-        eval_dataset = cls.build_eval_dataset(
+        eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             dataset_split="test",
         )
 
-        return cls.assemble(
+        return obj.assemble(
             model=bench_state["checkpoints_loaded"][-1],
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,

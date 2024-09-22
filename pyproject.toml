@@ -81,6 +81,7 @@ dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "sphinx>=7.0.0",
     "numpydoc",
     "torchvision>=0.10.0",
+    "types-Pillow>=8.3.0",
 ]
 tutorials = [
     "torchvision>=0.10.0",
