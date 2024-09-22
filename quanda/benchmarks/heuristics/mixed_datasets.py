@@ -212,21 +212,22 @@ class MixedDatasets(Benchmark):
             Name of the benchmark to be loaded.
         """
         bench_state = super().download(name, cache_dir, *args, **kwargs)
+        obj = cls()
 
-        eval_dataset = cls.build_eval_dataset(
+        eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             dataset_split="test",
         )
 
         adversarial_dir_url = bench_state["adversarial_dir_url"]
-        adversarial_dir = cls._download_adversarial_dataset(
+        adversarial_dir = obj._download_adversarial_dataset(
             name=name, adversarial_dir_url=adversarial_dir_url, cache_dir=cache_dir
         )
 
         adversarial_transform = sample_transforms[bench_state["dataset_transform"]]
 
-        return cls.assemble(
+        return obj.assemble(
             model=bench_state["checkpoints_loaded"][-1],
             clean_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
@@ -238,7 +239,7 @@ class MixedDatasets(Benchmark):
         )
 
     @staticmethod
-    def _download_adversarial_dataset(self, name: str, adversarial_dir_url: str, cache_dir: str):
+    def _download_adversarial_dataset(name: str, adversarial_dir_url: str, cache_dir: str):
         """
         Downloads the adversarial dataset from the given URL and returns the path to the downloaded directory.
 

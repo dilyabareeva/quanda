@@ -197,7 +197,9 @@ def default_tensor_type(device: Union[str, torch.device]):
 
     # Set the new tensor type
     torch.set_default_tensor_type(new_tensor_type)
-    if "cuda" in device.type:
+
+    device_type = device.type if isinstance(device, torch.device) else device
+    if "cuda" in device_type:
         torch.cuda.set_device(device)
 
     with torch.device(device):

@@ -279,8 +279,9 @@ class ShortcutDetection(Benchmark):
             Dataset to be used for the evaluation.
         """
         bench_state = super().download(name, cache_dir, *args, **kwargs)
+        obj = cls()
 
-        eval_dataset = cls.build_eval_dataset(
+        eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             dataset_split="test",
@@ -289,7 +290,7 @@ class ShortcutDetection(Benchmark):
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
         sample_fn = sample_transforms[bench_state["sample_fn"]]
 
-        return cls.assemble(
+        return obj.assemble(
             model=bench_state["model"],
             train_dataset=bench_state["train_dataset"],
             n_classes=bench_state["n_classes"],

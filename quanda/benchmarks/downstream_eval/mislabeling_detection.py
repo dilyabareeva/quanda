@@ -291,8 +291,9 @@ class MislabelingDetection(Benchmark):
             Dataset to be used for the evaluation.
         """
         bench_state = super().download(name, cache_dir, *args, **kwargs)
+        obj = cls()
 
-        eval_dataset = cls.build_eval_dataset(
+        eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             dataset_split="test",
@@ -300,7 +301,7 @@ class MislabelingDetection(Benchmark):
 
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
 
-        return cls.assemble(
+        return obj.assemble(
             model=bench_state["model"],
             train_dataset=bench_state["train_dataset"],
             eval_dataset=eval_dataset,
