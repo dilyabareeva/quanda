@@ -8,6 +8,7 @@ import torch.utils
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.resources import sample_transforms
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
@@ -278,7 +279,7 @@ class MislabelingDetection(Benchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, cache_dir:str, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 
@@ -289,7 +290,16 @@ class MislabelingDetection(Benchmark):
         eval_dataset : torch.utils.data.Dataset
             Dataset to be used for the evaluation.
         """
-        bench_state = cls.download_bench_state(name)
+        bench_state = super().download(name, cache_dir, *args, **kwargs)
+
+        eval_dataset = cls.build_eval_dataset(
+            dataset_str=bench_state["dataset_str"],
+            eval_indices=bench_state["eval_test_indices"],
+            dataset_split="test",
+        )
+
+        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
+
         return cls.assemble(
             model=bench_state["model"],
             train_dataset=bench_state["train_dataset"],
@@ -297,10 +307,8 @@ class MislabelingDetection(Benchmark):
             use_predictions=bench_state["use_predictions"],
             n_classes=bench_state["n_classes"],
             mislabeling_labels=bench_state["mislabeling_labels"],
-            dataset_transform=bench_state["dataset_transform"],
-            p=bench_state["p"],
+            dataset_transform=dataset_transform,
             global_method=bench_state["global_method"],
-            batch_size=batch_size,
         )
 
     @classmethod

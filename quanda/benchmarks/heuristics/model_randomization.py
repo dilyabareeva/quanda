@@ -88,7 +88,7 @@ class ModelRandomization(Benchmark):
         return obj
 
     @classmethod
-    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 
@@ -99,13 +99,19 @@ class ModelRandomization(Benchmark):
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
         """
-        bench_state = cls.download_bench_state(name)
+        bench_state = super().download(name, cache_dir, *args, **kwargs)
+
+        eval_dataset = cls.build_eval_dataset(
+            dataset_str=bench_state["dataset_str"],
+            eval_indices=bench_state["eval_test_indices"],
+            dataset_split="test",
+        )
 
         return cls.assemble(
-            model=bench_state["model"],
+            model=bench_state["checkpoints_loaded"][-1],
+            train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
-            train_dataset=bench_state["train_dataset"],
         )
 
     @classmethod
