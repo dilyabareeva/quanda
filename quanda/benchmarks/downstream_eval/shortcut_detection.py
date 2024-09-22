@@ -289,8 +289,6 @@ class ShortcutDetection(Benchmark):
             shortcut_cls=bench_state["shortcut_cls"],
             sample_fn=bench_state["sample_fn"],
             dataset_transform=bench_state["dataset_transform"],
-            p=bench_state["p"],
-            global_method=bench_state["global_method"],
             batch_size=batch_size,
         )
 
@@ -303,14 +301,12 @@ class ShortcutDetection(Benchmark):
         eval_dataset: torch.utils.data.Dataset,
         sample_fn: Callable,
         shortcut_cls: int,
+        shortcut_indices: List[int],
         filter_by_prediction: bool = True,
         filter_by_class: bool = False,
         use_predictions: bool = True,
         dataset_split: str = "train",
-        shortcut_indices: Optional[List[int]] = None,
         dataset_transform: Optional[Callable] = None,
-        p: float = 0.3,  # TODO: type specification
-        batch_size: int = 8,
         *args,
         **kwargs,
     ):
@@ -335,8 +331,6 @@ class ShortcutDetection(Benchmark):
             Binary list of indices to poison, defaults to None
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
-        p : float, optional
-            The probability of mislabeling per sample, by default 0.3
         batch_size : int, optional
             Batch size that is used for training, by default 8
         """
@@ -344,7 +338,6 @@ class ShortcutDetection(Benchmark):
         obj.model = model
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
         obj.eval_dataset = eval_dataset
-        obj.p = p
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
         obj.use_predictions = use_predictions
@@ -352,7 +345,6 @@ class ShortcutDetection(Benchmark):
         obj.filter_by_class = filter_by_class
         obj.shortcut_dataset = SampleTransformationDataset(
             dataset=obj.train_dataset,
-            p=p,
             cls_idx=shortcut_cls,
             dataset_transform=dataset_transform,
             sample_fn=sample_fn,
@@ -362,8 +354,6 @@ class ShortcutDetection(Benchmark):
         obj.shortcut_cls = shortcut_cls
         obj.shortcut_indices = obj.shortcut_dataset.transform_indices
         obj.sample_fn = sample_fn
-        obj.shortcut_train_dl = torch.utils.data.DataLoader(obj.shortcut_dataset, batch_size=batch_size)
-        obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
 
         obj.set_devices(model)
 
@@ -398,6 +388,9 @@ class ShortcutDetection(Benchmark):
             Dictionary containing the evaluation results.
         """
         self.model.eval()
+
+        self.shortcut_train_dl = torch.utils.data.DataLoader(self.shortcut_dataset, batch_size=batch_size)
+        self.original_train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size)
 
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)

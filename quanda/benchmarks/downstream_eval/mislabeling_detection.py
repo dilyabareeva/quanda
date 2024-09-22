@@ -310,11 +310,10 @@ class MislabelingDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         eval_dataset: torch.utils.data.Dataset,
+        mislabeling_labels: Dict[int, int],
         use_predictions: bool = True,
         dataset_split: str = "train",
-        mislabeling_labels: Optional[Dict[int, int]] = None,
         dataset_transform: Optional[Callable] = None,
-        p: float = 0.3,  # TODO: type specification
         global_method: Union[str, type] = "self-influence",
         batch_size: int = 8,
         *args,
@@ -339,8 +338,6 @@ class MislabelingDetection(Benchmark):
             Dictionary containing indices as keys and new labels as values, defaults to None
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
-        p : float, optional
-                        The probability of mislabeling per sample, by default 0.3
         global_method : Union[str, type], optional
             Method to generate a global ranking from local explainer.
             It can be a subclass of `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
@@ -351,7 +348,6 @@ class MislabelingDetection(Benchmark):
         obj = cls()
         obj.model = model
         obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
-        obj.p = p
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
         obj.n_classes = n_classes
@@ -361,7 +357,6 @@ class MislabelingDetection(Benchmark):
 
         obj.mislabeling_dataset = LabelFlippingDataset(
             dataset=obj.train_dataset,
-            p=p,
             dataset_transform=dataset_transform,
             transform_indices=mislabeling_indices,
             n_classes=n_classes,
