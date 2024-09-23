@@ -10,7 +10,7 @@ from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, shortcut_cls,"
     "shortcut_indices, p, seed, batch_size, explainer_cls, expl_kwargs, filter_by_class, expected_score",
@@ -136,7 +136,7 @@ def test_shortcut_detection(
     assert math.isclose(results["score"], expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, pl_module, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, shortcut_cls,"
     "shortcut_indices, p, seed, batch_size, explainer_cls, expl_kwargs, expected_score",

@@ -1,12 +1,19 @@
 import copy
 import logging
+import os
+import zipfile
 from typing import Callable, List, Optional, Union
 
 import lightning as L
+import requests
 import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.resources import (
+    load_module_from_bench_state,
+    sample_transforms,
+)
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.common import ds_len
 from quanda.utils.datasets import SingleClassImageDataset
@@ -79,6 +86,7 @@ class MixedDatasets(Benchmark):
         adversarial_dir: str,
         adversarial_label: int,
         trainer: Union[L.Trainer, BaseTrainer],
+        data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
         dataset_split: str = "train",
@@ -149,7 +157,7 @@ class MixedDatasets(Benchmark):
         obj.adversarial_label = adversarial_label
         obj.filter_by_prediction = filter_by_prediction
 
-        pr_clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
+        pr_clean_dataset = obj.process_dataset(clean_dataset, transform=data_transform, dataset_split=dataset_split)
 
         adversarial_dataset = SingleClassImageDataset(
             root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
@@ -197,7 +205,7 @@ class MixedDatasets(Benchmark):
         return obj
 
     @classmethod
-    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance
         from the state dictionary.
@@ -207,18 +215,70 @@ class MixedDatasets(Benchmark):
         name : str
             Name of the benchmark to be loaded.
         """
-        bench_state = cls.download_bench_state(name)
+        obj = cls()
+        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
-        return cls.assemble(
-            model=bench_state["model"],
-            clean_dataset=bench_state["train_dataset"],
+        eval_dataset = obj.build_eval_dataset(
+            dataset_str=bench_state["dataset_str"],
+            eval_indices=bench_state["eval_test_indices"],
+            transform=sample_transforms[bench_state["dataset_transform"]],
+            dataset_split="test",
+        )
+        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
+        module = load_module_from_bench_state(bench_state, device)
+
+        adversarial_dir_url = bench_state["adversarial_dir_url"]
+        adversarial_dir = obj._download_adversarial_dataset(
+            name=name, adversarial_dir_url=adversarial_dir_url, cache_dir=cache_dir
+        )
+
+        adversarial_transform = sample_transforms[bench_state["dataset_transform"]]
+
+        return obj.assemble(
+            model=module,
+            clean_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
-            adversarial_dir=bench_state["adversarial_dir"],
+            adversarial_dir=adversarial_dir,
             adversarial_label=bench_state["adversarial_label"],
-            adversarial_transform=bench_state["adversarial_transform"],
+            adversarial_transform=adversarial_transform,
             dataset_split=bench_state["dataset_split"],
+            data_transform=dataset_transform,
         )
+
+    @staticmethod
+    def _download_adversarial_dataset(name: str, adversarial_dir_url: str, cache_dir: str):
+        """
+        Downloads the adversarial dataset from the given URL and returns the path to the downloaded directory.
+
+        Parameters
+        ----------
+        adversarial_dir_url: str
+            URL to the adversarial dataset.
+        cache_dir: str
+            Path to the cache directory.
+
+        Returns
+        -------
+        str
+            Path to the downloaded adversarial dataset directory.
+        """
+
+        # Download the zip file and extract into cache dir
+        adversarial_dir = os.path.join(cache_dir, name + "_adversarial_dataset")
+        os.makedirs(adversarial_dir, exist_ok=True)
+
+        # _get_bench_state
+        adversarial_dir_zip = os.path.join(adversarial_dir, "adversarial_dataset.zip")
+        with open(adversarial_dir_zip, "wb") as f:
+            response = requests.get(adversarial_dir_url)
+            f.write(response.content)
+
+        # extract
+        with zipfile.ZipFile(adversarial_dir_zip, "r") as zip_ref:
+            zip_ref.extractall(adversarial_dir)
+
+        return adversarial_dir
 
     @classmethod
     def assemble(
@@ -228,6 +288,7 @@ class MixedDatasets(Benchmark):
         clean_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
+        data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
         adversarial_transform: Optional[Callable] = None,
@@ -267,7 +328,7 @@ class MixedDatasets(Benchmark):
 
         obj = cls()
         obj.model = model
-        obj.clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
+        obj.clean_dataset = obj.process_dataset(clean_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction

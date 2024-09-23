@@ -1,12 +1,13 @@
+import os
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Callable, List, Optional, Union
 
 import requests
 import torch
 from datasets import load_dataset  # type: ignore
-from tqdm import tqdm
 
-from quanda.resources import benchmark_urls
+from quanda.benchmarks.resources import benchmark_urls
+from quanda.utils.datasets.image_datasets import HFtoTV
 
 
 class Benchmark(ABC):
@@ -23,7 +24,6 @@ class Benchmark(ABC):
     def __init__(self, *args, **kwargs):
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
-        self.hf_dataset_bool: bool = True
         self.dataset_str: Optional[str] = None
 
     @classmethod
@@ -36,12 +36,26 @@ class Benchmark(ABC):
 
     @classmethod
     @abstractmethod
-    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
 
         raise NotImplementedError
+
+    def _get_bench_state(self, name: str, cache_dir: str, device: str, *args, **kwargs):
+        # check if file exists
+        if not os.path.exists(os.path.join(cache_dir, name + ".pth")):
+            url = benchmark_urls[name]
+            os.makedirs(os.path.join(cache_dir, name), exist_ok=True)
+
+            # _get_bench_state to cache_dir
+            response = requests.get(url)
+
+            with open(os.path.join(cache_dir, name + ".pth"), "wb") as f:
+                f.write(response.content)
+
+        return torch.load(os.path.join(cache_dir, name + ".pth"), map_location=device)
 
     @classmethod
     @abstractmethod
@@ -76,37 +90,23 @@ class Benchmark(ABC):
             self.device = torch.device("cpu")
 
     def process_dataset(
-        cls, train_dataset: Union[str, torch.utils.data.Dataset], dataset_split: str = "train", *args, **kwargs
+        cls,
+        train_dataset: Union[str, torch.utils.data.Dataset],
+        transform: Optional[Callable] = None,
+        dataset_split: str = "train",
     ):
         if isinstance(train_dataset, str):
-            cls.hf_dataset_bool = bool(cls.hf_dataset_bool * True)
             cls.dataset_str = train_dataset
-            return load_dataset(train_dataset, split=dataset_split)
+            return HFtoTV(load_dataset(train_dataset, split=dataset_split), transform=transform)
         else:
-            cls.hf_dataset_bool = False
             return train_dataset
 
-    @staticmethod
-    def download_bench_state(name: str):
-        """
-        This method should load the benchmark components from a file and persist them in the instance.
-        """
-        url = benchmark_urls[name]
-        # Send a GET request to the URL with streaming enabled
-        response = requests.get(url, stream=True)
-        response.raise_for_status()  # Check for HTTP errors
-
-        # Get the total size of the content for the progress bar
-        total_size = int(response.headers.get("content-length", 0))
-        block_size = 1024
-
-        # Initialize a bytes object to store the downloaded content
-        content = bytes()
-
-        # Progress bar setup
-        with tqdm(total=total_size, unit="iB", unit_scale=True, unit_divisor=1024) as bar:
-            for data in response.iter_content(block_size):
-                content += data
-                bar.update(len(data))
-
-        return content
+    def build_eval_dataset(
+        self,
+        dataset_str: str,
+        eval_indices: List[int],
+        transform: Optional[Callable] = None,
+        dataset_split: str = "test",
+    ):
+        test_dataset = HFtoTV(load_dataset(dataset_str, split=dataset_split), transform=transform)
+        return torch.utils.data.Subset(test_dataset, eval_indices)

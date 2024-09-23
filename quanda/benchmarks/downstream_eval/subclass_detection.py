@@ -7,6 +7,10 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.resources import (
+    load_module_from_bench_state,
+    sample_transforms,
+)
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
@@ -76,7 +80,7 @@ class SubclassDetection(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.model = model
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
@@ -168,22 +172,30 @@ class SubclassDetection(Benchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        bench_state = cls.download_bench_state(name)
+        obj = cls()
+        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
-        return cls.assemble(
-            group_model=bench_state["group_model"],
-            train_dataset=bench_state["train_dataset"],
+        eval_dataset = obj.build_eval_dataset(
+            dataset_str=bench_state["dataset_str"],
+            eval_indices=bench_state["eval_test_indices"],
+            transform=sample_transforms[bench_state["dataset_transform"]],
+            dataset_split="test",
+        )
+        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
+        module = load_module_from_bench_state(bench_state, device)
+
+        return obj.assemble(
+            group_model=module,
+            train_dataset=bench_state["dataset_str"],
             n_classes=bench_state["n_classes"],
-            n_groups=bench_state["n_groups"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
             class_to_group=bench_state["class_to_group"],
-            dataset_transform=bench_state["dataset_transform"],
-            batch_size=batch_size,
+            dataset_transform=dataset_transform,
         )
 
     @classmethod
@@ -192,7 +204,6 @@ class SubclassDetection(Benchmark):
         group_model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
-        n_groups: int,
         class_to_group: Dict[int, int],  # TODO: type specification
         eval_dataset: torch.utils.data.Dataset,
         use_predictions: bool = True,
@@ -206,11 +217,10 @@ class SubclassDetection(Benchmark):
         """
         obj = cls()
         obj.group_model = group_model
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=None, dataset_split=dataset_split)
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
-        obj.n_groups = n_groups
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
@@ -219,7 +229,6 @@ class SubclassDetection(Benchmark):
             dataset=obj.train_dataset,
             dataset_transform=dataset_transform,
             n_classes=obj.n_classes,
-            n_groups=obj.n_groups,
             class_to_group=class_to_group,
         )
         obj.grouped_train_dl = torch.utils.data.DataLoader(obj.grouped_dataset, batch_size=batch_size)
@@ -272,6 +281,6 @@ class SubclassDetection(Benchmark):
                 targets=targets,
             )
             # Use original labels for metric score calculation
-            metric.update(grouped_labels, explanations, test_tensor=inputs, test_classes=labels)
+            metric.update(grouped_labels, explanations, test_tensor=inputs, test_classes=grouped_labels)
 
         return metric.compute()

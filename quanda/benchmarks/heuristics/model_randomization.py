@@ -5,6 +5,10 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.resources import (
+    load_module_from_bench_state,
+    sample_transforms,
+)
 from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
@@ -52,6 +56,7 @@ class ModelRandomization(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
+        data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         use_predictions: bool = True,
@@ -78,7 +83,7 @@ class ModelRandomization(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.correlation_fn = correlation_fn
         obj.seed = seed
@@ -88,7 +93,7 @@ class ModelRandomization(Benchmark):
         return obj
 
     @classmethod
-    def download(cls, name: str, eval_dataset: torch.utils.data.Dataset, batch_size: int = 32, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 
@@ -99,13 +104,24 @@ class ModelRandomization(Benchmark):
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
         """
-        bench_state = cls.download_bench_state(name)
+        obj = cls()
+        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
-        return cls.assemble(
-            model=bench_state["model"],
+        eval_dataset = obj.build_eval_dataset(
+            dataset_str=bench_state["dataset_str"],
+            eval_indices=bench_state["eval_test_indices"],
+            transform=sample_transforms[bench_state["dataset_transform"]],
+            dataset_split="test",
+        )
+        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
+        module = load_module_from_bench_state(bench_state, device)
+
+        return obj.assemble(
+            model=module,
+            train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
-            train_dataset=bench_state["train_dataset"],
+            data_transform=dataset_transform,
         )
 
     @classmethod
@@ -114,6 +130,7 @@ class ModelRandomization(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         use_predictions: bool = True,
@@ -141,7 +158,7 @@ class ModelRandomization(Benchmark):
         obj.use_predictions = use_predictions
         obj.correlation_fn = correlation_fn
         obj.seed = seed
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.set_devices(model)
 
         return obj
