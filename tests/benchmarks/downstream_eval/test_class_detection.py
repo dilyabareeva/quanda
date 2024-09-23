@@ -210,8 +210,6 @@ def test_class_detection_download(
     expected_score,
     tmp_path,
 ):
-
-
     dst_eval = ClassDetection.download(
         name=benchmark_name,
         cache_dir=str(tmp_path),

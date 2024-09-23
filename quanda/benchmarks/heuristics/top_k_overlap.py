@@ -1,12 +1,15 @@
 import logging
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 import torch
 import torch.utils
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import sample_transforms, load_module_from_bench_state
+from quanda.benchmarks.resources import (
+    load_module_from_bench_state,
+    sample_transforms,
+)
 from quanda.metrics.heuristics import TopKOverlapMetric
 
 logger = logging.getLogger(__name__)
@@ -40,6 +43,7 @@ class TopKOverlap(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         model: torch.nn.Module,
         eval_dataset: torch.utils.data.Dataset,
+        data_transform: Optional[Callable] = None,
         top_k: int = 1,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -55,7 +59,7 @@ class TopKOverlap(Benchmark):
         obj = cls(train_dataset)
         obj.set_devices(model)
         obj.eval_dataset = eval_dataset
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.top_k = top_k
         obj.use_predictions = use_predictions
         obj.model = model
@@ -91,6 +95,7 @@ class TopKOverlap(Benchmark):
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
+            data_transform=dataset_transform,
         )
 
     @classmethod
@@ -99,6 +104,7 @@ class TopKOverlap(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        data_transform: Optional[Callable] = None,
         top_k: int = 1,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -110,7 +116,7 @@ class TopKOverlap(Benchmark):
         """
         obj = cls()
         obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.model = model

@@ -1,11 +1,10 @@
 import os
 from abc import ABC, abstractmethod
-from typing import List, Optional, Union, Callable
+from typing import Callable, List, Optional, Union
 
 import requests
 import torch
 from datasets import load_dataset  # type: ignore
-from tqdm import tqdm
 
 from quanda.benchmarks.resources import benchmark_urls
 from quanda.utils.datasets.image_datasets import HFtoTV
@@ -37,28 +36,23 @@ class Benchmark(ABC):
 
     @classmethod
     @abstractmethod
-    def download(
-        cls, name: str, cache_dir: str, device: str, *args, **kwargs
-    ):
+    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
 
         raise NotImplementedError
 
-    def _get_bench_state(
-           self, name: str, cache_dir: str, device: str, *args, **kwargs
-        ):
+    def _get_bench_state(self, name: str, cache_dir: str, device: str, *args, **kwargs):
         # check if file exists
         if not os.path.exists(os.path.join(cache_dir, name + ".pth")):
-
             url = benchmark_urls[name]
             os.makedirs(os.path.join(cache_dir, name), exist_ok=True)
 
             # _get_bench_state to cache_dir
             response = requests.get(url)
 
-            with open(os.path.join(cache_dir, name + ".pth"), 'wb') as f:
+            with open(os.path.join(cache_dir, name + ".pth"), "wb") as f:
                 f.write(response.content)
 
         return torch.load(os.path.join(cache_dir, name + ".pth"), map_location=device)
@@ -96,7 +90,10 @@ class Benchmark(ABC):
             self.device = torch.device("cpu")
 
     def process_dataset(
-        cls, train_dataset: Union[str, torch.utils.data.Dataset], transform: Callable = None, dataset_split: str = "train", *args, **kwargs
+        cls,
+        train_dataset: Union[str, torch.utils.data.Dataset],
+        transform: Optional[Callable] = None,
+        dataset_split: str = "train",
     ):
         if isinstance(train_dataset, str):
             cls.dataset_str = train_dataset
@@ -104,6 +101,12 @@ class Benchmark(ABC):
         else:
             return train_dataset
 
-    def build_eval_dataset(self, dataset_str: str, eval_indices: List[int], transform: Callable = None, dataset_split: str = "test", *args, **kwargs):
+    def build_eval_dataset(
+        self,
+        dataset_str: str,
+        eval_indices: List[int],
+        transform: Optional[Callable] = None,
+        dataset_split: str = "test",
+    ):
         test_dataset = HFtoTV(load_dataset(dataset_str, split=dataset_split), transform=transform)
         return torch.utils.data.Subset(test_dataset, eval_indices)

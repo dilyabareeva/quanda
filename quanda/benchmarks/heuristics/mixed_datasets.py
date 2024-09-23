@@ -10,7 +10,10 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import sample_transforms, load_module_from_bench_state
+from quanda.benchmarks.resources import (
+    load_module_from_bench_state,
+    sample_transforms,
+)
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.common import ds_len
 from quanda.utils.datasets import SingleClassImageDataset
@@ -83,6 +86,7 @@ class MixedDatasets(Benchmark):
         adversarial_dir: str,
         adversarial_label: int,
         trainer: Union[L.Trainer, BaseTrainer],
+        data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
         dataset_split: str = "train",
@@ -153,7 +157,7 @@ class MixedDatasets(Benchmark):
         obj.adversarial_label = adversarial_label
         obj.filter_by_prediction = filter_by_prediction
 
-        pr_clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
+        pr_clean_dataset = obj.process_dataset(clean_dataset, transform=data_transform, dataset_split=dataset_split)
 
         adversarial_dataset = SingleClassImageDataset(
             root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
@@ -223,7 +227,6 @@ class MixedDatasets(Benchmark):
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
         module = load_module_from_bench_state(bench_state, device)
 
-
         adversarial_dir_url = bench_state["adversarial_dir_url"]
         adversarial_dir = obj._download_adversarial_dataset(
             name=name, adversarial_dir_url=adversarial_dir_url, cache_dir=cache_dir
@@ -240,6 +243,7 @@ class MixedDatasets(Benchmark):
             adversarial_label=bench_state["adversarial_label"],
             adversarial_transform=adversarial_transform,
             dataset_split=bench_state["dataset_split"],
+            data_transform=dataset_transform,
         )
 
     @staticmethod
@@ -284,6 +288,7 @@ class MixedDatasets(Benchmark):
         clean_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
+        data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
         adversarial_transform: Optional[Callable] = None,
@@ -323,7 +328,7 @@ class MixedDatasets(Benchmark):
 
         obj = cls()
         obj.model = model
-        obj.clean_dataset = obj.process_dataset(clean_dataset, dataset_split)
+        obj.clean_dataset = obj.process_dataset(clean_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
