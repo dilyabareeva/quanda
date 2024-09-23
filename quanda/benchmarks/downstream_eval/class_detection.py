@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Union, Callable
+from typing import Callable, Optional, Union
 
 import torch
 from tqdm import tqdm
@@ -39,6 +39,7 @@ class ClassDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
+        data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
@@ -54,7 +55,7 @@ class ClassDetection(Benchmark):
         obj.model = model
         obj.eval_dataset = eval_dataset
         obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.use_predictions = use_predictions
 
         return obj
@@ -81,7 +82,7 @@ class ClassDetection(Benchmark):
             model=module,
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
-            train_data_transform=dataset_transform,
+            data_transform=dataset_transform,
             use_predictions=bench_state["use_predictions"],
         )
 
@@ -91,7 +92,7 @@ class ClassDetection(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
-        train_data_transform: Optional[Callable] = None,
+        data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
@@ -104,7 +105,7 @@ class ClassDetection(Benchmark):
         obj = cls()
         obj.model = model
         obj.eval_dataset = eval_dataset
-        obj.train_dataset = obj.process_dataset(train_dataset, transform=train_data_transform, dataset_split=dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.use_predictions = use_predictions
         obj.set_devices(model)
 

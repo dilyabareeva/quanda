@@ -236,7 +236,6 @@ def test_subclass_detection_download(
     expected_score,
     tmp_path,
 ):
-
     dst_eval = SubclassDetection.download(
         name=benchmark_name,
         cache_dir=str(tmp_path),

@@ -5,7 +5,10 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import load_module_from_bench_state, sample_transforms
+from quanda.benchmarks.resources import (
+    load_module_from_bench_state,
+    sample_transforms,
+)
 from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
@@ -53,6 +56,7 @@ class ModelRandomization(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
+        data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         use_predictions: bool = True,
@@ -79,7 +83,7 @@ class ModelRandomization(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.correlation_fn = correlation_fn
         obj.seed = seed
@@ -117,6 +121,7 @@ class ModelRandomization(Benchmark):
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
+            data_transform=dataset_transform,
         )
 
     @classmethod
@@ -125,6 +130,7 @@ class ModelRandomization(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         use_predictions: bool = True,
@@ -152,7 +158,7 @@ class ModelRandomization(Benchmark):
         obj.use_predictions = use_predictions
         obj.correlation_fn = correlation_fn
         obj.seed = seed
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.set_devices(model)
 
         return obj

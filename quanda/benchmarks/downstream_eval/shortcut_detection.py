@@ -6,7 +6,10 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import sample_transforms, load_module_from_bench_state
+from quanda.benchmarks.resources import (
+    load_module_from_bench_state,
+    sample_transforms,
+)
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
@@ -132,7 +135,7 @@ class ShortcutDetection(Benchmark):
         """
         obj = cls()
         obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.filter_by_prediction = filter_by_prediction
         obj.filter_by_class = filter_by_class
@@ -348,7 +351,7 @@ class ShortcutDetection(Benchmark):
         """
         obj = cls()
         obj.model = model
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes

@@ -7,7 +7,10 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import sample_transforms, load_module_from_bench_state
+from quanda.benchmarks.resources import (
+    load_module_from_bench_state,
+    sample_transforms,
+)
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
@@ -77,7 +80,7 @@ class SubclassDetection(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.model = model
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
@@ -216,7 +219,7 @@ class SubclassDetection(Benchmark):
         """
         obj = cls()
         obj.group_model = group_model
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
