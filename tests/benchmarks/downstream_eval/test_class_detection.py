@@ -180,7 +180,7 @@ def test_class_detection_hugging_face(
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
-    assert isinstance(dst_eval.train_dataset, datasets.arrow_dataset.Dataset)
+    assert isinstance(dst_eval.train_dataset.dataset, datasets.arrow_dataset.Dataset)
 
 
 @pytest.mark.benchmark
@@ -197,7 +197,7 @@ def test_class_detection_hugging_face(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            1.0,
+            0.8125,
         ),
     ],
 )

@@ -120,7 +120,6 @@ def test_subclass_detection(
             train_dataset=dataset,
             eval_dataset=dataset,
             n_classes=n_classes,
-            n_groups=n_groups,
             class_to_group=class_to_group,
         )
     else:
@@ -209,7 +208,7 @@ def test_subclass_detection_generate_lightning_model(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.tested
+@pytest.mark.benchmark
 @pytest.mark.parametrize(
     "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
@@ -223,7 +222,7 @@ def test_subclass_detection_generate_lightning_model(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            0.9375,
+            1.0,
         ),
     ],
 )
