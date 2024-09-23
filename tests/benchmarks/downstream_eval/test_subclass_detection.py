@@ -2,6 +2,7 @@ import math
 
 import lightning as L
 import pytest
+import torch
 
 from quanda.benchmarks.downstream_eval.subclass_detection import (
     SubclassDetection,
@@ -199,6 +200,52 @@ def test_subclass_detection_generate_lightning_model(
     )
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
+    score = dst_eval.evaluate(
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
+        batch_size=batch_size,
+    )["score"]
+
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.tested
+@pytest.mark.parametrize(
+    "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
+    [
+        (
+            "mnist",
+            "mnist_subclass_detection",
+            8,
+            CaptumSimilarity,
+            {
+                "layers": "model.fc_2",
+                "similarity_metric": cosine_similarity,
+                "load_from_disk": True,
+            },
+            0.9375,
+        ),
+    ],
+)
+def test_subclass_detection_download(
+    test_id,
+    benchmark_name,
+    batch_size,
+    explainer_cls,
+    expl_kwargs,
+    expected_score,
+    tmp_path,
+):
+
+    dst_eval = SubclassDetection.download(
+        name=benchmark_name,
+        cache_dir=str(tmp_path),
+        device="cpu",
+    )
+
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
+    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
+    dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,

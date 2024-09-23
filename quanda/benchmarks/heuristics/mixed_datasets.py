@@ -10,7 +10,7 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import sample_transforms
+from quanda.benchmarks.resources import sample_transforms, load_module_from_bench_state
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.common import ds_len
 from quanda.utils.datasets import SingleClassImageDataset
@@ -201,7 +201,7 @@ class MixedDatasets(Benchmark):
         return obj
 
     @classmethod
-    def download(cls, name: str, cache_dir: str, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance
         from the state dictionary.
@@ -211,14 +211,18 @@ class MixedDatasets(Benchmark):
         name : str
             Name of the benchmark to be loaded.
         """
-        bench_state = super().download(name, cache_dir, *args, **kwargs)
         obj = cls()
+        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
+            transform=sample_transforms[bench_state["dataset_transform"]],
             dataset_split="test",
         )
+        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
+        module = load_module_from_bench_state(bench_state, device)
+
 
         adversarial_dir_url = bench_state["adversarial_dir_url"]
         adversarial_dir = obj._download_adversarial_dataset(
@@ -228,7 +232,7 @@ class MixedDatasets(Benchmark):
         adversarial_transform = sample_transforms[bench_state["dataset_transform"]]
 
         return obj.assemble(
-            model=bench_state["checkpoints_loaded"][-1],
+            model=module,
             clean_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -260,7 +264,7 @@ class MixedDatasets(Benchmark):
         adversarial_dir = os.path.join(cache_dir, name + "_adversarial_dataset")
         os.makedirs(adversarial_dir, exist_ok=True)
 
-        # download
+        # _get_bench_state
         adversarial_dir_zip = os.path.join(adversarial_dir, "adversarial_dataset.zip")
         with open(adversarial_dir_zip, "wb") as f:
             response = requests.get(adversarial_dir_url)

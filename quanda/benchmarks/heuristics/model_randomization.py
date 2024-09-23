@@ -5,6 +5,7 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.resources import load_module_from_bench_state, sample_transforms
 from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
@@ -88,7 +89,7 @@ class ModelRandomization(Benchmark):
         return obj
 
     @classmethod
-    def download(cls, name: str, cache_dir: str, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 
@@ -99,17 +100,20 @@ class ModelRandomization(Benchmark):
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
         """
-        bench_state = super().download(name, cache_dir, *args, **kwargs)
         obj = cls()
+        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
+            transform=sample_transforms[bench_state["dataset_transform"]],
             dataset_split="test",
         )
+        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
+        module = load_module_from_bench_state(bench_state, device)
 
         return obj.assemble(
-            model=bench_state["checkpoints_loaded"][-1],
+            model=module,
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],

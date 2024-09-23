@@ -50,7 +50,7 @@ def compute_mislabeling_metric(
 
     # Downloading the datasets and checkpoints
 
-    # We first download the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
+    # We first _get_bench_state the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
     os.makedirs(explanations_dir, exist_ok=True)
 
     if download:
@@ -65,7 +65,7 @@ def compute_mislabeling_metric(
         )
         subprocess.run(["unzip", "-qq", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
 
-        # Next we download all the necessary checkpoints and the dataset metadata
+        # Next we _get_bench_state all the necessary checkpoints and the dataset metadata
         subprocess.run(
             [
                 "wget",
@@ -306,7 +306,7 @@ if __name__ == "__main__":
     parser.add_argument("--explanations_dir", required=True, type=str, help="Directory to save outputs")
     parser.add_argument("--checkpoints_dir", required=True, type=str, help="Directory to checkpoints")
     parser.add_argument("--metadata_dir", required=True, type=str, help="Directory to metadata")
-    parser.add_argument("--download", action="store_true", help="Download the datasets and checkpoints")
+    parser.add_argument("--_get_bench_state", action="store_true", help="Download the datasets and checkpoints")
     args = parser.parse_args()
 
     # Call the function with parsed arguments

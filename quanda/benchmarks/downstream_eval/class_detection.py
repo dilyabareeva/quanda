@@ -1,10 +1,12 @@
 import logging
-from typing import Optional, Union
+from typing import Optional, Union, Callable
 
 import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.resources import sample_transforms
+from quanda.benchmarks.resources.modules import load_module_from_bench_state
 from quanda.metrics.downstream_eval import ClassDetectionMetric
 
 logger = logging.getLogger(__name__)
@@ -58,23 +60,28 @@ class ClassDetection(Benchmark):
         return obj
 
     @classmethod
-    def download(cls, name: str, cache_dir: str, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        bench_state = super().download(name, cache_dir, *args, **kwargs)
+
         obj = cls()
+        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
+            transform=sample_transforms[bench_state["dataset_transform"]],
             dataset_split="test",
         )
+        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
+        module = load_module_from_bench_state(bench_state, device)
 
         return obj.assemble(
-            model=bench_state["checkpoints_loaded"][-1],
+            model=module,
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
+            train_data_transform=dataset_transform,
             use_predictions=bench_state["use_predictions"],
         )
 
@@ -84,6 +91,7 @@ class ClassDetection(Benchmark):
         model: torch.nn.Module,
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        train_data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
@@ -96,7 +104,7 @@ class ClassDetection(Benchmark):
         obj = cls()
         obj.model = model
         obj.eval_dataset = eval_dataset
-        obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=train_data_transform, dataset_split=dataset_split)
         obj.use_predictions = use_predictions
         obj.set_devices(model)
 

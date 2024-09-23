@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import sample_transforms
+from quanda.benchmarks.resources import sample_transforms, load_module_from_bench_state
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
@@ -47,7 +47,7 @@ class ShortcutDetection(Benchmark):
         **kwargs,
     ):
         """Initializer for the benchmark object. This initializer should not be used directly.
-        To instantiate the benchmark, use the `generate`, `assemble` or `download` class methods instead."""
+        To instantiate the benchmark, use the `generate`, `assemble` or `_get_bench_state` class methods instead."""
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
@@ -267,7 +267,7 @@ class ShortcutDetection(Benchmark):
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
     @classmethod
-    def download(cls, name: str, cache_dir: str, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 
@@ -278,20 +278,22 @@ class ShortcutDetection(Benchmark):
         eval_dataset : torch.utils.data.Dataset
             Dataset to be used for the evaluation.
         """
-        bench_state = super().download(name, cache_dir, *args, **kwargs)
+
         obj = cls()
+        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
+            transform=sample_transforms[bench_state["dataset_transform"]],
             dataset_split="test",
         )
-
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
         sample_fn = sample_transforms[bench_state["sample_fn"]]
+        module = load_module_from_bench_state(bench_state, device)
 
         return obj.assemble(
-            model=bench_state["model"],
+            model=module,
             train_dataset=bench_state["train_dataset"],
             n_classes=bench_state["n_classes"],
             eval_dataset=eval_dataset,
