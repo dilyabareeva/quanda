@@ -183,7 +183,7 @@ def test_class_detection_hugging_face(
     assert isinstance(dst_eval.train_dataset, datasets.arrow_dataset.Dataset)
 
 
-@pytest.mark.tested
+@pytest.mark.benchmark
 @pytest.mark.parametrize(
     "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
@@ -197,7 +197,7 @@ def test_class_detection_hugging_face(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            0.9375,
+            1.0,
         ),
     ],
 )
@@ -217,7 +217,7 @@ def test_class_detection_download(
     )
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
+    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
     dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,

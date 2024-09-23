@@ -190,9 +190,8 @@ class SubclassDetection(Benchmark):
 
         return obj.assemble(
             group_model=module,
-            train_dataset=bench_state["train_dataset"],
+            train_dataset=bench_state["dataset_str"],
             n_classes=bench_state["n_classes"],
-            n_groups=bench_state["n_groups"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
             class_to_group=bench_state["class_to_group"],
@@ -205,7 +204,6 @@ class SubclassDetection(Benchmark):
         group_model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
-        n_groups: int,
         class_to_group: Dict[int, int],  # TODO: type specification
         eval_dataset: torch.utils.data.Dataset,
         use_predictions: bool = True,
@@ -219,11 +217,10 @@ class SubclassDetection(Benchmark):
         """
         obj = cls()
         obj.group_model = group_model
-        obj.train_dataset = obj.process_dataset(train_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.train_dataset = obj.process_dataset(train_dataset, transform=None, dataset_split=dataset_split)
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
-        obj.n_groups = n_groups
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
@@ -232,7 +229,6 @@ class SubclassDetection(Benchmark):
             dataset=obj.train_dataset,
             dataset_transform=dataset_transform,
             n_classes=obj.n_classes,
-            n_groups=obj.n_groups,
             class_to_group=class_to_group,
         )
         obj.grouped_train_dl = torch.utils.data.DataLoader(obj.grouped_dataset, batch_size=batch_size)
@@ -285,6 +281,6 @@ class SubclassDetection(Benchmark):
                 targets=targets,
             )
             # Use original labels for metric score calculation
-            metric.update(grouped_labels, explanations, test_tensor=inputs, test_classes=labels)
+            metric.update(grouped_labels, explanations, test_tensor=inputs, test_classes=grouped_labels)
 
         return metric.compute()

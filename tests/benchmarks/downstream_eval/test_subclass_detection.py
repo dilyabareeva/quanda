@@ -243,7 +243,7 @@ def test_subclass_detection_download(
     )
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
+    dst_eval.grouped_dataset = torch.utils.data.Subset(dst_eval.grouped_dataset, list(range(16)))
     dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
