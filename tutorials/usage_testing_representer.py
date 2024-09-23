@@ -48,7 +48,7 @@ def main():
     # #Download dataset and pre-trained model
     # ++++++++++++++++++++++++++++++++++++++++++
 
-    # download and pre-process CIFAR10
+    # _get_bench_state and pre-process CIFAR10
     normalize = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -66,7 +66,7 @@ def main():
     test_loader = DataLoader(test_set, batch_size=100, shuffle=False, num_workers=8)
     # val_dataloader = DataLoader(val_set, batch_size=100, shuffle=False, num_workers=8)
 
-    # download pre-trained weights
+    # _get_bench_state pre-trained weights
     local_path = "./tutorials/model_weights_resnet18_cifar10.pth"
     if not os.path.exists(local_path):
         response = requests.get("https://storage.googleapis.com/unlearning-challenge/weights_resnet18_cifar10.pth")

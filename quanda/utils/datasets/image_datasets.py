@@ -1,5 +1,6 @@
 import glob
 
+import torch
 from PIL import Image  # type: ignore
 from torch.utils.data import Dataset
 
@@ -22,3 +23,18 @@ class SingleClassImageDataset(Dataset):
         if self.transform:
             image = self.transform(image)
         return image, self.label
+
+
+class HFtoTV(torch.utils.data.Dataset):
+    def __init__(self, dataset, transform=None):
+        self.dataset = dataset
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        item = self.dataset[idx]
+        if self.transform:
+            item["image"] = self.transform(item["image"])
+        return item["image"], item["label"]

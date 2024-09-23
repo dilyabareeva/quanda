@@ -6,6 +6,7 @@ import torch.utils
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.resources import sample_transforms, load_module_from_bench_state
 from quanda.metrics.heuristics import TopKOverlapMetric
 
 logger = logging.getLogger(__name__)
@@ -66,23 +67,27 @@ class TopKOverlap(Benchmark):
         cls,
         name: str,
         cache_dir: str,
+        device: str,
         *args,
         **kwargs,
     ):
         """
         This method should load the benchmark components from a file and persist them in the instance.
         """
-        bench_state = super().download(name, cache_dir, *args, **kwargs)
         obj = cls()
+        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
+            transform=sample_transforms[bench_state["dataset_transform"]],
             dataset_split="test",
         )
+        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
+        module = load_module_from_bench_state(bench_state, device)
 
         return obj.assemble(
-            model=bench_state["checkpoints_loaded"][-1],
+            model=module,
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],

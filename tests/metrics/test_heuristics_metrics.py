@@ -170,7 +170,7 @@ def test_top_k_overlap_metrics(
 
 
 @pytest.mark.downstream_eval_metrics
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, model, dataset, explanations, adversarial_indices, expected_score",
     [

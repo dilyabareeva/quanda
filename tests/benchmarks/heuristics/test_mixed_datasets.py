@@ -10,7 +10,6 @@ from quanda.utils.training import Trainer
 
 
 @pytest.mark.benchmarks
-@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, adversarial_path,"
     "adversarial_label, adversarial_transforms, batch_size, explainer_cls, expl_kwargs,"

@@ -11,7 +11,7 @@ from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.tested
+@pytest.mark.utils
 @pytest.mark.parametrize(
     "test_id, model, dataset, explanations, test_batches, method_kwargs",
     [
@@ -57,7 +57,7 @@ def test_batched_cached_explanations(test_id, model, dataset, explanations, test
     assert all([comparison]), "Cached explanations do not match expected"
 
 
-@pytest.mark.tested
+@pytest.mark.utils
 @pytest.mark.parametrize(
     "test_id, model, dataset, explanations, test_batches, method_kwargs",
     [
