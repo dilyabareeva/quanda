@@ -3,9 +3,9 @@ from PIL import Image
 
 
 def add_white_square_mnist(img):
-    square_size = (4, 4)
+    square_size = (8, 8)
     white_square = Image.new("L", square_size, 255)
-    img.paste(white_square, (20, 20))
+    img.paste(white_square, (15, 15))
     return img
 
 
