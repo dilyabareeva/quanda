@@ -16,7 +16,7 @@
 ![mypy](https://img.shields.io/badge/mypy-checked-green)
 ![flake8](https://img.shields.io/badge/flake8-checked-blueviolet)
 
-**quanda** _is currently under active development so carefully note the release version to ensure reproducibility of your work._
+**quanda** _is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
 
 
 ## 🐼 Library overview
@@ -51,7 +51,16 @@ TODO: table with links to original implementations
 
 ### Benchmarks
 
-TODO: table with available benchmarks
+| Benchmark                     | Modality | Model | Metric                                                                                                                                           | Type                       |
+|--------------------------------|----------|-------|--------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|
+| mnist_top_k_overlap            |          |       | [TopKOverlapMetric](./quanda/metrics/heuristics/top_k_overlap.py)                                                                                 | Heuristic                  |
+| mnist_mixed_datasets           | Vision   | MNIST | [MixedDatasetsMetric](./quanda/metrics/heuristics/mixed_datasets.py)                                                                              | Heuristic                  |
+| mnist_class_detection          |          |       | [ClassDetectionMetric](./quanda/metrics/downstream_eval/class_detection.py)                                                                       | Downstream-Task-Evaluator  |
+| mnist_subclass_detection       |          |       | [SubclassDetectionMetric](./quanda/metrics/downstream_eval/subclass_detection.py)                                                                 | Downstream-Task-Evaluator  |
+| mnist_mislabeling_detection    |          |       | [MislabelingDetectionMetric](./quanda/metrics/downstream_eval/mislabeling_detection.py)                                                           | Downstream-Task-Evaluator  |
+| mnist_shortcut_detection       |          |       | [ShortcutDetectionMetric](./quanda/metrics/downstream_eval/shortcut_detection.py)                                                                 | Downstream-Task-Evaluator  |
+
+
 
 ## 🔬 Getting Started
 
@@ -75,7 +84,10 @@ In the following, we provide a quick guide to **quanda** usage. To begin using *
 - **Test Batches (`test_tensor`) and Explanation Targets (`target`)**: A batch of test data (`test_tensor`) and the corresponding explanation targets (`target`). Generally, it is advisable to use the model's predicted labels as the targets. In the following, we use the `torch.utils.data.DataLoader` to load the test data in batches.
 
 
-As an example, we will demonstrate the generation of explanations using `SimilarityInfluence` data attribution from `Captum` and the evaluation of these explanations using the **Model Randomization** metric.
+As an example, we will demonstrate the generation of explanations using `SimilarityInfluence` data attribution from `Captum`.
+#### Metrics Usage
+
+In the following, we demonstrate evaluation of explanations by the example of the **Model Randomization** metric.
 
 <details>
 <summary><b><big>Step 1. Import dependencies and library components</big></b></summary>
@@ -96,11 +108,16 @@ from quanda.metrics.randomization import ModelRandomizationMetric
 
 While `explainer_cls` is passed directly to the metric, `explain` function is used to generate explanations fed to a metric.
 ```python
-explainer_cls = CaptumSimilarity
-explain = captum_similarity_explain
-explain_fn_kwargs = {"layers": "avgpool"}
-model_id = "default_model_id"
-cache_dir = "./cache"
+explain_fn_kwargs = {
+    "layers": "avgpool", 
+    "model_id": "default_model_id",
+    "cache_dir": "./cache"
+}
+explainer = CaptumSimilarity(
+    model=model, 
+    train_dataset=train_dataset, 
+    **explain_fn_kwargs
+)
 ```
 </details>
 
@@ -143,7 +160,29 @@ print("Model heuristics metric output:", model_rand.compute())
 ```
 </details>
 
-More detailed examples can be found in the following [tutorials](https://github.com/dilyabareeva/quanda/tree/main/tutorials) section.
+#### Benchmarks Usage
+
+The pre-assembled benchmarks allow us to streamline the evaluation process by downloading the necessary data and models, and running the evaluation in a single command. The **Step 1** and the **Step 2** from the previous section are still required to be executed before running the benchmark. The following code demonstrates how to use the `mnist_subclass_detection` benchmark:
+
+<details>
+<summary><b><big>Step 3. Load a pre-assembled benchmark and score an explainer</big></b></summary>
+
+```python
+subclass_detect = SubclassDetection.download(
+    name=`mnist_subclass_detection`,
+    cache_dir=cache_dir,
+    device="cpu",
+)
+score = dst_eval.evaluate(
+    explainer_cls=CaptumSimilarity,
+    expl_kwargs=explain_fn_kwargs,
+    batch_size=batch_size,
+)["score"]
+print(f"Subclass Detection Score: {score}")
+```
+</details>
+
+More detailed examples can be found in the following [tutorials](./quanda/tree/main/tutorials) folder.
 
 
 ## ⚠️ Usage Tips and Caveats
