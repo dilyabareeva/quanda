@@ -278,9 +278,7 @@ def compute_randomization_metric(
 
     for i, (test_tensor, test_labels) in enumerate(dataloader):
         test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
-        explanation_targets = torch.tensor(
-            [lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))]
-        )
+        explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
         model_rand.update(test_tensor, explanations[i], explanation_targets)
 
     score = model_rand.compute()
