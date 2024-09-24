@@ -159,12 +159,12 @@ def compute_mislabeling_metric(
         device=device,
         map_location=torch.device(device),
     )
-    lit_model.model = lit_model.model.eval()
+    lit_model.eval()
 
     def load_state_dict(module: L.LightningModule, path: str) -> int:
         checkpoints = torch.load(path, map_location=torch.device("cuda:0"))
         module.model.load_state_dict(checkpoints["model_state_dict"])
-        module.model.eval()
+        module.eval()
         return module.lr
 
     mislabeling_dir = os.path.join(explanations_dir, "mislabeling_explanations")

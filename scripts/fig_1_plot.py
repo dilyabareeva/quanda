@@ -90,6 +90,11 @@ df = df.rename(index={
     "arnoldi": "ArnoldiInf"
 })
 
+# sort indices by a list
+sort_list = ["ArnoldiInf", "ReprPoints", "TracInCP", "TRAK-1","Random"]
+
+df = df.loc[sort_list]
+
 # Optionally reset index to have a clean DataFrame
 df.reset_index(inplace=True)
 
@@ -201,6 +206,7 @@ ax.fill(HANGLES, H2 / RADIUS_RATIO, GREY_LIGHT)
 for j in range(len(ANGLES)):
     ax.plot([ANGLES[j], ANGLES[j]], [0, 1 / RADIUS_RATIO], lw=0.5, c=GREY70)
 
+
 handles = [
     Line2D(
         [0, 0.005], [0, 0],           # Short line segment
@@ -234,4 +240,4 @@ plt.tight_layout()
 plt.show()
 
 # save fig_1
-fig.savefig("../scripts/fig_1.png", dpi=300, bbox_inches="tight")
+fig.savefig("../scripts/fig_1.png", bbox_inches=None, pad_inches=0, dpi=300)

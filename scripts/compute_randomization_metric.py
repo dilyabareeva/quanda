@@ -167,12 +167,12 @@ def compute_randomization_metric(
         device=device,
         map_location=torch.device(device),
     )
-    lit_model.model = lit_model.model.eval()
+    lit_model.eval()
 
     def load_state_dict(module: L.LightningModule, path: str) -> int:
         checkpoints = torch.load(path, map_location=torch.device("cuda:0"))
         module.model.load_state_dict(checkpoints["model_state_dict"])
-        module.model.eval()
+        module.eval()
         return module.lr
 
     # Dataloader for Model Randomization, Top-K Overlap
@@ -279,7 +279,7 @@ def compute_randomization_metric(
     for i, (test_tensor, test_labels) in enumerate(dataloader):
         test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
         explanation_targets = torch.tensor(
-            [lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))]
+            [lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))]
         )
         model_rand.update(test_tensor, explanations[i], explanation_targets)
 
