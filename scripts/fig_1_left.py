@@ -1,22 +1,12 @@
 import logging
-import os
-import random
-import subprocess
-from argparse import ArgumentParser
-
-import torch
 import torchvision.transforms as transforms
-import wandb
 from dotenv import load_dotenv
 from PIL import Image
 from torch.utils.data import Subset
-
-from quanda.metrics.downstream_eval import (
-    MislabelingDetectionMetric,
-    ShortcutDetectionMetric,
-    SubclassDetectionMetric,
-)
-from quanda.metrics.heuristics import MixedDatasetsMetric, TopKOverlapMetric
+import torch
+import os
+import matplotlib.pyplot as plt
+import seaborn as sns
 from quanda.utils.cache import ExplanationsCache as EC
 from quanda.utils.datasets.transformed import (
     LabelGroupingDataset,
@@ -28,7 +18,7 @@ from tutorials.utils.datasets import (
     special_dataset,
 )
 from tutorials.utils.modules import LitModel
-from tutorials.utils.visualization import visualize_top_3_bottom_3_influential
+from tutorials.utils.visualization import visualize_top_3_bottom_3_influential, save_influential_samples
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +91,10 @@ backdoor_transforms_flipped = transforms.Compose(
     ]
 )
 
+denormalize = transforms.Compose(
+    [transforms.Normalize(mean=[0, 0, 0], std=[1 / 0.229, 1 / 0.224, 1 / 0.225])]
+    + [transforms.Normalize(mean=[-0.485, -0.456, -0.406], std=[1, 1, 1])]
+)
 panda_dataset = CustomDataset(
     panda_sketch_path, classes=["n02510455"], classes_to_idx={"n02510455": 5}, transform=backdoor_transforms
 )
@@ -176,7 +170,7 @@ dataloader = torch.utils.data.DataLoader(
 )
 
 explanation_methods = ["representer_points",
-                       #"trak", "random", "tracincpfast", "arnoldi"
+    #"trak", "representer_points", "random", "tracincpfast", "arnoldi"
 ]
 for method in explanation_methods:
     method_save_dir = os.path.join(explanations_dir, method)
@@ -189,10 +183,48 @@ for method in explanation_methods:
         explanations = explanations[i]
         explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
         for j in range(len(explanations)):
-            if j != 5:
+            if j != 19:
                 continue
             visualize_top_3_bottom_3_influential(
                 train_set, test_tensor[j:j+1], test_labels[j:j+1], explanation_targets[j:j+1], explanations[j:j+1], r_name_dict, save_path=None
             )
+            save_influential_samples(
+                train_set, test_tensor[j:j+1], explanations[j:j+1], denormalize, ["cat_" + str(j)], r_name_dict, top_k=7,
+                save_path="../fig_1_images"
+            )
+            """
+            color_palette = []
+            for pal in ["Reds", "Blues", "Oranges"]:
+                palette = sns.color_palette(pal, 10)
+                color_palette.append(palette.as_hex()[7])
 
+            sns.set_style(style="white")
+            plt.rcParams.update(
+                {
+                    "text.usetex": True,
+                    "font.family": 'Helvetica',
+                    "font.size": 8,
+                    "xtick.labelsize": 8,
+                    "ytick.labelsize": 8,
+                }
+            )
 
+            plt.figure(figsize=(3.29, 2.3))
+            g = sns.histplot(
+                data={r"Attribution": explanations[j].cpu().numpy()},
+                x=r"Attribution",
+                kde=True,
+                kde_kws={"bw_adjust": 1.0},
+                line_kws={"linewidth": 1.8},
+                bins=200,
+                palette=sns.color_palette(color_palette),
+            )
+
+            plt.ylabel("Count")
+            plt.tight_layout()
+            plt.savefig(
+                f"../fig_1_images/distributon_cat_{j}.png", dpi=500
+            )
+            plt.show()
+            """
+# i=0, j=5
