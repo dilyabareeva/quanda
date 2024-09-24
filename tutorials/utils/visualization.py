@@ -29,7 +29,7 @@ def save_influential_samples(
         proponents_images = [denormalize(img) for img in proponents_images]
         for i, img in enumerate(proponents_images):
             label_i = proponent_labels[i]
-            save_image(img, f"{save_path}/proponent_{idx}_{label_i}_top_{i}.png")
+            save_image(img, f"{save_path}/proponent_{idx}_{label_i}_top_{i}_{top_k_proponents.values[i]}.png")
 
     for idx, elements in enumerate(top_k_opponents.indices):
         opponents_images = [train_dataset[int(i)][0] for i in elements]
@@ -37,7 +37,7 @@ def save_influential_samples(
         opponents_images = [denormalize(img) for img in opponents_images]
         for i, img in enumerate(opponents_images):
             label_i = opponents_labels[i]
-            save_image(img, f"{save_path}/opponent_{idx}_{label_i}_top_{i}.png")
+            save_image(img, f"{save_path}/opponent_{idx}_{label_i}_top_{i}_{test_names[idx]}.png")
 
     test_images = [denormalize(img) for img in test_tensor]
     for img, idx in zip(test_images, range(len(test_tensor))):

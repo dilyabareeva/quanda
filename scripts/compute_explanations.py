@@ -317,7 +317,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             similarity_metric=cosine_similarity,
             device=device,
             batch_size=batch_size,
-            load_from_disk=True,
+            load_from_disk=False,
         )
 
         method_save_dir = os.path.join(output_dir, method)
@@ -341,7 +341,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             batch_size=batch_size,
             features_postprocess=lambda x: x[:, :, 0, 0],
             model_id="demo",
-            load_from_disk=True,
+            load_from_disk=False,
             show_progress=False,
         )
 
@@ -373,7 +373,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             batch_size=batch_size * 4,
         )
 
-        method_save_dir = os.path.join(output_dir, method + "_1_bs")
+        method_save_dir = os.path.join(output_dir, method)
         os.makedirs(method_save_dir, exist_ok=True)
 
         for subset in dataloaders:
@@ -433,7 +433,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             projector="cuda",
             proj_dim=4096,
             batch_size=batch_size,
-            load_from_disk=True,
+            load_from_disk=False,
         )
 
         method_save_dir = os.path.join(output_dir, method)
