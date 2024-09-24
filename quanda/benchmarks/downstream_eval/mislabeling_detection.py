@@ -61,7 +61,7 @@ class MislabelingDetection(Benchmark):
 
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
-        Alternatively, `_get_bench_state` can be used to load a precomputed benchmarks.
+        Alternatively, `download` can be used to load a precomputed benchmarks.
         """
         super().__init__()
 

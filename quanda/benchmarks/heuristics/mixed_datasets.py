@@ -268,7 +268,7 @@ class MixedDatasets(Benchmark):
         adversarial_dir = os.path.join(cache_dir, name + "_adversarial_dataset")
         os.makedirs(adversarial_dir, exist_ok=True)
 
-        # _get_bench_state
+        # download
         adversarial_dir_zip = os.path.join(adversarial_dir, "adversarial_dataset.zip")
         with open(adversarial_dir_zip, "wb") as f:
             response = requests.get(adversarial_dir_url)

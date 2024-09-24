@@ -49,7 +49,7 @@ class Benchmark(ABC):
             url = benchmark_urls[name]
             os.makedirs(os.path.join(cache_dir, name), exist_ok=True)
 
-            # _get_bench_state to cache_dir
+            # download to cache_dir
             response = requests.get(url)
 
             with open(os.path.join(cache_dir, name + ".pth"), "wb") as f:

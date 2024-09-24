@@ -50,7 +50,7 @@ class ShortcutDetection(Benchmark):
         **kwargs,
     ):
         """Initializer for the benchmark object. This initializer should not be used directly.
-        To instantiate the benchmark, use the `generate`, `assemble` or `_get_bench_state` class methods instead."""
+        To instantiate the benchmark, use the `generate`, `assemble` or `download` class methods instead."""
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
