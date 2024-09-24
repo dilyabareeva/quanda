@@ -182,7 +182,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         map_location=torch.device(device),
     )
     lit_model.to(device)
-    lit_model.model = lit_model.model.eval()
+    lit_model.eval()
 
     # Define Dataloader for different metrics
     dataloaders = {}
@@ -246,7 +246,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     )
     # vis_dataloader(dataloaders["mixed_dataset"])
 
-    explanation_methods = ["similarity", "representer_points", "trak", "random", "tracincpfast", "arnoldi"]
+    explanation_methods = ["representer_points", "trak", "random", "tracincpfast", "arnoldi"]
     if metric == "mislabeling":
         for method in explanation_methods:
             method_save_dir = os.path.join(explanations_dir, method)
@@ -281,7 +281,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
                 test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
                 explanation_targets = [
-                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
+                    lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))
                 ]
                 shortcut.update(explanations[i].to(device))
 
@@ -305,7 +305,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
                 test_sublabels = next(ungrouped_iter)[1]
                 test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
                 explanation_targets = [
-                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
+                    lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))
                 ]
                 id_subclass.update(test_sublabels, explanations[i])
 
@@ -321,7 +321,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
                 test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
                 explanation_targets = [
-                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
+                    lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))
                 ]
                 top_k.update(explanations[i].to(device))
 
@@ -345,7 +345,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
                 test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
                 explanation_targets = [
-                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
+                    lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))
                 ]
                 mixed_dataset.update(explanations[i].to(device))
 

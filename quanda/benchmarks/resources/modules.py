@@ -13,7 +13,7 @@ def load_module_from_bench_state(bench_state: dict, device: str):
 
     module.model.load_state_dict(bench_state["checkpoints_binary"][-1]["model_state_dict"])
     module.to(device)
-    module.model.eval()
+    module.eval()
     return module
 
 
