@@ -280,9 +280,6 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
                 test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
-                explanation_targets = [
-                    lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))
-                ]
                 shortcut.update(explanations[i].to(device))
 
             score = shortcut.compute()
@@ -304,9 +301,6 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
                 test_sublabels = next(ungrouped_iter)[1]
                 test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
-                explanation_targets = [
-                    lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))
-                ]
                 id_subclass.update(test_sublabels, explanations[i])
 
             score = id_subclass.compute()
@@ -320,9 +314,6 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             top_k = TopKOverlapMetric(model=lit_model, train_dataset=train_set, top_k=1)
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
                 test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
-                explanation_targets = [
-                    lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))
-                ]
                 top_k.update(explanations[i].to(device))
 
             score = top_k.compute()
@@ -344,9 +335,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             )
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
                 test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
-                explanation_targets = [
-                    lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))
-                ]
+
                 mixed_dataset.update(explanations[i].to(device))
 
             score = mixed_dataset.compute()

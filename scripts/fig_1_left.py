@@ -175,21 +175,21 @@ dataloader = torch.utils.data.DataLoader(
     cat_dog_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
 )
 
-explanation_methods = ["representer_points", "trak", "random", "tracincpfast", "arnoldi"]
+explanation_methods = ["representer_points",
+                       #"trak", "random", "tracincpfast", "arnoldi"
+]
 for method in explanation_methods:
     method_save_dir = os.path.join(explanations_dir, method)
-    subset_save_dir = os.path.join(method_save_dir, "top_k_overlap")
+    subset_save_dir = os.path.join(method_save_dir, "subclass")
     explanations = EC.load(subset_save_dir)
     for i, (test_tensor, test_labels) in enumerate(dataloader):
         if i != 0:
             continue
         test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
         explanations = explanations[i]
-        explanation_targets = [
-            lit_model.model(test_tensor.to(device)).argmax().item() for i in range(len(test_tensor))
-        ]
+        explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
         for j in range(len(explanations)):
-            if j != 15:
+            if j != 5:
                 continue
             visualize_top_3_bottom_3_influential(
                 train_set, test_tensor[j:j+1], test_labels[j:j+1], explanation_targets[j:j+1], explanations[j:j+1], r_name_dict, save_path=None
