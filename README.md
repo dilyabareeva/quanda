@@ -11,7 +11,7 @@
 </p>
 
 
-![py_versions](https://github-production-user-asset-6210df.s3.amazonaws.com/44092813/345210448-36499a1d-aefb-455f-b73a-57ca4794f31f.svg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240904%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240904T071921Z&X-Amz-Expires=300&X-Amz-Signature=44ff9964c41d4ca7cc9a636178647e58e46e9b12ad4c213366aa2db149a21044&X-Amz-SignedHeaders=host&actor_id=44092813&key_id=0&repo_id=777729549)
+![py_versions](assets/readme/python-versions.svg)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![mypy](https://img.shields.io/badge/mypy-checked-green)
 ![flake8](https://img.shields.io/badge/flake8-checked-blueviolet)
@@ -50,6 +50,8 @@ TODO: table with links to original implementations
 - **Mixed Datasets** ([Hammoudeh and Lowd, 2022](https://dl.acm.org/doi/abs/10.1145/3548606.3559335)): In a setting, where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example. The evaluation is done using the Area Under the Precision-Recall Curve (AUPRC).
 
 ### Benchmarks
+
+**quanda** comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The following benchmarks are currently available:
 
 | Benchmark                     | Modality | Model | Metric                                                                                                                                           | Type                       |
 |--------------------------------|----------|-------|--------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|
@@ -182,7 +184,7 @@ print(f"Subclass Detection Score: {score}")
 ```
 </details>
 
-More detailed examples can be found in the following [tutorials](./quanda/tree/main/tutorials) folder.
+More detailed examples can be found in the following [tutorials](./quanda/tutorials) folder.
 
 
 ## ⚠️ Usage Tips and Caveats
@@ -192,12 +194,12 @@ More detailed examples can be found in the following [tutorials](./quanda/tree/m
 - **Caching**: Many of the Explaienrs in our library generate re-usable cache. The `cache_id` and `model_id` parameters passed to various class instances are used to store these intermediary results. Please ensure that each experiment is assigned a unique combination of these arguments. Failing to do so could lead to incorrect reuse of cached results. If you wish to avoid re-using cached results, you can set the `load_from_disk` parameter to `False`.
 
 - **Explainers Are Expensive To Calculate**: Certain Explainers, such as TracInCPRandomProj, may lead to OutOfMemory (OOM) issues when applied to large models or datasets. In such cases, we recommend adjusting memory usage by either reducing the dataset size or using smaller models to avoid these issues.
-- 
+
 ## 📓 Tutorials
 
-We have included a few  [tutorials](https://github.com/dilyabareeva/quanda/tree/main/tutorials) to demonstrate the usage of **quanda**:
+We have included a few  [tutorials](.quanda//tutorials) to demonstrate the usage of **quanda**:
 
-* [Explainers](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo.ipynb): shows how different explainers can be produced with **quanda**
+* [Explainers](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_explainers.ipynb): shows how different explainers can be produced with **quanda**
 * [Metrics](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_metrics.ipynb): demonstrates how to use the metrics in **quanda** to evaluate the performance of a model
 * [Benchmarks](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_benchmarks.ipynb): shows how to use the benchmarking tools in **quanda** to evaluate a data attribution method
 
