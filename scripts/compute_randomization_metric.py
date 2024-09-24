@@ -51,7 +51,7 @@ def compute_randomization_metric(
 
     # Downloading the datasets and checkpoints
 
-    # We first _get_bench_state the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
+    # We first download the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
     os.makedirs(explanations_dir, exist_ok=True)
 
     if download:
@@ -66,7 +66,7 @@ def compute_randomization_metric(
         )
         subprocess.run(["unzip", "-qq", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
 
-        # Next we _get_bench_state all the necessary checkpoints and the dataset metadata
+        # Next we download all the necessary checkpoints and the dataset metadata
         subprocess.run(
             [
                 "wget",
@@ -169,6 +169,12 @@ def compute_randomization_metric(
     )
     lit_model.model = lit_model.model.eval()
 
+    def load_state_dict(module: L.LightningModule, path: str) -> int:
+        checkpoints = torch.load(path, map_location=torch.device("cuda:0"))
+        module.model.load_state_dict(checkpoints["model_state_dict"])
+        module.model.eval()
+        return module.lr
+
     # Dataloader for Model Randomization, Top-K Overlap
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
     clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
@@ -210,17 +216,6 @@ def compute_randomization_metric(
 
     if method == "tracincpfast":
 
-        def load_state_dict(module, path: str) -> int:
-            module = type(module).load_from_checkpoint(
-                path,
-                n_batches=len(train_dataloader),
-                num_labels=new_n_classes,
-                device=device,
-                map_location=torch.device(device),
-            )
-            module.model.eval()
-            return module.lr
-
         explainer_cls = CaptumTracInCPFast
         explain_kwargs = {
             "checkpoints": checkpoints,
@@ -232,17 +227,6 @@ def compute_randomization_metric(
         }
 
     if method == "arnoldi":
-
-        def load_state_dict(module, path: str) -> int:
-            module = type(module).load_from_checkpoint(
-                path,
-                n_batches=len(train_dataloader),
-                num_labels=new_n_classes,
-                device=device,
-                map_location=torch.device(device),
-            )
-            module.model.eval()
-            return module.lr
 
         train_dataset = train_dataloader.dataset
         num_samples = 5000
@@ -320,7 +304,7 @@ if __name__ == "__main__":
     parser.add_argument("--explanations_dir", required=True, type=str, help="Directory to save outputs")
     parser.add_argument("--checkpoints_dir", required=True, type=str, help="Directory to checkpoints")
     parser.add_argument("--metadata_dir", required=True, type=str, help="Directory to metadata")
-    parser.add_argument("--_get_bench_state", action="store_true", help="Download the datasets and checkpoints")
+    parser.add_argument("--download", action="store_true", help="Download the datasets and checkpoints")
     args = parser.parse_args()
 
     # Call the function with parsed arguments

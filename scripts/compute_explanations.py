@@ -39,7 +39,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
     # Downloading the datasets and checkpoints
 
-    # We first _get_bench_state the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
+    # We first download the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
     os.makedirs(output_dir, exist_ok=True)
 
     if download:
@@ -54,7 +54,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         )
         subprocess.run(["unzip", "-qq", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
 
-        # Next we _get_bench_state all the necessary checkpoints and the dataset metadata
+        # Next we download all the necessary checkpoints and the dataset metadata
         subprocess.run(
             [
                 "wget",
@@ -178,6 +178,12 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         map_location=torch.device(device),
     )
     lit_model.model = lit_model.model.eval()
+
+    def load_state_dict(module: L.LightningModule, path: str) -> int:
+        checkpoints = torch.load(path, map_location=torch.device("cuda:0"))
+        module.model.load_state_dict(checkpoints["model_state_dict"])
+        module.model.eval()
+        return module.lr
 
     # Select test
 
@@ -354,12 +360,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
     if method == "tracincpfast":
 
-        def load_state_dict(module: L.LightningModule, path: str) -> int:
-            module = type(module).load_from_checkpoint(
-                path, n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device(device)
-            )
-            module.model.eval()
-            return module.lr
 
         # Initialize Explainer
         logger.info("Explaining test samples")
@@ -394,13 +394,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 print(f"Time taken for subset {subset} is {end_time - start_time}")
 
     if method == "arnoldi":
-
-        def load_state_dict(module: L.LightningModule, path: str) -> int:
-            module = type(module).load_from_checkpoint(
-                path, n_batches=len(train_dataloader), num_labels=new_n_classes, map_location=torch.device(device)
-            )
-            module.model.eval()
-            return module.lr
 
         train_dataset = train_dataloader.dataset
         num_samples = 5000
@@ -499,7 +492,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_dir", required=True, type=str, help="Directory to save outputs")
     parser.add_argument("--checkpoints_dir", required=True, type=str, help="Directory to checkpoints")
     parser.add_argument("--metadata_dir", required=True, type=str, help="Directory to metadata")
-    parser.add_argument("--_get_bench_state", action="store_true", help="Download the datasets and checkpoints")
+    parser.add_argument("--download", action="store_true", help="Download the datasets and checkpoints")
     args = parser.parse_args()
 
     # Call the function with parsed arguments

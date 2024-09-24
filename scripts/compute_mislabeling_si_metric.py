@@ -50,7 +50,7 @@ def compute_mislabeling_metric(
 
     # Downloading the datasets and checkpoints
 
-    # We first _get_bench_state the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
+    # We first download the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
     os.makedirs(explanations_dir, exist_ok=True)
 
     if download:
@@ -65,7 +65,7 @@ def compute_mislabeling_metric(
         )
         subprocess.run(["unzip", "-qq", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
 
-        # Next we _get_bench_state all the necessary checkpoints and the dataset metadata
+        # Next we download all the necessary checkpoints and the dataset metadata
         subprocess.run(
             [
                 "wget",
@@ -151,13 +151,6 @@ def compute_mislabeling_metric(
         flipping_transform_dict=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
     )
 
-    test_set_grouped = LabelGroupingDataset(
-        dataset=test_set,
-        n_classes=n_classes,
-        dataset_transform=regular_transforms,
-        class_to_group=class_to_group,
-    )
-
     train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     lit_model = LitModel.load_from_checkpoint(
         checkpoints[-1],
@@ -167,6 +160,12 @@ def compute_mislabeling_metric(
         map_location=torch.device(device),
     )
     lit_model.model = lit_model.model.eval()
+
+    def load_state_dict(module: L.LightningModule, path: str) -> int:
+        checkpoints = torch.load(path, map_location=torch.device("cuda:0"))
+        module.model.load_state_dict(checkpoints["model_state_dict"])
+        module.model.eval()
+        return module.lr
 
     mislabeling_dir = os.path.join(explanations_dir, "mislabeling_explanations")
     model_id = "0"
@@ -204,17 +203,6 @@ def compute_mislabeling_metric(
 
     if method == "tracincpfast":
 
-        def load_state_dict(module, path: str) -> int:
-            module = type(module).load_from_checkpoint(
-                path,
-                n_batches=len(train_dataloader),
-                num_labels=new_n_classes,
-                device=device,
-                map_location=torch.device(device),
-            )
-            module.model.eval()
-            return module.lr
-
         explainer_cls = CaptumTracInCPFast
         explain_kwargs = {
             "checkpoints": checkpoints,
@@ -226,17 +214,6 @@ def compute_mislabeling_metric(
         }
 
     if method == "arnoldi":
-
-        def load_state_dict(module, path: str) -> int:
-            module = type(module).load_from_checkpoint(
-                path,
-                n_batches=len(train_dataloader),
-                num_labels=new_n_classes,
-                device=device,
-                map_location=torch.device(device),
-            )
-            module.model.eval()
-            return module.lr
 
         train_dataset = train_dataloader.dataset
         num_samples = 5000
@@ -306,7 +283,7 @@ if __name__ == "__main__":
     parser.add_argument("--explanations_dir", required=True, type=str, help="Directory to save outputs")
     parser.add_argument("--checkpoints_dir", required=True, type=str, help="Directory to checkpoints")
     parser.add_argument("--metadata_dir", required=True, type=str, help="Directory to metadata")
-    parser.add_argument("--_get_bench_state", action="store_true", help="Download the datasets and checkpoints")
+    parser.add_argument("--download", action="store_true", help="Download the datasets and checkpoints")
     args = parser.parse_args()
 
     # Call the function with parsed arguments
