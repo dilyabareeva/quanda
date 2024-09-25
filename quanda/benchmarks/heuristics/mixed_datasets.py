@@ -232,7 +232,7 @@ class MixedDatasets(Benchmark):
             name=name, adversarial_dir_url=adversarial_dir_url, cache_dir=cache_dir
         )
 
-        adversarial_transform = sample_transforms[bench_state["dataset_transform"]]
+        adversarial_transform = sample_transforms[bench_state["adversarial_transform"]]
 
         return obj.assemble(
             model=module,
@@ -242,7 +242,6 @@ class MixedDatasets(Benchmark):
             adversarial_dir=adversarial_dir,
             adversarial_label=bench_state["adversarial_label"],
             adversarial_transform=adversarial_transform,
-            dataset_split=bench_state["dataset_split"],
             data_transform=dataset_transform,
         )
 
