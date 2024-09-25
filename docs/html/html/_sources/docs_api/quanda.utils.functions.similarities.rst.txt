@@ -1,0 +1,7 @@
+quanda.utils.functions.similarities module
+==========================================
+
+.. automodule:: quanda.utils.functions.similarities
+   :members:
+   :undoc-members:
+   :show-inheritance:

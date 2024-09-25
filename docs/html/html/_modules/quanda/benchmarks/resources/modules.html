@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quanda.benchmarks.resources.modules &mdash; quanda 01.07.2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=cea27b2f"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            quanda
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../docs_api/modules.html">quanda</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">quanda</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">quanda.benchmarks.resources.modules</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for quanda.benchmarks.resources.modules</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">lightning</span> <span class="k">as</span> <span class="nn">L</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.nn</span> <span class="kn">import</span> <span class="n">CrossEntropyLoss</span>
+<span class="kn">from</span> <span class="nn">torch.optim</span> <span class="kn">import</span> <span class="n">AdamW</span><span class="p">,</span> <span class="n">lr_scheduler</span>
+<span class="kn">from</span> <span class="nn">torchmetrics.functional</span> <span class="kn">import</span> <span class="n">accuracy</span>
+
+
+<div class="viewcode-block" id="load_module_from_bench_state">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.load_module_from_bench_state">[docs]</a>
+<span class="k">def</span> <span class="nf">load_module_from_bench_state</span><span class="p">(</span><span class="n">bench_state</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">module_str</span> <span class="o">=</span> <span class="n">bench_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pl_module&quot;</span><span class="p">,</span> <span class="s2">&quot;MnistModel&quot;</span><span class="p">)</span>
+    <span class="n">num_labels</span> <span class="o">=</span> <span class="n">bench_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;n_classes&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">module_type</span> <span class="o">=</span> <span class="n">pl_modules</span><span class="p">[</span><span class="n">module_str</span><span class="p">]</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="n">module_type</span><span class="p">(</span><span class="n">num_labels</span><span class="o">=</span><span class="n">num_labels</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+    <span class="n">module</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;checkpoints_binary&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;model_state_dict&quot;</span><span class="p">])</span>
+    <span class="n">module</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">module</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">module</span></div>
+
+
+
+<div class="viewcode-block" id="LeNet5">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.LeNet5">[docs]</a>
+<span class="k">class</span> <span class="nc">LeNet5</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A torch implementation of LeNet architecture.</span>
+<span class="sd">    Adapted from: https://github.com/ChawDoe/LeNet5-MNIST-PyTorch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LeNet5.__init__">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.LeNet5.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_outputs</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv_1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool_1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relu_1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv_2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pool_2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relu_2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc_1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relu_3</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc_2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">84</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relu_4</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fc_3</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">84</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LeNet5.forward">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.LeNet5.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relu_1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv_1</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pool_2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">relu_2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv_2</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu_3</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc_1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu_4</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fc_2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc_3</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="MnistModel">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.MnistModel">[docs]</a>
+<span class="k">class</span> <span class="nc">MnistModel</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+<div class="viewcode-block" id="MnistModel.__init__">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.MnistModel.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">num_labels</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cuda:0&quot;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MnistModel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_model</span><span class="p">(</span><span class="n">num_labels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="n">lr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="n">epochs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_decay</span> <span class="o">=</span> <span class="n">weight_decay</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span> <span class="o">=</span> <span class="n">CrossEntropyLoss</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_labels</span> <span class="o">=</span> <span class="n">num_labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_hyperparameters</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_init_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_labels</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">LeNet5</span><span class="p">(</span><span class="n">num_outputs</span><span class="o">=</span><span class="n">num_labels</span><span class="p">)</span>
+
+<div class="viewcode-block" id="MnistModel.forward">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.MnistModel.forward">[docs]</a>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MnistModel.training_step">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.MnistModel.training_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="n">ims</span><span class="p">,</span> <span class="n">labs</span> <span class="o">=</span> <span class="n">batch</span>
+        <span class="n">ims</span> <span class="o">=</span> <span class="n">ims</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">labs</span> <span class="o">=</span> <span class="n">labs</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">ims</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">labs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;train_loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span></div>
+
+
+<div class="viewcode-block" id="MnistModel.validation_step">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.MnistModel.validation_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="n">loss</span><span class="p">,</span> <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_eval_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;val_acc&quot;</span><span class="p">:</span> <span class="n">acc</span><span class="p">,</span> <span class="s2">&quot;val_loss&quot;</span><span class="p">:</span> <span class="n">loss</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">metrics</span></div>
+
+
+<div class="viewcode-block" id="MnistModel.test_step">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.MnistModel.test_step">[docs]</a>
+    <span class="k">def</span> <span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="n">loss</span><span class="p">,</span> <span class="n">acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_eval_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">)</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;test_acc&quot;</span><span class="p">:</span> <span class="n">acc</span><span class="p">,</span> <span class="s2">&quot;test_loss&quot;</span><span class="p">:</span> <span class="n">loss</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">metrics</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_shared_eval_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+        <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">criterion</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">acc</span> <span class="o">=</span> <span class="n">accuracy</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s2">&quot;multiclass&quot;</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_labels</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">acc</span>
+
+<div class="viewcode-block" id="MnistModel.configure_optimizers">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.MnistModel.configure_optimizers">[docs]</a>
+    <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">optimizer</span> <span class="o">=</span> <span class="n">AdamW</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span><span class="p">,</span> <span class="n">weight_decay</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weight_decay</span><span class="p">)</span>
+        <span class="n">scheduler</span> <span class="o">=</span> <span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epochs</span><span class="p">,</span> <span class="n">eta_min</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">*</span> <span class="mf">1e-4</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">optimizer</span><span class="p">],</span> <span class="p">[</span><span class="n">scheduler</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="MnistModel.on_save_checkpoint">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.MnistModel.on_save_checkpoint">[docs]</a>
+    <span class="k">def</span> <span class="nf">on_save_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">):</span>
+        <span class="c1"># Save the state of the model attribute manually</span>
+        <span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;model_state_dict&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="MnistModel.on_load_checkpoint">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.resources.modules.html#quanda.benchmarks.resources.MnistModel.on_load_checkpoint">[docs]</a>
+    <span class="k">def</span> <span class="nf">on_load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">):</span>
+        <span class="c1"># Load the state of the model attribute manually</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;model_state_dict&quot;</span><span class="p">])</span></div>
+</div>
+
+
+
+<span class="n">pl_modules</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;MnistModel&quot;</span><span class="p">:</span> <span class="n">MnistModel</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Dilya, Galip.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+quanda.metrics.heuristics.model\_randomization module
+=====================================================
+
+.. automodule:: quanda.metrics.heuristics.model_randomization
+   :members:
+   :undoc-members:
+   :show-inheritance:

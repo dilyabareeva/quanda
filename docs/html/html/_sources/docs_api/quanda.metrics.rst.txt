@@ -1,0 +1,25 @@
+quanda.metrics package
+======================
+
+.. automodule:: quanda.metrics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.metrics.downstream_eval
+   quanda.metrics.ground_truth
+   quanda.metrics.heuristics
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.metrics.base

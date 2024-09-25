@@ -1,0 +1,7 @@
+quanda.benchmarks.heuristics.model\_randomization module
+========================================================
+
+.. automodule:: quanda.benchmarks.heuristics.model_randomization
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,17 @@
+quanda.metrics.heuristics package
+=================================
+
+.. automodule:: quanda.metrics.heuristics
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.metrics.heuristics.mixed_datasets
+   quanda.metrics.heuristics.model_randomization
+   quanda.metrics.heuristics.top_k_overlap

@@ -1,0 +1,18 @@
+quanda.benchmarks.downstream\_eval package
+==========================================
+
+.. automodule:: quanda.benchmarks.downstream_eval
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.benchmarks.downstream_eval.class_detection
+   quanda.benchmarks.downstream_eval.mislabeling_detection
+   quanda.benchmarks.downstream_eval.shortcut_detection
+   quanda.benchmarks.downstream_eval.subclass_detection

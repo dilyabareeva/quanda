@@ -1,0 +1,7 @@
+quanda.metrics.downstream\_eval.class\_detection module
+=======================================================
+
+.. automodule:: quanda.metrics.downstream_eval.class_detection
+   :members:
+   :undoc-members:
+   :show-inheritance:
