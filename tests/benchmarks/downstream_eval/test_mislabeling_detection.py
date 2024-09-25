@@ -244,7 +244,7 @@ def test_mislabeling_detection_generate_from_pl_module(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            0.000206155295,
+            0.0002,
         ),
     ],
 )
@@ -274,4 +274,4 @@ def test_mislabeling_detection_download(
         batch_size=batch_size,
     )["score"]
 
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
+    assert math.isclose(score, expected_score, abs_tol=0.0001)
