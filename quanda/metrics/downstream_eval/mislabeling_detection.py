@@ -137,7 +137,6 @@ class MislabelingDetectionMetric(Metric):
         -------
         MislabelingDetectionMetric
             An instance of the mislabeling detection metric with self-influence strategy.
-
         """
         return cls(
             model=model,
@@ -174,7 +173,7 @@ class MislabelingDetectionMetric(Metric):
 
         Returns
         -------
-        type
+        MislabelingDetectionMetric
             An instance of the class for aggregation-based mislabeling detection.
 
         """
@@ -199,6 +198,10 @@ class MislabelingDetectionMetric(Metric):
         ----------
         explanations : torch.Tensor
             The local attributions to be added to the aggregated scores.
+        test_data : torch.Tensor
+            The test data for which the attributions were computed.
+        test_labels : torch.Tensor
+            The true labels of the test data.
         """
 
         explanations = explanations.to(self.device)

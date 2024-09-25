@@ -162,7 +162,7 @@ def test_mixed_dataset_download(
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     dst_eval.mixed_dataset = torch.utils.data.Subset(dst_eval.mixed_dataset, list(range(16)))
-    #dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
+    # dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
     dst_eval.adversarial_indices = dst_eval.adversarial_indices[:16]
 
     score = dst_eval.evaluate(
