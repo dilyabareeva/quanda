@@ -1,0 +1,17 @@
+quanda.explainers.wrappers package
+==================================
+
+.. automodule:: quanda.explainers.wrappers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.explainers.wrappers.captum_influence
+   quanda.explainers.wrappers.representer_points
+   quanda.explainers.wrappers.trak_wrapper

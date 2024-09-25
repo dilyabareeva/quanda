@@ -1,0 +1,7 @@
+quanda.metrics.ground\_truth package
+====================================
+
+.. automodule:: quanda.metrics.ground_truth
+   :members:
+   :undoc-members:
+   :show-inheritance:

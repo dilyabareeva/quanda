@@ -1,0 +1,7 @@
+quanda.utils.training.base\_pl\_module module
+=============================================
+
+.. automodule:: quanda.utils.training.base_pl_module
+   :members:
+   :undoc-members:
+   :show-inheritance:

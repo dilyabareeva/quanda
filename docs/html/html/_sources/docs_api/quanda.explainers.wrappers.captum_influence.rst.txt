@@ -1,0 +1,7 @@
+quanda.explainers.wrappers.captum\_influence module
+===================================================
+
+.. automodule:: quanda.explainers.wrappers.captum_influence
+   :members:
+   :undoc-members:
+   :show-inheritance:

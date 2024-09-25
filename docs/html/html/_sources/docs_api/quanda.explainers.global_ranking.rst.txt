@@ -1,0 +1,16 @@
+quanda.explainers.global\_ranking package
+=========================================
+
+.. automodule:: quanda.explainers.global_ranking
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.explainers.global_ranking.aggregators
+   quanda.explainers.global_ranking.global_ranking_strategies
