@@ -33,7 +33,14 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
 
 ### Supported TDA Methods
 
-TODO: table with links to original implementations
+| Method Name                | Repository                                                                             | Reference                                                                                                                 |
+|----------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| Similarity Influence        | [Captum](https://github.com/pytorch/captum/tree/master)      | [Captum Documentation](https://captum.ai/api/influence.html#similarityinfluence) |
+| Arnoldi Influence Function  | [Captum](https://github.com/pytorch/captum/tree/master)    | [Schioppa et al., 2022](https://arxiv.org/abs/2112.03052); [Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html) |
+| TracIn                      | [Captum](https://github.com/pytorch/captum/tree/master)                                | [Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html) |
+| TRAK                        | [TRAK](https://github.com/MadryLab/trak)                                          | [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)             |
+| Representer Point Selection | [Representer Point Selection](https://github.com/chihkuanyeh/Representer_Point_Selection)                 | [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html) |
+
 
 ### Metrics
 
