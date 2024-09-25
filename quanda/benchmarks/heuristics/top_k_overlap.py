@@ -17,10 +17,19 @@ logger = logging.getLogger(__name__)
 
 class TopKOverlap(Benchmark):
     """
-    Benchmark for top-k overlap heuristic.
+    Benchmark for the Top-K Overlap heuristic. This benchmark evaluates the dependence of the attributions
+    on the test samples being attributed.
 
-    TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
+    The cardinality of the union of top-k attributed training samples is computed. A higher cardinality indicates
+    variance in the attributions, which indicates dependence on the test samples.
+
+    References
+    ----------
+    1) Barshan, Elnaz, Marc-Etienne Brunet, and Gintare Karolina Dziugaite. (2020). Relatif: Identifying explanatory training
+    samples via relative influence. International Conference on Artificial Intelligence and Statistics. PMLR.
     """
+
+    # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
 
     name: str = "Top-K Overlap"
 
@@ -29,6 +38,11 @@ class TopKOverlap(Benchmark):
         *args,
         **kwargs,
     ):
+        """Initializer for the Top-K Overlap benchmark.
+        This initializer is not used directly, instead,
+        the `generate` or the `assemble` methods should be used.
+        Alternatively, `download` can be used to load a precomputed benchmark.
+        """
         super().__init__()
 
         self.model: torch.nn.Module
@@ -50,8 +64,30 @@ class TopKOverlap(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        This method should generate all the benchmark components and persist them in the instance.
+        """Generates the benchmark by specifying parameters.
+        The evaluation can then be run using the `evaluate` method.
+
+        Parameters
+        ----------
+        train_dataset : Union[str, torch.utils.data.Dataset]
+            The training dataset used to train the model.
+        model : torch.nn.Module
+            The model to be evaluated.
+        eval_dataset : torch.utils.data.Dataset
+            The evaluation dataset.
+        data_transform : Optional[Callable], optional
+            The transform to be applied to the dataset, by default None
+        top_k : int, optional
+            The number of top-k samples to consider, by default 1
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation, by default True
+        dataset_split : str, optional
+            _description_, by default "train"
+
+        Returns
+        -------
+        TopKOverlap
+            The benchmark instance.
         """
 
         logger.info(f"Generating {TopKOverlap.name} benchmark components based on passed arguments...")
@@ -75,8 +111,20 @@ class TopKOverlap(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        This method should load the benchmark components from a file and persist them in the instance.
+        """This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
+
+        Parameters
+        name : str
+            Name of the benchmark to be loaded.
+        cache_dir : str
+            Directory where the benchmark components are stored.
+        device : str
+            Device to be used for the model.
+
+        Returns
+        -------
+        TopKOverlap
+            The benchmark instance.
         """
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
@@ -111,8 +159,29 @@ class TopKOverlap(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        This method should assemble the benchmark components from arguments and persist them in the instance.
+        """Assembles the benchmark from existing components.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model to be evaluated.
+        train_dataset : Union[str, torch.utils.data.Dataset]
+            The training dataset used to train the model.
+        eval_dataset : torch.utils.data.Dataset
+            The dataset to be used for the evaluation.
+        data_transform : Optional[Callable], optional
+            The transform to be applied to the dataset, by default None
+        top_k : int, optional
+            The number of top-k samples to consider, by default 1
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation, by default True
+        dataset_split : str, optional
+            The dataset split, by default "train", only used for HuggingFace datasets.
+
+        Returns
+        -------
+        TopKOverlap
+            The benchmark instance.
         """
         obj = cls()
         obj.set_devices(model)
@@ -131,6 +200,23 @@ class TopKOverlap(Benchmark):
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
     ):
+        """
+        Evaluates the benchmark using a given explanation method.
+
+        Parameters
+        ----------
+        explainer_cls: type
+            The explanation class inheriting from the base Explainer class to be used for evaluation.
+        expl_kwargs: Optional[dict], optional
+            Keyword arguments for the explainer, by default None
+        batch_size: int, optional
+            Batch size for the evaluation, by default 8
+
+        Returns
+        -------
+        Dict[str, float]
+            Dictionary containing the metric score.
+        """
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
