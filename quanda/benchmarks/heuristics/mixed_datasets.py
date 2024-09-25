@@ -45,8 +45,9 @@ class MixedDatasets(Benchmark):
     estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
     (pp. 1367-1381).
 
-    TODO: remove FILTER BY "CORRECT" PREDICTION FOR BACKDOOR implied https://arxiv.org/pdf/2201.10055
     """
+
+    # TODO: remove FILTER BY "CORRECT" PREDICTION FOR BACKDOOR implied https://arxiv.org/pdf/2201.10055
 
     name: str = "Mixed Datasets"
 
@@ -55,16 +56,11 @@ class MixedDatasets(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Initializer for the Mixed Dataset metric.
+        """Initializer for the Mixed Datasets benchmark.
 
-        Parameters
-        ----------
-        args: Any
-            Additional positional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
+        This initializer is not used directly, instead,
+        the `generate` or the `assemble` methods should be used.
+        Alternatively, `download` can be used to load a precomputed benchmark.
         """
         super().__init__()
 
@@ -97,6 +93,7 @@ class MixedDatasets(Benchmark):
         *args,
         **kwargs,
     ):
+        # TODO FROM GALIP: do we apply different transforms to the clean and adversarial datasets?
         """Generates the benchmark with passed components.
          This module handles the dataset creation and model training on the mixed dataset.
          The evaluation can then be run using the `evaluate` method.
@@ -118,6 +115,12 @@ class MixedDatasets(Benchmark):
             The label to be used for the adversarial dataset.
         trainer: Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the model. Can be a Lightning Trainer or a `BaseTrainer`.
+        data_transform: Optional[Callable], optional
+            Transform to be applied to the clean dataset, by default None
+        use_predictions: bool, optional
+            Whether to use the model's predictions for generating attributions. Defaults to True.
+        filter_by_prediction: bool, optional
+            Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.
         dataset_split: str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         adversarial_transform : Optional[Callable], optional
@@ -214,6 +217,15 @@ class MixedDatasets(Benchmark):
         ----------
         name : str
             Name of the benchmark to be loaded.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        device : str
+            Device to load the model on.
+
+        Returns
+        -------
+        MixedDatasets
+            The benchmark instance.
         """
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
@@ -311,18 +323,21 @@ class MixedDatasets(Benchmark):
             Path to the adversarial dataset of a single class.
         adversarial_label: int
             The label to be used for the adversarial dataset.
+        data_transform: Optional[Callable], optional
+            Transform to be applied to the clean dataset, by default None
         adversarial_transform: Optional[Callable], optional
             Transform to be applied to the adversarial dataset, by default None
+        use_predictions: bool, optional
+            Whether to use the model's predictions for generating attributions. Defaults to True.
+        filter_by_prediction: bool, optional
+            Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.
         dataset_split: str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
-        args: Any
-            Additional positional arguments.
-        kwargs: Any
-            Additional keyword arguments.
 
         Returns
         -------
-
+        MixedDatasets
+            The benchmark instance.
         """
 
         obj = cls()
@@ -358,15 +373,13 @@ class MixedDatasets(Benchmark):
             The explanation class inheriting from the base Explainer class to be used for evaluation.
         expl_kwargs: Optional[dict], optional
             Keyword arguments for the explainer, by default None
-        use_predictions: bool, optional
-            Whether to use the predictions of the model for the explanations, by default True
         batch_size: int, optional
             Batch size for the evaluation, by default 8
 
-
         Returns
         -------
-
+        Dict[str, float]
+            Dictionary containing the metric score.
         """
         self.model.eval()
 

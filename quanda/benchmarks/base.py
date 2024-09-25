@@ -13,10 +13,6 @@ from quanda.utils.datasets.image_datasets import HFtoTV
 class Benchmark(ABC):
     """
     Base class for all benchmarks.
-
-    Attributes:
-        - name: str: The name of the benchmark.
-
     """
 
     name: str
@@ -29,8 +25,12 @@ class Benchmark(ABC):
     @classmethod
     @abstractmethod
     def generate(cls, *args, **kwargs):
-        """
-        This method should generate all the benchmark components and persist them in the instance.
+        """Generates the benchmark by specifying parameters.
+        The evaluation can then be run using the `evaluate` method.
+
+        Raises
+        ------
+        NotImplementedError
         """
         raise NotImplementedError
 
@@ -38,12 +38,41 @@ class Benchmark(ABC):
     @abstractmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
-        This method should load the benchmark components from a file and persist them in the instance.
+        This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
+
+        Parameters
+        ----------
+        name : str
+            Name of the benchmark to be loaded.
+        eval_dataset : torch.utils.data.Dataset
+            Dataset to be used for the evaluation.
+        batch_size : int, optional
+            Batch size to be used, by default 32
+
+        Raises
+        ------
+        NotImplementedError
         """
 
         raise NotImplementedError
 
     def _get_bench_state(self, name: str, cache_dir: str, device: str, *args, **kwargs):
+        """Downloads a benchmark state dictionary of a benchmark and returns.
+
+        Parameters
+        ----------
+        name : str
+            Name of the benchmark to be loaded.
+        cache_dir : str
+            Directory to store the downloaded benchmark components
+        device : str
+            Device to use with the benchmark components.
+
+        Returns
+        -------
+        dict
+            Benchmark state dictionary.
+        """
         # check if file exists
         if not os.path.exists(os.path.join(cache_dir, name + ".pth")):
             url = benchmark_urls[name]
@@ -60,8 +89,11 @@ class Benchmark(ABC):
     @classmethod
     @abstractmethod
     def assemble(cls, *args, **kwargs):
-        """
-        This method should assemble the benchmark components from arguments and persist them in the instance.
+        """Assembles the benchmark from existing components.
+
+        Raises
+        ------
+        NotImplementedError
         """
         raise NotImplementedError
 
@@ -72,7 +104,11 @@ class Benchmark(ABC):
         **kwargs,
     ):
         """
-        Used to update the metric with new data.
+        Run the evaluation using the benchmark.
+
+        Raises
+        ------
+        NotImplementedError
         """
 
         raise NotImplementedError
@@ -82,7 +118,12 @@ class Benchmark(ABC):
         model: torch.nn.Module,
     ):
         """
-        This method should set the device for the model.
+        Infer device from model.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model associated with the attributions to be evaluated.
         """
         if next(model.parameters(), None) is not None:
             self.device = next(model.parameters()).device
@@ -95,6 +136,22 @@ class Benchmark(ABC):
         transform: Optional[Callable] = None,
         dataset_split: str = "train",
     ):
+        """Return the dataset using the given parameters.
+
+        Parameters
+        ----------
+        train_dataset : Union[str, torch.utils.data.Dataset]
+            The training dataset used to train the model.
+        transform : Optional[Callable], optional
+            The transform to be applied to the dataset, by default None
+        dataset_split : str, optional
+            The dataset split, by default "train", only used for HuggingFace datasets.
+
+        Returns
+        -------
+        torch,utils.data.Dataset
+            The dataset.
+        """
         if isinstance(train_dataset, str):
             cls.dataset_str = train_dataset
             return HFtoTV(load_dataset(train_dataset, split=dataset_split), transform=transform)
@@ -108,5 +165,23 @@ class Benchmark(ABC):
         transform: Optional[Callable] = None,
         dataset_split: str = "test",
     ):
+        """Downloads the HuggingFace evaluation dataset from given name.
+
+        Parameters
+        ----------
+        dataset_str : str
+            The name of the HuggingFace dataset.
+        eval_indices : List[int]
+            The indices to be used for evaluation.
+        transform : Optional[Callable], optional
+            The transform to be applied to the dataset, by default None
+        dataset_split : str, optional
+            The dataset split, by default "test"
+
+        Returns
+        -------
+        torch.utils.data.Dataset
+            The evaluation dataset.
+        """
         test_dataset = HFtoTV(load_dataset(dataset_str, split=dataset_split), transform=transform)
         return torch.utils.data.Subset(test_dataset, eval_indices)

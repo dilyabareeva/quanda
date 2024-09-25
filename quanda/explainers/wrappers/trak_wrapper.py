@@ -37,11 +37,11 @@ class TRAK(Explainer):
 
     References
     ----------
-    1) Sung Min Park, Kristian Georgiev, Andrew Ilyas, Guillaume Leclerc,
-        and Aleksander Mądry. 2023. "TRAK: attributing model behavior at scale".
+    (1) Sung Min Park, Kristian Georgiev, Andrew Ilyas, Guillaume Leclerc,
+        and Aleksander Mądry. (2023). "TRAK: attributing model behavior at scale".
         In Proceedings of the 40th International Conference on Machine Learning" (ICML'23), Vol. 202.
-        JMLR.org, Article 1128, 27074–27113.
-    2) https://github.com/MadryLab/trak/
+        JMLR.org, Article 1128, (27074–2711)3.
+    (2) https://github.com/MadryLab/trak/
     """
 
     def __init__(

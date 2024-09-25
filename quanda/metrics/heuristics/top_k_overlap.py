@@ -12,8 +12,8 @@ class TopKOverlapMetric(Metric):
 
     References
     ----------
-    1) Barshan, Elnaz, Marc-Etienne Brunet, and Gintare Karolina Dziugaite. "Relatif: Identifying explanatory training samples
-    via relative influence." International Conference on Artificial Intelligence and Statistics. PMLR, 2020.
+    1) Barshan, Elnaz, Marc-Etienne Brunet, and Gintare Karolina Dziugaite. (2020). Relatif: Identifying explanatory training
+    samples via relative influence. International Conference on Artificial Intelligence and Statistics. PMLR.
     """
 
     def __init__(

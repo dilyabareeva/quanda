@@ -35,14 +35,12 @@ class ShortcutDetection(Benchmark):
 
     Parameters
     ----------
-    1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions."
-        International conference on machine learning. PMLR, 2017.
-    2) Hammoudeh, Z., & Lowd, D. (2022). Identifying a training-set attack's target using renormalized influence
-    estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
-    (pp. 1367-1381).
-
-    TODO: remove FILTER BY "CORRECT" PREDICTION FOR SHORTCUT implied https://arxiv.org/pdf/2201.10055
+    1) Koh, Pang Wei, and Percy Liang. (2017). Understanding black-box predictions via influence functions.
+        International conference on machine learning. PMLR.
+    2) TODO: Add citation to the original paper formulating ShortcutDetection after acceptance
     """
+
+    # TODO: remove FILTER BY "CORRECT" PREDICTION FOR SHORTCUT implied https://arxiv.org/pdf/2201.10055
 
     def __init__(
         self,
@@ -105,8 +103,6 @@ class ShortcutDetection(Benchmark):
             Number of classes in the dataset.
         eval_dataset : torch.utils.data.Dataset
             Dataset to be used for the evaluation.
-        eval_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
         shortcut_cls : int
             The class to add triggers to.
         trainer : Union[L.Trainer, BaseTrainer]
@@ -114,19 +110,19 @@ class ShortcutDetection(Benchmark):
         sample_fn : Callable
             Function to add triggers to samples of the dataset.
         dataset_split : str, optional
-            Split used for HuggingFace datasets, defaults to "train"
+            Split used for HuggingFace datasets, by default "train"
         dataset_transform : Optional[Callable], optional
-            Default transform of the dataset, defaults to None
+            Default transform of the dataset, by default None
         val_dataset : Optional[torch.utils.data.Dataset], optional
-            Validation dataset to use during training, defaults to None
+            Validation dataset to use during training, by default None
         p : float, optional
             The probability of poisoning with the trigger per sample, by default 0.3
         trainer_fit_kwargs : Optional[dict], optional
             Keyword arguments to supply the trainer, by default None
         seed : int, optional
-            seed for reproducibility, defaults to 27
+            seed for reproducibility, by default 27
         batch_size : int, optional
-            Batch size to use during training, defaults to 8
+            Batch size to use during training, by default 8
 
         Returns
         -------
@@ -143,7 +139,6 @@ class ShortcutDetection(Benchmark):
 
         obj._generate(
             model=model,
-            train_dataset=train_dataset,
             val_dataset=val_dataset,
             p=p,
             shortcut_cls=shortcut_cls,
@@ -159,7 +154,6 @@ class ShortcutDetection(Benchmark):
 
     def _generate(
         self,
-        train_dataset: Union[str, torch.utils.data.Dataset],
         model: Union[torch.nn.Module, L.LightningModule],
         n_classes: int,
         shortcut_cls: int,
@@ -178,8 +172,6 @@ class ShortcutDetection(Benchmark):
         ----------
         model : Union[torch.nn.Module, L.LightningModule]
             Model to be evaluated.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
         shortcut_cls : int
@@ -189,17 +181,17 @@ class ShortcutDetection(Benchmark):
         sample_fn : Callable
             Function to add triggers to samples of the dataset.
         dataset_transform : Optional[Callable], optional
-            Default transform of the dataset, defaults to None
+            Default transform of the dataset, by default None
         val_dataset : Optional[torch.utils.data.Dataset], optional
-            Validation dataset to use during training, defaults to None
+            Validation dataset to use during training, by default None
         p : float, optional
             The probability of poisoning with the trigger per sample, by default 0.3
         trainer_fit_kwargs : Optional[dict], optional
             Keyword arguments to supply the trainer, by default None
         seed : int, optional
-            seed for reproducibility, defaults to 27
+            seed for reproducibility, by default 27
         batch_size : int, optional
-            Batch size to use during training, defaults to 8
+            Batch size to use during training, by default 8
 
         Raises
         ------
@@ -278,8 +270,10 @@ class ShortcutDetection(Benchmark):
         ----------
         name : str
             Name of the benchmark to be loaded.
-        eval_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        device : str
+            Device to load the model on.
         """
 
         obj = cls()
@@ -340,14 +334,27 @@ class ShortcutDetection(Benchmark):
             Dataset to be used for the evaluation.
         sample_fn : Callable
             Function to add triggers to samples of the dataset.
+        filter_by_prediction : bool, optional
+            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+            is predicted, by default True
+        filter_by_class: bool, optional
+            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+            is not assigned as the class, by default True
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         shortcut_indices : Optional[List[int]], optional
-            Binary list of indices to poison, defaults to None
+            Binary list of indices to poison, by default None
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
+        p : float, optional
+            The probability of mislabeling per sample, by default 0.3
         batch_size : int, optional
             Batch size that is used for training, by default 8
+
+        Returns
+        -------
+        ShortcutDetection
+            The benchmark instance.
         """
         obj = cls()
         obj.model = model
@@ -389,17 +396,12 @@ class ShortcutDetection(Benchmark):
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None
-        filter_by_prediction : bool, optional
-            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
-            is predicted, by default True
-        filter_by_class: bool, optional
-            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
-            is not assigned as the class, by default True
         batch_size : int, optional
             Batch size to be used for the evaluation, default to 8
+
         Returns
         -------
-        dict
+        Dict[str, float]
             Dictionary containing the evaluation results.
         """
         self.model.eval()

@@ -53,10 +53,12 @@ class MixedDatasetsMetric(Metric):
             to a single label from the clean examples.
         adversarial_indices: Union[List[int], torch.Tensor]
             A binary vector of ground truth adversarial indices of the `train_dataset`.
-        args: Any
-            Additional positional arguments.
-        kwargs: Any
-            Additional keyword arguments.
+        filter_by_prediction: bool, optional
+            Whether to filter the test samples to only calculate the metric on those samples, where the adversarial class
+            is predicted, by default False.
+        adversarial_label: Optional[int], optional
+            The label of the adversarial examples. If None, the label is inferred from the adversarial_indices.
+            Defaults to None.
 
         Raises
         ------
@@ -99,6 +101,10 @@ class MixedDatasetsMetric(Metric):
         ----------
         explanations : torch.Tensor
             Explanations to be evaluated.
+        test_tensor : Optional[torch.Tensor], optional
+            The test tensor for which the explanations were computed. Required if `filter_by_prediction` is True.
+        test_labels : Optional[torch.Tensor], optional
+            The true labels of the test tensor. Required if `filter_by_prediction` is True.
         """
         explanations = explanations.to(self.device)
 
