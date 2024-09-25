@@ -210,3 +210,51 @@ def test_shortcut_detection_generate_from_pl_module(
         batch_size=batch_size,
     )
     assert math.isclose(results["score"], expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.tested
+@pytest.mark.parametrize(
+    "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
+    [
+        (
+            "mnist",
+            "mnist_shortcut_detection",
+            8,
+            CaptumSimilarity,
+            {
+                "layers": "model.fc_2",
+                "similarity_metric": cosine_similarity,
+                "load_from_disk": True,
+            },
+            0.875,
+        ),
+    ],
+)
+def test_shortcut_detection_download(
+    test_id,
+    benchmark_name,
+    batch_size,
+    explainer_cls,
+    expl_kwargs,
+    expected_score,
+    tmp_path,
+):
+    dst_eval = ShortcutDetection.download(
+        name=benchmark_name,
+        cache_dir=str(tmp_path),
+        device="cpu",
+    )
+
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
+    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
+    dst_eval.shortcut_dataset = torch.utils.data.Subset(dst_eval.shortcut_dataset, list(range(16)))
+    dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
+    dst_eval.shortcut_indices = [i for i in dst_eval.shortcut_indices if i < 16]
+
+    score = dst_eval.evaluate(
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
+        batch_size=batch_size,
+    )["score"]
+
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
