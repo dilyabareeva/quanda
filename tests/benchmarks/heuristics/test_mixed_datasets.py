@@ -1,6 +1,7 @@
 import math
 
 import pytest
+import torch
 
 from quanda.benchmarks.heuristics.mixed_datasets import MixedDatasets
 from quanda.explainers.wrappers import CaptumSimilarity
@@ -121,6 +122,53 @@ def test_mixed_datasets(
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
+    )["score"]
+
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.tested
+@pytest.mark.parametrize(
+    "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
+    [
+        (
+            "mnist",
+            "mnist_mixed_datasets",
+            8,
+            CaptumSimilarity,
+            {
+                "layers": "model.fc_2",
+                "similarity_metric": cosine_similarity,
+                "load_from_disk": True,
+            },
+            1.0,
+        ),
+    ],
+)
+def test_mixed_dataset_download(
+    test_id,
+    benchmark_name,
+    batch_size,
+    explainer_cls,
+    expl_kwargs,
+    expected_score,
+    tmp_path,
+):
+    dst_eval = MixedDatasets.download(
+        name=benchmark_name,
+        cache_dir=str(tmp_path),
+        device="cpu",
+    )
+
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
+    dst_eval.mixed_dataset = torch.utils.data.Subset(dst_eval.mixed_dataset, list(range(16)))
+    dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
+    dst_eval.adversarial_indices = dst_eval.adversarial_indices[:16]
+
+    score = dst_eval.evaluate(
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
+        batch_size=batch_size,
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)

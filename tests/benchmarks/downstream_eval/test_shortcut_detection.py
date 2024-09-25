@@ -212,7 +212,7 @@ def test_shortcut_detection_generate_from_pl_module(
     assert math.isclose(results["score"], expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
