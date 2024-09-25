@@ -129,17 +129,20 @@ def av_samples(av_dataset: AV.AVDataset) -> Tensor:
 
 class RepresenterPoints(Explainer):
     """
-    A wrapper class for explaining the predictions of a deep neural network using representer points.
+    A wrapper class for explaining the predictions of a deep neural network using representer points,
+    using the official code release (2).
 
     The method decomposes the pre-activation prediction of a neural network into a linear combination
     of activations from the training points. The weights, or representer values, indicate the influence
     of each training point: positive values correspond to excitatory points, while negative values
     correspond to inhibitory points.
 
-    References:
-        1) Yeh, Chih-Kuan, Kim, Joon, Yen, Ian En-Hsu, Ravikumar, Pradeep K.: "Representer Point
+    References
+    ----------
+        (1) Yeh, Chih-Kuan, Kim, Joon, Yen, Ian En-Hsu, Ravikumar, Pradeep K. (2018). "Representer Point
         Selection for Explaining Deep Neural Networks." Advances in Neural Information Processing
-        Systems, vol. 31 (2018).
+        Systems, vol. 31.
+        (2) https://github.com/chihkuanyeh/Representer_Point_Selection
 
     """
 
