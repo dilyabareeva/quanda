@@ -202,7 +202,6 @@ def compute_mislabeling_metric(
         }
 
     if method == "tracincpfast":
-
         explainer_cls = CaptumTracInCPFast
         explain_kwargs = {
             "checkpoints": checkpoints,
@@ -214,7 +213,6 @@ def compute_mislabeling_metric(
         }
 
     if method == "arnoldi":
-
         train_dataset = train_dataloader.dataset
         num_samples = 5000
         indices = generator.sample(range(len(train_dataset)), num_samples)

@@ -121,9 +121,10 @@ class Explainer(ABC):
         # Pre-allcate memory for influences, because torch.cat is slow
         influences = torch.empty((self.dataset_length,), device=self.device)
         ldr = torch.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)
+        batch_size = min(batch_size, self.dataset_length)
 
         for i, (x, y) in zip(range(0, self.dataset_length, batch_size), ldr):
             explanations = self.explain(test=x.to(self.device), targets=y.to(self.device))
-            influences[i : i + batch_size] = explanations.diag(diagonal=i)
+            influences[i: i + batch_size] = explanations.diag(diagonal=i)
 
         return influences

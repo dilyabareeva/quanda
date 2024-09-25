@@ -1,12 +1,14 @@
 import logging
+import os
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import torch
 import torchvision.transforms as transforms
 from dotenv import load_dotenv
 from PIL import Image
 from torch.utils.data import Subset
-import torch
-import os
-import matplotlib.pyplot as plt
-import seaborn as sns
+
 from quanda.utils.cache import ExplanationsCache as EC
 from quanda.utils.datasets.transformed import (
     LabelGroupingDataset,
@@ -18,7 +20,10 @@ from tutorials.utils.datasets import (
     special_dataset,
 )
 from tutorials.utils.modules import LitModel
-from tutorials.utils.visualization import visualize_top_3_bottom_3_influential, save_influential_samples
+from tutorials.utils.visualization import (
+    save_influential_samples,
+    visualize_top_3_bottom_3_influential,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +74,7 @@ with open(tiny_in_path + "val/val_annotations.txt", "r") as f:
     val_annotations = {line.split("\t")[0]: line.split("\t")[1] for line in f}
 
 train_set_raw = CustomDataset(tiny_in_path + "train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None)
-holdout_set = AnnotatedDataset(
-    local_path=tiny_in_path + "val", transforms=None, id_dict=id_dict, annotation=val_annotations
-)
+holdout_set = AnnotatedDataset(local_path=tiny_in_path + "val", transforms=None, id_dict=id_dict, annotation=val_annotations)
 test_set = torch.utils.data.Subset(holdout_set, test_split)
 
 backdoor_transforms = transforms.Compose(
@@ -108,11 +111,13 @@ panda_test = torch.utils.data.Subset(panda_dataset, panda_rest_indices)
 panda_twin = torch.utils.data.Subset(panda_twin_dataset, panda_rest_indices)
 all_panda = torch.utils.data.ConcatDataset([panda_test, panda_twin])
 
+
 def add_yellow_square(img):
     square_size = (15, 15)  # Size of the square
     yellow_square = Image.new("RGB", square_size, (255, 255, 0))  # Create a yellow square
     img.paste(yellow_square, (10, 10))  # Paste it onto the image at the specified position
     return img
+
 
 train_set = special_dataset(
     train_set_raw,
@@ -157,20 +162,17 @@ dataloaders = {}
 # Dataloader for Model Randomization, Top-K Overlap
 clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
 clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
-dataloader = torch.utils.data.DataLoader(
-    clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
-)
+dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
 test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
 test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
 cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
 cat_dog_ungrouped_dataset = torch.utils.data.Subset(test_set_transform, test_cats + test_dogs)
-dataloader = torch.utils.data.DataLoader(
-    cat_dog_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
-)
+dataloader = torch.utils.data.DataLoader(cat_dog_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
-explanation_methods = ["representer_points",
-    #"trak", "representer_points", "random", "tracincpfast", "arnoldi"
+explanation_methods = [
+    "representer_points",
+    # "trak", "representer_points", "random", "tracincpfast", "arnoldi"
 ]
 for method in explanation_methods:
     method_save_dir = os.path.join(explanations_dir, method)
@@ -186,13 +188,25 @@ for method in explanation_methods:
             if j != 19:
                 continue
             visualize_top_3_bottom_3_influential(
-                train_set, test_tensor[j:j+1], test_labels[j:j+1], explanation_targets[j:j+1], explanations[j:j+1], r_name_dict, save_path=None
+                train_set,
+                test_tensor[j : j + 1],
+                test_labels[j : j + 1],
+                explanation_targets[j : j + 1],
+                explanations[j : j + 1],
+                r_name_dict,
+                save_path=None,
             )
             save_influential_samples(
-                train_set, test_tensor[j:j+1], explanations[j:j+1], denormalize, ["cat_" + str(j)], r_name_dict, top_k=7,
-                save_path="../fig_1_images"
+                train_set,
+                test_tensor[j : j + 1],
+                explanations[j : j + 1],
+                denormalize,
+                ["cat_" + str(j)],
+                r_name_dict,
+                top_k=7,
+                save_path="../fig_1_images",
             )
-            """
+
             color_palette = []
             for pal in ["Reds", "Blues", "Oranges"]:
                 palette = sns.color_palette(pal, 10)
@@ -202,14 +216,14 @@ for method in explanation_methods:
             plt.rcParams.update(
                 {
                     "text.usetex": True,
-                    "font.family": 'Helvetica',
+                    "font.family": "Helvetica",
                     "font.size": 8,
                     "xtick.labelsize": 8,
                     "ytick.labelsize": 8,
                 }
             )
 
-            plt.figure(figsize=(3.29, 2.3))
+            plt.figure(figsize=(192 / 72.27, 51 / 72.27))
             g = sns.histplot(
                 data={r"Attribution": explanations[j].cpu().numpy()},
                 x=r"Attribution",
@@ -220,11 +234,13 @@ for method in explanation_methods:
                 palette=sns.color_palette(color_palette),
             )
 
-            plt.ylabel("Count")
+            # do not display axis labels
+            g.set(xlabel=None, ylabel=None)
+
+            # do not display x-ticks, y-ticks
+            g.set(xticks=[], yticks=[])
             plt.tight_layout()
-            plt.savefig(
-                f"../fig_1_images/distributon_cat_{j}.png", dpi=500
-            )
+            plt.savefig(f"../fig_1_images/distributon_cat_{j}.png", dpi=500)
             plt.show()
-            """
+
 # i=0, j=5
