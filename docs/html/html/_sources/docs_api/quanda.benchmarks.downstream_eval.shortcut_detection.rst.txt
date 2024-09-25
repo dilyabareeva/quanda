@@ -1,0 +1,7 @@
+quanda.benchmarks.downstream\_eval.shortcut\_detection module
+=============================================================
+
+.. automodule:: quanda.benchmarks.downstream_eval.shortcut_detection
+   :members:
+   :undoc-members:
+   :show-inheritance:

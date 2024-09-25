@@ -1,0 +1,16 @@
+quanda.utils.training package
+=============================
+
+.. automodule:: quanda.utils.training
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.utils.training.base_pl_module
+   quanda.utils.training.trainer

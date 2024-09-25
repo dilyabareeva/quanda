@@ -1,0 +1,16 @@
+quanda.utils.functions package
+==============================
+
+.. automodule:: quanda.utils.functions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.utils.functions.correlations
+   quanda.utils.functions.similarities

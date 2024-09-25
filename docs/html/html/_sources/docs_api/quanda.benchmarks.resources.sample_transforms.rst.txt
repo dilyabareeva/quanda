@@ -1,0 +1,7 @@
+quanda.benchmarks.resources.sample\_transforms module
+=====================================================
+
+.. automodule:: quanda.benchmarks.resources.sample_transforms
+   :members:
+   :undoc-members:
+   :show-inheritance:

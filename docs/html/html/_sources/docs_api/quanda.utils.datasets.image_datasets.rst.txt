@@ -1,0 +1,7 @@
+quanda.utils.datasets.image\_datasets module
+============================================
+
+.. automodule:: quanda.utils.datasets.image_datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:

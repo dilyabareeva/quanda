@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quanda.benchmarks.heuristics.mixed_datasets &mdash; quanda 01.07.2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=cea27b2f"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            quanda
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../docs_api/modules.html">quanda</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">quanda</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">quanda.benchmarks.heuristics.mixed_datasets</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for quanda.benchmarks.heuristics.mixed_datasets</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">lightning</span> <span class="k">as</span> <span class="nn">L</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="kn">from</span> <span class="nn">quanda.benchmarks.base</span> <span class="kn">import</span> <span class="n">Benchmark</span>
+<span class="kn">from</span> <span class="nn">quanda.benchmarks.resources</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">load_module_from_bench_state</span><span class="p">,</span>
+    <span class="n">sample_transforms</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">quanda.metrics.heuristics.mixed_datasets</span> <span class="kn">import</span> <span class="n">MixedDatasetsMetric</span>
+<span class="kn">from</span> <span class="nn">quanda.utils.common</span> <span class="kn">import</span> <span class="n">ds_len</span>
+<span class="kn">from</span> <span class="nn">quanda.utils.datasets</span> <span class="kn">import</span> <span class="n">SingleClassImageDataset</span>
+<span class="kn">from</span> <span class="nn">quanda.utils.training.trainer</span> <span class="kn">import</span> <span class="n">BaseTrainer</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="MixedDatasets">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets">[docs]</a>
+<span class="k">class</span> <span class="nc">MixedDatasets</span><span class="p">(</span><span class="n">Benchmark</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Benchmark that measures the performance of a given influence estimation method in separating dataset sources.</span>
+
+<span class="sd">    Evaluates the performance of a given data attribution estimation method in identifying adversarial examples in a</span>
+<span class="sd">    classification task.</span>
+
+<span class="sd">    The training dataset is assumed to consist of a &quot;clean&quot; and &quot;adversarial&quot; subsets, whereby the number of samples</span>
+<span class="sd">    in the clean dataset is significantly larger than the number of samples in the adversarial dataset. All adversarial</span>
+<span class="sd">    samples are labeled with one label from the clean dataset. The evaluation is based on the area under the</span>
+<span class="sd">    precision-recall curve (AUPRC), which quantifies the ranking of the influence of adversarial relative to clean</span>
+<span class="sd">    samples. AUPRC is chosen because it provides better insight into performance in highly-skewed classification tasks</span>
+<span class="sd">    where false positives are common.</span>
+
+<span class="sd">    Unlike the original implementation, we only employ a single trained model, but we aggregate the AUPRC scores across</span>
+<span class="sd">    multiple test samples.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    1) Hammoudeh, Z., &amp; Lowd, D. (2022). Identifying a training-set attack&#39;s target using renormalized influence</span>
+<span class="sd">    estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security</span>
+<span class="sd">    (pp. 1367-1381).</span>
+
+<span class="sd">    TODO: remove FILTER BY &quot;CORRECT&quot; PREDICTION FOR BACKDOOR implied https://arxiv.org/pdf/2201.10055</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Mixed Datasets&quot;</span>
+
+<div class="viewcode-block" id="MixedDatasets.__init__">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializer for the Mixed Dataset metric.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        args: Any</span>
+<span class="sd">            Additional positional arguments.</span>
+<span class="sd">        kwargs: Any</span>
+<span class="sd">            Additional keyword arguments.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clean_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mixed_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adversarial_indices</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_predictions</span><span class="p">:</span> <span class="nb">bool</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adversarial_label</span><span class="p">:</span> <span class="nb">int</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter_by_prediction</span><span class="p">:</span> <span class="nb">bool</span></div>
+
+
+<div class="viewcode-block" id="MixedDatasets.generate">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets.generate">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
+        <span class="n">clean_dataset</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">],</span>
+        <span class="n">eval_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">adversarial_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">adversarial_label</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">trainer</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">L</span><span class="o">.</span><span class="n">Trainer</span><span class="p">,</span> <span class="n">BaseTrainer</span><span class="p">],</span>
+        <span class="n">data_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">use_predictions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">filter_by_prediction</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">dataset_split</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span><span class="p">,</span>
+        <span class="n">adversarial_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">val_dataset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">trainer_fit_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates the benchmark with passed components.</span>
+<span class="sd">         This module handles the dataset creation and model training on the mixed dataset.</span>
+<span class="sd">         The evaluation can then be run using the `evaluate` method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model: Union[torch.nn.Module, L.LightningModule]</span>
+<span class="sd">            Model to be used for the benchmark.</span>
+<span class="sd">        clean_dataset: Union[str, torch.utils.data.Dataset]</span>
+<span class="sd">            Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</span>
+<span class="sd">            If a torch Dataset is passed, every item of the dataset is a tuple of the form (input, label).</span>
+<span class="sd">        eval_dataset: torch.utils.data.Dataset</span>
+<span class="sd">            The dataset containing the adversarial examples used for evaluation. They should belong to</span>
+<span class="sd">            the same dataset and the same class as the samples in the adversarial dataset.</span>
+<span class="sd">        adversarial_dir: str</span>
+<span class="sd">            Path to directory containing the adversarial dataset. Typically consists of the same class of objects</span>
+<span class="sd">            (e.g. images of the same class).</span>
+<span class="sd">        adversarial_label: int</span>
+<span class="sd">            The label to be used for the adversarial dataset.</span>
+<span class="sd">        trainer: Union[L.Trainer, BaseTrainer]</span>
+<span class="sd">            Trainer to be used for training the model. Can be a Lightning Trainer or a `BaseTrainer`.</span>
+<span class="sd">        dataset_split: str, optional</span>
+<span class="sd">            The dataset split, only used for HuggingFace datasets, by default &quot;train&quot;.</span>
+<span class="sd">        adversarial_transform : Optional[Callable], optional</span>
+<span class="sd">             Transform to be applied to the adversarial dataset, by default None</span>
+<span class="sd">        val_dataset: Optional[torch.utils.data.Dataset], optional</span>
+<span class="sd">            Validation dataset to be used for the benchmark, by default None</span>
+<span class="sd">        trainer_fit_kwargs: Optional[dict], optional</span>
+<span class="sd">            Additional keyword arguments for the trainer&#39;s fit method, by default None</span>
+<span class="sd">        batch_size: int, optional</span>
+<span class="sd">            Batch size that is used for training, by default 8</span>
+<span class="sd">        args: Any</span>
+<span class="sd">            Additional positional arguments.</span>
+<span class="sd">        kwargs: Any</span>
+<span class="sd">            Additional keyword arguments.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        MixedDatasets</span>
+<span class="sd">            The benchmark instance.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the model is not a LightningModule and the trainer is a Lightning Trainer.</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the model is not a torch.nn.Module and the trainer is a BaseTrainer.</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the trainer is neither a Lightning Trainer nor a BaseTrainer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generating </span><span class="si">{</span><span class="n">MixedDatasets</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> benchmark components based on passed arguments...&quot;</span><span class="p">)</span>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">set_devices</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">eval_dataset</span> <span class="o">=</span> <span class="n">eval_dataset</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">use_predictions</span> <span class="o">=</span> <span class="n">use_predictions</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">adversarial_label</span> <span class="o">=</span> <span class="n">adversarial_label</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">filter_by_prediction</span> <span class="o">=</span> <span class="n">filter_by_prediction</span>
+
+        <span class="n">pr_clean_dataset</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">process_dataset</span><span class="p">(</span><span class="n">clean_dataset</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">data_transform</span><span class="p">,</span> <span class="n">dataset_split</span><span class="o">=</span><span class="n">dataset_split</span><span class="p">)</span>
+
+        <span class="n">adversarial_dataset</span> <span class="o">=</span> <span class="n">SingleClassImageDataset</span><span class="p">(</span>
+            <span class="n">root</span><span class="o">=</span><span class="n">adversarial_dir</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">adversarial_label</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">adversarial_transform</span>
+        <span class="p">)</span>
+
+        <span class="n">obj</span><span class="o">.</span><span class="n">mixed_dataset</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ConcatDataset</span><span class="p">([</span><span class="n">adversarial_dataset</span><span class="p">,</span> <span class="n">pr_clean_dataset</span><span class="p">])</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">adversarial_indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">ds_len</span><span class="p">(</span><span class="n">adversarial_dataset</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">ds_len</span><span class="p">(</span><span class="n">pr_clean_dataset</span><span class="p">)</span>
+
+        <span class="n">mixed_train_dl</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">mixed_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">val_dataset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">val_dl</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">val_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">val_dl</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">obj</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+
+        <span class="n">trainer_fit_kwargs</span> <span class="o">=</span> <span class="n">trainer_fit_kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trainer</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">Trainer</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model should be a LightningModule if Trainer is a Lightning Trainer&quot;</span><span class="p">)</span>
+
+            <span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                <span class="n">train_dataloaders</span><span class="o">=</span><span class="n">mixed_train_dl</span><span class="p">,</span>
+                <span class="n">val_dataloaders</span><span class="o">=</span><span class="n">val_dl</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">trainer_fit_kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trainer</span><span class="p">,</span> <span class="n">BaseTrainer</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model should be a torch.nn.Module if Trainer is a BaseTrainer&quot;</span><span class="p">)</span>
+
+            <span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+                <span class="n">model</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                <span class="n">train_dataloaders</span><span class="o">=</span><span class="n">mixed_train_dl</span><span class="p">,</span>
+                <span class="n">val_dataloaders</span><span class="o">=</span><span class="n">val_dl</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">trainer_fit_kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Trainer should be a Lightning Trainer or a BaseTrainer&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+
+<div class="viewcode-block" id="MixedDatasets.download">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets.download">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method loads precomputed benchmark components from a file and creates an instance</span>
+<span class="sd">        from the state dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Name of the benchmark to be loaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">bench_state</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">_get_bench_state</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">eval_dataset</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">build_eval_dataset</span><span class="p">(</span>
+            <span class="n">dataset_str</span><span class="o">=</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;dataset_str&quot;</span><span class="p">],</span>
+            <span class="n">eval_indices</span><span class="o">=</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;eval_test_indices&quot;</span><span class="p">],</span>
+            <span class="n">transform</span><span class="o">=</span><span class="n">sample_transforms</span><span class="p">[</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;dataset_transform&quot;</span><span class="p">]],</span>
+            <span class="n">dataset_split</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">dataset_transform</span> <span class="o">=</span> <span class="n">sample_transforms</span><span class="p">[</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;dataset_transform&quot;</span><span class="p">]]</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">load_module_from_bench_state</span><span class="p">(</span><span class="n">bench_state</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+
+        <span class="n">adversarial_dir_url</span> <span class="o">=</span> <span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;adversarial_dir_url&quot;</span><span class="p">]</span>
+        <span class="n">adversarial_dir</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">_download_adversarial_dataset</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">adversarial_dir_url</span><span class="o">=</span><span class="n">adversarial_dir_url</span><span class="p">,</span> <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span>
+        <span class="p">)</span>
+
+        <span class="n">adversarial_transform</span> <span class="o">=</span> <span class="n">sample_transforms</span><span class="p">[</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;dataset_transform&quot;</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">assemble</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">module</span><span class="p">,</span>
+            <span class="n">clean_dataset</span><span class="o">=</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;dataset_str&quot;</span><span class="p">],</span>
+            <span class="n">eval_dataset</span><span class="o">=</span><span class="n">eval_dataset</span><span class="p">,</span>
+            <span class="n">use_predictions</span><span class="o">=</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;use_predictions&quot;</span><span class="p">],</span>
+            <span class="n">adversarial_dir</span><span class="o">=</span><span class="n">adversarial_dir</span><span class="p">,</span>
+            <span class="n">adversarial_label</span><span class="o">=</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;adversarial_label&quot;</span><span class="p">],</span>
+            <span class="n">adversarial_transform</span><span class="o">=</span><span class="n">adversarial_transform</span><span class="p">,</span>
+            <span class="n">dataset_split</span><span class="o">=</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;dataset_split&quot;</span><span class="p">],</span>
+            <span class="n">data_transform</span><span class="o">=</span><span class="n">dataset_transform</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_download_adversarial_dataset</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">adversarial_dir_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Downloads the adversarial dataset from the given URL and returns the path to the downloaded directory.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        adversarial_dir_url: str</span>
+<span class="sd">            URL to the adversarial dataset.</span>
+<span class="sd">        cache_dir: str</span>
+<span class="sd">            Path to the cache directory.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            Path to the downloaded adversarial dataset directory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Download the zip file and extract into cache dir</span>
+        <span class="n">adversarial_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cache_dir</span><span class="p">,</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_adversarial_dataset&quot;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">adversarial_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># download</span>
+        <span class="n">adversarial_dir_zip</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">adversarial_dir</span><span class="p">,</span> <span class="s2">&quot;adversarial_dataset.zip&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">adversarial_dir_zip</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">adversarial_dir_url</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+        <span class="c1"># extract</span>
+        <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">adversarial_dir_zip</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_ref</span><span class="p">:</span>
+            <span class="n">zip_ref</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">adversarial_dir</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">adversarial_dir</span>
+
+<div class="viewcode-block" id="MixedDatasets.assemble">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets.assemble">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">assemble</span><span class="p">(</span>
+        <span class="bp">cls</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
+        <span class="n">eval_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">clean_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
+        <span class="n">adversarial_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">adversarial_label</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">data_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">use_predictions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">filter_by_prediction</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">adversarial_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dataset_split</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">args</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assembles the benchmark from the given components.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model: Union[torch.nn.Module, L.LightningModule]</span>
+<span class="sd">            Model to be used for the benchmark.</span>
+<span class="sd">        clean_dataset: Union[str, torch.utils.data.Dataset]</span>
+<span class="sd">            Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</span>
+<span class="sd">        eval_dataset: torch.utils.data.Dataset</span>
+<span class="sd">            The dataset containing the adversarial examples used for evaluation. They should belong to</span>
+<span class="sd">            the same dataset and the same class as the samples in the adversarial dataset.</span>
+<span class="sd">        adversarial_dir: str</span>
+<span class="sd">            Path to the adversarial dataset of a single class.</span>
+<span class="sd">        adversarial_label: int</span>
+<span class="sd">            The label to be used for the adversarial dataset.</span>
+<span class="sd">        adversarial_transform: Optional[Callable], optional</span>
+<span class="sd">            Transform to be applied to the adversarial dataset, by default None</span>
+<span class="sd">        dataset_split: str, optional</span>
+<span class="sd">            The dataset split, only used for HuggingFace datasets, by default &quot;train&quot;.</span>
+<span class="sd">        args: Any</span>
+<span class="sd">            Additional positional arguments.</span>
+<span class="sd">        kwargs: Any</span>
+<span class="sd">            Additional keyword arguments.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">clean_dataset</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">process_dataset</span><span class="p">(</span><span class="n">clean_dataset</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">data_transform</span><span class="p">,</span> <span class="n">dataset_split</span><span class="o">=</span><span class="n">dataset_split</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">eval_dataset</span> <span class="o">=</span> <span class="n">eval_dataset</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">use_predictions</span> <span class="o">=</span> <span class="n">use_predictions</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">filter_by_prediction</span> <span class="o">=</span> <span class="n">filter_by_prediction</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">adversarial_label</span> <span class="o">=</span> <span class="n">adversarial_label</span>
+
+        <span class="n">adversarial_dataset</span> <span class="o">=</span> <span class="n">SingleClassImageDataset</span><span class="p">(</span>
+            <span class="n">root</span><span class="o">=</span><span class="n">adversarial_dir</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">adversarial_label</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">adversarial_transform</span>
+        <span class="p">)</span>
+
+        <span class="n">obj</span><span class="o">.</span><span class="n">mixed_dataset</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ConcatDataset</span><span class="p">([</span><span class="n">adversarial_dataset</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">clean_dataset</span><span class="p">])</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">adversarial_indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">ds_len</span><span class="p">(</span><span class="n">adversarial_dataset</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">ds_len</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">clean_dataset</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">set_devices</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+
+<div class="viewcode-block" id="MixedDatasets.evaluate">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets.evaluate">[docs]</a>
+    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">explainer_cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
+        <span class="n">expl_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluates the benchmark using a given explanation method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        explainer_cls: type</span>
+<span class="sd">            The explanation class inheriting from the base Explainer class to be used for evaluation.</span>
+<span class="sd">        expl_kwargs: Optional[dict], optional</span>
+<span class="sd">            Keyword arguments for the explainer, by default None</span>
+<span class="sd">        use_predictions: bool, optional</span>
+<span class="sd">            Whether to use the predictions of the model for the explanations, by default True</span>
+<span class="sd">        batch_size: int, optional</span>
+<span class="sd">            Batch size for the evaluation, by default 8</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+        <span class="n">expl_kwargs</span> <span class="o">=</span> <span class="n">expl_kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">explainer</span> <span class="o">=</span> <span class="n">explainer_cls</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">train_dataset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mixed_dataset</span><span class="p">,</span> <span class="o">**</span><span class="n">expl_kwargs</span><span class="p">)</span>
+
+        <span class="n">adversarial_expl_dl</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
+
+        <span class="n">metric</span> <span class="o">=</span> <span class="n">MixedDatasetsMetric</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">train_dataset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mixed_dataset</span><span class="p">,</span>
+            <span class="n">adversarial_indices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">adversarial_indices</span><span class="p">,</span>
+            <span class="n">filter_by_prediction</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filter_by_prediction</span><span class="p">,</span>
+            <span class="n">adversarial_cls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">adversarial_label</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">adversarial_expl_dl</span><span class="p">)</span>
+        <span class="n">n_batches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">adversarial_expl_dl</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pbar</span><span class="p">):</span>
+            <span class="n">pbar</span><span class="o">.</span><span class="n">set_description</span><span class="p">(</span><span class="s2">&quot;Metric evaluation, batch </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_batches</span><span class="p">))</span>
+
+            <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">),</span> <span class="n">labels</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_predictions</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+                    <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">targets</span> <span class="o">=</span> <span class="n">labels</span>
+            <span class="n">explanations</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">)</span>
+            <span class="n">metric</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">explanations</span><span class="p">,</span> <span class="n">test_tensor</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">test_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">metric</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Dilya, Galip.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
