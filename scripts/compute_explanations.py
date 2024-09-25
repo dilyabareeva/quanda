@@ -189,7 +189,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
     random_rng = random.Random(27)
 
-
     # get all cat classes
     cat_classes = [class_to_group[s] for s in class_to_group if class_to_group[s] == new_n_classes - 1]
     dog_classes = [class_to_group[s] for s in class_to_group if class_to_group[s] == new_n_classes - 2]
@@ -358,8 +357,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 EC.save(subset_save_dir, explanations_repr, i)
 
     if method == "tracincpfast":
-
-
         # Initialize Explainer
         logger.info("Explaining test samples")
         explainer_tracincpfast = CaptumTracInCPFast(
@@ -391,7 +388,6 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 print(f"Time taken for subset {subset} is {end_time - start_time}")
 
     if method == "arnoldi":
-
         train_dataset = train_dataloader.dataset
         num_samples = 5000
         indices = generator.sample(range(len(train_dataset)), num_samples)
