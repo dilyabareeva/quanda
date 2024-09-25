@@ -288,7 +288,7 @@ class ShortcutDetection(Benchmark):
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
+            transform=None,
             dataset_split="test",
         )
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
@@ -297,7 +297,7 @@ class ShortcutDetection(Benchmark):
 
         return obj.assemble(
             model=module,
-            train_dataset=bench_state["train_dataset"],
+            train_dataset=bench_state["dataset_str"],
             n_classes=bench_state["n_classes"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -359,7 +359,7 @@ class ShortcutDetection(Benchmark):
         obj.filter_by_prediction = filter_by_prediction
         obj.filter_by_class = filter_by_class
         obj.shortcut_dataset = SampleTransformationDataset(
-            dataset=obj.train_dataset,
+            dataset=obj.process_dataset(train_dataset, transform=None, dataset_split=dataset_split),
             cls_idx=shortcut_cls,
             dataset_transform=dataset_transform,
             sample_fn=sample_fn,

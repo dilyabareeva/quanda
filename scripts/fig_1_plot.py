@@ -1,7 +1,8 @@
 import copy
 import os
-import wandb
+
 import pandas as pd
+import wandb
 from dotenv import load_dotenv
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
@@ -10,7 +11,7 @@ from matplotlib.patches import Patch
 load_dotenv()
 
 # Set WandB API key
-wandb_api_key = os.getenv('WANDB_API_KEY')
+wandb_api_key = os.getenv("WANDB_API_KEY")
 if not wandb_api_key:
     raise ValueError("WANDB_API_KEY not found in environment. Please add it to your .env file.")
 
@@ -44,54 +45,55 @@ for run in runs:
             key = f"{method}_{metric}"
             if key in run.summary:
                 # Append to the results list
-                all_results.append({
-                    "method": method,
-                    "metric": metric,
-                    "score": run.summary[key]["score"],
-                    "created_at": created_at
-                })
+                all_results.append(
+                    {"method": method, "metric": metric, "score": run.summary[key]["score"], "created_at": created_at}
+                )
 
 # Create a DataFrame from the results
 df = pd.DataFrame(all_results)
 
 # Remove duplicates based on method, metric, keeping the latest entry
-df = df.loc[df.groupby(['method', 'metric'])['created_at'].idxmax()]
+df = df.loc[df.groupby(["method", "metric"])["created_at"].idxmax()]
 
 # Pivot the DataFrame to have explainers as indices and metrics as columns
-df = df.pivot(index='method', columns='metric', values='score')
+df = df.pivot(index="method", columns="metric", values="score")
 
 
 # change values to rank, higher is better
 df = df.rank(axis=0, method="max", ascending=True)
 df = df - df.min()
-df = df/df.max()
+df = df / df.max()
 
 
 df.index.name = "explainer"
 
 # Rename metrics
-df = df.rename(columns={
-    "top_k_overlap": "Top-K\nCardinality",
-    "subclass": "Subclass\nDetection",
-    "mislabeling": "Mislabeling\nDetection",
-    "shortcut": "Shortcut\nDetection",
-    "random": "Model\nRandomisation",
-    "mislabeling_si": "Mislabeling\nDetection",
-    "mixed_dataset": "Mixed Dataset\nSeparation"
-})
+df = df.rename(
+    columns={
+        "top_k_overlap": "Top-K\nCardinality",
+        "subclass": "Subclass\nDetection",
+        "mislabeling": "Mislabeling\nDetection",
+        "shortcut": "Shortcut\nDetection",
+        "random": "Model\nRandomisation",
+        "mislabeling_si": "Mislabeling\nDetection",
+        "mixed_dataset": "Mixed Dataset\nSeparation",
+    }
+)
 
 # Rename methods
-df = df.rename(index={
-    "similarity": "Similarity Influence",
-    "representer_points": "ReprPoints",
-    "trak": "TRAK-1",
-    "random": "Random",
-    "tracincpfast": "TracInCP",
-    "arnoldi": "ArnoldiInf"
-})
+df = df.rename(
+    index={
+        "similarity": "Similarity Influence",
+        "representer_points": "ReprPoints",
+        "trak": "TRAK-1",
+        "random": "Random",
+        "tracincpfast": "TracInCP",
+        "arnoldi": "ArnoldiInf",
+    }
+)
 
 # sort indices by a list
-sort_list = ["ArnoldiInf", "ReprPoints", "TracInCP", "TRAK-1","Random"]
+sort_list = ["ArnoldiInf", "ReprPoints", "TracInCP", "TRAK-1", "Random"]
 
 df = df.loc[sort_list]
 
@@ -101,8 +103,8 @@ df.reset_index(inplace=True)
 print(df.head())
 
 import matplotlib.pyplot as plt
-from matplotlib import font_manager, rcParams
 import numpy as np
+from matplotlib import font_manager, rcParams
 
 fonts = ["../assets/demo/Poppins-Regular.ttf", "../assets/demo/Poppins-Bold.ttf"]
 [font_manager.fontManager.addfont(font) for font in fonts]
@@ -111,8 +113,8 @@ rcParams["font.family"] = "Poppins"
 BG_WHITE = "#ffffff"
 BLUE = "#2a475e"
 GREY70 = "#B0A8B9"
-GREY_LIGHT = "#F4F4F4"#"#f2efe8" #"#F8F3F3"
-COLORS = ["#7D53BA", "#EA4E38", "#7EAF6E", "#5E4B3D", "#6F97B1", "#EB9C38"]
+GREY_LIGHT = "#F4F4F4"  # "#f2efe8" #"#F8F3F3"
+COLORS = ["#EA4E38", "#7D53BA", "#7EAF6E", "#5E4B3D", "#6F97B1", "#EB9C38"]
 
 RADIUS_RATIO = 1.2
 
@@ -128,8 +130,8 @@ ANGLES = [n / VARIABLES_N * 2 * np.pi for n in range(VARIABLES_N)]
 ANGLES += ANGLES[:1]
 
 TANGLES = copy.deepcopy(ANGLES)
-#TANGLES[1] -= 0.05 * np.pi
-#TANGLES[-2] += 0.05 * np.pi
+# TANGLES[1] -= 0.05 * np.pi
+# TANGLES[-2] += 0.05 * np.pi
 
 # Padding used to customize the location of the tick labels
 X_VERTICAL_TICK_PADDING = 5
@@ -143,12 +145,12 @@ HANGLES = np.linspace(0, 2 * np.pi)
 H0 = np.zeros(len(HANGLES))
 H1 = np.ones(len(HANGLES)) * 0.5
 H2 = np.ones(len(HANGLES))
-HS = [(n/(SPECIES_N - 1)) * np.ones(len(HANGLES)) for n in range(0, SPECIES_N)]
+HS = [(n / (SPECIES_N - 1)) * np.ones(len(HANGLES)) for n in range(0, SPECIES_N)]
 
 # Initialize layout ----------------------------------------------
 width_pt = 310
 height_pt = 186
-fig = plt.figure(figsize=(width_pt/72.27, height_pt/72.27), dpi=300)
+fig = plt.figure(figsize=(width_pt / 72.27, height_pt / 72.27), dpi=300)
 ax = fig.add_subplot(111, polar=True)
 
 
@@ -174,7 +176,7 @@ for idx, species in enumerate(SPECIES):
 # Set values for the angular axis (x)
 ax.set_xticks(TANGLES[:-1])
 ax.set_xticklabels(VARIABLES, size=8)
-ax.tick_params(axis='x', pad=-8)
+ax.tick_params(axis="x", pad=-8)
 
 # Adjust individual tick label positions
 for tick_label, angle in zip(ax.get_xticklabels(), TANGLES[:-1]):
@@ -209,13 +211,14 @@ for j in range(len(ANGLES)):
 
 handles = [
     Line2D(
-        [0, 0.005], [0, 0],           # Short line segment
-        color=color,               # Color for the line
-        lw=1,                      # Line width
-        marker="o",                # Marker style
-        markersize=3,              # Size of the dot
-        markerfacecolor=color,      # Fill color for the marker
-        label=species              # Label for the legend
+        [0, 0.005],
+        [0, 0],  # Short line segment
+        color=color,  # Color for the line
+        lw=1,  # Line width
+        marker="o",  # Marker style
+        markersize=3,  # Size of the dot
+        markerfacecolor=color,  # Fill color for the marker
+        label=species,  # Label for the legend
     )
     for species, color in zip(SPECIES, COLORS)
 ]
@@ -231,13 +234,13 @@ legend = ax.legend(
 # Iterate through text elements and change their properties
 for text in legend.get_texts():
     text.set_fontsize(8)  # Change default font size
-    text.set_fontweight('bold')
+    text.set_fontweight("bold")
 # Set legend size by modifying the bounding box
-#bbox = legend.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-#legend.set_bbox_to_anchor((0.05, 0.5, 0.2, 0.1))  # (x, y, width, height) in normalized figure coordinates
+# bbox = legend.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+# legend.set_bbox_to_anchor((0.05, 0.5, 0.2, 0.1))  # (x, y, width, height) in normalized figure coordinates
 
 plt.tight_layout()
 plt.show()
 
 # save fig_1
-fig.savefig("../scripts/fig_1.png", bbox_inches=None, pad_inches=0, dpi=300)
+fig.savefig("../scripts/fig_1.png", bbox_inches=None, pad_inches=0, dpi=1000)
