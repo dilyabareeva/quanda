@@ -15,8 +15,8 @@ class ClassDetectionMetric(Metric):
     ----------
     1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations.
     In International Conference on Learning Representations.
-    2) Kwon, Y., Wu, E., Wu, K., Zou, J., 2024. "DataInf: Efficiently Estimating Data Influence in
-    LoRA-tuned LLMs and Diffusion Models." The Twelfth International Conference on Learning Representations.
+    2) Kwon, Y., Wu, E., Wu, K., Zou, J., (2024). DataInf: Efficiently Estimating Data Influence in
+    LoRA-tuned LLMs and Diffusion Models. The Twelfth International Conference on Learning Representations.
     """
 
     def __init__(
@@ -80,7 +80,7 @@ class ClassDetectionMetric(Metric):
 
         Returns
         -------
-        dict
+        Dict[str, float]
             A dictionary containing the final score in the `score` field.
         """
         return {"score": torch.cat(self.scores).mean().item()}

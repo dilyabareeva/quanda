@@ -13,8 +13,8 @@ class ShortcutDetectionMetric(Metric):
 
     References
     ----------
-    1) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions."
-        International conference on machine learning. PMLR, 2017.
+    1) Koh, Pang Wei, and Percy Liang. (2017). Understanding black-box predictions via influence functions.
+        International conference on machine learning. PMLR.
     2) TODO: Add the reference of the paper that introduced the shortcut detection task, after acceptance.
     """
 

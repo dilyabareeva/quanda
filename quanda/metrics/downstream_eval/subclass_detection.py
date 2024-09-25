@@ -34,8 +34,11 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             The model associated with the attributions to be evaluated.
         train_dataset : torch.utils.data.Dataset
             The training dataset that was used to train `model`.
-        subclass_labels : torch.Tensor
+        train_subclass_labels : torch.Tensor
             The subclass labels of the training dataset.
+        filter_by_prediction : bool, optional
+            Whether to filter the test samples to only calculate the metric on those samples, where the correct superclass is
+            predicted, by default False.
         """
         super().__init__(model, train_dataset)
         assert len(train_subclass_labels) == self.dataset_length, (
@@ -60,6 +63,16 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             Original labels of the test samples
         explanations : torch.Tensor
             Explanations of the test samples
+        test_tensor: Optional[torch.Tensor]
+            Test samples to used to generate the explanations.
+            Only required if `filter_by_prediction` is True during initalization.
+        test_classes: Optional[torch.Tensor]
+            The true superclasses of the test samples. Only required if `filter_by_prediction` is True during initalization.
+
+        Raises
+        ------
+        ValueError
+            If `test_tensor` and `test_classes` are not provided when `filter_by_prediction` is True.
         """
 
         if (test_tensor is None or test_classes is None) and self.filter_by_prediction:

@@ -50,14 +50,6 @@ class ModelRandomizationMetric(Metric):
             Can be "spearman", "kendall" or a callable.
         seed : int, optional
             The random seed, by default 42.
-        model_id : str, optional
-            An identifier for the model, by default "0".
-        cache_dir : str, optional
-            The cache directory, by default "./cache".
-        *args
-            Additional positional arguments.
-        **kwargs
-            Additional keyword arguments.
         """
         super().__init__(
             model=model,
@@ -189,7 +181,7 @@ class ModelRandomizationMetric(Metric):
         rand_model = copy.deepcopy(model)
         for name, param in list(rand_model.named_parameters()):
             parent = get_parent_module_from_name(rand_model, name)
-            # TODO: currently only linear layer is randomized, due to expplainer's convergence issues
+            # TODO: currently only linear layer is randomized, due to explainers' convergence issues
             if isinstance(parent, (torch.nn.Linear)):
                 random_param_tensor = torch.nn.init.normal_(param, generator=self.generator)
                 parent.__setattr__(name.split(".")[-1], torch.nn.Parameter(random_param_tensor))
