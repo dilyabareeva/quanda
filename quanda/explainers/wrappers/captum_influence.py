@@ -395,14 +395,15 @@ class CaptumArnoldi(CaptumInfluence):
 
     Notes
     ------
-    The user is referred to captum's codebase for details on the specifics of the parameters.
+    The user is referred to captum's codebase (3) for details on the specifics of the parameters.
 
     References
     ----------
-    (1) Schioppa, Andrea, et al. "Scaling up influence functions."
-        Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 36. No. 8. 2022.
-    (2) Koh, Pang Wei, and Percy Liang. "Understanding black-box predictions via influence functions."
-        International conference on machine learning. PMLR, 2017.
+    (1) Schioppa, Andrea, et al. (2022). Scaling up influence functions.
+        Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 36. No. 8.
+    (2) Koh, Pang Wei, and Percy Liang. (2017). "Understanding black-box predictions via influence functions."
+        International conference on machine learning. PMLR
+    (3) https://github.com/pytorch/captum/blob/master/captum/influence/_core/arnoldi_influence_function.py
     """
 
     def __init__(
@@ -671,12 +672,13 @@ class CaptumTracInCP(CaptumInfluence):
 
     Notes
     -----
-    The user is referred to captum's codebase for details on the specifics of the parameters.
+    The user is referred to captum's codebase (2) for details on the specifics of the parameters.
 
     References
     ----------
-    (1) Pruthi, Garima, et al. "Estimating training data influence by tracing gradient descent."
-        Advances in Neural Information Processing Systems 33 (2020): 19920-19930.
+    (1) Pruthi, Garima, et al. (2020). Estimating training data influence by tracing gradient descent.
+        Advances in Neural Information Processing Systems 33. (19920-19930).
+    (2) https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp.py
     """
 
     def __init__(
@@ -890,12 +892,13 @@ class CaptumTracInCPFast(CaptumInfluence):
 
     Notes
     ------
-    The user is referred to captum's codebase for details on the specifics of the parameters.
+    The user is referred to captum's codebase (2) for details on the specifics of the parameters.
 
     References
     ----------
-    (1) Pruthi, Garima, et al. "Estimating training data influence by tracing gradient descent."
-        Advances in Neural Information Processing Systems 33 (2020): 19920-19930.
+    (1) Pruthi, Garima, et al. (2020). "Estimating training data influence by tracing gradient descent."
+        Advances in Neural Information Processing Systems 33. (19920-19930).
+    (2) https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp_fast_rand_proj.py
     """
 
     def __init__(
@@ -1116,12 +1119,13 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 
     Notes
     -----
-    The user is referred to captum's codebase for details on the specifics of the parameters.
+    The user is referred to captum's codebase (2) for details on the specifics of the parameters.
 
     References
     ----------
-    (1) Pruthi, Garima, et al. "Estimating training data influence by tracing gradient descent."
-        Advances in Neural Information Processing Systems 33 (2020): 19920-19930.
+    (1) Pruthi, Garima, et al. (2020). "Estimating training data influence by tracing gradient descent."
+        Advances in Neural Information Processing Systems 33. (19920-19930).
+    (2) https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp_fast_rand_proj.py
     """
 
     def __init__(
