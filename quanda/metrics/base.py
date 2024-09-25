@@ -23,10 +23,6 @@ class Metric(ABC):
             A PyTorch model.
         train_dataset: torch.utils.data.Dataset
             A PyTorch dataset.
-        *args: Any
-            Additional arguments.
-        **kwargs: Any
-            Additional keyword arguments.
         """
         self.device: Union[str, torch.device]
         self.model: torch.nn.Module = model
@@ -47,35 +43,20 @@ class Metric(ABC):
         """
         Used to update the metric with new data.
 
-        Parameters
-        ----------
-        *args: Any
-            Additional arguments.
-        **kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        None
+        Raises
+        ------
+        NotImplementedError
         """
         raise NotImplementedError
 
     @abstractmethod
     def compute(self, *args: Any, **kwargs: Any) -> Any:
         """
-        Used to compute the metric.
+        Used to compute the metric score.
 
-        Parameters
-        ----------
-        *args: Any
-            Additional arguments.
-        **kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        Any
-            The computed metric result dictionary.
+        Raises
+        ------
+        NotImplementedError
         """
 
         raise NotImplementedError
@@ -83,18 +64,8 @@ class Metric(ABC):
     @abstractmethod
     def reset(self, *args: Any, **kwargs: Any):
         """
-        Used to reset the metric.
+        Used to reset the metric state.
 
-        Parameters
-        ----------
-        *args: Any
-            Additional arguments.
-        **kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        None
         """
         raise NotImplementedError
 
@@ -108,9 +79,9 @@ class Metric(ABC):
         state_dict: dict
             The metric state dictionary.
 
-        Returns
-        -------
-        None
+        Raises
+        ------
+        NotImplementedError
         """
 
         raise NotImplementedError
@@ -120,17 +91,9 @@ class Metric(ABC):
         """
         Used to get the metric state.
 
-        Parameters
-        ----------
-        *args: Any
-            Additional arguments.
-        **kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        dict
-            The metric state dictionary.
+        Raises
+        ------
+        NotImplementedError
         """
 
         raise NotImplementedError
