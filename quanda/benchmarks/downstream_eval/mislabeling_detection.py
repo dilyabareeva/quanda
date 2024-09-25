@@ -307,13 +307,13 @@ class MislabelingDetection(Benchmark):
 
         return obj.assemble(
             model=module,
-            train_dataset=bench_state["train_dataset"],
+            train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
             n_classes=bench_state["n_classes"],
             mislabeling_labels=bench_state["mislabeling_labels"],
             dataset_transform=dataset_transform,
-            global_method=bench_state["global_method"],
+            global_method=bench_state.get("global_method", "self-influence"),
         )
 
     @classmethod
@@ -369,7 +369,7 @@ class MislabelingDetection(Benchmark):
         mislabeling_indices = list(mislabeling_labels.keys()) if mislabeling_labels is not None else None
 
         obj.mislabeling_dataset = LabelFlippingDataset(
-            dataset=obj.train_dataset,
+            dataset=obj.process_dataset(train_dataset, transform=None, dataset_split=dataset_split),
             dataset_transform=dataset_transform,
             transform_indices=mislabeling_indices,
             n_classes=n_classes,
