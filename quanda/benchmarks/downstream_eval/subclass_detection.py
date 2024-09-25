@@ -23,10 +23,18 @@ logger = logging.getLogger(__name__)
 
 class SubclassDetection(Benchmark):
     """
-    Benchmark for subclass detection tasks.
+    Benchmark for subclass detection task as described in (1).
+    A model is trained on a dataset where labels are grouped into superclasses.
+    The metric evaluates the performance of an attribution method in detecting the subclass of a test sample
+    from its highest attributed training point.
 
-    TODO: remove USES PREDICTED LABELS, FILTERS BY CORRECT PREDICTIONS https://arxiv.org/pdf/2006.04528
+    References
+    ----------
+    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations. In International
+    Conference on Learning Representations.
     """
+
+    # TODO: remove USES PREDICTED LABELS, FILTERS BY CORRECT PREDICTIONS https://arxiv.org/pdf/2006.04528
 
     name: str = "Subclass Detection"
 
@@ -35,6 +43,11 @@ class SubclassDetection(Benchmark):
         *args,
         **kwargs,
     ):
+        """Initializer for the Subclass Detection benchmark.
+        This initializer is not used directly, instead,
+        the `generate` or the `assemble` methods should be used.
+        Alternatively, `download` can be used to load a precomputed benchmark.
+        """
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
@@ -72,8 +85,48 @@ class SubclassDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        This method should generate all the benchmark components and persist them in the instance.
+        """Generates the benchmark by specifying parameters.
+        The evaluation can then be run using the `evaluate` method.
+
+        Parameters
+        ----------
+        train_dataset : Union[str, torch.utils.data.Dataset]
+            The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.
+        model : Union[torch.nn.Module, L.LightningModule]
+            The model used to generate attributions.
+        trainer : Union[L.Trainer, BaseTrainer]
+            The trainer used to train the model.
+        eval_dataset : torch.utils.data.Dataset
+            The evaluation dataset to be used for the benchmark.
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation. Original paper uses the model's predictions.
+            Therefore, by default True.
+        filter_by_prediction : bool, optional
+            Whether to filter the evaluation dataset by the model's predictions, using only correctly classified datapoints.
+            Original paper filters the dataset. Therefore, by default True.
+        dataset_split : str, optional
+            The dataset split, only used for HuggingFace datasets, by default "train".
+        val_dataset : Optional[torch.utils.data.Dataset], optional
+            Validation dataset to be used for the benchmark, by default None
+        dataset_transform : Optional[Callable], optional
+            The original dataset transform, by default None
+        n_classes : int, optional
+            Number of classes of `train_dataset`, by default 10
+        n_groups : int, optional
+            Number of groups to split the classes into, by default 2
+        class_to_group : Union[ClassToGroupLiterals, Dict[int, int]], optional
+            Mapping of classes to groups, as a dictionary. For random grouping, pass "random". By default "random"
+        trainer_fit_kwargs : Optional[dict], optional
+            Additional keyword arguments to be passed to the trainer's `fit` method, by default None
+        seed : int, optional
+            Random seed for reproducibility, by default 27
+        batch_size : int, optional
+            Batch size for the dataloaders, by default 8
+
+        Returns
+        -------
+        SubclassDetection
+            The benchmark instance.
         """
 
         logger.info(f"Generating {SubclassDetection.name} benchmark components based on passed arguments...")
@@ -114,6 +167,34 @@ class SubclassDetection(Benchmark):
         *args,
         **kwargs,
     ):
+        """Internal method to generate the benchmark components.
+
+        Parameters
+        ----------
+        trainer : Union[L.Trainer, BaseTrainer]
+            The trainer used to train the model.
+        val_dataset : Optional[torch.utils.data.Dataset], optional
+            Validation dataset to be used for the benchmark, by default None
+        dataset_transform : Optional[Callable], optional
+            The original dataset transform, by default None
+        n_classes : int, optional
+            Number of classes of `train_dataset`, by default 10
+        n_groups : int, optional
+            Number of groups to split the classes into, by default 2
+        class_to_group : Union[ClassToGroupLiterals, Dict[int, int]], optional
+            Mapping of classes to groups, as a dictionary. For random grouping, pass "random". By default "random"
+        trainer_fit_kwargs : Optional[dict], optional
+            Additional keyword arguments to be passed to the trainer's `fit` method, by default None
+        seed : int, optional
+            Random seed for reproducibility, by default 27
+        batch_size : int, optional
+            Batch size for the dataloaders, by default 8
+
+        Returns
+        -------
+        SubclassDetection
+            The benchmark instance.
+        """
         self.grouped_dataset = LabelGroupingDataset(
             dataset=self.train_dataset,
             dataset_transform=dataset_transform,
@@ -174,7 +255,21 @@ class SubclassDetection(Benchmark):
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
-        This method should load the benchmark components from a file and persist them in the instance.
+        This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
+
+        Parameters
+        ----------
+        name : str
+            Name of the benchmark to be loaded.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        device : str
+            Device to load the model on.
+
+        Returns
+        -------
+        SubclassDetection
+            The benchmark instance.
         """
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
@@ -212,8 +307,36 @@ class SubclassDetection(Benchmark):
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
     ):
-        """
-        This method should assemble the benchmark components from arguments and persist them in the instance.
+        """Assembles the benchmark from existing components.
+
+        Parameters
+        ----------
+        group_model : Union[torch.nn.Module, L.LightningModule]
+            The model used to generate attributions.
+        train_dataset : Union[str, torch.utils.data.Dataset]
+            Original dataset to use in training.
+        n_classes : int
+            Number of classes in `train_dataset`.
+        class_to_group : Dict[int, int]
+            Mapping of classes to groups.
+        eval_dataset : torch.utils.data.Dataset
+            Evaluation dataset to be used for the benchmark.
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation, by default True.
+        filter_by_prediction : bool, optional
+            Whether to filter the evaluation dataset by the model's predictions, using only correctly classified datapoints,
+            by default True.
+        dataset_split : str, optional
+            The dataset split, only used for HuggingFace datasets, by default "train".
+        dataset_transform : Optional[Callable], optional
+            The original dataset transform, by default None.
+        batch_size : int, optional
+            Batch size for the dataloaders, by default 8.
+
+        Returns
+        -------
+        SubclassDetection
+            The benchmark instance
         """
         obj = cls()
         obj.group_model = group_model
@@ -246,6 +369,23 @@ class SubclassDetection(Benchmark):
         *args,
         **kwargs,
     ):
+        """
+        Evaluates the benchmark using a given explanation method.
+
+        Parameters
+        ----------
+        explainer_cls: type
+            The explanation class inheriting from the base Explainer class to be used for evaluation.
+        expl_kwargs: Optional[dict], optional
+            Keyword arguments for the explainer, by default None
+        batch_size: int, optional
+            Batch size for the evaluation, by default 8
+
+        Returns
+        -------
+        Dict[str, float]
+            Dictionary containing the metric score.
+        """
         self.group_model.eval()
 
         expl_kwargs = expl_kwargs or {}
@@ -281,6 +421,7 @@ class SubclassDetection(Benchmark):
                 targets=targets,
             )
             # Use original labels for metric score calculation
+            # TODO FROM GALIP: shouldn't the first one be labels??
             metric.update(grouped_labels, explanations, test_tensor=inputs, test_classes=grouped_labels)
 
         return metric.compute()

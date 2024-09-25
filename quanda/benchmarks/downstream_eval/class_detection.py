@@ -14,11 +14,21 @@ logger = logging.getLogger(__name__)
 
 class ClassDetection(Benchmark):
     """
-    Benchmark for class detection tasks.
+    Benchmark for class detection task.
+    This benchmark evaluates the effectiveness of an attribution method in detecting the class of a test sample
+    from its highest attributed training point.
+    Intuitively, a good attribution method should assign the highest attribution to the class of the test sample,
+    as argued in (1) and (2).
 
-    TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
+    References
+    ----------
+    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations.
+    In International Conference on Learning Representations.
+    2) Kwon, Y., Wu, E., Wu, K., Zou, J., (2024). DataInf: Efficiently Estimating Data Influence in
+    LoRA-tuned LLMs and Diffusion Models. The Twelfth International Conference on Learning Representations.
     """
 
+    #   TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     name: str = "Class Detection"
 
     def __init__(
@@ -26,6 +36,11 @@ class ClassDetection(Benchmark):
         *args,
         **kwargs,
     ):
+        """Initializer for the Class Detection benchmark.
+        This initializer is not used directly, instead,
+        the `generate` or the `assemble` methods should be used.
+        Alternatively, `download` can be used to load a precomputed benchmark.
+        """
         super().__init__()
 
         self.model: torch.nn.Module
@@ -45,8 +60,29 @@ class ClassDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        This method should generate all the benchmark components and persist them in the instance.
+        """Generates the benchmark by specifying parameters.
+        The evaluation can then be run using the `evaluate` method.
+
+        Parameters
+        ----------
+        train_dataset : Union[str, torch.utils.data.Dataset]
+            The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.
+        eval_dataset : torch.utils.data.Dataset
+            The evaluation dataset to be used for the benchmark.
+        model : torch.nn.Module
+            The model used to generate attributions.
+        data_transform : Optional[Callable], optional
+            The transform to be applied to the dataset, by default None.
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation. Original paper uses the model's predictions.
+            Therefore, by default True.
+        dataset_split : str, optional
+            The dataset split, only used for HuggingFace datasets, by default "train".
+
+        Returns
+        -------
+        ClassDetection
+            The benchmark instance.
         """
 
         logger.info(f"Generating {ClassDetection.name} benchmark components based on passed arguments...")
@@ -63,7 +99,21 @@ class ClassDetection(Benchmark):
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
-        This method should load the benchmark components from a file and persist them in the instance.
+        This method downloads precomputed benchmark components and creates an instance from them.
+
+        Parameters
+        ----------
+        name : str
+            Name of the benchmark to be loaded.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        device : str
+            Device to load the model on.
+
+        Returns
+        -------
+        ClassDetection
+            The benchmark instance.
         """
 
         obj = cls()
@@ -98,8 +148,27 @@ class ClassDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        This method should assemble the benchmark components from arguments and persist them in the instance.
+        """Assembles the benchmark from existing components.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model used to generate attributions.
+        train_dataset : Union[str, torch.utils.data.Dataset]
+            The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.
+        eval_dataset : torch.utils.data.Dataset
+            The evaluation dataset to be used for the benchmark.
+        data_transform : Optional[Callable], optional
+            The transform to be applied to the dataset, by default None.
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation, by default True.
+        dataset_split : str, optional
+            The dataset split, only used for HuggingFace datasets, by default "train".
+
+        Returns
+        -------
+        ClassDetection
+            The benchmark instance.
         """
 
         obj = cls()
@@ -117,6 +186,23 @@ class ClassDetection(Benchmark):
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
     ):
+        """
+        Evaluates the benchmark using a given explanation method.
+
+        Parameters
+        ----------
+        explainer_cls: type
+            The explanation class inheriting from the base Explainer class to be used for evaluation.
+        expl_kwargs: Optional[dict], optional
+            Keyword arguments for the explainer, by default None
+        batch_size: int, optional
+            Batch size for the evaluation, by default 8
+
+        Returns
+        -------
+        Dict[str, float]
+            Dictionary containing the metric score.
+        """
         self.model.eval()
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)

@@ -21,7 +21,7 @@ class ModelRandomization(Benchmark):
     """
     Benchmark for the model randomization heuristic.
 
-    This benchmark is used to evaluate the dependence of the attributions on the model parameters..
+    This benchmark is used to evaluate the dependence of the attributions on the model parameters.
 
     References
     ----------
@@ -30,9 +30,9 @@ class ModelRandomization(Benchmark):
 
     2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., & Kim, B. (2018). Sanity checks for saliency
     maps. In Advances in Neural Information Processing Systems (Vol. 31).
-
-    TODO: remove UNKNOWN IF PREDICTED LABELS ARE USED https://arxiv.org/pdf/2006.04528
     """
+
+    # TODO: remove UNKNOWN IF PREDICTED LABELS ARE USED https://arxiv.org/pdf/2006.04528
 
     name: str = "Model Randomization"
 
@@ -41,6 +41,12 @@ class ModelRandomization(Benchmark):
         *args,
         **kwargs,
     ):
+        """Initializer for the Model Randomization benchmark.
+
+        This initializer is not used directly, instead,
+        the `generate` or the `assemble` methods should be used.
+        Alternatively, `download` can be used to load a precomputed benchmark.
+        """
         super().__init__()
 
         self.model: torch.nn.Module
@@ -75,8 +81,23 @@ class ModelRandomization(Benchmark):
             The model used to generate attributions.
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
+        data_transform : Optional[Callable], optional
+            Transform to be applied to the dataset, by default None
         dataset_split : str, optional
             The dataset split to use, by default "train". Only used if `train_dataset` is a string.
+        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
+            Correlation function to be used for the evaluation
+            Can be "spearman" or "kendall", or a callable.
+            Defaults to "spearman"
+        use_predictions: bool
+            Whether to use the model's predictions for generating attributions. Defaults to True.
+        seed : int, optional
+            Seed to be used for the evaluation, by default 42
+
+        Returns
+        -------
+        ModelRandomization
+            The benchmark instance.
         """
 
         logger.info(f"Generating {ModelRandomization.name} benchmark components based on passed arguments...")
@@ -95,14 +116,22 @@ class ModelRandomization(Benchmark):
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
-        This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
+        This method loads precomputed benchmark components from a file and creates an instance
+        from the state dictionary.
 
         Parameters
         ----------
         name : str
             Name of the benchmark to be loaded.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        device : str
+            Device to load the model on.
+
+        Returns
+        -------
+        ModelRandomization
+            The benchmark instance.
         """
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
@@ -149,8 +178,23 @@ class ModelRandomization(Benchmark):
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         eval_dataset : torch.utils.data.Dataset
             Evaluation dataset to be used for the benchmark.
+        data_transform : Optional[Callable], optional
+            Transform to be applied to the dataset, by default None
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
+        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
+            Correlation function to be used for the evaluation
+            Can be "spearman" or "kendall", or a callable.
+            Defaults to "spearman"
+        use_predictions: bool
+            Whether to use the model's predictions for generating attributions. Defaults to True.
+        seed : int, optional
+            Seed to be used for the evaluation, by default 42
+
+        Returns
+        -------
+        ModelRandomization
+            The benchmark instance.
         """
         obj = cls()
         obj.model = model
@@ -178,26 +222,12 @@ class ModelRandomization(Benchmark):
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None
-        use_predictions : bool, optional
-            Whether to use model predictions or the true test labels for the evaluation, defaults to False
-        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation
-            Can be "spearman" or "kendall", or a callable.
-            Defaults to "spearman"
         batch_size : int, optional
             Batch size to be used for the evaluation, default to 8
-        seed : int, optional
-            Seed to be used for the evaluation, defaults to 42
-        cache_dir : str, optional
-            Directory to be used for caching, defaults to "./cache"
-        model_id : str, optional
-            Identifier for the model, defaults to "default_model_id"
-        batch_size : int, optional
-            Batch size to be used for the evaluation, defaults to 8
 
         Returns
         -------
-        dict
+        Dict[str, float]
             Dictionary containing the evaluation results.
         """
 

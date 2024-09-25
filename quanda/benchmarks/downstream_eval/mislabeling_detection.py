@@ -47,8 +47,9 @@ class MislabelingDetection(Benchmark):
     5) Kwon, Y., Wu, E., Wu, K., & Zou, J. (2024). DataInf: Efficiently estimating data influence in LoRA-tuned LLMs and
     diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).
 
-    TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE PREDICRIONS
     """
+
+    #    TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE PREDICTIONS
 
     name: str = "Mislabeling Detection"
 
@@ -61,7 +62,7 @@ class MislabelingDetection(Benchmark):
 
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmarks.
+        Alternatively, `download` can be used to load a precomputed benchmark.
         """
         super().__init__()
 
@@ -117,6 +118,11 @@ class MislabelingDetection(Benchmark):
             Dataset to be used for the evaluation.
         trainer : Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the model. Can be a Lightning Trainer or a `BaseTrainer`.
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation.
+            This is only used if `global_method` is not "self-influence", by default True.
+            Original papers use the self-influence method to reach a global ranking of the data,
+            instead of using aggregations of generated local explanations.
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         dataset_transform : Optional[Callable], optional
@@ -152,7 +158,6 @@ class MislabelingDetection(Benchmark):
         obj.use_predictions = use_predictions
         obj._generate(
             model=model,
-            train_dataset=train_dataset,
             val_dataset=val_dataset,
             p=p,
             global_method=global_method,
@@ -167,7 +172,6 @@ class MislabelingDetection(Benchmark):
 
     def _generate(
         self,
-        train_dataset: Union[str, torch.utils.data.Dataset],
         model: Union[torch.nn.Module, L.LightningModule],
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
@@ -189,8 +193,6 @@ class MislabelingDetection(Benchmark):
         model : Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
             Note that a new model will be trained on the label-poisoned dataset.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
         trainer : Union[L.Trainer, BaseTrainer]
@@ -290,8 +292,10 @@ class MislabelingDetection(Benchmark):
         ----------
         name : str
             Name of the benchmark to be loaded.
-        eval_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        device : str
+            Device to load the model on.
         """
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
@@ -349,6 +353,11 @@ class MislabelingDetection(Benchmark):
             The dataset split, only used for HuggingFace datasets, by default "train".
         mislabeling_labels : Optional[Dict[int, int]], optional
             Dictionary containing indices as keys and new labels as values, defaults to None
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation.
+            This is only used if `global_method` is not "self-influence", by default True.
+            Original papers use the self-influence method to reach a global ranking of the data,
+            instead of using aggregations of generated local explanations.
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
         global_method : Union[str, type], optional
@@ -401,10 +410,9 @@ class MislabelingDetection(Benchmark):
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None
-        use_predictions : bool, optional
-            Whether to use model predictions or the true test labels for the evaluation, defaults to False
         batch_size : int, optional
             Batch size to be used for the evaluation, default to 8
+
         Returns
         -------
         dict
