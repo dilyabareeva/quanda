@@ -193,6 +193,59 @@ print(f"Subclass Detection Score: {score}")
 
 More detailed examples can be found in the following [tutorials](./quanda/tutorials) folder.
 
+### Custom Explainers
+
+In addition to the already provided explainers, **quanda** allows users to integrate their own explainer methods. This section provides a guide on how to create a wrapper for a custom explainer.
+
+<details>
+<summary><b><big>Step 1. Create an explainer class</big></b></summary>
+
+Your custom explainer should inherit from the base `Explainer` class provided by **quanda**. The first step is to initialize your custom explainer within the `__init__` method.
+```python
+from quanda.explainers.base import Explainer
+
+class CustomExplainer(Explainer):
+    def __init__(self, model, train_dataset, **kwargs):
+        super().__init__(model, train_dataset, **kwargs)
+        # Initialize your explainer here
+```
+</details>
+
+<details>
+<summary><b><big>Step 2. Implement the explain method</big></b></summary>
+
+The core of your wrapper is the `explain` method. This function should take test samples and their corresponding target values as input and return a 2D tensor containing the influence scores.
+
+- `test`: The test batch for which explanations are generated.
+- `targets`: The target values for the explanations.
+
+Ensure the output tensor has the shape `(test_samples, train_samples)`, where the entries in the train samples dimension are ordered in the same order as in the `train_dataset` that is being attributed.
+
+```python
+def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
+    # Compute your influence scores here
+    return influence_scores
+ ```
+</details>
+
+<details>
+<summary><b><big>Step 3. Implement the self_influence method (Optional) </big></b></summary>
+
+By default, **quanda** includes a built-in method for calculating self-influence scores. This base implementation computes all attributions over the training dataset, and collects the diagonal values in the attribution matrix. However, you can override this method to provide a more efficient implementation. This method should calculate how much each training sample influences itself and return a tensor of the computed self-influence scores.
+
+```python
+def self_influence(self, batch_size: int = 1) -> torch.Tensor:
+    # Compute your self-influence scores here
+    return self_influence_scores
+```
+</details>
+
+For detailed examples, we refer to the existing explainer wrappers in **quanda**:
+
+- **Captum Explainers**: [captum_influence.py](https://github.com/dilyabareeva/quanda/tree/main/quanda/explainers/wrappers/captum_influence.py)
+- **TRAK**: [trak_wrapper.py](https://github.com/dilyabareeva/quanda/tree/main/quanda/explainers/wrappers/trak_wrapper.py)
+- **Representer Points**: [representer_points.py](https://github.com/dilyabareeva/quanda/tree/main/quanda/explainers/wrappers/representer_points.py)
+
 
 ## ⚠️ Usage Tips and Caveats
 
