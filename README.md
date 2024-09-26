@@ -219,7 +219,7 @@ The core of your wrapper is the `explain` method. This function should take test
 - `test`: The test batch for which explanations are generated.
 - `targets`: The target values for the explanations.
 
-Ensure the output tensor has the shape `(test_samples, train_samples)`.
+Ensure the output tensor has the shape `(test_samples, train_samples)`, where the entries in the train samples dimension are ordered in the same order as in the `train_dataset` that is being attributed.
 
 ```python
 def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
@@ -231,7 +231,7 @@ def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -
 <details>
 <summary><b><big>Step 3. Implement the self_influence method (Optional) </big></b></summary>
 
-By default, **quanda** includes a built-in method for calculating self-influence scores. However, you can override this method to provide a custom implementation. This method should calculate how much each training sample influences itself and return a tensor of the computed self-influence scores.
+By default, **quanda** includes a built-in method for calculating self-influence scores. This base implementation computes all attributions over the training dataset, and collects the diagonal values in the attribution matrix. However, you can override this method to provide a more efficient implementation. This method should calculate how much each training sample influences itself and return a tensor of the computed self-influence scores.
 
 ```python
 def self_influence(self, batch_size: int = 1) -> torch.Tensor:
