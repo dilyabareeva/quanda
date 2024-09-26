@@ -420,8 +420,7 @@ class SubclassDetection(Benchmark):
                 test=inputs,
                 targets=targets,
             )
-            # Use original labels for metric score calculation
-            # TODO FROM GALIP: shouldn't the first one be labels??
-            metric.update(grouped_labels, explanations, test_tensor=inputs, test_classes=grouped_labels)
+
+            metric.update(labels, explanations, test_tensor=inputs, test_classes=grouped_labels)
 
         return metric.compute()

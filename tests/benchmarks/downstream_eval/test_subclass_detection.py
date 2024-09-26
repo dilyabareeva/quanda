@@ -12,7 +12,7 @@ from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
 
 
-@pytest.mark.benchmarks
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, "
     "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
@@ -38,7 +38,7 @@ from quanda.utils.training.trainer import Trainer
             },
             False,
             None,
-            1.0,
+            0.375,
         ),
         (
             "mnist",
@@ -135,7 +135,7 @@ def test_subclass_detection(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.benchmarks
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, pl_module, max_epochs, dataset, n_classes, n_groups, seed, "
     "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
@@ -157,7 +157,7 @@ def test_subclass_detection(
             },
             False,
             None,
-            1.0,
+            0.375,
         ),
     ],
 )
@@ -195,7 +195,6 @@ def test_subclass_detection_generate_lightning_model(
         trainer_fit_kwargs={},
         seed=seed,
         batch_size=batch_size,
-        device="cpu",
     )
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
@@ -208,7 +207,7 @@ def test_subclass_detection_generate_lightning_model(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.benchmark
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
@@ -222,7 +221,7 @@ def test_subclass_detection_generate_lightning_model(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            1.0,
+            0.125,
         ),
     ],
 )
