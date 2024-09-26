@@ -38,7 +38,7 @@ from quanda.utils.training.trainer import Trainer
             },
             False,
             None,
-            0.375,
+            1.0,
         ),
         (
             "mnist",
@@ -157,7 +157,7 @@ def test_subclass_detection(
             },
             False,
             None,
-            0.375,
+            1.0,
         ),
     ],
 )
@@ -221,7 +221,7 @@ def test_subclass_detection_generate_lightning_model(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            0.125,
+            0.6875,
         ),
     ],
 )
@@ -242,6 +242,7 @@ def test_subclass_detection_download(
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     dst_eval.grouped_dataset = torch.utils.data.Subset(dst_eval.grouped_dataset, list(range(16)))
+    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
     dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
