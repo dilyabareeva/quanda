@@ -12,6 +12,7 @@ from quanda.benchmarks.resources import (
     sample_transforms,
 )
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
+from quanda.utils.common import ds_len
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
@@ -396,7 +397,7 @@ class SubclassDetection(Benchmark):
         metric = SubclassDetectionMetric(
             model=self.group_model,
             train_dataset=self.grouped_dataset,
-            train_subclass_labels=torch.tensor([self.train_dataset[s][1] for s in range(len(self.train_dataset))]),
+            train_subclass_labels=torch.tensor([self.train_dataset[s][1] for s in range(ds_len(self.train_dataset))]),
             filter_by_prediction=self.filter_by_prediction,
             device=self.device,
         )
