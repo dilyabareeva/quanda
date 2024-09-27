@@ -195,12 +195,12 @@ More detailed examples can be found in the following [tutorials](./quanda/tutori
 
 ### Custom Explainers
 
-In addition to the already provided explainers, **quanda** allows users to integrate their own explainer methods. This section provides a guide on how to create a wrapper for a custom explainer.
+In addition to the built-in explainers, **quanda** supports custom explainer methods for evaluation. This section provides a guide on how to create a wrapper for a custom explainer that matches our interface.
 
 <details>
 <summary><b><big>Step 1. Create an explainer class</big></b></summary>
 
-Your custom explainer should inherit from the base `Explainer` class provided by **quanda**. The first step is to initialize your custom explainer within the `__init__` method.
+Your custom explainer should inherit from the base [Explainer](./quanda/explainers/base.py) class provided by **quanda**. The first step is to initialize your custom explainer within the `__init__` method.
 ```python
 from quanda.explainers.base import Explainer
 
