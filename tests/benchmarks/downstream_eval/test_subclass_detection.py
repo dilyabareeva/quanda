@@ -12,7 +12,7 @@ from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, "
     "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
@@ -135,7 +135,7 @@ def test_subclass_detection(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, pl_module, max_epochs, dataset, n_classes, n_groups, seed, "
     "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
@@ -207,7 +207,7 @@ def test_subclass_detection_generate_lightning_model(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
