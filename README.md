@@ -240,11 +240,7 @@ def self_influence(self, batch_size: int = 1) -> torch.Tensor:
 ```
 </details>
 
-For detailed examples, we refer to the existing explainer wrappers in **quanda**:
-
-- **Captum Explainers**: [captum_influence.py](https://github.com/dilyabareeva/quanda/tree/main/quanda/explainers/wrappers/captum_influence.py)
-- **TRAK**: [trak_wrapper.py](https://github.com/dilyabareeva/quanda/tree/main/quanda/explainers/wrappers/trak_wrapper.py)
-- **Representer Points**: [representer_points.py](https://github.com/dilyabareeva/quanda/tree/main/quanda/explainers/wrappers/representer_points.py)
+For detailed examples, we refer to the [existing explainer wrappers](./quanda/explainers/wrappers) in **quanda**.
 
 
 ## ⚠️ Usage Tips and Caveats
@@ -275,29 +271,6 @@ We welcome contributions to **quanda**! You could contribute by:
 - Submitting a pull request to fix a bug, add a new explainer wrapper, a new metric, or other feature.
 
 A detailed guide on how to contribute to **quanda** can be found [here](https://github.com/dilyabareeva/quanda/blob/main//CONTRIBUTING.md).
-
-To set up the development environment, clone the repository and install the dependencies:
-
-```bash
-pip install -e '.[dev]'
-pip uninstall quanda
-```
-
-Install the pre-commit hooks:
-```bash
-pre-commit install
-```
-
-Alternatively, run the makefile before a commit to ensure the code is formatted and linted correctly:
-```bash
-make style
-```
-
-To run the tests:
-```bash
-pytest
-```
-
 
 If you have any questions, please [open an issue](https://github.com/dilyabareeva/quanda/issues/new)
 or write us at [dilyabareeva@gmail.com](mailto:dilyabareeva@gmail.com) or [galip.uemit.yolcu@hhi.fraunhofer.de](mailto:galip.uemit.yolcu@hhi.fraunhofer.de).
