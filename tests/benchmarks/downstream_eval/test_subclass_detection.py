@@ -195,7 +195,6 @@ def test_subclass_detection_generate_lightning_model(
         trainer_fit_kwargs={},
         seed=seed,
         batch_size=batch_size,
-        device="cpu",
     )
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
@@ -208,7 +207,7 @@ def test_subclass_detection_generate_lightning_model(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.benchmark
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
@@ -222,7 +221,7 @@ def test_subclass_detection_generate_lightning_model(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            1.0,
+            0.6875,
         ),
     ],
 )
@@ -243,6 +242,7 @@ def test_subclass_detection_download(
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     dst_eval.grouped_dataset = torch.utils.data.Subset(dst_eval.grouped_dataset, list(range(16)))
+    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
     dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,

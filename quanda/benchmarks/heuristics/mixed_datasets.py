@@ -93,7 +93,6 @@ class MixedDatasets(Benchmark):
         *args,
         **kwargs,
     ):
-        # TODO FROM GALIP: do we apply different transforms to the clean and adversarial datasets?
         """Generates the benchmark with passed components.
          This module handles the dataset creation and model training on the mixed dataset.
          The evaluation can then be run using the `evaluate` method.

@@ -12,6 +12,7 @@ from quanda.benchmarks.resources import (
     sample_transforms,
 )
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
+from quanda.utils.common import ds_len
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
@@ -396,7 +397,7 @@ class SubclassDetection(Benchmark):
         metric = SubclassDetectionMetric(
             model=self.group_model,
             train_dataset=self.grouped_dataset,
-            train_subclass_labels=torch.tensor([self.grouped_dataset[s][1] for s in range(len(self.grouped_dataset))]),
+            train_subclass_labels=torch.tensor([self.train_dataset[s][1] for s in range(ds_len(self.train_dataset))]),
             filter_by_prediction=self.filter_by_prediction,
             device=self.device,
         )
@@ -420,8 +421,7 @@ class SubclassDetection(Benchmark):
                 test=inputs,
                 targets=targets,
             )
-            # Use original labels for metric score calculation
-            # TODO FROM GALIP: shouldn't the first one be labels??
-            metric.update(grouped_labels, explanations, test_tensor=inputs, test_classes=grouped_labels)
+
+            metric.update(labels, explanations, test_tensor=inputs, test_classes=grouped_labels)
 
         return metric.compute()

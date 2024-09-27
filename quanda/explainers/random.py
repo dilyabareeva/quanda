@@ -69,8 +69,6 @@ class RandomExplainer(Explainer):
         ----------
         batch_size : int = 32
             `RandomExplainer` does not use this.
-        kwargs : Any
-            `RandomExplainer` does not use this. TODO:Galip Is this not supposed to be eradicated?
 
         Returns
         -------

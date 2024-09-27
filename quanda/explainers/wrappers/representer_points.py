@@ -252,17 +252,15 @@ class RepresenterPoints(Explainer):
         self.std_dev = torch.sqrt(torch.sum((self.samples - self.mean) ** 2, dim=0) / self.samples.shape[0])
         self.samples = self._normalize_features(self.samples) if normalize else self.samples
 
-        """
         if load_from_disk:
             try:
                 self.coefficients = torch.load(
-                os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"
-                ), weights_only=True)
+                    os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"), weights_only=True
+                )
             except FileNotFoundError:
                 self.train()
         else:
-        """
-        self.train()
+            self.train()
 
     def _normalize_features(self, features: torch.Tensor):
         """Internal method to normalize the features.
