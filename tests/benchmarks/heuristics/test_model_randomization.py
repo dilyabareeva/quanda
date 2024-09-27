@@ -100,11 +100,11 @@ def test_model_randomization(
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
+    "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
         (
             "mnist",
-            "mnist_class_detection",
+            "mnist_model_randomization_benchmark",
             8,
             CaptumSimilarity,
             {
@@ -116,20 +116,10 @@ def test_model_randomization(
         ),
     ],
 )
-def test_class_detection_download(
-    test_id,
-    benchmark_name,
-    batch_size,
-    explainer_cls,
-    expl_kwargs,
-    expected_score,
-    tmp_path,
+def test_model_randomization_download(
+    test_id, benchmark, batch_size, explainer_cls, expl_kwargs, expected_score, tmp_path, request
 ):
-    dst_eval = ModelRandomization.download(
-        name=benchmark_name,
-        cache_dir=str(tmp_path),
-        device="cpu",
-    )
+    dst_eval = request.getfixturevalue(benchmark)
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
