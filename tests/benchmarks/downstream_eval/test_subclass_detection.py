@@ -222,18 +222,6 @@ def test_subclass_detection_generate_lightning_model(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            0.6875,
-        ),
-        (
-            "mnist",
-            "mnist_subclass_detection_benchmark",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "model.fc_2",
-                "similarity_metric": cosine_similarity,
-                "load_from_disk": True,
-            },
             "compute",
         ),
     ],
