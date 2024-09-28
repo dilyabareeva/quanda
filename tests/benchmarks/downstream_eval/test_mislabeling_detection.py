@@ -128,7 +128,7 @@ def test_mislabeling_detection(
         dst_eval = MislabelingDetection.generate(
             model=model,
             trainer=trainer,
-            train_dataset=dataset,
+            base_dataset=dataset,
             eval_dataset=dataset,
             n_classes=n_classes,
             p=p,
@@ -142,7 +142,7 @@ def test_mislabeling_detection(
     elif init_method == "assemble":
         dst_eval = MislabelingDetection.assemble(
             model=model,
-            train_dataset=dataset,
+            base_dataset=dataset,
             eval_dataset=dataset,
             n_classes=n_classes,
             p=p,
@@ -211,7 +211,7 @@ def test_mislabeling_detection_generate_from_pl_module(
     dst_eval = MislabelingDetection.generate(
         model=pl_module,
         trainer=trainer,
-        train_dataset=dataset,
+        base_dataset=dataset,
         n_classes=n_classes,
         eval_dataset=dataset,
         p=p,
@@ -257,7 +257,7 @@ def test_mislabeling_detection_download(
     dst_eval = request.getfixturevalue(benchmark)
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
+    dst_eval.base_dataset = torch.utils.data.Subset(dst_eval.base_dataset, list(range(16)))
     dst_eval.mislabeling_dataset = torch.utils.data.Subset(dst_eval.mislabeling_dataset, list(range(16)))
     dst_eval.mislabeling_labels = {key: val for key, val in dst_eval.mislabeling_labels.items() if key in list(range(16))}
     dst_eval.mislabeling_indices = [key for key in dst_eval.mislabeling_labels.keys()]
@@ -305,5 +305,5 @@ def test_mislabeling_detection_download_sanity_checks(test_id, benchmark, tmp_pa
     dst_eval = request.getfixturevalue(benchmark)
     assertions = []
     for ind, label in list(dst_eval.mislabeling_labels.items())[0:500]:
-        assertions.append((dst_eval.train_dataset[ind][1] != label) and (dst_eval.mislabeling_dataset[ind][1] == label))
+        assertions.append((dst_eval.base_dataset[ind][1] != label) and (dst_eval.mislabeling_dataset[ind][1] == label))
     assert all(assertions)

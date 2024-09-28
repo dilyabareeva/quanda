@@ -102,7 +102,7 @@ def test_shortcut_detection(
         dst_eval = ShortcutDetection.generate(
             model=model,
             trainer=trainer,
-            train_dataset=dataset,
+            base_dataset=dataset,
             n_classes=n_classes,
             eval_dataset=dataset,
             filter_by_class=filter_by_class,
@@ -117,7 +117,7 @@ def test_shortcut_detection(
     elif init_method == "assemble":
         dst_eval = ShortcutDetection.assemble(
             model=model,
-            train_dataset=dataset,
+            base_dataset=dataset,
             n_classes=n_classes,
             eval_dataset=dataset,
             filter_by_class=filter_by_class,
@@ -194,7 +194,7 @@ def test_shortcut_detection_generate_from_pl_module(
     dst_eval = ShortcutDetection.generate(
         model=pl_module,
         trainer=trainer,
-        train_dataset=dataset,
+        base_dataset=dataset,
         n_classes=n_classes,
         eval_dataset=dataset,
         filter_by_class=True,
@@ -292,7 +292,7 @@ def test_shortcut_detection_download(
     dst_eval = request.getfixturevalue(benchmark)
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
+    dst_eval.base_dataset = torch.utils.data.Subset(dst_eval.base_dataset, list(range(16)))
     dst_eval.shortcut_dataset = torch.utils.data.Subset(dst_eval.shortcut_dataset, list(range(16)))
     dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
     dst_eval.shortcut_indices = [i for i in dst_eval.shortcut_indices if i < 16]

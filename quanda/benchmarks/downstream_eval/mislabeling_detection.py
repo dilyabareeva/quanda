@@ -67,7 +67,7 @@ class MislabelingDetection(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-        self.train_dataset: torch.utils.data.Dataset
+        self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.mislabeling_dataset: LabelFlippingDataset
         self.dataset_transform: Optional[Callable]
@@ -85,7 +85,7 @@ class MislabelingDetection(Benchmark):
     def generate(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: Union[str, torch.utils.data.Dataset],
+        base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         eval_dataset: torch.utils.data.Dataset,
         trainer: Union[L.Trainer, BaseTrainer],
@@ -110,8 +110,8 @@ class MislabelingDetection(Benchmark):
         model : Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
             Note that a new model will be trained on the label-poisoned dataset.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
+        base_dataset : Union[str, torch.utils.data.Dataset]
+            Vanilla training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
         eval_dataset : torch.utils.data.Dataset
@@ -153,7 +153,7 @@ class MislabelingDetection(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj.process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj._generate(
@@ -233,7 +233,7 @@ class MislabelingDetection(Benchmark):
         mislabeling_indices = list(mislabeling_labels.keys()) if mislabeling_labels is not None else None
 
         self.mislabeling_dataset = LabelFlippingDataset(
-            dataset=self.train_dataset,
+            dataset=self.base_dataset,
             p=p,
             transform_indices=mislabeling_indices,
             dataset_transform=dataset_transform,
@@ -245,10 +245,10 @@ class MislabelingDetection(Benchmark):
         self.mislabeling_indices = self.mislabeling_dataset.transform_indices
         self.mislabeling_labels = self.mislabeling_dataset.mislabeling_labels
         self.mislabeling_train_dl = torch.utils.data.DataLoader(self.mislabeling_dataset, batch_size=batch_size)
-        self.original_train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size)
+        self.original_train_dl = torch.utils.data.DataLoader(self.base_dataset, batch_size=batch_size)
         if val_dataset:
             mislabeling_val_dataset = LabelFlippingDataset(
-                dataset=self.train_dataset, dataset_transform=self.dataset_transform, p=self.p, n_classes=self.n_classes
+                dataset=val_dataset, dataset_transform=self.dataset_transform, p=self.p, n_classes=self.n_classes
             )
             self.mislabeling_val_dl = torch.utils.data.DataLoader(mislabeling_val_dataset, batch_size=batch_size)
         else:
@@ -311,7 +311,7 @@ class MislabelingDetection(Benchmark):
 
         return obj.assemble(
             model=module,
-            train_dataset=bench_state["dataset_str"],
+            base_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
             n_classes=bench_state["n_classes"],
@@ -324,7 +324,7 @@ class MislabelingDetection(Benchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: Union[str, torch.utils.data.Dataset],
+        base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         eval_dataset: torch.utils.data.Dataset,
         mislabeling_labels: Dict[int, int],
@@ -343,7 +343,7 @@ class MislabelingDetection(Benchmark):
         ----------
         model : Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark. This model should be trained on the mislabeled dataset.
-        train_dataset : Union[str, torch.utils.data.Dataset]
+        base_dataset : Union[str, torch.utils.data.Dataset]
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
@@ -369,7 +369,7 @@ class MislabelingDetection(Benchmark):
         """
         obj = cls()
         obj.model = model
-        obj.train_dataset = obj.process_dataset(train_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj.process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
         obj.n_classes = n_classes
@@ -378,7 +378,7 @@ class MislabelingDetection(Benchmark):
         mislabeling_indices = list(mislabeling_labels.keys()) if mislabeling_labels is not None else None
 
         obj.mislabeling_dataset = LabelFlippingDataset(
-            dataset=obj.process_dataset(train_dataset, transform=None, dataset_split=dataset_split),
+            dataset=obj.process_dataset(base_dataset, transform=None, dataset_split=dataset_split),
             dataset_transform=dataset_transform,
             transform_indices=mislabeling_indices,
             n_classes=n_classes,
@@ -389,7 +389,7 @@ class MislabelingDetection(Benchmark):
         obj.mislabeling_labels = obj.mislabeling_dataset.mislabeling_labels
 
         obj.mislabeling_train_dl = torch.utils.data.DataLoader(obj.mislabeling_dataset, batch_size=batch_size)
-        obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
+        obj.original_train_dl = torch.utils.data.DataLoader(obj.base_dataset, batch_size=batch_size)
 
         obj.set_devices(model)
 

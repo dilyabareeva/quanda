@@ -65,7 +65,7 @@ class MixedDatasets(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-        self.clean_dataset: torch.utils.data.Dataset
+        self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.mixed_dataset: torch.utils.data.Dataset
         self.adversarial_indices: List[int]
@@ -77,7 +77,7 @@ class MixedDatasets(Benchmark):
     def generate(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        clean_dataset: Union[str, torch.utils.data.Dataset],
+        base_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
@@ -101,7 +101,7 @@ class MixedDatasets(Benchmark):
         ----------
         model: Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
-        clean_dataset: Union[str, torch.utils.data.Dataset]
+        base_dataset: Union[str, torch.utils.data.Dataset]
             Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
             If a torch Dataset is passed, every item of the dataset is a tuple of the form (input, label).
         eval_dataset: torch.utils.data.Dataset
@@ -159,14 +159,14 @@ class MixedDatasets(Benchmark):
         obj.adversarial_label = adversarial_label
         obj.filter_by_prediction = filter_by_prediction
 
-        pr_clean_dataset = obj.process_dataset(clean_dataset, transform=data_transform, dataset_split=dataset_split)
+        pr_base_dataset = obj.process_dataset(base_dataset, transform=data_transform, dataset_split=dataset_split)
 
         adversarial_dataset = SingleClassImageDataset(
             root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
         )
 
-        obj.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, pr_clean_dataset])
-        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [0] * ds_len(pr_clean_dataset)
+        obj.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, pr_base_dataset])
+        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [0] * ds_len(pr_base_dataset)
 
         mixed_train_dl = torch.utils.data.DataLoader(obj.mixed_dataset, batch_size=batch_size)
 
@@ -247,7 +247,7 @@ class MixedDatasets(Benchmark):
 
         return obj.assemble(
             model=module,
-            clean_dataset=bench_state["dataset_str"],
+            base_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
             adversarial_dir=adversarial_dir,
@@ -295,7 +295,7 @@ class MixedDatasets(Benchmark):
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
         eval_dataset: torch.utils.data.Dataset,
-        clean_dataset: torch.utils.data.Dataset,
+        base_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
         data_transform: Optional[Callable] = None,
@@ -313,7 +313,7 @@ class MixedDatasets(Benchmark):
         ----------
         model: Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
-        clean_dataset: Union[str, torch.utils.data.Dataset]
+        base_dataset: Union[str, torch.utils.data.Dataset]
             Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         eval_dataset: torch.utils.data.Dataset
             The dataset containing the adversarial examples used for evaluation. They should belong to
@@ -341,7 +341,7 @@ class MixedDatasets(Benchmark):
 
         obj = cls()
         obj.model = model
-        obj.clean_dataset = obj.process_dataset(clean_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj.process_dataset(base_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
@@ -351,8 +351,8 @@ class MixedDatasets(Benchmark):
             root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
         )
 
-        obj.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, obj.clean_dataset])
-        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [0] * ds_len(obj.clean_dataset)
+        obj.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, obj.base_dataset])
+        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [0] * ds_len(obj.base_dataset)
         obj.set_devices(model)
 
         return obj

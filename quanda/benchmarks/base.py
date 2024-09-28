@@ -132,7 +132,7 @@ class Benchmark(ABC):
 
     def process_dataset(
         cls,
-        train_dataset: Union[str, torch.utils.data.Dataset],
+        dataset: Union[str, torch.utils.data.Dataset],
         transform: Optional[Callable] = None,
         dataset_split: str = "train",
     ):
@@ -140,8 +140,8 @@ class Benchmark(ABC):
 
         Parameters
         ----------
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train the model.
+        dataset : Union[str, torch.utils.data.Dataset]
+            The dataset to be processed.
         transform : Optional[Callable], optional
             The transform to be applied to the dataset, by default None
         dataset_split : str, optional
@@ -152,11 +152,11 @@ class Benchmark(ABC):
         torch,utils.data.Dataset
             The dataset.
         """
-        if isinstance(train_dataset, str):
-            cls.dataset_str = train_dataset
-            return HFtoTV(load_dataset(train_dataset, split=dataset_split), transform=transform)
+        if isinstance(dataset, str):
+            cls.dataset_str = dataset
+            return HFtoTV(load_dataset(dataset, split=dataset_split), transform=transform)
         else:
-            return train_dataset
+            return dataset
 
     def build_eval_dataset(
         self,

@@ -104,7 +104,7 @@ def test_subclass_detection(
         dst_eval = SubclassDetection.generate(
             model=model,
             trainer=trainer,
-            train_dataset=dataset,
+            base_dataset=dataset,
             eval_dataset=dataset,
             n_classes=n_classes,
             n_groups=n_groups,
@@ -118,7 +118,7 @@ def test_subclass_detection(
     elif init_method == "assemble":
         dst_eval = SubclassDetection.assemble(
             group_model=model,
-            train_dataset=dataset,
+            base_dataset=dataset,
             eval_dataset=dataset,
             n_classes=n_classes,
             class_to_group=class_to_group,
@@ -188,7 +188,7 @@ def test_subclass_detection_generate_lightning_model(
     dst_eval = SubclassDetection.generate(
         model=pl_module,
         trainer=trainer,
-        train_dataset=dataset,
+        base_dataset=dataset,
         eval_dataset=dataset,
         n_classes=n_classes,
         n_groups=n_groups,
@@ -232,9 +232,8 @@ def test_subclass_detection_download(
     dst_eval = request.getfixturevalue(benchmark)
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
+    dst_eval.base_dataset = torch.utils.data.Subset(dst_eval.base_dataset, list(range(16)))
     dst_eval.grouped_dataset = torch.utils.data.Subset(dst_eval.grouped_dataset, list(range(16)))
-    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
     dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
@@ -256,7 +255,7 @@ def test_subclass_detection_download(
             dst_eval.group_model(x)
         act_train = activation[0]
         activation = []
-        y_train = torch.tensor([y for x, y in dst_eval.train_dataset])
+        y_train = torch.tensor([y for x, y in dst_eval.base_dataset])
         for x, y in iter(test_ld):
             x = x.to(dst_eval.device)
             y_test = y.to(dst_eval.device)
@@ -287,7 +286,7 @@ def test_subclass_detection_download_sanity_checks(test_id, benchmark, batch_siz
     dst_eval = request.getfixturevalue(benchmark)
     ldr = torch.utils.data.DataLoader(dst_eval.grouped_dataset, batch_size=batch_size)
     assertions = [
-        dst_eval.grouped_dataset[i][1] == dst_eval.class_to_group[dst_eval.train_dataset[i][1]]
+        dst_eval.grouped_dataset[i][1] == dst_eval.class_to_group[dst_eval.base_dataset[i][1]]
         for i in range(len(dst_eval.grouped_dataset))
     ]
     assert all(assertions)

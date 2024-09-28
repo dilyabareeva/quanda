@@ -53,7 +53,7 @@ class SubclassDetection(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.group_model: Union[torch.nn.Module, L.LightningModule]
-        self.train_dataset: torch.utils.data.Dataset
+        self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
         self.grouped_train_dl: torch.utils.data.DataLoader
@@ -68,7 +68,7 @@ class SubclassDetection(Benchmark):
     @classmethod
     def generate(
         cls,
-        train_dataset: Union[str, torch.utils.data.Dataset],
+        base_dataset: Union[str, torch.utils.data.Dataset],
         model: Union[torch.nn.Module, L.LightningModule],
         trainer: Union[L.Trainer, BaseTrainer],
         eval_dataset: torch.utils.data.Dataset,
@@ -91,8 +91,9 @@ class SubclassDetection(Benchmark):
 
         Parameters
         ----------
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.
+        base_dataset : Union[str, torch.utils.data.Dataset]
+            The vanilla training dataset to be used for the benchmark.
+            If a string is passed, it should be a HuggingFace dataset name.
         model : Union[torch.nn.Module, L.LightningModule]
             The model used to generate attributions.
         trainer : Union[L.Trainer, BaseTrainer]
@@ -112,7 +113,7 @@ class SubclassDetection(Benchmark):
         dataset_transform : Optional[Callable], optional
             The original dataset transform, by default None
         n_classes : int, optional
-            Number of classes of `train_dataset`, by default 10
+            Number of classes of `base_dataset`, by default 10
         n_groups : int, optional
             Number of groups to split the classes into, by default 2
         class_to_group : Union[ClassToGroupLiterals, Dict[int, int]], optional
@@ -134,7 +135,7 @@ class SubclassDetection(Benchmark):
 
         obj = cls()
         obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj.process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.model = model
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
@@ -142,7 +143,7 @@ class SubclassDetection(Benchmark):
 
         obj._generate(
             trainer=trainer,
-            train_dataset=train_dataset,
+            base_dataset=base_dataset,
             dataset_transform=dataset_transform,
             val_dataset=val_dataset,
             n_classes=n_classes,
@@ -179,7 +180,7 @@ class SubclassDetection(Benchmark):
         dataset_transform : Optional[Callable], optional
             The original dataset transform, by default None
         n_classes : int, optional
-            Number of classes of `train_dataset`, by default 10
+            Number of classes of `base_dataset`, by default 10
         n_groups : int, optional
             Number of groups to split the classes into, by default 2
         class_to_group : Union[ClassToGroupLiterals, Dict[int, int]], optional
@@ -197,7 +198,7 @@ class SubclassDetection(Benchmark):
             The benchmark instance.
         """
         self.grouped_dataset = LabelGroupingDataset(
-            dataset=self.train_dataset,
+            dataset=self.base_dataset,
             dataset_transform=dataset_transform,
             n_classes=n_classes,
             n_groups=n_groups,
@@ -211,11 +212,11 @@ class SubclassDetection(Benchmark):
         self.dataset_transform = dataset_transform
 
         self.grouped_train_dl = torch.utils.data.DataLoader(self.grouped_dataset, batch_size=batch_size)
-        self.original_train_dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size)
+        self.original_train_dl = torch.utils.data.DataLoader(self.base_dataset, batch_size=batch_size)
 
         if val_dataset:
             grouped_val_dataset = LabelGroupingDataset(
-                dataset=self.train_dataset,
+                dataset=self.base_dataset,
                 dataset_transform=dataset_transform,
                 n_classes=n_classes,
                 class_to_group=self.class_to_group,
@@ -286,7 +287,7 @@ class SubclassDetection(Benchmark):
 
         return obj.assemble(
             group_model=module,
-            train_dataset=bench_state["dataset_str"],
+            base_dataset=bench_state["dataset_str"],
             n_classes=bench_state["n_classes"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -298,7 +299,7 @@ class SubclassDetection(Benchmark):
     def assemble(
         cls,
         group_model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: Union[str, torch.utils.data.Dataset],
+        base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         class_to_group: Dict[int, int],  # TODO: type specification
         eval_dataset: torch.utils.data.Dataset,
@@ -314,10 +315,10 @@ class SubclassDetection(Benchmark):
         ----------
         group_model : Union[torch.nn.Module, L.LightningModule]
             The model used to generate attributions.
-        train_dataset : Union[str, torch.utils.data.Dataset]
+        base_dataset : Union[str, torch.utils.data.Dataset]
             Original dataset to use in training.
         n_classes : int
-            Number of classes in `train_dataset`.
+            Number of classes in `base_dataset`.
         class_to_group : Dict[int, int]
             Mapping of classes to groups.
         eval_dataset : torch.utils.data.Dataset
@@ -341,7 +342,7 @@ class SubclassDetection(Benchmark):
         """
         obj = cls()
         obj.group_model = group_model
-        obj.train_dataset = obj.process_dataset(train_dataset, transform=None, dataset_split=dataset_split)
+        obj.base_dataset = obj.process_dataset(base_dataset, transform=None, dataset_split=dataset_split)
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
@@ -350,13 +351,13 @@ class SubclassDetection(Benchmark):
         obj.filter_by_prediction = filter_by_prediction
 
         obj.grouped_dataset = LabelGroupingDataset(
-            dataset=obj.train_dataset,
+            dataset=obj.base_dataset,
             dataset_transform=dataset_transform,
             n_classes=obj.n_classes,
             class_to_group=class_to_group,
         )
         obj.grouped_train_dl = torch.utils.data.DataLoader(obj.grouped_dataset, batch_size=batch_size)
-        obj.original_train_dl = torch.utils.data.DataLoader(obj.train_dataset, batch_size=batch_size)
+        obj.original_train_dl = torch.utils.data.DataLoader(obj.base_dataset, batch_size=batch_size)
 
         obj.set_devices(group_model)
 
@@ -397,7 +398,7 @@ class SubclassDetection(Benchmark):
         metric = SubclassDetectionMetric(
             model=self.group_model,
             train_dataset=self.grouped_dataset,
-            train_subclass_labels=torch.tensor([self.train_dataset[s][1] for s in range(ds_len(self.train_dataset))]),
+            train_subclass_labels=torch.tensor([self.base_dataset[s][1] for s in range(ds_len(self.base_dataset))]),
             filter_by_prediction=self.filter_by_prediction,
             device=self.device,
         )

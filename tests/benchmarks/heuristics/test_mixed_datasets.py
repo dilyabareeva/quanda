@@ -101,7 +101,7 @@ def test_mixed_datasets(
         dst_eval = MixedDatasets.generate(
             model=model,
             trainer=trainer,
-            clean_dataset=dataset,
+            base_dataset=dataset,
             eval_dataset=eval_dataset,
             adversarial_label=adversarial_label,
             adversarial_dir=adversarial_path,
@@ -113,7 +113,7 @@ def test_mixed_datasets(
     elif init_method == "assemble":
         dst_eval = MixedDatasets.assemble(
             model=model,
-            clean_dataset=dataset,
+            base_dataset=dataset,
             eval_dataset=eval_dataset,
             adversarial_label=adversarial_label,
             adversarial_dir=adversarial_path,
@@ -145,14 +145,14 @@ def test_mixed_dataset_download_sanity_checks(test_id, benchmark, batch_size, re
     dst_eval = request.getfixturevalue(benchmark)
     nonadv_indices = torch.where(1 - torch.tensor(dst_eval.adversarial_indices))[0]
     assertions = []
-    assert len(nonadv_indices) == len(dst_eval.clean_dataset)
+    assert len(nonadv_indices) == len(dst_eval.base_dataset)
     len_adv_ds = len(torch.where(torch.tensor(dst_eval.adversarial_indices))[0])
     assertions.append(all([idx.item() >= len_adv_ds for idx in nonadv_indices[:500]]))
 
     assertions.append(
         all(
             [
-                torch.allclose(dst_eval.clean_dataset[i.item() - len_adv_ds][0], dst_eval.mixed_dataset[i.item()][0])
+                torch.allclose(dst_eval.base_dataset[i.item() - len_adv_ds][0], dst_eval.mixed_dataset[i.item()][0])
                 for i in nonadv_indices[:100]
             ]
         )
