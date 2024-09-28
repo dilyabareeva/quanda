@@ -421,7 +421,7 @@ class MislabelingDetection(Benchmark):
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
+        explainer = explainer_cls(model=self.model, train_dataset=self.mislabeling_dataset, **expl_kwargs)
 
         mislabeling_expl_ds = LabelFlippingDataset(
             dataset=self.eval_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0

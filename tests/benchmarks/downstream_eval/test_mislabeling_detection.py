@@ -275,7 +275,7 @@ def test_mislabeling_detection_download(
 
         exp_layer = reduce(getattr, expl_kwargs["layers"].split("."), dst_eval.model)
         exp_layer.register_forward_hook(hook)
-        train_ld = torch.utils.data.DataLoader(dst_eval.train_dataset, batch_size=16, shuffle=False)
+        train_ld = torch.utils.data.DataLoader(dst_eval.mislabeling_dataset, batch_size=16, shuffle=False)
         for x, y in iter(train_ld):
             x = x.to(dst_eval.device)
             y_train = y.to(dst_eval.device)

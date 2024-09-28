@@ -161,7 +161,7 @@ def test_shortcut_detection(
             8,
             CaptumSimilarity,
             {"layers": "model.fc_2", "similarity_metric": cosine_similarity},
-            0.29325,
+            0.32718,
         ),
     ],
 )
@@ -319,7 +319,7 @@ def test_shortcut_detection_download(
             sample_fn=dst_eval.sample_fn,
             p=1.0,
         )
-        train_ld = torch.utils.data.DataLoader(dst_eval.train_dataset, batch_size=16, shuffle=False)
+        train_ld = torch.utils.data.DataLoader(dst_eval.shortcut_dataset, batch_size=16, shuffle=False)
         test_ld = torch.utils.data.DataLoader(shortcut_expl_ds, batch_size=16, shuffle=False)
         for x, y in iter(train_ld):
             x = x.to(dst_eval.device)
