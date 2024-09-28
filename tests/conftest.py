@@ -8,6 +8,17 @@ import torch
 import torchvision
 from torch.utils.data import TensorDataset
 
+from quanda.benchmarks.downstream_eval import (
+    ClassDetection,
+    MislabelingDetection,
+    ShortcutDetection,
+    SubclassDetection,
+)
+from quanda.benchmarks.heuristics import (
+    MixedDatasets,
+    ModelRandomization,
+    TopKOverlap,
+)
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
@@ -280,3 +291,73 @@ def mnist_white_square_transformation():
         return img
 
     return add_white_square
+
+
+@pytest.fixture(scope="session")
+def mnist_class_detection_benchmark(tmp_path_factory):
+    dst_eval = ClassDetection.download(
+        name="mnist_class_detection",
+        cache_dir=str(tmp_path_factory.mktemp("mnist_class_detection_benchmark")),
+        device="cpu",
+    )
+    return dst_eval
+
+
+@pytest.fixture(scope="session")
+def mnist_subclass_detection_benchmark(tmp_path_factory):
+    dst_eval = SubclassDetection.download(
+        name="mnist_subclass_detection",
+        cache_dir=str(tmp_path_factory.mktemp("mnist_subclass_detection_benchmark")),
+        device="cpu",
+    )
+    return dst_eval
+
+
+@pytest.fixture(scope="session")
+def mnist_mislabeling_detection_benchmark(tmp_path_factory):
+    dst_eval = MislabelingDetection.download(
+        name="mnist_mislabeling_detection",
+        cache_dir=str(tmp_path_factory.mktemp("mnist_mislabeling_detection_benchmark")),
+        device="cpu",
+    )
+    return dst_eval
+
+
+@pytest.fixture(scope="session")
+def mnist_shortcut_detection_benchmark(tmp_path_factory):
+    dst_eval = ShortcutDetection.download(
+        name="mnist_shortcut_detection",
+        cache_dir=str(tmp_path_factory.mktemp("mnist_shortcut_detection_benchmark")),
+        device="cpu",
+    )
+    return dst_eval
+
+
+@pytest.fixture(scope="session")
+def mnist_mixed_datasets_benchmark(tmp_path_factory):
+    dst_eval = MixedDatasets.download(
+        name="mnist_mixed_datasets",
+        cache_dir=str(tmp_path_factory.mktemp("mnist_mixed_datasets_benchmark")),
+        device="cpu",
+    )
+    return dst_eval
+
+
+@pytest.fixture(scope="session")
+def mnist_model_randomization_benchmark(tmp_path_factory):
+    dst_eval = ModelRandomization.download(
+        name="mnist_class_detection",
+        cache_dir=str(tmp_path_factory.mktemp("mnist_class_detection_benchmark")),
+        device="cpu",
+    )
+    return dst_eval
+
+
+@pytest.fixture(scope="session")
+def mnist_top_k_overlap_benchmark(tmp_path_factory):
+    dst_eval = TopKOverlap.download(
+        name="mnist_class_detection",
+        cache_dir=str(tmp_path_factory.mktemp("mnist_class_detection_benchmark")),
+        device="cpu",
+    )
+    return dst_eval

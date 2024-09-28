@@ -107,7 +107,7 @@ def test_topk_overlap(
     [
         (
             "mnist",
-            "mnist_class_detection",
+            "mnist_top_k_overlap_benchmark",
             8,
             CaptumSimilarity,
             {
@@ -119,20 +119,10 @@ def test_topk_overlap(
         ),
     ],
 )
-def test_class_detection_download(
-    test_id,
-    benchmark_name,
-    batch_size,
-    explainer_cls,
-    expl_kwargs,
-    expected_score,
-    tmp_path,
+def test_top_k_overlap_download(
+    test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score, tmp_path, request
 ):
-    dst_eval = TopKOverlap.download(
-        name=benchmark_name,
-        cache_dir=str(tmp_path),
-        device="cpu",
-    )
+    dst_eval = request.getfixturevalue(benchmark_name)
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
