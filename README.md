@@ -44,30 +44,68 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
 
 ### Metrics
 
+- **Linear Datamodeling Score** ([Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)): Measures the correlation between the (grouped) attribution scores and the actual output of models trained on different subsets of the training set. For each subset, the linear datamodeling score compares the actual model output with the sum of attribution scores from the subset using Spearman rank correlation.
+
 - **Identical Class / Identical Subclass** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the proportion of identical classes or subclasses in the top-1 training samples over the test dataset. If the attributions are based on similarity, they are expected to be predictive of the class of the test datapoint, as well as different subclasses under a single label.
 
--  **Top-K Overlap**  ([Barshan et al., 2020](http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf)): Measures the cardinality of the union of the top-K training samples. Since the attributions are expected to be dependent on the test input, they are expected to vary heavily for different test points, resulting in a low overlap (high metric value).
-
 - **Model Randomization** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the correlation between the original TDA and the TDA of a model with randomized weights. Since the attributions are expected to depend on model parameters, the correlation between original and randomized attributions should be low.
+  
+-  **Top-K Overlap**  ([Barshan et al., 2020](http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf)): Measures the cardinality of the union of the top-K training samples. Since the attributions are expected to be dependent on the test input, they are expected to vary heavily for different test points, resulting in a low overlap (high metric value).
 
 - **Mislabeled Data Detection** ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html)): Computes the proportion of noisy training labels detected as a function of the percentage of inspected training samples. The samples are inspected in order according to their global TDA ranking, which is computed using local attributions. This produces a cumulative mislabeling detection curve. We expect to see a curve that rapidly increases as we check more of the training data, thus we compute the area under this curve
   
-- **Shortcut Detection** TBD
+- **Shortcut Detection** ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html)): Assuming a known [shortcut](https://www.nature.com/articles/s42256-020-00257-z), or [Clever-Hans](https://www.nature.com/articles/s41467-019-08987-4) effect has been identified in the model, this metric evaluates how effectively a TDA (Topological Data Analysis) method can identify shortcut samples as the most influential in predicting cases with the shortcut artifact. This process is referred to as _Domain Mismatch Debugging_ in the original paper.
 
-- **Mixed Datasets** ([Hammoudeh and Lowd, 2022](https://dl.acm.org/doi/abs/10.1145/3548606.3559335)): In a setting, where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example. The evaluation is done using the Area Under the Precision-Recall Curve (AUPRC).
+- **Mixed Datasets** ([Hammoudeh and Lowd, 2022](https://dl.acm.org/doi/abs/10.1145/3548606.3559335)): In a setting where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example.
 
 ### Benchmarks
 
 **quanda** comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The following benchmarks are currently available:
-
-| Benchmark                     | Modality | Model | Metric                                                                                                                                           | Type                       |
-|--------------------------------|----------|-------|--------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------|
-| mnist_top_k_overlap            |          |       | [TopKOverlapMetric](./quanda/metrics/heuristics/top_k_overlap.py)                                                                                 | Heuristic                  |
-| mnist_mixed_datasets           | Vision   | MNIST | [MixedDatasetsMetric](./quanda/metrics/heuristics/mixed_datasets.py)                                                                              | Heuristic                  |
-| mnist_class_detection          |          |       | [ClassDetectionMetric](./quanda/metrics/downstream_eval/class_detection.py)                                                                       | Downstream-Task-Evaluator  |
-| mnist_subclass_detection       |          |       | [SubclassDetectionMetric](./quanda/metrics/downstream_eval/subclass_detection.py)                                                                 | Downstream-Task-Evaluator  |
-| mnist_mislabeling_detection    |          |       | [MislabelingDetectionMetric](./quanda/metrics/downstream_eval/mislabeling_detection.py)                                                           | Downstream-Task-Evaluator  |
-| mnist_shortcut_detection       |          |       | [ShortcutDetectionMetric](./quanda/metrics/downstream_eval/shortcut_detection.py)                                                                 | Downstream-Task-Evaluator  |
+<table>
+  <thead>
+    <tr>
+      <th>Benchmark</th>
+      <th>Modality</th>
+      <th>Model</th>
+      <th>Metric</th>
+      <th>Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>mnist_top_k_overlap</td>
+      <td rowspan="6">Vision</td> <!-- Merged vertically for "Modality" -->
+      <td rowspan="6">MNIST</td> <!-- Merged vertically for "Model" -->
+      <td><a href="./quanda/metrics/heuristics/top_k_overlap.py">TopKOverlapMetric</a></td>
+      <td>Heuristic</td>
+    </tr>
+    <tr>
+      <td>mnist_mixed_datasets</td>
+      <td><a href="./quanda/metrics/heuristics/mixed_datasets.py">MixedDatasetsMetric</a></td>
+      <td>Heuristic</td>
+    </tr>
+    <tr>
+      <td>mnist_class_detection</td>
+      <td><a href="./quanda/metrics/downstream_eval/class_detection.py">ClassDetectionMetric</a></td>
+      <td>Downstream-Task-Evaluator</td>
+    </tr>
+    <tr>
+      <td>mnist_subclass_detection</td>
+      <td><a href="./quanda/metrics/downstream_eval/subclass_detection.py">SubclassDetectionMetric</a></td>
+      <td>Downstream-Task-Evaluator</td>
+    </tr>
+    <tr>
+      <td>mnist_mislabeling_detection</td>
+      <td><a href="./quanda/metrics/downstream_eval/mislabeling_detection.py">MislabelingDetectionMetric</a></td>
+      <td>Downstream-Task-Evaluator</td>
+    </tr>
+    <tr>
+      <td>mnist_shortcut_detection</td>
+      <td><a href="./quanda/metrics/downstream_eval/shortcut_detection.py">ShortcutDetectionMetric</a></td>
+      <td>Downstream-Task-Evaluator</td>
+    </tr>
+  </tbody>
+</table>
 
 
 
