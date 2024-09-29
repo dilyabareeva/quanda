@@ -260,7 +260,11 @@ The core of your wrapper is the `explain` method. This function should take test
 Ensure the output tensor has the shape `(test_samples, train_samples)`, where the entries in the train samples dimension are ordered in the same order as in the `train_dataset` that is being attributed.
 
 ```python
-def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
+def explain(
+  self,
+  test: torch.Tensor,
+  targets: Union[List[int], torch.Tensor]
+) -> torch.Tensor:
     # Compute your influence scores here
     return influence_scores
  ```
