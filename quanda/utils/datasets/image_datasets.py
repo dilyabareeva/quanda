@@ -34,6 +34,8 @@ class HFtoTV(torch.utils.data.Dataset):
         return len(self.dataset)
 
     def __getitem__(self, idx):
+        if isinstance(idx, torch.Tensor):
+            idx = idx.item()
         item = self.dataset[idx]
         if self.transform:
             item["image"] = self.transform(item["image"])
