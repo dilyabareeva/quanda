@@ -23,9 +23,9 @@ from quanda.utils.training.trainer import BaseTrainer
 class ShortcutDetection(Benchmark):
     """Benchmark for shortcut detection evaluation task.
 
-    A class is selected and a portion of the images of that class are perturbed with a trigger.
-    The model is then trained on this dataset, and learns a shortcut to use the trigger to predict the class.
-    The goal is to detect this shortcut using the attributions of the model.
+    A class is selected, and a subset of its images is modified by overlaying a shortcut trigger. The model is then
+    trained on this dataset and learns to use the shortcut as a trigger to predict the class. The objective is to
+    detect this shortcut by analyzing the model's attributions.
 
     Note that all explanations are generated with respect to the class of the shortcut samples, to detect the shortcut.
 
@@ -40,8 +40,6 @@ class ShortcutDetection(Benchmark):
         International conference on machine learning. PMLR.
     2) TODO: Add citation to the original paper formulating ShortcutDetection after acceptance
     """
-
-    # TODO: remove FILTER BY "CORRECT" PREDICTION FOR SHORTCUT implied https://arxiv.org/pdf/2201.10055
 
     def __init__(
         self,
