@@ -1,4 +1,5 @@
 import copy
+import os
 from typing import Callable, List, Optional, Union
 
 import lightning as L
@@ -280,6 +281,12 @@ class ShortcutDetection(Benchmark):
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
+        checkpoint_paths = []
+        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+            save_path = os.path.join(cache_dir, ckpt_name)
+            torch.save(ckpt, save_path)
+            checkpoint_paths.append(save_path)
+
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
@@ -300,6 +307,7 @@ class ShortcutDetection(Benchmark):
             shortcut_cls=bench_state["shortcut_cls"],
             sample_fn=sample_fn,
             dataset_transform=dataset_transform,
+            checkpoint_paths=checkpoint_paths,
         )
 
     @classmethod
@@ -317,6 +325,7 @@ class ShortcutDetection(Benchmark):
         use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
+        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -351,6 +360,8 @@ class ShortcutDetection(Benchmark):
             The probability of mislabeling per sample, by default 0.3
         batch_size : int, optional
             Batch size that is used for training, by default 8
+        checkpoint_paths : Optional[List[str]], optional
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
 
         Returns
         -------
@@ -377,7 +388,7 @@ class ShortcutDetection(Benchmark):
         obj.shortcut_cls = shortcut_cls
         obj.shortcut_indices = obj.shortcut_dataset.transform_indices
         obj.sample_fn = sample_fn
-
+        obj._checkpoint_paths = checkpoint_paths
         obj.set_devices(model)
 
         return obj

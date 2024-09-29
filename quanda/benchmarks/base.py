@@ -21,6 +21,7 @@ class Benchmark(ABC):
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
         self.dataset_str: Optional[str] = None
+        self._checkpoint_paths: Optional[List[str]] = None
 
     @classmethod
     @abstractmethod
@@ -185,3 +186,10 @@ class Benchmark(ABC):
         """
         test_dataset = HFtoTV(load_dataset(dataset_str, split=dataset_split), transform=transform)
         return torch.utils.data.Subset(test_dataset, eval_indices)
+
+    @property
+    def checkpoint_paths(self) -> List[str]:
+        assert (
+            self._checkpoint_paths is not None
+        ), "checkpoint_paths can only be called after instantiating a benchmark using the download method."
+        return self._checkpoint_paths

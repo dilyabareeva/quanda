@@ -1,6 +1,7 @@
 import copy
 import logging
-from typing import Callable, Dict, Optional, Union
+import os
+from typing import Callable, Dict, List, Optional, Union
 
 import lightning as L
 import torch
@@ -276,6 +277,12 @@ class SubclassDetection(Benchmark):
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
+        checkpoint_paths = []
+        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+            save_path = os.path.join(cache_dir, ckpt_name)
+            torch.save(ckpt, save_path)
+            checkpoint_paths.append(save_path)
+
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
@@ -293,6 +300,7 @@ class SubclassDetection(Benchmark):
             use_predictions=bench_state["use_predictions"],
             class_to_group=bench_state["class_to_group"],
             dataset_transform=dataset_transform,
+            checkpoint_paths=checkpoint_paths,
         )
 
     @classmethod
@@ -308,6 +316,7 @@ class SubclassDetection(Benchmark):
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
+        checkpoint_paths: Optional[List[str]] = None,
     ):
         """Assembles the benchmark from existing components.
 
@@ -334,6 +343,8 @@ class SubclassDetection(Benchmark):
             The original dataset transform, by default None.
         batch_size : int, optional
             Batch size for the dataloaders, by default 8.
+        checkpoint_paths : Optional[List[str]], optional
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
 
         Returns
         -------
@@ -358,6 +369,8 @@ class SubclassDetection(Benchmark):
         )
         obj.grouped_train_dl = torch.utils.data.DataLoader(obj.grouped_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.base_dataset, batch_size=batch_size)
+
+        obj._checkpoint_paths = checkpoint_paths
 
         obj.set_devices(group_model)
 
