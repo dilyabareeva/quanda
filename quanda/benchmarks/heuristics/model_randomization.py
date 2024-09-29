@@ -1,5 +1,6 @@
 import logging
-from typing import Callable, Optional, Union
+import os
+from typing import Callable, List, Optional, Union
 
 import torch
 from tqdm import tqdm
@@ -136,6 +137,12 @@ class ModelRandomization(Benchmark):
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
+        checkpoint_paths = []
+        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+            save_path = os.path.join(cache_dir, ckpt_name)
+            torch.save(ckpt, save_path)
+            checkpoint_paths.append(save_path)
+
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
@@ -151,6 +158,7 @@ class ModelRandomization(Benchmark):
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
             data_transform=dataset_transform,
+            checkpoint_paths=checkpoint_paths,
         )
 
     @classmethod
@@ -164,6 +172,7 @@ class ModelRandomization(Benchmark):
         seed: int = 42,
         use_predictions: bool = True,
         dataset_split: str = "train",
+        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -190,6 +199,8 @@ class ModelRandomization(Benchmark):
             Whether to use the model's predictions for generating attributions. Defaults to True.
         seed : int, optional
             Seed to be used for the evaluation, by default 42
+        checkpoint_paths : Optional[List[str]], optional
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
 
         Returns
         -------
@@ -204,6 +215,7 @@ class ModelRandomization(Benchmark):
         obj.seed = seed
         obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.set_devices(model)
+        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 

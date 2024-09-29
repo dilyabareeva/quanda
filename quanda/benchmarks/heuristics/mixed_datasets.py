@@ -229,6 +229,12 @@ class MixedDatasets(Benchmark):
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
+        checkpoint_paths = []
+        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+            save_path = os.path.join(cache_dir, ckpt_name)
+            torch.save(ckpt, save_path)
+            checkpoint_paths.append(save_path)
+
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
@@ -254,6 +260,7 @@ class MixedDatasets(Benchmark):
             adversarial_label=bench_state["adversarial_label"],
             adversarial_transform=adversarial_transform,
             data_transform=dataset_transform,
+            checkpoint_paths=checkpoint_paths,
         )
 
     @staticmethod
@@ -303,6 +310,7 @@ class MixedDatasets(Benchmark):
         filter_by_prediction: bool = True,
         adversarial_transform: Optional[Callable] = None,
         dataset_split: str = "train",
+        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -332,6 +340,8 @@ class MixedDatasets(Benchmark):
             Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.
         dataset_split: str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
+        checkpoint_paths : Optional[List[str]], optional
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
 
         Returns
         -------
@@ -354,6 +364,8 @@ class MixedDatasets(Benchmark):
         obj.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, obj.base_dataset])
         obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [0] * ds_len(obj.base_dataset)
         obj.set_devices(model)
+
+        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 

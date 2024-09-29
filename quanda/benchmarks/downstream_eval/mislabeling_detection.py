@@ -1,5 +1,6 @@
 import copy
 import logging
+import os
 from typing import Callable, Dict, List, Optional, Union
 
 import lightning as L
@@ -68,7 +69,7 @@ class MislabelingDetection(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.base_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
+        self.eval_dataset: Optional[torch.utils.data.Dataset]
         self.mislabeling_dataset: LabelFlippingDataset
         self.dataset_transform: Optional[Callable]
         self.mislabeling_indices: List[int]
@@ -87,8 +88,8 @@ class MislabelingDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
-        eval_dataset: torch.utils.data.Dataset,
         trainer: Union[L.Trainer, BaseTrainer],
+        eval_dataset: Optional[torch.utils.data.Dataset] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
@@ -114,10 +115,13 @@ class MislabelingDetection(Benchmark):
             Vanilla training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
-        eval_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
         trainer : Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the model. Can be a Lightning Trainer or a `BaseTrainer`.
+        eval_dataset : Optional[torch.utils.data.Dataset]
+            Dataset to be used for the evaluation.
+            This is only used if `global_method` is not "self-influence", by default None.
+            Original papers use the self-influence method to reach a global ranking of the data,
+            instead of using aggregations of generated local explanations.
         use_predictions : bool, optional
             Whether to use the model's predictions for the evaluation.
             This is only used if `global_method` is not "self-influence", by default True.
@@ -150,6 +154,10 @@ class MislabelingDetection(Benchmark):
         """
 
         logger.info(f"Generating {MislabelingDetection.name} benchmark components based on passed arguments...")
+        if global_method != "self-influence":
+            assert (
+                eval_dataset is not None
+            ), "MislabelingDetection should have global_method='self-influence' or eval_dataset should be given."
 
         obj = cls()
         obj.set_devices(model)
@@ -300,6 +308,12 @@ class MislabelingDetection(Benchmark):
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
+        checkpoint_paths = []
+        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+            save_path = os.path.join(cache_dir, ckpt_name)
+            torch.save(ckpt, save_path)
+            checkpoint_paths.append(save_path)
+
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
@@ -318,6 +332,7 @@ class MislabelingDetection(Benchmark):
             mislabeling_labels=bench_state["mislabeling_labels"],
             dataset_transform=dataset_transform,
             global_method=bench_state.get("global_method", "self-influence"),
+            checkpoint_paths=checkpoint_paths,
         )
 
     @classmethod
@@ -326,13 +341,14 @@ class MislabelingDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
-        eval_dataset: torch.utils.data.Dataset,
         mislabeling_labels: Dict[int, int],
+        eval_dataset: Optional[torch.utils.data.Dataset] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         global_method: Union[str, type] = "self-influence",
         batch_size: int = 8,
+        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -366,7 +382,19 @@ class MislabelingDetection(Benchmark):
             Defaults to "self-influence".
         batch_size : int, optional
             Batch size that is used for training, by default 8
+        checkpoint_paths : Optional[List[str]], optional
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
+
+        Returns
+        -------
+        MislabelingDetection
+            The benchmark instance.
         """
+        if global_method != "self-influence":
+            assert (
+                eval_dataset is not None
+            ), "MislabelingDetection should have global_method='self-influence' or eval_dataset should be given."
+
         obj = cls()
         obj.model = model
         obj.base_dataset = obj.process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
@@ -390,7 +418,7 @@ class MislabelingDetection(Benchmark):
 
         obj.mislabeling_train_dl = torch.utils.data.DataLoader(obj.mislabeling_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.base_dataset, batch_size=batch_size)
-
+        obj._checkpoint_paths = checkpoint_paths
         obj.set_devices(model)
 
         return obj
@@ -423,11 +451,13 @@ class MislabelingDetection(Benchmark):
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(model=self.model, train_dataset=self.mislabeling_dataset, **expl_kwargs)
 
-        mislabeling_expl_ds = LabelFlippingDataset(
-            dataset=self.eval_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
-        )
-        expl_dl = torch.utils.data.DataLoader(mislabeling_expl_ds, batch_size=batch_size)
+        if self.eval_dataset is not None:
+            mislabeling_expl_ds = LabelFlippingDataset(
+                dataset=self.eval_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
+            )
+            expl_dl = torch.utils.data.DataLoader(mislabeling_expl_ds, batch_size=batch_size)
         if self.global_method != "self-influence":
+
             metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
                 train_dataset=self.mislabeling_dataset,

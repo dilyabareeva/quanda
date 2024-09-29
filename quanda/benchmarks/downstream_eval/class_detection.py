@@ -1,5 +1,6 @@
 import logging
-from typing import Callable, Optional, Union
+import os
+from typing import Callable, List, Optional, Union
 
 import torch
 from tqdm import tqdm
@@ -119,6 +120,12 @@ class ClassDetection(Benchmark):
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
+        checkpoint_paths = []
+        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+            save_path = os.path.join(cache_dir, ckpt_name)
+            torch.save(ckpt, save_path)
+            checkpoint_paths.append(save_path)
+
         eval_dataset = obj.build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
@@ -134,6 +141,7 @@ class ClassDetection(Benchmark):
             eval_dataset=eval_dataset,
             data_transform=dataset_transform,
             use_predictions=bench_state["use_predictions"],
+            checkpoint_paths=checkpoint_paths,
         )
 
     @classmethod
@@ -145,6 +153,7 @@ class ClassDetection(Benchmark):
         data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
+        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -164,6 +173,8 @@ class ClassDetection(Benchmark):
             Whether to use the model's predictions for the evaluation, by default True.
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
+        checkpoint_paths : Optional[List[str]], optional
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
 
         Returns
         -------
@@ -177,6 +188,7 @@ class ClassDetection(Benchmark):
         obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.use_predictions = use_predictions
         obj.set_devices(model)
+        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 
