@@ -260,7 +260,7 @@ class ShortcutDetection(Benchmark):
 
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
-        
+
         self.model.to(self.device)
         self.model.eval()
 

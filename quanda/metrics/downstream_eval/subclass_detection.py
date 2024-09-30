@@ -95,7 +95,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
 
         explanations = explanations[select_idx].to(self.device)
         test_subclasses = test_subclasses[select_idx].to(self.device)
-        
+
         top_one_xpl_indices = explanations.argmax(dim=1)
         top_one_xpl_targets = torch.stack([self.subclass_labels[int(i)] for i in top_one_xpl_indices]).to(self.device)
 
