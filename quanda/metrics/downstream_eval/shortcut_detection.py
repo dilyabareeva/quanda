@@ -103,7 +103,7 @@ class ShortcutDetectionMetric(Metric):
         if test_labels is not None:
             test_labels = test_labels.to(self.device)
 
-        select_idx = torch.tensor([True] * len(explanations))
+        select_idx = torch.tensor([True] * len(explanations)).to(self.device)
 
         if self.filter_by_prediction:
             pred_cls = self.model(test_tensor).argmax(dim=1)

@@ -88,14 +88,14 @@ class SubclassDetectionMetric(ClassDetectionMetric):
                 test_classes = torch.tensor(test_classes)
             test_classes = test_classes.to(self.device)
 
-        select_idx = torch.tensor([True] * len(explanations))
+        select_idx = torch.tensor([True] * len(explanations)).to(self.device)
         if self.filter_by_prediction:
             pred_cls = self.model(test_tensor).argmax(dim=1)
             select_idx *= pred_cls == test_classes
 
         explanations = explanations[select_idx].to(self.device)
         test_subclasses = test_subclasses[select_idx].to(self.device)
-
+        
         top_one_xpl_indices = explanations.argmax(dim=1)
         top_one_xpl_targets = torch.stack([self.subclass_labels[int(i)] for i in top_one_xpl_indices]).to(self.device)
 
