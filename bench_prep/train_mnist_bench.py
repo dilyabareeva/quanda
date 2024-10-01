@@ -311,7 +311,7 @@ for m in [
 
     new_n_classes = n_classes if m != "subclass" else 2
     lit_model = MnistModel(n_batches=len(train_dataloader), num_labels=new_n_classes, epochs=n_epochs, lr=3e-4)
-    lit_model.model = lit_model.train()
+    lit_model= lit_model.train()
     trainer.fit(lit_model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
     lit_model.eval()

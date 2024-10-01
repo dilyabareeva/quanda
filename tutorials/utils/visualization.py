@@ -192,7 +192,7 @@ def visualize_samples(images, labels, row_headers, denormalize, label_to_name_di
 
     # Add row descriptions to the left of each row (horizontally)
     for i, header in enumerate(row_headers):
-        fig.text(0.02, 0.9 - (i / grid_size[0]), header, va="top", ha="right", fontsize=14, color="black", fontweight="bold")
+        fig.text(0.02, 0.9 - (i / grid_size[0]), header, va="top", ha="right", fontsize=14, color="black")
 
     # Adjust spacing between images for even spacing
     plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9)

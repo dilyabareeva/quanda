@@ -162,7 +162,7 @@ def compute_mislabeling_metric(
     lit_model.eval()
 
     def load_state_dict(module: L.LightningModule, path: str) -> int:
-        checkpoints = torch.load(path, map_location=torch.device("cuda:0"))
+        checkpoints = torch.load(path, map_location=torch.device("cuda:1"))
         module.model.load_state_dict(checkpoints["model_state_dict"])
         module.eval()
         return module.lr

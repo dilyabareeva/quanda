@@ -85,7 +85,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     new_n_classes = len(set(list(class_to_group.values())))
     batch_size = 64
     num_workers = 1
-    device = "cuda:0"
+    device = "cuda:1"
 
     torch_rng = torch.Generator().manual_seed(27)
     generator = random.Random(27)
@@ -180,7 +180,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     lit_model.eval()
 
     def load_state_dict(module: L.LightningModule, path: str) -> int:
-        checkpoints = torch.load(path, map_location=torch.device("cuda:0"))
+        checkpoints = torch.load(path, map_location=torch.device("cuda:1"))
         module.model.load_state_dict(checkpoints["model_state_dict"])
         module.eval()
         return module.lr
@@ -401,10 +401,10 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             checkpoint=checkpoints[-1],
             loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
             checkpoints_load_func=load_state_dict,
-            projection_dim=100,
+            projection_dim=500,
             arnoldi_dim=200,
             batch_size=batch_size * 4,
-            layers=["model.fc"],  # only the last layer
+            #layers=["model.fc"],  # only the last layer
             device=device,
         )
 
