@@ -1,8 +1,8 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://datacloud.hhi.fraunhofer.de/s/RASa4kYXyq2Yg3A/download/quanda_panda_black_bg.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://datacloud.hhi.fraunhofer.de/s/9gJgDmF6XqM9Ksp/download/quanda_panda_no_bg.png">
-  <img width="700" alt="quanda" src="https://datacloud.hhi.fraunhofer.de/s/9gJgDmF6XqM9Ksp/download/quanda_panda_day_n_night.png">
+  <source media="(prefers-color-scheme: dark)" srcset="https://tinyurl.com/4yad8eru">
+  <source media="(prefers-color-scheme: light)" srcset="https://tinyurl.com/2rmc7my5">
+  <img width="700" alt="quanda" src="https://tinyurl.com/79mn289u">
 </picture>
 </p>
 
@@ -76,32 +76,32 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
       <td>mnist_top_k_overlap</td>
       <td rowspan="6">Vision</td> <!-- Merged vertically for "Modality" -->
       <td rowspan="6">MNIST</td> <!-- Merged vertically for "Model" -->
-      <td><a href="./quanda/metrics/heuristics/top_k_overlap.py">TopKOverlapMetric</a></td>
+      <td><a href="quanda/metrics/heuristics/top_k_overlap.py">TopKOverlapMetric</a></td>
       <td>Heuristic</td>
     </tr>
     <tr>
       <td>mnist_mixed_datasets</td>
-      <td><a href="./quanda/metrics/heuristics/mixed_datasets.py">MixedDatasetsMetric</a></td>
+      <td><a href="quanda/metrics/heuristics/mixed_datasets.py">MixedDatasetsMetric</a></td>
       <td>Heuristic</td>
     </tr>
     <tr>
       <td>mnist_class_detection</td>
-      <td><a href="./quanda/metrics/downstream_eval/class_detection.py">ClassDetectionMetric</a></td>
+      <td><a href="quanda/metrics/downstream_eval/class_detection.py">ClassDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
     </tr>
     <tr>
       <td>mnist_subclass_detection</td>
-      <td><a href="./quanda/metrics/downstream_eval/subclass_detection.py">SubclassDetectionMetric</a></td>
+      <td><a href="quanda/metrics/downstream_eval/subclass_detection.py">SubclassDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
     </tr>
     <tr>
       <td>mnist_mislabeling_detection</td>
-      <td><a href="./quanda/metrics/downstream_eval/mislabeling_detection.py">MislabelingDetectionMetric</a></td>
+      <td><a href="quanda/metrics/downstream_eval/mislabeling_detection.py">MislabelingDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
     </tr>
     <tr>
       <td>mnist_shortcut_detection</td>
-      <td><a href="./quanda/metrics/downstream_eval/shortcut_detection.py">ShortcutDetectionMetric</a></td>
+      <td><a href="quanda/metrics/downstream_eval/shortcut_detection.py">ShortcutDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
     </tr>
   </tbody>
@@ -229,7 +229,7 @@ print(f"Subclass Detection Score: {score}")
 ```
 </details>
 
-More detailed examples can be found in the following [tutorials](./quanda/tutorials) folder.
+More detailed examples can be found in the following [tutorials](quanda/tutorials) folder.
 
 ### Custom Explainers
 
@@ -238,7 +238,7 @@ In addition to the built-in explainers, **quanda** supports custom explainer met
 <details>
 <summary><b><big>Step 1. Create an explainer class</big></b></summary>
 
-Your custom explainer should inherit from the base [Explainer](./quanda/explainers/base.py) class provided by **quanda**. The first step is to initialize your custom explainer within the `__init__` method.
+Your custom explainer should inherit from the base [Explainer](quanda/explainers/base.py) class provided by **quanda**. The first step is to initialize your custom explainer within the `__init__` method.
 ```python
 from quanda.explainers.base import Explainer
 
@@ -282,7 +282,7 @@ def self_influence(self, batch_size: int = 1) -> torch.Tensor:
 ```
 </details>
 
-For detailed examples, we refer to the [existing explainer wrappers](./quanda/explainers/wrappers) in **quanda**.
+For detailed examples, we refer to the [existing explainer wrappers](quanda/explainers/wrappers) in **quanda**.
 
 
 ## ⚠️ Usage Tips and Caveats
@@ -295,7 +295,7 @@ For detailed examples, we refer to the [existing explainer wrappers](./quanda/ex
 
 ## 📓 Tutorials
 
-We have included a few  [tutorials](.quanda//tutorials) to demonstrate the usage of **quanda**:
+We have included a few  [tutorials](tutorials) to demonstrate the usage of **quanda**:
 
 * [Explainers](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_explainers.ipynb): shows how different explainers can be produced with **quanda**
 * [Metrics](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_metrics.ipynb): demonstrates how to use the metrics in **quanda** to evaluate the performance of a model
