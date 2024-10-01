@@ -2,7 +2,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="/assets/readme/quanda_panda_black_bg.png">
   <source media="(prefers-color-scheme: light)" srcset="/assets/readme/quanda_panda_no_bg.png">
-  <img width="500" alt="quanda" src="/assets/readme/quanda_panda_black_bg.png">
+  <img width="500" alt="quanda" src="https://github-production-user-asset-6210df.s3.amazonaws.com/44092813/372452013-1e644b96-4a2d-48a7-9562-0e9c3a54d6c3.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20241001%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20241001T113904Z&X-Amz-Expires=300&X-Amz-Signature=eccb0ca403d1cd5c460dc05b59a5f5457434bb952f5462ab6dda507622ed5fd8&X-Amz-SignedHeaders=host">
 </picture>
 </p>
 
