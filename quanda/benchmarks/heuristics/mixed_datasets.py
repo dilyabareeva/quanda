@@ -204,6 +204,8 @@ class MixedDatasets(Benchmark):
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
+        obj.model.to(obj.device)
+        obj.model.eval()
         return obj
 
     @classmethod

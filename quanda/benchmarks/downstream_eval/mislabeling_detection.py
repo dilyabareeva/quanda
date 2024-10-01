@@ -291,6 +291,9 @@ class MislabelingDetection(Benchmark):
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
+        self.model.to(self.device)
+        self.model.eval()
+
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
