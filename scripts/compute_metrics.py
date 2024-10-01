@@ -54,7 +54,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         # subprocess.run(["wget", "-qP", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
         # subprocess.run(["unzip", "-qq", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
         subprocess.run(
-            ["wget", "-qP", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"]
+            ["wget", "-qP", metadata_dir, "https://tinyurl.com/5chcwrbx"]
         )
         subprocess.run(["unzip", "-qq", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
 
@@ -64,12 +64,12 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
                 "wget",
                 "-P",
                 checkpoints_dir,
-                "https://datacloud.hhi.fraunhofer.de/s/ZE5dBnfzW94Xkoo/download/tiny_inet_resnet18.zip",
+                "https://tinyurl.com/47tc84fu",
             ]
         )
         subprocess.run(["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18.zip"), "-d", metadata_dir])
         subprocess.run(
-            ["wget", "-qP", metadata_dir, "https://datacloud.hhi.fraunhofer.de/s/AmnCXAC8zx3YQgP/download/dataset_indices.zip"]
+            ["wget", "-qP", metadata_dir, "https://tinyurl.com/u4w2j22k"]
         )
         subprocess.run(["unzip", "-qq", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
 
