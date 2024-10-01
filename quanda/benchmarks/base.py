@@ -85,7 +85,7 @@ class Benchmark(ABC):
             with open(os.path.join(cache_dir, name + ".pth"), "wb") as f:
                 f.write(response.content)
 
-        return torch.load(os.path.join(cache_dir, name + ".pth"), map_location=device)
+        return torch.load(os.path.join(cache_dir, name + ".pth"), map_location=device, weights_only=True)
 
     @classmethod
     @abstractmethod

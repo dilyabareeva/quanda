@@ -68,7 +68,7 @@ class ShortcutDetectionMetric(Metric):
 
     def _validate_shortcut_labels(self):
         """Validate the adversarial labels in the training dataset."""
-        shortcut_labels = torch.tensor([self.train_dataset[i][1] for i in self.shortcut_indices], device=self.device)
+        shortcut_labels = torch.tensor([self.train_dataset[int(i)][1] for i in self.shortcut_indices], device=self.device)
         assert torch.all(
             shortcut_labels == self.shortcut_cls
         ), f"shortcut indices don't have the correct class.\
