@@ -229,7 +229,7 @@ print(f"Subclass Detection Score: {score}")
 ```
 </details>
 
-More detailed examples can be found in the following [tutorials](quanda/tutorials) folder.
+More detailed examples can be found in the following [tutorials](tutorials) folder.
 
 ### Custom Explainers
 
@@ -282,7 +282,7 @@ def self_influence(self, batch_size: int = 1) -> torch.Tensor:
 ```
 </details>
 
-For detailed examples, we refer to the [existing explainer wrappers](quanda/explainers/wrappers) in **quanda**.
+For detailed examples, we refer to the [existing](quanda/explainers/wrappers/captum_influence.py) [explainer](quanda/explainers/wrappers/representer_points.py) [wrappers](quanda/explainers/wrappers/trak_wrapper.py) in **quanda**.
 
 
 ## ⚠️ Usage Tips and Caveats
@@ -297,9 +297,9 @@ For detailed examples, we refer to the [existing explainer wrappers](quanda/expl
 
 We have included a few  [tutorials](tutorials) to demonstrate the usage of **quanda**:
 
-* [Explainers](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_explainers.ipynb): shows how different explainers can be produced with **quanda**
-* [Metrics](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_metrics.ipynb): demonstrates how to use the metrics in **quanda** to evaluate the performance of a model
-* [Benchmarks](https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_benchmarks.ipynb): shows how to use the benchmarking tools in **quanda** to evaluate a data attribution method
+* [Explainers](tutorials/demo_explainers.ipynb): shows how different explainers can be produced with **quanda**
+* [Metrics](tutorials/demo_metrics.ipynb): demonstrates how to use the metrics in **quanda** to evaluate the performance of a model
+* [Benchmarks](tutorials/demo_benchmarks.ipynb): shows how to use the benchmarking tools in **quanda** to evaluate a data attribution method
 
 To install the library with tutorials dependencies, run:
 
@@ -312,7 +312,7 @@ We welcome contributions to **quanda**! You could contribute by:
 - Opening an issue to report a bug or request a feature
 - Submitting a pull request to fix a bug, add a new explainer wrapper, a new metric, or other feature.
 
-A detailed guide on how to contribute to **quanda** can be found [here](https://github.com/dilyabareeva/quanda/blob/main//CONTRIBUTING.md).
+A detailed guide on how to contribute to **quanda** can be found [here](CONTRIBUTING.md).
 
 If you have any questions, please [open an issue](https://github.com/dilyabareeva/quanda/issues/new)
 or write us at [dilyabareeva@gmail.com](mailto:dilyabareeva@gmail.com) or [galip.uemit.yolcu@hhi.fraunhofer.de](mailto:galip.uemit.yolcu@hhi.fraunhofer.de).
