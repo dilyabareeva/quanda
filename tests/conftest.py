@@ -361,3 +361,10 @@ def mnist_top_k_overlap_benchmark(tmp_path_factory):
         device="cpu",
     )
     return dst_eval
+
+
+@pytest.fixture
+def get_lds_score():
+    with open("tests/assets/lds_score.json", "r") as f:
+        score_data = json.load(f)
+    return score_data["lds_score"]
