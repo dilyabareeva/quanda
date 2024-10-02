@@ -184,7 +184,7 @@ def test_class_detection_hugging_face(
     assert isinstance(dst_eval.train_dataset.dataset, datasets.arrow_dataset.Dataset)
 
 
-@pytest.mark.benchmark
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, use_predictions, expected_score",
     [

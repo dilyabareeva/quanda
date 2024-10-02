@@ -271,7 +271,7 @@ def test_subclass_detection_download(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.benchmark
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, benchmark, batch_size",
     [
