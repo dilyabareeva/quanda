@@ -74,8 +74,8 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
   <tbody>
     <tr>
       <td>mnist_top_k_overlap</td>
-      <td rowspan="6">Vision</td> <!-- Merged vertically for "Modality" -->
-      <td rowspan="6">MNIST</td> <!-- Merged vertically for "Model" -->
+      <td rowspan="7">Vision</td> <!-- Merged vertically for "Modality" -->
+      <td rowspan="7">MNIST</td> <!-- Merged vertically for "Model" -->
       <td><a href="quanda/metrics/heuristics/top_k_overlap.py">TopKOverlapMetric</a></td>
       <td>Heuristic</td>
     </tr>
@@ -103,6 +103,11 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
       <td>mnist_shortcut_detection</td>
       <td><a href="quanda/metrics/downstream_eval/shortcut_detection.py">ShortcutDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
+    </tr>
+    <tr>
+      <td>mnist_linear_datamodeling_score</td>
+      <td><a href="quanda/metrics/ground_truth/linear_datamodeling.py">LinearDatamodelingMetric</a></td>
+      <td>Ground Truth</td>
     </tr>
   </tbody>
 </table>
