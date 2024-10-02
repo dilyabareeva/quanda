@@ -3,7 +3,6 @@ from typing import Callable, Optional, Union
 
 import pytest
 import torch
-from scipy.stats import spearmanr
 from torch.utils.data import DataLoader, Subset
 
 from quanda.explainers.wrappers import CaptumSimilarity
