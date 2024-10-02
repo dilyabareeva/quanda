@@ -49,9 +49,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
         # subprocess.run(["wget", "-qP", tiny_in_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
         # subprocess.run(["unzip", "-qq", os.path.join(tiny_in_path, "tiny-imagenet-200.zip"), "-d", tiny_in_path])
-        subprocess.run(
-            ["wget", "-qP", metadata_dir, "https://tinyurl.com/5chcwrbx"]
-        )
+        subprocess.run(["wget", "-qP", metadata_dir, "https://tinyurl.com/5chcwrbx"])
         subprocess.run(["unzip", "-qq", os.path.join(metadata_dir, "sketch.zip"), "-d", metadata_dir])
 
         # Next we download all the necessary checkpoints and the dataset metadata
@@ -64,9 +62,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             ]
         )
         subprocess.run(["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18.zip"), "-d", metadata_dir])
-        subprocess.run(
-            ["wget", "-qP", metadata_dir, "https://tinyurl.com/u4w2j22k"]
-        )
+        subprocess.run(["wget", "-qP", metadata_dir, "https://tinyurl.com/u4w2j22k"])
         subprocess.run(["unzip", "-qq", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
 
     n_epochs = 10
@@ -404,7 +400,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             projection_dim=500,
             arnoldi_dim=200,
             batch_size=batch_size * 4,
-            #layers=["model.fc"],  # only the last layer
+            # layers=["model.fc"],  # only the last layer
             device=device,
         )
 

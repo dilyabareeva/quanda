@@ -82,6 +82,7 @@ Currently, the following markers are available to filter tests:
 * explainers: Explainer wrappers
 * downstream_eval_metrics: Downstream task evaluator metrics
 * heuristic_metrics: Heuristic metrics
+* ground_truth_metrics: Ground Truth metrics
 * benchmarks: Benchmark modules
 * aggregators: Aggregator modules
 * aggr_strategies: aggr_strategies modules
