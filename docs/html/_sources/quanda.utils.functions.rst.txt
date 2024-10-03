@@ -1,0 +1,29 @@
+quanda.utils.functions package
+==============================
+
+Submodules
+----------
+
+quanda.utils.functions.correlations module
+------------------------------------------
+
+.. automodule:: quanda.utils.functions.correlations
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.utils.functions.similarities module
+------------------------------------------
+
+.. automodule:: quanda.utils.functions.similarities
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: quanda.utils.functions
+   :members:
+   :undoc-members:
+   :show-inheritance:

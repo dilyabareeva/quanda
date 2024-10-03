@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quanda.metrics.downstream_eval package &mdash; quanda 01.07.2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=cea27b2f"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" >
+            
+              <img src="_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="docs_api/modules.html">quanda</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">quanda</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">quanda.metrics.downstream_eval package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quanda.metrics.downstream_eval.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quanda-metrics-downstream-eval-package">
+<h1>quanda.metrics.downstream_eval package<a class="headerlink" href="#quanda-metrics-downstream-eval-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-quanda.metrics.downstream_eval.class_detection">
+<span id="quanda-metrics-downstream-eval-class-detection-module"></span><h2>quanda.metrics.downstream_eval.class_detection module<a class="headerlink" href="#module-quanda.metrics.downstream_eval.class_detection" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.metrics.downstream_eval.class_detection.</span></span><span class="sig-name descname"><span class="pre">ClassDetectionMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'./cache'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="docs_api/quanda.metrics.base.html#quanda.metrics.base.Metric" title="quanda.metrics.base.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a></p>
+<p>Metric that measures the performance of a given data attribution method in detecting the class of a test sample
+from its highest attributed training point.</p>
+<p>Intuitively, a good attribution method should assign the highest attribution to the class of the test sample,
+as argued by Hanawa et al. (2021) and Kwon et al. (2024).</p>
+<p class="rubric">References</p>
+<p>1) Hanawa, K., Yokoi, S., Hara, S., &amp; Inui, K. (2021). Evaluation of similarity-based explanations.
+In International Conference on Learning Representations.</p>
+<p>2) Kwon, Y., Wu, E., Wu, K., Zou, J., (2024). DataInf: Efficiently Estimating Data Influence in
+LoRA-tuned LLMs and Diffusion Models. The Twelfth International Conference on Learning Representations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Get the length of the dataset.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.class_detection.html#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.compute" title="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.compute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute</span></code></a>()</p></td>
+<td><p>Aggregate the metric state and return the final score.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.class_detection.html#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.load_state_dict" title="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.load_state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code></a>(state_dict, *args, **kwargs)</p></td>
+<td><p>Load previously computed state for the metric.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.class_detection.html#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.reset" title="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Reset the metric state.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.class_detection.html#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.state_dict" title="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Return the metric state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.class_detection.html#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.update" title="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(test_labels, explanations)</p></td>
+<td><p>Update the metric state with the provided explanations.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'./cache'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Class Detection metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model associated with the attributions to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset that was used to train <cite>model</cite>.</p></li>
+<li><p><strong>explainer_cls</strong> (<em>Optional</em><em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – The explainer class. Defaults to None.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Additional keyword arguments for the explainer class.</p></li>
+<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – An identifier for the model, by default “0”.</p></li>
+<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – The cache directory, by default “./cache”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.compute" title="Link to this definition"></a></dt>
+<dd><p>Aggregate the metric state and return the final score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the final score in the <cite>score</cite> field.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.load_state_dict">
+<span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.load_state_dict" title="Link to this definition"></a></dt>
+<dd><p>Load previously computed state for the metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state_dict</strong> (<em>dict</em>) – A state dictionary for the metric.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.reset" title="Link to this definition"></a></dt>
+<dd><p>Reset the metric state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.state_dict">
+<span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.state_dict" title="Link to this definition"></a></dt>
+<dd><p>Return the metric state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric.update" title="Link to this definition"></a></dt>
+<dd><p>Update the metric state with the provided explanations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>test_labels</strong> (<em>torch.Tensor</em>) – Labels of the test samples.</p></li>
+<li><p><strong>explanations</strong> (<em>torch.Tensor</em>) – Explanations of the test samples.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-quanda.metrics.downstream_eval.mislabeling_detection">
+<span id="quanda-metrics-downstream-eval-mislabeling-detection-module"></span><h2>quanda.metrics.downstream_eval.mislabeling_detection module<a class="headerlink" href="#module-quanda.metrics.downstream_eval.mislabeling_detection" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.metrics.downstream_eval.mislabeling_detection.</span></span><span class="sig-name descname"><span class="pre">MislabelingDetectionMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mislabeling_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">type</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'self-influence'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="docs_api/quanda.metrics.base.html#quanda.metrics.base.Metric" title="quanda.metrics.base.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a></p>
+<p>Metric for noisy label detection.</p>
+<p>This metric is used to evaluate attributions for detecting mislabeled samples.</p>
+<p>Given the ground truth of mislabeled samples, and a strategy to get a global ranking
+of datapoints from a local explainer, the area under the mislabeled sample detection
+curve is computed following Kwon et al. (2024).</p>
+<p class="rubric">References</p>
+<p>1) Koh, P. W., &amp; Liang, P. (2017). Understanding black-box predictions via influence functions. In International
+Conference on Machine Learning (pp. 1885-1894). PMLR.</p>
+<p>2) Yeh, C.-K., Kim, J., Yen, I. E., Ravikumar, P., &amp; Dhillon, I. S. (2018). Representer point selection
+for explaining deep neural networks. In Advances in Neural Information Processing Systems (Vol. 31).</p>
+<p>3) Pruthi, G., Liu, F., Sundararajan, M., &amp; Kale, S. (2020). Estimating training data influence by tracing gradient
+descent. In Advances in Neural Information Processing Systems (Vol. 33, pp. 19920-19930).</p>
+<p>4) Picard, A. M., Vigouroux, D., Zamolodtchikov, P., Vincenot, Q., Loubes, J.-M., &amp; Pauwels, E. (2022). Leveraging
+influence functions for dataset exploration and cleaning. In 11th European Congress on Embedded Real-Time Systems
+(ERTS 2022) (pp. 1-8). Toulouse, France.</p>
+<p>5) Kwon, Y., Wu, E., Wu, K., &amp; Zou, J. (2024). DataInf: Efficiently estimating data influence in LoRA-tuned LLMs and
+diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Get the length of the dataset.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.aggr_based" title="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.aggr_based"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggr_based</span></code></a>(model, train_dataset, ...)</p></td>
+<td><p>Perform aggregation-based mislabeling detection.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.compute" title="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.compute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Compute the mislabeling detection metrics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.load_state_dict" title="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.load_state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code></a>(state_dict, *args, **kwargs)</p></td>
+<td><p>Load previously computed state for the metric.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.reset" title="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Reset the global ranking strategy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.self_influence_based" title="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.self_influence_based"><code class="xref py py-obj docutils literal notranslate"><span class="pre">self_influence_based</span></code></a>(model, train_dataset, ...)</p></td>
+<td><p>Perform self-influence based mislabeling detection.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.state_dict" title="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Returns the state dictionary of the metric.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.update" title="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(test_data, test_labels, explanations, ...)</p></td>
+<td><p>Update the aggregator based metric with local attributions.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mislabeling_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">type</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'self-influence'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Mislabeling Detection metric.</p>
+<p>This initializer is not used directly.
+Instead, the <cite>self_influence_based</cite> or <cite>aggr_based</cite> methods should be used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model associated with the attributions to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset that was used to train <cite>model</cite>.</p></li>
+<li><p><strong>mislabeling_indices</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – A list of ground truth mislabeled indices of the <cite>train_dataset</cite>.</p></li>
+<li><p><strong>global_method</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>type</em><em>]</em><em>, </em><em>optional</em>) – The methodology to generate a global ranking from local explainer.
+It can be “self-influence” or a subclass of <cite>quanda.explainers.aggregators.BaseAggregator</cite>.
+Defaults to “self-influence”.</p></li>
+<li><p><strong>explainer_cls</strong> (<em>Optional</em><em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – The explainer class. Defaults to None.
+This parameter should be a subclass of <cite>quanda.explainers.BaseExplainer</cite> whenever <cite>global_method</cite>
+is “self-influence”.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Additional keyword arguments for the explainer class.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.aggr_based">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aggr_based</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mislabeling_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregator_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">type</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.aggr_based"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.aggr_based" title="Link to this definition"></a></dt>
+<dd><p>Perform aggregation-based mislabeling detection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset used to train the model.</p></li>
+<li><p><strong>mislabeling_indices</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – The indices of the poisoned samples in the training dataset.</p></li>
+<li><p><strong>aggregator_cls</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>type</em><em>]</em>) – The class of the aggregation method to be used, or a string indicating the method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of the class for aggregation-based mislabeling detection.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric" title="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric">MislabelingDetectionMetric</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.compute" title="Link to this definition"></a></dt>
+<dd><p>Compute the mislabeling detection metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the following elements:
+- <cite>success_arr</cite>: A tensor indicating the mislabeling detection success of each element in the global ranking.
+- <cite>curve</cite>: The normalized curve of cumulative success rate.
+- <cite>score</cite>: The mislabeling detection score, i.e. the area under <cite>curve</cite>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.load_state_dict">
+<span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.load_state_dict" title="Link to this definition"></a></dt>
+<dd><p>Load previously computed state for the metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state_dict</strong> (<em>dict</em>) – A state dictionary for the metric</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.reset" title="Link to this definition"></a></dt>
+<dd><p>Reset the global ranking strategy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.self_influence_based">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">self_influence_based</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mislabeling_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.self_influence_based"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.self_influence_based" title="Link to this definition"></a></dt>
+<dd><p>Perform self-influence based mislabeling detection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The trained model which was used for the attributions to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset used to train <cite>model</cite>.</p></li>
+<li><p><strong>explainer_cls</strong> (<em>type</em>) – The class of the explainer used for self-influence computation.</p></li>
+<li><p><strong>mislabeling_indices</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – The indices of the poisoned samples in the training dataset.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em>) – Optional keyword arguments for the explainer class.</p></li>
+<li><p><strong>*args</strong> (<em>Any</em>) – Additional positional arguments.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of the mislabeling detection metric with self-influence strategy.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric" title="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric">MislabelingDetectionMetric</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.state_dict">
+<span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.state_dict" title="Link to this definition"></a></dt>
+<dd><p>Returns the state dictionary of the metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The state dictionary of the metric.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.mislabeling_detection.MislabelingDetectionMetric.update" title="Link to this definition"></a></dt>
+<dd><p>Update the aggregator based metric with local attributions.
+This method is not used for self-influence based mislabeling detection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>explanations</strong> (<em>torch.Tensor</em>) – The local attributions to be added to the aggregated scores.</p></li>
+<li><p><strong>test_data</strong> (<em>torch.Tensor</em>) – The test data for which the attributions were computed.</p></li>
+<li><p><strong>test_labels</strong> (<em>torch.Tensor</em>) – The true labels of the test data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-quanda.metrics.downstream_eval.shortcut_detection">
+<span id="quanda-metrics-downstream-eval-shortcut-detection-module"></span><h2>quanda.metrics.downstream_eval.shortcut_detection module<a class="headerlink" href="#module-quanda.metrics.downstream_eval.shortcut_detection" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.metrics.downstream_eval.shortcut_detection.</span></span><span class="sig-name descname"><span class="pre">ShortcutDetectionMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="docs_api/quanda.metrics.base.html#quanda.metrics.base.Metric" title="quanda.metrics.base.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a></p>
+<p>Metric for the shortcut detection evaluation task.
+Attributions of a  model with a shortcut is checked against the ground truth of shortcut samples.
+This strategy is inspired by Koh et al. (2017).</p>
+<p class="rubric">References</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>Koh, Pang Wei, and Percy Liang. (2017). Understanding black-box predictions via influence functions.</dt><dd><p>International conference on machine learning. PMLR.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Get the length of the dataset.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.compute" title="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.compute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Aggregates current results and return a metric score.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.load_state_dict" title="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.load_state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code></a>(state_dict, *args, **kwargs)</p></td>
+<td><p>Loads the metric state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.reset" title="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Resets the metric state.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.state_dict" title="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Returns the metric state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.update" title="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(explanations[, test_tensor, test_labels])</p></td>
+<td><p>Update the metric state with the provided explanations.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Shortcut Detection metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – Model associated with the attributions to be evaluated. The checkpoint of the model should be loaded.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset used to train <cite>model</cite>. Each item of the dataset should be a tuple of the form
+(input_tensor, label_tensor).</p></li>
+<li><p><strong>shortcut_indices</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – A list of ground truth shortcut indices of the <cite>train_dataset</cite>.</p></li>
+<li><p><strong>shortcut_cls</strong> (<em>int</em>) – Class of the shortcut samples.</p></li>
+<li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+is predicted, by default True.</p></li>
+<li><p><strong>filter_by_class</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+is not assigned as the class, by default True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If the shortcut samples are not all from to the shortcut class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.compute" title="Link to this definition"></a></dt>
+<dd><p>Aggregates current results and return a metric score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing the metric score.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.load_state_dict">
+<span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.load_state_dict" title="Link to this definition"></a></dt>
+<dd><p>Loads the metric state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the metric state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.state_dict">
+<span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.state_dict" title="Link to this definition"></a></dt>
+<dd><p>Returns the metric state.</p>
+<section id="returns">
+<h3>Returns:<a class="headerlink" href="#returns" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>dict</dt><dd><p>The state dictionary of the global ranker.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explanations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.update" title="Link to this definition"></a></dt>
+<dd><p>Update the metric state with the provided explanations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>explanations</strong> (<em>torch.Tensor</em>) – Explanations to be evaluated.</p></li>
+<li><p><strong>test_tensor</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>torch.Tensor</em><em>]</em><em>, </em><em>optional</em>) – Test samples for which the explanations were computed. Not optional if <cite>filter_by_prediction</cite> is True.</p></li>
+<li><p><strong>test_labels</strong> (<em>torch.Tensor</em><em>, </em><em>optional</em>) – Labels of the test samples. Not optional if <cite>filter_by_prediction</cite> or <cite>filter_by_class</cite> is True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-quanda.metrics.downstream_eval.subclass_detection">
+<span id="quanda-metrics-downstream-eval-subclass-detection-module"></span><h2>quanda.metrics.downstream_eval.subclass_detection module<a class="headerlink" href="#module-quanda.metrics.downstream_eval.subclass_detection" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.subclass_detection.SubclassDetectionMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.metrics.downstream_eval.subclass_detection.</span></span><span class="sig-name descname"><span class="pre">SubclassDetectionMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_subclass_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/subclass_detection.html#SubclassDetectionMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.subclass_detection.SubclassDetectionMetric" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.class_detection.html#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric" title="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClassDetectionMetric</span></code></a></p>
+<p>Subclass Detection Metric as defined in Hanawa et al. (2021).
+A model is trained on a dataset where labels are grouped into superclasses.
+The metric evaluates the performance of an attribution method in detecting the subclass of a test sample
+from its highest attributed training point.</p>
+<p class="rubric">References</p>
+<p>1) Hanawa, K., Yokoi, S., Hara, S., &amp; Inui, K. (2021). Evaluation of similarity-based explanations. In International
+Conference on Learning Representations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Get the length of the dataset.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute</span></code>()</p></td>
+<td><p>Aggregate the metric state and return the final score.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code>(state_dict, *args, **kwargs)</p></td>
+<td><p>Load previously computed state for the metric.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code>(*args, **kwargs)</p></td>
+<td><p>Reset the metric state.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code>(*args, **kwargs)</p></td>
+<td><p>Return the metric state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.subclass_detection.html#quanda.metrics.downstream_eval.subclass_detection.SubclassDetectionMetric.update" title="quanda.metrics.downstream_eval.subclass_detection.SubclassDetectionMetric.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(test_subclasses, explanations[, ...])</p></td>
+<td><p>Update the metric state with the provided explanations.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.subclass_detection.SubclassDetectionMetric.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_subclass_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/subclass_detection.html#SubclassDetectionMetric.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.subclass_detection.SubclassDetectionMetric.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Subclass Detection metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model associated with the attributions to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset that was used to train <cite>model</cite>.</p></li>
+<li><p><strong>train_subclass_labels</strong> (<em>torch.Tensor</em>) – The subclass labels of the training dataset.</p></li>
+<li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the correct superclass is
+predicted, by default False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.subclass_detection.SubclassDetectionMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_subclasses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/subclass_detection.html#SubclassDetectionMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.subclass_detection.SubclassDetectionMetric.update" title="Link to this definition"></a></dt>
+<dd><p>Update the metric state with the provided explanations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>test_subclasses</strong> (<em>torch.Tensor</em>) – Original labels of the test samples</p></li>
+<li><p><strong>explanations</strong> (<em>torch.Tensor</em>) – Explanations of the test samples</p></li>
+<li><p><strong>test_tensor</strong> (<em>Optional</em><em>[</em><em>torch.Tensor</em><em>]</em>) – Test samples to used to generate the explanations.
+Only required if <cite>filter_by_prediction</cite> is True during initalization.</p></li>
+<li><p><strong>test_classes</strong> (<em>Optional</em><em>[</em><em>torch.Tensor</em><em>]</em>) – The true superclasses of the test samples. Only required if <cite>filter_by_prediction</cite> is True during initalization.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <cite>test_tensor</cite> and <cite>test_classes</cite> are not provided when <cite>filter_by_prediction</cite> is True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-quanda.metrics.downstream_eval">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-quanda.metrics.downstream_eval" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ClassDetectionMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.metrics.downstream_eval.</span></span><span class="sig-name descname"><span class="pre">ClassDetectionMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'./cache'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ClassDetectionMetric" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="docs_api/quanda.metrics.base.html#quanda.metrics.base.Metric" title="quanda.metrics.base.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a></p>
+<p>Metric that measures the performance of a given data attribution method in detecting the class of a test sample
+from its highest attributed training point.</p>
+<p>Intuitively, a good attribution method should assign the highest attribution to the class of the test sample,
+as argued by Hanawa et al. (2021) and Kwon et al. (2024).</p>
+<p class="rubric">References</p>
+<p>1) Hanawa, K., Yokoi, S., Hara, S., &amp; Inui, K. (2021). Evaluation of similarity-based explanations.
+In International Conference on Learning Representations.</p>
+<p>2) Kwon, Y., Wu, E., Wu, K., Zou, J., (2024). DataInf: Efficiently Estimating Data Influence in
+LoRA-tuned LLMs and Diffusion Models. The Twelfth International Conference on Learning Representations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Get the length of the dataset.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ClassDetectionMetric.compute" title="quanda.metrics.downstream_eval.ClassDetectionMetric.compute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute</span></code></a>()</p></td>
+<td><p>Aggregate the metric state and return the final score.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ClassDetectionMetric.load_state_dict" title="quanda.metrics.downstream_eval.ClassDetectionMetric.load_state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code></a>(state_dict, *args, **kwargs)</p></td>
+<td><p>Load previously computed state for the metric.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ClassDetectionMetric.reset" title="quanda.metrics.downstream_eval.ClassDetectionMetric.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Reset the metric state.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ClassDetectionMetric.state_dict" title="quanda.metrics.downstream_eval.ClassDetectionMetric.state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Return the metric state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ClassDetectionMetric.update" title="quanda.metrics.downstream_eval.ClassDetectionMetric.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(test_labels, explanations)</p></td>
+<td><p>Update the metric state with the provided explanations.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ClassDetectionMetric.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'./cache'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ClassDetectionMetric.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Class Detection metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model associated with the attributions to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset that was used to train <cite>model</cite>.</p></li>
+<li><p><strong>explainer_cls</strong> (<em>Optional</em><em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – The explainer class. Defaults to None.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Additional keyword arguments for the explainer class.</p></li>
+<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – An identifier for the model, by default “0”.</p></li>
+<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – The cache directory, by default “./cache”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ClassDetectionMetric.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ClassDetectionMetric.compute" title="Link to this definition"></a></dt>
+<dd><p>Aggregate the metric state and return the final score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the final score in the <cite>score</cite> field.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ClassDetectionMetric.load_state_dict">
+<span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ClassDetectionMetric.load_state_dict" title="Link to this definition"></a></dt>
+<dd><p>Load previously computed state for the metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state_dict</strong> (<em>dict</em>) – A state dictionary for the metric.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ClassDetectionMetric.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ClassDetectionMetric.reset" title="Link to this definition"></a></dt>
+<dd><p>Reset the metric state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ClassDetectionMetric.state_dict">
+<span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ClassDetectionMetric.state_dict" title="Link to this definition"></a></dt>
+<dd><p>Return the metric state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ClassDetectionMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/class_detection.html#ClassDetectionMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ClassDetectionMetric.update" title="Link to this definition"></a></dt>
+<dd><p>Update the metric state with the provided explanations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>test_labels</strong> (<em>torch.Tensor</em>) – Labels of the test samples.</p></li>
+<li><p><strong>explanations</strong> (<em>torch.Tensor</em>) – Explanations of the test samples.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.MislabelingDetectionMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.metrics.downstream_eval.</span></span><span class="sig-name descname"><span class="pre">MislabelingDetectionMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mislabeling_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">type</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'self-influence'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.MislabelingDetectionMetric" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="docs_api/quanda.metrics.base.html#quanda.metrics.base.Metric" title="quanda.metrics.base.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a></p>
+<p>Metric for noisy label detection.</p>
+<p>This metric is used to evaluate attributions for detecting mislabeled samples.</p>
+<p>Given the ground truth of mislabeled samples, and a strategy to get a global ranking
+of datapoints from a local explainer, the area under the mislabeled sample detection
+curve is computed following Kwon et al. (2024).</p>
+<p class="rubric">References</p>
+<p>1) Koh, P. W., &amp; Liang, P. (2017). Understanding black-box predictions via influence functions. In International
+Conference on Machine Learning (pp. 1885-1894). PMLR.</p>
+<p>2) Yeh, C.-K., Kim, J., Yen, I. E., Ravikumar, P., &amp; Dhillon, I. S. (2018). Representer point selection
+for explaining deep neural networks. In Advances in Neural Information Processing Systems (Vol. 31).</p>
+<p>3) Pruthi, G., Liu, F., Sundararajan, M., &amp; Kale, S. (2020). Estimating training data influence by tracing gradient
+descent. In Advances in Neural Information Processing Systems (Vol. 33, pp. 19920-19930).</p>
+<p>4) Picard, A. M., Vigouroux, D., Zamolodtchikov, P., Vincenot, Q., Loubes, J.-M., &amp; Pauwels, E. (2022). Leveraging
+influence functions for dataset exploration and cleaning. In 11th European Congress on Embedded Real-Time Systems
+(ERTS 2022) (pp. 1-8). Toulouse, France.</p>
+<p>5) Kwon, Y., Wu, E., Wu, K., &amp; Zou, J. (2024). DataInf: Efficiently estimating data influence in LoRA-tuned LLMs and
+diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Get the length of the dataset.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.MislabelingDetectionMetric.aggr_based" title="quanda.metrics.downstream_eval.MislabelingDetectionMetric.aggr_based"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aggr_based</span></code></a>(model, train_dataset, ...)</p></td>
+<td><p>Perform aggregation-based mislabeling detection.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.MislabelingDetectionMetric.compute" title="quanda.metrics.downstream_eval.MislabelingDetectionMetric.compute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Compute the mislabeling detection metrics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.MislabelingDetectionMetric.load_state_dict" title="quanda.metrics.downstream_eval.MislabelingDetectionMetric.load_state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code></a>(state_dict, *args, **kwargs)</p></td>
+<td><p>Load previously computed state for the metric.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.MislabelingDetectionMetric.reset" title="quanda.metrics.downstream_eval.MislabelingDetectionMetric.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Reset the global ranking strategy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.MislabelingDetectionMetric.self_influence_based" title="quanda.metrics.downstream_eval.MislabelingDetectionMetric.self_influence_based"><code class="xref py py-obj docutils literal notranslate"><span class="pre">self_influence_based</span></code></a>(model, train_dataset, ...)</p></td>
+<td><p>Perform self-influence based mislabeling detection.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.MislabelingDetectionMetric.state_dict" title="quanda.metrics.downstream_eval.MislabelingDetectionMetric.state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Returns the state dictionary of the metric.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.MislabelingDetectionMetric.update" title="quanda.metrics.downstream_eval.MislabelingDetectionMetric.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(test_data, test_labels, explanations, ...)</p></td>
+<td><p>Update the aggregator based metric with local attributions.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.MislabelingDetectionMetric.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mislabeling_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">global_method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">type</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'self-influence'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.MislabelingDetectionMetric.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Mislabeling Detection metric.</p>
+<p>This initializer is not used directly.
+Instead, the <cite>self_influence_based</cite> or <cite>aggr_based</cite> methods should be used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model associated with the attributions to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset that was used to train <cite>model</cite>.</p></li>
+<li><p><strong>mislabeling_indices</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – A list of ground truth mislabeled indices of the <cite>train_dataset</cite>.</p></li>
+<li><p><strong>global_method</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>type</em><em>]</em><em>, </em><em>optional</em>) – The methodology to generate a global ranking from local explainer.
+It can be “self-influence” or a subclass of <cite>quanda.explainers.aggregators.BaseAggregator</cite>.
+Defaults to “self-influence”.</p></li>
+<li><p><strong>explainer_cls</strong> (<em>Optional</em><em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – The explainer class. Defaults to None.
+This parameter should be a subclass of <cite>quanda.explainers.BaseExplainer</cite> whenever <cite>global_method</cite>
+is “self-influence”.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Additional keyword arguments for the explainer class.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.MislabelingDetectionMetric.aggr_based">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">aggr_based</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mislabeling_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggregator_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">type</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.aggr_based"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.MislabelingDetectionMetric.aggr_based" title="Link to this definition"></a></dt>
+<dd><p>Perform aggregation-based mislabeling detection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset used to train the model.</p></li>
+<li><p><strong>mislabeling_indices</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – The indices of the poisoned samples in the training dataset.</p></li>
+<li><p><strong>aggregator_cls</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>type</em><em>]</em>) – The class of the aggregation method to be used, or a string indicating the method.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of the class for aggregation-based mislabeling detection.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.MislabelingDetectionMetric" title="quanda.metrics.downstream_eval.MislabelingDetectionMetric">MislabelingDetectionMetric</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.MislabelingDetectionMetric.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.MislabelingDetectionMetric.compute" title="Link to this definition"></a></dt>
+<dd><p>Compute the mislabeling detection metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the following elements:
+- <cite>success_arr</cite>: A tensor indicating the mislabeling detection success of each element in the global ranking.
+- <cite>curve</cite>: The normalized curve of cumulative success rate.
+- <cite>score</cite>: The mislabeling detection score, i.e. the area under <cite>curve</cite>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.MislabelingDetectionMetric.load_state_dict">
+<span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.MislabelingDetectionMetric.load_state_dict" title="Link to this definition"></a></dt>
+<dd><p>Load previously computed state for the metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state_dict</strong> (<em>dict</em>) – A state dictionary for the metric</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.MislabelingDetectionMetric.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.MislabelingDetectionMetric.reset" title="Link to this definition"></a></dt>
+<dd><p>Reset the global ranking strategy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.MislabelingDetectionMetric.self_influence_based">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">self_influence_based</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mislabeling_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.self_influence_based"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.MislabelingDetectionMetric.self_influence_based" title="Link to this definition"></a></dt>
+<dd><p>Perform self-influence based mislabeling detection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The trained model which was used for the attributions to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset used to train <cite>model</cite>.</p></li>
+<li><p><strong>explainer_cls</strong> (<em>type</em>) – The class of the explainer used for self-influence computation.</p></li>
+<li><p><strong>mislabeling_indices</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – The indices of the poisoned samples in the training dataset.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em>) – Optional keyword arguments for the explainer class.</p></li>
+<li><p><strong>*args</strong> (<em>Any</em>) – Additional positional arguments.</p></li>
+<li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of the mislabeling detection metric with self-influence strategy.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.MislabelingDetectionMetric" title="quanda.metrics.downstream_eval.MislabelingDetectionMetric">MislabelingDetectionMetric</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.MislabelingDetectionMetric.state_dict">
+<span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.MislabelingDetectionMetric.state_dict" title="Link to this definition"></a></dt>
+<dd><p>Returns the state dictionary of the metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The state dictionary of the metric.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.MislabelingDetectionMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/mislabeling_detection.html#MislabelingDetectionMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.MislabelingDetectionMetric.update" title="Link to this definition"></a></dt>
+<dd><p>Update the aggregator based metric with local attributions.
+This method is not used for self-influence based mislabeling detection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>explanations</strong> (<em>torch.Tensor</em>) – The local attributions to be added to the aggregated scores.</p></li>
+<li><p><strong>test_data</strong> (<em>torch.Tensor</em>) – The test data for which the attributions were computed.</p></li>
+<li><p><strong>test_labels</strong> (<em>torch.Tensor</em>) – The true labels of the test data.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ShortcutDetectionMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.metrics.downstream_eval.</span></span><span class="sig-name descname"><span class="pre">ShortcutDetectionMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ShortcutDetectionMetric" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="docs_api/quanda.metrics.base.html#quanda.metrics.base.Metric" title="quanda.metrics.base.Metric"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metric</span></code></a></p>
+<p>Metric for the shortcut detection evaluation task.
+Attributions of a  model with a shortcut is checked against the ground truth of shortcut samples.
+This strategy is inspired by Koh et al. (2017).</p>
+<p class="rubric">References</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>Koh, Pang Wei, and Percy Liang. (2017). Understanding black-box predictions via influence functions.</dt><dd><p>International conference on machine learning. PMLR.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Get the length of the dataset.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.compute" title="quanda.metrics.downstream_eval.ShortcutDetectionMetric.compute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Aggregates current results and return a metric score.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.load_state_dict" title="quanda.metrics.downstream_eval.ShortcutDetectionMetric.load_state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code></a>(state_dict, *args, **kwargs)</p></td>
+<td><p>Loads the metric state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.reset" title="quanda.metrics.downstream_eval.ShortcutDetectionMetric.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Resets the metric state.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.state_dict" title="quanda.metrics.downstream_eval.ShortcutDetectionMetric.state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Returns the metric state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.update" title="quanda.metrics.downstream_eval.ShortcutDetectionMetric.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(explanations[, test_tensor, test_labels])</p></td>
+<td><p>Update the metric state with the provided explanations.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ShortcutDetectionMetric.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ShortcutDetectionMetric.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Shortcut Detection metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – Model associated with the attributions to be evaluated. The checkpoint of the model should be loaded.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset used to train <cite>model</cite>. Each item of the dataset should be a tuple of the form
+(input_tensor, label_tensor).</p></li>
+<li><p><strong>shortcut_indices</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – A list of ground truth shortcut indices of the <cite>train_dataset</cite>.</p></li>
+<li><p><strong>shortcut_cls</strong> (<em>int</em>) – Class of the shortcut samples.</p></li>
+<li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+is predicted, by default True.</p></li>
+<li><p><strong>filter_by_class</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+is not assigned as the class, by default True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If the shortcut samples are not all from to the shortcut class.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ShortcutDetectionMetric.compute">
+<span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ShortcutDetectionMetric.compute" title="Link to this definition"></a></dt>
+<dd><p>Aggregates current results and return a metric score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionary containing the metric score.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ShortcutDetectionMetric.load_state_dict">
+<span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ShortcutDetectionMetric.load_state_dict" title="Link to this definition"></a></dt>
+<dd><p>Loads the metric state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ShortcutDetectionMetric.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ShortcutDetectionMetric.reset" title="Link to this definition"></a></dt>
+<dd><p>Resets the metric state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ShortcutDetectionMetric.state_dict">
+<span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ShortcutDetectionMetric.state_dict" title="Link to this definition"></a></dt>
+<dd><p>Returns the metric state.</p>
+<section id="id1">
+<h3>Returns:<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>dict</dt><dd><p>The state dictionary of the global ranker.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.ShortcutDetectionMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explanations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.ShortcutDetectionMetric.update" title="Link to this definition"></a></dt>
+<dd><p>Update the metric state with the provided explanations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>explanations</strong> (<em>torch.Tensor</em>) – Explanations to be evaluated.</p></li>
+<li><p><strong>test_tensor</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>torch.Tensor</em><em>]</em><em>, </em><em>optional</em>) – Test samples for which the explanations were computed. Not optional if <cite>filter_by_prediction</cite> is True.</p></li>
+<li><p><strong>test_labels</strong> (<em>torch.Tensor</em><em>, </em><em>optional</em>) – Labels of the test samples. Not optional if <cite>filter_by_prediction</cite> or <cite>filter_by_class</cite> is True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.SubclassDetectionMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.metrics.downstream_eval.</span></span><span class="sig-name descname"><span class="pre">SubclassDetectionMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_subclass_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/subclass_detection.html#SubclassDetectionMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.SubclassDetectionMetric" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.class_detection.html#quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric" title="quanda.metrics.downstream_eval.class_detection.ClassDetectionMetric"><code class="xref py py-class docutils literal notranslate"><span class="pre">ClassDetectionMetric</span></code></a></p>
+<p>Subclass Detection Metric as defined in Hanawa et al. (2021).
+A model is trained on a dataset where labels are grouped into superclasses.
+The metric evaluates the performance of an attribution method in detecting the subclass of a test sample
+from its highest attributed training point.</p>
+<p class="rubric">References</p>
+<p>1) Hanawa, K., Yokoi, S., Hara, S., &amp; Inui, K. (2021). Evaluation of similarity-based explanations. In International
+Conference on Learning Representations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Get the length of the dataset.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute</span></code>()</p></td>
+<td><p>Aggregate the metric state and return the final score.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code>(state_dict, *args, **kwargs)</p></td>
+<td><p>Load previously computed state for the metric.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code>(*args, **kwargs)</p></td>
+<td><p>Reset the metric state.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code>(*args, **kwargs)</p></td>
+<td><p>Return the metric state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.SubclassDetectionMetric.update" title="quanda.metrics.downstream_eval.SubclassDetectionMetric.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(test_subclasses, explanations[, ...])</p></td>
+<td><p>Update the metric state with the provided explanations.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.SubclassDetectionMetric.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_subclass_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/subclass_detection.html#SubclassDetectionMetric.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.SubclassDetectionMetric.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Subclass Detection metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model associated with the attributions to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset that was used to train <cite>model</cite>.</p></li>
+<li><p><strong>train_subclass_labels</strong> (<em>torch.Tensor</em>) – The subclass labels of the training dataset.</p></li>
+<li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the correct superclass is
+predicted, by default False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.metrics.downstream_eval.SubclassDetectionMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_subclasses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/metrics/downstream_eval/subclass_detection.html#SubclassDetectionMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.SubclassDetectionMetric.update" title="Link to this definition"></a></dt>
+<dd><p>Update the metric state with the provided explanations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>test_subclasses</strong> (<em>torch.Tensor</em>) – Original labels of the test samples</p></li>
+<li><p><strong>explanations</strong> (<em>torch.Tensor</em>) – Explanations of the test samples</p></li>
+<li><p><strong>test_tensor</strong> (<em>Optional</em><em>[</em><em>torch.Tensor</em><em>]</em>) – Test samples to used to generate the explanations.
+Only required if <cite>filter_by_prediction</cite> is True during initalization.</p></li>
+<li><p><strong>test_classes</strong> (<em>Optional</em><em>[</em><em>torch.Tensor</em><em>]</em>) – The true superclasses of the test samples. Only required if <cite>filter_by_prediction</cite> is True during initalization.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <cite>test_tensor</cite> and <cite>test_classes</cite> are not provided when <cite>filter_by_prediction</cite> is True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Dilya, Galip.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

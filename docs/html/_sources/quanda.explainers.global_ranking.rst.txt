@@ -1,0 +1,29 @@
+quanda.explainers.global\_ranking package
+=========================================
+
+Submodules
+----------
+
+quanda.explainers.global\_ranking.aggregators module
+----------------------------------------------------
+
+.. automodule:: quanda.explainers.global_ranking.aggregators
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.explainers.global\_ranking.global\_ranking\_strategies module
+--------------------------------------------------------------------
+
+.. automodule:: quanda.explainers.global_ranking.global_ranking_strategies
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: quanda.explainers.global_ranking
+   :members:
+   :undoc-members:
+   :show-inheritance:

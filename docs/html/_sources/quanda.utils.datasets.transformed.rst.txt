@@ -1,0 +1,53 @@
+quanda.utils.datasets.transformed package
+=========================================
+
+Submodules
+----------
+
+quanda.utils.datasets.transformed.backdoor\_poisoning module
+------------------------------------------------------------
+
+.. automodule:: quanda.utils.datasets.transformed.backdoor_poisoning
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.utils.datasets.transformed.base module
+---------------------------------------------
+
+.. automodule:: quanda.utils.datasets.transformed.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.utils.datasets.transformed.label\_flipping module
+--------------------------------------------------------
+
+.. automodule:: quanda.utils.datasets.transformed.label_flipping
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.utils.datasets.transformed.label\_grouping module
+--------------------------------------------------------
+
+.. automodule:: quanda.utils.datasets.transformed.label_grouping
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.utils.datasets.transformed.sample module
+-----------------------------------------------
+
+.. automodule:: quanda.utils.datasets.transformed.sample
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: quanda.utils.datasets.transformed
+   :members:
+   :undoc-members:
+   :show-inheritance:

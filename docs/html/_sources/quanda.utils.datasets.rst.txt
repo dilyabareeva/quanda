@@ -1,0 +1,37 @@
+quanda.utils.datasets package
+=============================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.utils.datasets.transformed
+
+Submodules
+----------
+
+quanda.utils.datasets.image\_datasets module
+--------------------------------------------
+
+.. automodule:: quanda.utils.datasets.image_datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.utils.datasets.on\_device\_dataset module
+------------------------------------------------
+
+.. automodule:: quanda.utils.datasets.on_device_dataset
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: quanda.utils.datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:

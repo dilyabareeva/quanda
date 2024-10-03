@@ -1,0 +1,29 @@
+quanda.utils.training package
+=============================
+
+Submodules
+----------
+
+quanda.utils.training.base\_pl\_module module
+---------------------------------------------
+
+.. automodule:: quanda.utils.training.base_pl_module
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.utils.training.trainer module
+------------------------------------
+
+.. automodule:: quanda.utils.training.trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: quanda.utils.training
+   :members:
+   :undoc-members:
+   :show-inheritance:

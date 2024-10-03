@@ -1,0 +1,4 @@
+/* Hide the home icon in the sidebar */
+.icon.icon-home {
+    display: none;
+}

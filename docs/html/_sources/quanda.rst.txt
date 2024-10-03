@@ -1,0 +1,21 @@
+quanda package
+==============
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.benchmarks
+   quanda.explainers
+   quanda.metrics
+   quanda.utils
+
+Module contents
+---------------
+
+.. automodule:: quanda
+   :members:
+   :undoc-members:
+   :show-inheritance:

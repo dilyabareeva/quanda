@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quanda.utils package &mdash; quanda 01.07.2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=cea27b2f"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" >
+            
+              <img src="_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="docs_api/modules.html">quanda</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">quanda</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">quanda.utils package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quanda.utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quanda-utils-package">
+<h1>quanda.utils package<a class="headerlink" href="#quanda-utils-package" title="Link to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quanda.utils.datasets.html">quanda.utils.datasets package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.datasets.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.datasets.transformed.html">quanda.utils.datasets.transformed package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.transformed.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.transformed.html#module-quanda.utils.datasets.transformed.backdoor_poisoning">quanda.utils.datasets.transformed.backdoor_poisoning module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.transformed.html#module-quanda.utils.datasets.transformed.base">quanda.utils.datasets.transformed.base module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.transformed.html#module-quanda.utils.datasets.transformed.label_flipping">quanda.utils.datasets.transformed.label_flipping module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.transformed.html#module-quanda.utils.datasets.transformed.label_grouping">quanda.utils.datasets.transformed.label_grouping module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.transformed.html#module-quanda.utils.datasets.transformed.sample">quanda.utils.datasets.transformed.sample module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.transformed.html#module-quanda.utils.datasets.transformed">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.datasets.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.datasets.html#module-quanda.utils.datasets.image_datasets">quanda.utils.datasets.image_datasets module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.datasets.html#quanda.utils.datasets.image_datasets.HFtoTV"><code class="docutils literal notranslate"><span class="pre">HFtoTV</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.html#quanda.utils.datasets.image_datasets.HFtoTV.__init__"><code class="docutils literal notranslate"><span class="pre">HFtoTV.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.datasets.html#quanda.utils.datasets.image_datasets.SingleClassImageDataset"><code class="docutils literal notranslate"><span class="pre">SingleClassImageDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.html#quanda.utils.datasets.image_datasets.SingleClassImageDataset.__init__"><code class="docutils literal notranslate"><span class="pre">SingleClassImageDataset.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.datasets.html#module-quanda.utils.datasets.on_device_dataset">quanda.utils.datasets.on_device_dataset module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.datasets.html#quanda.utils.datasets.on_device_dataset.OnDeviceDataset"><code class="docutils literal notranslate"><span class="pre">OnDeviceDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.html#quanda.utils.datasets.on_device_dataset.OnDeviceDataset.__init__"><code class="docutils literal notranslate"><span class="pre">OnDeviceDataset.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.datasets.html#module-quanda.utils.datasets">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.datasets.html#quanda.utils.datasets.OnDeviceDataset"><code class="docutils literal notranslate"><span class="pre">OnDeviceDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.html#quanda.utils.datasets.OnDeviceDataset.__init__"><code class="docutils literal notranslate"><span class="pre">OnDeviceDataset.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.datasets.html#quanda.utils.datasets.SingleClassImageDataset"><code class="docutils literal notranslate"><span class="pre">SingleClassImageDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.datasets.html#quanda.utils.datasets.SingleClassImageDataset.__init__"><code class="docutils literal notranslate"><span class="pre">SingleClassImageDataset.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quanda.utils.functions.html">quanda.utils.functions package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.functions.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.functions.html#module-quanda.utils.functions.correlations">quanda.utils.functions.correlations module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.functions.html#quanda.utils.functions.correlations.kendall_rank_corr"><code class="docutils literal notranslate"><span class="pre">kendall_rank_corr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.functions.html#quanda.utils.functions.correlations.spearman_rank_corr"><code class="docutils literal notranslate"><span class="pre">spearman_rank_corr()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.functions.html#module-quanda.utils.functions.similarities">quanda.utils.functions.similarities module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.functions.html#quanda.utils.functions.similarities.cosine_similarity"><code class="docutils literal notranslate"><span class="pre">cosine_similarity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.functions.html#quanda.utils.functions.similarities.dot_product_similarity"><code class="docutils literal notranslate"><span class="pre">dot_product_similarity()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.functions.html#module-quanda.utils.functions">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.functions.html#quanda.utils.functions.cosine_similarity"><code class="docutils literal notranslate"><span class="pre">cosine_similarity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.functions.html#quanda.utils.functions.dot_product_similarity"><code class="docutils literal notranslate"><span class="pre">dot_product_similarity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.functions.html#quanda.utils.functions.kendall_rank_corr"><code class="docutils literal notranslate"><span class="pre">kendall_rank_corr()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.functions.html#quanda.utils.functions.spearman_rank_corr"><code class="docutils literal notranslate"><span class="pre">spearman_rank_corr()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quanda.utils.training.html">quanda.utils.training package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.training.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.training.html#module-quanda.utils.training.base_pl_module">quanda.utils.training.base_pl_module module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.base_pl_module.BasicLightningModule"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.base_pl_module.BasicLightningModule.__init__"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.base_pl_module.BasicLightningModule.configure_optimizers"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.configure_optimizers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.base_pl_module.BasicLightningModule.forward"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.base_pl_module.BasicLightningModule.on_load_checkpoint"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.on_load_checkpoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.base_pl_module.BasicLightningModule.on_save_checkpoint"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.on_save_checkpoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.base_pl_module.BasicLightningModule.training_step"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.training_step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.base_pl_module.BasicLightningModule.validation_step"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.validation_step()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.training.html#module-quanda.utils.training.trainer">quanda.utils.training.trainer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.trainer.BaseTrainer"><code class="docutils literal notranslate"><span class="pre">BaseTrainer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.trainer.BaseTrainer.fit"><code class="docutils literal notranslate"><span class="pre">BaseTrainer.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.trainer.BaseTrainer.get_model"><code class="docutils literal notranslate"><span class="pre">BaseTrainer.get_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.trainer.Trainer"><code class="docutils literal notranslate"><span class="pre">Trainer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.trainer.Trainer.__init__"><code class="docutils literal notranslate"><span class="pre">Trainer.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.trainer.Trainer.fit"><code class="docutils literal notranslate"><span class="pre">Trainer.fit()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quanda.utils.training.html#module-quanda.utils.training">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BaseTrainer"><code class="docutils literal notranslate"><span class="pre">BaseTrainer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BaseTrainer.fit"><code class="docutils literal notranslate"><span class="pre">BaseTrainer.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BaseTrainer.get_model"><code class="docutils literal notranslate"><span class="pre">BaseTrainer.get_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BasicLightningModule"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BasicLightningModule.__init__"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BasicLightningModule.configure_optimizers"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.configure_optimizers()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BasicLightningModule.forward"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.forward()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BasicLightningModule.on_load_checkpoint"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.on_load_checkpoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BasicLightningModule.on_save_checkpoint"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.on_save_checkpoint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BasicLightningModule.training_step"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.training_step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BasicLightningModule.validation_step"><code class="docutils literal notranslate"><span class="pre">BasicLightningModule.validation_step()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.Trainer"><code class="docutils literal notranslate"><span class="pre">Trainer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.Trainer.__init__"><code class="docutils literal notranslate"><span class="pre">Trainer.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.Trainer.fit"><code class="docutils literal notranslate"><span class="pre">Trainer.fit()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-quanda.utils.cache">
+<span id="quanda-utils-cache-module"></span><h2>quanda.utils.cache module<a class="headerlink" href="#module-quanda.utils.cache" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.utils.cache.BatchedCachedExplanations">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.utils.cache.</span></span><span class="sig-name descname"><span class="pre">BatchedCachedExplanations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">device</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/utils/cache.html#BatchedCachedExplanations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.BatchedCachedExplanations" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Utility class for lazy loading and saving batched explanations.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.utils.cache.BatchedCachedExplanations.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">device</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/utils/cache.html#BatchedCachedExplanations.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.BatchedCachedExplanations.__init__" title="Link to this definition"></a></dt>
+<dd><p>Utility class for loading and saving batched explanations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cache_dir</strong> (<em>str</em>) – Directory containing the cached explanations.</p></li>
+<li><p><strong>device</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em><em>]</em>) – Device to load the explanations on.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.utils.cache.Cache">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.utils.cache.</span></span><span class="sig-name descname"><span class="pre">Cache</span></span><a class="reference internal" href="_modules/quanda/utils/cache.html#Cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.Cache" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Abstract class for caching. Methods of this class are static.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.utils.cache.html#quanda.utils.cache.Cache.exists" title="quanda.utils.cache.Cache.exists"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exists</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Check if the explanation exists in the cache.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.utils.cache.html#quanda.utils.cache.Cache.load" title="quanda.utils.cache.Cache.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Load the explanation from the cache.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.utils.cache.html#quanda.utils.cache.Cache.save" title="quanda.utils.cache.Cache.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Save the explanation to the cache.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.utils.cache.Cache.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/utils/cache.html#Cache.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.Cache.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.utils.cache.Cache.exists">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/quanda/utils/cache.html#Cache.exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.Cache.exists" title="Link to this definition"></a></dt>
+<dd><p>Check if the explanation exists in the cache.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.utils.cache.Cache.load">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/quanda/utils/cache.html#Cache.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.Cache.load" title="Link to this definition"></a></dt>
+<dd><p>Load the explanation from the cache.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.utils.cache.Cache.save">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/quanda/utils/cache.html#Cache.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.Cache.save" title="Link to this definition"></a></dt>
+<dd><p>Save the explanation to the cache.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.utils.cache.ExplanationsCache">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.utils.cache.</span></span><span class="sig-name descname"><span class="pre">ExplanationsCache</span></span><a class="reference internal" href="_modules/quanda/utils/cache.html#ExplanationsCache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.ExplanationsCache" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="docs_api/quanda.utils.cache.html#quanda.utils.cache.Cache" title="quanda.utils.cache.Cache"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cache</span></code></a></p>
+<p>Class for caching generated explanations at a given path.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.utils.cache.html#quanda.utils.cache.ExplanationsCache.exists" title="quanda.utils.cache.ExplanationsCache.exists"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exists</span></code></a>(path[, num_id])</p></td>
+<td><p>Check if the explanations exist at the given path.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="docs_api/quanda.utils.cache.html#quanda.utils.cache.ExplanationsCache.load" title="quanda.utils.cache.ExplanationsCache.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(path[, device])</p></td>
+<td><p>Load the explanations from the given path.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="docs_api/quanda.utils.cache.html#quanda.utils.cache.ExplanationsCache.save" title="quanda.utils.cache.ExplanationsCache.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(path, exp_tensors, num_id)</p></td>
+<td><p>Save the explanations to the given path.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.utils.cache.ExplanationsCache.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/utils/cache.html#ExplanationsCache.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.ExplanationsCache.__init__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.utils.cache.ExplanationsCache.exists">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">exists</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/quanda/utils/cache.html#ExplanationsCache.exists"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.ExplanationsCache.exists" title="Link to this definition"></a></dt>
+<dd><p>Check if the explanations exist at the given path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Path to the explanations.</p></li>
+<li><p><strong>num_id</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em><em>]</em>) – Number identifier for the explanations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the explanations exist, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.utils.cache.ExplanationsCache.load">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">device</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="docs_api/quanda.utils.cache.html#quanda.utils.cache.BatchedCachedExplanations" title="quanda.utils.cache.BatchedCachedExplanations"><span class="pre">BatchedCachedExplanations</span></a></span></span><a class="reference internal" href="_modules/quanda/utils/cache.html#ExplanationsCache.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.ExplanationsCache.load" title="Link to this definition"></a></dt>
+<dd><p>Load the explanations from the given path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Path to load the explanations.</p></li>
+<li><p><strong>device</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em><em>]</em>) – Device to load the explanations on.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>BatchedCachedExplanations object that can load explanations lazily by index.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="docs_api/quanda.utils.cache.html#quanda.utils.cache.BatchedCachedExplanations" title="quanda.utils.cache.BatchedCachedExplanations">BatchedCachedExplanations</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.utils.cache.ExplanationsCache.save">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exp_tensors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/quanda/utils/cache.html#ExplanationsCache.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.cache.ExplanationsCache.save" title="Link to this definition"></a></dt>
+<dd><p>Save the explanations to the given path.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – Path to save the explanations.</p></li>
+<li><p><strong>exp_tensors</strong> (<em>Tensor</em>) – Explanations to save.</p></li>
+<li><p><strong>num_id</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – Number identifier for the explanations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-quanda.utils.common">
+<span id="quanda-utils-common-module"></span><h2>quanda.utils.common module<a class="headerlink" href="#module-quanda.utils.common" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="quanda.utils.common.cache_result">
+<span class="sig-prename descclassname"><span class="pre">quanda.utils.common.</span></span><span class="sig-name descname"><span class="pre">cache_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/utils/common.html#cache_result"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.common.cache_result" title="Link to this definition"></a></dt>
+<dd><p>Decorator to cache method results.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quanda.utils.common.class_accuracy">
+<span class="sig-prename descclassname"><span class="pre">quanda.utils.common.</span></span><span class="sig-name descname"><span class="pre">class_accuracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">net</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataLoader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">device</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cpu'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/utils/common.html#class_accuracy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.common.class_accuracy" title="Link to this definition"></a></dt>
+<dd><p>Return accuracy on a dataset given by the data loader.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>net</strong> (<em>torch.nn.Module</em>) – The model to evaluate.</p></li>
+<li><p><strong>loader</strong> (<em>torch.utils.data.DataLoader</em>) – The data loader to evaluate the model on.</p></li>
+<li><p><strong>device</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em>) – The device to evaluate the model on.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quanda.utils.common.default_tensor_type">
+<span class="sig-prename descclassname"><span class="pre">quanda.utils.common.</span></span><span class="sig-name descname"><span class="pre">default_tensor_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/utils/common.html#default_tensor_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.common.default_tensor_type" title="Link to this definition"></a></dt>
+<dd><p>Context manager to temporarily change the default tensor type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em>) – The device to which the default tensor type should be set.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quanda.utils.common.ds_len">
+<span class="sig-prename descclassname"><span class="pre">quanda.utils.common.</span></span><span class="sig-name descname"><span class="pre">ds_len</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/quanda/utils/common.html#ds_len"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.common.ds_len" title="Link to this definition"></a></dt>
+<dd><p>Get the length of the dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dataset</strong> (<em>torch.utils.data.Dataset</em>) – The dataset to get the length of.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The length of the dataset.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quanda.utils.common.get_load_state_dict_func">
+<span class="sig-prename descclassname"><span class="pre">quanda.utils.common.</span></span><span class="sig-name descname"><span class="pre">get_load_state_dict_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/utils/common.html#get_load_state_dict_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.common.get_load_state_dict_func" title="Link to this definition"></a></dt>
+<dd><p>Function to get a load_state_dict function that loads a model state dict</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em>) – The device to load the model on.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quanda.utils.common.get_parent_module_from_name">
+<span class="sig-prename descclassname"><span class="pre">quanda.utils.common.</span></span><span class="sig-name descname"><span class="pre">get_parent_module_from_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layer_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="_modules/quanda/utils/common.html#get_parent_module_from_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.common.get_parent_module_from_name" title="Link to this definition"></a></dt>
+<dd><p>Get the parent module of a module in a model by name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to extract the module from.</p></li>
+<li><p><strong>layer_name</strong> (<em>str</em>) – The name of the module to extract.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The module extracted from the model.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quanda.utils.common.make_func">
+<span class="sig-prename descclassname"><span class="pre">quanda.utils.common.</span></span><span class="sig-name descname"><span class="pre">make_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">partial</span></span></span><a class="reference internal" href="_modules/quanda/utils/common.html#make_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.common.make_func" title="Link to this definition"></a></dt>
+<dd><p>A function for creating a partial function with the given arguments.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> (<em>Callable</em>) – The function to create a partial function from.</p></li>
+<li><p><strong>func_kwargs</strong> (<em>Optional</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – Optional keyword arguments to fix for the function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The partial function with the given arguments.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>functools.partial</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quanda.utils.common.map_location_context">
+<span class="sig-prename descclassname"><span class="pre">quanda.utils.common.</span></span><span class="sig-name descname"><span class="pre">map_location_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">device</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quanda/utils/common.html#map_location_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.common.map_location_context" title="Link to this definition"></a></dt>
+<dd><p>Context manager to temporarily change the map_location parameter of torch.load.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>device</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em>) – The device to which the tensors should be loaded.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-quanda.utils.validation">
+<span id="quanda-utils-validation-module"></span><h2>quanda.utils.validation module<a class="headerlink" href="#module-quanda.utils.validation" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="quanda.utils.validation.validate_checkpoints_load_func">
+<span class="sig-prename descclassname"><span class="pre">quanda.utils.validation.</span></span><span class="sig-name descname"><span class="pre">validate_checkpoints_load_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoints_load_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/quanda/utils/validation.html#validate_checkpoints_load_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.utils.validation.validate_checkpoints_load_func" title="Link to this definition"></a></dt>
+<dd><p>Validate the checkpoints_load_func function for captum explainers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>checkpoints_load_func</strong> (<em>Callable</em><em>[</em><em>...</em><em>, </em><em>Any</em><em>]</em>) – A function that loads checkpoints.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the number of required parameters is less than 2.</p></li>
+<li><p><strong>TypeError</strong> – If the first parameter is not of type torch.nn.Module.</p></li>
+<li><p><strong>TypeError</strong> – If the second parameter is not of type str.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-quanda.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-quanda.utils" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Dilya, Galip.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

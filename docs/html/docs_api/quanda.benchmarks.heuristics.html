@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quanda.benchmarks.heuristics package &mdash; quanda 01.07.2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=cea27b2f"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="quanda.benchmarks.heuristics.mixed_datasets module" href="quanda.benchmarks.heuristics.mixed_datasets.html" />
+    <link rel="prev" title="quanda.benchmarks.ground_truth.linear_datamodeling module" href="quanda.benchmarks.ground_truth.linear_datamodeling.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" >
+            
+              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">quanda</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="quanda.html">quanda package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="quanda.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="quanda.benchmarks.html">quanda.benchmarks package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.explainers.html">quanda.explainers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.metrics.html">quanda.metrics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.html">quanda.utils package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">quanda</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">quanda</a></li>
+          <li class="breadcrumb-item"><a href="quanda.html">quanda package</a></li>
+          <li class="breadcrumb-item"><a href="quanda.benchmarks.html">quanda.benchmarks package</a></li>
+      <li class="breadcrumb-item active">quanda.benchmarks.heuristics package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/docs_api/quanda.benchmarks.heuristics.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-quanda.benchmarks.heuristics">
+<span id="quanda-benchmarks-heuristics-package"></span><h1>quanda.benchmarks.heuristics package<a class="headerlink" href="#module-quanda.benchmarks.heuristics" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.MixedDatasets">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.benchmarks.heuristics.</span></span><span class="sig-name descname"><span class="pre">MixedDatasets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/mixed_datasets.html#MixedDatasets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.MixedDatasets" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark" title="quanda.benchmarks.base.Benchmark"><code class="xref py py-class docutils literal notranslate"><span class="pre">Benchmark</span></code></a></p>
+<p>Benchmark that measures the performance of a given influence estimation method in separating dataset sources.</p>
+<p>Evaluates the performance of a given data attribution estimation method in identifying adversarial examples in a
+classification task.</p>
+<p>The training dataset is assumed to consist of a “clean” and “adversarial” subsets, whereby the number of samples
+in the clean dataset is significantly larger than the number of samples in the adversarial dataset. All adversarial
+samples are labeled with one label from the clean dataset. The evaluation is based on the area under the
+precision-recall curve (AUPRC), which quantifies the ranking of the influence of adversarial relative to clean
+samples. AUPRC is chosen because it provides better insight into performance in highly-skewed classification tasks
+where false positives are common.</p>
+<p>Unlike the original implementation, we only employ a single trained model, but we aggregate the AUPRC scores across
+multiple test samples.</p>
+<p class="rubric">References</p>
+<p>1) Hammoudeh, Z., &amp; Lowd, D. (2022). Identifying a training-set attack’s target using renormalized influence
+estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
+(pp. 1367-1381).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>checkpoint_paths</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.assemble" title="quanda.benchmarks.heuristics.MixedDatasets.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, eval_dataset, base_dataset, ...)</p></td>
+<td><p>Assembles the benchmark from the given components.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
+<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.download" title="quanda.benchmarks.heuristics.MixedDatasets.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.evaluate" title="quanda.benchmarks.heuristics.MixedDatasets.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<td><p>Evaluates the benchmark using a given explanation method.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.generate" title="quanda.benchmarks.heuristics.MixedDatasets.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, eval_dataset, ...)</p></td>
+<td><p>Generates the benchmark with passed components.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_dataset</span></code>(dataset[, transform, ...])</p></td>
+<td><p>Return the dataset using the given parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_devices</span></code>(model)</p></td>
+<td><p>Infer device from model.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.MixedDatasets.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/mixed_datasets.html#MixedDatasets.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.MixedDatasets.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Mixed Datasets benchmark.</p>
+<p>This initializer is not used directly, instead,
+the <cite>generate</cite> or the <cite>assemble</cite> methods should be used.
+Alternatively, <cite>download</cite> can be used to load a precomputed benchmark.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.MixedDatasets.assemble">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">assemble</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">LightningModule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adversarial_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adversarial_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_predictions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adversarial_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/mixed_datasets.html#MixedDatasets.assemble"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.MixedDatasets.assemble" title="Link to this definition"></a></dt>
+<dd><p>Assembles the benchmark from the given components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>L.LightningModule</em><em>]</em>) – Model to be used for the benchmark.</p></li>
+<li><p><strong>base_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</p></li>
+<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The dataset containing the adversarial examples used for evaluation. They should belong to
+the same dataset and the same class as the samples in the adversarial dataset.</p></li>
+<li><p><strong>adversarial_dir</strong> (<em>str</em>) – Path to the adversarial dataset of a single class.</p></li>
+<li><p><strong>adversarial_label</strong> (<em>int</em>) – The label to be used for the adversarial dataset.</p></li>
+<li><p><strong>data_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the clean dataset, by default None.</p></li>
+<li><p><strong>adversarial_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the adversarial dataset, by default None.</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for generating attributions. Defaults to True.</p></li>
+<li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
+<li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets" title="quanda.benchmarks.heuristics.MixedDatasets">MixedDatasets</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.MixedDatasets.download">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/mixed_datasets.html#MixedDatasets.download"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.MixedDatasets.download" title="Link to this definition"></a></dt>
+<dd><p>This method loads precomputed benchmark components from a file and creates an instance
+from the state dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the benchmark to be loaded.</p></li>
+<li><p><strong>cache_dir</strong> (<em>str</em>) – Directory to store the downloaded benchmark components.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device to load the model on.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets" title="quanda.benchmarks.heuristics.MixedDatasets">MixedDatasets</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.MixedDatasets.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/mixed_datasets.html#MixedDatasets.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.MixedDatasets.evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluates the benchmark using a given explanation method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>explainer_cls</strong> (<em>type</em>) – The explanation class inheriting from the base Explainer class to be used for evaluation.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Keyword arguments for the explainer, by default None.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size for the evaluation, by default 8.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing the metric score.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.MixedDatasets.generate">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">LightningModule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adversarial_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adversarial_label</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Trainer</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="quanda.utils.training.trainer.html#quanda.utils.training.trainer.BaseTrainer" title="quanda.utils.training.trainer.BaseTrainer"><span class="pre">BaseTrainer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_predictions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adversarial_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_fit_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/mixed_datasets.html#MixedDatasets.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.MixedDatasets.generate" title="Link to this definition"></a></dt>
+<dd><p>Generates the benchmark with passed components.</p>
+<p>This module handles the dataset creation and model training on the mixed dataset.
+The evaluation can then be run using the <cite>evaluate</cite> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>L.LightningModule</em><em>]</em>) – Model to be used for the benchmark.</p></li>
+<li><p><strong>base_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
+If a torch Dataset is passed, every item of the dataset is a tuple of the form (input, label).</p></li>
+<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The dataset containing the adversarial examples used for evaluation. They should belong to
+the same dataset and the same class as the samples in the adversarial dataset.</p></li>
+<li><p><strong>adversarial_dir</strong> (<em>str</em>) – Path to directory containing the adversarial dataset. Typically consists of the same class of objects
+(e.g. images of the same class).</p></li>
+<li><p><strong>adversarial_label</strong> (<em>int</em>) – The label to be used for the adversarial dataset.</p></li>
+<li><p><strong>trainer</strong> (<em>Union</em><em>[</em><em>L.Trainer</em><em>, </em><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BaseTrainer" title="quanda.utils.training.BaseTrainer"><em>BaseTrainer</em></a><em>]</em>) – Trainer to be used for training the model. Can be a Lightning Trainer or a <cite>BaseTrainer</cite>.</p></li>
+<li><p><strong>data_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the clean dataset, by default None.</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for generating attributions. Defaults to True.</p></li>
+<li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
+<li><p><strong>adversarial_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the adversarial dataset, by default None.</p></li>
+<li><p><strong>val_dataset</strong> (<em>Optional</em><em>[</em><em>torch.utils.data.Dataset</em><em>]</em><em>, </em><em>optional</em>) – Validation dataset to be used for the benchmark, by default None.</p></li>
+<li><p><strong>trainer_fit_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Additional keyword arguments for the trainer’s fit method, by default None.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size that is used for training, by default 8</p></li>
+<li><p><strong>args</strong> (<em>Any</em>) – Additional positional arguments.</p></li>
+<li><p><strong>kwargs</strong> (<em>Any</em>) – Additional keyword arguments.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets" title="quanda.benchmarks.heuristics.MixedDatasets">MixedDatasets</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the model is not a LightningModule and the trainer is a Lightning Trainer.</p></li>
+<li><p><strong>ValueError</strong> – If the model is not a torch.nn.Module and the trainer is a BaseTrainer.</p></li>
+<li><p><strong>ValueError</strong> – If the trainer is neither a Lightning Trainer nor a BaseTrainer.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.MixedDatasets.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Mixed</span> <span class="pre">Datasets'</span></em><a class="headerlink" href="#quanda.benchmarks.heuristics.MixedDatasets.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.ModelRandomization">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.benchmarks.heuristics.</span></span><span class="sig-name descname"><span class="pre">ModelRandomization</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/model_randomization.html#ModelRandomization"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.ModelRandomization" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark" title="quanda.benchmarks.base.Benchmark"><code class="xref py py-class docutils literal notranslate"><span class="pre">Benchmark</span></code></a></p>
+<p>Benchmark for the model randomization heuristic.</p>
+<p>This benchmark is used to evaluate the dependence of the attributions on the model parameters.</p>
+<p class="rubric">References</p>
+<p>1) Hanawa, K., Yokoi, S., Hara, S., &amp; Inui, K. (2021). Evaluation of similarity-based explanations. In International
+Conference on Learning Representations.</p>
+<p>2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., &amp; Kim, B. (2018). Sanity checks for saliency
+maps. In Advances in Neural Information Processing Systems (Vol. 31).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>checkpoint_paths</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.assemble" title="quanda.benchmarks.heuristics.ModelRandomization.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, train_dataset, eval_dataset)</p></td>
+<td><p>Assembles the benchmark from existing components.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
+<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.download" title="quanda.benchmarks.heuristics.ModelRandomization.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.evaluate" title="quanda.benchmarks.heuristics.ModelRandomization.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<td><p>Evaluate the given data attributor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.generate" title="quanda.benchmarks.heuristics.ModelRandomization.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, eval_dataset, model)</p></td>
+<td><p>This method generates the benchmark components and creates an instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_dataset</span></code>(dataset[, transform, ...])</p></td>
+<td><p>Return the dataset using the given parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_devices</span></code>(model)</p></td>
+<td><p>Infer device from model.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.ModelRandomization.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/model_randomization.html#ModelRandomization.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.ModelRandomization.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Model Randomization benchmark.</p>
+<p>This initializer is not used directly, instead,
+the <cite>generate</cite> or the <cite>assemble</cite> methods should be used.
+Alternatively, <cite>download</cite> can be used to load a precomputed benchmark.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.ModelRandomization.assemble">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">assemble</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correlation_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'kendall'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'spearman'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'spearman'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_predictions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/model_randomization.html#ModelRandomization.assemble"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.ModelRandomization.assemble" title="Link to this definition"></a></dt>
+<dd><p>Assembles the benchmark from existing components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>L.LightningModule</em><em>]</em>) – Model to be used for the benchmark. This model should be trained on the mislabeled dataset.</p></li>
+<li><p><strong>train_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</p></li>
+<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Evaluation dataset to be used for the benchmark.</p></li>
+<li><p><strong>data_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the dataset, by default None.</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
+<li><p><strong>correlation_fn</strong> (<em>Union</em><em>[</em><em>Callable</em><em>, </em><em>CorrelationFnLiterals</em><em>]</em><em>, </em><em>optional</em>) – Correlation function to be used for the evaluation.
+Can be “spearman” or “kendall”, or a callable.
+Defaults to “spearman”.</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em>) – Whether to use the model’s predictions for generating attributions. Defaults to True.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – Seed to be used for the evaluation, by default 42.</p></li>
+<li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization" title="quanda.benchmarks.heuristics.ModelRandomization">ModelRandomization</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.ModelRandomization.download">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/model_randomization.html#ModelRandomization.download"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.ModelRandomization.download" title="Link to this definition"></a></dt>
+<dd><p>This method loads precomputed benchmark components from a file and creates an instance
+from the state dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the benchmark to be loaded.</p></li>
+<li><p><strong>cache_dir</strong> (<em>str</em>) – Directory to store the downloaded benchmark components.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device to load the model on.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization" title="quanda.benchmarks.heuristics.ModelRandomization">ModelRandomization</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.ModelRandomization.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/model_randomization.html#ModelRandomization.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.ModelRandomization.evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the given data attributor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>explainer_cls</strong> (<em>type</em>) – Class of the explainer to be used for the evaluation.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Additional keyword arguments for the explainer, by default None.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size to be used for the evaluation, default to 8.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing the evaluation results.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.ModelRandomization.generate">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correlation_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'kendall'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'spearman'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'spearman'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_predictions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/model_randomization.html#ModelRandomization.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.ModelRandomization.generate" title="Link to this definition"></a></dt>
+<dd><p>This method generates the benchmark components and creates an instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – The training dataset used to train <cite>model</cite>. If a string is passed, it should be a HuggingFace dataset name.</p></li>
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model used to generate attributions.</p></li>
+<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The evaluation dataset to be used for the benchmark.</p></li>
+<li><p><strong>data_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the dataset, by default None.</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split to use, by default “train”. Only used if <cite>train_dataset</cite> is a string.</p></li>
+<li><p><strong>correlation_fn</strong> (<em>Union</em><em>[</em><em>Callable</em><em>, </em><em>CorrelationFnLiterals</em><em>]</em><em>, </em><em>optional</em>) – Correlation function to be used for the evaluation.
+Can be “spearman” or “kendall”, or a callable.
+Defaults to “spearman”.</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em>) – Whether to use the model’s predictions for generating attributions. Defaults to True.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – Seed to be used for the evaluation, by default 42.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization" title="quanda.benchmarks.heuristics.ModelRandomization">ModelRandomization</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.ModelRandomization.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Model</span> <span class="pre">Randomization'</span></em><a class="headerlink" href="#quanda.benchmarks.heuristics.ModelRandomization.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.TopKOverlap">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.benchmarks.heuristics.</span></span><span class="sig-name descname"><span class="pre">TopKOverlap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/top_k_overlap.html#TopKOverlap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.TopKOverlap" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark" title="quanda.benchmarks.base.Benchmark"><code class="xref py py-class docutils literal notranslate"><span class="pre">Benchmark</span></code></a></p>
+<p>Benchmark for the Top-K Overlap heuristic. This benchmark evaluates the dependence of the attributions
+on the test samples being attributed.</p>
+<p>The cardinality of the union of top-k attributed training samples is computed. A higher cardinality indicates
+variance in the attributions, which indicates dependence on the test samples.</p>
+<p class="rubric">References</p>
+<p>1) Barshan, Elnaz, Marc-Etienne Brunet, and Gintare Karolina Dziugaite. (2020). Relatif: Identifying explanatory training
+samples via relative influence. International Conference on Artificial Intelligence and Statistics. PMLR.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>checkpoint_paths</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.assemble" title="quanda.benchmarks.heuristics.TopKOverlap.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, train_dataset, eval_dataset)</p></td>
+<td><p>Assembles the benchmark from existing components.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
+<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.download" title="quanda.benchmarks.heuristics.TopKOverlap.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.evaluate" title="quanda.benchmarks.heuristics.TopKOverlap.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<td><p>Evaluates the benchmark using a given explanation method.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.generate" title="quanda.benchmarks.heuristics.TopKOverlap.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, model, eval_dataset)</p></td>
+<td><p>Generates the benchmark by specifying parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_dataset</span></code>(dataset[, transform, ...])</p></td>
+<td><p>Return the dataset using the given parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_devices</span></code>(model)</p></td>
+<td><p>Infer device from model.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.TopKOverlap.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/top_k_overlap.html#TopKOverlap.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.TopKOverlap.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the Top-K Overlap benchmark.</p>
+<p>This initializer is not used directly, instead,
+the <cite>generate</cite> or the <cite>assemble</cite> methods should be used.
+Alternatively, <cite>download</cite> can be used to load a precomputed benchmark.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.TopKOverlap.assemble">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">assemble</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_predictions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/top_k_overlap.html#TopKOverlap.assemble"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.TopKOverlap.assemble" title="Link to this definition"></a></dt>
+<dd><p>Assembles the benchmark from existing components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to be evaluated.</p></li>
+<li><p><strong>train_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – The training dataset used to train the model.</p></li>
+<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The dataset to be used for the evaluation.</p></li>
+<li><p><strong>data_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – The transform to be applied to the dataset, by default None.</p></li>
+<li><p><strong>top_k</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of top-k samples to consider, by default 1.</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for the evaluation, by default True.</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, by default “train”, only used for HuggingFace datasets.</p></li>
+<li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap" title="quanda.benchmarks.heuristics.TopKOverlap">TopKOverlap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.TopKOverlap.download">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/top_k_overlap.html#TopKOverlap.download"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.TopKOverlap.download" title="Link to this definition"></a></dt>
+<dd><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the benchmark to be loaded.</p></li>
+<li><p><strong>cache_dir</strong> (<em>str</em>) – Directory where the benchmark components are stored.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device to be used for the model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap" title="quanda.benchmarks.heuristics.TopKOverlap">TopKOverlap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.TopKOverlap.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/top_k_overlap.html#TopKOverlap.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.TopKOverlap.evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluates the benchmark using a given explanation method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>explainer_cls</strong> (<em>type</em>) – The explanation class inheriting from the base Explainer class to be used for evaluation.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Keyword arguments for the explainer, by default None.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size for the evaluation, by default 8.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing the metric score.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.TopKOverlap.generate">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_predictions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/heuristics/top_k_overlap.html#TopKOverlap.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.heuristics.TopKOverlap.generate" title="Link to this definition"></a></dt>
+<dd><p>Generates the benchmark by specifying parameters.</p>
+<p>The evaluation can then be run using the <cite>evaluate</cite> method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – The training dataset used to train the model.</p></li>
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to be evaluated.</p></li>
+<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The evaluation dataset.</p></li>
+<li><p><strong>data_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – The transform to be applied to the dataset, by default None</p></li>
+<li><p><strong>top_k</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of top-k samples to consider, by default 1</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for the evaluation, by default True</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – _description_, by default “train”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap" title="quanda.benchmarks.heuristics.TopKOverlap">TopKOverlap</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.TopKOverlap.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Top-K</span> <span class="pre">Overlap'</span></em><a class="headerlink" href="#quanda.benchmarks.heuristics.TopKOverlap.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html">quanda.benchmarks.heuristics.mixed_datasets module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets"><code class="docutils literal notranslate"><span class="pre">MixedDatasets</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.__init__"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.adversarial_indices"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.adversarial_indices</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.adversarial_label"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.adversarial_label</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.assemble"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.assemble()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.base_dataset"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.base_dataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.bench_state"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.bench_state</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.dataset_str"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.dataset_str</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.device"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.device</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.download"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.download()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.eval_dataset"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.eval_dataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.evaluate"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.filter_by_prediction"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.filter_by_prediction</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.generate"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.generate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.mixed_dataset"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.mixed_dataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.model"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.model</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.name"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.use_predictions"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.use_predictions</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html">quanda.benchmarks.heuristics.model_randomization module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization"><code class="docutils literal notranslate"><span class="pre">ModelRandomization</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.__init__"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.assemble"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.assemble()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.bench_state"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.bench_state</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.correlation_fn"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.correlation_fn</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.dataset_str"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.dataset_str</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.device"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.device</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.download"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.download()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.eval_dataset"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.eval_dataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.evaluate"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.generate"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.generate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.model"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.model</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.name"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.seed"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.seed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.train_dataset"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.train_dataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.use_predictions"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.use_predictions</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html">quanda.benchmarks.heuristics.top_k_overlap module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap"><code class="docutils literal notranslate"><span class="pre">TopKOverlap</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.__init__"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.assemble"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.assemble()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.bench_state"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.bench_state</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.dataset_str"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.dataset_str</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.device"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.device</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.download"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.download()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.eval_dataset"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.eval_dataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.evaluate"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.evaluate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.generate"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.generate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.model"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.model</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.name"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.top_k"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.top_k</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.train_dataset"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.train_dataset</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.use_predictions"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.use_predictions</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quanda.benchmarks.ground_truth.linear_datamodeling.html" class="btn btn-neutral float-left" title="quanda.benchmarks.ground_truth.linear_datamodeling module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quanda.benchmarks.heuristics.mixed_datasets.html" class="btn btn-neutral float-right" title="quanda.benchmarks.heuristics.mixed_datasets module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Dilya, Galip.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

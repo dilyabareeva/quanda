@@ -1,0 +1,37 @@
+quanda.benchmarks.resources package
+===================================
+
+Submodules
+----------
+
+quanda.benchmarks.resources.benchmark\_urls module
+--------------------------------------------------
+
+.. automodule:: quanda.benchmarks.resources.benchmark_urls
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.benchmarks.resources.modules module
+------------------------------------------
+
+.. automodule:: quanda.benchmarks.resources.modules
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.benchmarks.resources.sample\_transforms module
+-----------------------------------------------------
+
+.. automodule:: quanda.benchmarks.resources.sample_transforms
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: quanda.benchmarks.resources
+   :members:
+   :undoc-members:
+   :show-inheritance:

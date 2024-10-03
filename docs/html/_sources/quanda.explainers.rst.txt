@@ -1,0 +1,54 @@
+quanda.explainers package
+=========================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quanda.explainers.global_ranking
+   quanda.explainers.wrappers
+
+Submodules
+----------
+
+quanda.explainers.base module
+-----------------------------
+
+.. automodule:: quanda.explainers.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.explainers.functional module
+-----------------------------------
+
+.. automodule:: quanda.explainers.functional
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.explainers.random module
+-------------------------------
+
+.. automodule:: quanda.explainers.random
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.explainers.utils module
+------------------------------
+
+.. automodule:: quanda.explainers.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: quanda.explainers
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,7 +1,0 @@
-quanda.benchmarks.ground\_truth package
-=======================================
-
-.. automodule:: quanda.benchmarks.ground_truth
-   :members:
-   :undoc-members:
-   :show-inheritance:
