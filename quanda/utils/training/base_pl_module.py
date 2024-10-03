@@ -19,7 +19,8 @@ class BasicLightningModule(L.LightningModule):
         *args,
         **kwargs,
     ):
-        """Constructor for the BasicLightningModule class.
+        """
+        Constructor for the BasicLightningModule class.
 
         Parameters
         ----------
@@ -32,11 +33,11 @@ class BasicLightningModule(L.LightningModule):
         criterion : torch.nn.modules.loss._Loss
             Loss function to use for training.
         scheduler : Optional[Callable], optional
-            Learning rate scheduler to use for training, defaults to None
+            Learning rate scheduler to use for training, defaults to None.
         optimizer_kwargs : Optional[dict], optional
-            Keyword arguments for the optimizer, defaults to None
+            Keyword arguments for the optimizer, defaults to None.
         scheduler_kwargs : Optional[dict], optional
-            Keyword arguments for the scheduler, defaults to None
+            Keyword arguments for the scheduler, defaults to None.
         """
         # TODO: include lr scheduler and grad clipping
         super().__init__()
@@ -49,7 +50,8 @@ class BasicLightningModule(L.LightningModule):
         self.scheduler_kwargs = scheduler_kwargs if scheduler_kwargs is not None else {}
 
     def forward(self, inputs):
-        """Wrapper for the forward pass of the model.
+        """
+        Wrapper for the forward pass of the model.
 
         Parameters
         ----------
@@ -63,7 +65,8 @@ class BasicLightningModule(L.LightningModule):
         return self.model(inputs)
 
     def training_step(self, batch, batch_idx):
-        """One training step.
+        """
+        One training step.
 
         Parameters
         ----------
@@ -71,6 +74,7 @@ class BasicLightningModule(L.LightningModule):
             Single batch of data.
         batch_idx :
             Index of the batch.
+
         Returns
         -------
         torch.Tensor
@@ -83,7 +87,8 @@ class BasicLightningModule(L.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        """One validation step.
+        """
+        One validation step.
 
         Parameters
         ----------
@@ -91,6 +96,7 @@ class BasicLightningModule(L.LightningModule):
             Single batch of data.
         batch_idx :
             Index of the batch.
+
         Returns
         -------
         torch.Tensor
@@ -103,7 +109,8 @@ class BasicLightningModule(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        """Creates the optimizer and scheduler for training.
+        """
+        Creates the optimizer and scheduler for training.
 
         Raises
         ------

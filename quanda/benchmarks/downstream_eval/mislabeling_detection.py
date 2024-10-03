@@ -29,7 +29,9 @@ class MislabelingDetection(Benchmark):
     Afterward, it evaluates the effectiveness of a given data attributor
     for detecting the mislabeled examples using ´quanda.metrics.downstream_eval.MislabelingDetectionMetric´.
 
-    This is done by computing a cumulative detection curve (as in the below references), and calculating the AUC (as in (5))
+    This is done by computing a cumulative detection curve (as described in the below references)
+    and calculating the AUC following Kwon et al. (2024).
+
     References
     ----------
     1) Koh, P. W., & Liang, P. (2017). Understanding black-box predictions via influence functions. In International
@@ -59,7 +61,8 @@ class MislabelingDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Initializer for the Mislabeling Detection benchmark.
+        """
+        Initializer for the Mislabeling Detection benchmark.
 
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
@@ -102,7 +105,8 @@ class MislabelingDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Generates the benchmark by specifying parameters.
+        """
+        Generates the benchmark by specifying parameters.
         This module handles the dataset creation and model training on the label-poisoned dataset.
         The evaluation can then be run using the `evaluate` method.
 
@@ -138,14 +142,13 @@ class MislabelingDetection(Benchmark):
             It can be a subclass of `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
             Defaults to "self-influence".
         p : float, optional
-            The probability of mislabeling per sample, by default 0.3
+            The probability of mislabeling per sample, by default 0.3.
         trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments for the trainer's fit method, by default None
+            Additional keyword arguments for the trainer's fit method, by default None.
         seed : int, optional
-            Seed for reproducibility, by default 27
+            Seed for reproducibility, by default 27.
         batch_size : int, optional
-            Batch size that is used for training, by default 8
-
+            Batch size that is used for training, by default 8.
 
         Returns
         -------
@@ -192,9 +195,9 @@ class MislabelingDetection(Benchmark):
         seed: int = 27,
         batch_size: int = 8,
     ):
-        """Generates the benchmark from components.
+        """
+        Generates the benchmark from components.
         This function is internally used for generating the benchmark instance.
-
 
         Parameters
         ----------
@@ -216,13 +219,13 @@ class MislabelingDetection(Benchmark):
             It can be a subclass of `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
             Defaults to "self-influence".
         p : float, optional
-            The probability of mislabeling per sample, by default 0.3
+            The probability of mislabeling per sample, by default 0.3.
         trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments for the trainer's fit method, by default None
+            Additional keyword arguments for the trainer's fit method, by default None.
         seed : int, optional
-            Seed for reproducibility, by default 27
+            Seed for reproducibility, by default 27.
         batch_size : int, optional
-            Batch size that is used for training, by default 8
+            Batch size that is used for training, by default 8.
 
         Raises
         ------
@@ -384,9 +387,9 @@ class MislabelingDetection(Benchmark):
             It can be a subclass of `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
             Defaults to "self-influence".
         batch_size : int, optional
-            Batch size that is used for training, by default 8
+            Batch size that is used for training, by default 8.
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
 
         Returns
         -------
@@ -440,9 +443,9 @@ class MislabelingDetection(Benchmark):
         explainer_cls : type
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
-            Additional keyword arguments for the explainer, by default None
+            Additional keyword arguments for the explainer, by default None.
         batch_size : int, optional
-            Batch size to be used for the evaluation, default to 8
+            Batch size to be used for the evaluation, default to 8.
 
         Returns
         -------

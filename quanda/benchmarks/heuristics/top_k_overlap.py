@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class TopKOverlap(Benchmark):
+    # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     """
     Benchmark for the Top-K Overlap heuristic. This benchmark evaluates the dependence of the attributions
     on the test samples being attributed.
@@ -30,8 +31,6 @@ class TopKOverlap(Benchmark):
     samples via relative influence. International Conference on Artificial Intelligence and Statistics. PMLR.
     """
 
-    # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
-
     name: str = "Top-K Overlap"
 
     def __init__(
@@ -39,7 +38,9 @@ class TopKOverlap(Benchmark):
         *args,
         **kwargs,
     ):
-        """Initializer for the Top-K Overlap benchmark.
+        """
+        Initializer for the Top-K Overlap benchmark.
+
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
         Alternatively, `download` can be used to load a precomputed benchmark.
@@ -65,7 +66,9 @@ class TopKOverlap(Benchmark):
         *args,
         **kwargs,
     ):
-        """Generates the benchmark by specifying parameters.
+        """
+        Generates the benchmark by specifying parameters.
+
         The evaluation can then be run using the `evaluate` method.
 
         Parameters
@@ -112,9 +115,11 @@ class TopKOverlap(Benchmark):
         *args,
         **kwargs,
     ):
-        """This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
+        """
+        This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
 
         Parameters
+        ----------
         name : str
             Name of the benchmark to be loaded.
         cache_dir : str
@@ -168,7 +173,8 @@ class TopKOverlap(Benchmark):
         *args,
         **kwargs,
     ):
-        """Assembles the benchmark from existing components.
+        """
+        Assembles the benchmark from existing components.
 
         Parameters
         ----------
@@ -179,15 +185,15 @@ class TopKOverlap(Benchmark):
         eval_dataset : torch.utils.data.Dataset
             The dataset to be used for the evaluation.
         data_transform : Optional[Callable], optional
-            The transform to be applied to the dataset, by default None
+            The transform to be applied to the dataset, by default None.
         top_k : int, optional
-            The number of top-k samples to consider, by default 1
+            The number of top-k samples to consider, by default 1.
         use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by default True
+            Whether to use the model's predictions for the evaluation, by default True.
         dataset_split : str, optional
             The dataset split, by default "train", only used for HuggingFace datasets.
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
 
         Returns
         -------
@@ -220,9 +226,9 @@ class TopKOverlap(Benchmark):
         explainer_cls: type
             The explanation class inheriting from the base Explainer class to be used for evaluation.
         expl_kwargs: Optional[dict], optional
-            Keyword arguments for the explainer, by default None
+            Keyword arguments for the explainer, by default None.
         batch_size: int, optional
-            Batch size for the evaluation, by default 8
+            Batch size for the evaluation, by default 8.
 
         Returns
         -------

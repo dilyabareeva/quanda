@@ -6,7 +6,8 @@ from quanda.metrics.base import Metric
 
 
 class TopKOverlapMetric(Metric):
-    """Metric that measures the overlap of top-k explanations across all test samples, as argued in (1).
+    """
+    Metric that measures the overlap of top-k explanations across all test samples, as argued in Barshan et al. (2020).
     A good data attributor's attributions should depend on the input data,
     and thus should have low overlap between test points.
 
@@ -28,7 +29,8 @@ class TopKOverlapMetric(Metric):
         *args,
         **kwargs,
     ):
-        """Initializer for the Top-K Overlap metric.
+        """
+        Initializer for the Top-K Overlap metric.
 
         Parameters
         ----------
@@ -56,7 +58,8 @@ class TopKOverlapMetric(Metric):
         explanations: torch.Tensor,
         **kwargs,
     ):
-        """Update the metric state with the provided explanations.
+        """
+        Update the metric state with the provided explanations.
 
         Parameters
         ----------
@@ -69,7 +72,8 @@ class TopKOverlapMetric(Metric):
         self.all_top_k_examples = torch.concat((self.all_top_k_examples, top_k_indices), dim=0)
 
     def compute(self, *args, **kwargs):
-        """Compute the metric score.
+        """
+        Compute the metric score.
 
         Returns
         -------
@@ -94,7 +98,8 @@ class TopKOverlapMetric(Metric):
         self.all_top_k_examples = state_dict["all_top_k_examples"]
 
     def state_dict(self, *args, **kwargs):
-        """Return the metric state as a dictionary.
+        """
+        Return the metric state as a dictionary.
 
         Returns
         -------

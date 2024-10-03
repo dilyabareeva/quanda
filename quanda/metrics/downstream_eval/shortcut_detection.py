@@ -7,15 +7,17 @@ from quanda.metrics.base import Metric
 
 
 class ShortcutDetectionMetric(Metric):
-    """Metric for the shortcut detection evaluation task.
+    # 2) TODO: Add the reference of the paper that introduced the shortcut detection task, after acceptance.
+    """
+    Metric for the shortcut detection evaluation task.
     Attributions of a  model with a shortcut is checked against the ground truth of shortcut samples.
-    This strategy is inspired by (1) and (2).
+    This strategy is inspired by Koh et al. (2017).
 
     References
     ----------
     1) Koh, Pang Wei, and Percy Liang. (2017). Understanding black-box predictions via influence functions.
         International conference on machine learning. PMLR.
-    2) TODO: Add the reference of the paper that introduced the shortcut detection task, after acceptance.
+
     """
 
     def __init__(
@@ -27,7 +29,8 @@ class ShortcutDetectionMetric(Metric):
         filter_by_prediction: bool = False,
         filter_by_class: bool = False,
     ):
-        """Initializer for the Shortcut Detection metric.
+        """
+        Initializer for the Shortcut Detection metric.
 
         Parameters
         ----------
@@ -42,10 +45,10 @@ class ShortcutDetectionMetric(Metric):
             Class of the shortcut samples.
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
-            is predicted, by default True
+            is predicted, by default True.
         filter_by_class: bool, optional
             Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
-            is not assigned as the class, by default True
+            is not assigned as the class, by default True.
 
         Raises
         ------
@@ -80,7 +83,8 @@ class ShortcutDetectionMetric(Metric):
         test_tensor: Optional[torch.Tensor] = None,
         test_labels: Optional[torch.Tensor] = None,
     ):
-        """Update the metric state with the provided explanations.
+        """
+        Update the metric state with the provided explanations.
 
         Parameters
         ----------

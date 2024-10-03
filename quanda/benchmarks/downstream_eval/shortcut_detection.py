@@ -21,7 +21,9 @@ from quanda.utils.training.trainer import BaseTrainer
 
 
 class ShortcutDetection(Benchmark):
-    """Benchmark for shortcut detection evaluation task.
+    # TODO: Add citation to the original paper formulating ShortcutDetection after acceptance
+    """
+    Benchmark for shortcut detection evaluation task.
 
     A class is selected, and a subset of its images is modified by overlaying a shortcut trigger. The model is then
     trained on this dataset and learns to use the shortcut as a trigger to predict the class. The objective is to
@@ -32,13 +34,13 @@ class ShortcutDetection(Benchmark):
     The average attributions for triggered examples from the class, clean examples from the class,
     and clean examples from other classes are computed.
 
-    This metric is inspired by the Domain Mismatch Detection Test of (1) and Backdoor Poisoning Detection of (2).
+    This metric is inspired by the Domain Mismatch Detection Test of Koh et al. (2017) and the Backdoor Poisoning Detection.
 
-    Parameters
+    References
     ----------
     1) Koh, Pang Wei, and Percy Liang. (2017). Understanding black-box predictions via influence functions.
         International conference on machine learning. PMLR.
-    2) TODO: Add citation to the original paper formulating ShortcutDetection after acceptance
+
     """
 
     def __init__(
@@ -46,8 +48,11 @@ class ShortcutDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Initializer for the benchmark object. This initializer should not be used directly.
-        To instantiate the benchmark, use the `generate`, `assemble` or `download` class methods instead."""
+        """
+        Initializer for the benchmark object. This initializer should not be used directly.
+
+        To instantiate the benchmark, use the `generate`, `assemble` or `download` class methods instead.
+        """
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
@@ -90,7 +95,8 @@ class ShortcutDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Generate the benchmark from scratch, with the specified parameters.
+        """
+        Generate the benchmark from scratch, with the specified parameters.
 
         Parameters
         ----------
@@ -110,19 +116,19 @@ class ShortcutDetection(Benchmark):
         sample_fn : Callable
             Function to add triggers to samples of the dataset.
         dataset_split : str, optional
-            Split used for HuggingFace datasets, by default "train"
+            Split used for HuggingFace datasets, by default "train".
         dataset_transform : Optional[Callable], optional
-            Default transform of the dataset, by default None
+            Default transform of the dataset, by default None.
         val_dataset : Optional[torch.utils.data.Dataset], optional
-            Validation dataset to use during training, by default None
+            Validation dataset to use during training, by default None.
         p : float, optional
-            The probability of poisoning with the trigger per sample, by default 0.3
+            The probability of poisoning with the trigger per sample, by default 0.3.
         trainer_fit_kwargs : Optional[dict], optional
-            Keyword arguments to supply the trainer, by default None
+            Keyword arguments to supply the trainer, by default None.
         seed : int, optional
-            seed for reproducibility, by default 27
+            seed for reproducibility, by default 27.
         batch_size : int, optional
-            Batch size to use during training, by default 8
+            Batch size to use during training, by default 8.
 
         Returns
         -------
@@ -166,7 +172,8 @@ class ShortcutDetection(Benchmark):
         seed: int = 27,
         batch_size: int = 8,
     ):
-        """Generate the benchmark from scratch, with the specified parameters. Used internally, through the `generate` method.
+        """
+        Generate the benchmark from scratch, with the specified parameters. Used internally, through the `generate` method.
 
         Parameters
         ----------
@@ -181,17 +188,17 @@ class ShortcutDetection(Benchmark):
         sample_fn : Callable
             Function to add triggers to samples of the dataset.
         dataset_transform : Optional[Callable], optional
-            Default transform of the dataset, by default None
+            Default transform of the dataset, by default None.
         val_dataset : Optional[torch.utils.data.Dataset], optional
-            Validation dataset to use during training, by default None
+            Validation dataset to use during training, by default None.
         p : float, optional
-            The probability of poisoning with the trigger per sample, by default 0.3
+            The probability of poisoning with the trigger per sample, by default 0.3.
         trainer_fit_kwargs : Optional[dict], optional
-            Keyword arguments to supply the trainer, by default None
+            Keyword arguments to supply the trainer, by default None.
         seed : int, optional
-            seed for reproducibility, by default 27
+            seed for reproducibility, by default 27.
         batch_size : int, optional
-            Batch size to use during training, by default 8
+            Batch size to use during training, by default 8.
 
         Raises
         ------
@@ -354,15 +361,15 @@ class ShortcutDetection(Benchmark):
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         shortcut_indices : Optional[List[int]], optional
-            Binary list of indices to poison, by default None
+            Binary list of indices to poison, by default None.
         dataset_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None
+            Transform to be applied to the dataset, by default None.
         p : float, optional
-            The probability of mislabeling per sample, by default 0.3
+            The probability of mislabeling per sample, by default 0.3.
         batch_size : int, optional
-            Batch size that is used for training, by default 8
+            Batch size that is used for training, by default 8.
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
 
         Returns
         -------
@@ -408,9 +415,9 @@ class ShortcutDetection(Benchmark):
         explainer_cls : type
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
-            Additional keyword arguments for the explainer, by default None
+            Additional keyword arguments for the explainer, by default None.
         batch_size : int, optional
-            Batch size to be used for the evaluation, default to 8
+            Batch size to be used for the evaluation, default to 8.
 
         Returns
         -------

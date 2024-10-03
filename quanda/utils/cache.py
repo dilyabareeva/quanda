@@ -46,9 +46,9 @@ class BatchedCachedExplanations:
         Parameters
         ----------
         cache_dir: str
-            Directory containing the cached explanations
+            Directory containing the cached explanations.
         device: Optional[Union[str, torch.device]]
-            Device to load the explanations on
+            Device to load the explanations on.
         """
         super().__init__()
         self.cache_dir = cache_dir
@@ -65,12 +65,12 @@ class BatchedCachedExplanations:
         Parameters
         ----------
         idx: int
-            Index of the explanation
+            Index of the explanation.
 
         Returns
         -------
         torch.Tensor
-            The explanation at the specified index
+            The explanation at the specified index.
         """
 
         assert idx < len(self.files), "Layer index is out of bounds!"
@@ -86,7 +86,7 @@ class BatchedCachedExplanations:
         Returns
         -------
         int
-            Number of explanations in the cache
+            Number of explanations in the cache.
         """
         return len(self.files)
 
@@ -110,14 +110,14 @@ class ExplanationsCache(Cache):
         Parameters
         ----------
         path: str
-            Path to the explanations
+            Path to the explanations.
         num_id: Optional[Union[str, int]]
-            Number identifier for the explanations
+            Number identifier for the explanations.
 
         Returns
         -------
         bool
-            True if the explanations exist, False otherwise
+            True if the explanations exist, False otherwise.
         """
         av_filesearch = os.path.join(path, "*.pt" if num_id is None else f"{num_id}.pt")
         return os.path.exists(path) and len(glob.glob(av_filesearch)) > 0
@@ -134,11 +134,11 @@ class ExplanationsCache(Cache):
         Parameters
         ----------
         path: str
-            Path to save the explanations
+            Path to save the explanations.
         exp_tensors: Tensor
-           Explanations to save
+           Explanations to save.
         num_id: Union[str, int]
-            Number identifier for the explanations
+            Number identifier for the explanations.
 
         Returns
         -------
@@ -159,9 +159,9 @@ class ExplanationsCache(Cache):
         Parameters
         ----------
         path: str
-            Path to load the explanations
+            Path to load the explanations.
         device: Optional[Union[str, torch.device]]
-            Device to load the explanations on
+            Device to load the explanations on.
 
         Returns
         -------

@@ -21,7 +21,8 @@ class TransformedDataset(Dataset):
         sample_fn: Optional[Callable] = None,
         label_fn: Optional[Callable] = None,
     ):
-        """Constructor for the TransformedDataset class.
+        """
+        Constructor for the TransformedDataset class.
 
         Parameters
         ----------
@@ -30,22 +31,22 @@ class TransformedDataset(Dataset):
         n_classes : int
             Number of classes in the dataset.
         dataset_transform : Optional[Callable], optional
-            The default transform of the dataset, defaults to None
+            The default transform of the dataset, defaults to None.
         transform_indices : Optional[List], optional
-            Indices to transform, by default None
+            Indices to transform, by default None.
         cache_path : str, optional
-            Path for cache, defaults to "./cache"
+            Path for cache, defaults to "./cache".
         cls_idx : Optional[int], optional
             Class index to transform instances of, defaults to None.
             If `transform_indices`is given, this parameter is ignored.
         p : float, optional
-            The probability of transformation for each instance to transform, defaults to 1.0
+            The probability of transformation for each instance to transform, defaults to 1.0.
         seed : int, optional
-            Seed for the random number generator, defaults to 42
+            Seed for the random number generator, defaults to 42.
         sample_fn : Optional[Callable], optional
-           Transform function to apply to samples, defaults to None
+           Transform function to apply to samples, defaults to None.
         label_fn : Optional[Callable], optional
-            Transform function to apply to labels, defaults to None
+            Transform function to apply to labels, defaults to None.
         """
 
         # TODO: add validation for cls_idx and transform_indices
@@ -94,17 +95,18 @@ class TransformedDataset(Dataset):
         )
 
     def _get_original_label(self, index) -> int:
-        """Function to get original label of a sample by index
+        """
+        Function to get original label of a sample by index.
 
         Parameters
         ----------
         index : int
-            Index of the sample
+            Index of the sample.
 
         Returns
         -------
         int
-            Original label of the sample
+            Original label of the sample.
         """
         _, y = self.dataset[index]
         return y

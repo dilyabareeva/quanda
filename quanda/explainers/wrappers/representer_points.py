@@ -1,10 +1,10 @@
 """
 The original code is from the following repository:
     https://github.com/chihkuanyeh/Representer_Point_Selection
-Unlike other wrapper, this one does not wrap around a Python package. Instead, we copied large parts of the code and
+Unlike other wrappers, this one does not wrap around a Python package. Instead, we copied large parts of the code and
 adapted it to our interface. The original code is licensed under the MIT License.
 
-The original license is included below.
+The original license is included below:
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -40,7 +40,8 @@ class RepresenterSoftmax(nn.Module):
     """Internal class for classification model training to use within Representer Points explainer."""
 
     def __init__(self, W: torch.Tensor, device: Union[torch.device, str]):
-        """Initializer for the RepresenterSoftmax class.
+        """
+        Initializer for the RepresenterSoftmax class.
 
         Parameters
         ----------
@@ -53,7 +54,8 @@ class RepresenterSoftmax(nn.Module):
         self.W = nn.Parameter(W.to(device), requires_grad=True)
 
     def forward(self, x: torch.Tensor, y: torch.Tensor):
-        """Forward pass implementation of the RepresenterSoftmax class. Implements final linear layer and softmax.
+        """
+        Forward pass implementation of the RepresenterSoftmax class. Implements final linear layer and softmax.
 
         Parameters
         ----------
@@ -81,7 +83,8 @@ class RepresenterSoftmax(nn.Module):
 
 
 def softmax_torch(temp: torch.Tensor, N: int):
-    """Torch implementation of the softmax function.
+    """
+    Torch implementation of the softmax function.
 
     Parameters
     ----------
@@ -103,7 +106,8 @@ def softmax_torch(temp: torch.Tensor, N: int):
 
 
 def av_samples(av_dataset: AV.AVDataset) -> Tensor:
-    """Concatenates the samples of an captum AV dataset.
+    """
+    Concatenates the samples of an captum AV dataset.
 
     Parameters
     ----------
@@ -130,7 +134,7 @@ def av_samples(av_dataset: AV.AVDataset) -> Tensor:
 class RepresenterPoints(Explainer):
     """
     A wrapper class for explaining the predictions of a deep neural network using representer points,
-    using the official code release (2).
+    using the official code release [2].
 
     The method decomposes the pre-activation prediction of a neural network into a linear combination
     of activations from the training points. The weights, or representer values, indicate the influence
@@ -142,6 +146,7 @@ class RepresenterPoints(Explainer):
         (1) Yeh, Chih-Kuan, Kim, Joon, Yen, Ian En-Hsu, Ravikumar, Pradeep K. (2018). "Representer Point
         Selection for Explaining Deep Neural Networks." Advances in Neural Information Processing
         Systems, vol. 31.
+
         (2) https://github.com/chihkuanyeh/Representer_Point_Selection
 
     """
@@ -165,7 +170,8 @@ class RepresenterPoints(Explainer):
         load_from_disk: bool = True,
         show_progress: bool = True,
     ):
-        """Initializer for the RepresenterPoints class.
+        """
+        Initializer for the RepresenterPoints class.
 
         Parameters
         ----------
@@ -180,27 +186,27 @@ class RepresenterPoints(Explainer):
         classifier_layer : str
             The name of the final classifier layer of the model.
         cache_dir : str, optional
-            The directory to save the cache, defaults to "./cache"
+            The directory to save the cache, defaults to "./cache".
         features_postprocess : Optional[Callable], optional
-            A postprocessing function for the features, defaults to None
+            A postprocessing function for the features, defaults to None.
         lmbd : float, optional
-            Regularization constant, defaults to 0.003
+            Regularization constant, defaults to 0.003.
         epoch : int, optional
-            Number of epochs, defaults to 3000
+            Number of epochs, defaults to 3000.
         lr : float, optional
-            Learning rate, defaults to 3e-4
+            Learning rate, defaults to 3e-4.
         min_loss : float, optional
-            Initial minimum loss value to start training loop, defaults to 10000.0
+            Initial minimum loss value to start training loop, defaults to 10000.0.
         epsilon : float, optional
-            Epsilon value for backtracking line search, defaults to 1e-10
+            Epsilon value for backtracking line search, defaults to 1e-10.
         normalize : bool, optional
-            Whether to normalize the features, defaults to False
+            Whether to normalize the features, defaults to False.
         batch_size : int, optional
-            Batch size for training, defaults to 32
+            Batch size for training, defaults to 32.
         load_from_disk : bool, optional
-            Whether to load the activations from disk, defaults to True
+            Whether to load the activations from disk, defaults to True.
         show_progress : bool, optional
-            Whether to show the training progress, defaults to True
+            Whether to show the training progress, defaults to True.
         """
 
         logger.info("Initializing Representer Point Selection explainer...")
@@ -263,11 +269,12 @@ class RepresenterPoints(Explainer):
             self.train()
 
     def _normalize_features(self, features: torch.Tensor):
-        """Internal method to normalize the features.
+        """
+        Internal method to normalize the features.
 
         Parameters
         ----------
-        features :
+        features : torch.Tensor
             The input features.
 
         Returns
@@ -288,7 +295,7 @@ class RepresenterPoints(Explainer):
 
         Returns
         -------
-        torch.Tensor:
+        torch.Tensor
             The activations of the specified layer.
         """
 
@@ -309,7 +316,8 @@ class RepresenterPoints(Explainer):
         return self.current_acts
 
     def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
-        """Explain the predictions of the model for a given test batch.
+        """
+        Explain the predictions of the model for a given test batch.
 
         Parameters
         ----------
@@ -343,7 +351,8 @@ class RepresenterPoints(Explainer):
         return torch.squeeze(explanations)
 
     def train(self):
-        """Train the model to obtain the representer point coefficients.
+        """
+        Train the model to obtain the representer point coefficients.
 
         Raises
         ------
@@ -416,7 +425,8 @@ class RepresenterPoints(Explainer):
     def backtracking_line_search(
         self, model: torch.nn.Module, grad: torch.Tensor, x: torch.Tensor, y: torch.Tensor, val: torch.Tensor, N: int
     ):
-        """Implementation of the backtracking line search algorithm.
+        """
+        Implementation of the backtracking line search algorithm.
 
         Parameters
         ----------

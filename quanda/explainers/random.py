@@ -19,7 +19,8 @@ class RandomExplainer(Explainer):
         seed: int = 27,
         **kwargs,
     ):
-        """Initializer for RandomExplainer.
+        """
+        Initializer for RandomExplainer.
 
         Parameters
         ----------
@@ -52,6 +53,7 @@ class RandomExplainer(Explainer):
         targets : Optional[Union[List[int], torch.Tensor]] = None
             The model outputs to be explained.
             Some methods do not need this. Defaults to None. Is not used in `RandomExplainer`.
+
         Returns
         -------
         torch.Tensor
@@ -67,7 +69,7 @@ class RandomExplainer(Explainer):
 
         Parameters
         ----------
-        batch_size : int = 32
+        batch_size : int
             `RandomExplainer` does not use this.
 
         Returns

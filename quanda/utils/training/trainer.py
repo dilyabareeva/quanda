@@ -34,7 +34,6 @@ class Trainer(BaseTrainer):
     Simple class for training PyTorch models using Lightning. Supports only the most basic training arguments, such as
     optimizer, learning rate, maximum number of epochs, and loss function, and single-device training.
     For more complex training procedures, consider using PyTorch Lightning Module/ Trainer directly.
-
     """
 
     def __init__(
@@ -49,7 +48,8 @@ class Trainer(BaseTrainer):
         seed: int = 27,
         accelerator: str = "cpu",
     ):
-        """Constructor for the Trainer class.
+        """
+        Constructor for the Trainer class.
 
         Parameters
         ----------
@@ -89,7 +89,8 @@ class Trainer(BaseTrainer):
         *args,
         **kwargs,
     ):
-        """Train a model using the provided dataloaders.
+        """
+        Train a model using the provided dataloaders.
 
         Parameters
         ----------
@@ -98,7 +99,7 @@ class Trainer(BaseTrainer):
         train_dataloaders : torch.utils.data.dataloader.DataLoader
             Dataloader for the training data.
         val_dataloaders : Optional[torch.utils.data.dataloader.DataLoader], optional
-            Dataloader for the validation data, defaults to None
+            Dataloader for the validation data, defaults to None.
         """
         module = BasicLightningModule(
             model=model,

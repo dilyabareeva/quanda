@@ -8,7 +8,8 @@ import torch.utils.data
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
-    """Simple helper function to get a module from a model by name.
+    """
+    Simple helper function to get a module from a model by name.
 
     Parameters
     ----------
@@ -26,7 +27,8 @@ def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
 
 
 def get_parent_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
-    """Get the parent module of a module in a model by name.
+    """
+    Get the parent module of a module in a model by name.
 
     Parameters
     ----------
@@ -38,12 +40,14 @@ def get_parent_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
     Returns
     -------
     Any
-        The module extracted from the model."""
+        The module extracted from the model.
+    """
     return reduce(getattr, layer_name.split(".")[:-1], model)
 
 
 def make_func(func: Callable, func_kwargs: Optional[Mapping[str, Any]] = None, **kwargs) -> functools.partial:
-    """A function for creating a partial function with the given arguments.
+    """
+    A function for creating a partial function with the given arguments.
 
     Parameters
     ----------
@@ -80,7 +84,9 @@ def cache_result(method):
 
 
 def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, device: Union[str, torch.device] = "cpu"):
-    """Return accuracy on a dataset given by the data loader.
+    """
+    Return accuracy on a dataset given by the data loader.
+
     Parameters
     ----------
     net : torch.nn.Module
@@ -89,6 +95,7 @@ def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, de
         The data loader to evaluate the model on.
     device : Union[str, torch.device]
         The device to evaluate the model on.
+
     Returns
     -------
     float
@@ -159,7 +166,8 @@ def _load_flexible_state_dict(model: torch.nn.Module, path: str, device: Union[s
 
 
 def get_load_state_dict_func(device: Union[str, torch.device]):
-    """Function to get a load_state_dict function that loads a model state dict
+    """
+    Function to get a load_state_dict function that loads a model state dict
 
     Parameters
     ----------

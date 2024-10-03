@@ -6,7 +6,8 @@ from quanda.metrics.downstream_eval import ClassDetectionMetric
 
 
 class SubclassDetectionMetric(ClassDetectionMetric):
-    """Subclass Detection Metric as defined in (1).
+    """
+    Subclass Detection Metric as defined in Hanawa et al. (2021).
     A model is trained on a dataset where labels are grouped into superclasses.
     The metric evaluates the performance of an attribution method in detecting the subclass of a test sample
     from its highest attributed training point.
@@ -26,7 +27,8 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         *args,
         **kwargs,
     ):
-        """Initializer for the Subclass Detection metric.
+        """
+        Initializer for the Subclass Detection metric.
 
         Parameters
         ----------
@@ -55,7 +57,8 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         test_tensor: Optional[torch.Tensor] = None,
         test_classes: Optional[torch.Tensor] = None,
     ):
-        """Update the metric state with the provided explanations.
+        """
+        Update the metric state with the provided explanations.
 
         Parameters
         ----------

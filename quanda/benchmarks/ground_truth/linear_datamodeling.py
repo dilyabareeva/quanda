@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 class LinearDatamodeling(Benchmark):
-    """Benchmark for the Linear Datamodeling Score metric.
+    """
+    Benchmark for the Linear Datamodeling Score metric.
+
     The LDS measures how well a data attribution method can predict the effect of retraining
     a model on different subsets of the training data. It computes the correlation between
     the model’s output when retrained on subsets of the data and the attribution method's predictions
@@ -32,6 +34,7 @@ class LinearDatamodeling(Benchmark):
         and Aleksander Mądry. (2023). "TRAK: attributing model behavior at scale".
         In Proceedings of the 40th International Conference on Machine Learning" (ICML'23), Vol. 202.
         JMLR.org, Article 1128, (27074–27113).
+
     2) https://github.com/MadryLab/trak/
     """
 
@@ -262,7 +265,7 @@ class LinearDatamodeling(Benchmark):
         explainer_cls : type
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
-            Additional keyword arguments for the explainer, by default None
+            Additional keyword arguments for the explainer, by default None.
         batch_size : int, optional
             Batch size to be used for the evaluation, defaults to 8
 

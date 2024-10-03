@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class MixedDatasets(Benchmark):
+    # TODO: remove FILTER BY "CORRECT" PREDICTION FOR BACKDOOR implied https://arxiv.org/pdf/2201.10055
     """
     Benchmark that measures the performance of a given influence estimation method in separating dataset sources.
 
@@ -47,8 +48,6 @@ class MixedDatasets(Benchmark):
 
     """
 
-    # TODO: remove FILTER BY "CORRECT" PREDICTION FOR BACKDOOR implied https://arxiv.org/pdf/2201.10055
-
     name: str = "Mixed Datasets"
 
     def __init__(
@@ -56,7 +55,8 @@ class MixedDatasets(Benchmark):
         *args,
         **kwargs,
     ):
-        """Initializer for the Mixed Datasets benchmark.
+        """
+        Initializer for the Mixed Datasets benchmark.
 
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
@@ -93,9 +93,11 @@ class MixedDatasets(Benchmark):
         *args,
         **kwargs,
     ):
-        """Generates the benchmark with passed components.
-         This module handles the dataset creation and model training on the mixed dataset.
-         The evaluation can then be run using the `evaluate` method.
+        """
+        Generates the benchmark with passed components.
+
+        This module handles the dataset creation and model training on the mixed dataset.
+        The evaluation can then be run using the `evaluate` method.
 
         Parameters
         ----------
@@ -115,7 +117,7 @@ class MixedDatasets(Benchmark):
         trainer: Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the model. Can be a Lightning Trainer or a `BaseTrainer`.
         data_transform: Optional[Callable], optional
-            Transform to be applied to the clean dataset, by default None
+            Transform to be applied to the clean dataset, by default None.
         use_predictions: bool, optional
             Whether to use the model's predictions for generating attributions. Defaults to True.
         filter_by_prediction: bool, optional
@@ -123,11 +125,11 @@ class MixedDatasets(Benchmark):
         dataset_split: str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         adversarial_transform : Optional[Callable], optional
-             Transform to be applied to the adversarial dataset, by default None
+             Transform to be applied to the adversarial dataset, by default None.
         val_dataset: Optional[torch.utils.data.Dataset], optional
-            Validation dataset to be used for the benchmark, by default None
+            Validation dataset to be used for the benchmark, by default None.
         trainer_fit_kwargs: Optional[dict], optional
-            Additional keyword arguments for the trainer's fit method, by default None
+            Additional keyword arguments for the trainer's fit method, by default None.
         batch_size: int, optional
             Batch size that is used for training, by default 8
         args: Any
@@ -333,9 +335,9 @@ class MixedDatasets(Benchmark):
         adversarial_label: int
             The label to be used for the adversarial dataset.
         data_transform: Optional[Callable], optional
-            Transform to be applied to the clean dataset, by default None
+            Transform to be applied to the clean dataset, by default None.
         adversarial_transform: Optional[Callable], optional
-            Transform to be applied to the adversarial dataset, by default None
+            Transform to be applied to the adversarial dataset, by default None.
         use_predictions: bool, optional
             Whether to use the model's predictions for generating attributions. Defaults to True.
         filter_by_prediction: bool, optional
@@ -343,7 +345,7 @@ class MixedDatasets(Benchmark):
         dataset_split: str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
 
         Returns
         -------
@@ -385,9 +387,9 @@ class MixedDatasets(Benchmark):
         explainer_cls: type
             The explanation class inheriting from the base Explainer class to be used for evaluation.
         expl_kwargs: Optional[dict], optional
-            Keyword arguments for the explainer, by default None
+            Keyword arguments for the explainer, by default None.
         batch_size: int, optional
-            Batch size for the evaluation, by default 8
+            Batch size for the evaluation, by default 8.
 
         Returns
         -------
