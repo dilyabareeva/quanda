@@ -6,7 +6,7 @@ We encourage you to contribute new metrics and explainers, optimizations or to r
 
 In this guide, you will get a summary of the main components of **quanda**, as well as best practices for your own contributions.
 
-If you have any questions regarding the codebase, please [open an issue](https://github.com/understandable-machine-intelligence-lab/Quantus/issues/new/choose)
+If you have any questions regarding the codebase, please [open an issue](https://github.com/dilyabareeva/quanda/issues/new)
 or write us at [dilyabareeva@gmail.com](mailto:dilyabareeva@gmail.com) or [galip.uemit.yolcu@hhi.fraunhofer.de](mailto:galip.uemit.yolcu@hhi.fraunhofer.de).
 
 ## Table of Contents
@@ -28,13 +28,13 @@ or write us at [dilyabareeva@gmail.com](mailto:dilyabareeva@gmail.com) or [galip
 
 ## Reporting Bugs
 
-If you come across a bug in the software, please check the repository [Issues](https://github.com/dilyabareeva/**quanda**/issues) to see if this bug has already been reported.
-If the bug is not yet reported, please report the bug by [opening an issue](https://github.com/dilyabareeva/**quanda**/issues/new). Please pay attention to add a descriptive title for the bug. Explain the bug shortly in the issue body, and add details on how to reproduce the buggy behaviour whenever possible.
+If you come across a bug in the software, please check the repository [Issues](https://github.com/dilyabareeva/quanda/issues) to see if this bug has already been reported.
+If the bug is not yet reported, please report the bug by [opening an issue](https://github.com/dilyabareeva/quanda/issues/new). Please pay attention to add a descriptive title for the bug. Explain the bug shortly in the issue body, and add details on how to reproduce the buggy behaviour whenever possible.
 
 We will address the issue in the earliest convenience.
 
 ## General Guidelines
-This section describes the prerequisites and general principles to follow while contributing to **quanda**. Please read sections ..., .... and .... for implementational details.
+This section describes the prerequisites and general principles to follow while contributing to **quanda**. Please read sections [Contributing a New Metric](#contributing-a-new-metric) and [Contributing a New Benchmark](#contributing-a-new-benchmark) for implementational details.
 
 ### Setting up the development environment
 
@@ -122,7 +122,7 @@ python3 -m tox run -e coverage
 ```
 
 Once you are done with your contributions, and have went through the above checklist:
-- Create a [pull request](https://github.com/dilyabareeva/**quanda**/compare)
+- Create a [pull request](https://github.com/dilyabareeva/quanda/compare)
 - Provide a summary of the changes you are introducing, give details on points which might not be easily understandable.
 - If the contribution is concerning an existing issue, refer to it in the body of the pull request.
 - Request a review from [dilyabareeva](https://github.com/dilyabareeva) or [gumityolcu](https://github.com/gumityolcu).
@@ -198,4 +198,4 @@ obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
 Finally, the class method `download` is needed to download and assemble a benchmark from precomputed component. We will handle this method once your pull request is reviewed and merged.
 
 ## License
-By contributing to the project, you agree that it will be licensed under the [MIT License](https://github.com/dilyabareeva/**quanda**/blob/main/LICENSE).
+By contributing to the project, you agree that it will be licensed under the MIT License.
