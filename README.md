@@ -318,6 +318,3 @@ We welcome contributions to **quanda**! You could contribute by:
 - Submitting a pull request to fix a bug, add a new explainer wrapper, a new metric, or other feature.
 
 A detailed guide on how to contribute to **quanda** can be found [here](CONTRIBUTING.md).
-
-If you have any questions, please [open an issue](https://github.com/dilyabareeva/quanda/issues/new)
-or write us at [dilyabareeva@gmail.com](mailto:dilyabareeva@gmail.com) or [galip.uemit.yolcu@hhi.fraunhofer.de](mailto:galip.uemit.yolcu@hhi.fraunhofer.de).
