@@ -155,7 +155,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         shortcut_fn=add_yellow_square,
         backdoor_dataset=panda_set,
         shortcut_transform_indices=torch.load(os.path.join(metadata_dir, "all_train_shortcut_indices_for_generation.pth")),
-        flipping_transform_dict=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
+        flipping_transform_dict={},
     )
 
     test_set_grouped = LabelGroupingDataset(
@@ -210,6 +210,8 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     # find regular samples
     all_clean_samples = [i for i in range(len(test_set_grouped)) if i not in all_cats + all_dogs]
     clean_samples = random_rng.sample(all_clean_samples, 64)
+    if 535 not in clean_samples:
+        clean_samples[-1] = 535
     test_shortcut = random_rng.sample(all_clean_samples, 64)
 
     mispredicted_clean = [
@@ -250,12 +252,14 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     test_mispredicted = torch.load(os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
     mispredicted_dataset = torch.utils.data.Subset(test_set_grouped, test_mispredicted)
 
+    """
     dataloaders["mislabeling"] = torch.utils.data.DataLoader(
         mispredicted_dataset,
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
     )
+    """
 
     # vis_dataloader(dataloaders["mislabeling"])
 
@@ -399,7 +403,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
             checkpoints_load_func=load_state_dict,
             projection_dim=500,
-            arnoldi_dim=100,
+            arnoldi_dim=200,
             batch_size=batch_size * 4,
             # layers=["model.fc"],  # only the last layer
             device=device,
