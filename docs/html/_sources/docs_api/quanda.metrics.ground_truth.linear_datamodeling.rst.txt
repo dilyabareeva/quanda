@@ -1,0 +1,7 @@
+quanda.metrics.ground\_truth.linear\_datamodeling module
+========================================================
+
+.. automodule:: quanda.metrics.ground_truth.linear_datamodeling
+   :members:
+   :undoc-members:
+   :show-inheritance:

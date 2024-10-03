@@ -11,13 +11,14 @@ from quanda.metrics.base import Metric
 
 
 class MislabelingDetectionMetric(Metric):
-    """Metric for noisy label detection.
+    """
+    Metric for noisy label detection.
 
     This metric is used to evaluate attributions for detecting mislabeled samples.
 
     Given the ground truth of mislabeled samples, and a strategy to get a global ranking
     of datapoints from a local explainer, the area under the mislabeled sample detection
-    curve is computed following (5).
+    curve is computed following Kwon et al. (2024).
 
     References
     ----------
@@ -49,7 +50,9 @@ class MislabelingDetectionMetric(Metric):
         *args: Any,
         **kwargs: Any,
     ):
-        """Initializer for the Mislabeling Detection metric.
+        """
+        Initializer for the Mislabeling Detection metric.
+
         This initializer is not used directly.
         Instead, the `self_influence_based` or `aggr_based` methods should be used.
 
@@ -191,7 +194,8 @@ class MislabelingDetectionMetric(Metric):
         explanations: torch.Tensor,
         **kwargs,
     ):
-        """Update the aggregator based metric with local attributions.
+        """
+        Update the aggregator based metric with local attributions.
         This method is not used for self-influence based mislabeling detection.
 
         Parameters
@@ -223,6 +227,7 @@ class MislabelingDetectionMetric(Metric):
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
         Load previously computed state for the metric.
+
         Parameters
         ----------
         state_dict : dict
@@ -234,7 +239,7 @@ class MislabelingDetectionMetric(Metric):
         """
         Returns the state dictionary of the metric.
 
-        Returns:
+        Returns
         -------
         dict
             The state dictionary of the metric.
@@ -251,7 +256,7 @@ class MislabelingDetectionMetric(Metric):
             A dictionary containing the following elements:
             - `success_arr`: A tensor indicating the mislabeling detection success of each element in the global ranking.
             - `curve`: The normalized curve of cumulative success rate.
-            - `score`: The mislabeling detection score, i.e. the area under `curve`
+            - `score`: The mislabeling detection score, i.e. the area under `curve`.
         """
         global_ranking = self.strategy.get_global_rank(*args, **kwargs)
         mislabeling_set = set(self.mislabeling_indices)

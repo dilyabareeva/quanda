@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class ModelRandomization(Benchmark):
+    # TODO: remove UNKNOWN IF PREDICTED LABELS ARE USED https://arxiv.org/pdf/2006.04528
     """
     Benchmark for the model randomization heuristic.
 
@@ -33,8 +34,6 @@ class ModelRandomization(Benchmark):
     maps. In Advances in Neural Information Processing Systems (Vol. 31).
     """
 
-    # TODO: remove UNKNOWN IF PREDICTED LABELS ARE USED https://arxiv.org/pdf/2006.04528
-
     name: str = "Model Randomization"
 
     def __init__(
@@ -42,7 +41,8 @@ class ModelRandomization(Benchmark):
         *args,
         **kwargs,
     ):
-        """Initializer for the Model Randomization benchmark.
+        """
+        Initializer for the Model Randomization benchmark.
 
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
@@ -83,17 +83,17 @@ class ModelRandomization(Benchmark):
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
         data_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None
+            Transform to be applied to the dataset, by default None.
         dataset_split : str, optional
             The dataset split to use, by default "train". Only used if `train_dataset` is a string.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation
+            Correlation function to be used for the evaluation.
             Can be "spearman" or "kendall", or a callable.
-            Defaults to "spearman"
+            Defaults to "spearman".
         use_predictions: bool
             Whether to use the model's predictions for generating attributions. Defaults to True.
         seed : int, optional
-            Seed to be used for the evaluation, by default 42
+            Seed to be used for the evaluation, by default 42.
 
         Returns
         -------
@@ -188,19 +188,19 @@ class ModelRandomization(Benchmark):
         eval_dataset : torch.utils.data.Dataset
             Evaluation dataset to be used for the benchmark.
         data_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None
+            Transform to be applied to the dataset, by default None.
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation
+            Correlation function to be used for the evaluation.
             Can be "spearman" or "kendall", or a callable.
-            Defaults to "spearman"
+            Defaults to "spearman".
         use_predictions: bool
             Whether to use the model's predictions for generating attributions. Defaults to True.
         seed : int, optional
-            Seed to be used for the evaluation, by default 42
+            Seed to be used for the evaluation, by default 42.
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
 
         Returns
         -------
@@ -233,9 +233,9 @@ class ModelRandomization(Benchmark):
         explainer_cls : type
             Class of the explainer to be used for the evaluation.
         expl_kwargs : Optional[dict], optional
-            Additional keyword arguments for the explainer, by default None
+            Additional keyword arguments for the explainer, by default None.
         batch_size : int, optional
-            Batch size to be used for the evaluation, default to 8
+            Batch size to be used for the evaluation, default to 8.
 
         Returns
         -------

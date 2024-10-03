@@ -6,15 +6,18 @@ from quanda.metrics.base import Metric
 
 
 class ClassDetectionMetric(Metric):
-    """Metric that measures the performance of a given data attribution method in detecting the class of a test sample
+    """
+    Metric that measures the performance of a given data attribution method in detecting the class of a test sample
     from its highest attributed training point.
+
     Intuitively, a good attribution method should assign the highest attribution to the class of the test sample,
-    as argued in (1) and (2).
+    as argued by Hanawa et al. (2021) and Kwon et al. (2024).
 
     References
     ----------
     1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations.
     In International Conference on Learning Representations.
+
     2) Kwon, Y., Wu, E., Wu, K., Zou, J., (2024). DataInf: Efficiently Estimating Data Influence in
     LoRA-tuned LLMs and Diffusion Models. The Twelfth International Conference on Learning Representations.
     """
@@ -30,7 +33,8 @@ class ClassDetectionMetric(Metric):
         *args,
         **kwargs,
     ):
-        """Initializer for the Class Detection metric.
+        """
+        Initializer for the Class Detection metric.
 
         Parameters
         ----------
@@ -51,7 +55,8 @@ class ClassDetectionMetric(Metric):
         self.scores: List[torch.Tensor] = []
 
     def update(self, test_labels: torch.Tensor, explanations: torch.Tensor):
-        """Update the metric state with the provided explanations.
+        """
+        Update the metric state with the provided explanations.
 
         Parameters
         ----------
@@ -76,7 +81,8 @@ class ClassDetectionMetric(Metric):
         self.scores.append(scores)
 
     def compute(self):
-        """Aggregate the metric state and return the final score.
+        """
+        Aggregate the metric state and return the final score.
 
         Returns
         -------
@@ -96,7 +102,7 @@ class ClassDetectionMetric(Metric):
         Parameters
         ----------
         state_dict : dict
-            A state dictionary for the metric
+            A state dictionary for the metric.
         """
         self.scores = state_dict["scores"]
 

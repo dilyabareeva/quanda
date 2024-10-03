@@ -19,17 +19,18 @@ class ClassDetection(Benchmark):
     This benchmark evaluates the effectiveness of an attribution method in detecting the class of a test sample
     from its highest attributed training point.
     Intuitively, a good attribution method should assign the highest attribution to the class of the test sample,
-    as argued in (1) and (2).
+    as argued in Hanawa et al. (2021) and Kwon et al. (2024).
 
     References
     ----------
     1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations.
     In International Conference on Learning Representations.
+
     2) Kwon, Y., Wu, E., Wu, K., Zou, J., (2024). DataInf: Efficiently Estimating Data Influence in
     LoRA-tuned LLMs and Diffusion Models. The Twelfth International Conference on Learning Representations.
     """
 
-    #   TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
+    # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     name: str = "Class Detection"
 
     def __init__(
@@ -37,7 +38,9 @@ class ClassDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Initializer for the Class Detection benchmark.
+        """
+        Initializer for the Class Detection benchmark.
+
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
         Alternatively, `download` can be used to load a precomputed benchmark.
@@ -61,8 +64,8 @@ class ClassDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Generates the benchmark by specifying parameters.
-        The evaluation can then be run using the `evaluate` method.
+        """
+        Generates the benchmark by specifying parameters. The evaluation can then be run using the `evaluate` method.
 
         Parameters
         ----------
@@ -157,7 +160,8 @@ class ClassDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Assembles the benchmark from existing components.
+        """
+        Assembles the benchmark from existing components.
 
         Parameters
         ----------
@@ -174,7 +178,7 @@ class ClassDetection(Benchmark):
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
 
         Returns
         -------
@@ -206,9 +210,9 @@ class ClassDetection(Benchmark):
         explainer_cls: type
             The explanation class inheriting from the base Explainer class to be used for evaluation.
         expl_kwargs: Optional[dict], optional
-            Keyword arguments for the explainer, by default None
+            Keyword arguments for the explainer, by default None.
         batch_size: int, optional
-            Batch size for the evaluation, by default 8
+            Batch size for the evaluation, by default 8.
 
         Returns
         -------

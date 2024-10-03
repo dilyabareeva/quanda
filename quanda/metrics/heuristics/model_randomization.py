@@ -124,7 +124,8 @@ class ModelRandomizationMetric(Metric):
         return {"score": torch.cat(self.results["scores"]).mean().item()}
 
     def reset(self):
-        """Resets the state of the model randomization.
+        """
+        Resets the state of the model randomization.
 
         This method resets the state of the model randomization by clearing the results and
         reseeding the random number generator. It also randomizes the model using the

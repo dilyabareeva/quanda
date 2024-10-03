@@ -21,7 +21,8 @@ class LabelGroupingDataset(TransformedDataset):
         n_groups: Optional[int] = None,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
     ):
-        """_summary_
+        """
+        Constructor for the LabelGroupingDataset class.
 
         Parameters
         ----------
@@ -30,22 +31,22 @@ class LabelGroupingDataset(TransformedDataset):
         n_classes : int
             Number of classes in the (original, ungrouped) dataset.
         dataset_transform : Optional[Callable], optional
-            Default transform of the dataset, defaults to None
+            Default transform of the dataset, defaults to None.
         transform_indices : Optional[List], optional
-            Indices to transform, defaults to None
+            Indices to transform, defaults to None.
         seed : int, optional
-            Seed for the random number generator, by default 42
+            Seed for the random number generator, by default 42.
         n_groups : Optional[int], optional
-            Number of groups to divide the classes into, defaults to None
+            Number of groups to divide the classes into, defaults to None.
         class_to_group : Union[ClassToGroupLiterals, Dict[int, int]], optional
-            Dictionary of class to group assignment or "random" to assign classes randomly, defaults to "random"
+            Dictionary of class to group assignment or "random" to assign classes randomly, defaults to "random".
 
         Raises
         ------
         ValueError
-            If class_to_group is "random" and n_groups is not specified
+            If class_to_group is "random" and n_groups is not specified.
         ValueError
-            If class_to_group dictionary length does not match number of classes
+            If class_to_group dictionary length does not match number of classes.
         """
         super().__init__(
             dataset=dataset,
@@ -83,14 +84,15 @@ class LabelGroupingDataset(TransformedDataset):
         self.label_fn = lambda x: self.class_to_group[x]
 
     def _validate_class_to_group(self):
-        """Validates the class_to_group dictionary.
+        """
+        Validates the class_to_group dictionary.
 
         Raises
         ------
         ValueError
-            If the length of the class_to_group dictionary does not match the number of classes
+            If the length of the class_to_group dictionary does not match the number of classes.
         ValueError
-            If there are invalid group assignments in the class_to_group dictionary
+            If there are invalid group assignments in the class_to_group dictionary.
         """
         if not len(self.class_to_group) == self.n_classes:
             raise ValueError(

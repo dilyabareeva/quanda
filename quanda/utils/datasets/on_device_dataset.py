@@ -7,7 +7,8 @@ class OnDeviceDataset(torch.utils.data.Dataset):
     """Wrapper to move a dataset to a device."""
 
     def __init__(self, dataset: torch.utils.data.Dataset, device: Union[str, torch.device]):
-        """Constructor for the OnDeviceDataset class.
+        """
+        Constructor for the OnDeviceDataset class.
 
         Parameters
         ----------
@@ -24,7 +25,8 @@ class OnDeviceDataset(torch.utils.data.Dataset):
         return data.to(self.device), torch.tensor(target).to(self.device)
 
     def __len__(self):
-        """Not all datasets are sized. If the dataset is not sized,
+        """
+        Not all datasets are sized. If the dataset is not sized,
         we create a DataLoader to get the length.
 
         Returns

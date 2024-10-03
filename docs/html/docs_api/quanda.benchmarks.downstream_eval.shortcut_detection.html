@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quanda.benchmarks.downstream_eval.shortcut_detection module &mdash; quanda 01.07.2024 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=cea27b2f"></script>
+        <script src="../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="quanda.benchmarks.downstream_eval.subclass_detection module" href="quanda.benchmarks.downstream_eval.subclass_detection.html" />
+    <link rel="prev" title="quanda.benchmarks.downstream_eval.mislabeling_detection module" href="quanda.benchmarks.downstream_eval.mislabeling_detection.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" >
+            
+              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">quanda</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="quanda.html">quanda package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="quanda.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="quanda.benchmarks.html">quanda.benchmarks package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.explainers.html">quanda.explainers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.metrics.html">quanda.metrics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quanda.utils.html">quanda.utils package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">quanda</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">quanda</a></li>
+          <li class="breadcrumb-item"><a href="quanda.html">quanda package</a></li>
+          <li class="breadcrumb-item"><a href="quanda.benchmarks.html">quanda.benchmarks package</a></li>
+          <li class="breadcrumb-item"><a href="quanda.benchmarks.downstream_eval.html">quanda.benchmarks.downstream_eval package</a></li>
+      <li class="breadcrumb-item active">quanda.benchmarks.downstream_eval.shortcut_detection module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/docs_api/quanda.benchmarks.downstream_eval.shortcut_detection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-quanda.benchmarks.downstream_eval.shortcut_detection">
+<span id="quanda-benchmarks-downstream-eval-shortcut-detection-module"></span><h1>quanda.benchmarks.downstream_eval.shortcut_detection module<a class="headerlink" href="#module-quanda.benchmarks.downstream_eval.shortcut_detection" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.benchmarks.downstream_eval.shortcut_detection.</span></span><span class="sig-name descname"><span class="pre">ShortcutDetection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/downstream_eval/shortcut_detection.html#ShortcutDetection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark" title="quanda.benchmarks.base.Benchmark"><code class="xref py py-class docutils literal notranslate"><span class="pre">Benchmark</span></code></a></p>
+<p>Benchmark for shortcut detection evaluation task.</p>
+<p>A class is selected, and a subset of its images is modified by overlaying a shortcut trigger. The model is then
+trained on this dataset and learns to use the shortcut as a trigger to predict the class. The objective is to
+detect this shortcut by analyzing the model’s attributions.</p>
+<p>Note that all explanations are generated with respect to the class of the shortcut samples, to detect the shortcut.</p>
+<p>The average attributions for triggered examples from the class, clean examples from the class,
+and clean examples from other classes are computed.</p>
+<p>This metric is inspired by the Domain Mismatch Detection Test of Koh et al. (2017) and the Backdoor Poisoning Detection.</p>
+<p class="rubric">References</p>
+<ol class="arabic simple">
+<li><dl class="simple">
+<dt>Koh, Pang Wei, and Percy Liang. (2017). Understanding black-box predictions via influence functions.</dt><dd><p>International conference on machine learning. PMLR.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>checkpoint_paths</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.assemble" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
+<td><p>Assembles the benchmark from existing components.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
+<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.download" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.evaluate" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<td><p>Evaluate the given data attributor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.generate" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
+<td><p>Generate the benchmark from scratch, with the specified parameters.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_dataset</span></code>(dataset[, transform, ...])</p></td>
+<td><p>Return the dataset using the given parameters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_devices</span></code>(model)</p></td>
+<td><p>Infer device from model.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/downstream_eval/shortcut_detection.html#ShortcutDetection.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializer for the benchmark object. This initializer should not be used directly.</p>
+<p>To instantiate the benchmark, use the <cite>generate</cite>, <cite>assemble</cite> or <cite>download</cite> class methods instead.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.assemble">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">assemble</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">LightningModule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_predictions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/downstream_eval/shortcut_detection.html#ShortcutDetection.assemble"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.assemble" title="Link to this definition"></a></dt>
+<dd><p>Assembles the benchmark from existing components.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>L.LightningModule</em><em>]</em>) – Model to be used for the benchmark. This model should be trained on the mislabeled dataset.</p></li>
+<li><p><strong>base_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</p></li>
+<li><p><strong>n_classes</strong> (<em>int</em>) – Number of classes in the dataset.</p></li>
+<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Dataset to be used for the evaluation.</p></li>
+<li><p><strong>sample_fn</strong> (<em>Callable</em>) – Function to add triggers to samples of the dataset.</p></li>
+<li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+is predicted, by default True</p></li>
+<li><p><strong>filter_by_class</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+is not assigned as the class, by default True</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
+<li><p><strong>shortcut_indices</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Binary list of indices to poison, by default None.</p></li>
+<li><p><strong>dataset_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the dataset, by default None.</p></li>
+<li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – The probability of mislabeling per sample, by default 0.3.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size that is used for training, by default 8.</p></li>
+<li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The benchmark instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection">ShortcutDetection</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.download">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/downstream_eval/shortcut_detection.html#ShortcutDetection.download"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.download" title="Link to this definition"></a></dt>
+<dd><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the benchmark to be loaded.</p></li>
+<li><p><strong>cache_dir</strong> (<em>str</em>) – Directory to store the downloaded benchmark components.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device to load the model on.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/downstream_eval/shortcut_detection.html#ShortcutDetection.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.evaluate" title="Link to this definition"></a></dt>
+<dd><p>Evaluate the given data attributor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>explainer_cls</strong> (<em>type</em>) – Class of the explainer to be used for the evaluation.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Additional keyword arguments for the explainer, by default None.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size to be used for the evaluation, default to 8.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing the evaluation results.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.generate">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">LightningModule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shortcut_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Trainer</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="quanda.utils.training.trainer.html#quanda.utils.training.trainer.BaseTrainer" title="quanda.utils.training.trainer.BaseTrainer"><span class="pre">BaseTrainer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_prediction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_by_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_predictions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'train'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer_fit_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">27</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/downstream_eval/shortcut_detection.html#ShortcutDetection.generate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.generate" title="Link to this definition"></a></dt>
+<dd><p>Generate the benchmark from scratch, with the specified parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>L.LightningModule</em><em>]</em>) – Model to be evaluated.</p></li>
+<li><p><strong>base_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – The vanilla training dataset to be used for the benchmark.
+If a string is passed, it should be a HuggingFace dataset.</p></li>
+<li><p><strong>n_classes</strong> (<em>int</em>) – Number of classes in the dataset.</p></li>
+<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Dataset to be used for the evaluation.</p></li>
+<li><p><strong>shortcut_cls</strong> (<em>int</em>) – The class to add triggers to.</p></li>
+<li><p><strong>trainer</strong> (<em>Union</em><em>[</em><em>L.Trainer</em><em>, </em><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BaseTrainer" title="quanda.utils.training.BaseTrainer"><em>BaseTrainer</em></a><em>]</em>) – Trainer to be used for training the model.</p></li>
+<li><p><strong>sample_fn</strong> (<em>Callable</em>) – Function to add triggers to samples of the dataset.</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – Split used for HuggingFace datasets, by default “train”.</p></li>
+<li><p><strong>dataset_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Default transform of the dataset, by default None.</p></li>
+<li><p><strong>val_dataset</strong> (<em>Optional</em><em>[</em><em>torch.utils.data.Dataset</em><em>]</em><em>, </em><em>optional</em>) – Validation dataset to use during training, by default None.</p></li>
+<li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – The probability of poisoning with the trigger per sample, by default 0.3.</p></li>
+<li><p><strong>trainer_fit_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Keyword arguments to supply the trainer, by default None.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – seed for reproducibility, by default 27.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size to use during training, by default 8.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of the ShortcutDetection benchmark.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection">ShortcutDetection</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quanda.benchmarks.downstream_eval.mislabeling_detection.html" class="btn btn-neutral float-left" title="quanda.benchmarks.downstream_eval.mislabeling_detection module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quanda.benchmarks.downstream_eval.subclass_detection.html" class="btn btn-neutral float-right" title="quanda.benchmarks.downstream_eval.subclass_detection module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Dilya, Galip.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

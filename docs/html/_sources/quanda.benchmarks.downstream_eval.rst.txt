@@ -1,0 +1,45 @@
+quanda.benchmarks.downstream\_eval package
+==========================================
+
+Submodules
+----------
+
+quanda.benchmarks.downstream\_eval.class\_detection module
+----------------------------------------------------------
+
+.. automodule:: quanda.benchmarks.downstream_eval.class_detection
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.benchmarks.downstream\_eval.mislabeling\_detection module
+----------------------------------------------------------------
+
+.. automodule:: quanda.benchmarks.downstream_eval.mislabeling_detection
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.benchmarks.downstream\_eval.shortcut\_detection module
+-------------------------------------------------------------
+
+.. automodule:: quanda.benchmarks.downstream_eval.shortcut_detection
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.benchmarks.downstream\_eval.subclass\_detection module
+-------------------------------------------------------------
+
+.. automodule:: quanda.benchmarks.downstream_eval.subclass_detection
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: quanda.benchmarks.downstream_eval
+   :members:
+   :undoc-members:
+   :show-inheritance:

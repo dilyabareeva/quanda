@@ -19,7 +19,8 @@ class LabelFlippingDataset(TransformedDataset):
         p: float = 1.0,  # TODO: decide on default value vis-à-vis subset_idx
         seed: int = 42,
     ):
-        """Constructor for the LabelFlippingDataset class.
+        """
+        Constructor for the LabelFlippingDataset class.
 
         Parameters
         ----------
@@ -34,9 +35,9 @@ class LabelFlippingDataset(TransformedDataset):
         mislabeling_labels : Optional[Dict[int, int]], optional
             Dictionary of indices and poisoned labels. If None, the poisoned labels are generated randomly.
         cls_idx : Optional[int], optional
-            Class to poison. If `transform_indices` is given, this parameter is ignored, defaults to None
+            Class to poison. If `transform_indices` is given, this parameter is ignored, defaults to None.
         p : float, optional
-            Probability of transformation for each instance to transform, defaults to 1.0
+            Probability of transformation for each instance to transform, defaults to 1.0.
         """
         super().__init__(
             dataset=dataset,
@@ -63,7 +64,8 @@ class LabelFlippingDataset(TransformedDataset):
         return label_arr[label_idx]
 
     def _validate_mislabeling_labels(self, mislabeling_labels: Dict[int, int]):
-        """Validates the poisoned labels as they are supplied by the user.
+        """
+        Validates the poisoned labels as they are supplied by the user.
 
         Parameters
         ----------
@@ -73,7 +75,7 @@ class LabelFlippingDataset(TransformedDataset):
         Raises
         ------
         ValueError
-            If the mislabeling_labels are not a dictionary of integer keys and values
+            If the mislabeling_labels are not a dictionary of integer keys and values.
         """
         if not isinstance(mislabeling_labels, dict):
             raise ValueError(

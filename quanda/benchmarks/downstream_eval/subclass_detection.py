@@ -24,8 +24,9 @@ logger = logging.getLogger(__name__)
 
 
 class SubclassDetection(Benchmark):
+    # TODO: remove USES PREDICTED LABELS, FILTERS BY CORRECT PREDICTIONS https://arxiv.org/pdf/2006.04528
     """
-    Benchmark for subclass detection task as described in (1).
+    Benchmark for subclass detection task as described by Hanawa et al. (2021).
     A model is trained on a dataset where labels are grouped into superclasses.
     The metric evaluates the performance of an attribution method in detecting the subclass of a test sample
     from its highest attributed training point.
@@ -36,8 +37,6 @@ class SubclassDetection(Benchmark):
     Conference on Learning Representations.
     """
 
-    # TODO: remove USES PREDICTED LABELS, FILTERS BY CORRECT PREDICTIONS https://arxiv.org/pdf/2006.04528
-
     name: str = "Subclass Detection"
 
     def __init__(
@@ -45,7 +44,9 @@ class SubclassDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Initializer for the Subclass Detection benchmark.
+        """
+        Initializer for the Subclass Detection benchmark.
+
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
         Alternatively, `download` can be used to load a precomputed benchmark.
@@ -87,8 +88,8 @@ class SubclassDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Generates the benchmark by specifying parameters.
-        The evaluation can then be run using the `evaluate` method.
+        """
+        Generates the benchmark by specifying parameters. The evaluation can then be run using the `evaluate` method.
 
         Parameters
         ----------
@@ -110,21 +111,21 @@ class SubclassDetection(Benchmark):
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         val_dataset : Optional[torch.utils.data.Dataset], optional
-            Validation dataset to be used for the benchmark, by default None
+            Validation dataset to be used for the benchmark, by default None.
         dataset_transform : Optional[Callable], optional
-            The original dataset transform, by default None
+            The original dataset transform, by default None.
         n_classes : int, optional
-            Number of classes of `base_dataset`, by default 10
+            Number of classes of `base_dataset`, by default 10.
         n_groups : int, optional
-            Number of groups to split the classes into, by default 2
+            Number of groups to split the classes into, by default 2.
         class_to_group : Union[ClassToGroupLiterals, Dict[int, int]], optional
-            Mapping of classes to groups, as a dictionary. For random grouping, pass "random". By default "random"
+            Mapping of classes to groups, as a dictionary. For random grouping, pass "random". By default "random".
         trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments to be passed to the trainer's `fit` method, by default None
+            Additional keyword arguments to be passed to the trainer's `fit` method, by default None.
         seed : int, optional
-            Random seed for reproducibility, by default 27
+            Random seed for reproducibility, by default 27.
         batch_size : int, optional
-            Batch size for the dataloaders, by default 8
+            Batch size for the dataloaders, by default 8.
 
         Returns
         -------
@@ -170,28 +171,29 @@ class SubclassDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """Internal method to generate the benchmark components.
+        """
+        Internal method to generate the benchmark components.
 
         Parameters
         ----------
         trainer : Union[L.Trainer, BaseTrainer]
             The trainer used to train the model.
         val_dataset : Optional[torch.utils.data.Dataset], optional
-            Validation dataset to be used for the benchmark, by default None
+            Validation dataset to be used for the benchmark, by default None.
         dataset_transform : Optional[Callable], optional
-            The original dataset transform, by default None
+            The original dataset transform, by default None.
         n_classes : int, optional
-            Number of classes of `base_dataset`, by default 10
+            Number of classes of `base_dataset`, by default 10.
         n_groups : int, optional
-            Number of groups to split the classes into, by default 2
+            Number of groups to split the classes into, by default 2.
         class_to_group : Union[ClassToGroupLiterals, Dict[int, int]], optional
-            Mapping of classes to groups, as a dictionary. For random grouping, pass "random". By default "random"
+            Mapping of classes to groups, as a dictionary. For random grouping, pass "random". By default "random".
         trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments to be passed to the trainer's `fit` method, by default None
+            Additional keyword arguments to be passed to the trainer's `fit` method, by default None.
         seed : int, optional
-            Random seed for reproducibility, by default 27
+            Random seed for reproducibility, by default 27.
         batch_size : int, optional
-            Batch size for the dataloaders, by default 8
+            Batch size for the dataloaders, by default 8.
 
         Returns
         -------
@@ -321,7 +323,8 @@ class SubclassDetection(Benchmark):
         batch_size: int = 8,
         checkpoint_paths: Optional[List[str]] = None,
     ):
-        """Assembles the benchmark from existing components.
+        """
+        Assembles the benchmark from existing components.
 
         Parameters
         ----------
@@ -347,7 +350,7 @@ class SubclassDetection(Benchmark):
         batch_size : int, optional
             Batch size for the dataloaders, by default 8.
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
 
         Returns
         -------
@@ -395,9 +398,9 @@ class SubclassDetection(Benchmark):
         explainer_cls: type
             The explanation class inheriting from the base Explainer class to be used for evaluation.
         expl_kwargs: Optional[dict], optional
-            Keyword arguments for the explainer, by default None
+            Keyword arguments for the explainer, by default None.
         batch_size: int, optional
-            Batch size for the evaluation, by default 8
+            Batch size for the evaluation, by default 8.
 
         Returns
         -------

@@ -26,7 +26,9 @@ class Benchmark(ABC):
     @classmethod
     @abstractmethod
     def generate(cls, *args, **kwargs):
-        """Generates the benchmark by specifying parameters.
+        """
+        Generates the benchmark by specifying parameters.
+
         The evaluation can then be run using the `evaluate` method.
 
         Raises
@@ -48,7 +50,7 @@ class Benchmark(ABC):
         eval_dataset : torch.utils.data.Dataset
             Dataset to be used for the evaluation.
         batch_size : int, optional
-            Batch size to be used, by default 32
+            Batch size to be used, by default 32.
 
         Raises
         ------
@@ -58,7 +60,8 @@ class Benchmark(ABC):
         raise NotImplementedError
 
     def _get_bench_state(self, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """Downloads a benchmark state dictionary of a benchmark and returns.
+        """
+        Downloads a benchmark state dictionary of a benchmark and returns.
 
         Parameters
         ----------
@@ -90,7 +93,8 @@ class Benchmark(ABC):
     @classmethod
     @abstractmethod
     def assemble(cls, *args, **kwargs):
-        """Assembles the benchmark from existing components.
+        """
+        Assembles the benchmark from existing components.
 
         Raises
         ------
@@ -137,14 +141,15 @@ class Benchmark(ABC):
         transform: Optional[Callable] = None,
         dataset_split: str = "train",
     ):
-        """Return the dataset using the given parameters.
+        """
+        Return the dataset using the given parameters.
 
         Parameters
         ----------
         dataset : Union[str, torch.utils.data.Dataset]
             The dataset to be processed.
         transform : Optional[Callable], optional
-            The transform to be applied to the dataset, by default None
+            The transform to be applied to the dataset, by default None.
         dataset_split : str, optional
             The dataset split, by default "train", only used for HuggingFace datasets.
 
@@ -166,7 +171,8 @@ class Benchmark(ABC):
         transform: Optional[Callable] = None,
         dataset_split: str = "test",
     ):
-        """Downloads the HuggingFace evaluation dataset from given name.
+        """
+        Downloads the HuggingFace evaluation dataset from given name.
 
         Parameters
         ----------
@@ -175,9 +181,9 @@ class Benchmark(ABC):
         eval_indices : List[int]
             The indices to be used for evaluation.
         transform : Optional[Callable], optional
-            The transform to be applied to the dataset, by default None
+            The transform to be applied to the dataset, by default None.
         dataset_split : str, optional
-            The dataset split, by default "test"
+            The dataset split, by default "test".
 
         Returns
         -------

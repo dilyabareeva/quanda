@@ -1,0 +1,37 @@
+quanda.metrics.heuristics package
+=================================
+
+Submodules
+----------
+
+quanda.metrics.heuristics.mixed\_datasets module
+------------------------------------------------
+
+.. automodule:: quanda.metrics.heuristics.mixed_datasets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.metrics.heuristics.model\_randomization module
+-----------------------------------------------------
+
+.. automodule:: quanda.metrics.heuristics.model_randomization
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+quanda.metrics.heuristics.top\_k\_overlap module
+------------------------------------------------
+
+.. automodule:: quanda.metrics.heuristics.top_k_overlap
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: quanda.metrics.heuristics
+   :members:
+   :undoc-members:
+   :show-inheritance:

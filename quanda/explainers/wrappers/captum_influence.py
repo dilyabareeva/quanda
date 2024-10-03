@@ -42,8 +42,6 @@ logger = logging.getLogger(__name__)
 class CaptumInfluence(Explainer, ABC):
     """
     Base class for the Captum explainers.
-
-
     """
 
     def __init__(
@@ -57,6 +55,7 @@ class CaptumInfluence(Explainer, ABC):
     ):
         """
         Initializer for the base `CaptumInfluence` wrapper.
+
         Parameters
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
@@ -80,12 +79,14 @@ class CaptumInfluence(Explainer, ABC):
         self.explain_kwargs = explain_kwargs
 
     def init_explainer(self, **explain_kwargs: Any):
-        """Initialize the Captum explainer.
+        """
+        Initialize the Captum explainer.
 
         Parameters
         ----------
         **explain_kwargs : Any
-            Additional keyword arguments to be passed to the explainer."""
+            Additional keyword arguments to be passed to the explainer.
+        """
         self.captum_explainer = self.explainer_cls(**explain_kwargs)
 
     @abstractmethod
@@ -116,7 +117,7 @@ class CaptumSimilarity(CaptumInfluence):
 
     Notes
     -----
-    The user is referred to captum's codebase for details on the specifics of the parameters.
+    The user is referred to captum's codebase [1] for details on the specifics of the parameters.
 
     References
     ----------
@@ -137,7 +138,8 @@ class CaptumSimilarity(CaptumInfluence):
         load_from_disk: bool = True,
         **explainer_kwargs: Any,
     ):
-        """Initializer for the `CaptumSimilarity` explainer.
+        """
+        Initializer for the `CaptumSimilarity` explainer.
 
         The Captum implementation includes a bug in the batch processing of the dataset, which leads to an error
         if the dataset size is not divisible by the batch size. To circumvent this issue, we divide the dataset into
@@ -257,7 +259,7 @@ class CaptumSimilarity(CaptumInfluence):
     def layer(self, layers: Any):
         """
         Our wrapper only allows a single layer to be passed, while the Captum implementation allows multiple layers.
-        Here, we validate if there is only a single layer passed.
+        Here, we validate if only a single layer was passed.
         """
         if isinstance(layers, str):
             self._layer = layers
@@ -391,18 +393,20 @@ def captum_similarity_self_influence(
 class CaptumArnoldi(CaptumInfluence):
     """
     Class for Arnoldi Influence Function wrapper.
-    This implements the ArnoldiInfluence method of (1) to compute influence function explanations (2).
+    This implements the ArnoldiInfluence method of Schioppa et. al. (2022) to compute influence function explanations [2].
 
     Notes
-    ------
-    The user is referred to captum's codebase (3) for details on the specifics of the parameters.
+    -----
+    The user is referred to captum's codebase [3] for details on the specifics of the parameters.
 
     References
     ----------
     (1) Schioppa, Andrea, et al. (2022). Scaling up influence functions.
         Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 36. No. 8.
+
     (2) Koh, Pang Wei, and Percy Liang. (2017). "Understanding black-box predictions via influence functions."
         International conference on machine learning. PMLR
+
     (3) https://github.com/pytorch/captum/blob/master/captum/influence/_core/arnoldi_influence_function.py
     """
 
@@ -429,7 +433,8 @@ class CaptumArnoldi(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
-        """Initializer for CaptumArnoldi explainer.
+        """
+        Initializer for CaptumArnoldi explainer.
 
         Parameters
         ----------
@@ -668,16 +673,17 @@ def captum_arnoldi_self_influence(
 
 class CaptumTracInCP(CaptumInfluence):
     """
-    Wrapper for the captum TracInCP explainer. This implements the TracIn method  (1).
+    Wrapper for the captum TracInCP explainer. This implements the TracIn method as described by Pruthi et al. (2020).
 
     Notes
     -----
-    The user is referred to captum's codebase (2) for details on the specifics of the parameters.
+    The user is referred to captum's codebase [2] for details on the specifics of the parameters.
 
     References
     ----------
     (1) Pruthi, Garima, et al. (2020). Estimating training data influence by tracing gradient descent.
         Advances in Neural Information Processing Systems 33. (19920-19930).
+
     (2) https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp.py
     """
 
@@ -888,16 +894,18 @@ def captum_tracincp_self_influence(
 
 class CaptumTracInCPFast(CaptumInfluence):
     """
-    Wrapper for the captum TracInCPFast explainer. This implements the TracIn method (1) using only the final layer parameters.
+    Wrapper for the captum TracInCPFast explainer.
+    This implements the TracIn method by Pruthi et al. (2020) using only the final layer parameters.
 
     Notes
-    ------
-    The user is referred to captum's codebase (2) for details on the specifics of the parameters.
+    -----
+    The user is referred to captum's codebase [2] for details on the specifics of the parameters.
 
     References
     ----------
     (1) Pruthi, Garima, et al. (2020). "Estimating training data influence by tracing gradient descent."
         Advances in Neural Information Processing Systems 33. (19920-19930).
+
     (2) https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp_fast_rand_proj.py
     """
 
@@ -1115,16 +1123,18 @@ def captum_tracincp_fast_self_influence(
 class CaptumTracInCPFastRandProj(CaptumInfluence):
     """
     Wrapper for the captum TracInCPFastRandProj explainer.
-    This implements the TracIn method (1) using only the final layer parameters and random projections to speed up computation.
+    This implements the TracIn method by Pruthi et al. (2020) using only the final layer parameters
+    and random projections to speed up computation.
 
     Notes
     -----
-    The user is referred to captum's codebase (2) for details on the specifics of the parameters.
+    The user is referred to captum's codebase [2] for details on the specifics of the parameters.
 
     References
     ----------
     (1) Pruthi, Garima, et al. (2020). "Estimating training data influence by tracing gradient descent."
         Advances in Neural Information Processing Systems 33. (19920-19930).
+
     (2) https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp_fast_rand_proj.py
     """
 
@@ -1145,7 +1155,8 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         device: Union[str, torch.device] = "cpu",
         **explainer_kwargs: Any,
     ):
-        """Initializer for the `CaptumTracInCPFastRandProj` explainer.
+        """
+        Initializer for the `CaptumTracInCPFastRandProj` explainer.
 
         Parameters
         ----------
@@ -1193,7 +1204,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             int, and random projection will be performed to ensure that the
             vector is of dimension no more than `projection_dim` * C.
             `projection_dim` corresponds to the variable d in the top of page
-            5 of the TracIn paper (1).
+            5 of the TracIn paper (Reference 1).
         seed : int, optional
             Random seed for reproducibility. Defaults to 0.
         device : Union[str, torch.device], optional

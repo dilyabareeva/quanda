@@ -7,7 +7,8 @@ from quanda.metrics.base import Metric
 
 
 class MixedDatasetsMetric(Metric):
-    """Metric that measures the performance of a given data attribution estimation method in separating dataset sources.
+    """
+    Metric that measures the performance of a given data attribution estimation method in separating dataset sources.
 
     Evaluates the performance of a given data attribution estimation method in identifying adversarial examples in a
     classification task.
@@ -95,7 +96,8 @@ class MixedDatasetsMetric(Metric):
         test_labels: Optional[torch.Tensor] = None,
         **kwargs,
     ):
-        """Update the metric state with the provided explanations.
+        """
+        Update the metric state with the provided explanations.
 
         Parameters
         ----------
@@ -151,7 +153,7 @@ class MixedDatasetsMetric(Metric):
         """
         Returns the metric state.
 
-        Returns:
+        Returns
         -------
         dict
             The state dictionary of the global ranker.

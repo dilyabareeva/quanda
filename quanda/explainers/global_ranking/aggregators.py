@@ -118,7 +118,7 @@ class BaseAggregator(ABC):
 
 class SumAggregator(BaseAggregator):
     """
-    Aggregator that sums up the attributions directly.
+    Aggregator which directly sums up the attributions.
     """
 
     def update(self, explanations: torch.Tensor):
@@ -136,7 +136,7 @@ class SumAggregator(BaseAggregator):
 
 class AbsSumAggregator(BaseAggregator):
     """
-    Aggregator that sums up the absolute value of attributions.
+    Aggregator which sums up the absolute value of attributions.
     """
 
     def update(self, explanations: torch.Tensor):
