@@ -23,7 +23,7 @@
 **Training data attribution** (TDA) methods attribute model output to its training samples ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html); [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html); [Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html); [Bae et al., 2024](https://arxiv.org/abs/2405.12186)). Outside of being used for understanding models, TDA has also found usage in a large variety of applications such as debugging model behavior ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html); [K and Søgaard, 2021](https://arxiv.org/abs/2111.04683); [Guo et al., 2021](https://aclanthology.org/2021.emnlp-main.808)), data summarization ([Khanna et al., 2019](https://proceedings.mlr.press/v89/khanna19a.html); [Marion et al., 2023](https://openreview.net/forum?id=XUIYn3jo5T); [Yang et al., 2023](https://openreview.net/forum?id=4wZiAXD29TQ)), dataset selection ([Engstrom et al., 2024](https://openreview.net/forum?id=GC8HkKeH8s); [Chhabra et al., 2024](https://openreview.net/forum?id=HE9eUQlAvo)), fact tracing ([Akyurek et al., 2022](https://aclanthology.org/2022.findings-emnlp.180)) and machine unlearning ([Warnecke
 et al., 2023](https://arxiv.org/abs/2108.11577)).
 
-The evaluation of TDA methods is a difficult task, especially due to the computationally demanding and noisy nature of the ground truths. ([Basu et al., 2021](https://openreview.net/forum?id=xHKVVHGDOEk); [Nguyen et al., 2023](https://proceedings.neurips.cc/paper_files/paper/2023/hash/ca774047bc3b46cc81e53ead34cd5d5a-Abstract-Conference.html)). For this reason, the community has proposed various sanity checks ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)) and downstream tasks ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Khanna et al., 2019](https://proceedings.mlr.press/v89/khanna19a.html); [Karthikeyan et al., 2021](https://arxiv.org/abs/2111.04683)) to evaluate the effectiveness of TDA methods. 
+The evaluation of TDA methods is a difficult task, especially due to the computationally demanding and noisy nature of the ground truths. ([Basu et al., 2021](https://openreview.net/forum?id=xHKVVHGDOEk); [Nguyen et al., 2023](https://proceedings.neurips.cc/paper_files/paper/2023/hash/ca774047bc3b46cc81e53ead34cd5d5a-Abstract-Conference.html)). For this reason, the community has proposed various sanity checks ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)) and downstream tasks ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Khanna et al., 2019](https://proceedings.mlr.press/v89/khanna19a.html); [Karthikeyan et al., 2021](https://arxiv.org/abs/2111.04683)) to evaluate the effectiveness of TDA methods.
 
 ### Library Features
 
@@ -35,7 +35,7 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
 
 | Method Name                | Repository                                                                             | Reference                                                                                                                 |
 |----------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| Similarity Influence        | [Captum](https://github.com/pytorch/captum/tree/master)      | [Captum Documentation](https://captum.ai/api/influence.html#similarityinfluence) |
+| Similarity Influence        | [Captum](https://github.com/pytorch/captum/tree/master)      | [Caruana et al., 1999](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2232607/) |
 | Arnoldi Influence Function  | [Captum](https://github.com/pytorch/captum/tree/master)    | [Schioppa et al., 2022](https://arxiv.org/abs/2112.03052); [Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html) |
 | TracIn                      | [Captum](https://github.com/pytorch/captum/tree/master)                                | [Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html) |
 | TRAK                        | [TRAK](https://github.com/MadryLab/trak)                                          | [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)             |
@@ -49,11 +49,11 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
 - **Identical Class / Identical Subclass** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the proportion of identical classes or subclasses in the top-1 training samples over the test dataset. If the attributions are based on similarity, they are expected to be predictive of the class of the test datapoint, as well as different subclasses under a single label.
 
 - **Model Randomization** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the correlation between the original TDA and the TDA of a model with randomized weights. Since the attributions are expected to depend on model parameters, the correlation between original and randomized attributions should be low.
-  
+
 -  **Top-K Overlap**  ([Barshan et al., 2020](http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf)): Measures the cardinality of the union of the top-K training samples. Since the attributions are expected to be dependent on the test input, they are expected to vary heavily for different test points, resulting in a low overlap (high metric value).
 
 - **Mislabeled Data Detection** ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html)): Computes the proportion of noisy training labels detected as a function of the percentage of inspected training samples. The samples are inspected in order according to their global TDA ranking, which is computed using local attributions. This produces a cumulative mislabeling detection curve. We expect to see a curve that rapidly increases as we check more of the training data, thus we compute the area under this curve
-  
+
 - **Shortcut Detection** ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html)): Assuming a known [shortcut](https://www.nature.com/articles/s42256-020-00257-z), or [Clever-Hans](https://www.nature.com/articles/s41467-019-08987-4) effect has been identified in the model, this metric evaluates how effectively a TDA (Topological Data Analysis) method can identify shortcut samples as the most influential in predicting cases with the shortcut artifact. This process is referred to as _Domain Mismatch Debugging_ in the original paper.
 
 - **Mixed Datasets** ([Hammoudeh and Lowd, 2022](https://dl.acm.org/doi/abs/10.1145/3548606.3559335)): In a setting where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example.
@@ -161,13 +161,13 @@ from quanda.metrics.randomization import ModelRandomizationMetric
 While `explainer_cls` is passed directly to the metric, `explain` function is used to generate explanations fed to a metric.
 ```python
 explain_fn_kwargs = {
-    "layers": "avgpool", 
+    "layers": "avgpool",
     "model_id": "default_model_id",
     "cache_dir": "./cache"
 }
 explainer = CaptumSimilarity(
-    model=model, 
-    train_dataset=train_dataset, 
+    model=model,
+    train_dataset=train_dataset,
     **explain_fn_kwargs
 )
 ```
