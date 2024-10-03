@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -89,7 +90,7 @@
 
 
 <div class="viewcode-block" id="LinearDatamodelingMetric">
-<a class="viewcode-back" href="../../../../quanda.metrics.ground_truth.html#quanda.metrics.ground_truth.LinearDatamodelingMetric">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.ground_truth.linear_datamodeling.html#quanda.metrics.ground_truth.LinearDatamodelingMetric">[docs]</a>
 <span class="k">class</span> <span class="nc">LinearDatamodelingMetric</span><span class="p">(</span><span class="n">Metric</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Metric to evaluate data attribution methods using the Linear Datamodeling Score (LDS).</span>
@@ -110,7 +111,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="LinearDatamodelingMetric.__init__">
-<a class="viewcode-back" href="../../../../quanda.metrics.ground_truth.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.ground_truth.linear_datamodeling.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
@@ -196,7 +197,7 @@
 
 
 <div class="viewcode-block" id="LinearDatamodelingMetric.sample_subsets">
-<a class="viewcode-back" href="../../../../quanda.metrics.ground_truth.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.sample_subsets">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.ground_truth.linear_datamodeling.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.sample_subsets">[docs]</a>
     <span class="k">def</span> <span class="nf">sample_subsets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Randomly sample m subsets of the training set, each of size alpha * N.</span>
@@ -223,7 +224,7 @@
 
 
 <div class="viewcode-block" id="LinearDatamodelingMetric.create_counterfactual_models">
-<a class="viewcode-back" href="../../../../quanda.metrics.ground_truth.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.create_counterfactual_models">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.ground_truth.linear_datamodeling.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.create_counterfactual_models">[docs]</a>
     <span class="k">def</span> <span class="nf">create_counterfactual_models</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        For each subset of the training data, this function creates a new model, trains it</span>
@@ -260,7 +261,7 @@
 
 
 <div class="viewcode-block" id="LinearDatamodelingMetric.load_counterfactual_model">
-<a class="viewcode-back" href="../../../../quanda.metrics.ground_truth.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.load_counterfactual_model">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.ground_truth.linear_datamodeling.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.load_counterfactual_model">[docs]</a>
     <span class="k">def</span> <span class="nf">load_counterfactual_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load a model checkpoint.</span>
@@ -284,7 +285,7 @@
 
 
 <div class="viewcode-block" id="LinearDatamodelingMetric.update">
-<a class="viewcode-back" href="../../../../quanda.metrics.ground_truth.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.update">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.ground_truth.linear_datamodeling.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -340,7 +341,7 @@
 
 
 <div class="viewcode-block" id="LinearDatamodelingMetric.reset">
-<a class="viewcode-back" href="../../../../quanda.metrics.ground_truth.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.reset">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.ground_truth.linear_datamodeling.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.reset">[docs]</a>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reset the LDS score and resample subsets of the training data.</span>
@@ -350,7 +351,7 @@
 
 
 <div class="viewcode-block" id="LinearDatamodelingMetric.load_state_dict">
-<a class="viewcode-back" href="../../../../quanda.metrics.ground_truth.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.load_state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.ground_truth.linear_datamodeling.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.load_state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load the state of the metric.</span>
@@ -365,7 +366,7 @@
 
 
 <div class="viewcode-block" id="LinearDatamodelingMetric.state_dict">
-<a class="viewcode-back" href="../../../../quanda.metrics.ground_truth.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.ground_truth.linear_datamodeling.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the current state of the metric.</span>
@@ -382,7 +383,7 @@
 
 
 <div class="viewcode-block" id="LinearDatamodelingMetric.compute">
-<a class="viewcode-back" href="../../../../quanda.metrics.ground_truth.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.compute">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.ground_truth.linear_datamodeling.html#quanda.metrics.ground_truth.LinearDatamodelingMetric.compute">[docs]</a>
     <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute and return the mean score.</span>

@@ -95,7 +95,7 @@
 <h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h2>
 <p>In the following, we provide a quick guide to <strong>quanda</strong> usage. To begin using <strong>quanda</strong>, ensure you have the following:</p>
 <ul class="simple">
-<li><p><strong>Trained PyTorch Model (`model`)</strong>: A PyTorch model that has already been trained on a relevant dataset.</p></li>
+<li><p><strong>Trained PyTorch Model (`model`)</strong>: A PyTorch model that has already been trained on a relevant dataset. As a placeholder, we used the layer name “avgpool” below. Please replace it with the name of one of the layers in your model.</p></li>
 <li><p><strong>PyTorch Dataset (`train_set`)</strong>: The dataset used during the training of the model.</p></li>
 <li><p><strong>Test Batches (`test_tensor`) and Explanation Targets (`target`)</strong>: A batch of test data (<cite>test_tensor</cite>) and the corresponding explanation targets (<cite>target</cite>). Generally, it is advisable to use the model’s predicted labels as the targets. In the following, we use the <cite>torch.utils.data.DataLoader</cite> to load the test data in batches.</p></li>
 </ul>
@@ -103,47 +103,53 @@
 <p><strong>1. Import dependencies and library components</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
-<span class="kn">import</span> <span class="nn">tqdm</span>
+<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">from</span> <span class="nn">quanda.explainers.wrappers</span> <span class="kn">import</span> <span class="n">captum_similarity_explain</span><span class="p">,</span> <span class="n">CaptumSimilarity</span>
-<span class="kn">from</span> <span class="nn">quanda.metrics.randomization</span> <span class="kn">import</span> <span class="n">ModelRandomizationMetric</span>
+<span class="kn">from</span> <span class="nn">quanda.metrics.heuristics</span> <span class="kn">import</span> <span class="n">ModelRandomizationMetric</span>
 </pre></div>
 </div>
-<p><strong>2. Define explanation parameters</strong></p>
-<p>While <cite>explainer_cls</cite> is passed directly to the metric, <cite>explain</cite> function is used to generate explanations fed to a metric.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">explainer_cls</span> <span class="o">=</span> <span class="n">CaptumSimilarity</span>
-<span class="n">explain</span> <span class="o">=</span> <span class="n">captum_similarity_explain</span>
-<span class="n">explain_fn_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;layers&quot;</span><span class="p">:</span> <span class="s2">&quot;avgpool&quot;</span><span class="p">}</span>
-<span class="n">model_id</span> <span class="o">=</span> <span class="s2">&quot;default_model_id&quot;</span>
-<span class="n">cache_dir</span> <span class="o">=</span> <span class="s2">&quot;./cache&quot;</span>
+<p><strong>2. Create the explainer object</strong></p>
+<p>We now create our explainer. The device to be used by the explainer and metrics is inherited from the model, thus we set the model device explicitly.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEVICE</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">DEVICE</span><span class="p">)</span>
+<span class="n">explainer_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="s2">&quot;layers&quot;</span><span class="p">:</span> <span class="s2">&quot;avgpool&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;model_id&quot;</span><span class="p">:</span> <span class="s2">&quot;default_model_id&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;cache_dir&quot;</span><span class="p">:</span> <span class="s2">&quot;./cache&quot;</span>
+<span class="p">}</span>
+<span class="n">explainer</span> <span class="o">=</span> <span class="n">CaptumSimilarity</span><span class="p">(</span>
+   <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+   <span class="n">train_dataset</span><span class="o">=</span><span class="n">train_set</span><span class="p">,</span>
+   <span class="o">**</span><span class="n">explainer_kwargs</span>
+<span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>3. Initialize metric</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">model_rand</span> <span class="o">=</span> <span class="n">ModelRandomizationMetric</span><span class="p">(</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-        <span class="n">train_dataset</span><span class="o">=</span><span class="n">train_set</span><span class="p">,</span>
-        <span class="n">explainer_cls</span><span class="o">=</span><span class="n">explainer_cls</span><span class="p">,</span>
-        <span class="n">expl_kwargs</span><span class="o">=</span><span class="n">explain_fn_kwargs</span><span class="p">,</span>
-        <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">,</span>
-        <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
-        <span class="n">correlation_fn</span><span class="o">=</span><span class="s2">&quot;spearman&quot;</span><span class="p">,</span>
-        <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+<p><strong>3. Initialize the metric</strong></p>
+<p>The <cite>ModelRandomizationMetric</cite> needs to instantiate a new explainer to generate explanations for a randomized model. These will be compared with the explanations of the original model. Therefore, <cite>explainer_cls</cite> is passed directly to the metric along with initialization parameters of the explainer.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">explainer_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="s2">&quot;layers&quot;</span><span class="p">:</span> <span class="s2">&quot;avgpool&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;model_id&quot;</span><span class="p">:</span> <span class="s2">&quot;randomized_model_id&quot;</span><span class="p">,</span>
+   <span class="s2">&quot;cache_dir&quot;</span><span class="p">:</span> <span class="s2">&quot;./cache&quot;</span>
+<span class="p">}</span>
+<span class="n">model_rand</span> <span class="o">=</span> <span class="n">ModelRandomizationMetric</span><span class="p">(</span>
+      <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+      <span class="n">train_dataset</span><span class="o">=</span><span class="n">train_set</span><span class="p">,</span>
+      <span class="n">explainer_cls</span><span class="o">=</span><span class="n">CaptumSimilarity</span><span class="p">,</span>
+      <span class="n">expl_kwargs</span><span class="o">=</span><span class="n">explainer_kwargs</span><span class="p">,</span>
+      <span class="n">correlation_fn</span><span class="o">=</span><span class="s2">&quot;spearman&quot;</span><span class="p">,</span>
+      <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>4. Iterate over test set and feed tensor batches first to explain, then to metric</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="n">test_loader</span><span class="p">)):</span>
-    <span class="n">data</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">DEVICE</span><span class="p">),</span> <span class="n">target</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">DEVICE</span><span class="p">)</span>
-    <span class="n">tda</span> <span class="o">=</span> <span class="n">explain</span><span class="p">(</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-        <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">,</span>
-        <span class="n">cache_dir</span><span class="o">=</span><span class="n">cache_dir</span><span class="p">,</span>
-        <span class="n">test_tensor</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
-        <span class="n">train_dataset</span><span class="o">=</span><span class="n">train_set</span><span class="p">,</span>
-        <span class="n">device</span><span class="o">=</span><span class="n">DEVICE</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">explain_fn_kwargs</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">model_rand</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">tda</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">test_tensor</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tqdm</span><span class="p">(</span><span class="n">test_loader</span><span class="p">)):</span>
+   <span class="n">test_tensor</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_tensor</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">DEVICE</span><span class="p">),</span> <span class="n">target</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">DEVICE</span><span class="p">)</span>
+   <span class="n">tda</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span>
+      <span class="n">test</span><span class="o">=</span><span class="n">test_tensor</span><span class="p">,</span>
+      <span class="n">targets</span><span class="o">=</span><span class="n">target</span>
+   <span class="p">)</span>
+   <span class="n">model_rand</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">test_data</span><span class="o">=</span><span class="n">test_tensor</span><span class="p">,</span> <span class="n">explanations</span><span class="o">=</span><span class="n">tda</span><span class="p">,</span> <span class="n">explanation_targets</span><span class="o">=</span><span class="n">target</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Model heuristics metric output:&quot;</span><span class="p">,</span> <span class="n">model_rand</span><span class="o">.</span><span class="n">compute</span><span class="p">())</span>
 </pre></div>

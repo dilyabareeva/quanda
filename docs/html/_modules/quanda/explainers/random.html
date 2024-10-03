@@ -32,6 +32,7 @@
           
           <a href="../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -83,7 +84,7 @@
 
 
 <div class="viewcode-block" id="RandomExplainer">
-<a class="viewcode-back" href="../../../quanda.explainers.html#quanda.explainers.RandomExplainer">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.explainers.random.html#quanda.explainers.RandomExplainer">[docs]</a>
 <span class="k">class</span> <span class="nc">RandomExplainer</span><span class="p">(</span><span class="n">Explainer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    The most basic version of a random explainer.</span>
@@ -91,7 +92,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RandomExplainer.__init__">
-<a class="viewcode-back" href="../../../quanda.explainers.html#quanda.explainers.RandomExplainer.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.explainers.random.html#quanda.explainers.RandomExplainer.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -124,7 +125,7 @@
 
 
 <div class="viewcode-block" id="RandomExplainer.explain">
-<a class="viewcode-back" href="../../../quanda.explainers.html#quanda.explainers.RandomExplainer.explain">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.explainers.random.html#quanda.explainers.RandomExplainer.explain">[docs]</a>
     <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Random explainer does not explain anything, just returns random values.</span>
@@ -147,7 +148,7 @@
 
 
 <div class="viewcode-block" id="RandomExplainer.self_influence">
-<a class="viewcode-back" href="../../../quanda.explainers.html#quanda.explainers.RandomExplainer.self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.explainers.random.html#quanda.explainers.RandomExplainer.self_influence">[docs]</a>
     <span class="nd">@cache_result</span>
     <span class="k">def</span> <span class="nf">self_influence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

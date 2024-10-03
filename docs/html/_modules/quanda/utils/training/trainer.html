@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -86,12 +87,12 @@
 
 
 <div class="viewcode-block" id="BaseTrainer">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BaseTrainer">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.trainer.html#quanda.utils.training.BaseTrainer">[docs]</a>
 <span class="k">class</span> <span class="nc">BaseTrainer</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for a trainer.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BaseTrainer.fit">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BaseTrainer.fit">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.trainer.html#quanda.utils.training.BaseTrainer.fit">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -107,7 +108,7 @@
 
 
 <div class="viewcode-block" id="BaseTrainer.get_model">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BaseTrainer.get_model">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.trainer.html#quanda.utils.training.BaseTrainer.get_model">[docs]</a>
     <span class="k">def</span> <span class="nf">get_model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 </div>
@@ -115,7 +116,7 @@
 
 
 <div class="viewcode-block" id="Trainer">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.Trainer">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.trainer.html#quanda.utils.training.Trainer">[docs]</a>
 <span class="k">class</span> <span class="nc">Trainer</span><span class="p">(</span><span class="n">BaseTrainer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Simple class for training PyTorch models using Lightning. Supports only the most basic training arguments, such as</span>
@@ -124,7 +125,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Trainer.__init__">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.Trainer.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.trainer.html#quanda.utils.training.Trainer.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">optimizer</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
@@ -171,7 +172,7 @@
 
 
 <div class="viewcode-block" id="Trainer.fit">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.Trainer.fit">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.trainer.html#quanda.utils.training.Trainer.fit">[docs]</a>
     <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>

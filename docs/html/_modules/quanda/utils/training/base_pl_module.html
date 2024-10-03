@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -81,12 +82,12 @@
 
 
 <div class="viewcode-block" id="BasicLightningModule">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BasicLightningModule">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.base_pl_module.html#quanda.utils.training.BasicLightningModule">[docs]</a>
 <span class="k">class</span> <span class="nc">BasicLightningModule</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Wrapper for a basic PyTorch Lightning module.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BasicLightningModule.__init__">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BasicLightningModule.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.base_pl_module.html#quanda.utils.training.BasicLightningModule.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -131,7 +132,7 @@
 
 
 <div class="viewcode-block" id="BasicLightningModule.forward">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BasicLightningModule.forward">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.base_pl_module.html#quanda.utils.training.BasicLightningModule.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Wrapper for the forward pass of the model.</span>
@@ -149,7 +150,7 @@
 
 
 <div class="viewcode-block" id="BasicLightningModule.training_step">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BasicLightningModule.training_step">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.base_pl_module.html#quanda.utils.training.BasicLightningModule.training_step">[docs]</a>
     <span class="k">def</span> <span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        One training step.</span>
@@ -174,7 +175,7 @@
 
 
 <div class="viewcode-block" id="BasicLightningModule.validation_step">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BasicLightningModule.validation_step">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.base_pl_module.html#quanda.utils.training.BasicLightningModule.validation_step">[docs]</a>
     <span class="k">def</span> <span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        One validation step.</span>
@@ -199,7 +200,7 @@
 
 
 <div class="viewcode-block" id="BasicLightningModule.configure_optimizers">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BasicLightningModule.configure_optimizers">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.base_pl_module.html#quanda.utils.training.BasicLightningModule.configure_optimizers">[docs]</a>
     <span class="k">def</span> <span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates the optimizer and scheduler for training.</span>
@@ -223,14 +224,14 @@
 
 
 <div class="viewcode-block" id="BasicLightningModule.on_save_checkpoint">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BasicLightningModule.on_save_checkpoint">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.base_pl_module.html#quanda.utils.training.BasicLightningModule.on_save_checkpoint">[docs]</a>
     <span class="k">def</span> <span class="nf">on_save_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">):</span>
         <span class="c1"># Save the state of the model attribute manually</span>
         <span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;model_state_dict&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="BasicLightningModule.on_load_checkpoint">
-<a class="viewcode-back" href="../../../../quanda.utils.training.html#quanda.utils.training.BasicLightningModule.on_load_checkpoint">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.utils.training.base_pl_module.html#quanda.utils.training.BasicLightningModule.on_load_checkpoint">[docs]</a>
     <span class="k">def</span> <span class="nf">on_load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">):</span>
         <span class="c1"># Load the state of the model attribute manually</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s2">&quot;model_state_dict&quot;</span><span class="p">])</span></div>

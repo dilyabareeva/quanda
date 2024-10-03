@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -81,7 +82,7 @@
 
 
 <div class="viewcode-block" id="BaseAggregator">
-<a class="viewcode-back" href="../../../../quanda.explainers.global_ranking.html#quanda.explainers.BaseAggregator">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.aggregators.html#quanda.explainers.BaseAggregator">[docs]</a>
 <span class="k">class</span> <span class="nc">BaseAggregator</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for attribution aggregators.</span>
@@ -89,13 +90,13 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BaseAggregator.__init__">
-<a class="viewcode-back" href="../../../../quanda.explainers.global_ranking.html#quanda.explainers.BaseAggregator.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.aggregators.html#quanda.explainers.BaseAggregator.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scores</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 <div class="viewcode-block" id="BaseAggregator.update">
-<a class="viewcode-back" href="../../../../quanda.explainers.global_ranking.html#quanda.explainers.BaseAggregator.update">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.aggregators.html#quanda.explainers.BaseAggregator.update">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">explanations</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -139,7 +140,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Explanations shape </span><span class="si">{</span><span class="n">explanations</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> does not match the expected shape </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scores</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BaseAggregator.reset">
-<a class="viewcode-back" href="../../../../quanda.explainers.global_ranking.html#quanda.explainers.BaseAggregator.reset">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.aggregators.html#quanda.explainers.BaseAggregator.reset">[docs]</a>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Reset the aggregator state.</span>
@@ -157,7 +158,7 @@
 
 
 <div class="viewcode-block" id="BaseAggregator.load_state_dict">
-<a class="viewcode-back" href="../../../../quanda.explainers.global_ranking.html#quanda.explainers.BaseAggregator.load_state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.aggregators.html#quanda.explainers.BaseAggregator.load_state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load the aggregator state from a dictionary.</span>
@@ -186,7 +187,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;scores&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">scores</span><span class="p">}</span>
 
 <div class="viewcode-block" id="BaseAggregator.compute">
-<a class="viewcode-back" href="../../../../quanda.explainers.global_ranking.html#quanda.explainers.BaseAggregator.compute">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.aggregators.html#quanda.explainers.BaseAggregator.compute">[docs]</a>
     <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute the aggregated scores.</span>
@@ -211,14 +212,14 @@
 
 
 <div class="viewcode-block" id="SumAggregator">
-<a class="viewcode-back" href="../../../../quanda.explainers.global_ranking.html#quanda.explainers.SumAggregator">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.aggregators.html#quanda.explainers.SumAggregator">[docs]</a>
 <span class="k">class</span> <span class="nc">SumAggregator</span><span class="p">(</span><span class="n">BaseAggregator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Aggregator which directly sums up the attributions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="SumAggregator.update">
-<a class="viewcode-back" href="../../../../quanda.explainers.global_ranking.html#quanda.explainers.SumAggregator.update">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.aggregators.html#quanda.explainers.SumAggregator.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">explanations</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates the aggregated scores with the given explanations.</span>
@@ -235,14 +236,14 @@
 
 
 <div class="viewcode-block" id="AbsSumAggregator">
-<a class="viewcode-back" href="../../../../quanda.explainers.global_ranking.html#quanda.explainers.AbsSumAggregator">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.aggregators.html#quanda.explainers.AbsSumAggregator">[docs]</a>
 <span class="k">class</span> <span class="nc">AbsSumAggregator</span><span class="p">(</span><span class="n">BaseAggregator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Aggregator which sums up the absolute value of attributions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="AbsSumAggregator.update">
-<a class="viewcode-back" href="../../../../quanda.explainers.global_ranking.html#quanda.explainers.AbsSumAggregator.update">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.aggregators.html#quanda.explainers.AbsSumAggregator.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">explanations</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates the aggregated scores with the given explanations.</span>
