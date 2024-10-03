@@ -265,7 +265,7 @@ The core of your wrapper is the `explain` method. This function should take test
 - `test`: The test batch for which explanations are generated.
 - `targets`: The target values for the explanations.
 
-Ensure the output tensor has the shape `(test_samples, train_samples)`, where the entries in the train samples dimension are ordered in the same order as in the `train_dataset` that is being attributed.
+Ensure that the output tensor has the shape `(test_samples, train_samples)`, where the entries in the train samples dimension are ordered in the same order as in the `train_dataset` that is being attributed.
 
 ```python
 def explain(
