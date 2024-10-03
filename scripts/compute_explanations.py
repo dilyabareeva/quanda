@@ -205,6 +205,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     ]
     test_dogs = random_rng.sample(correct_pred_dogs, 32)
     test_cats = random_rng.sample(correct_pred_cats, 32)
+    test_cats[-1] = 2718
 
     # find regular samples
     all_clean_samples = [i for i in range(len(test_set_grouped)) if i not in all_cats + all_dogs]
@@ -398,7 +399,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
             checkpoints_load_func=load_state_dict,
             projection_dim=500,
-            arnoldi_dim=200,
+            arnoldi_dim=100,
             batch_size=batch_size * 4,
             # layers=["model.fc"],  # only the last layer
             device=device,
@@ -413,7 +414,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
                 explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
-                explanations_arnoldi = explainer_arnoldi.explain(test=test_tensor, targets=explanation_targets)
+                explanations_arnoldi = explainer_arnoldi.explain(test_tensor=test_tensor, targets=explanation_targets)
                 EC.save(subset_save_dir, explanations_arnoldi, i)
 
     if method == "trak":
@@ -436,7 +437,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
                 explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
-                explanations_trak = explainer_trak.explain(test=test_tensor, targets=explanation_targets)
+                explanations_trak = explainer_trak.explain(test_tensor=test_tensor, targets=explanation_targets)
                 EC.save(subset_save_dir, explanations_trak, i)
 
     if method == "random":
@@ -454,7 +455,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
                 explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
-                explanations_rand = explainer_rand.explain(test=test_tensor, targets=explanation_targets)
+                explanations_rand = explainer_rand.explain(test_tensor=test_tensor, targets=explanation_targets)
                 EC.save(subset_save_dir, explanations_rand, i)
 
 

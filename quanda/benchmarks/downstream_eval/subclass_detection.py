@@ -136,8 +136,8 @@ class SubclassDetection(Benchmark):
         logger.info(f"Generating {SubclassDetection.name} benchmark components based on passed arguments...")
 
         obj = cls()
-        obj.set_devices(model)
-        obj.base_dataset = obj.process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj._set_devices(model)
+        obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.model = model
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
@@ -288,7 +288,7 @@ class SubclassDetection(Benchmark):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
-        eval_dataset = obj.build_eval_dataset(
+        eval_dataset = obj._build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=sample_transforms[bench_state["dataset_transform"]],
@@ -359,7 +359,7 @@ class SubclassDetection(Benchmark):
         """
         obj = cls()
         obj.group_model = group_model
-        obj.base_dataset = obj.process_dataset(base_dataset, transform=None, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(base_dataset, transform=None, dataset_split=dataset_split)
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
@@ -378,7 +378,7 @@ class SubclassDetection(Benchmark):
 
         obj._checkpoint_paths = checkpoint_paths
 
-        obj.set_devices(group_model)
+        obj._set_devices(group_model)
 
         return obj
 
@@ -438,7 +438,7 @@ class SubclassDetection(Benchmark):
                 targets = grouped_labels
 
             explanations = explainer.explain(
-                test=inputs,
+                test_tensor=inputs,
                 targets=targets,
             )
 

@@ -95,7 +95,6 @@ def test_linear_datamodeling(
         criterion=criterion,
     )
     if init_method == "generate":
-
         benchmark = LinearDatamodeling.generate(
             model=model,
             trainer=trainer,

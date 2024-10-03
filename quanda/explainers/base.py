@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List, Sized, Union
+from typing import List, Union
 
 import lightning as L
 import torch
 
-from quanda.utils.common import cache_result
+from quanda.utils.common import cache_result, ds_len
 from quanda.utils.datasets import OnDeviceDataset
 
 
@@ -49,13 +49,13 @@ class Explainer(ABC):
         self.train_dataset = train_dataset
 
     @abstractmethod
-    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
+    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
         """
         Abstract method for computing influence scores for the test samples.
 
         Parameters
         ----------
-        test : torch.Tensor
+        test_tensor : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Optional[Union[List[int], torch.Tensor]], optional
             Labels for the test samples. Defaults to None.
@@ -66,41 +66,6 @@ class Explainer(ABC):
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
         raise NotImplementedError
-
-    @property
-    def dataset_length(self) -> int:
-        """
-        Returns the length of the training dataset.
-
-        Returns
-        -------
-        int
-            Length of the training dataset.
-        """
-        if isinstance(self.train_dataset, Sized):
-            return len(self.train_dataset)
-        dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=1)
-        return len(dl)
-
-    def _process_targets(self, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
-        """
-        Convert target labels to torch.Tensor and move them to the device.
-
-        Parameters
-        ----------
-        targets : Optional[Union[List[int], torch.Tensor]], optional
-            The target labels, either as a list or tensor.
-
-        Returns
-        -------
-        torch.Tensor or None
-            The processed targets as a tensor, or None if no targets are provided.
-        """
-        if targets is not None:
-            if isinstance(targets, list):
-                targets = torch.tensor(targets)
-            targets = targets.to(self.device)
-        return targets
 
     @cache_result
     def self_influence(self, batch_size: int = 32) -> torch.Tensor:
@@ -119,12 +84,12 @@ class Explainer(ABC):
         """
 
         # Pre-allcate memory for influences, because torch.cat is slow
-        influences = torch.empty((self.dataset_length,), device=self.device)
+        influences = torch.empty((ds_len(self.train_dataset),), device=self.device)
         ldr = torch.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)
-        batch_size = min(batch_size, self.dataset_length)
+        batch_size = min(batch_size, ds_len(self.train_dataset))
 
-        for i, (x, y) in zip(range(0, self.dataset_length, batch_size), ldr):
-            explanations = self.explain(test=x.to(self.device), targets=y.to(self.device))
+        for i, (x, y) in zip(range(0, ds_len(self.train_dataset), batch_size), ldr):
+            explanations = self.explain(test_tensor=x.to(self.device), targets=y.to(self.device))
             influences[i : i + batch_size] = explanations.diag(diagonal=i)
 
         return influences

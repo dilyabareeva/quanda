@@ -77,7 +77,7 @@ def explain_fn_from_explainer(
         **kwargs,
     )
 
-    return explainer.explain(test=test_tensor, targets=targets)
+    return explainer.explain(test_tensor=test_tensor, targets=targets)
 
 
 def self_influence_fn_from_explainer(

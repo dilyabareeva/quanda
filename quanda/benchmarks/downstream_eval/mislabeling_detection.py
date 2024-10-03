@@ -163,8 +163,8 @@ class MislabelingDetection(Benchmark):
             ), "MislabelingDetection should have global_method='self-influence' or eval_dataset should be given."
 
         obj = cls()
-        obj.set_devices(model)
-        obj.base_dataset = obj.process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj._set_devices(model)
+        obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj._generate(
@@ -320,7 +320,7 @@ class MislabelingDetection(Benchmark):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
-        eval_dataset = obj.build_eval_dataset(
+        eval_dataset = obj._build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=sample_transforms[bench_state["dataset_transform"]],
@@ -403,7 +403,7 @@ class MislabelingDetection(Benchmark):
 
         obj = cls()
         obj.model = model
-        obj.base_dataset = obj.process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
         obj.n_classes = n_classes
@@ -412,7 +412,7 @@ class MislabelingDetection(Benchmark):
         mislabeling_indices = list(mislabeling_labels.keys()) if mislabeling_labels is not None else None
 
         obj.mislabeling_dataset = LabelFlippingDataset(
-            dataset=obj.process_dataset(base_dataset, transform=None, dataset_split=dataset_split),
+            dataset=obj._process_dataset(base_dataset, transform=None, dataset_split=dataset_split),
             dataset_transform=dataset_transform,
             transform_indices=mislabeling_indices,
             n_classes=n_classes,
@@ -425,7 +425,7 @@ class MislabelingDetection(Benchmark):
         obj.mislabeling_train_dl = torch.utils.data.DataLoader(obj.mislabeling_dataset, batch_size=batch_size)
         obj.original_train_dl = torch.utils.data.DataLoader(obj.base_dataset, batch_size=batch_size)
         obj._checkpoint_paths = checkpoint_paths
-        obj.set_devices(model)
+        obj._set_devices(model)
 
         return obj
 
@@ -463,7 +463,6 @@ class MislabelingDetection(Benchmark):
             )
             expl_dl = torch.utils.data.DataLoader(mislabeling_expl_ds, batch_size=batch_size)
         if self.global_method != "self-influence":
-
             metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
                 train_dataset=self.mislabeling_dataset,
@@ -483,7 +482,7 @@ class MislabelingDetection(Benchmark):
                         targets = self.model(inputs).argmax(dim=-1)
                 else:
                     targets = labels
-                explanations = explainer.explain(test=inputs, targets=targets)
+                explanations = explainer.explain(test_tensor=inputs, targets=targets)
                 metric.update(test_data=inputs, test_labels=labels, explanations=explanations)
         else:
             metric = MislabelingDetectionMetric.self_influence_based(

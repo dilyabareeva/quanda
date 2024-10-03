@@ -128,7 +128,7 @@ train_set = special_dataset(
     shortcut_fn=add_yellow_square,
     backdoor_dataset=panda_set,
     shortcut_transform_indices=torch.load(os.path.join(metadata_dir, "all_train_shortcut_indices_for_generation.pth")),
-    flipping_transform_dict=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
+    flipping_transform_dict={},
 )
 
 test_set_grouped = LabelGroupingDataset(
@@ -166,14 +166,19 @@ dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, s
 
 test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
 test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
+
+
 cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
 cat_dog_ungrouped_dataset = torch.utils.data.Subset(test_set_transform, test_cats + test_dogs)
 dataloader = torch.utils.data.DataLoader(cat_dog_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
 explanation_methods = [
-    "representer_points", "arnoldi", "tracincpfast", "trak",
+    "representer_points",
+    "arnoldi",
+    "tracincpfast",
+    "trak",
 ]
-TRANSP_COLORS = ["#FFDDBB", "#C1EFAF", "#FFDAD4", "#EDDCFF"]
+TRANSP_COLORS = ["#FFDDBB", "#83BA59", "#FFDAD4", "#EDDCFF"]
 for ij, method in enumerate(explanation_methods):
     method_save_dir = os.path.join(explanations_dir, method)
     subset_save_dir = os.path.join(method_save_dir, "subclass")
@@ -185,7 +190,7 @@ for ij, method in enumerate(explanation_methods):
         explanations = explanations[i]
         explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
         for j in range(len(explanations)):
-            if j != 19:
+            if j != 20:
                 continue
             save_influential_samples(
                 train_set,

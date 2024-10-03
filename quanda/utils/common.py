@@ -1,7 +1,7 @@
 import functools
 from contextlib import contextmanager
 from functools import reduce
-from typing import Any, Callable, Mapping, Optional, Sized, Union
+from typing import Any, Callable, List, Mapping, Optional, Sized, Union
 
 import torch.utils
 import torch.utils.data
@@ -267,3 +267,24 @@ def ds_len(dataset: torch.utils.data.Dataset) -> int:
         return len(dataset)
     dl = torch.utils.data.DataLoader(dataset, batch_size=1)
     return len(dl)
+
+
+def process_targets(targets: Union[List[int], torch.Tensor], device: Union[str | torch.device]) -> torch.Tensor:
+    """
+    Convert target labels to torch.Tensor and move them to the device.
+
+    Parameters
+    ----------
+    targets : Optional[Union[List[int], torch.Tensor]], optional
+        The target labels, either as a list or tensor.
+
+    Returns
+    -------
+    torch.Tensor or None
+        The processed targets as a tensor, or None if no targets are provided.
+    """
+    if targets is not None:
+        if isinstance(targets, list):
+            targets = torch.tensor(targets)
+        targets = targets.to(device)
+    return targets
