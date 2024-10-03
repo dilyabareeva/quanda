@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -83,7 +84,7 @@
 
 
 <div class="viewcode-block" id="ShortcutDetectionMetric">
-<a class="viewcode-back" href="../../../../quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric">[docs]</a>
 <span class="k">class</span> <span class="nc">ShortcutDetectionMetric</span><span class="p">(</span><span class="n">Metric</span><span class="p">):</span>
     <span class="c1"># 2) TODO: Add the reference of the paper that introduced the shortcut detection task, after acceptance.</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -99,7 +100,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ShortcutDetectionMetric.__init__">
-<a class="viewcode-back" href="../../../../quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -159,7 +160,7 @@
 <span class="s2">            Expected only </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">shortcut_cls</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="nb">set</span><span class="p">(</span><span class="n">shortcut_labels</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
 
 <div class="viewcode-block" id="ShortcutDetectionMetric.update">
-<a class="viewcode-back" href="../../../../quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.update">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">explanations</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -204,7 +205,7 @@
 
 
 <div class="viewcode-block" id="ShortcutDetectionMetric.compute">
-<a class="viewcode-back" href="../../../../quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.compute">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.compute">[docs]</a>
     <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Aggregates current results and return a metric score.</span>
@@ -220,7 +221,7 @@
 
 
 <div class="viewcode-block" id="ShortcutDetectionMetric.reset">
-<a class="viewcode-back" href="../../../../quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.reset">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.reset">[docs]</a>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resets the metric state.</span>
@@ -229,7 +230,7 @@
 
 
 <div class="viewcode-block" id="ShortcutDetectionMetric.load_state_dict">
-<a class="viewcode-back" href="../../../../quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.load_state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.load_state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads the metric state.</span>
@@ -238,7 +239,7 @@
 
 
 <div class="viewcode-block" id="ShortcutDetectionMetric.state_dict">
-<a class="viewcode-back" href="../../../../quanda.metrics.downstream_eval.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.downstream_eval.shortcut_detection.html#quanda.metrics.downstream_eval.ShortcutDetectionMetric.state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the metric state.</span>

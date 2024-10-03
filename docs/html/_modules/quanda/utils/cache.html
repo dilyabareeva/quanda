@@ -32,6 +32,7 @@
           
           <a href="../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -83,20 +84,20 @@
 
 
 <div class="viewcode-block" id="Cache">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.Cache">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.Cache">[docs]</a>
 <span class="k">class</span> <span class="nc">Cache</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract class for caching. Methods of this class are static.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Cache.__init__">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.Cache.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.Cache.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="Cache.save">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.Cache.save">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.Cache.save">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the explanation to the cache.&quot;&quot;&quot;</span>
@@ -104,7 +105,7 @@
 
 
 <div class="viewcode-block" id="Cache.load">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.Cache.load">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.Cache.load">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load the explanation from the cache.&quot;&quot;&quot;</span>
@@ -112,7 +113,7 @@
 
 
 <div class="viewcode-block" id="Cache.exists">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.Cache.exists">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.Cache.exists">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the explanation exists in the cache.&quot;&quot;&quot;</span>
@@ -122,14 +123,14 @@
 
 
 <div class="viewcode-block" id="BatchedCachedExplanations">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.BatchedCachedExplanations">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.BatchedCachedExplanations">[docs]</a>
 <span class="k">class</span> <span class="nc">BatchedCachedExplanations</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Utility class for lazy loading and saving batched explanations.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BatchedCachedExplanations.__init__">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.BatchedCachedExplanations.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.BatchedCachedExplanations.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -189,20 +190,20 @@
 
 
 <div class="viewcode-block" id="ExplanationsCache">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.ExplanationsCache">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.ExplanationsCache">[docs]</a>
 <span class="k">class</span> <span class="nc">ExplanationsCache</span><span class="p">(</span><span class="n">Cache</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for caching generated explanations at a given path.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ExplanationsCache.__init__">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.ExplanationsCache.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.ExplanationsCache.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="ExplanationsCache.exists">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.ExplanationsCache.exists">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.ExplanationsCache.exists">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">exists</span><span class="p">(</span>
         <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -228,7 +229,7 @@
 
 
 <div class="viewcode-block" id="ExplanationsCache.save">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.ExplanationsCache.save">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.ExplanationsCache.save">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">save</span><span class="p">(</span>
         <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -257,7 +258,7 @@
 
 
 <div class="viewcode-block" id="ExplanationsCache.load">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.cache.ExplanationsCache.load">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.cache.html#quanda.utils.cache.ExplanationsCache.load">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span>
         <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
