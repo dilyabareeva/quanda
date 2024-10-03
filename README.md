@@ -1,8 +1,8 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://tinyurl.com/4yad8eru">
+  <source media="(prefers-color-scheme: dark)" srcset="https://tinyurl.com/2rmc7my5">
   <source media="(prefers-color-scheme: light)" srcset="https://tinyurl.com/2rmc7my5">
-  <img width="700" alt="quanda" src="https://tinyurl.com/79mn289u">
+  <img width="700" alt="quanda" src="https://tinyurl.com/2rmc7my5">
 </picture>
 </p>
 
