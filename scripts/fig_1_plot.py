@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import font_manager, rcParams
+
 # Load the environment variables from .env file
 load_dotenv()
 
@@ -64,6 +68,7 @@ df = df.rank(axis=0, method="max", ascending=True)
 df = df - df.min()
 df = df / df.max()
 
+df += 0.25
 
 df.index.name = "explainer"
 
@@ -102,9 +107,6 @@ df.reset_index(inplace=True)
 
 print(df.head())
 
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib import font_manager, rcParams
 
 fonts = ["../assets/demo/Poppins-Regular.ttf", "../assets/demo/Poppins-Bold.ttf"]
 [font_manager.fontManager.addfont(font) for font in fonts]
@@ -124,7 +126,7 @@ SPECIES_N = len(SPECIES)
 # The four variables in the plot
 VARIABLES = df.columns.tolist()[1:]
 VARIABLES_N = len(VARIABLES)
-
+"""
 # The angles at which the values of the numeric variables are placed
 ANGLES = [n / VARIABLES_N * 2 * np.pi for n in range(VARIABLES_N)]
 ANGLES += ANGLES[:1]
@@ -244,3 +246,49 @@ plt.show()
 
 # save fig_1
 fig.savefig("../scripts/fig_1.png", bbox_inches=None, pad_inches=0, dpi=1000)
+"""
+
+# Initialize layout ----------------------------------------------
+width_pt = 310 / 5
+height_pt = 186 / 3
+fig = plt.figure(figsize=(width_pt / 72.27, height_pt / 72.27), dpi=300)
+
+# Bar plot of df column "Mislabeling Detection"
+ax = df.plot.bar(x="explainer", y="Mislabeling\nDetection", color=COLORS, legend=False, width=0.8)
+
+# Set title to "Mislabeling Detection"
+ax.set_title("Mislabeling Detection", fontsize=30, color=BLUE)
+
+# Turn off x label
+ax.set_xlabel("")
+
+# Add stroke (edge color) to the bars
+for bar in ax.patches:
+    bar.set_edgecolor('black')  # Set stroke color
+    bar.set_linewidth(1.5)  # Set stroke width
+
+# Set x-tick labels: bold, rotated at 45 degrees, font size 14
+ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right", fontsize=25, fontweight="bold")
+
+# Add y-axis label 'Rank'
+ax.set_ylabel("Rank", fontsize=30)
+
+# Remove y-ticks
+ax.set_yticks([])
+
+# Add rank numbers (1, 2, 3, 4, 5) on top of each bar
+for i, bar in enumerate(ax.patches):
+    ax.text(bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.05,  # More space above the bar
+            str(i + 1),               # Rank numbers starting from 1
+            ha='center', va='bottom', fontsize=20, fontweight="bold", color='black')
+
+# Adjust y-limit to add more space above the bars
+ax.set_ylim(0, ax.get_ylim()[1] + 0.35)  # Increase the upper limit
+
+# Adjust layout
+plt.tight_layout()
+plt.savefig("../scripts/bar_rank.png", bbox_inches=None, pad_inches=0, dpi=1000)
+
+# Show the plot
+plt.show()

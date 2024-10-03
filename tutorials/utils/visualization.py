@@ -11,37 +11,94 @@ from matplotlib import font_manager, rcParams
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Rectangle
 from torchvision.utils import save_image
-
-fonts = ["../assets/demo/Poppins-Regular.ttf", "../assets/demo/Poppins-Bold.ttf"]
+import matplotlib.patches as patches
+import torch
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+fonts = ["../assets/demo/Helvetica.ttf", "../assets/demo/Helvetica-Bold.ttf"]
 [font_manager.fontManager.addfont(font) for font in fonts]
-rcParams["font.family"] = "Poppins"
+
+# Set the font family to Helvetica
+rcParams["font.family"] = "Helvetica"
+
+# Optionally set the font weight and size if desired
+rcParams['font.weight'] = 'normal'  # or 'bold' if you want bold text
+#rcParams['font.size'] = 10  # Set the default font size
 
 
 def save_influential_samples(
-    train_dataset, test_tensor, influence_scores, denormalize, test_names, r_name_dict, top_k=3, save_path="../assets/fig1"
+        train_dataset, test_tensor, influence_scores, denormalize,
+        test_names, r_name_dict, top_k=3, save_path="../assets/fig1", method="repr_points",
+        color="#1f77b4"
 ):
+
+    top_k = 3
+    # Get the top opponents and proponents
     top_k_proponents = torch.topk(influence_scores, top_k, dim=1, largest=True)
     top_k_opponents = torch.topk(influence_scores, top_k, dim=1, largest=False)
 
+    proponents_images = []
+    opponents_images = []
+    proponent_labels = []
+    opponent_labels = []
+
+    # Collect proponents images
     for idx, elements in enumerate(top_k_proponents.indices):
-        proponents_images = [train_dataset[int(i)][0] for i in elements]
-        proponent_labels = [r_name_dict[train_dataset[int(i)][1]] for i in elements]
-        proponents_images = [denormalize(img) for img in proponents_images]
-        for i, img in enumerate(proponents_images):
-            label_i = proponent_labels[i]
-            save_image(img, f"{save_path}/proponent_{idx}_{label_i}_top_{i}_{top_k_proponents.values[idx][i]}.png")
+        proponents_images.extend([denormalize(train_dataset[int(i)][0]).permute(1, 2, 0).numpy() for i in elements])
+        proponent_labels.extend([top_k_proponents.values[idx][i].item() for i in range(len(elements))])
 
+    # Collect opponents images
     for idx, elements in enumerate(top_k_opponents.indices):
-        opponents_images = [train_dataset[int(i)][0] for i in elements]
-        opponents_labels = [r_name_dict[train_dataset[int(i)][1]] for i in elements]
-        opponents_images = [denormalize(img) for img in opponents_images]
-        for i, img in enumerate(opponents_images):
-            label_i = opponents_labels[i]
-            save_image(img, f"{save_path}/opponent_{idx}_{label_i}_top_{i}_{top_k_opponents.values[idx][i]}.png")
+        opponents_images.extend([denormalize(train_dataset[int(i)][0]).permute(1, 2, 0).numpy() for i in elements])
+        opponent_labels.extend([top_k_opponents.values[idx][i].item() for i in range(len(elements))])
 
-    test_images = [denormalize(img) for img in test_tensor]
-    for img, idx in zip(test_images, range(len(test_tensor))):
-        save_image(img, f"{save_path}/test_{idx}_{test_names[idx]}.png")
+    # Reverse the order of proponents images
+    proponents_images = proponents_images[::-1]
+    proponent_labels = proponent_labels[::-1]
+
+    # Set the desired width and calculate the total figure size
+    image_width_pixels = 125
+    dpi = 72.27  # Dots per inch
+    height_in_inches = 0.29 # Keep height as needed
+
+    # Create figure and axes for the images
+    fig, axes = plt.subplots(nrows=1, ncols=top_k * 2 + 1,
+                             figsize=(image_width_pixels / dpi, height_in_inches),
+                             gridspec_kw={'hspace': 0.0, 'wspace': 0.015})  # Reduced wspace to a smaller value
+
+    # Set the figure background color
+    fig.patch.set_facecolor(color)
+
+    # Plot opponents images and labels
+    for ax, img, label in zip(axes[:top_k], opponents_images, opponent_labels):
+        ax.imshow(img)
+        ax.axis('off')  # Hide axes
+        # Set the background color for each image area
+        ax.set_facecolor(color)  # Set background color for the image frame
+        ax.text(0.5, -0.02, f"{label:.3f}", ha='center', va='top', fontsize=3, transform=ax.transAxes)
+
+    # Create empty axes for the space between proponents and opponents
+    empty_ax = axes[top_k]  # Position the empty ax in between
+    empty_ax.axis('off')  # Hide the empty axes
+
+    # Plot proponents images and labels
+    for ax, img, label in zip(axes[top_k + 1:], proponents_images[::-1], proponent_labels[::-1]):
+        ax.imshow(img)
+        ax.axis('off')  # Hide axes
+        # Set the background color for each image area
+        ax.set_facecolor(color)  # Set background color for the image frame
+        ax.text(0.5, -0.02, f"{label:.3f}", ha='center', va='top', fontsize=3, transform=ax.transAxes)
+
+    # Adjust layout to remove whitespace and set spacing
+    plt.subplots_adjust(left=0, right=1, top=1.17, bottom=0, hspace=0.0,
+                        wspace=0.1)  # Set wspace to a very small value for tighter spacing
+
+    # Save the figure if needed
+    plt.savefig(f"{save_path}/test_{method}.png", pad_inches=0,
+                dpi=1000)  # Save the plot without extra space
+
+    plt.show()  # Show the plot
 
 
 def visualize_top_3_bottom_3_influential(
