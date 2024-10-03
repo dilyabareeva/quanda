@@ -131,9 +131,9 @@ pip install git+https://github.com/dilyabareeva/quanda.git
 
 In the following, we provide a quick guide to **quanda** usage. To begin using **quanda**, ensure you have the following:
 
-- **Trained PyTorch Model (`model`)**: A PyTorch model that has already been trained on a relevant dataset.
+- **Trained PyTorch Model (`model`)**: A PyTorch model that has already been trained on a relevant dataset. As a placeholder, we used the layer name "avgpool" below. Please replace it with the name of one of the layers in your model.
 - **PyTorch Dataset (`train_set`)**: The dataset used during the training of the model.
-- **Test Batches (`test_tensor`) and Explanation Targets (`target`)**: A batch of test data (`test_tensor`) and the corresponding explanation targets (`target`). Generally, it is advisable to use the model's predicted labels as the targets. In the following, we use the `torch.utils.data.DataLoader` to load the test data in batches.
+- **Test Batches (`test_tensor`) and Explanation Targets (`target`)**: A batch of test data (`test_tensor`) and the corresponding explanation targets (`target`). Generally, it is advisable to use the model's predicted labels as the targets. In the following, we assume the existence of a `torch.utils.data.DataLoader` to load the test data in batches, with variable name `test_loader`.
 
 
 As an example, we will demonstrate the generation of explanations using `SimilarityInfluence` data attribution from `Captum`.
@@ -147,44 +147,52 @@ In the following, we demonstrate evaluation of explanations by the example of th
 ```python
 import torch
 from torch.utils.data import DataLoader
-import tqdm
+from tqdm import tqdm
 
 from quanda.explainers.wrappers import captum_similarity_explain, CaptumSimilarity
-from quanda.metrics.randomization import ModelRandomizationMetric
+from quanda.metrics.heuristics import ModelRandomizationMetric
 ```
 </details>
 
 <details>
 
-<summary><b><big>Step 2. Define explanation parameters</big></b></summary>
+<summary><b><big>Step 2. Create the explainer object</big></b></summary>
 
-While `explainer_cls` is passed directly to the metric, `explain` function is used to generate explanations fed to a metric.
+We now create our explainer. The device to be used by the explainer and metrics is inherited from the model, thus we set the model device explicitly.
+
 ```python
-explain_fn_kwargs = {
+DEVICE="cpu"
+model.to(DEVICE)
+explainer_kwargs = {
     "layers": "avgpool",
     "model_id": "default_model_id",
     "cache_dir": "./cache"
 }
 explainer = CaptumSimilarity(
     model=model,
-    train_dataset=train_dataset,
-    **explain_fn_kwargs
+    train_dataset=train_set,
+    **explainer_kwargs
 )
 ```
 </details>
 
 <details>
 
-<summary><b><big>Step 3. Initialize metric</big></b></summary>
+<summary><b><big>Step 3. Initialize the metric</big></b></summary>
+
+The `ModelRandomizationMetric` needs to instantiate a new explainer to generate explanations for a randomized model. These will be compared with the explanations of the original model. Therefore, `explainer_cls` is passed directly to the metric along with initialization parameters of the explainer.
 
 ```python
+explainer_kwargs = {
+    "layers": "avgpool",
+    "model_id": "randomized_model_id",
+    "cache_dir": "./cache"
+}
 model_rand = ModelRandomizationMetric(
         model=model,
         train_dataset=train_set,
-        explainer_cls=explainer_cls,
-        expl_kwargs=explain_fn_kwargs,
-        model_id=model_id,
-        cache_dir=cache_dir,
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs=explainer_kwargs,
         correlation_fn="spearman",
         seed=42,
 )
@@ -195,18 +203,13 @@ model_rand = ModelRandomizationMetric(
 <summary><b><big>Step 4. Iterate over test set and feed tensor batches first to explain, then to metric</big></b></summary>
 
 ```python
-for i, (data, target) in enumerate(tqdm(test_loader)):
-    data, target = data.to(DEVICE), target.to(DEVICE)
-    tda = explain(
-        model=model,
-        model_id=model_id,
-        cache_dir=cache_dir,
-        test_tensor=data,
-        train_dataset=train_set,
-        device=DEVICE,
-        **explain_fn_kwargs,
+for i, (test_tensor, target) in enumerate(tqdm(test_loader)):
+    test_tensor, target = test_tensor.to(DEVICE), target.to(DEVICE)
+    tda = explainer.explain(
+        test=test_tensor,
+        targets=target
     )
-    model_rand.update(data, tda)
+    model_rand.update(test_data=test_tensor, explanations=tda, explanation_targets=target)
 
 print("Model heuristics metric output:", model_rand.compute())
 ```
