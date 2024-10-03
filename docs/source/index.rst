@@ -54,10 +54,31 @@ Evaluation Metrics
 
 - **Mislabeled Data Detection** (`Koh and Liang, 2017 <https://proceedings.mlr.press/v70/koh17a.html>`_): Computes the proportion of noisy training labels detected as a function of the percentage of inspected training samples. The samples are inspected in order according to their global TDA ranking, which is computed using local attributions. This produces a cumulative mislabeling detection curve. We expect to see a curve that rapidly increases as we check more of the training data, thus we compute the area under this curve.
 
+Benchmarks
+----------
+**quanda** comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The benchmarks currently use the MNIST dataset to conduct evaluations. The following benchmarks are available:
+
++---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
+|              Name               |                                               Metric                                               |           Type            |
++=================================+====================================================================================================+===========================+
+|       mnist_top_k_overlap       |            `TopKOverlapMetric <docs_api/quanda.metrics.heuristics.top_k_overlap.html>`_            |         Heuristic         |
++---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
+|      mnist_mixed_datasets       |           `MixedDatasetMetric <docs_api/quanda.metrics.heuristics.mixed_datasets.html>`_           |         Heuristic         |
++---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
+|      mnist_class_detection      |       `ClassDetectionMetric <docs_api/quanda.metrics.downstream_eval.class_detection.html>`_       | Downstream-Task-Evaluator |
++---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
+|    mnist_subclass_detection     |    `SubclassDetectionMetric <docs_api/quanda.metrics.downstream_eval.subclass_detection.html>`_    | Downstream-Task-Evaluator |
++---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
+|   mnist_mislabeling_detection   | `MislabelingDetectionMetric <docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html>`_ | Downstream-Task-Evaluator |
++---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
+|    mnist_shortcut_detection     |    `ShortcutDetectionMetric <docs_api/quanda.metrics.downstream_eval.shortcut_detection.html>`_    | Downstream-Task-Evaluator |
++---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
+| mnist_linear_datamodeling_score |    `LinearDatamodelingMetric <docs_api/quanda.metrics.ground_truth.linear_datamodeling.html>`_     |       Ground Truth        |
++---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
+
 
 .. toctree::
    getting_started
-   tutorials
 
 
 .. toctree::
