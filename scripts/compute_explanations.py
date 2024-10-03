@@ -155,7 +155,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         shortcut_fn=add_yellow_square,
         backdoor_dataset=panda_set,
         shortcut_transform_indices=torch.load(os.path.join(metadata_dir, "all_train_shortcut_indices_for_generation.pth")),
-        flipping_transform_dict=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
+        flipping_transform_dict={},
     )
 
     test_set_grouped = LabelGroupingDataset(
@@ -205,10 +205,13 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     ]
     test_dogs = random_rng.sample(correct_pred_dogs, 32)
     test_cats = random_rng.sample(correct_pred_cats, 32)
+    test_cats[-1] = 2718
 
     # find regular samples
     all_clean_samples = [i for i in range(len(test_set_grouped)) if i not in all_cats + all_dogs]
     clean_samples = random_rng.sample(all_clean_samples, 64)
+    if 535 not in clean_samples:
+        clean_samples[-1] = 535
     test_shortcut = random_rng.sample(all_clean_samples, 64)
 
     mispredicted_clean = [
@@ -249,12 +252,14 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     test_mispredicted = torch.load(os.path.join(metadata_dir, "big_eval_test_mispredicted_indices.pth"))
     mispredicted_dataset = torch.utils.data.Subset(test_set_grouped, test_mispredicted)
 
+    """
     dataloaders["mislabeling"] = torch.utils.data.DataLoader(
         mispredicted_dataset,
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
     )
+    """
 
     # vis_dataloader(dataloaders["mislabeling"])
 
@@ -413,7 +418,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
                 explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
-                explanations_arnoldi = explainer_arnoldi.explain(test=test_tensor, targets=explanation_targets)
+                explanations_arnoldi = explainer_arnoldi.explain(test_tensor=test_tensor, targets=explanation_targets)
                 EC.save(subset_save_dir, explanations_arnoldi, i)
 
     if method == "trak":
@@ -436,7 +441,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
                 explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
-                explanations_trak = explainer_trak.explain(test=test_tensor, targets=explanation_targets)
+                explanations_trak = explainer_trak.explain(test_tensor=test_tensor, targets=explanation_targets)
                 EC.save(subset_save_dir, explanations_trak, i)
 
     if method == "random":
@@ -454,7 +459,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
                 explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
-                explanations_rand = explainer_rand.explain(test=test_tensor, targets=explanation_targets)
+                explanations_rand = explainer_rand.explain(test_tensor=test_tensor, targets=explanation_targets)
                 EC.save(subset_save_dir, explanations_rand, i)
 
 

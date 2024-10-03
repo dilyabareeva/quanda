@@ -44,7 +44,7 @@ os.makedirs(explanations_dir, exist_ok=True)
 
 n_epochs = 10
 checkpoints = [
-    os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(1, n_epochs, 2)
+    os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(5, n_epochs, 1)
 ]
 
 # Dataset Construction
@@ -128,7 +128,7 @@ train_set = special_dataset(
     shortcut_fn=add_yellow_square,
     backdoor_dataset=panda_set,
     shortcut_transform_indices=torch.load(os.path.join(metadata_dir, "all_train_shortcut_indices_for_generation.pth")),
-    flipping_transform_dict=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
+    flipping_transform_dict={},
 )
 
 test_set_grouped = LabelGroupingDataset(
@@ -166,39 +166,40 @@ dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, s
 
 test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
 test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
-cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
-cat_dog_ungrouped_dataset = torch.utils.data.Subset(test_set_transform, test_cats + test_dogs)
-dataloader = torch.utils.data.DataLoader(cat_dog_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+
+
+clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
+clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
+dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
 explanation_methods = [
-    "representer_points", "arnoldi", "tracincpfast", "trak",
+    "representer_points",
+    "arnoldi",
+    "tracincpfast",
+    "trak",
 ]
-TRANSP_COLORS = ["#FFDDBB", "#C1EFAF", "#FFDAD4", "#EDDCFF"]
+TRANSP_COLORS = ["#FFDDBB", "#83BA59", "#FFDAD4", "#EDDCFF"]
 for ij, method in enumerate(explanation_methods):
     method_save_dir = os.path.join(explanations_dir, method)
     subset_save_dir = os.path.join(method_save_dir, "subclass")
     explanations = EC.load(subset_save_dir)
-    for i, (test_tensor, test_labels) in enumerate(dataloader):
-        if i != 0:
-            continue
-        test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
-        explanations = explanations[i]
-        explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
-        for j in range(len(explanations)):
-            if j != 19:
-                continue
-            save_influential_samples(
-                train_set,
-                test_tensor[j : j + 1],
-                explanations[j : j + 1],
-                denormalize,
-                ["cat_" + str(j)],
-                r_name_dict,
-                top_k=7,
-                save_path="../fig_1_images",
-                method=method,
-                color=TRANSP_COLORS[ij],
-            )
+    test_tensor, test_labels = next(iter(dataloader))
+    test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
+    explanations = explanations[0]
+    explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
+    j = 63
+    save_influential_samples(
+        train_set,
+        test_tensor[j : j + 1],
+        explanations[j : j + 1],
+        denormalize,
+        ["gazelle_" + str(j)],
+        r_name_dict,
+        top_k=7,
+        save_path="../fig_1_images",
+        method=method,
+        color=TRANSP_COLORS[ij],
+    )
 
 
 # i=0, j=5

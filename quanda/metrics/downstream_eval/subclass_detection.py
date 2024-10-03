@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 import torch
 
 from quanda.metrics.downstream_eval import ClassDetectionMetric
+from quanda.utils.common import ds_len
 
 
 class SubclassDetectionMetric(ClassDetectionMetric):
@@ -43,9 +44,9 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             predicted, by default False.
         """
         super().__init__(model, train_dataset)
-        assert len(train_subclass_labels) == self.dataset_length, (
+        assert len(train_subclass_labels) == ds_len(self.train_dataset), (
             f"Number of subclass labels ({len(train_subclass_labels)}) "
-            f"does not match the number of train dataset samples ({self.dataset_length})."
+            f"does not match the number of train dataset samples ({ds_len(self.train_dataset)})."
         )
         self.subclass_labels = train_subclass_labels
         self.filter_by_prediction = filter_by_prediction

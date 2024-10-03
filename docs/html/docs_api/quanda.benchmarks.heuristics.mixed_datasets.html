@@ -127,7 +127,7 @@ estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Com
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.assemble" title="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, eval_dataset, base_dataset, ...)</p></td>
 <td><p>Assembles the benchmark from the given components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
 <td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.download" title="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
@@ -139,10 +139,10 @@ estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Com
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.generate" title="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, eval_dataset, ...)</p></td>
 <td><p>Generates the benchmark with passed components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_dataset</span></code>(dataset[, transform, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
 <td><p>Return the dataset using the given parameters.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_devices</span></code>(model)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
 <td><p>Infer device from model.</p></td>
 </tr>
 </tbody>

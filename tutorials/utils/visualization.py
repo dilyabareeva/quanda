@@ -5,17 +5,17 @@ as a reference only.
 """
 
 import matplotlib.colors as mcolors
+import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+import numpy as np
+import plotly.graph_objects as go
 import torch
 from matplotlib import font_manager, rcParams
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Rectangle
-from torchvision.utils import save_image
-import matplotlib.patches as patches
-import torch
-import numpy as np
-import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from torchvision.utils import save_image
+
 fonts = ["../assets/demo/Helvetica.ttf", "../assets/demo/Helvetica-Bold.ttf"]
 [font_manager.fontManager.addfont(font) for font in fonts]
 
@@ -23,16 +23,22 @@ fonts = ["../assets/demo/Helvetica.ttf", "../assets/demo/Helvetica-Bold.ttf"]
 rcParams["font.family"] = "Helvetica"
 
 # Optionally set the font weight and size if desired
-rcParams['font.weight'] = 'normal'  # or 'bold' if you want bold text
-#rcParams['font.size'] = 10  # Set the default font size
+rcParams["font.weight"] = "normal"  # or 'bold' if you want bold text
+# rcParams['font.size'] = 10  # Set the default font size
 
 
 def save_influential_samples(
-        train_dataset, test_tensor, influence_scores, denormalize,
-        test_names, r_name_dict, top_k=3, save_path="../assets/fig1", method="repr_points",
-        color="#1f77b4"
+    train_dataset,
+    test_tensor,
+    influence_scores,
+    denormalize,
+    test_names,
+    r_name_dict,
+    top_k=3,
+    save_path="../assets/fig1",
+    method="repr_points",
+    color="#1f77b4",
 ):
-
     top_k = 3
     # Get the top opponents and proponents
     top_k_proponents = torch.topk(influence_scores, top_k, dim=1, largest=True)
@@ -58,14 +64,18 @@ def save_influential_samples(
     proponent_labels = proponent_labels[::-1]
 
     # Set the desired width and calculate the total figure size
-    image_width_pixels = 125
+    image_width_pixels = 145
     dpi = 72.27  # Dots per inch
-    height_in_inches = 0.29 # Keep height as needed
+    height_in_inches = 0.32  # Keep height as needed
 
     # Create figure and axes for the images
-    fig, axes = plt.subplots(nrows=1, ncols=top_k * 2 + 1,
-                             figsize=(image_width_pixels / dpi, height_in_inches),
-                             gridspec_kw={'hspace': 0.0, 'wspace': 0.015})  # Reduced wspace to a smaller value
+    fig, axes = plt.subplots(
+        nrows=1,
+        ncols=top_k * 2 + 1,
+        figsize=(image_width_pixels / dpi, height_in_inches),
+        gridspec_kw={"hspace": 0.0, "wspace": 0.1},
+        dpi=1000,
+    )  # Reduced wspace to a smaller value
 
     # Set the figure background color
     fig.patch.set_facecolor(color)
@@ -73,32 +83,36 @@ def save_influential_samples(
     # Plot opponents images and labels
     for ax, img, label in zip(axes[:top_k], opponents_images, opponent_labels):
         ax.imshow(img)
-        ax.axis('off')  # Hide axes
+        ax.axis("off")  # Hide axes
         # Set the background color for each image area
         ax.set_facecolor(color)  # Set background color for the image frame
-        ax.text(0.5, -0.02, f"{label:.3f}", ha='center', va='top', fontsize=3, transform=ax.transAxes)
+        ax.text(0.5, -0.02, f"{label:.2f}", ha="center", va="top", fontsize=5, transform=ax.transAxes)
 
     # Create empty axes for the space between proponents and opponents
     empty_ax = axes[top_k]  # Position the empty ax in between
-    empty_ax.axis('off')  # Hide the empty axes
+    empty_ax.axis("off")  # Hide the empty axes
 
     # Plot proponents images and labels
-    for ax, img, label in zip(axes[top_k + 1:], proponents_images[::-1], proponent_labels[::-1]):
+    for ax, img, label in zip(axes[top_k + 1 :], proponents_images, proponent_labels):
         ax.imshow(img)
-        ax.axis('off')  # Hide axes
+        ax.axis("off")  # Hide axes
         # Set the background color for each image area
         ax.set_facecolor(color)  # Set background color for the image frame
-        ax.text(0.5, -0.02, f"{label:.3f}", ha='center', va='top', fontsize=3, transform=ax.transAxes)
+        ax.text(0.5, -0.02, f"{label:.2f}", ha="center", va="top", fontsize=5, transform=ax.transAxes)
 
     # Adjust layout to remove whitespace and set spacing
-    plt.subplots_adjust(left=0, right=1, top=1.17, bottom=0, hspace=0.0,
-                        wspace=0.1)  # Set wspace to a very small value for tighter spacing
+    plt.subplots_adjust(
+        left=0, right=1, top=1.27, bottom=0, hspace=0.0, wspace=0.1
+    )  # Set wspace to a very small value for tighter spacing
 
     # Save the figure if needed
-    plt.savefig(f"{save_path}/test_{method}.png", pad_inches=0,
-                dpi=1000)  # Save the plot without extra space
+    plt.savefig(f"{save_path}/test_{method}.png", pad_inches=0, dpi=1000)  # Save the plot without extra space
 
     plt.show()  # Show the plot
+
+    # save test image with torch
+    test_image = denormalize(test_tensor[0])
+    save_image(test_image, f"{save_path}/test_image.png")
 
 
 def visualize_top_3_bottom_3_influential(

@@ -126,7 +126,7 @@ estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Com
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.assemble" title="quanda.benchmarks.heuristics.MixedDatasets.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, eval_dataset, base_dataset, ...)</p></td>
 <td><p>Assembles the benchmark from the given components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
 <td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.download" title="quanda.benchmarks.heuristics.MixedDatasets.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
@@ -138,10 +138,10 @@ estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Com
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.generate" title="quanda.benchmarks.heuristics.MixedDatasets.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, eval_dataset, ...)</p></td>
 <td><p>Generates the benchmark with passed components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_dataset</span></code>(dataset[, transform, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
 <td><p>Return the dataset using the given parameters.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_devices</span></code>(model)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
 <td><p>Infer device from model.</p></td>
 </tr>
 </tbody>
@@ -305,7 +305,7 @@ maps. In Advances in Neural Information Processing Systems (Vol. 31).</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.assemble" title="quanda.benchmarks.heuristics.ModelRandomization.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, train_dataset, eval_dataset)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
 <td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.download" title="quanda.benchmarks.heuristics.ModelRandomization.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
@@ -317,10 +317,10 @@ maps. In Advances in Neural Information Processing Systems (Vol. 31).</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.generate" title="quanda.benchmarks.heuristics.ModelRandomization.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, eval_dataset, model)</p></td>
 <td><p>This method generates the benchmark components and creates an instance.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_dataset</span></code>(dataset[, transform, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
 <td><p>Return the dataset using the given parameters.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_devices</span></code>(model)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
 <td><p>Infer device from model.</p></td>
 </tr>
 </tbody>
@@ -465,7 +465,7 @@ samples via relative influence. International Conference on Artificial Intellige
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.assemble" title="quanda.benchmarks.heuristics.TopKOverlap.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, train_dataset, eval_dataset)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
 <td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.download" title="quanda.benchmarks.heuristics.TopKOverlap.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
@@ -477,10 +477,10 @@ samples via relative influence. International Conference on Artificial Intellige
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.generate" title="quanda.benchmarks.heuristics.TopKOverlap.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, model, eval_dataset)</p></td>
 <td><p>Generates the benchmark by specifying parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_dataset</span></code>(dataset[, transform, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
 <td><p>Return the dataset using the given parameters.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_devices</span></code>(model)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
 <td><p>Infer device from model.</p></td>
 </tr>
 </tbody>

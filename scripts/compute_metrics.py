@@ -12,7 +12,6 @@ from PIL import Image
 from torch.utils.data import Subset
 
 from quanda.metrics.downstream_eval import (
-    MislabelingDetectionMetric,
     ShortcutDetectionMetric,
     SubclassDetectionMetric,
 )
@@ -71,7 +70,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
 
     n_epochs = 10
     checkpoints = [
-        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(1, n_epochs, 2)
+        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(5, n_epochs, 1)
     ]
 
     # Dataset Construction
@@ -243,23 +242,6 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     # vis_dataloader(dataloaders["mixed_dataset"])
 
     explanation_methods = ["representer_points", "trak", "random", "tracincpfast", "arnoldi"]
-    if metric == "mislabeling":
-        for method in explanation_methods:
-            method_save_dir = os.path.join(explanations_dir, method)
-            subset_save_dir = os.path.join(method_save_dir, metric)
-            explanations = EC.load(subset_save_dir)
-            mislabeled = MislabelingDetectionMetric(
-                model=lit_model,
-                train_dataset=train_set,
-                mislabeling_indices=torch.load(os.path.join(metadata_dir, "all_train_flipped_indices.pth")),
-                global_method="sum_abs",
-            )
-            for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
-                test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
-                mislabeled.update(test_tensor, test_labels, explanations[i].to(device))
-
-            score = mislabeled.compute()
-            wandb.log({f"{method}_{metric}": score})
 
     if metric == "shortcut":
         for method in explanation_methods:
@@ -345,7 +327,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--metric",
         required=True,
-        choices=["mislabeling", "shortcut", "subclass", "top_k_overlap", "mixed_dataset"],
+        choices=["shortcut", "subclass", "top_k_overlap", "mixed_dataset"],
         help="Choose the explanation metric to use.",
     )
 

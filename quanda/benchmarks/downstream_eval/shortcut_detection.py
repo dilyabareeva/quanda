@@ -136,8 +136,8 @@ class ShortcutDetection(Benchmark):
             An instance of the ShortcutDetection benchmark.
         """
         obj = cls()
-        obj.set_devices(model)
-        obj.base_dataset = obj.process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj._set_devices(model)
+        obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.filter_by_prediction = filter_by_prediction
         obj.filter_by_class = filter_by_class
@@ -295,7 +295,7 @@ class ShortcutDetection(Benchmark):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
-        eval_dataset = obj.build_eval_dataset(
+        eval_dataset = obj._build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=None,
@@ -378,7 +378,7 @@ class ShortcutDetection(Benchmark):
         """
         obj = cls()
         obj.model = model
-        obj.base_dataset = obj.process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
@@ -386,7 +386,7 @@ class ShortcutDetection(Benchmark):
         obj.filter_by_prediction = filter_by_prediction
         obj.filter_by_class = filter_by_class
         obj.shortcut_dataset = SampleTransformationDataset(
-            dataset=obj.process_dataset(base_dataset, transform=None, dataset_split=dataset_split),
+            dataset=obj._process_dataset(base_dataset, transform=None, dataset_split=dataset_split),
             cls_idx=shortcut_cls,
             dataset_transform=dataset_transform,
             sample_fn=sample_fn,
@@ -397,7 +397,7 @@ class ShortcutDetection(Benchmark):
         obj.shortcut_indices = obj.shortcut_dataset.transform_indices
         obj.sample_fn = sample_fn
         obj._checkpoint_paths = checkpoint_paths
-        obj.set_devices(model)
+        obj._set_devices(model)
 
         return obj
 
@@ -464,7 +464,7 @@ class ShortcutDetection(Benchmark):
                 targets = labels
 
             explanations = explainer.explain(
-                test=input,
+                test_tensor=input,
                 targets=targets,
             )
             metric.update(explanations, test_tensor=input, test_labels=labels)

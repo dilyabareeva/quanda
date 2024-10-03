@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Sized, Union
+from typing import Any, Union
 
 import torch
 
@@ -50,7 +50,7 @@ class Metric(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def compute(self, *args: Any, **kwargs: Any) -> Any:
+    def compute(self) -> Any:
         """
         Used to compute the metric score.
 
@@ -62,7 +62,7 @@ class Metric(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def reset(self, *args: Any, **kwargs: Any):
+    def reset(self):
         """
         Used to reset the metric state.
 
@@ -87,7 +87,7 @@ class Metric(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def state_dict(self, *args: Any, **kwargs: Any) -> dict:
+    def state_dict(self) -> dict:
         """
         Used to get the metric state.
 
@@ -97,18 +97,3 @@ class Metric(ABC):
         """
 
         raise NotImplementedError
-
-    @property
-    def dataset_length(self) -> int:
-        """
-        Get the length of the dataset.
-
-        Returns
-        -------
-        int
-            The length of the dataset.
-        """
-        if isinstance(self.train_dataset, Sized):
-            return len(self.train_dataset)
-        dl = torch.utils.data.DataLoader(self.train_dataset, batch_size=1)
-        return len(dl)

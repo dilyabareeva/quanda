@@ -25,7 +25,7 @@ def test_representer_points_explain(test_id, model, dataset, test_tensor, test_l
 
     explainer = RepresenterPoints(model=model, cache_dir=str(tmp_path), train_dataset=dataset, **method_kwargs)
 
-    explanations = explainer.explain(test=test_tensor, targets=test_labels)
+    explanations = explainer.explain(test_tensor=test_tensor, targets=test_labels)
 
     assert explanations.shape[0] == len(test_labels), "Explanations shape is not as expected"
 

@@ -104,8 +104,8 @@ class ModelRandomization(Benchmark):
         logger.info(f"Generating {ModelRandomization.name} benchmark components based on passed arguments...")
 
         obj = cls()
-        obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj._set_devices(model)
+        obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.correlation_fn = correlation_fn
         obj.seed = seed
@@ -143,7 +143,7 @@ class ModelRandomization(Benchmark):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
-        eval_dataset = obj.build_eval_dataset(
+        eval_dataset = obj._build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=sample_transforms[bench_state["dataset_transform"]],
@@ -213,8 +213,8 @@ class ModelRandomization(Benchmark):
         obj.use_predictions = use_predictions
         obj.correlation_fn = correlation_fn
         obj.seed = seed
-        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
-        obj.set_devices(model)
+        obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj._set_devices(model)
         obj._checkpoint_paths = checkpoint_paths
 
         return obj
@@ -273,7 +273,7 @@ class ModelRandomization(Benchmark):
                 targets = labels
 
             explanations = explainer.explain(
-                test=input,
+                test_tensor=input,
                 targets=targets,
             )
 

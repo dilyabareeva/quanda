@@ -170,11 +170,11 @@ obj = cls()
 ```
 - Infer device from the passed model using the base method:
 ```
-obj.set_devices(model)
+obj._set_devices(model)
 ```
 - Populate `train_dataset` field of `obj`:
 ```
-obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+obj.train_dataset = obj._process_dataset(train_dataset, dataset_split)
 ```
 - Populate the rest of the required fields of the `obj` object from the parameters of the method.
 - If the benchmark requires training a model on a modified dataset, `generate` should take a `BaseTrainer` or a Lightning `Trainer` object as a parameter and handle the training.
@@ -186,11 +186,11 @@ obj = cls()
 ```
 - Infer device from the passed model using the base method:
 ```
-obj.set_devices(model)
+obj._set_devices(model)
 ```
 - Populate `train_dataset` field of `obj`:
 ```
-obj.train_dataset = obj.process_dataset(train_dataset, dataset_split)
+obj.train_dataset = obj._process_dataset(train_dataset, dataset_split)
 ```
 - Populate the rest of the required fields of the `obj` object from the parameters of the method.
 - If the benchmark requires training a model, the `model` should be a model trained already in the correct context. This constitutes the main difference between the `generate` and `assemble` methods. Thus, `assemble` is used to skip the costrly training process. Otherwise, the `assemble` method is generally the same as the `generate` method.

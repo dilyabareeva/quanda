@@ -128,7 +128,7 @@ and clean examples from other classes are computed.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.assemble" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
 <td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.download" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
@@ -140,10 +140,10 @@ and clean examples from other classes are computed.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.generate" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
 <td><p>Generate the benchmark from scratch, with the specified parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">process_dataset</span></code>(dataset[, transform, ...])</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
 <td><p>Return the dataset using the given parameters.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_devices</span></code>(model)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
 <td><p>Infer device from model.</p></td>
 </tr>
 </tbody>
