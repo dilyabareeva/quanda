@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -106,36 +106,27 @@
 Conference on Learning Representations.</p>
 <p>2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., &amp; Kim, B. (2018). Sanity checks for saliency
 maps. In Advances in Neural Information Processing Systems (Vol. 31).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.assemble" title="quanda.benchmarks.heuristics.model_randomization.ModelRandomization.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, train_dataset, eval_dataset)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.download" title="quanda.benchmarks.heuristics.model_randomization.ModelRandomization.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.download" title="quanda.benchmarks.heuristics.model_randomization.ModelRandomization.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.evaluate" title="quanda.benchmarks.heuristics.model_randomization.ModelRandomization.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.evaluate" title="quanda.benchmarks.heuristics.model_randomization.ModelRandomization.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluate the given data attributor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.generate" title="quanda.benchmarks.heuristics.model_randomization.ModelRandomization.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, eval_dataset, model)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.generate" title="quanda.benchmarks.heuristics.model_randomization.ModelRandomization.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, eval_dataset, model)</p></td>
 <td><p>This method generates the benchmark components and creates an instance.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -185,11 +176,6 @@ Defaults to “spearman”.</p></li>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="quanda.benchmarks.heuristics.model_randomization.ModelRandomization.correlation_fn">
 <span class="sig-name descname"><span class="pre">correlation_fn</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'kendall'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'spearman'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.correlation_fn" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.model_randomization.ModelRandomization.dataset_str">
-<span class="sig-name descname"><span class="pre">dataset_str</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.dataset_str" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">

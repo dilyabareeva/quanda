@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -109,36 +109,27 @@ as argued in Hanawa et al. (2021) and Kwon et al. (2024).</p>
 In International Conference on Learning Representations.</p>
 <p>2) Kwon, Y., Wu, E., Wu, K., Zou, J., (2024). DataInf: Efficiently Estimating Data Influence in
 LoRA-tuned LLMs and Diffusion Models. The Twelfth International Conference on Learning Representations.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.assemble" title="quanda.benchmarks.downstream_eval.class_detection.ClassDetection.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, train_dataset, eval_dataset)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.download" title="quanda.benchmarks.downstream_eval.class_detection.ClassDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.download" title="quanda.benchmarks.downstream_eval.class_detection.ClassDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method downloads precomputed benchmark components and creates an instance from them.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.evaluate" title="quanda.benchmarks.downstream_eval.class_detection.ClassDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.evaluate" title="quanda.benchmarks.downstream_eval.class_detection.ClassDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluates the benchmark using a given explanation method.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.generate" title="quanda.benchmarks.downstream_eval.class_detection.ClassDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, eval_dataset, model)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.generate" title="quanda.benchmarks.downstream_eval.class_detection.ClassDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, eval_dataset, model)</p></td>
 <td><p>Generates the benchmark by specifying parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -179,11 +170,6 @@ Alternatively, <cite>download</cite> can be used to load a precomputed benchmark
 <dl class="py attribute">
 <dt class="sig sig-object py" id="quanda.benchmarks.downstream_eval.class_detection.ClassDetection.bench_state">
 <span class="sig-name descname"><span class="pre">bench_state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.bench_state" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="quanda.benchmarks.downstream_eval.class_detection.ClassDetection.dataset_str">
-<span class="sig-name descname"><span class="pre">dataset_str</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.dataset_str" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">

@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -115,36 +115,27 @@ and clean examples from other classes are computed.</p>
 </dl>
 </li>
 </ol>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.assemble" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.download" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.download" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.evaluate" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.evaluate" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluate the given data attributor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.generate" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.generate" title="quanda.benchmarks.downstream_eval.shortcut_detection.ShortcutDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
 <td><p>Generate the benchmark from scratch, with the specified parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>

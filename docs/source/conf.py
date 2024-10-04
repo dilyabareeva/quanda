@@ -37,7 +37,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
-html_logo = "_static/quanda_panda_black_bg.png"
+html_logo = "_static/quanda_white.png"
 templates_path = ["_templates"]
 
 # -- Extension configuration -------------------------------------------------

@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -98,36 +98,27 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.benchmarks.</span></span><span class="sig-name descname"><span class="pre">Benchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/base.html#Benchmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.Benchmark" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <p>Base class for all benchmarks.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.Benchmark.assemble" title="quanda.benchmarks.Benchmark.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(*args, **kwargs)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.Benchmark.build_eval_dataset" title="quanda.benchmarks.Benchmark._build_eval_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code></a>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.Benchmark.download" title="quanda.benchmarks.Benchmark.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.Benchmark.download" title="quanda.benchmarks.Benchmark.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.Benchmark.evaluate" title="quanda.benchmarks.Benchmark.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.Benchmark.evaluate" title="quanda.benchmarks.Benchmark.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(*args, **kwargs)</p></td>
 <td><p>Run the evaluation using the benchmark.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.Benchmark.generate" title="quanda.benchmarks.Benchmark.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.Benchmark.generate" title="quanda.benchmarks.Benchmark.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(*args, **kwargs)</p></td>
 <td><p>Generates the benchmark by specifying parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.Benchmark.process_dataset" title="quanda.benchmarks.Benchmark._process_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code></a>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.Benchmark.set_devices" title="quanda.benchmarks.Benchmark._set_devices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code></a>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -148,42 +139,16 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="quanda.benchmarks.Benchmark.build_eval_dataset">
-<span class="sig-name descname"><span class="pre">_build_eval_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_str</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eval_indices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'test'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/base.html#Benchmark.build_eval_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.Benchmark.build_eval_dataset" title="Link to this definition"></a></dt>
-<dd><p>Downloads the HuggingFace evaluation dataset from given name.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dataset_str</strong> (<em>str</em>) – The name of the HuggingFace dataset.</p></li>
-<li><p><strong>eval_indices</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – The indices to be used for evaluation.</p></li>
-<li><p><strong>transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – The transform to be applied to the dataset, by default None.</p></li>
-<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, by default “test”.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The evaluation dataset.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.utils.data.Dataset</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="quanda.benchmarks.Benchmark.checkpoint_paths">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">checkpoint_paths</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#quanda.benchmarks.Benchmark.checkpoint_paths" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="quanda.benchmarks.Benchmark.download">
 <em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">download</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/base.html#Benchmark.download"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.Benchmark.download" title="Link to this definition"></a></dt>
-<dd><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p>
+<dd><p>This method loads precomputed benchmark components from a file and creates an instance from the state
+dictionary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Name of the benchmark to be loaded.</p></li>
-<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Dataset to be used for the evaluation.</p></li>
-<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size to be used, by default 32.</p></li>
+<li><p><strong>cache_dir</strong> (<em>str</em>) – Directory to store the downloaded benchmark components.</p></li>
+<li><p><strong>device</strong> (<em>str</em>) – Device to load the model on.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
@@ -215,42 +180,15 @@
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="quanda.benchmarks.Benchmark.get_checkpoint_paths">
+<span class="sig-name descname"><span class="pre">get_checkpoint_paths</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/quanda/benchmarks/base.html#Benchmark.get_checkpoint_paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.Benchmark.get_checkpoint_paths" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="quanda.benchmarks.Benchmark.name">
 <span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#quanda.benchmarks.Benchmark.name" title="Link to this definition"></a></dt>
 <dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="quanda.benchmarks.Benchmark.process_dataset">
-<span class="sig-name descname"><span class="pre">_process_dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_split</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'train'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/base.html#Benchmark.process_dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.Benchmark.process_dataset" title="Link to this definition"></a></dt>
-<dd><p>Return the dataset using the given parameters.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – The dataset to be processed.</p></li>
-<li><p><strong>transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – The transform to be applied to the dataset, by default None.</p></li>
-<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, by default “train”, only used for HuggingFace datasets.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The dataset.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch,utils.data.Dataset</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="quanda.benchmarks.Benchmark.set_devices">
-<span class="sig-name descname"><span class="pre">_set_devices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/base.html#Benchmark.set_devices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.Benchmark.set_devices" title="Link to this definition"></a></dt>
-<dd><p>Infer device from model.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model associated with the attributions to be evaluated.</p>
-</dd>
-</dl>
-</dd></dl>
 
 </dd></dl>
 
@@ -409,16 +347,12 @@
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.__init__"><code class="docutils literal notranslate"><span class="pre">Benchmark.__init__()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.assemble"><code class="docutils literal notranslate"><span class="pre">Benchmark.assemble()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.bench_state"><code class="docutils literal notranslate"><span class="pre">Benchmark.bench_state</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.build_eval_dataset"><code class="docutils literal notranslate"><span class="pre">Benchmark._build_eval_dataset()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.checkpoint_paths"><code class="docutils literal notranslate"><span class="pre">Benchmark.checkpoint_paths</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.dataset_str"><code class="docutils literal notranslate"><span class="pre">Benchmark.dataset_str</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.device"><code class="docutils literal notranslate"><span class="pre">Benchmark.device</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.download"><code class="docutils literal notranslate"><span class="pre">Benchmark.download()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.evaluate"><code class="docutils literal notranslate"><span class="pre">Benchmark.evaluate()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.generate"><code class="docutils literal notranslate"><span class="pre">Benchmark.generate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.get_checkpoint_paths"><code class="docutils literal notranslate"><span class="pre">Benchmark.get_checkpoint_paths()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.name"><code class="docutils literal notranslate"><span class="pre">Benchmark.name</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.process_dataset"><code class="docutils literal notranslate"><span class="pre">Benchmark._process_dataset()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.base.html#quanda.benchmarks.base.Benchmark.set_devices"><code class="docutils literal notranslate"><span class="pre">Benchmark._set_devices()</span></code></a></li>
 </ul>
 </li>
 </ul>
