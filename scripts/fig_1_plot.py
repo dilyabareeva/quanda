@@ -80,7 +80,13 @@ df = df.rename(
     }
 )
 
-metrics = ["Subclass\nDetection", "Mislabeling\nDetection", "Shortcut\nDetection", "Top-K\nOverlap", "Mixed Dataset\nSeparation"]
+metrics = [
+    "Subclass\nDetection",
+    "Mislabeling\nDetection",
+    "Shortcut\nDetection",
+    "Top-K\nOverlap",
+    "Mixed Dataset\nSeparation",
+]
 
 # Rename methods
 df = df.rename(
