@@ -24,10 +24,10 @@ from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.metrics.heuristics import ModelRandomizationMetric
 from quanda.utils.cache import ExplanationsCache as EC
 from quanda.utils.datasets.transformed import (
+    LabelFlippingDataset,
     LabelGroupingDataset,
     SampleTransformationDataset,
     TransformedDataset,
-    LabelFlippingDataset,
 )
 from quanda.utils.functions import cosine_similarity
 from tutorials.utils.datasets import (

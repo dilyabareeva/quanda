@@ -118,7 +118,7 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
 
 ### Installation
 
-To install the **quanda** download the repository and run the following command in the root directory:
+To install **quanda**, download the repository and run the following command in the root directory:
 
 ```setup
 pip install -e .
