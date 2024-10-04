@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -113,36 +113,27 @@ multiple test samples.</p>
 <p>1) Hammoudeh, Z., &amp; Lowd, D. (2022). Identifying a training-set attack’s target using renormalized influence
 estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
 (pp. 1367-1381).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.assemble" title="quanda.benchmarks.heuristics.MixedDatasets.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, eval_dataset, base_dataset, ...)</p></td>
 <td><p>Assembles the benchmark from the given components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.download" title="quanda.benchmarks.heuristics.MixedDatasets.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.download" title="quanda.benchmarks.heuristics.MixedDatasets.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.evaluate" title="quanda.benchmarks.heuristics.MixedDatasets.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.evaluate" title="quanda.benchmarks.heuristics.MixedDatasets.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluates the benchmark using a given explanation method.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.generate" title="quanda.benchmarks.heuristics.MixedDatasets.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, eval_dataset, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.MixedDatasets.generate" title="quanda.benchmarks.heuristics.MixedDatasets.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, eval_dataset, ...)</p></td>
 <td><p>Generates the benchmark with passed components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -292,36 +283,27 @@ the same dataset and the same class as the samples in the adversarial dataset.</
 Conference on Learning Representations.</p>
 <p>2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., &amp; Kim, B. (2018). Sanity checks for saliency
 maps. In Advances in Neural Information Processing Systems (Vol. 31).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.assemble" title="quanda.benchmarks.heuristics.ModelRandomization.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, train_dataset, eval_dataset)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.download" title="quanda.benchmarks.heuristics.ModelRandomization.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.download" title="quanda.benchmarks.heuristics.ModelRandomization.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.evaluate" title="quanda.benchmarks.heuristics.ModelRandomization.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.evaluate" title="quanda.benchmarks.heuristics.ModelRandomization.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluate the given data attributor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.generate" title="quanda.benchmarks.heuristics.ModelRandomization.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, eval_dataset, model)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.ModelRandomization.generate" title="quanda.benchmarks.heuristics.ModelRandomization.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, eval_dataset, model)</p></td>
 <td><p>This method generates the benchmark components and creates an instance.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -452,36 +434,27 @@ variance in the attributions, which indicates dependence on the test samples.</p
 <p class="rubric">References</p>
 <p>1) Barshan, Elnaz, Marc-Etienne Brunet, and Gintare Karolina Dziugaite. (2020). Relatif: Identifying explanatory training
 samples via relative influence. International Conference on Artificial Intelligence and Statistics. PMLR.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.assemble" title="quanda.benchmarks.heuristics.TopKOverlap.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, train_dataset, eval_dataset)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.download" title="quanda.benchmarks.heuristics.TopKOverlap.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.download" title="quanda.benchmarks.heuristics.TopKOverlap.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.evaluate" title="quanda.benchmarks.heuristics.TopKOverlap.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.evaluate" title="quanda.benchmarks.heuristics.TopKOverlap.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluates the benchmark using a given explanation method.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.generate" title="quanda.benchmarks.heuristics.TopKOverlap.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, model, eval_dataset)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.TopKOverlap.generate" title="quanda.benchmarks.heuristics.TopKOverlap.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, model, eval_dataset)</p></td>
 <td><p>Generates the benchmark by specifying parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -607,7 +580,6 @@ Alternatively, <cite>download</cite> can be used to load a precomputed benchmark
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.assemble"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.assemble()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.base_dataset"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.base_dataset</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.bench_state"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.bench_state</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.dataset_str"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.dataset_str</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.device"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.device</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.download"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.download()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.eval_dataset"><code class="docutils literal notranslate"><span class="pre">MixedDatasets.eval_dataset</span></code></a></li>
@@ -628,7 +600,6 @@ Alternatively, <cite>download</cite> can be used to load a precomputed benchmark
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.assemble"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.assemble()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.bench_state"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.bench_state</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.correlation_fn"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.correlation_fn</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.dataset_str"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.dataset_str</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.device"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.device</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.download"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.download()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.model_randomization.html#quanda.benchmarks.heuristics.model_randomization.ModelRandomization.eval_dataset"><code class="docutils literal notranslate"><span class="pre">ModelRandomization.eval_dataset</span></code></a></li>
@@ -648,7 +619,6 @@ Alternatively, <cite>download</cite> can be used to load a precomputed benchmark
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.__init__"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.__init__()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.assemble"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.assemble()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.bench_state"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.bench_state</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.dataset_str"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.dataset_str</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.device"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.device</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.download"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.download()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.top_k_overlap.TopKOverlap.eval_dataset"><code class="docutils literal notranslate"><span class="pre">TopKOverlap.eval_dataset</span></code></a></li>

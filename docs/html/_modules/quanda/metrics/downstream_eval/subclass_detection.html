@@ -30,9 +30,9 @@
 
           
           
-          <a href="../../../../index.html" class="icon icon-home">
-            quanda
-              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          <a href="../../../../index.html" >
+            
+              <img src="../../../../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -80,6 +80,7 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="kn">from</span> <span class="nn">quanda.metrics.downstream_eval</span> <span class="kn">import</span> <span class="n">ClassDetectionMetric</span>
+<span class="kn">from</span> <span class="nn">quanda.utils.common</span> <span class="kn">import</span> <span class="n">ds_len</span>
 
 
 <div class="viewcode-block" id="SubclassDetectionMetric">
@@ -124,9 +125,9 @@
 <span class="sd">            predicted, by default False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">train_dataset</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_subclass_labels</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_length</span><span class="p">,</span> <span class="p">(</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_subclass_labels</span><span class="p">)</span> <span class="o">==</span> <span class="n">ds_len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">),</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Number of subclass labels (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">train_subclass_labels</span><span class="p">)</span><span class="si">}</span><span class="s2">) &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;does not match the number of train dataset samples (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_length</span><span class="si">}</span><span class="s2">).&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;does not match the number of train dataset samples (</span><span class="si">{</span><span class="n">ds_len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">)</span><span class="si">}</span><span class="s2">).&quot;</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">subclass_labels</span> <span class="o">=</span> <span class="n">train_subclass_labels</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filter_by_prediction</span> <span class="o">=</span> <span class="n">filter_by_prediction</span></div>

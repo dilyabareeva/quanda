@@ -30,9 +30,9 @@
 
           
           
-          <a href="../../../../index.html" class="icon icon-home">
-            quanda
-              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          <a href="../../../../index.html" >
+            
+              <img src="../../../../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -108,6 +108,7 @@
     <span class="n">ds_len</span><span class="p">,</span>
     <span class="n">get_load_state_dict_func</span><span class="p">,</span>
     <span class="n">map_location_context</span><span class="p">,</span>
+    <span class="n">process_targets</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">quanda.utils.datasets</span> <span class="kn">import</span> <span class="n">OnDeviceDataset</span>
 <span class="kn">from</span> <span class="nn">quanda.utils.functions</span> <span class="kn">import</span> <span class="n">cosine_similarity</span>
@@ -177,13 +178,13 @@
 <div class="viewcode-block" id="CaptumInfluence.explain">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumInfluence.explain">[docs]</a>
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Abstract method for computing influence scores for the test samples.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        test : torch.Tensor</span>
+<span class="sd">        test_tensor : torch.Tensor</span>
 <span class="sd">            Test samples for which influence scores are computed.</span>
 <span class="sd">        targets : Union[List[int], torch.Tensor], optional</span>
 <span class="sd">            Labels for the test samples. Defaults to None.</span>
@@ -364,13 +365,13 @@
 
 <div class="viewcode-block" id="CaptumSimilarity.explain">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumSimilarity.explain">[docs]</a>
-    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
+    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute influence scores for the test samples.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        test : torch.Tensor</span>
+<span class="sd">        test_tensor : torch.Tensor</span>
 <span class="sd">            Test samples for which influence scores are computed.</span>
 <span class="sd">        targets : Union[List[int], torch.Tensor], optional</span>
 <span class="sd">            Labels for the test samples. This argument is ignored.</span>
@@ -380,14 +381,14 @@
 <span class="sd">        torch.Tensor</span>
 <span class="sd">            2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">test</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">test_tensor</span> <span class="o">=</span> <span class="n">test_tensor</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="k">with</span> <span class="n">map_location_context</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">),</span> <span class="n">default_tensor_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">):</span>
             <span class="n">topk_idx_1</span><span class="p">,</span> <span class="n">topk_val_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer_1</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span>
-                <span class="n">inputs</span><span class="o">=</span><span class="n">test</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="n">ds_len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">modulo_batch_size</span>
+                <span class="n">inputs</span><span class="o">=</span><span class="n">test_tensor</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="n">ds_len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">modulo_batch_size</span>
             <span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">]</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modulo_batch_size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">topk_idx_2</span><span class="p">,</span> <span class="n">topk_val_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer_2</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">test</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modulo_batch_size</span><span class="p">)[</span>
+                <span class="n">topk_idx_2</span><span class="p">,</span> <span class="n">topk_val_2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer_2</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">test_tensor</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modulo_batch_size</span><span class="p">)[</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">layer</span>
                 <span class="p">]</span>
                 <span class="n">_</span><span class="p">,</span> <span class="n">inverted_idx_1</span> <span class="o">=</span> <span class="n">topk_idx_1</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
@@ -661,13 +662,13 @@
 
 <div class="viewcode-block" id="CaptumArnoldi.explain">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumArnoldi.explain">[docs]</a>
-    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute influence scores for the test samples.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        test : torch.Tensor</span>
+<span class="sd">        test_tensor : torch.Tensor</span>
 <span class="sd">            Test samples for which influence scores are computed.</span>
 <span class="sd">        targets : Union[List[int], torch.Tensor]</span>
 <span class="sd">            Labels for the test samples. This argument is required.</span>
@@ -677,15 +678,15 @@
 <span class="sd">        torch.Tensor</span>
 <span class="sd">            2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">test</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-        <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+        <span class="n">test_tensor</span> <span class="o">=</span> <span class="n">test_tensor</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="n">process_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
-        <span class="n">influence_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">targets</span><span class="p">))</span>
+        <span class="n">influence_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">(</span><span class="n">test_tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">influence_scores</span></div>
 
 
@@ -898,13 +899,13 @@
 
 <div class="viewcode-block" id="CaptumTracInCP.explain">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCP.explain">[docs]</a>
-    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute influence scores for the test samples.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        test : torch.Tensor</span>
+<span class="sd">        test_tensor : torch.Tensor</span>
 <span class="sd">            Test samples for which influence scores are computed.</span>
 <span class="sd">        targets : Union[List[int], torch.Tensor]</span>
 <span class="sd">            Labels for the test samples. This argument is required.</span>
@@ -914,15 +915,15 @@
 <span class="sd">        torch.Tensor</span>
 <span class="sd">            2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">test</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-        <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+        <span class="n">test_tensor</span> <span class="o">=</span> <span class="n">test_tensor</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="n">process_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
-        <span class="n">influence_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">targets</span><span class="p">))</span>
+        <span class="n">influence_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">(</span><span class="n">test_tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">influence_scores</span></div>
 
 
@@ -1140,13 +1141,13 @@
 
 <div class="viewcode-block" id="CaptumTracInCPFast.explain">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCPFast.explain">[docs]</a>
-    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute influence scores for the test samples.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        test : torch.Tensor</span>
+<span class="sd">        test_tensor : torch.Tensor</span>
 <span class="sd">            Test samples for which influence scores are computed.</span>
 <span class="sd">        targets : Union[List[int], torch.Tensor]</span>
 <span class="sd">            Labels for the test samples. This argument is required.</span>
@@ -1156,15 +1157,15 @@
 <span class="sd">        torch.Tensor</span>
 <span class="sd">            2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">test</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-        <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+        <span class="n">test_tensor</span> <span class="o">=</span> <span class="n">test_tensor</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="n">process_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
-        <span class="n">influence_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">targets</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">influence_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">(</span><span class="n">test_tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">influence_scores</span></div>
 
 
@@ -1418,13 +1419,13 @@
 
 <div class="viewcode-block" id="CaptumTracInCPFastRandProj.explain">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCPFastRandProj.explain">[docs]</a>
-    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute influence scores for the test samples.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        test : torch.Tensor</span>
+<span class="sd">        test_tensor : torch.Tensor</span>
 <span class="sd">            Test samples for which influence scores are computed.</span>
 <span class="sd">        targets : Union[List[int], torch.Tensor]</span>
 <span class="sd">            Labels for the test samples. This argument is required.</span>
@@ -1434,15 +1435,15 @@
 <span class="sd">        torch.Tensor</span>
 <span class="sd">            2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">test</span> <span class="o">=</span> <span class="n">test</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-        <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_process_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+        <span class="n">test_tensor</span> <span class="o">=</span> <span class="n">test_tensor</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="n">process_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
-        <span class="n">influence_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">(</span><span class="n">test</span><span class="p">,</span> <span class="n">targets</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">influence_scores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">captum_explainer</span><span class="o">.</span><span class="n">influence</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">(</span><span class="n">test_tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">influence_scores</span></div>
 </div>
 

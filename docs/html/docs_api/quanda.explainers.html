@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -312,17 +312,11 @@ explainer classes must implement.</p>
 <li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Attributes<span class="colon">:</span></dt>
-<dd class="field-even"><dl class="simple">
-<dt><a class="reference internal" href="#quanda.explainers.Explainer.dataset_length" title="quanda.explainers.Explainer.dataset_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></a></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
-</dl>
-</dd>
 </dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.Explainer.explain" title="quanda.explainers.Explainer.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test, targets)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.Explainer.explain" title="quanda.explainers.Explainer.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor, targets)</p></td>
 <td><p>Abstract method for computing influence scores for the test samples.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.Explainer.self_influence" title="quanda.explainers.Explainer.self_influence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">self_influence</span></code></a>([batch_size])</p></td>
@@ -335,28 +329,14 @@ explainer classes must implement.</p>
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">LightningModule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/base.html#Explainer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.Explainer.__init__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="quanda.explainers.Explainer.dataset_length">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dataset_length</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#quanda.explainers.Explainer.dataset_length" title="Link to this definition"></a></dt>
-<dd><p>Returns the length of the training dataset.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Length of the training dataset.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.Explainer.explain">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/base.html#Explainer.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.Explainer.explain" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/base.html#Explainer.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.Explainer.explain" title="Link to this definition"></a></dt>
 <dd><p>Abstract method for computing influence scores for the test samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
 <li><p><strong>targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Labels for the test samples. Defaults to None.</p></li>
 </ul>
 </dd>
@@ -394,18 +374,10 @@ explainer classes must implement.</p>
 <dd><p>Bases: <a class="reference internal" href="quanda.explainers.base.html#quanda.explainers.base.Explainer" title="quanda.explainers.base.Explainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Explainer</span></code></a></p>
 <p>The most basic version of a random explainer.
 The explanations are generated with independent values sampled from a uniform distribution in [0,1].</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.RandomExplainer.explain" title="quanda.explainers.RandomExplainer.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test[, targets])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.RandomExplainer.explain" title="quanda.explainers.RandomExplainer.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor[, targets])</p></td>
 <td><p>Random explainer does not explain anything, just returns random values.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.RandomExplainer.self_influence" title="quanda.explainers.RandomExplainer.self_influence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">self_influence</span></code></a>([batch_size])</p></td>
@@ -431,12 +403,12 @@ The explanations are generated with independent values sampled from a uniform di
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.RandomExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/random.html#RandomExplainer.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.RandomExplainer.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/random.html#RandomExplainer.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.RandomExplainer.explain" title="Link to this definition"></a></dt>
 <dd><p>Random explainer does not explain anything, just returns random values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – Test points for the model decisions to be explained. Is not used for the <cite>RandomExplainer</cite>.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test points for the model decisions to be explained. Is not used for the <cite>RandomExplainer</cite>.</p></li>
 <li><p><strong>targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>] </em><em>= None</em>) – The model outputs to be explained.
 Some methods do not need this. Defaults to None. Is not used in <cite>RandomExplainer</cite>.</p></li>
 </ul>
@@ -678,7 +650,6 @@ Some methods do not need this. Defaults to None. Is not used in <cite>RandomExpl
 <li class="toctree-l1"><a class="reference internal" href="quanda.explainers.base.html">quanda.explainers.base module</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="quanda.explainers.base.html#quanda.explainers.base.Explainer"><code class="docutils literal notranslate"><span class="pre">Explainer</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="quanda.explainers.base.html#quanda.explainers.base.Explainer.__init__"><code class="docutils literal notranslate"><span class="pre">Explainer.__init__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.explainers.base.html#quanda.explainers.base.Explainer.dataset_length"><code class="docutils literal notranslate"><span class="pre">Explainer.dataset_length</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.explainers.base.html#quanda.explainers.base.Explainer.explain"><code class="docutils literal notranslate"><span class="pre">Explainer.explain()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.explainers.base.html#quanda.explainers.base.Explainer.self_influence"><code class="docutils literal notranslate"><span class="pre">Explainer.self_influence()</span></code></a></li>
 </ul>
