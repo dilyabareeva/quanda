@@ -8,7 +8,6 @@ from quanda.utils.common import ds_len
 
 
 class ShortcutDetectionMetric(Metric):
-
     """
     Metric for the shortcut detection evaluation task.
     Attributions of a  model with a shortcut is checked against the ground truth of shortcut samples.
