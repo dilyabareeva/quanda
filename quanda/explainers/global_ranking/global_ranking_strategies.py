@@ -31,7 +31,7 @@ class GlobalSelfInfluenceStrategy:
         Raises
         ------
         ValueError
-            _description_
+            If `explainer` is not provided.
         """
         if explainer is None:
             raise ValueError(
