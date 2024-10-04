@@ -150,7 +150,7 @@ def test_randomization_metric_model_randomization(
         ),
     ],
 )
-def test_top_k_overlap_metrics(
+def test_top_k_cardinality_metrics(
     test_id,
     model,
     dataset,

@@ -99,7 +99,7 @@ torch.save(mnist_test_indices, os.path.join(save_dir, "mnist_test_indices.pth"))
 torch.save(mnist_val_indices, os.path.join(save_dir, "mnist_val_indices.pth"))
 
 
-metrics = ["mislabeling", "shortcut", "subclass", "top_k_overlap", "mixed_dataset"]
+metrics = ["mislabeling", "shortcut", "subclass", "top_k_cardinality", "mixed_dataset"]
 
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
@@ -490,7 +490,7 @@ bench_state["n_classes"] = n_classes
 
 torch.save(bench_state, os.path.join(save_dir, f"mnist_{m}.pth"))
 
-# top_k_overlap
+# top_k_cardinality
 
 bench_state = {}
 bench_state["checkpoints"] = clean_checkpoint_paths
@@ -502,4 +502,4 @@ bench_state["dataset_transform"] = "mnist_transforms"
 bench_state["pl_module"] = "MnistModel"
 bench_state["n_classes"] = n_classes
 
-torch.save(bench_state, os.path.join(save_dir, "mnist_top_k_overlap.pth"))
+torch.save(bench_state, os.path.join(save_dir, "mnist_top_k_cardinality.pth"))

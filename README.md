@@ -73,7 +73,7 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
   </thead>
   <tbody>
     <tr>
-      <td>mnist_top_k_overlap</td>
+      <td>mnist_top_k_cardinality</td>
       <td rowspan="7">Vision</td> <!-- Merged vertically for "Modality" -->
       <td rowspan="7">MNIST</td> <!-- Merged vertically for "Model" -->
       <td><a href="quanda/metrics/heuristics/top_k_cardinality.py">TopKCardinalityMetric</a></td>

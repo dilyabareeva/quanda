@@ -171,7 +171,7 @@ def compute_randomization_metric(
         module.eval()
         return module.lr
 
-    # Dataloader for Model Randomization, Top-K Overlap
+    # Dataloader for Model Randomization, Top-K Cardinality
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
     clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
     dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
