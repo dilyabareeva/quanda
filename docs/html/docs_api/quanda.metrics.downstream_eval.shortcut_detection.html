@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -110,14 +110,6 @@ This strategy is inspired by Koh et al. (2017).</p>
 </dl>
 </li>
 </ol>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Get the length of the dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -125,7 +117,7 @@ This strategy is inspired by Koh et al. (2017).</p>
 <td><p>Aggregates current results and return a metric score.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.load_state_dict" title="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.load_state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code></a>(state_dict, *args, **kwargs)</p></td>
-<td><p>Loads the metric state.</p></td>
+<td><p>Load previously computed state for the metric.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.reset" title="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>(*args, **kwargs)</p></td>
 <td><p>Resets the metric state.</p></td>
@@ -179,7 +171,12 @@ is not assigned as the class, by default True.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.load_state_dict">
 <span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/metrics/downstream_eval/shortcut_detection.html#ShortcutDetectionMetric.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.downstream_eval.shortcut_detection.ShortcutDetectionMetric.load_state_dict" title="Link to this definition"></a></dt>
-<dd><p>Loads the metric state.</p>
+<dd><p>Load previously computed state for the metric.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state_dict</strong> (<em>dict</em>) – A state dictionary for the metric</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

@@ -30,9 +30,9 @@
 
           
           
-          <a href="../../../../index.html" class="icon icon-home">
-            quanda
-              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          <a href="../../../../index.html" >
+            
+              <img src="../../../../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -238,7 +238,12 @@
 <a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.mixed_datasets.html#quanda.metrics.heuristics.MixedDatasetsMetric.load_state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Loads the metric state.</span>
+<span class="sd">        Load the state of the metric.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        state_dict : dict</span>
+<span class="sd">            The state dictionary of the metric</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">auprc_scores</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;auprc_scores&quot;</span><span class="p">]</span></div>
 

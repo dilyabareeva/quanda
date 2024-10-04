@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -110,18 +110,10 @@ Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 36. No. 8.</
 International conference on machine learning. PMLR</p></li>
 <li><p><a class="reference external" href="https://github.com/pytorch/captum/blob/master/captum/influence/_core/arnoldi_influence_function.py">https://github.com/pytorch/captum/blob/master/captum/influence/_core/arnoldi_influence_function.py</a></p></li>
 </ol>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumArnoldi.explain" title="quanda.explainers.wrappers.CaptumArnoldi.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test, targets)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumArnoldi.explain" title="quanda.explainers.wrappers.CaptumArnoldi.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor, targets)</p></td>
 <td><p>Compute influence scores for the test samples.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_explainer</span></code>(**explain_kwargs)</p></td>
@@ -179,8 +171,6 @@ restricted to the Krylov subspace. Defaults to 1e-4.</p></li>
 <li><p><strong>projection_on_cpu</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to move the projection, i.e. low-rank approximation of the inverse Hessian, to cpu, to save gpu memory.
 Defaults to True.</p></li>
 <li><p><strong>show_progress</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to display a progress bar. Defaults to False.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
 <li><p><strong>device</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em><em>, </em><em>optional</em>) – Device to run the computation on. Defaults to “cpu”.</p></li>
 <li><p><strong>**explainer_kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
@@ -190,12 +180,12 @@ Defaults to True.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.CaptumArnoldi.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumArnoldi.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumArnoldi.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumArnoldi.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumArnoldi.explain" title="Link to this definition"></a></dt>
 <dd><p>Compute influence scores for the test samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
 <li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Labels for the test samples. This argument is required.</p></li>
 </ul>
 </dd>
@@ -232,18 +222,10 @@ Defaults to True.</p></li>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.explainers.wrappers.</span></span><span class="sig-name descname"><span class="pre">CaptumInfluence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">LightningModule</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explain_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'./cache'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumInfluence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumInfluence" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="quanda.explainers.base.html#quanda.explainers.base.Explainer" title="quanda.explainers.base.Explainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Explainer</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <p>Base class for the Captum explainers.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumInfluence.explain" title="quanda.explainers.wrappers.CaptumInfluence.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test, targets)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumInfluence.explain" title="quanda.explainers.wrappers.CaptumInfluence.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor, targets)</p></td>
 <td><p>Abstract method for computing influence scores for the test samples.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumInfluence.init_explainer" title="quanda.explainers.wrappers.CaptumInfluence.init_explainer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_explainer</span></code></a>(**explain_kwargs)</p></td>
@@ -274,13 +256,13 @@ Defaults to True.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.CaptumInfluence.explain">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumInfluence.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumInfluence.explain" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumInfluence.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumInfluence.explain" title="Link to this definition"></a></dt>
 <dd><p>Abstract method for computing influence scores for the test samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
-<li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>, </em><em>optional</em>) – Labels for the test samples. Defaults to None.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
+<li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Labels for the test samples.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -319,8 +301,6 @@ Defaults to True.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
 <dt><a class="reference internal" href="#quanda.explainers.wrappers.CaptumSimilarity.layer" title="quanda.explainers.wrappers.CaptumSimilarity.layer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">layer</span></code></a></dt><dd><p>Return the layer for which the activations are computed.</p>
 </dd>
 </dl>
@@ -329,7 +309,7 @@ Defaults to True.</p></li>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumSimilarity.explain" title="quanda.explainers.wrappers.CaptumSimilarity.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test[, targets])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumSimilarity.explain" title="quanda.explainers.wrappers.CaptumSimilarity.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor[, targets])</p></td>
 <td><p>Compute influence scores for the test samples.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_explainer</span></code>(**explain_kwargs)</p></td>
@@ -359,6 +339,7 @@ two subsets and process them separately.</p>
 <li><p><strong>similarity_direction</strong> (<em>str</em><em>, </em><em>optional</em>) – Direction for similarity computation. Can be either “min” or “max”. Defaults to “max”.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size used for iterating over the dataset. Defaults to 1.</p></li>
 <li><p><strong>replace_nan</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to replace NaN values in similarity scores. Defaults to False.</p></li>
+<li><p><strong>load_from_disk</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, activations will be loaded from disk if available, instead of being recomputed. Defaults to True.</p></li>
 <li><p><strong>**explainer_kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
@@ -367,12 +348,12 @@ two subsets and process them separately.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.CaptumSimilarity.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">tensor(0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumSimilarity.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumSimilarity.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">tensor(0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumSimilarity.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumSimilarity.explain" title="Link to this definition"></a></dt>
 <dd><p>Compute influence scores for the test samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
 <li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>, </em><em>optional</em>) – Labels for the test samples. This argument is ignored.</p></li>
 </ul>
 </dd>
@@ -406,18 +387,10 @@ two subsets and process them separately.</p>
 Advances in Neural Information Processing Systems 33. (19920-19930).</p></li>
 <li><p><a class="reference external" href="https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp.py">https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp.py</a></p></li>
 </ol>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumTracInCP.explain" title="quanda.explainers.wrappers.CaptumTracInCP.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test, targets)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumTracInCP.explain" title="quanda.explainers.wrappers.CaptumTracInCP.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor, targets)</p></td>
 <td><p>Compute influence scores for the test samples.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_explainer</span></code>(**explain_kwargs)</p></td>
@@ -443,8 +416,7 @@ Advances in Neural Information Processing Systems 33. (19920-19930).</p></li>
 <li><p><strong>loss_fn</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>Callable</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Loss function used for influence computation. Defaults to CrossEntropyLoss with reduction=’sum’.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size used for iterating over the dataset. Defaults to 1.</p></li>
 <li><p><strong>test_loss_fn</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>Callable</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
+<li><p><strong>sample_wise_grads_per_batch</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to compute sample-wise gradients per batch. Defaults to False.</p></li>
 <li><p><strong>device</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em><em>, </em><em>optional</em>) – Device to run the computation on. Defaults to “cpu”.</p></li>
 <li><p><strong>**explainer_kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
@@ -454,12 +426,12 @@ Advances in Neural Information Processing Systems 33. (19920-19930).</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.CaptumTracInCP.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumTracInCP.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumTracInCP.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumTracInCP.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumTracInCP.explain" title="Link to this definition"></a></dt>
 <dd><p>Compute influence scores for the test samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
 <li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Labels for the test samples. This argument is required.</p></li>
 </ul>
 </dd>
@@ -505,18 +477,10 @@ This implements the TracIn method by Pruthi et al. (2020) using only the final l
 Advances in Neural Information Processing Systems 33. (19920-19930).</p></li>
 <li><p><a class="reference external" href="https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp_fast_rand_proj.py">https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp_fast_rand_proj.py</a></p></li>
 </ol>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumTracInCPFast.explain" title="quanda.explainers.wrappers.CaptumTracInCPFast.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test, targets)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumTracInCPFast.explain" title="quanda.explainers.wrappers.CaptumTracInCPFast.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor, targets)</p></td>
 <td><p>Compute influence scores for the test samples.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_explainer</span></code>(**explain_kwargs)</p></td>
@@ -538,8 +502,6 @@ Advances in Neural Information Processing Systems 33. (19920-19930).</p></li>
 <li><p><strong>final_fc_layer</strong> (<em>torch.nn.Module</em>) – Final fully connected layer of the model.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
 <li><p><strong>checkpoints</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>Iterator</em><em>]</em>) – Checkpoints for the model.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
 <li><p><strong>checkpoints_load_func</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>...</em><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Function to load checkpoints. If None, a default function is used.</p></li>
 <li><p><strong>loss_fn</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>Callable</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Loss function used for influence computation. Defaults to <cite>CrossEntropyLoss</cite> with <cite>reduction=’sum’</cite>.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size used for iterating over the dataset. Defaults to 1.</p></li>
@@ -554,12 +516,12 @@ Advances in Neural Information Processing Systems 33. (19920-19930).</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.CaptumTracInCPFast.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumTracInCPFast.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumTracInCPFast.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumTracInCPFast.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumTracInCPFast.explain" title="Link to this definition"></a></dt>
 <dd><p>Compute influence scores for the test samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
 <li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Labels for the test samples. This argument is required.</p></li>
 </ul>
 </dd>
@@ -606,18 +568,10 @@ and random projections to speed up computation.</p>
 Advances in Neural Information Processing Systems 33. (19920-19930).</p></li>
 <li><p><a class="reference external" href="https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp_fast_rand_proj.py">https://github.com/pytorch/captum/blob/master/captum/influence/_core/tracincp_fast_rand_proj.py</a></p></li>
 </ol>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumTracInCPFastRandProj.explain" title="quanda.explainers.wrappers.CaptumTracInCPFastRandProj.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test, targets)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.CaptumTracInCPFastRandProj.explain" title="quanda.explainers.wrappers.CaptumTracInCPFastRandProj.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor, targets)</p></td>
 <td><p>Compute influence scores for the test samples.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_explainer</span></code>(**explain_kwargs)</p></td>
@@ -639,8 +593,6 @@ Advances in Neural Information Processing Systems 33. (19920-19930).</p></li>
 <li><p><strong>final_fc_layer</strong> (<em>torch.nn.Module</em>) – Final fully connected layer of the model.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
 <li><p><strong>checkpoints</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>Iterator</em><em>]</em>) – Checkpoints for the model.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
 <li><p><strong>checkpoints_load_func</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>...</em><em>, </em><em>Any</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Function to load checkpoints. If None, a default function is used.</p></li>
 <li><p><strong>loss_fn</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Loss function used for influence computation. Defaults to <cite>CrossEntropyLoss</cite> with <cite>reduction=’sum’</cite>.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size used for iterating over the dataset. Defaults to 1.</p></li>
@@ -677,12 +629,12 @@ vector is of dimension no more than <cite>projection_dim</cite> * C.
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.CaptumTracInCPFastRandProj.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumTracInCPFastRandProj.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumTracInCPFastRandProj.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/captum_influence.html#CaptumTracInCPFastRandProj.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.CaptumTracInCPFastRandProj.explain" title="Link to this definition"></a></dt>
 <dd><p>Compute influence scores for the test samples.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
 <li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Labels for the test samples. This argument is required.</p></li>
 </ul>
 </dd>
@@ -714,21 +666,13 @@ Systems, vol. 31.</p>
 <ol class="arabic simple" start="2">
 <li><p><a class="reference external" href="https://github.com/chihkuanyeh/Representer_Point_Selection">https://github.com/chihkuanyeh/Representer_Point_Selection</a></p></li>
 </ol>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.RepresenterPoints.backtracking_line_search" title="quanda.explainers.wrappers.RepresenterPoints.backtracking_line_search"><code class="xref py py-obj docutils literal notranslate"><span class="pre">backtracking_line_search</span></code></a>(model, grad, x, y, ...)</p></td>
 <td><p>Implementation of the backtracking line search algorithm.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.RepresenterPoints.explain" title="quanda.explainers.wrappers.RepresenterPoints.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test, targets)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.RepresenterPoints.explain" title="quanda.explainers.wrappers.RepresenterPoints.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor, targets)</p></td>
 <td><p>Explain the predictions of the model for a given test batch.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.RepresenterPoints.self_influence" title="quanda.explainers.wrappers.RepresenterPoints.self_influence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">self_influence</span></code></a>([batch_size])</p></td>
@@ -787,12 +731,12 @@ Systems, vol. 31.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.RepresenterPoints.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/representer_points.html#RepresenterPoints.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.RepresenterPoints.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/representer_points.html#RepresenterPoints.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.RepresenterPoints.explain" title="Link to this definition"></a></dt>
 <dd><p>Explain the predictions of the model for a given test batch.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – The test batch for which explanations are generated.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – The test batch for which explanations are generated.</p></li>
 <li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – The target values for the explanations.</p></li>
 </ul>
 </dd>
@@ -860,7 +804,7 @@ JMLR.org, Article 1128, (27074–27113).</p></li>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.TRAK.explain" title="quanda.explainers.wrappers.TRAK.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test, targets)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.TRAK.explain" title="quanda.explainers.wrappers.TRAK.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor, targets)</p></td>
 <td><p>Generates explanations for the given test inputs.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">self_influence</span></code>([batch_size])</p></td>
@@ -886,6 +830,7 @@ JMLR.org, Article 1128, (27074–27113).</p></li>
 <li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – The seed for the projector, by default 42.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – The batch size, by default 32.</p></li>
 <li><p><strong>params_ldr</strong> (<em>Optional</em><em>[</em><em>Iterable</em><em>]</em><em>, </em><em>optional</em>) – Generator of model parameters, by default None, which uses all parameters.</p></li>
+<li><p><strong>load_from_disk</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to load metadata from cache_dir, defaults to True.</p></li>
 <li><p><strong>lambda_reg</strong> (<em>int</em><em>, </em><em>optional</em>) – Optional regularization term to add to the diagonals of X^TX to make it invertible.</p></li>
 </ul>
 </dd>
@@ -909,13 +854,13 @@ If not, a DataLoader is created to calculate the length.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.TRAK.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/trak_wrapper.html#TRAK.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.TRAK.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/trak_wrapper.html#TRAK.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.TRAK.explain" title="Link to this definition"></a></dt>
 <dd><p>Generates explanations for the given test inputs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – The test inputs for which explanations are generated.</p></li>
-<li><p><strong>targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – The model outputs to explain per test input, by default None.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – The test inputs for which explanations are generated.</p></li>
+<li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – The model outputs to explain per test input.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -940,8 +885,6 @@ If not, a DataLoader is created to calculate the length.</p>
 <li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
 <li><p><strong>explanation_targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Labels for the test samples.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
 <li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
@@ -963,8 +906,6 @@ If not, a DataLoader is created to calculate the length.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to be used for the influence computation.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
 <li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
@@ -989,7 +930,6 @@ If not, a DataLoader is created to calculate the length.</p>
 <li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
 <li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching activations. Defaults to “./cache”.</p></li>
-<li><p><strong>explanation_targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>, </em><em>optional</em>) – Labels for the test samples. Defaults to None.</p></li>
 <li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
@@ -1037,8 +977,6 @@ If not, a DataLoader is created to calculate the length.</p>
 <li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
 <li><p><strong>explanation_targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Labels for the test samples.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
 <li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
@@ -1062,8 +1000,6 @@ If not, a DataLoader is created to calculate the length.</p>
 <li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
 <li><p><strong>explanation_targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Labels for the test samples.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
 <li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
@@ -1085,10 +1021,8 @@ If not, a DataLoader is created to calculate the length.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>pl.LightningModule</em><em>]</em>) – The model to be used for the influence computation.</p></li>
 <li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
-<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
 <li><p><strong>explanation_targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Labels for the test samples.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
+<li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
 <li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
@@ -1110,8 +1044,6 @@ If not, a DataLoader is created to calculate the length.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to be used for the influence computation.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
 <li><p><strong>outer_loop_by_checkpoints</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to perform an outer loop over the checkpoints. Defaults to False.</p></li>
 <li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
@@ -1134,8 +1066,6 @@ If not, a DataLoader is created to calculate the length.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to be used for the influence computation.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
 <li><p><strong>outer_loop_by_checkpoints</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to perform an outer loop over the checkpoints. Defaults to False.</p></li>
 <li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
@@ -1158,8 +1088,6 @@ If not, a DataLoader is created to calculate the length.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>pl.LightningModule</em><em>]</em>) – The model to be used for the influence computation.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
 <li><p><strong>**kwargs</strong> (<em>Any</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
@@ -1174,16 +1102,16 @@ If not, a DataLoader is created to calculate the length.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.trak_explain">
-<span class="sig-prename descclassname"><span class="pre">quanda.explainers.wrappers.</span></span><span class="sig-name descname"><span class="pre">trak_explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'./cache'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanation_targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/trak_wrapper.html#trak_explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.trak_explain" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">quanda.explainers.wrappers.</span></span><span class="sig-name descname"><span class="pre">trak_explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanation_targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'./cache'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/trak_wrapper.html#trak_explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.trak_explain" title="Link to this definition"></a></dt>
 <dd><p>Functional interface for the <cite>TRAK</cite> explainer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>pl.LightningModule</em><em>]</em>) – The model to be explained.</p></li>
+<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model, by default None.</p></li>
 <li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – The test inputs for which explanations are generated.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset used to train the model.</p></li>
-<li><p><strong>explanation_targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – The target model outputs to explain, by default None.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model, by default None.</p></li>
+<li><p><strong>explanation_targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – The target model outputs to explain.</p></li>
 <li><p><strong>cache_dir</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The directory to use for caching, by default None.</p></li>
 </ul>
 </dd>
@@ -1205,8 +1133,8 @@ If not, a DataLoader is created to calculate the length.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>pl.LightningModule</em><em>]</em>) – The model to be explained.</p></li>
 <li><p><strong>model_id</strong> (<em>str</em>) – Identifier for the model.</p></li>
-<li><p><strong>cache_dir</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The directory to use for caching.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset used to train the model.</p></li>
+<li><p><strong>cache_dir</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The directory to use for caching.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – The batch size, by default 32.</p></li>
 </ul>
 </dd>

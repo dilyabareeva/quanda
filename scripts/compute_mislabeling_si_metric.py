@@ -26,7 +26,8 @@ from quanda.utils.cache import ExplanationsCache as EC
 from quanda.utils.datasets.transformed import (
     LabelGroupingDataset,
     SampleTransformationDataset,
-    TransformedDataset, LabelFlippingDataset,
+    TransformedDataset,
+    LabelFlippingDataset,
 )
 from quanda.utils.functions import cosine_similarity
 from tutorials.utils.datasets import (
@@ -72,13 +73,16 @@ def compute_mislabeling_metric(
                 "https://tinyurl.com/47tc84fu",
             ]
         )
-        subprocess.run(["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18_noisy_labels.zip"), "-d", metadata_dir])
+        subprocess.run(
+            ["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18_noisy_labels.zip"), "-d", metadata_dir]
+        )
         subprocess.run(["wget", "-qP", metadata_dir, "https://tinyurl.com/u4w2j22k"])
         subprocess.run(["unzip", "-qq", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
 
     n_epochs = 10
     checkpoints = [
-        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_noisy_labels_epoch={epoch:02d}.ckpt") for epoch in range(5, n_epochs, 1)
+        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_noisy_labels_epoch={epoch:02d}.ckpt")
+        for epoch in range(5, n_epochs, 1)
     ]
 
     # Dataset Construction
@@ -96,9 +100,12 @@ def compute_mislabeling_metric(
 
     generator = random.Random(27)
 
-    # Define transformations
     regular_transforms = transforms.Compose(
-        [transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
+        [
+            transforms.ToTensor(),
+            transforms.Resize((64, 64)),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        ]
     )
 
     # Load the TinyImageNet dataset
@@ -106,46 +113,28 @@ def compute_mislabeling_metric(
     with open(tiny_in_path + "wnids.txt", "r") as f:
         id_dict = {line.strip(): i for i, line in enumerate(f)}
 
-    val_annotations = {}
-    with open(tiny_in_path + "val/val_annotations.txt", "r") as f:
-        val_annotations = {line.split("\t")[0]: line.split("\t")[1] for line in f}
-
-    train_set_original = CustomDataset(tiny_in_path + "train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None)
-    holdout_set = AnnotatedDataset(
-        local_path=tiny_in_path + "val", transforms=None, id_dict=id_dict, annotation=val_annotations
+    train_set_original = CustomDataset(
+        tiny_in_path + "train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None
     )
-    test_set = torch.utils.data.Subset(holdout_set, test_split)
-
-    backdoor_transforms = transforms.Compose(
-        [
-            transforms.Resize((64, 64)),
-            transforms.ToTensor(),
-            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-        ]
-    )
-
-    panda_dataset = CustomDataset(
-        panda_sketch_path, classes=["n02510455"], classes_to_idx={"n02510455": 5}, transform=backdoor_transforms
-    )
-    panda_set = torch.utils.data.Subset(panda_dataset, panda_train_indices)
-
-    def add_yellow_square(img):
-        square_size = (15, 15)  # Size of the square
-        yellow_square = Image.new("RGB", square_size, (255, 255, 0))  # Create a yellow square
-        img.paste(yellow_square, (10, 10))  # Paste it onto the image at the specified position
-        return img
 
     train_set_noisy_labels = LabelFlippingDataset(
         dataset=train_set_original,
         n_classes=n_classes,
         dataset_transform=regular_transforms,
-        p=0.3,
+        mislabeling_labels=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
     )
 
-    train_dataloader = torch.utils.data.DataLoader(train_set_noisy_labels, batch_size=batch_size, shuffle=False, num_workers=num_workers)
-    lit_model = LitModel(n_batches=len(train_dataloader), num_labels=n_classes, epochs=n_epochs,
-                               lr=3e-4)
-    lit_model.eval()
+    train_dataloader = torch.utils.data.DataLoader(
+        train_set_noisy_labels, batch_size=batch_size, shuffle=False, num_workers=num_workers
+    )
+    lit_model = LitModel.load_from_checkpoint(
+        checkpoints[-1],
+        n_batches=len(train_dataloader),
+        num_labels=n_classes,
+        device=device,
+        map_location=torch.device(device),
+    )
+    lit_model = lit_model.eval()
 
     def load_state_dict(module: L.LightningModule, path: str) -> int:
         checkpoints = torch.load(path, map_location=torch.device("cuda:1"))
@@ -213,6 +202,7 @@ def compute_mislabeling_metric(
             "projection_dim": 500,
             "arnoldi_dim": 200,
             "batch_size": batch_size * 4,
+            "layers": ["model.fc"],
             "device": device,
         }
 

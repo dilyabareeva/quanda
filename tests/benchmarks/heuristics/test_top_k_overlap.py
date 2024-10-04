@@ -3,7 +3,7 @@ import math
 import pytest
 import torch
 
-from quanda.benchmarks.heuristics import TopKOverlap
+from quanda.benchmarks.heuristics import TopKCardinality
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
@@ -53,7 +53,7 @@ from quanda.utils.functions import cosine_similarity
         ),
     ],
 )
-def test_topk_overlap(
+def test_topk_cardinality(
     test_id,
     init_method,
     model,
@@ -75,7 +75,7 @@ def test_topk_overlap(
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "generate":
-        dst_eval = TopKOverlap.generate(
+        dst_eval = TopKCardinality.generate(
             model=model,
             train_dataset=dataset,
             eval_dataset=dataset,
@@ -83,7 +83,7 @@ def test_topk_overlap(
         )
 
     elif init_method == "assemble":
-        dst_eval = TopKOverlap.assemble(
+        dst_eval = TopKCardinality.assemble(
             model=model,
             train_dataset=dataset,
             eval_dataset=dataset,
@@ -107,7 +107,7 @@ def test_topk_overlap(
     [
         (
             "mnist",
-            "mnist_top_k_overlap_benchmark",
+            "mnist_top_k_cardinality_benchmark",
             8,
             CaptumSimilarity,
             {
@@ -119,7 +119,7 @@ def test_topk_overlap(
         ),
     ],
 )
-def test_top_k_overlap_download(
+def test_top_k_cardinality_download(
     test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score, tmp_path, request
 ):
     dst_eval = request.getfixturevalue(benchmark_name)

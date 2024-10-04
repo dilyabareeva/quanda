@@ -30,9 +30,9 @@
 
           
           
-          <a href="../../../../index.html" class="icon icon-home">
-            quanda
-              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          <a href="../../../../index.html" >
+            
+              <img src="../../../../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -362,6 +362,8 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        name: str</span>
+<span class="sd">            Name of the benchmark.</span>
 <span class="sd">        adversarial_dir_url: str</span>
 <span class="sd">            URL to the adversarial dataset.</span>
 <span class="sd">        cache_dir: str</span>
@@ -415,23 +417,23 @@
 <span class="sd">        ----------</span>
 <span class="sd">        model: Union[torch.nn.Module, L.LightningModule]</span>
 <span class="sd">            Model to be used for the benchmark.</span>
-<span class="sd">        base_dataset: Union[str, torch.utils.data.Dataset]</span>
-<span class="sd">            Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</span>
 <span class="sd">        eval_dataset: torch.utils.data.Dataset</span>
 <span class="sd">            The dataset containing the adversarial examples used for evaluation. They should belong to</span>
 <span class="sd">            the same dataset and the same class as the samples in the adversarial dataset.</span>
+<span class="sd">        base_dataset: Union[str, torch.utils.data.Dataset]</span>
+<span class="sd">            Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</span>
 <span class="sd">        adversarial_dir: str</span>
 <span class="sd">            Path to the adversarial dataset of a single class.</span>
 <span class="sd">        adversarial_label: int</span>
 <span class="sd">            The label to be used for the adversarial dataset.</span>
 <span class="sd">        data_transform: Optional[Callable], optional</span>
 <span class="sd">            Transform to be applied to the clean dataset, by default None.</span>
-<span class="sd">        adversarial_transform: Optional[Callable], optional</span>
-<span class="sd">            Transform to be applied to the adversarial dataset, by default None.</span>
 <span class="sd">        use_predictions: bool, optional</span>
 <span class="sd">            Whether to use the model&#39;s predictions for generating attributions. Defaults to True.</span>
 <span class="sd">        filter_by_prediction: bool, optional</span>
 <span class="sd">            Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.</span>
+<span class="sd">        adversarial_transform: Optional[Callable], optional</span>
+<span class="sd">            Transform to be applied to the adversarial dataset, by default None.</span>
 <span class="sd">        dataset_split: str, optional</span>
 <span class="sd">            The dataset split, only used for HuggingFace datasets, by default &quot;train&quot;.</span>
 <span class="sd">        checkpoint_paths : Optional[List[str]], optional</span>
@@ -516,7 +518,7 @@
                     <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">targets</span> <span class="o">=</span> <span class="n">labels</span>
-            <span class="n">explanations</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">)</span>
+            <span class="n">explanations</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="n">test_tensor</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">)</span>
             <span class="n">metric</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">explanations</span><span class="p">,</span> <span class="n">test_tensor</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">test_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">metric</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span></div>

@@ -18,6 +18,7 @@ def kendall_rank_corr(tensor1, tensor2):
     ----------
     tensor1, tensor2 : torch.Tensor
         The input tensors to compute the correlation coefficient.
+
     Returns
     -------
     torch.Tensor

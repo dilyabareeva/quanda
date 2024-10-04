@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -99,27 +99,19 @@
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.metrics.base.</span></span><span class="sig-name descname"><span class="pre">Metric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/metrics/base.html#Metric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.base.Metric" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
 <p>Base class for metrics.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><a class="reference internal" href="#quanda.metrics.base.Metric.dataset_length" title="quanda.metrics.base.Metric.dataset_length"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></a></dt><dd><p>Get the length of the dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.metrics.base.Metric.compute" title="quanda.metrics.base.Metric.compute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.metrics.base.Metric.compute" title="quanda.metrics.base.Metric.compute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute</span></code></a>()</p></td>
 <td><p>Used to compute the metric score.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#quanda.metrics.base.Metric.load_state_dict" title="quanda.metrics.base.Metric.load_state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code></a>(state_dict)</p></td>
 <td><p>Used to load the metric state.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.metrics.base.Metric.reset" title="quanda.metrics.base.Metric.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.metrics.base.Metric.reset" title="quanda.metrics.base.Metric.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>()</p></td>
 <td><p>Used to reset the metric state.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.metrics.base.Metric.state_dict" title="quanda.metrics.base.Metric.state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.metrics.base.Metric.state_dict" title="quanda.metrics.base.Metric.state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code></a>()</p></td>
 <td><p>Used to get the metric state.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.metrics.base.Metric.update" title="quanda.metrics.base.Metric.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(*args, **kwargs)</p></td>
@@ -143,25 +135,11 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.metrics.base.Metric.compute">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../_modules/quanda/metrics/base.html#Metric.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.base.Metric.compute" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">compute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../_modules/quanda/metrics/base.html#Metric.compute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.base.Metric.compute" title="Link to this definition"></a></dt>
 <dd><p>Used to compute the metric score.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>NotImplementedError</strong> – </p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="quanda.metrics.base.Metric.dataset_length">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dataset_length</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#quanda.metrics.base.Metric.dataset_length" title="Link to this definition"></a></dt>
-<dd><p>Get the length of the dataset.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The length of the dataset.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -182,13 +160,13 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.metrics.base.Metric.reset">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/metrics/base.html#Metric.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.base.Metric.reset" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/metrics/base.html#Metric.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.base.Metric.reset" title="Link to this definition"></a></dt>
 <dd><p>Used to reset the metric state.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.metrics.base.Metric.state_dict">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/quanda/metrics/base.html#Metric.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.base.Metric.state_dict" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/quanda/metrics/base.html#Metric.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.metrics.base.Metric.state_dict" title="Link to this definition"></a></dt>
 <dd><p>Used to get the metric state.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Raises<span class="colon">:</span></dt>

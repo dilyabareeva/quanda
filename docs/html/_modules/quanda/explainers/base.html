@@ -30,9 +30,9 @@
 
           
           
-          <a href="../../../index.html" class="icon icon-home">
-            quanda
-              <img src="../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          <a href="../../../index.html" >
+            
+              <img src="../../../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -76,12 +76,12 @@
              
   <h1>Source code for quanda.explainers.base</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sized</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">lightning</span> <span class="k">as</span> <span class="nn">L</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 
-<span class="kn">from</span> <span class="nn">quanda.utils.common</span> <span class="kn">import</span> <span class="n">cache_result</span>
+<span class="kn">from</span> <span class="nn">quanda.utils.common</span> <span class="kn">import</span> <span class="n">cache_result</span><span class="p">,</span> <span class="n">ds_len</span>
 <span class="kn">from</span> <span class="nn">quanda.utils.datasets</span> <span class="kn">import</span> <span class="n">OnDeviceDataset</span>
 
 
@@ -98,10 +98,6 @@
 <span class="sd">        The model to be used for the influence computation.</span>
 <span class="sd">    train_dataset : torch.utils.data.Dataset</span>
 <span class="sd">        Training dataset to be used for the influence computation.</span>
-<span class="sd">    cache_dir : str, optional</span>
-<span class="sd">        Directory for caching results. Defaults to &quot;./cache&quot;.</span>
-<span class="sd">    model_id : Optional[str], optional</span>
-<span class="sd">        Identifier for the model.</span>
 <span class="sd">    **kwargs : dict</span>
 <span class="sd">        Additional keyword arguments passed to the explainer.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -133,16 +129,16 @@
 <div class="viewcode-block" id="Explainer.explain">
 <a class="viewcode-back" href="../../../docs_api/quanda.explainers.base.html#quanda.explainers.Explainer.explain">[docs]</a>
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Abstract method for computing influence scores for the test samples.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        test : torch.Tensor</span>
+<span class="sd">        test_tensor : torch.Tensor</span>
 <span class="sd">            Test samples for which influence scores are computed.</span>
-<span class="sd">        targets : Optional[Union[List[int], torch.Tensor]], optional</span>
-<span class="sd">            Labels for the test samples. Defaults to None.</span>
+<span class="sd">        targets : Union[List[int], torch.Tensor]</span>
+<span class="sd">            Labels for the test samples.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -151,41 +147,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dataset_length</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns the length of the training dataset.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        int</span>
-<span class="sd">            Length of the training dataset.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">Sized</span><span class="p">):</span>
-            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">)</span>
-        <span class="n">dl</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_process_targets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Convert target labels to torch.Tensor and move them to the device.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        targets : Optional[Union[List[int], torch.Tensor]], optional</span>
-<span class="sd">            The target labels, either as a list or tensor.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        torch.Tensor or None</span>
-<span class="sd">            The processed targets as a tensor, or None if no targets are provided.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">targets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-                <span class="n">targets</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
-            <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">targets</span>
 
 <div class="viewcode-block" id="Explainer.self_influence">
 <a class="viewcode-back" href="../../../docs_api/quanda.explainers.base.html#quanda.explainers.Explainer.self_influence">[docs]</a>
@@ -206,12 +167,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># Pre-allcate memory for influences, because torch.cat is slow</span>
-        <span class="n">influences</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_length</span><span class="p">,),</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">influences</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">ds_len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">),),</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">ldr</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
-        <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_length</span><span class="p">)</span>
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">ds_len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">))</span>
 
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_length</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">),</span> <span class="n">ldr</span><span class="p">):</span>
-            <span class="n">explanations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">),</span> <span class="n">targets</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ds_len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">),</span> <span class="n">batch_size</span><span class="p">),</span> <span class="n">ldr</span><span class="p">):</span>
+            <span class="n">explanations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="n">test_tensor</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">),</span> <span class="n">targets</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">))</span>
             <span class="n">influences</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">batch_size</span><span class="p">]</span> <span class="o">=</span> <span class="n">explanations</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">diagonal</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">influences</span></div>

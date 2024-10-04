@@ -36,7 +36,7 @@ torch.set_float32_matmul_precision("medium")
 # Downloading the datasets and checkpoints
 tiny_in_path = "/data1/datapool"
 panda_sketch_path = "/data1/datapool/sketch"
-explanations_dir = "../assets/demo/output3"
+explanations_dir = "../assets/demo/output5"
 checkpoints_dir = "../assets/demo/"
 metadata_dir = "../assets/demo/"
 # We first download the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
@@ -138,13 +138,6 @@ test_set_grouped = LabelGroupingDataset(
     class_to_group=class_to_group,
 )
 
-# add regular_transforms to test_set
-test_set_transform = TransformedDataset(
-    dataset=test_set,
-    n_classes=new_n_classes,
-    dataset_transform=regular_transforms,
-    transform_indices=[],
-)
 
 train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 lit_model = LitModel.load_from_checkpoint(
@@ -159,7 +152,7 @@ lit_model.eval()
 
 # Define Dataloader for different metrics
 dataloaders = {}
-# Dataloader for Model Randomization, Top-K Overlap
+# Dataloader for Model Randomization, Top-K Cardinality
 clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
 clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
 dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
@@ -170,7 +163,7 @@ test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pt
 
 clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
 clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
-dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, shuffle=False)
 
 explanation_methods = [
     "representer_points",
@@ -178,28 +171,31 @@ explanation_methods = [
     "tracincpfast",
     "trak",
 ]
-TRANSP_COLORS = ["#FFDDBB", "#83BA59", "#FFDAD4", "#EDDCFF"]
+TRANSP_COLORS = ["#FFDDBB", "#D4E7C5", "#FFDAD4", "#EDDCFF"]
 for ij, method in enumerate(explanation_methods):
-    method_save_dir = os.path.join(explanations_dir, method)
-    subset_save_dir = os.path.join(method_save_dir, "subclass")
-    explanations = EC.load(subset_save_dir)
-    test_tensor, test_labels = next(iter(dataloader))
-    test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
-    explanations = explanations[0]
-    explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
-    j = 63
-    save_influential_samples(
-        train_set,
-        test_tensor[j : j + 1],
-        explanations[j : j + 1],
-        denormalize,
-        ["gazelle_" + str(j)],
-        r_name_dict,
-        top_k=7,
-        save_path="../fig_1_images",
-        method=method,
-        color=TRANSP_COLORS[ij],
-    )
+    try:
+        method_save_dir = os.path.join(explanations_dir, method)
+        subset_save_dir = os.path.join(method_save_dir, "subclass")
+        explanations = EC.load(subset_save_dir)
+        test_tensor, test_labels = next(iter(dataloader))
+        test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
+        explanations = explanations[0]
+        explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
+        j = [i for i in range(len(clean_samples)) if clean_samples[i] == 524][0]
+        save_influential_samples(
+            train_set,
+            test_tensor[j : j + 1],
+            explanations[j : j + 1],
+            denormalize,
+            ["gazelle_" + str(j)],
+            r_name_dict,
+            top_k=7,
+            save_path="../fig_1_images",
+            method=method,
+            color=TRANSP_COLORS[ij],
+        )
+    except:
+        pass
 
 
 # i=0, j=5

@@ -274,6 +274,8 @@ class MixedDatasets(Benchmark):
 
         Parameters
         ----------
+        name: str
+            Name of the benchmark.
         adversarial_dir_url: str
             URL to the adversarial dataset.
         cache_dir: str
@@ -325,23 +327,23 @@ class MixedDatasets(Benchmark):
         ----------
         model: Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
-        base_dataset: Union[str, torch.utils.data.Dataset]
-            Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         eval_dataset: torch.utils.data.Dataset
             The dataset containing the adversarial examples used for evaluation. They should belong to
             the same dataset and the same class as the samples in the adversarial dataset.
+        base_dataset: Union[str, torch.utils.data.Dataset]
+            Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         adversarial_dir: str
             Path to the adversarial dataset of a single class.
         adversarial_label: int
             The label to be used for the adversarial dataset.
         data_transform: Optional[Callable], optional
             Transform to be applied to the clean dataset, by default None.
-        adversarial_transform: Optional[Callable], optional
-            Transform to be applied to the adversarial dataset, by default None.
         use_predictions: bool, optional
             Whether to use the model's predictions for generating attributions. Defaults to True.
         filter_by_prediction: bool, optional
             Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.
+        adversarial_transform: Optional[Callable], optional
+            Transform to be applied to the adversarial dataset, by default None.
         dataset_split: str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
         checkpoint_paths : Optional[List[str]], optional

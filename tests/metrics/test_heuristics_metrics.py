@@ -6,7 +6,7 @@ import torch
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.heuristics import (
     ModelRandomizationMetric,
-    TopKOverlapMetric,
+    TopKCardinalityMetric,
 )
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.common import get_parent_module_from_name
@@ -150,7 +150,7 @@ def test_randomization_metric_model_randomization(
         ),
     ],
 )
-def test_top_k_overlap_metrics(
+def test_top_k_cardinality_metrics(
     test_id,
     model,
     dataset,
@@ -163,7 +163,7 @@ def test_top_k_overlap_metrics(
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     explanations = request.getfixturevalue(explanations)
-    metric = TopKOverlapMetric(model=model, train_dataset=dataset, top_k=top_k, device="cpu")
+    metric = TopKCardinalityMetric(model=model, train_dataset=dataset, top_k=top_k, device="cpu")
     metric.update(explanations=explanations)
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)

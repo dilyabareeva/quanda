@@ -18,6 +18,9 @@ class Benchmark(ABC):
     name: str
 
     def __init__(self, *args, **kwargs):
+        """
+        Initializer for the base `Benchmark` class.
+        """
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
         self._checkpoint_paths: Optional[List[str]] = None
@@ -105,11 +108,21 @@ class Benchmark(ABC):
     @abstractmethod
     def evaluate(
         self,
-        *args,
-        **kwargs,
+        explainer_cls: type,
+        expl_kwargs: Optional[dict] = None,
+        batch_size: int = 8,
     ):
         """
         Run the evaluation using the benchmark.
+
+        Parameters
+        ----------
+        explainer_cls : type
+            The explainer class to be used for evaluation.
+        expl_kwargs : Optional[dict], optional
+            Additional keyword arguments to be passed to the explainer, by default None.
+        batch_size : int, optional
+            Batch size for the evaluation, by default 8.
 
         Raises
         ------

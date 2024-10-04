@@ -123,7 +123,7 @@ class MixedDatasetsMetric(Metric):
             pred_cls = self.model(test_tensor).argmax(dim=1)
             select_idx *= pred_cls == self.adversarial_label
 
-        explanations = explanations[select_idx].to(self.device)
+        explanations = explanations[select_idx]
         self.auprc_scores.extend([binary_auprc(xpl, self.adversarial_indices) for xpl in explanations])
 
     def compute(self, *args, **kwargs):
@@ -145,7 +145,12 @@ class MixedDatasetsMetric(Metric):
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
-        Loads the metric state.
+        Load the state of the metric.
+
+        Parameters
+        ----------
+        state_dict : dict
+            The state dictionary of the metric
         """
         self.auprc_scores = state_dict["auprc_scores"]
 

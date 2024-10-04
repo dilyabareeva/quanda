@@ -30,9 +30,9 @@
 
           
           
-          <a href="../../../../index.html" class="icon icon-home">
-            quanda
-              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          <a href="../../../../index.html" >
+            
+              <img src="../../../../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -157,6 +157,10 @@
 <span class="sd">            Keyword arguments for the optimizer, defaults to None</span>
 <span class="sd">        scheduler_kwargs : Optional[dict], optional</span>
 <span class="sd">            Keyword arguments for the scheduler, defaults to None</span>
+<span class="sd">        seed : int, optional</span>
+<span class="sd">            The seed for the projector, by default 27.</span>
+<span class="sd">        accelerator : str, optional</span>
+<span class="sd">            The accelerator to use for training, by default &quot;cpu&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lr</span> <span class="o">=</span> <span class="n">lr</span>
@@ -193,6 +197,8 @@
 <span class="sd">            Dataloader for the training data.</span>
 <span class="sd">        val_dataloaders : Optional[torch.utils.data.dataloader.DataLoader], optional</span>
 <span class="sd">            Dataloader for the validation data, defaults to None.</span>
+<span class="sd">        accelerator : str, optional</span>
+<span class="sd">            The accelerator to use for training, by default &quot;cpu&quot;.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">module</span> <span class="o">=</span> <span class="n">BasicLightningModule</span><span class="p">(</span>
             <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>

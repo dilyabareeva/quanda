@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -720,6 +720,8 @@ For more complex training procedures, consider using PyTorch Lightning Module/ T
 <li><p><strong>scheduler</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Scheduler to use during training, defaults to None</p></li>
 <li><p><strong>optimizer_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Keyword arguments for the optimizer, defaults to None</p></li>
 <li><p><strong>scheduler_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Keyword arguments for the scheduler, defaults to None</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – The seed for the projector, by default 27.</p></li>
+<li><p><strong>accelerator</strong> (<em>str</em><em>, </em><em>optional</em>) – The accelerator to use for training, by default “cpu”.</p></li>
 </ul>
 </dd>
 </dl>
@@ -735,6 +737,7 @@ For more complex training procedures, consider using PyTorch Lightning Module/ T
 <li><p><strong>model</strong> (<em>torch.nn.Module</em>) – Model to train.</p></li>
 <li><p><strong>train_dataloaders</strong> (<em>torch.utils.data.dataloader.DataLoader</em>) – Dataloader for the training data.</p></li>
 <li><p><strong>val_dataloaders</strong> (<em>Optional</em><em>[</em><em>torch.utils.data.dataloader.DataLoader</em><em>]</em><em>, </em><em>optional</em>) – Dataloader for the validation data, defaults to None.</p></li>
+<li><p><strong>accelerator</strong> (<em>str</em><em>, </em><em>optional</em>) – The accelerator to use for training, by default “cpu”.</p></li>
 </ul>
 </dd>
 </dl>
