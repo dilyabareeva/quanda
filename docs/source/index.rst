@@ -46,7 +46,7 @@ Evaluation Metrics
 
 - **Identical Class / Identical Subclass** (`Hanawa et al., 2021 <https://openreview.net/forum?id=9uvhpyQwzM_>`_): Measures the proportion of identical classes or subclasses in the top-1 training samples over the test dataset. If the attributions are based on similarity, they are expected to be predictive of the class of the test datapoint, as well as different subclasses under a single label.
 
--  **Top-K Overlap**  (`Barshan et al., 2020 <http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf>`_): Measures the cardinality of the union of the top-K training samples. Since the attributions are expected to be dependent on the test input, they are expected to vary heavily for different test points, resulting in a low overlap (high metric value).
+-  **Top-K Cardinality**  (`Barshan et al., 2020 <http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf>`_): Measures the cardinality of the union of the top-K training samples. Since the attributions are expected to be dependent on the test input, they are expected to vary heavily for different test points, resulting in a low overlap (high metric value).
 
 - **Model Randomization** (`Hanawa et al., 2021 <https://openreview.net/forum?id=9uvhpyQwzM_>`_): Measures the correlation between the original TDA and the TDA of a model with randomized weights. Since the attributions are expected to depend on model parameters, the correlation between original and randomized attributions should be low.
 
@@ -61,7 +61,7 @@ Benchmarks
 +---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
 |              Name               |                                               Metric                                               |           Type            |
 +=================================+====================================================================================================+===========================+
-|       mnist_top_k_overlap       |            `TopKOverlapMetric <docs_api/quanda.metrics.heuristics.top_k_overlap.html>`_            |         Heuristic         |
+|     mnist_top_k_cardinality     |        `TopKCardinalityMetric <docs_api/quanda.metrics.heuristics.top_k_cardinality.html>`_        |         Heuristic         |
 +---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
 |      mnist_mixed_datasets       |           `MixedDatasetMetric <docs_api/quanda.metrics.heuristics.mixed_datasets.html>`_           |         Heuristic         |
 +---------------------------------+----------------------------------------------------------------------------------------------------+---------------------------+
