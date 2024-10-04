@@ -17,7 +17,7 @@ from quanda.benchmarks.downstream_eval import (
 from quanda.benchmarks.heuristics import (
     MixedDatasets,
     ModelRandomization,
-    TopKOverlap,
+    TopKCardinality,
 )
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
@@ -354,8 +354,8 @@ def mnist_model_randomization_benchmark(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def mnist_top_k_overlap_benchmark(tmp_path_factory):
-    dst_eval = TopKOverlap.download(
+def mnist_top_k_cardinality_benchmark(tmp_path_factory):
+    dst_eval = TopKCardinality.download(
         name="mnist_class_detection",
         cache_dir=str(tmp_path_factory.mktemp("mnist_class_detection_benchmark")),
         device="cpu",
