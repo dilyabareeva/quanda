@@ -271,7 +271,7 @@ def ds_len(dataset: torch.utils.data.Dataset) -> int:
     return len(dl)
 
 
-def process_targets(targets: Union[List[int], torch.Tensor], device: Union[str | torch.device]) -> torch.Tensor:
+def process_targets(targets: Union[List[int], torch.Tensor], device: Union[str, torch.device]) -> torch.Tensor:
     """
     Convert target labels to torch.Tensor and move them to the device.
 
@@ -279,7 +279,7 @@ def process_targets(targets: Union[List[int], torch.Tensor], device: Union[str |
     ----------
     targets : Optional[Union[List[int], torch.Tensor]], optional
         The target labels, either as a list or tensor.
-    device: Union[str | torch.device]
+    device: Union[str, torch.device]
         The device to use.
 
     Returns
