@@ -80,7 +80,7 @@ df = df.rename(
     }
 )
 
-metrics = df.columns.tolist()
+metrics = ["Subclass\nDetection", "Mislabeling\nDetection", "Shortcut\nDetection", "Top-K\nOverlap", "Mixed Dataset\nSeparation"]
 
 # Rename methods
 df = df.rename(

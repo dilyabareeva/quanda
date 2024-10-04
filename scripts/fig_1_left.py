@@ -36,7 +36,7 @@ torch.set_float32_matmul_precision("medium")
 # Downloading the datasets and checkpoints
 tiny_in_path = "/data1/datapool"
 panda_sketch_path = "/data1/datapool/sketch"
-explanations_dir = "../assets/demo/output3"
+explanations_dir = "../assets/demo/output5"
 checkpoints_dir = "../assets/demo/"
 metadata_dir = "../assets/demo/"
 # We first download the datasets (uncomment the following cell if you haven't downloaded the datasets yet).:
@@ -178,7 +178,7 @@ explanation_methods = [
     "tracincpfast",
     "trak",
 ]
-TRANSP_COLORS = ["#FFDDBB", "#83BA59", "#FFDAD4", "#EDDCFF"]
+TRANSP_COLORS = ["#FFDDBB", "#D4E7C5", "#FFDAD4", "#EDDCFF"]
 for ij, method in enumerate(explanation_methods):
     method_save_dir = os.path.join(explanations_dir, method)
     subset_save_dir = os.path.join(method_save_dir, "subclass")
@@ -187,7 +187,7 @@ for ij, method in enumerate(explanation_methods):
     test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
     explanations = explanations[0]
     explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
-    j = 63
+    j = [i for i in range(len(clean_samples)) if clean_samples[i] == 535][0]
     save_influential_samples(
         train_set,
         test_tensor[j : j + 1],

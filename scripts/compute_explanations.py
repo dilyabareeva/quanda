@@ -210,8 +210,8 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     # find regular samples
     all_clean_samples = [i for i in range(len(test_set_grouped)) if i not in all_cats + all_dogs]
     clean_samples = random_rng.sample(all_clean_samples, 64)
-    if 535 not in clean_samples:
-        clean_samples[-1] = 535
+    if 524 not in clean_samples:
+        clean_samples[-1] = 524
     test_shortcut = random_rng.sample(all_clean_samples, 64)
 
     mispredicted_clean = [
@@ -294,7 +294,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
     dataloaders["top_k_overlap"] = dataloaders["randomization"]
-    # vis_dataloader(dataloaders["randomization"])
+    vis_dataloader(dataloaders["randomization"])
 
     # Dataloader for Mixed Datasets
     correct_predict_panda = torch.load(os.path.join(metadata_dir, "big_eval_test_correct_predict_panda_indices.pth"))
@@ -405,7 +405,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             projection_dim=500,
             arnoldi_dim=200,
             batch_size=batch_size * 4,
-            # layers=["model.fc"],  # only the last layer
+            layers=["model.fc"],  # only the last layer
             device=device,
         )
 
@@ -448,7 +448,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         explainer_rand = RandomExplainer(
             model=lit_model,
             train_dataset=train_dataloader.dataset,
-            seed=27,
+            seed=42,
         )
 
         method_save_dir = os.path.join(output_dir, method)

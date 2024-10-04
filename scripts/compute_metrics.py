@@ -4,6 +4,7 @@ import random
 import subprocess
 from argparse import ArgumentParser
 
+import matplotlib.pyplot as plt
 import torch
 import torchvision.transforms as transforms
 import wandb
@@ -150,7 +151,7 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
         shortcut_fn=add_yellow_square,
         backdoor_dataset=panda_set,
         shortcut_transform_indices=torch.load(os.path.join(metadata_dir, "all_train_shortcut_indices_for_generation.pth")),
-        flipping_transform_dict=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
+        flipping_transform_dict={},
     )
 
     test_set_grouped = LabelGroupingDataset(
