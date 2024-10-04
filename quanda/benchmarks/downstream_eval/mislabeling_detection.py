@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class MislabelingDetection(Benchmark):
+    # TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE PREDICTIONS
     """
     Benchmark for noisy label detection.
     This benchmark generates a dataset with mislabeled samples, and trains a model on it.
@@ -51,8 +52,6 @@ class MislabelingDetection(Benchmark):
     diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).
 
     """
-
-    #    TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE PREDICTIONS
 
     name: str = "Mislabeling Detection"
 
@@ -369,17 +368,17 @@ class MislabelingDetection(Benchmark):
             Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
-        eval_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
-        dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default "train".
-        mislabeling_labels : Optional[Dict[int, int]], optional
-            Dictionary containing indices as keys and new labels as values, defaults to None
+        mislabeling_labels : Dict[int, int]
+            Dictionary containing indices as keys and new labels as values.
+        eval_dataset : Optional[torch.utils.data.Dataset]
+            Dataset to be used for the evaluation by default None.
         use_predictions : bool, optional
             Whether to use the model's predictions for the evaluation.
             This is only used if `global_method` is not "self-influence", by default True.
             Original papers use the self-influence method to reach a global ranking of the data,
             instead of using aggregations of generated local explanations.
+        dataset_split : str, optional
+            The dataset split, only used for HuggingFace datasets, by default "train".
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
         global_method : Union[str, type], optional
@@ -445,7 +444,7 @@ class MislabelingDetection(Benchmark):
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None.
         batch_size : int, optional
-            Batch size to be used for the evaluation, default to 8.
+            Batch size to be used for the evaluation, defaults to 8.
 
         Returns
         -------

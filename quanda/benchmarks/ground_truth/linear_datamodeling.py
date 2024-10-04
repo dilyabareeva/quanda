@@ -94,8 +94,6 @@ class LinearDatamodeling(Benchmark):
             The model used to generate attributions.
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
-        dataset_split : str, optional
-            The dataset split to use, by default "train". Only used if `train_dataset` is a string.
         trainer : Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the models on different subsets. Can be a Lightning Trainer or a `BaseTrainer`.
         cache_dir : str
@@ -117,6 +115,8 @@ class LinearDatamodeling(Benchmark):
             Seed to be used for the evaluation, by default 42.
         use_predictions : bool, optional
             Whether to use model predictions or the true test labels for the evaluation, defaults to False.
+        dataset_split : str, optional
+            The dataset split to use, by default "train". Only used if `train_dataset` is a string.
         """
 
         logger.info(f"Generating {LinearDatamodeling.name} benchmark components based on passed arguments...")
@@ -148,8 +148,10 @@ class LinearDatamodeling(Benchmark):
         ----------
         name : str
             Name of the benchmark to be loaded.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        device : str
+            Device to load the model on.
         """
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
@@ -188,8 +190,8 @@ class LinearDatamodeling(Benchmark):
         trainer: Union[L.Trainer, BaseTrainer],
         cache_dir: str,
         model_id: str,
-        m: int = 20,
-        alpha: float = 0.1,
+        m: int = 100,
+        alpha: float = 0.5,
         trainer_fit_kwargs: Optional[dict] = None,
         data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
@@ -204,14 +206,12 @@ class LinearDatamodeling(Benchmark):
 
         Parameters
         ----------
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.
         model : torch.nn.Module
             The model used to generate attributions.
+        train_dataset : Union[str, torch.utils.data.Dataset]
+            The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
-        dataset_split : str, optional
-            The dataset split to use, by default "train". Only used if `train_dataset` is a string.
         trainer : Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the models on different subsets. Can be a Lightning Trainer or a `BaseTrainer`.
         cache_dir : str
@@ -219,20 +219,22 @@ class LinearDatamodeling(Benchmark):
             trained on different subsets of the training data.
         model_id : str
             Identifier for the model, to be used in naming cached checkpoints.
-        data_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None.
-        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation.
         m: int, optional
             Number of subsets to be used for training the models, by default 100.
         alpha: float, optional
             Percentage of datapoints to be used for training the models, by default 0.5.
         trainer_fit_kwargs : Optional[dict], optional
             Additional keyword arguments to be passed to the `fit` method of the trainer, by default None.
+        data_transform : Optional[Callable], optional
+            Transform to be applied to the dataset, by default None.
+        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
+            Correlation function to be used for the evaluation.
         seed : int, optional
             Seed to be used for the evaluation, by default 42.
         use_predictions : bool, optional
             Whether to use model predictions or the true test labels for the evaluation, defaults to False.
+        dataset_split : str, optional
+            The dataset split to use, by default "train". Only used if `train_dataset` is a string.
         """
         obj = cls()
         obj.model = model

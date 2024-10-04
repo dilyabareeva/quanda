@@ -99,8 +99,8 @@ class CaptumInfluence(Explainer, ABC):
         ----------
         test_tensor : torch.Tensor
             Test samples for which influence scores are computed.
-        targets : Union[List[int], torch.Tensor], optional
-            Labels for the test samples. Defaults to None.
+        targets : Union[List[int], torch.Tensor]
+            Labels for the test samples.
 
         Returns
         -------
@@ -166,6 +166,8 @@ class CaptumSimilarity(CaptumInfluence):
             Batch size used for iterating over the dataset. Defaults to 1.
         replace_nan : bool, optional
             Whether to replace NaN values in similarity scores. Defaults to False.
+        load_from_disk : bool, optional
+            If True, activations will be loaded from disk if available, instead of being recomputed. Defaults to True.
         **explainer_kwargs : Any
             Additional keyword arguments passed to the explainer.
         """
@@ -328,8 +330,6 @@ def captum_similarity_explain(
         Training dataset to be used for the influence computation.
     cache_dir : str, optional
         Directory for caching activations. Defaults to "./cache".
-    explanation_targets : Union[List[int], torch.Tensor], optional
-        Labels for the test samples. Defaults to None.
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
 
@@ -496,10 +496,6 @@ class CaptumArnoldi(CaptumInfluence):
             Defaults to True.
         show_progress : bool, optional
             Whether to display a progress bar. Defaults to False.
-        model_id : Optional[str], optional
-            Identifier for the model. Defaults to None.
-        cache_dir : str, optional
-            Directory for caching results. Defaults to "./cache".
         device : Union[str, torch.device], optional
             Device to run the computation on. Defaults to "cpu".
         **explainer_kwargs : Any
@@ -616,10 +612,6 @@ def captum_arnoldi_explain(
         Labels for the test samples.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
 
@@ -652,10 +644,6 @@ def captum_arnoldi_self_influence(
         The model to be used for the influence computation.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
 
@@ -722,10 +710,8 @@ class CaptumTracInCP(CaptumInfluence):
             Batch size used for iterating over the dataset. Defaults to 1.
         test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
             Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
-        model_id : Optional[str], optional
-            Identifier for the model. Defaults to None.
-        cache_dir : str, optional
-            Directory for caching results. Defaults to "./cache".
+        sample_wise_grads_per_batch : bool, optional
+            Whether to compute sample-wise gradients per batch. Defaults to False.
         device : Union[str, torch.device], optional
             Device to run the computation on. Defaults to "cpu".
         **explainer_kwargs : Any
@@ -837,10 +823,6 @@ def captum_tracincp_explain(
         Labels for the test samples.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
 
@@ -873,10 +855,6 @@ def captum_tracincp_self_influence(
         The model to be used for the influence computation.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
 
@@ -937,10 +915,6 @@ class CaptumTracInCPFast(CaptumInfluence):
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str], Iterator]
             Checkpoints for the model.
-        model_id : Optional[str], optional
-            Identifier for the model. Defaults to None.
-        cache_dir : str, optional
-            Directory for caching results. Defaults to "./cache".
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load checkpoints. If None, a default function is used.
         loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
@@ -1061,10 +1035,6 @@ def captum_tracincp_fast_explain(
         Labels for the test samples.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
 
@@ -1098,10 +1068,6 @@ def captum_tracincp_fast_self_influence(
         The model to be used for the influence computation.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
     outer_loop_by_checkpoints : bool, optional
         Whether to perform an outer loop over the checkpoints. Defaults to False.
     **kwargs : Any
@@ -1169,10 +1135,6 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str], Iterator]
             Checkpoints for the model.
-        model_id : Optional[str], optional
-            Identifier for the model. Defaults to None.
-        cache_dir : str, optional
-            Directory for caching results. Defaults to "./cache".
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load checkpoints. If None, a default function is used.
         loss_fn : Union[torch.nn.Module, Callable], optional
@@ -1298,14 +1260,10 @@ def captum_tracincp_fast_rand_proj_explain(
         The model to be used for the influence computation.
     test_tensor : torch.Tensor
         Test samples for which influence scores are computed.
-    train_dataset : torch.utils.data.Dataset
-        Training dataset to be used for the influence computation.
     explanation_targets : Union[List[int], torch.Tensor]
         Labels for the test samples.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
+    train_dataset : torch.utils.data.Dataset
+        Training dataset to be used for the influence computation.
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
 
@@ -1339,10 +1297,6 @@ def captum_tracincp_fast_rand_proj_self_influence(
         The model to be used for the influence computation.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
     outer_loop_by_checkpoints : bool, optional
         Whether to perform an outer loop over the checkpoints. Defaults to False.
     **kwargs : Any

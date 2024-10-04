@@ -145,7 +145,12 @@ class MixedDatasetsMetric(Metric):
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
-        Loads the metric state.
+        Load the state of the metric.
+
+        Parameters
+        ----------
+        state_dict : dict
+            The state dictionary of the metric
         """
         self.auprc_scores = state_dict["auprc_scores"]
 

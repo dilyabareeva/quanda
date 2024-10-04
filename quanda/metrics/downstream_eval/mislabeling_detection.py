@@ -201,12 +201,12 @@ class MislabelingDetectionMetric(Metric):
 
         Parameters
         ----------
-        explanations : torch.Tensor
-            The local attributions to be added to the aggregated scores.
         test_data : torch.Tensor
             The test data for which the attributions were computed.
         test_labels : torch.Tensor
             The true labels of the test data.
+        explanations : torch.Tensor
+            The local attributions to be added to the aggregated scores.
         """
 
         explanations = explanations.to(self.device)

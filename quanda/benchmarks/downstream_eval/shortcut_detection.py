@@ -115,6 +115,14 @@ class ShortcutDetection(Benchmark):
             Trainer to be used for training the model.
         sample_fn : Callable
             Function to add triggers to samples of the dataset.
+        filter_by_prediction : bool, optional
+            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+            is predicted, by default True.
+        filter_by_class: bool, optional
+            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+            is not assigned as the class, by default False.
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation, by default True.
         dataset_split : str, optional
             Split used for HuggingFace datasets, by default "train".
         dataset_transform : Optional[Callable], optional
@@ -183,10 +191,10 @@ class ShortcutDetection(Benchmark):
             Number of classes in the dataset.
         shortcut_cls : int
             The class to add triggers to.
-        trainer : Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the model.
         sample_fn : Callable
             Function to add triggers to samples of the dataset.
+        trainer : Union[L.Trainer, BaseTrainer]
+            Trainer to be used for training the model.
         dataset_transform : Optional[Callable], optional
             Default transform of the dataset, by default None.
         val_dataset : Optional[torch.utils.data.Dataset], optional
@@ -352,24 +360,28 @@ class ShortcutDetection(Benchmark):
             Dataset to be used for the evaluation.
         sample_fn : Callable
             Function to add triggers to samples of the dataset.
+        shortcut_cls : int
+            The class to use.
+        shortcut_indices : List[int]
+            Binary list of indices to poison.
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
             is predicted, by default True
         filter_by_class: bool, optional
             Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
-            is not assigned as the class, by default True
+            is not assigned as the class, by default False
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation, by default True.
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default "train".
-        shortcut_indices : Optional[List[int]], optional
-            Binary list of indices to poison, by default None.
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
+        checkpoint_paths : Optional[List[str]], optional
+            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
         p : float, optional
             The probability of mislabeling per sample, by default 0.3.
         batch_size : int, optional
             Batch size that is used for training, by default 8.
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
 
         Returns
         -------

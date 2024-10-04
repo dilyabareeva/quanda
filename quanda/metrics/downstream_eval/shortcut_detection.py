@@ -141,7 +141,12 @@ class ShortcutDetectionMetric(Metric):
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """
-        Loads the metric state.
+        Load previously computed state for the metric.
+
+        Parameters
+        ----------
+        state_dict : dict
+            A state dictionary for the metric
         """
         self.auprc_scores = state_dict["auprc_scores"]
 

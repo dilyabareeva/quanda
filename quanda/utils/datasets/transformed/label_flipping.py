@@ -38,6 +38,8 @@ class LabelFlippingDataset(TransformedDataset):
             Class to poison. If `transform_indices` is given, this parameter is ignored, defaults to None.
         p : float, optional
             Probability of transformation for each instance to transform, defaults to 1.0.
+        seed : int, optional
+            Seed for the random number generator, defaults to 42.
         """
         super().__init__(
             dataset=dataset,

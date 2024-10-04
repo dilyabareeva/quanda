@@ -19,10 +19,6 @@ class Explainer(ABC):
         The model to be used for the influence computation.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
-    model_id : Optional[str], optional
-        Identifier for the model.
     **kwargs : dict
         Additional keyword arguments passed to the explainer.
     """
@@ -57,8 +53,8 @@ class Explainer(ABC):
         ----------
         test_tensor : torch.Tensor
             Test samples for which influence scores are computed.
-        targets : Optional[Union[List[int], torch.Tensor]], optional
-            Labels for the test samples. Defaults to None.
+        targets : Union[List[int], torch.Tensor]
+            Labels for the test samples.
 
         Returns
         -------
