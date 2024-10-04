@@ -26,7 +26,7 @@ et al., 2023](https://arxiv.org/abs/2108.11577)).
 Although there are various demonstrations of TDA’s potential for interpretability and practical applications, the critical question of how TDA methods should be effectively evaluated remains open. Several approaches have been proposed by the community, which can be categorized into three groups:
 
 <details>
-  <summary><b><big>Ground truth</big></b></summary>As some of the methods are designed to approximate LOO effects, ground truth can often be computed for TDA evaluation. However, this counterfactual ground truth approach requires retraining the model multiple times on different subsets of the training data, which quickly becomes computationally expensive. Additionally, this ground truth is shown to be dominated by noise in practical deep learning settings, due to the inherent stochasticity of a typical training process 
+  <summary><b><big>Ground Truth</big></b></summary>As some of the methods are designed to approximate LOO effects, ground truth can often be computed for TDA evaluation. However, this counterfactual ground truth approach requires retraining the model multiple times on different subsets of the training data, which quickly becomes computationally expensive. Additionally, this ground truth is shown to be dominated by noise in practical deep learning settings, due to the inherent stochasticity of a typical training process 
     (<a href="https://openreview.net/forum?id=xHKVVHGDOEk" target="_blank">Basu et al., 2021</a>; 
     <a href="https://proceedings.neurips.cc/paper_files/paper/2023/hash/ca774047bc3b46cc81e53ead34cd5d5a-Abstract-Conference.html" target="_blank">Nguyen et al., 2023</a>).
 </details>
