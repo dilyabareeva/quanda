@@ -13,10 +13,6 @@ def _init_explainer(explainer_cls, model, train_dataset, **kwargs):
         The explainer class to initialize.
     model : torch.nn.Module
         The model to be used for the influence computation.
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
-    cache_dir : str
-        Directory for caching results. Defaults to "./cache".
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
     **kwargs : dict
@@ -58,10 +54,6 @@ def explain_fn_from_explainer(
         Training dataset to be used for the influence computation.
     targets : Optional[Union[List[int], torch.Tensor]], optional
         Labels for the test samples. Defaults to None.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
     **kwargs : dict
         Additional keyword arguments passed to the explainer.
 
@@ -98,10 +90,6 @@ def self_influence_fn_from_explainer(
         The model to be used for the influence computation.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
-    model_id : Optional[str], optional
-        Identifier for the model. Defaults to None.
     batch_size : int, optional
         Batch size used for iterating over the dataset. Defaults to 1.
     **kwargs : dict

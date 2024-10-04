@@ -18,6 +18,9 @@ class Benchmark(ABC):
     name: str
 
     def __init__(self, *args, **kwargs):
+        """
+        Initializer for the base `Benchmark` class.
+        """
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
         self._checkpoint_paths: Optional[List[str]] = None

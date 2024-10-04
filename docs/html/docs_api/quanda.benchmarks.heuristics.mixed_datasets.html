@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -114,36 +114,27 @@ multiple test samples.</p>
 <p>1) Hammoudeh, Z., &amp; Lowd, D. (2022). Identifying a training-set attack’s target using renormalized influence
 estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
 (pp. 1367-1381).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.assemble" title="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, eval_dataset, base_dataset, ...)</p></td>
 <td><p>Assembles the benchmark from the given components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.download" title="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.download" title="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.evaluate" title="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.evaluate" title="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluates the benchmark using a given explanation method.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.generate" title="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, eval_dataset, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.generate" title="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, eval_dataset, ...)</p></td>
 <td><p>Generates the benchmark with passed components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -174,15 +165,15 @@ Alternatively, <cite>download</cite> can be used to load a precomputed benchmark
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>L.LightningModule</em><em>]</em>) – Model to be used for the benchmark.</p></li>
-<li><p><strong>base_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</p></li>
 <li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The dataset containing the adversarial examples used for evaluation. They should belong to
 the same dataset and the same class as the samples in the adversarial dataset.</p></li>
+<li><p><strong>base_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</p></li>
 <li><p><strong>adversarial_dir</strong> (<em>str</em>) – Path to the adversarial dataset of a single class.</p></li>
 <li><p><strong>adversarial_label</strong> (<em>int</em>) – The label to be used for the adversarial dataset.</p></li>
 <li><p><strong>data_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the clean dataset, by default None.</p></li>
-<li><p><strong>adversarial_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the adversarial dataset, by default None.</p></li>
 <li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for generating attributions. Defaults to True.</p></li>
 <li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.</p></li>
+<li><p><strong>adversarial_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the adversarial dataset, by default None.</p></li>
 <li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
 <li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
 </ul>
@@ -204,11 +195,6 @@ the same dataset and the same class as the samples in the adversarial dataset.</
 <dl class="py attribute">
 <dt class="sig sig-object py" id="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.bench_state">
 <span class="sig-name descname"><span class="pre">bench_state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></em><a class="headerlink" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.bench_state" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.dataset_str">
-<span class="sig-name descname"><span class="pre">dataset_str</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#quanda.benchmarks.heuristics.mixed_datasets.MixedDatasets.dataset_str" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">

@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -100,18 +100,10 @@
 <dd><p>Bases: <a class="reference internal" href="quanda.explainers.base.html#quanda.explainers.base.Explainer" title="quanda.explainers.base.Explainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Explainer</span></code></a></p>
 <p>The most basic version of a random explainer.
 The explanations are generated with independent values sampled from a uniform distribution in [0,1].</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.random.RandomExplainer.explain" title="quanda.explainers.random.RandomExplainer.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test[, targets])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.random.RandomExplainer.explain" title="quanda.explainers.random.RandomExplainer.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor[, targets])</p></td>
 <td><p>Random explainer does not explain anything, just returns random values.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.random.RandomExplainer.self_influence" title="quanda.explainers.random.RandomExplainer.self_influence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">self_influence</span></code></a>([batch_size])</p></td>
@@ -127,9 +119,8 @@ The explanations are generated with independent values sampled from a uniform di
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>pl.LightningModule</em><em>]</em>) – Trained model to be explained.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em>) – Directory to be used for caching.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset that was used to train the model.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – An identifier for the model. This field is generally not used and is included for completeness, defaults to None.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – Seed for random number generator, by default 27.</p></li>
 </ul>
 </dd>
 </dl>
@@ -137,12 +128,12 @@ The explanations are generated with independent values sampled from a uniform di
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.random.RandomExplainer.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/random.html#RandomExplainer.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.random.RandomExplainer.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/random.html#RandomExplainer.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.random.RandomExplainer.explain" title="Link to this definition"></a></dt>
 <dd><p>Random explainer does not explain anything, just returns random values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – Test points for the model decisions to be explained. Is not used for the <cite>RandomExplainer</cite>.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test points for the model decisions to be explained. Is not used for the <cite>RandomExplainer</cite>.</p></li>
 <li><p><strong>targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>] </em><em>= None</em>) – The model outputs to be explained.
 Some methods do not need this. Defaults to None. Is not used in <cite>RandomExplainer</cite>.</p></li>
 </ul>

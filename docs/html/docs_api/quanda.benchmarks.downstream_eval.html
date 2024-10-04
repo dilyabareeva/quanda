@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -108,36 +108,27 @@ as argued in Hanawa et al. (2021) and Kwon et al. (2024).</p>
 In International Conference on Learning Representations.</p>
 <p>2) Kwon, Y., Wu, E., Wu, K., Zou, J., (2024). DataInf: Efficiently Estimating Data Influence in
 LoRA-tuned LLMs and Diffusion Models. The Twelfth International Conference on Learning Representations.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ClassDetection.assemble" title="quanda.benchmarks.downstream_eval.ClassDetection.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, train_dataset, eval_dataset)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ClassDetection.download" title="quanda.benchmarks.downstream_eval.ClassDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ClassDetection.download" title="quanda.benchmarks.downstream_eval.ClassDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method downloads precomputed benchmark components and creates an instance from them.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ClassDetection.evaluate" title="quanda.benchmarks.downstream_eval.ClassDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ClassDetection.evaluate" title="quanda.benchmarks.downstream_eval.ClassDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluates the benchmark using a given explanation method.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ClassDetection.generate" title="quanda.benchmarks.downstream_eval.ClassDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, eval_dataset, model)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ClassDetection.generate" title="quanda.benchmarks.downstream_eval.ClassDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(train_dataset, eval_dataset, model)</p></td>
 <td><p>Generates the benchmark by specifying parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -271,36 +262,27 @@ influence functions for dataset exploration and cleaning. In 11th European Congr
 (ERTS 2022) (pp. 1-8). Toulouse, France.</p>
 <p>5) Kwon, Y., Wu, E., Wu, K., &amp; Zou, J. (2024). DataInf: Efficiently estimating data influence in LoRA-tuned LLMs and
 diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.MislabelingDetection.assemble" title="quanda.benchmarks.downstream_eval.MislabelingDetection.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.MislabelingDetection.download" title="quanda.benchmarks.downstream_eval.MislabelingDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.MislabelingDetection.download" title="quanda.benchmarks.downstream_eval.MislabelingDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.MislabelingDetection.evaluate" title="quanda.benchmarks.downstream_eval.MislabelingDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.MislabelingDetection.evaluate" title="quanda.benchmarks.downstream_eval.MislabelingDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluate the given data attributor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.MislabelingDetection.generate" title="quanda.benchmarks.downstream_eval.MislabelingDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, n_classes, trainer)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.MislabelingDetection.generate" title="quanda.benchmarks.downstream_eval.MislabelingDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, n_classes, trainer)</p></td>
 <td><p>Generates the benchmark by specifying parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -323,13 +305,13 @@ Alternatively, <cite>download</cite> can be used to load a precomputed benchmark
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>L.LightningModule</em><em>]</em>) – Model to be used for the benchmark. This model should be trained on the mislabeled dataset.</p></li>
 <li><p><strong>base_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</p></li>
 <li><p><strong>n_classes</strong> (<em>int</em>) – Number of classes in the dataset.</p></li>
-<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Dataset to be used for the evaluation.</p></li>
-<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
-<li><p><strong>mislabeling_labels</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Dictionary containing indices as keys and new labels as values, defaults to None</p></li>
+<li><p><strong>mislabeling_labels</strong> (<em>Dict</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>) – Dictionary containing indices as keys and new labels as values.</p></li>
+<li><p><strong>eval_dataset</strong> (<em>Optional</em><em>[</em><em>torch.utils.data.Dataset</em><em>]</em>) – Dataset to be used for the evaluation by default None.</p></li>
 <li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for the evaluation.
 This is only used if <cite>global_method</cite> is not “self-influence”, by default True.
 Original papers use the self-influence method to reach a global ranking of the data,
 instead of using aggregations of generated local explanations.</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
 <li><p><strong>dataset_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the dataset, by default None</p></li>
 <li><p><strong>global_method</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>type</em><em>]</em><em>, </em><em>optional</em>) – Method to generate a global ranking from local explainer.
 It can be a subclass of <cite>quanda.explainers.aggregators.BaseAggregator</cite> or “self-influence”.
@@ -371,7 +353,7 @@ Defaults to “self-influence”.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>explainer_cls</strong> (<em>type</em>) – Class of the explainer to be used for the evaluation.</p></li>
 <li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Additional keyword arguments for the explainer, by default None.</p></li>
-<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size to be used for the evaluation, default to 8.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size to be used for the evaluation, defaults to 8.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -453,36 +435,27 @@ and clean examples from other classes are computed.</p>
 </dl>
 </li>
 </ol>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ShortcutDetection.assemble" title="quanda.benchmarks.downstream_eval.ShortcutDetection.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ShortcutDetection.download" title="quanda.benchmarks.downstream_eval.ShortcutDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ShortcutDetection.download" title="quanda.benchmarks.downstream_eval.ShortcutDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ShortcutDetection.evaluate" title="quanda.benchmarks.downstream_eval.ShortcutDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ShortcutDetection.evaluate" title="quanda.benchmarks.downstream_eval.ShortcutDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluate the given data attributor.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ShortcutDetection.generate" title="quanda.benchmarks.downstream_eval.ShortcutDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.ShortcutDetection.generate" title="quanda.benchmarks.downstream_eval.ShortcutDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(model, base_dataset, n_classes, ...)</p></td>
 <td><p>Generate the benchmark from scratch, with the specified parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -505,16 +478,18 @@ and clean examples from other classes are computed.</p>
 <li><p><strong>n_classes</strong> (<em>int</em>) – Number of classes in the dataset.</p></li>
 <li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Dataset to be used for the evaluation.</p></li>
 <li><p><strong>sample_fn</strong> (<em>Callable</em>) – Function to add triggers to samples of the dataset.</p></li>
+<li><p><strong>shortcut_cls</strong> (<em>int</em>) – The class to use.</p></li>
+<li><p><strong>shortcut_indices</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – Binary list of indices to poison.</p></li>
 <li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
 is predicted, by default True</p></li>
 <li><p><strong>filter_by_class</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
-is not assigned as the class, by default True</p></li>
+is not assigned as the class, by default False</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for the evaluation, by default True.</p></li>
 <li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
-<li><p><strong>shortcut_indices</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Binary list of indices to poison, by default None.</p></li>
 <li><p><strong>dataset_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the dataset, by default None.</p></li>
+<li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
 <li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – The probability of mislabeling per sample, by default 0.3.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size that is used for training, by default 8.</p></li>
-<li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -577,6 +552,11 @@ If a string is passed, it should be a HuggingFace dataset.</p></li>
 <li><p><strong>shortcut_cls</strong> (<em>int</em>) – The class to add triggers to.</p></li>
 <li><p><strong>trainer</strong> (<em>Union</em><em>[</em><em>L.Trainer</em><em>, </em><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BaseTrainer" title="quanda.utils.training.BaseTrainer"><em>BaseTrainer</em></a><em>]</em>) – Trainer to be used for training the model.</p></li>
 <li><p><strong>sample_fn</strong> (<em>Callable</em>) – Function to add triggers to samples of the dataset.</p></li>
+<li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+is predicted, by default True.</p></li>
+<li><p><strong>filter_by_class</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+is not assigned as the class, by default False.</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for the evaluation, by default True.</p></li>
 <li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – Split used for HuggingFace datasets, by default “train”.</p></li>
 <li><p><strong>dataset_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Default transform of the dataset, by default None.</p></li>
 <li><p><strong>val_dataset</strong> (<em>Optional</em><em>[</em><em>torch.utils.data.Dataset</em><em>]</em><em>, </em><em>optional</em>) – Validation dataset to use during training, by default None.</p></li>
@@ -608,36 +588,27 @@ from its highest attributed training point.</p>
 <p class="rubric">References</p>
 <p>1) Hanawa, K., Yokoi, S., Hara, S., &amp; Inui, K. (2021). Evaluation of similarity-based explanations. In International
 Conference on Learning Representations.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>checkpoint_paths</strong></dt><dd></dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.SubclassDetection.assemble" title="quanda.benchmarks.downstream_eval.SubclassDetection.assemble"><code class="xref py py-obj docutils literal notranslate"><span class="pre">assemble</span></code></a>(group_model, base_dataset, ...[, ...])</p></td>
 <td><p>Assembles the benchmark from existing components.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_build_eval_dataset</span></code>(dataset_str, eval_indices)</p></td>
-<td><p>Downloads the HuggingFace evaluation dataset from given name.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.SubclassDetection.download" title="quanda.benchmarks.downstream_eval.SubclassDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.SubclassDetection.download" title="quanda.benchmarks.downstream_eval.SubclassDetection.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.SubclassDetection.evaluate" title="quanda.benchmarks.downstream_eval.SubclassDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.SubclassDetection.evaluate" title="quanda.benchmarks.downstream_eval.SubclassDetection.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Evaluates the benchmark using a given explanation method.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.SubclassDetection.generate" title="quanda.benchmarks.downstream_eval.SubclassDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(base_dataset, model, trainer, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.downstream_eval.SubclassDetection.generate" title="quanda.benchmarks.downstream_eval.SubclassDetection.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(base_dataset, model, trainer, ...)</p></td>
 <td><p>Generates the benchmark by specifying parameters.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_process_dataset</span></code>(dataset[, transform, ...])</p></td>
-<td><p>Return the dataset using the given parameters.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_set_devices</span></code>(model)</p></td>
-<td><p>Infer device from model.</p></td>
+</tbody>
+</table>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>get_checkpoint_paths</strong></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -774,7 +745,6 @@ Original paper filters the dataset. Therefore, by default True.</p></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.class_detection.html#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.__init__"><code class="docutils literal notranslate"><span class="pre">ClassDetection.__init__()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.class_detection.html#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.assemble"><code class="docutils literal notranslate"><span class="pre">ClassDetection.assemble()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.class_detection.html#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.bench_state"><code class="docutils literal notranslate"><span class="pre">ClassDetection.bench_state</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.class_detection.html#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.dataset_str"><code class="docutils literal notranslate"><span class="pre">ClassDetection.dataset_str</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.class_detection.html#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.device"><code class="docutils literal notranslate"><span class="pre">ClassDetection.device</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.class_detection.html#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.download"><code class="docutils literal notranslate"><span class="pre">ClassDetection.download()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.class_detection.html#quanda.benchmarks.downstream_eval.class_detection.ClassDetection.eval_dataset"><code class="docutils literal notranslate"><span class="pre">ClassDetection.eval_dataset</span></code></a></li>
@@ -794,7 +764,6 @@ Original paper filters the dataset. Therefore, by default True.</p></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.mislabeling_detection.html#quanda.benchmarks.downstream_eval.mislabeling_detection.MislabelingDetection.assemble"><code class="docutils literal notranslate"><span class="pre">MislabelingDetection.assemble()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.mislabeling_detection.html#quanda.benchmarks.downstream_eval.mislabeling_detection.MislabelingDetection.base_dataset"><code class="docutils literal notranslate"><span class="pre">MislabelingDetection.base_dataset</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.mislabeling_detection.html#quanda.benchmarks.downstream_eval.mislabeling_detection.MislabelingDetection.bench_state"><code class="docutils literal notranslate"><span class="pre">MislabelingDetection.bench_state</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.mislabeling_detection.html#quanda.benchmarks.downstream_eval.mislabeling_detection.MislabelingDetection.dataset_str"><code class="docutils literal notranslate"><span class="pre">MislabelingDetection.dataset_str</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.mislabeling_detection.html#quanda.benchmarks.downstream_eval.mislabeling_detection.MislabelingDetection.dataset_transform"><code class="docutils literal notranslate"><span class="pre">MislabelingDetection.dataset_transform</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.mislabeling_detection.html#quanda.benchmarks.downstream_eval.mislabeling_detection.MislabelingDetection.device"><code class="docutils literal notranslate"><span class="pre">MislabelingDetection.device</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.mislabeling_detection.html#quanda.benchmarks.downstream_eval.mislabeling_detection.MislabelingDetection.download"><code class="docutils literal notranslate"><span class="pre">MislabelingDetection.download()</span></code></a></li>
@@ -835,7 +804,6 @@ Original paper filters the dataset. Therefore, by default True.</p></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.subclass_detection.html#quanda.benchmarks.downstream_eval.subclass_detection.SubclassDetection.base_dataset"><code class="docutils literal notranslate"><span class="pre">SubclassDetection.base_dataset</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.subclass_detection.html#quanda.benchmarks.downstream_eval.subclass_detection.SubclassDetection.bench_state"><code class="docutils literal notranslate"><span class="pre">SubclassDetection.bench_state</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.subclass_detection.html#quanda.benchmarks.downstream_eval.subclass_detection.SubclassDetection.class_to_group"><code class="docutils literal notranslate"><span class="pre">SubclassDetection.class_to_group</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.subclass_detection.html#quanda.benchmarks.downstream_eval.subclass_detection.SubclassDetection.dataset_str"><code class="docutils literal notranslate"><span class="pre">SubclassDetection.dataset_str</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.subclass_detection.html#quanda.benchmarks.downstream_eval.subclass_detection.SubclassDetection.dataset_transform"><code class="docutils literal notranslate"><span class="pre">SubclassDetection.dataset_transform</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.subclass_detection.html#quanda.benchmarks.downstream_eval.subclass_detection.SubclassDetection.device"><code class="docutils literal notranslate"><span class="pre">SubclassDetection.device</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="quanda.benchmarks.downstream_eval.subclass_detection.html#quanda.benchmarks.downstream_eval.subclass_detection.SubclassDetection.download"><code class="docutils literal notranslate"><span class="pre">SubclassDetection.download()</span></code></a></li>

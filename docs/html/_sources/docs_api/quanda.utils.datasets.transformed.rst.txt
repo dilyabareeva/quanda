@@ -12,7 +12,6 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   quanda.utils.datasets.transformed.backdoor_poisoning
    quanda.utils.datasets.transformed.base
    quanda.utils.datasets.transformed.label_flipping
    quanda.utils.datasets.transformed.label_grouping

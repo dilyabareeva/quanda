@@ -297,6 +297,8 @@ class RepresenterPoints(Explainer):
         ----------
         x : torch.Tensor
             The input batch of data.
+        layer : str
+            The layer for which the activations are returned.
 
         Returns
         -------

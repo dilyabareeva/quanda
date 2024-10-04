@@ -30,9 +30,9 @@
 
           
           
-          <a href="../../../index.html" class="icon icon-home">
-            quanda
-              <img src="../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          <a href="../../../index.html" >
+            
+              <img src="../../../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -80,7 +80,7 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="kn">from</span> <span class="nn">quanda.explainers</span> <span class="kn">import</span> <span class="n">Explainer</span>
-<span class="kn">from</span> <span class="nn">quanda.utils.common</span> <span class="kn">import</span> <span class="n">cache_result</span>
+<span class="kn">from</span> <span class="nn">quanda.utils.common</span> <span class="kn">import</span> <span class="n">cache_result</span><span class="p">,</span> <span class="n">ds_len</span>
 
 
 <div class="viewcode-block" id="RandomExplainer">
@@ -107,12 +107,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        model : Union[torch.nn.Module, pl.LightningModule]</span>
 <span class="sd">            Trained model to be explained.</span>
-<span class="sd">        cache_dir : str</span>
-<span class="sd">            Directory to be used for caching.</span>
 <span class="sd">        train_dataset : torch.utils.data.Dataset</span>
 <span class="sd">            Training dataset that was used to train the model.</span>
-<span class="sd">        model_id : Optional[str], optional</span>
-<span class="sd">            An identifier for the model. This field is generally not used and is included for completeness, defaults to None.</span>
+<span class="sd">        seed : int, optional</span>
+<span class="sd">            Seed for random number generator, by default 27.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
@@ -126,13 +124,13 @@
 
 <div class="viewcode-block" id="RandomExplainer.explain">
 <a class="viewcode-back" href="../../../docs_api/quanda.explainers.random.html#quanda.explainers.RandomExplainer.explain">[docs]</a>
-    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Random explainer does not explain anything, just returns random values.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        test : torch.Tensor</span>
+<span class="sd">        test_tensor : torch.Tensor</span>
 <span class="sd">            Test points for the model decisions to be explained. Is not used for the `RandomExplainer`.</span>
 <span class="sd">        targets : Optional[Union[List[int], torch.Tensor]] = None</span>
 <span class="sd">            The model outputs to be explained.</span>
@@ -144,7 +142,7 @@
 <span class="sd">            Random tensor of shape `(test.shape[0],train_dataset_length)`</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">test</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_length</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">test_tensor</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">ds_len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">),</span> <span class="n">generator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="RandomExplainer.self_influence">
@@ -164,7 +162,7 @@
 <span class="sd">        torch.Tensor</span>
 <span class="sd">            Random tensor of shape `(train dataset length,)`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_length</span><span class="p">,</span> <span class="n">generator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">ds_len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">),</span> <span class="n">generator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span></div>
 </div>
 
 </pre></div>

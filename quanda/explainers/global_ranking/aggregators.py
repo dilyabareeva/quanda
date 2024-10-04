@@ -11,6 +11,9 @@ class BaseAggregator(ABC):
     """
 
     def __init__(self):
+        """
+        Initializer for the `BaseAggregator` base class.
+        """
         self.scores: Optional[torch.Tensor] = None
 
     @abstractmethod

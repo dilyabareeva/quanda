@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -121,7 +121,7 @@ JMLR.org, Article 1128, (27074–27113).</p></li>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.trak_wrapper.TRAK.explain" title="quanda.explainers.wrappers.trak_wrapper.TRAK.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test, targets)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.trak_wrapper.TRAK.explain" title="quanda.explainers.wrappers.trak_wrapper.TRAK.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor, targets)</p></td>
 <td><p>Generates explanations for the given test inputs.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">self_influence</span></code>([batch_size])</p></td>
@@ -147,6 +147,7 @@ JMLR.org, Article 1128, (27074–27113).</p></li>
 <li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – The seed for the projector, by default 42.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – The batch size, by default 32.</p></li>
 <li><p><strong>params_ldr</strong> (<em>Optional</em><em>[</em><em>Iterable</em><em>]</em><em>, </em><em>optional</em>) – Generator of model parameters, by default None, which uses all parameters.</p></li>
+<li><p><strong>load_from_disk</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to load metadata from cache_dir, defaults to True.</p></li>
 <li><p><strong>lambda_reg</strong> (<em>int</em><em>, </em><em>optional</em>) – Optional regularization term to add to the diagonals of X^TX to make it invertible.</p></li>
 </ul>
 </dd>
@@ -170,13 +171,13 @@ If not, a DataLoader is created to calculate the length.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.trak_wrapper.TRAK.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/trak_wrapper.html#TRAK.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.trak_wrapper.TRAK.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/trak_wrapper.html#TRAK.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.trak_wrapper.TRAK.explain" title="Link to this definition"></a></dt>
 <dd><p>Generates explanations for the given test inputs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – The test inputs for which explanations are generated.</p></li>
-<li><p><strong>targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – The model outputs to explain per test input, by default None.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – The test inputs for which explanations are generated.</p></li>
+<li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – The model outputs to explain per test input.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -192,16 +193,16 @@ If not, a DataLoader is created to calculate the length.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.trak_wrapper.trak_explain">
-<span class="sig-prename descclassname"><span class="pre">quanda.explainers.wrappers.trak_wrapper.</span></span><span class="sig-name descname"><span class="pre">trak_explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'./cache'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanation_targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/trak_wrapper.html#trak_explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.trak_wrapper.trak_explain" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">quanda.explainers.wrappers.trak_wrapper.</span></span><span class="sig-name descname"><span class="pre">trak_explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">explanation_targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'./cache'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/trak_wrapper.html#trak_explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.trak_wrapper.trak_explain" title="Link to this definition"></a></dt>
 <dd><p>Functional interface for the <cite>TRAK</cite> explainer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>pl.LightningModule</em><em>]</em>) – The model to be explained.</p></li>
+<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model, by default None.</p></li>
 <li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – The test inputs for which explanations are generated.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset used to train the model.</p></li>
-<li><p><strong>explanation_targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – The target model outputs to explain, by default None.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model, by default None.</p></li>
+<li><p><strong>explanation_targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – The target model outputs to explain.</p></li>
 <li><p><strong>cache_dir</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The directory to use for caching, by default None.</p></li>
 </ul>
 </dd>
@@ -223,8 +224,8 @@ If not, a DataLoader is created to calculate the length.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>pl.LightningModule</em><em>]</em>) – The model to be explained.</p></li>
 <li><p><strong>model_id</strong> (<em>str</em>) – Identifier for the model.</p></li>
-<li><p><strong>cache_dir</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The directory to use for caching.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The training dataset used to train the model.</p></li>
+<li><p><strong>cache_dir</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The directory to use for caching.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – The batch size, by default 32.</p></li>
 </ul>
 </dd>

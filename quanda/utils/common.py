@@ -93,8 +93,8 @@ def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, de
         The model to evaluate.
     loader : torch.utils.data.DataLoader
         The data loader to evaluate the model on.
-    device : Union[str, torch.device]
-        The device to evaluate the model on.
+    device : Union[str, torch.device], optional
+        The device to evaluate the model on, by default "cpu".
 
     Returns
     -------
@@ -130,6 +130,8 @@ def _load_flexible_state_dict(model: torch.nn.Module, path: str, device: Union[s
         The model for which to load a checkpoint
     path : str
         The filepath to the checkpoint
+    device : Union[str, torch.device]
+        The device to use.
 
     Returns
     -------
@@ -269,7 +271,7 @@ def ds_len(dataset: torch.utils.data.Dataset) -> int:
     return len(dl)
 
 
-def process_targets(targets: Union[List[int], torch.Tensor], device: Union[str | torch.device]) -> torch.Tensor:
+def process_targets(targets: Union[List[int], torch.Tensor], device: Union[str, torch.device]) -> torch.Tensor:
     """
     Convert target labels to torch.Tensor and move them to the device.
 
@@ -277,6 +279,8 @@ def process_targets(targets: Union[List[int], torch.Tensor], device: Union[str |
     ----------
     targets : Optional[Union[List[int], torch.Tensor]], optional
         The target labels, either as a list or tensor.
+    device: Union[str, torch.device]
+        The device to use.
 
     Returns
     -------

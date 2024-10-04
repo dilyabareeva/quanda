@@ -13,18 +13,6 @@ class Explainer(ABC):
     Base class for explainer wrappers. Defines the interface that all
     explainer classes must implement.
 
-    Parameters
-    ----------
-    model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation.
-    train_dataset : torch.utils.data.Dataset
-        Training dataset to be used for the influence computation.
-    cache_dir : str, optional
-        Directory for caching results. Defaults to "./cache".
-    model_id : Optional[str], optional
-        Identifier for the model.
-    **kwargs : dict
-        Additional keyword arguments passed to the explainer.
     """
 
     def __init__(
@@ -33,6 +21,17 @@ class Explainer(ABC):
         train_dataset: torch.utils.data.Dataset,
         **kwargs,
     ):
+        """Initializer for the `Explainer` class.
+
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, pl.LightningModule]
+            The model to be used for the influence computation.
+        train_dataset : torch.utils.data.Dataset
+            Training dataset to be used for the influence computation.
+        **kwargs : dict
+            Additional keyword arguments passed to the explainer.
+        """
         self.device: Union[str, torch.device]
         self.model = model
 
@@ -57,8 +56,8 @@ class Explainer(ABC):
         ----------
         test_tensor : torch.Tensor
             Test samples for which influence scores are computed.
-        targets : Optional[Union[List[int], torch.Tensor]], optional
-            Labels for the test samples. Defaults to None.
+        targets : Union[List[int], torch.Tensor]
+            Labels for the test samples.
 
         Returns
         -------

@@ -30,9 +30,9 @@
 
           
           
-          <a href="../../../../index.html" class="icon icon-home">
-            quanda
-              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          <a href="../../../../index.html" >
+            
+              <img src="../../../../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -162,22 +162,22 @@
 <span class="sd">        ----------</span>
 <span class="sd">        train_dataset : Union[str, torch.utils.data.Dataset]</span>
 <span class="sd">            The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.</span>
-<span class="sd">        model : torch.nn.Module</span>
-<span class="sd">            The model used to generate attributions.</span>
 <span class="sd">        eval_dataset : torch.utils.data.Dataset</span>
 <span class="sd">            The evaluation dataset to be used for the benchmark.</span>
+<span class="sd">        model : torch.nn.Module</span>
+<span class="sd">            The model used to generate attributions.</span>
 <span class="sd">        data_transform : Optional[Callable], optional</span>
 <span class="sd">            Transform to be applied to the dataset, by default None.</span>
-<span class="sd">        dataset_split : str, optional</span>
-<span class="sd">            The dataset split to use, by default &quot;train&quot;. Only used if `train_dataset` is a string.</span>
 <span class="sd">        correlation_fn : Union[Callable, CorrelationFnLiterals], optional</span>
 <span class="sd">            Correlation function to be used for the evaluation.</span>
 <span class="sd">            Can be &quot;spearman&quot; or &quot;kendall&quot;, or a callable.</span>
 <span class="sd">            Defaults to &quot;spearman&quot;.</span>
-<span class="sd">        use_predictions: bool</span>
-<span class="sd">            Whether to use the model&#39;s predictions for generating attributions. Defaults to True.</span>
 <span class="sd">        seed : int, optional</span>
 <span class="sd">            Seed to be used for the evaluation, by default 42.</span>
+<span class="sd">        use_predictions: bool</span>
+<span class="sd">            Whether to use the model&#39;s predictions for generating attributions. Defaults to True.</span>
+<span class="sd">        dataset_split : str, optional</span>
+<span class="sd">            The dataset split to use, by default &quot;train&quot;. Only used if `train_dataset` is a string.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -279,16 +279,16 @@
 <span class="sd">            Evaluation dataset to be used for the benchmark.</span>
 <span class="sd">        data_transform : Optional[Callable], optional</span>
 <span class="sd">            Transform to be applied to the dataset, by default None.</span>
-<span class="sd">        dataset_split : str, optional</span>
-<span class="sd">            The dataset split, only used for HuggingFace datasets, by default &quot;train&quot;.</span>
 <span class="sd">        correlation_fn : Union[Callable, CorrelationFnLiterals], optional</span>
 <span class="sd">            Correlation function to be used for the evaluation.</span>
 <span class="sd">            Can be &quot;spearman&quot; or &quot;kendall&quot;, or a callable.</span>
 <span class="sd">            Defaults to &quot;spearman&quot;.</span>
-<span class="sd">        use_predictions: bool</span>
-<span class="sd">            Whether to use the model&#39;s predictions for generating attributions. Defaults to True.</span>
 <span class="sd">        seed : int, optional</span>
 <span class="sd">            Seed to be used for the evaluation, by default 42.</span>
+<span class="sd">        use_predictions: bool</span>
+<span class="sd">            Whether to use the model&#39;s predictions for generating attributions. Defaults to True.</span>
+<span class="sd">        dataset_split : str, optional</span>
+<span class="sd">            The dataset split, only used for HuggingFace datasets, by default &quot;train&quot;.</span>
 <span class="sd">        checkpoint_paths : Optional[List[str]], optional</span>
 <span class="sd">            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</span>
 
@@ -366,7 +366,7 @@
                 <span class="n">targets</span> <span class="o">=</span> <span class="n">labels</span>
 
             <span class="n">explanations</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span>
-                <span class="n">test</span><span class="o">=</span><span class="nb">input</span><span class="p">,</span>
+                <span class="n">test_tensor</span><span class="o">=</span><span class="nb">input</span><span class="p">,</span>
                 <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">,</span>
             <span class="p">)</span>
 

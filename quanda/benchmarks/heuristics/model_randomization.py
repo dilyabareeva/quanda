@@ -78,22 +78,22 @@ class ModelRandomization(Benchmark):
         ----------
         train_dataset : Union[str, torch.utils.data.Dataset]
             The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.
-        model : torch.nn.Module
-            The model used to generate attributions.
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
+        model : torch.nn.Module
+            The model used to generate attributions.
         data_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
-        dataset_split : str, optional
-            The dataset split to use, by default "train". Only used if `train_dataset` is a string.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
             Correlation function to be used for the evaluation.
             Can be "spearman" or "kendall", or a callable.
             Defaults to "spearman".
-        use_predictions: bool
-            Whether to use the model's predictions for generating attributions. Defaults to True.
         seed : int, optional
             Seed to be used for the evaluation, by default 42.
+        use_predictions: bool
+            Whether to use the model's predictions for generating attributions. Defaults to True.
+        dataset_split : str, optional
+            The dataset split to use, by default "train". Only used if `train_dataset` is a string.
 
         Returns
         -------
@@ -189,16 +189,16 @@ class ModelRandomization(Benchmark):
             Evaluation dataset to be used for the benchmark.
         data_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
-        dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default "train".
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
             Correlation function to be used for the evaluation.
             Can be "spearman" or "kendall", or a callable.
             Defaults to "spearman".
-        use_predictions: bool
-            Whether to use the model's predictions for generating attributions. Defaults to True.
         seed : int, optional
             Seed to be used for the evaluation, by default 42.
+        use_predictions: bool
+            Whether to use the model's predictions for generating attributions. Defaults to True.
+        dataset_split : str, optional
+            The dataset split, only used for HuggingFace datasets, by default "train".
         checkpoint_paths : Optional[List[str]], optional
             List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
 

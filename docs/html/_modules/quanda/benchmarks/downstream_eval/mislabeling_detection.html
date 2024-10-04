@@ -30,9 +30,9 @@
 
           
           
-          <a href="../../../../index.html" class="icon icon-home">
-            quanda
-              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+          <a href="../../../../index.html" >
+            
+              <img src="../../../../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -102,6 +102,7 @@
 <div class="viewcode-block" id="MislabelingDetection">
 <a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.downstream_eval.mislabeling_detection.html#quanda.benchmarks.downstream_eval.MislabelingDetection">[docs]</a>
 <span class="k">class</span> <span class="nc">MislabelingDetection</span><span class="p">(</span><span class="n">Benchmark</span><span class="p">):</span>
+    <span class="c1"># TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE PREDICTIONS</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Benchmark for noisy label detection.</span>
 <span class="sd">    This benchmark generates a dataset with mislabeled samples, and trains a model on it.</span>
@@ -130,8 +131,6 @@
 <span class="sd">    diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1">#    TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE PREDICTIONS</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Mislabeling Detection&quot;</span>
 
@@ -459,17 +458,17 @@
 <span class="sd">            Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</span>
 <span class="sd">        n_classes : int</span>
 <span class="sd">            Number of classes in the dataset.</span>
-<span class="sd">        eval_dataset : torch.utils.data.Dataset</span>
-<span class="sd">            Dataset to be used for the evaluation.</span>
-<span class="sd">        dataset_split : str, optional</span>
-<span class="sd">            The dataset split, only used for HuggingFace datasets, by default &quot;train&quot;.</span>
-<span class="sd">        mislabeling_labels : Optional[Dict[int, int]], optional</span>
-<span class="sd">            Dictionary containing indices as keys and new labels as values, defaults to None</span>
+<span class="sd">        mislabeling_labels : Dict[int, int]</span>
+<span class="sd">            Dictionary containing indices as keys and new labels as values.</span>
+<span class="sd">        eval_dataset : Optional[torch.utils.data.Dataset]</span>
+<span class="sd">            Dataset to be used for the evaluation by default None.</span>
 <span class="sd">        use_predictions : bool, optional</span>
 <span class="sd">            Whether to use the model&#39;s predictions for the evaluation.</span>
 <span class="sd">            This is only used if `global_method` is not &quot;self-influence&quot;, by default True.</span>
 <span class="sd">            Original papers use the self-influence method to reach a global ranking of the data,</span>
 <span class="sd">            instead of using aggregations of generated local explanations.</span>
+<span class="sd">        dataset_split : str, optional</span>
+<span class="sd">            The dataset split, only used for HuggingFace datasets, by default &quot;train&quot;.</span>
 <span class="sd">        dataset_transform : Optional[Callable], optional</span>
 <span class="sd">            Transform to be applied to the dataset, by default None</span>
 <span class="sd">        global_method : Union[str, type], optional</span>
@@ -538,7 +537,7 @@
 <span class="sd">        expl_kwargs : Optional[dict], optional</span>
 <span class="sd">            Additional keyword arguments for the explainer, by default None.</span>
 <span class="sd">        batch_size : int, optional</span>
-<span class="sd">            Batch size to be used for the evaluation, default to 8.</span>
+<span class="sd">            Batch size to be used for the evaluation, defaults to 8.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -556,7 +555,6 @@
             <span class="p">)</span>
             <span class="n">expl_dl</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="n">mislabeling_expl_ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">global_method</span> <span class="o">!=</span> <span class="s2">&quot;self-influence&quot;</span><span class="p">:</span>
-
             <span class="n">metric</span> <span class="o">=</span> <span class="n">MislabelingDetectionMetric</span><span class="o">.</span><span class="n">aggr_based</span><span class="p">(</span>
                 <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
                 <span class="n">train_dataset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mislabeling_dataset</span><span class="p">,</span>
@@ -576,7 +574,7 @@
                         <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">targets</span> <span class="o">=</span> <span class="n">labels</span>
-                <span class="n">explanations</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="n">test</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">)</span>
+                <span class="n">explanations</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">explain</span><span class="p">(</span><span class="n">test_tensor</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="o">=</span><span class="n">targets</span><span class="p">)</span>
                 <span class="n">metric</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">test_data</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">test_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">explanations</span><span class="o">=</span><span class="n">explanations</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">metric</span> <span class="o">=</span> <span class="n">MislabelingDetectionMetric</span><span class="o">.</span><span class="n">self_influence_based</span><span class="p">(</span>

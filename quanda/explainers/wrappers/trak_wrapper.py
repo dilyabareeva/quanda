@@ -90,6 +90,8 @@ class TRAK(Explainer):
             The batch size, by default 32.
         params_ldr : Optional[Iterable], optional
             Generator of model parameters, by default None, which uses all parameters.
+        load_from_disk : bool, optional
+            Whether to load metadata from cache_dir, defaults to True.
         lambda_reg : int, optional
             Optional regularization term to add to the diagonals of X^TX to make it invertible.
         """
@@ -181,8 +183,8 @@ class TRAK(Explainer):
         ----------
         test_tensor : torch.Tensor
             The test inputs for which explanations are generated.
-        targets : Optional[Union[List[int], torch.Tensor]], optional
-            The model outputs to explain per test input, by default None.
+        targets : Union[List[int], torch.Tensor]
+            The model outputs to explain per test input.
 
         Returns
         -------
@@ -211,8 +213,8 @@ def trak_explain(
     model_id: str,
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
+    explanation_targets: Union[List[int], torch.Tensor],
     cache_dir: str = "./cache",
-    explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """
@@ -222,14 +224,14 @@ def trak_explain(
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
         The model to be explained.
+    model_id : Optional[str], optional
+        Identifier for the model, by default None.
     test_tensor : torch.Tensor
         The test inputs for which explanations are generated.
     train_dataset : torch.utils.data.Dataset
         The training dataset used to train the model.
-    explanation_targets : Optional[Union[List[int], torch.Tensor]], optional
-        The target model outputs to explain, by default None.
-    model_id : Optional[str], optional
-        Identifier for the model, by default None.
+    explanation_targets : Union[List[int], torch.Tensor]
+        The target model outputs to explain.
     cache_dir : Optional[str], optional
         The directory to use for caching, by default None.
 
@@ -267,10 +269,10 @@ def trak_self_influence(
         The model to be explained.
     model_id : str
         Identifier for the model.
-    cache_dir : Optional[str]
-        The directory to use for caching.
     train_dataset : torch.utils.data.Dataset
         The training dataset used to train the model.
+    cache_dir : Optional[str]
+        The directory to use for caching.
     batch_size : int, optional
         The batch size, by default 32.
 

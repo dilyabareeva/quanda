@@ -26,12 +26,10 @@ class RandomExplainer(Explainer):
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
             Trained model to be explained.
-        cache_dir : str
-            Directory to be used for caching.
         train_dataset : torch.utils.data.Dataset
             Training dataset that was used to train the model.
-        model_id : Optional[str], optional
-            An identifier for the model. This field is generally not used and is included for completeness, defaults to None.
+        seed : int, optional
+            Seed for random number generator, by default 27.
 
         """
         super().__init__(

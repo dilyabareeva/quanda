@@ -67,6 +67,10 @@ class Trainer(BaseTrainer):
             Keyword arguments for the optimizer, defaults to None
         scheduler_kwargs : Optional[dict], optional
             Keyword arguments for the scheduler, defaults to None
+        seed : int, optional
+            The seed for the projector, by default 27.
+        accelerator : str, optional
+            The accelerator to use for training, by default "cpu".
         """
         self.optimizer = optimizer
         self.lr = lr
@@ -100,6 +104,8 @@ class Trainer(BaseTrainer):
             Dataloader for the training data.
         val_dataloaders : Optional[torch.utils.data.dataloader.DataLoader], optional
             Dataloader for the validation data, defaults to None.
+        accelerator : str, optional
+            The accelerator to use for training, by default "cpu".
         """
         module = BasicLightningModule(
             model=model,

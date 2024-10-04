@@ -35,7 +35,7 @@
           
           <a href="../index.html" >
             
-              <img src="../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
+              <img src="../_static/quanda_white.png" class="logo" alt="Logo" style="width: 70%; height: auto;"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
@@ -126,21 +126,13 @@ Systems, vol. 31.</p>
 <ol class="arabic simple" start="2">
 <li><p><a class="reference external" href="https://github.com/chihkuanyeh/Representer_Point_Selection">https://github.com/chihkuanyeh/Representer_Point_Selection</a></p></li>
 </ol>
-<dl class="field-list simple">
-<dt class="field-odd">Attributes<span class="colon">:</span></dt>
-<dd class="field-odd"><dl class="simple">
-<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_length</span></code></dt><dd><p>Returns the length of the training dataset.</p>
-</dd>
-</dl>
-</dd>
-</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.representer_points.RepresenterPoints.backtracking_line_search" title="quanda.explainers.wrappers.representer_points.RepresenterPoints.backtracking_line_search"><code class="xref py py-obj docutils literal notranslate"><span class="pre">backtracking_line_search</span></code></a>(model, grad, x, y, ...)</p></td>
 <td><p>Implementation of the backtracking line search algorithm.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.representer_points.RepresenterPoints.explain" title="quanda.explainers.wrappers.representer_points.RepresenterPoints.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test, targets)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.representer_points.RepresenterPoints.explain" title="quanda.explainers.wrappers.representer_points.RepresenterPoints.explain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">explain</span></code></a>(test_tensor, targets)</p></td>
 <td><p>Explain the predictions of the model for a given test batch.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.wrappers.representer_points.RepresenterPoints.self_influence" title="quanda.explainers.wrappers.representer_points.RepresenterPoints.self_influence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">self_influence</span></code></a>([batch_size])</p></td>
@@ -199,12 +191,12 @@ Systems, vol. 31.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.wrappers.representer_points.RepresenterPoints.explain">
-<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/representer_points.html#RepresenterPoints.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.representer_points.RepresenterPoints.explain" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">explain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_tensor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Tensor</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/quanda/explainers/wrappers/representer_points.html#RepresenterPoints.explain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.wrappers.representer_points.RepresenterPoints.explain" title="Link to this definition"></a></dt>
 <dd><p>Explain the predictions of the model for a given test batch.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>test</strong> (<em>torch.Tensor</em>) – The test batch for which explanations are generated.</p></li>
+<li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – The test batch for which explanations are generated.</p></li>
 <li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – The target values for the explanations.</p></li>
 </ul>
 </dd>
