@@ -287,14 +287,15 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
     )
     # vis_dataloader(dataloaders["subclass"])
 
-    # Dataloader for Model Randomization, Top-K Overlap
+    # Dataloader for Model Randomization, Top-K Cardinality
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
     clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
     dataloaders["randomization"] = torch.utils.data.DataLoader(
         clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
-    dataloaders["top_k_overlap"] = dataloaders["randomization"]
-    vis_dataloader(dataloaders["randomization"])
+
+    dataloaders["top_k_cardinality"] = dataloaders["randomization"]
+    # vis_dataloader(dataloaders["randomization"])
 
     # Dataloader for Mixed Datasets
     correct_predict_panda = torch.load(os.path.join(metadata_dir, "big_eval_test_correct_predict_panda_indices.pth"))

@@ -11,15 +11,15 @@ from quanda.benchmarks.resources import (
     load_module_from_bench_state,
     sample_transforms,
 )
-from quanda.metrics.heuristics import TopKOverlapMetric
+from quanda.metrics.heuristics import TopKCardinalityMetric
 
 logger = logging.getLogger(__name__)
 
 
-class TopKOverlap(Benchmark):
+class TopKCardinality(Benchmark):
     # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     """
-    Benchmark for the Top-K Overlap heuristic. This benchmark evaluates the dependence of the attributions
+    Benchmark for the Top-K Cardinality heuristic. This benchmark evaluates the dependence of the attributions
     on the test samples being attributed.
 
     The cardinality of the union of top-k attributed training samples is computed. A higher cardinality indicates
@@ -31,7 +31,7 @@ class TopKOverlap(Benchmark):
     samples via relative influence. International Conference on Artificial Intelligence and Statistics. PMLR.
     """
 
-    name: str = "Top-K Overlap"
+    name: str = "Top-K Cardinality"
 
     def __init__(
         self,
@@ -39,7 +39,7 @@ class TopKOverlap(Benchmark):
         **kwargs,
     ):
         """
-        Initializer for the Top-K Overlap benchmark.
+        Initializer for the Top-K Cardinality benchmark.
 
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
@@ -90,11 +90,11 @@ class TopKOverlap(Benchmark):
 
         Returns
         -------
-        TopKOverlap
+        TopKCardinality
             The benchmark instance.
         """
 
-        logger.info(f"Generating {TopKOverlap.name} benchmark components based on passed arguments...")
+        logger.info(f"Generating {TopKCardinality.name} benchmark components based on passed arguments...")
 
         obj = cls(train_dataset)
         obj._set_devices(model)
@@ -129,7 +129,7 @@ class TopKOverlap(Benchmark):
 
         Returns
         -------
-        TopKOverlap
+        TopKCardinality
             The benchmark instance.
         """
         obj = cls()
@@ -197,7 +197,7 @@ class TopKOverlap(Benchmark):
 
         Returns
         -------
-        TopKOverlap
+        TopKCardinality
             The benchmark instance.
         """
         obj = cls()
@@ -242,7 +242,7 @@ class TopKOverlap(Benchmark):
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
-        metric = TopKOverlapMetric(model=self.model, train_dataset=self.train_dataset, top_k=self.top_k)
+        metric = TopKCardinalityMetric(model=self.model, train_dataset=self.train_dataset, top_k=self.top_k)
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)

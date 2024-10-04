@@ -5,7 +5,7 @@ import torch
 from quanda.metrics.base import Metric
 
 
-class TopKOverlapMetric(Metric):
+class TopKCardinalityMetric(Metric):
     """
     Metric that measures the overlap of top-k explanations across all test samples, as argued in Barshan et al. (2020).
     A good data attributor's attributions should depend on the input data,
@@ -30,7 +30,7 @@ class TopKOverlapMetric(Metric):
         **kwargs,
     ):
         """
-        Initializer for the Top-K Overlap metric.
+        Initializer for the Top-K Cardinality metric.
 
         Parameters
         ----------

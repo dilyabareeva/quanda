@@ -24,7 +24,7 @@ wandb.login(key=wandb_api_key)
 # Define WandB project and filters
 project_name = "quanda"
 methods = ["representer_points", "trak", "random", "tracincpfast", "arnoldi"]
-metrics = ["mislabeling_si", "shortcut", "subclass", "top_k_overlap", "mixed_dataset"]
+metrics = ["mislabeling_si", "shortcut", "subclass", "top_k_cardinality", "mixed_dataset"]
 
 # Initialize a WandB API object
 api = wandb.Api()
@@ -70,7 +70,7 @@ df.index.name = "explainer"
 # Rename metrics
 df = df.rename(
     columns={
-        "top_k_overlap": "Top-K\nOverlap",
+        "top_k_cardinality": "Top-K\nCardinality",
         "subclass": "Subclass\nDetection",
         "mislabeling": "Mislabeling\nDetection",
         "shortcut": "Shortcut\nDetection",
@@ -186,7 +186,7 @@ ax.tick_params(axis="x", pad=-8)
 
 # Adjust individual tick label positions
 for tick_label, angle in zip(ax.get_xticklabels(), TANGLES[:-1]):
-    if tick_label.get_text() in ["Top-K\nOverlap", "Mixed Dataset\nSeparation"]:
+    if tick_label.get_text() in ["Top-K\nCardinality", "Mixed Dataset\nSeparation"]:
         tick_label.set_y(tick_label.get_position()[1] - 0.1)
     if tick_label.get_text() == "Mislabeling\nDetection":
         tick_label.set_y(tick_label.get_position()[1] + 0.05)
