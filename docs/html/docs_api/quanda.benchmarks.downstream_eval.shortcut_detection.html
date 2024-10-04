@@ -158,16 +158,18 @@ and clean examples from other classes are computed.</p>
 <li><p><strong>n_classes</strong> (<em>int</em>) – Number of classes in the dataset.</p></li>
 <li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Dataset to be used for the evaluation.</p></li>
 <li><p><strong>sample_fn</strong> (<em>Callable</em>) – Function to add triggers to samples of the dataset.</p></li>
+<li><p><strong>shortcut_cls</strong> (<em>int</em>) – The class to use.</p></li>
+<li><p><strong>shortcut_indices</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>) – Binary list of indices to poison.</p></li>
 <li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
 is predicted, by default True</p></li>
 <li><p><strong>filter_by_class</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
-is not assigned as the class, by default True</p></li>
+is not assigned as the class, by default False</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for the evaluation, by default True.</p></li>
 <li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
-<li><p><strong>shortcut_indices</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Binary list of indices to poison, by default None.</p></li>
 <li><p><strong>dataset_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the dataset, by default None.</p></li>
+<li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
 <li><p><strong>p</strong> (<em>float</em><em>, </em><em>optional</em>) – The probability of mislabeling per sample, by default 0.3.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size that is used for training, by default 8.</p></li>
-<li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -230,6 +232,11 @@ If a string is passed, it should be a HuggingFace dataset.</p></li>
 <li><p><strong>shortcut_cls</strong> (<em>int</em>) – The class to add triggers to.</p></li>
 <li><p><strong>trainer</strong> (<em>Union</em><em>[</em><em>L.Trainer</em><em>, </em><a class="reference internal" href="quanda.utils.training.html#quanda.utils.training.BaseTrainer" title="quanda.utils.training.BaseTrainer"><em>BaseTrainer</em></a><em>]</em>) – Trainer to be used for training the model.</p></li>
 <li><p><strong>sample_fn</strong> (<em>Callable</em>) – Function to add triggers to samples of the dataset.</p></li>
+<li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+is predicted, by default True.</p></li>
+<li><p><strong>filter_by_class</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+is not assigned as the class, by default False.</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for the evaluation, by default True.</p></li>
 <li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – Split used for HuggingFace datasets, by default “train”.</p></li>
 <li><p><strong>dataset_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Default transform of the dataset, by default None.</p></li>
 <li><p><strong>val_dataset</strong> (<em>Optional</em><em>[</em><em>torch.utils.data.Dataset</em><em>]</em><em>, </em><em>optional</em>) – Validation dataset to use during training, by default None.</p></li>

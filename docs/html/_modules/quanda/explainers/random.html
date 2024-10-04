@@ -107,12 +107,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        model : Union[torch.nn.Module, pl.LightningModule]</span>
 <span class="sd">            Trained model to be explained.</span>
-<span class="sd">        cache_dir : str</span>
-<span class="sd">            Directory to be used for caching.</span>
 <span class="sd">        train_dataset : torch.utils.data.Dataset</span>
 <span class="sd">            Training dataset that was used to train the model.</span>
-<span class="sd">        model_id : Optional[str], optional</span>
-<span class="sd">            An identifier for the model. This field is generally not used and is included for completeness, defaults to None.</span>
+<span class="sd">        seed : int, optional</span>
+<span class="sd">            Seed for random number generator, by default 27.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>

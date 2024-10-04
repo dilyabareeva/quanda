@@ -181,8 +181,8 @@
 <span class="sd">        The model to evaluate.</span>
 <span class="sd">    loader : torch.utils.data.DataLoader</span>
 <span class="sd">        The data loader to evaluate the model on.</span>
-<span class="sd">    device : Union[str, torch.device]</span>
-<span class="sd">        The device to evaluate the model on.</span>
+<span class="sd">    device : Union[str, torch.device], optional</span>
+<span class="sd">        The device to evaluate the model on, by default &quot;cpu&quot;.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -219,6 +219,8 @@
 <span class="sd">        The model for which to load a checkpoint</span>
 <span class="sd">    path : str</span>
 <span class="sd">        The filepath to the checkpoint</span>
+<span class="sd">    device : Union[str, torch.device]</span>
+<span class="sd">        The device to use.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -372,7 +374,7 @@
 
 <div class="viewcode-block" id="process_targets">
 <a class="viewcode-back" href="../../../docs_api/quanda.utils.common.html#quanda.utils.common.process_targets">[docs]</a>
-<span class="k">def</span> <span class="nf">process_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">device</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">process_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">device</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert target labels to torch.Tensor and move them to the device.</span>
 
@@ -380,6 +382,8 @@
 <span class="sd">    ----------</span>
 <span class="sd">    targets : Optional[Union[List[int], torch.Tensor]], optional</span>
 <span class="sd">        The target labels, either as a list or tensor.</span>
+<span class="sd">    device: Union[str, torch.device]</span>
+<span class="sd">        The device to use.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>

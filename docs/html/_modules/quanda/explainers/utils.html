@@ -90,10 +90,6 @@
 <span class="sd">        The explainer class to initialize.</span>
 <span class="sd">    model : torch.nn.Module</span>
 <span class="sd">        The model to be used for the influence computation.</span>
-<span class="sd">    model_id : Optional[str], optional</span>
-<span class="sd">        Identifier for the model. Defaults to None.</span>
-<span class="sd">    cache_dir : str</span>
-<span class="sd">        Directory for caching results. Defaults to &quot;./cache&quot;.</span>
 <span class="sd">    train_dataset : torch.utils.data.Dataset</span>
 <span class="sd">        Training dataset to be used for the influence computation.</span>
 <span class="sd">    **kwargs : dict</span>
@@ -137,10 +133,6 @@
 <span class="sd">        Training dataset to be used for the influence computation.</span>
 <span class="sd">    targets : Optional[Union[List[int], torch.Tensor]], optional</span>
 <span class="sd">        Labels for the test samples. Defaults to None.</span>
-<span class="sd">    cache_dir : str, optional</span>
-<span class="sd">        Directory for caching results. Defaults to &quot;./cache&quot;.</span>
-<span class="sd">    model_id : Optional[str], optional</span>
-<span class="sd">        Identifier for the model. Defaults to None.</span>
 <span class="sd">    **kwargs : dict</span>
 <span class="sd">        Additional keyword arguments passed to the explainer.</span>
 
@@ -180,10 +172,6 @@
 <span class="sd">        The model to be used for the influence computation.</span>
 <span class="sd">    train_dataset : torch.utils.data.Dataset</span>
 <span class="sd">        Training dataset to be used for the influence computation.</span>
-<span class="sd">    cache_dir : str, optional</span>
-<span class="sd">        Directory for caching results. Defaults to &quot;./cache&quot;.</span>
-<span class="sd">    model_id : Optional[str], optional</span>
-<span class="sd">        Identifier for the model. Defaults to None.</span>
 <span class="sd">    batch_size : int, optional</span>
 <span class="sd">        Batch size used for iterating over the dataset. Defaults to 1.</span>
 <span class="sd">    **kwargs : dict</span>

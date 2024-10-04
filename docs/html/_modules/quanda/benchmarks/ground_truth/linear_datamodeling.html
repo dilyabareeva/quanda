@@ -178,8 +178,6 @@
 <span class="sd">            The model used to generate attributions.</span>
 <span class="sd">        eval_dataset : torch.utils.data.Dataset</span>
 <span class="sd">            The evaluation dataset to be used for the benchmark.</span>
-<span class="sd">        dataset_split : str, optional</span>
-<span class="sd">            The dataset split to use, by default &quot;train&quot;. Only used if `train_dataset` is a string.</span>
 <span class="sd">        trainer : Union[L.Trainer, BaseTrainer]</span>
 <span class="sd">            Trainer to be used for training the models on different subsets. Can be a Lightning Trainer or a `BaseTrainer`.</span>
 <span class="sd">        cache_dir : str</span>
@@ -201,6 +199,8 @@
 <span class="sd">            Seed to be used for the evaluation, by default 42.</span>
 <span class="sd">        use_predictions : bool, optional</span>
 <span class="sd">            Whether to use model predictions or the true test labels for the evaluation, defaults to False.</span>
+<span class="sd">        dataset_split : str, optional</span>
+<span class="sd">            The dataset split to use, by default &quot;train&quot;. Only used if `train_dataset` is a string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generating </span><span class="si">{</span><span class="n">LinearDatamodeling</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> benchmark components based on passed arguments...&quot;</span><span class="p">)</span>
@@ -235,8 +235,10 @@
 <span class="sd">        ----------</span>
 <span class="sd">        name : str</span>
 <span class="sd">            Name of the benchmark to be loaded.</span>
-<span class="sd">        eval_dataset : torch.utils.data.Dataset</span>
-<span class="sd">            The evaluation dataset to be used for the benchmark.</span>
+<span class="sd">        cache_dir : str</span>
+<span class="sd">            Directory to store the downloaded benchmark components.</span>
+<span class="sd">        device : str</span>
+<span class="sd">            Device to load the model on.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
         <span class="n">bench_state</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">_get_bench_state</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -278,8 +280,8 @@
         <span class="n">trainer</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">L</span><span class="o">.</span><span class="n">Trainer</span><span class="p">,</span> <span class="n">BaseTrainer</span><span class="p">],</span>
         <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">m</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span>
-        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">m</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">trainer_fit_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">data_transform</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">correlation_fn</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="n">CorrelationFnLiterals</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;spearman&quot;</span><span class="p">,</span>
@@ -294,14 +296,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        train_dataset : Union[str, torch.utils.data.Dataset]</span>
-<span class="sd">            The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.</span>
 <span class="sd">        model : torch.nn.Module</span>
 <span class="sd">            The model used to generate attributions.</span>
+<span class="sd">        train_dataset : Union[str, torch.utils.data.Dataset]</span>
+<span class="sd">            The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.</span>
 <span class="sd">        eval_dataset : torch.utils.data.Dataset</span>
 <span class="sd">            The evaluation dataset to be used for the benchmark.</span>
-<span class="sd">        dataset_split : str, optional</span>
-<span class="sd">            The dataset split to use, by default &quot;train&quot;. Only used if `train_dataset` is a string.</span>
 <span class="sd">        trainer : Union[L.Trainer, BaseTrainer]</span>
 <span class="sd">            Trainer to be used for training the models on different subsets. Can be a Lightning Trainer or a `BaseTrainer`.</span>
 <span class="sd">        cache_dir : str</span>
@@ -309,20 +309,22 @@
 <span class="sd">            trained on different subsets of the training data.</span>
 <span class="sd">        model_id : str</span>
 <span class="sd">            Identifier for the model, to be used in naming cached checkpoints.</span>
-<span class="sd">        data_transform : Optional[Callable], optional</span>
-<span class="sd">            Transform to be applied to the dataset, by default None.</span>
-<span class="sd">        correlation_fn : Union[Callable, CorrelationFnLiterals], optional</span>
-<span class="sd">            Correlation function to be used for the evaluation.</span>
 <span class="sd">        m: int, optional</span>
 <span class="sd">            Number of subsets to be used for training the models, by default 100.</span>
 <span class="sd">        alpha: float, optional</span>
 <span class="sd">            Percentage of datapoints to be used for training the models, by default 0.5.</span>
 <span class="sd">        trainer_fit_kwargs : Optional[dict], optional</span>
 <span class="sd">            Additional keyword arguments to be passed to the `fit` method of the trainer, by default None.</span>
+<span class="sd">        data_transform : Optional[Callable], optional</span>
+<span class="sd">            Transform to be applied to the dataset, by default None.</span>
+<span class="sd">        correlation_fn : Union[Callable, CorrelationFnLiterals], optional</span>
+<span class="sd">            Correlation function to be used for the evaluation.</span>
 <span class="sd">        seed : int, optional</span>
 <span class="sd">            Seed to be used for the evaluation, by default 42.</span>
 <span class="sd">        use_predictions : bool, optional</span>
 <span class="sd">            Whether to use model predictions or the true test labels for the evaluation, defaults to False.</span>
+<span class="sd">        dataset_split : str, optional</span>
+<span class="sd">            The dataset split to use, by default &quot;train&quot;. Only used if `train_dataset` is a string.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>

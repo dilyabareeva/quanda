@@ -291,12 +291,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        explanations : torch.Tensor</span>
-<span class="sd">            The local attributions to be added to the aggregated scores.</span>
 <span class="sd">        test_data : torch.Tensor</span>
 <span class="sd">            The test data for which the attributions were computed.</span>
 <span class="sd">        test_labels : torch.Tensor</span>
 <span class="sd">            The true labels of the test data.</span>
+<span class="sd">        explanations : torch.Tensor</span>
+<span class="sd">            The local attributions to be added to the aggregated scores.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">explanations</span> <span class="o">=</span> <span class="n">explanations</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>

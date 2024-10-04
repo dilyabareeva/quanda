@@ -150,12 +150,12 @@ Alternatively, <cite>download</cite> can be used to load a precomputed benchmark
 <li><p><strong>train_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</p></li>
 <li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Evaluation dataset to be used for the benchmark.</p></li>
 <li><p><strong>data_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the dataset, by default None.</p></li>
-<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
 <li><p><strong>correlation_fn</strong> (<em>Union</em><em>[</em><em>Callable</em><em>, </em><em>CorrelationFnLiterals</em><em>]</em><em>, </em><em>optional</em>) – Correlation function to be used for the evaluation.
 Can be “spearman” or “kendall”, or a callable.
 Defaults to “spearman”.</p></li>
-<li><p><strong>use_predictions</strong> (<em>bool</em>) – Whether to use the model’s predictions for generating attributions. Defaults to True.</p></li>
 <li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – Seed to be used for the evaluation, by default 42.</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em>) – Whether to use the model’s predictions for generating attributions. Defaults to True.</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
 <li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
 </ul>
 </dd>
@@ -239,15 +239,15 @@ from the state dictionary.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>train_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – The training dataset used to train <cite>model</cite>. If a string is passed, it should be a HuggingFace dataset name.</p></li>
-<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model used to generate attributions.</p></li>
 <li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The evaluation dataset to be used for the benchmark.</p></li>
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model used to generate attributions.</p></li>
 <li><p><strong>data_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the dataset, by default None.</p></li>
-<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split to use, by default “train”. Only used if <cite>train_dataset</cite> is a string.</p></li>
 <li><p><strong>correlation_fn</strong> (<em>Union</em><em>[</em><em>Callable</em><em>, </em><em>CorrelationFnLiterals</em><em>]</em><em>, </em><em>optional</em>) – Correlation function to be used for the evaluation.
 Can be “spearman” or “kendall”, or a callable.
 Defaults to “spearman”.</p></li>
-<li><p><strong>use_predictions</strong> (<em>bool</em>) – Whether to use the model’s predictions for generating attributions. Defaults to True.</p></li>
 <li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – Seed to be used for the evaluation, by default 42.</p></li>
+<li><p><strong>use_predictions</strong> (<em>bool</em>) – Whether to use the model’s predictions for generating attributions. Defaults to True.</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split to use, by default “train”. Only used if <cite>train_dataset</cite> is a string.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

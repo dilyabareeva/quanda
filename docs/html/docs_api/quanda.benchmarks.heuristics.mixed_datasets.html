@@ -165,15 +165,15 @@ Alternatively, <cite>download</cite> can be used to load a precomputed benchmark
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>L.LightningModule</em><em>]</em>) – Model to be used for the benchmark.</p></li>
-<li><p><strong>base_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</p></li>
 <li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – The dataset containing the adversarial examples used for evaluation. They should belong to
 the same dataset and the same class as the samples in the adversarial dataset.</p></li>
+<li><p><strong>base_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</p></li>
 <li><p><strong>adversarial_dir</strong> (<em>str</em>) – Path to the adversarial dataset of a single class.</p></li>
 <li><p><strong>adversarial_label</strong> (<em>int</em>) – The label to be used for the adversarial dataset.</p></li>
 <li><p><strong>data_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the clean dataset, by default None.</p></li>
-<li><p><strong>adversarial_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the adversarial dataset, by default None.</p></li>
 <li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for generating attributions. Defaults to True.</p></li>
 <li><p><strong>filter_by_prediction</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.</p></li>
+<li><p><strong>adversarial_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the adversarial dataset, by default None.</p></li>
 <li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
 <li><p><strong>checkpoint_paths</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.</p></li>
 </ul>

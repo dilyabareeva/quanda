@@ -109,7 +109,7 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>net</strong> (<em>torch.nn.Module</em>) – The model to evaluate.</p></li>
 <li><p><strong>loader</strong> (<em>torch.utils.data.DataLoader</em>) – The data loader to evaluate the model on.</p></li>
-<li><p><strong>device</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em>) – The device to evaluate the model on.</p></li>
+<li><p><strong>device</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em><em>, </em><em>optional</em>) – The device to evaluate the model on, by default “cpu”.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -220,7 +220,10 @@
 <dd><p>Convert target labels to torch.Tensor and move them to the device.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – The target labels, either as a list or tensor.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – The target labels, either as a list or tensor.</p></li>
+<li><p><strong>device</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.device</em><em>]</em>) – The device to use.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The processed targets as a tensor, or None if no targets are provided.</p>

@@ -307,8 +307,6 @@ explainer classes must implement.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>pl.LightningModule</em><em>]</em>) – The model to be used for the influence computation.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model.</p></li>
 <li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
@@ -337,7 +335,7 @@ explainer classes must implement.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – Test samples for which influence scores are computed.</p></li>
-<li><p><strong>targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Labels for the test samples. Defaults to None.</p></li>
+<li><p><strong>targets</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em>) – Labels for the test samples.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -393,9 +391,8 @@ The explanations are generated with independent values sampled from a uniform di
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>pl.LightningModule</em><em>]</em>) – Trained model to be explained.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em>) – Directory to be used for caching.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset that was used to train the model.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – An identifier for the model. This field is generally not used and is included for completeness, defaults to None.</p></li>
+<li><p><strong>seed</strong> (<em>int</em><em>, </em><em>optional</em>) – Seed for random number generator, by default 27.</p></li>
 </ul>
 </dd>
 </dl>

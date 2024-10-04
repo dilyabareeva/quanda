@@ -171,6 +171,8 @@
 <span class="sd">            The batch size, by default 32.</span>
 <span class="sd">        params_ldr : Optional[Iterable], optional</span>
 <span class="sd">            Generator of model parameters, by default None, which uses all parameters.</span>
+<span class="sd">        load_from_disk : bool, optional</span>
+<span class="sd">            Whether to load metadata from cache_dir, defaults to True.</span>
 <span class="sd">        lambda_reg : int, optional</span>
 <span class="sd">            Optional regularization term to add to the diagonals of X^TX to make it invertible.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -265,8 +267,8 @@
 <span class="sd">        ----------</span>
 <span class="sd">        test_tensor : torch.Tensor</span>
 <span class="sd">            The test inputs for which explanations are generated.</span>
-<span class="sd">        targets : Optional[Union[List[int], torch.Tensor]], optional</span>
-<span class="sd">            The model outputs to explain per test input, by default None.</span>
+<span class="sd">        targets : Union[List[int], torch.Tensor]</span>
+<span class="sd">            The model outputs to explain per test input.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -299,8 +301,8 @@
     <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
     <span class="n">train_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
+    <span class="n">explanation_targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
     <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./cache&quot;</span><span class="p">,</span>
-    <span class="n">explanation_targets</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -310,14 +312,14 @@
 <span class="sd">    ----------</span>
 <span class="sd">    model : Union[torch.nn.Module, pl.LightningModule]</span>
 <span class="sd">        The model to be explained.</span>
+<span class="sd">    model_id : Optional[str], optional</span>
+<span class="sd">        Identifier for the model, by default None.</span>
 <span class="sd">    test_tensor : torch.Tensor</span>
 <span class="sd">        The test inputs for which explanations are generated.</span>
 <span class="sd">    train_dataset : torch.utils.data.Dataset</span>
 <span class="sd">        The training dataset used to train the model.</span>
-<span class="sd">    explanation_targets : Optional[Union[List[int], torch.Tensor]], optional</span>
-<span class="sd">        The target model outputs to explain, by default None.</span>
-<span class="sd">    model_id : Optional[str], optional</span>
-<span class="sd">        Identifier for the model, by default None.</span>
+<span class="sd">    explanation_targets : Union[List[int], torch.Tensor]</span>
+<span class="sd">        The target model outputs to explain.</span>
 <span class="sd">    cache_dir : Optional[str], optional</span>
 <span class="sd">        The directory to use for caching, by default None.</span>
 
@@ -358,10 +360,10 @@
 <span class="sd">        The model to be explained.</span>
 <span class="sd">    model_id : str</span>
 <span class="sd">        Identifier for the model.</span>
-<span class="sd">    cache_dir : Optional[str]</span>
-<span class="sd">        The directory to use for caching.</span>
 <span class="sd">    train_dataset : torch.utils.data.Dataset</span>
 <span class="sd">        The training dataset used to train the model.</span>
+<span class="sd">    cache_dir : Optional[str]</span>
+<span class="sd">        The directory to use for caching.</span>
 <span class="sd">    batch_size : int, optional</span>
 <span class="sd">        The batch size, by default 32.</span>
 

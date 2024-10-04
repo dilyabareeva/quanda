@@ -160,13 +160,13 @@ Alternatively, <cite>download</cite> can be used to load a precomputed benchmark
 <li><p><strong>model</strong> (<em>Union</em><em>[</em><em>torch.nn.Module</em><em>, </em><em>L.LightningModule</em><em>]</em>) – Model to be used for the benchmark. This model should be trained on the mislabeled dataset.</p></li>
 <li><p><strong>base_dataset</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>torch.utils.data.Dataset</em><em>]</em>) – Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.</p></li>
 <li><p><strong>n_classes</strong> (<em>int</em>) – Number of classes in the dataset.</p></li>
-<li><p><strong>eval_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Dataset to be used for the evaluation.</p></li>
-<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
-<li><p><strong>mislabeling_labels</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Dictionary containing indices as keys and new labels as values, defaults to None</p></li>
+<li><p><strong>mislabeling_labels</strong> (<em>Dict</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>) – Dictionary containing indices as keys and new labels as values.</p></li>
+<li><p><strong>eval_dataset</strong> (<em>Optional</em><em>[</em><em>torch.utils.data.Dataset</em><em>]</em>) – Dataset to be used for the evaluation by default None.</p></li>
 <li><p><strong>use_predictions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to use the model’s predictions for the evaluation.
 This is only used if <cite>global_method</cite> is not “self-influence”, by default True.
 Original papers use the self-influence method to reach a global ranking of the data,
 instead of using aggregations of generated local explanations.</p></li>
+<li><p><strong>dataset_split</strong> (<em>str</em><em>, </em><em>optional</em>) – The dataset split, only used for HuggingFace datasets, by default “train”.</p></li>
 <li><p><strong>dataset_transform</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – Transform to be applied to the dataset, by default None</p></li>
 <li><p><strong>global_method</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>type</em><em>]</em><em>, </em><em>optional</em>) – Method to generate a global ranking from local explainer.
 It can be a subclass of <cite>quanda.explainers.aggregators.BaseAggregator</cite> or “self-influence”.
@@ -233,7 +233,7 @@ Defaults to “self-influence”.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>explainer_cls</strong> (<em>type</em>) – Class of the explainer to be used for the evaluation.</p></li>
 <li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Additional keyword arguments for the explainer, by default None.</p></li>
-<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size to be used for the evaluation, default to 8.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size to be used for the evaluation, defaults to 8.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

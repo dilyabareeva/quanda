@@ -106,8 +106,6 @@
 <li><p><strong>test_tensor</strong> (<em>torch.Tensor</em>) – The test samples for which influence scores are computed.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
 <li><p><strong>targets</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Labels for the test samples. Defaults to None.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
 <li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
 </dd>
@@ -130,8 +128,6 @@
 <li><p><strong>explainer_cls</strong> (<em>type</em>) – The explainer class to use for computing explanations.</p></li>
 <li><p><strong>model</strong> (<em>torch.nn.Module</em>) – The model to be used for the influence computation.</p></li>
 <li><p><strong>train_dataset</strong> (<em>torch.utils.data.Dataset</em>) – Training dataset to be used for the influence computation.</p></li>
-<li><p><strong>cache_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Directory for caching results. Defaults to “./cache”.</p></li>
-<li><p><strong>model_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – Identifier for the model. Defaults to None.</p></li>
 <li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size used for iterating over the dataset. Defaults to 1.</p></li>
 <li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional keyword arguments passed to the explainer.</p></li>
 </ul>
