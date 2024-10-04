@@ -118,14 +118,15 @@ The evaluation of TDA methods is a difficult task, especially due to the computa
 
 ### Installation
 
-To install the latest release of **quanda** use:
+To install the **quanda** download the repository and run the following command in the root directory:
 
 ```setup
-pip install git+https://github.com/dilyabareeva/quanda.git
+pip install -e .
 ```
 
 **quanda** requires Python 3.7 or later. It is recommended to use a virtual environment to install the package.
 
+We are planning to make the **quanda** repo public on GitHub and make it available on PyPI in the future.
 ### Usage
 
 
@@ -161,8 +162,8 @@ from quanda.metrics.heuristics import ModelRandomizationMetric
 We now create our explainer. The device to be used by the explainer and metrics is inherited from the model, thus we set the model device explicitly.
 
 ```python
-DEVICE="cpu"
 model.to(DEVICE)
+
 explainer_kwargs = {
     "layers": "avgpool",
     "model_id": "default_model_id",
@@ -189,12 +190,12 @@ explainer_kwargs = {
     "cache_dir": "./cache"
 }
 model_rand = ModelRandomizationMetric(
-        model=model,
-        train_dataset=train_set,
-        explainer_cls=CaptumSimilarity,
-        expl_kwargs=explainer_kwargs,
-        correlation_fn="spearman",
-        seed=42,
+    model=model,
+    train_dataset=train_set,
+    explainer_cls=CaptumSimilarity,
+    expl_kwargs=explainer_kwargs,
+    correlation_fn="spearman",
+    seed=42,
 )
 ```
 </details>
@@ -270,7 +271,7 @@ Ensure that the output tensor has the shape `(test_samples, train_samples)`, whe
 ```python
 def explain(
   self,
-  test: torch.Tensor,
+  test_tensor: torch.Tensor,
   targets: Union[List[int], torch.Tensor]
 ) -> torch.Tensor:
     # Compute your influence scores here
