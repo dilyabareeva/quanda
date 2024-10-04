@@ -31,7 +31,12 @@ from torch import Tensor
 from tqdm import tqdm
 
 from quanda.explainers.base import Explainer
-from quanda.utils.common import default_tensor_type, map_location_context
+from quanda.utils.common import (
+    default_tensor_type,
+    ds_len,
+    map_location_context,
+    process_targets,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -250,7 +255,7 @@ class RepresenterPoints(Explainer):
         if self.features_postprocess is not None:
             self.samples = self.features_postprocess(self.samples)
 
-        self.labels = torch.tensor([train_dataset[i][1] for i in range(self.dataset_length)], device=self.device).type(
+        self.labels = torch.tensor([train_dataset[i][1] for i in range(ds_len(self.train_dataset))], device=self.device).type(
             torch.int
         )
 
@@ -315,13 +320,13 @@ class RepresenterPoints(Explainer):
 
         return self.current_acts
 
-    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
+    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
         """
         Explain the predictions of the model for a given test batch.
 
         Parameters
         ----------
-        test : torch.Tensor
+        test_tensor : torch.Tensor
             The test batch for which explanations are generated.
         targets : Union[List[int], torch.Tensor]
             The target values for the explanations.
@@ -331,10 +336,10 @@ class RepresenterPoints(Explainer):
         torch.Tensor
             The explanations for the test batch.
         """
-        test = test.to(self.device)
-        targets = self._process_targets(targets)
+        test_tensor = test_tensor.to(self.device)
+        targets = process_targets(targets, self.device)
 
-        f = self._get_activations(test, self.features_layer)
+        f = self._get_activations(test_tensor, self.features_layer)
 
         if self.features_postprocess is not None:
             f = self.features_postprocess(f)

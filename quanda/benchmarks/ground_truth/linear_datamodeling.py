@@ -122,8 +122,8 @@ class LinearDatamodeling(Benchmark):
         logger.info(f"Generating {LinearDatamodeling.name} benchmark components based on passed arguments...")
 
         obj = cls()
-        obj.set_devices(model)
-        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj._set_devices(model)
+        obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.correlation_fn = correlation_fn
         obj.seed = seed
@@ -154,7 +154,7 @@ class LinearDatamodeling(Benchmark):
         obj = cls()
         bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
 
-        eval_dataset = obj.build_eval_dataset(
+        eval_dataset = obj._build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=sample_transforms[bench_state["dataset_transform"]],
@@ -246,8 +246,8 @@ class LinearDatamodeling(Benchmark):
         obj.seed = seed
         obj.cache_dir = cache_dir
         obj.model_id = model_id
-        obj.train_dataset = obj.process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
-        obj.set_devices(model)
+        obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj._set_devices(model)
 
         return obj
 
@@ -310,7 +310,7 @@ class LinearDatamodeling(Benchmark):
                 targets = labels
 
             explanations = explainer.explain(
-                test=input,
+                test_tensor=input,
                 targets=targets,
             )
 

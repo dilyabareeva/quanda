@@ -108,7 +108,7 @@ class ModelRandomizationMetric(Metric):
         test_data = test_data.to(self.device)
         explanation_targets = explanation_targets.to(self.device) if explanation_targets is not None else None
 
-        rand_explanations = self.rand_explainer.explain(test=test_data, targets=explanation_targets).to(self.device)
+        rand_explanations = self.rand_explainer.explain(test_tensor=test_data, targets=explanation_targets).to(self.device)
 
         corrs = self.corr_measure(explanations, rand_explanations)
         self.results["scores"].append(corrs)

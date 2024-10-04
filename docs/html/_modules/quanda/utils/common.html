@@ -32,6 +32,7 @@
           
           <a href="../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
@@ -103,7 +104,7 @@
 
 
 <div class="viewcode-block" id="get_parent_module_from_name">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.common.get_parent_module_from_name">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.common.html#quanda.utils.common.get_parent_module_from_name">[docs]</a>
 <span class="k">def</span> <span class="nf">get_parent_module_from_name</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">layer_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the parent module of a module in a model by name.</span>
@@ -125,7 +126,7 @@
 
 
 <div class="viewcode-block" id="make_func">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.common.make_func">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.common.html#quanda.utils.common.make_func">[docs]</a>
 <span class="k">def</span> <span class="nf">make_func</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">func_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A function for creating a partial function with the given arguments.</span>
@@ -153,7 +154,7 @@
 
 
 <div class="viewcode-block" id="cache_result">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.common.cache_result">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.common.html#quanda.utils.common.cache_result">[docs]</a>
 <span class="k">def</span> <span class="nf">cache_result</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Decorator to cache method results.&quot;&quot;&quot;</span>
     <span class="n">cache_attr</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">_cache&quot;</span>
@@ -169,7 +170,7 @@
 
 
 <div class="viewcode-block" id="class_accuracy">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.common.class_accuracy">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.common.html#quanda.utils.common.class_accuracy">[docs]</a>
 <span class="k">def</span> <span class="nf">class_accuracy</span><span class="p">(</span><span class="n">net</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">loader</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;cpu&quot;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return accuracy on a dataset given by the data loader.</span>
@@ -254,7 +255,7 @@
 
 
 <div class="viewcode-block" id="get_load_state_dict_func">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.common.get_load_state_dict_func">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.common.html#quanda.utils.common.get_load_state_dict_func">[docs]</a>
 <span class="k">def</span> <span class="nf">get_load_state_dict_func</span><span class="p">(</span><span class="n">device</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function to get a load_state_dict function that loads a model state dict</span>
@@ -273,7 +274,7 @@
 
 
 <div class="viewcode-block" id="default_tensor_type">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.common.default_tensor_type">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.common.html#quanda.utils.common.default_tensor_type">[docs]</a>
 <span class="nd">@contextmanager</span>
 <span class="k">def</span> <span class="nf">default_tensor_type</span><span class="p">(</span><span class="n">device</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -314,7 +315,7 @@
 
 
 <div class="viewcode-block" id="map_location_context">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.common.map_location_context">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.common.html#quanda.utils.common.map_location_context">[docs]</a>
 <span class="nd">@contextmanager</span>
 <span class="k">def</span> <span class="nf">map_location_context</span><span class="p">(</span><span class="n">device</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -347,7 +348,7 @@
 
 
 <div class="viewcode-block" id="ds_len">
-<a class="viewcode-back" href="../../../quanda.utils.html#quanda.utils.common.ds_len">[docs]</a>
+<a class="viewcode-back" href="../../../docs_api/quanda.utils.common.html#quanda.utils.common.ds_len">[docs]</a>
 <span class="k">def</span> <span class="nf">ds_len</span><span class="p">(</span><span class="n">dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the length of the dataset.</span>

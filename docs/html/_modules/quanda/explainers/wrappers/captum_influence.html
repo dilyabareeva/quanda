@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -116,14 +117,14 @@
 
 
 <div class="viewcode-block" id="CaptumInfluence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumInfluence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumInfluence">[docs]</a>
 <span class="k">class</span> <span class="nc">CaptumInfluence</span><span class="p">(</span><span class="n">Explainer</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for the Captum explainers.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CaptumInfluence.__init__">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumInfluence.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumInfluence.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
@@ -160,7 +161,7 @@
 
 
 <div class="viewcode-block" id="CaptumInfluence.init_explainer">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumInfluence.init_explainer">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumInfluence.init_explainer">[docs]</a>
     <span class="k">def</span> <span class="nf">init_explainer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">explain_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the Captum explainer.</span>
@@ -174,7 +175,7 @@
 
 
 <div class="viewcode-block" id="CaptumInfluence.explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumInfluence.explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumInfluence.explain">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -198,7 +199,7 @@
 
 
 <div class="viewcode-block" id="CaptumSimilarity">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumSimilarity">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumSimilarity">[docs]</a>
 <span class="k">class</span> <span class="nc">CaptumSimilarity</span><span class="p">(</span><span class="n">CaptumInfluence</span><span class="p">):</span>
     <span class="c1"># TODO: incorporate SimilarityInfluence kwargs into init_kwargs</span>
     <span class="c1"># TODO: Check usage of &#39;replace_nan&#39; in SimilarityInfluence</span>
@@ -215,7 +216,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CaptumSimilarity.__init__">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumSimilarity.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumSimilarity.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
@@ -362,7 +363,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_layer</span> <span class="o">=</span> <span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
 <div class="viewcode-block" id="CaptumSimilarity.explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumSimilarity.explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumSimilarity.explain">[docs]</a>
     <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">)):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute influence scores for the test samples.</span>
@@ -402,7 +403,7 @@
 
 
 <div class="viewcode-block" id="captum_similarity_explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.captum_similarity_explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.captum_similarity_explain">[docs]</a>
 <span class="k">def</span> <span class="nf">captum_similarity_explain</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
     <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -449,7 +450,7 @@
 
 
 <div class="viewcode-block" id="captum_similarity_self_influence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.captum_similarity_self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.captum_similarity_self_influence">[docs]</a>
 <span class="k">def</span> <span class="nf">captum_similarity_self_influence</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
     <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -494,7 +495,7 @@
 
 
 <div class="viewcode-block" id="CaptumArnoldi">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumArnoldi">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumArnoldi">[docs]</a>
 <span class="k">class</span> <span class="nc">CaptumArnoldi</span><span class="p">(</span><span class="n">CaptumInfluence</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for Arnoldi Influence Function wrapper.</span>
@@ -516,7 +517,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CaptumArnoldi.__init__">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumArnoldi.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumArnoldi.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
@@ -659,7 +660,7 @@
 
 
 <div class="viewcode-block" id="CaptumArnoldi.explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumArnoldi.explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumArnoldi.explain">[docs]</a>
     <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute influence scores for the test samples.</span>
@@ -689,7 +690,7 @@
 
 
 <div class="viewcode-block" id="CaptumArnoldi.self_influence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumArnoldi.self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumArnoldi.self_influence">[docs]</a>
     <span class="k">def</span> <span class="nf">self_influence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute self-influence scores.</span>
@@ -711,7 +712,7 @@
 
 
 <div class="viewcode-block" id="captum_arnoldi_explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.captum_arnoldi_explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.captum_arnoldi_explain">[docs]</a>
 <span class="k">def</span> <span class="nf">captum_arnoldi_explain</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
     <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -756,7 +757,7 @@
 
 
 <div class="viewcode-block" id="captum_arnoldi_self_influence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.captum_arnoldi_self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.captum_arnoldi_self_influence">[docs]</a>
 <span class="k">def</span> <span class="nf">captum_arnoldi_self_influence</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
     <span class="n">train_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
@@ -793,7 +794,7 @@
 
 
 <div class="viewcode-block" id="CaptumTracInCP">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCP">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCP">[docs]</a>
 <span class="k">class</span> <span class="nc">CaptumTracInCP</span><span class="p">(</span><span class="n">CaptumInfluence</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrapper for the captum TracInCP explainer. This implements the TracIn method as described by Pruthi et al. (2020).</span>
@@ -811,7 +812,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CaptumTracInCP.__init__">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCP.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCP.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
@@ -896,7 +897,7 @@
 
 
 <div class="viewcode-block" id="CaptumTracInCP.explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCP.explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCP.explain">[docs]</a>
     <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute influence scores for the test samples.</span>
@@ -926,7 +927,7 @@
 
 
 <div class="viewcode-block" id="CaptumTracInCP.self_influence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCP.self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCP.self_influence">[docs]</a>
     <span class="k">def</span> <span class="nf">self_influence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute self-influence scores.</span>
@@ -950,7 +951,7 @@
 
 
 <div class="viewcode-block" id="captum_tracincp_explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.captum_tracincp_explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.captum_tracincp_explain">[docs]</a>
 <span class="k">def</span> <span class="nf">captum_tracincp_explain</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
     <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -995,7 +996,7 @@
 
 
 <div class="viewcode-block" id="captum_tracincp_self_influence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.captum_tracincp_self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.captum_tracincp_self_influence">[docs]</a>
 <span class="k">def</span> <span class="nf">captum_tracincp_self_influence</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
     <span class="n">train_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
@@ -1032,7 +1033,7 @@
 
 
 <div class="viewcode-block" id="CaptumTracInCPFast">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCPFast">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCPFast">[docs]</a>
 <span class="k">class</span> <span class="nc">CaptumTracInCPFast</span><span class="p">(</span><span class="n">CaptumInfluence</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrapper for the captum TracInCPFast explainer.</span>
@@ -1051,7 +1052,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CaptumTracInCPFast.__init__">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCPFast.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCPFast.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -1138,7 +1139,7 @@
 
 
 <div class="viewcode-block" id="CaptumTracInCPFast.explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCPFast.explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCPFast.explain">[docs]</a>
     <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute influence scores for the test samples.</span>
@@ -1168,7 +1169,7 @@
 
 
 <div class="viewcode-block" id="CaptumTracInCPFast.self_influence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCPFast.self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCPFast.self_influence">[docs]</a>
     <span class="k">def</span> <span class="nf">self_influence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute self-influence scores.</span>
@@ -1192,7 +1193,7 @@
 
 
 <div class="viewcode-block" id="captum_tracincp_fast_explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.captum_tracincp_fast_explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.captum_tracincp_fast_explain">[docs]</a>
 <span class="k">def</span> <span class="nf">captum_tracincp_fast_explain</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
     <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -1237,7 +1238,7 @@
 
 
 <div class="viewcode-block" id="captum_tracincp_fast_self_influence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.captum_tracincp_fast_self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.captum_tracincp_fast_self_influence">[docs]</a>
 <span class="k">def</span> <span class="nf">captum_tracincp_fast_self_influence</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
     <span class="n">train_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
@@ -1278,7 +1279,7 @@
 
 
 <div class="viewcode-block" id="CaptumTracInCPFastRandProj">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCPFastRandProj">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCPFastRandProj">[docs]</a>
 <span class="k">class</span> <span class="nc">CaptumTracInCPFastRandProj</span><span class="p">(</span><span class="n">CaptumInfluence</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrapper for the captum TracInCPFastRandProj explainer.</span>
@@ -1298,7 +1299,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="CaptumTracInCPFastRandProj.__init__">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCPFastRandProj.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCPFastRandProj.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
@@ -1416,7 +1417,7 @@
 
 
 <div class="viewcode-block" id="CaptumTracInCPFastRandProj.explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.CaptumTracInCPFastRandProj.explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumTracInCPFastRandProj.explain">[docs]</a>
     <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute influence scores for the test samples.</span>
@@ -1448,7 +1449,7 @@
 
 
 <div class="viewcode-block" id="captum_tracincp_fast_rand_proj_explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.captum_tracincp_fast_rand_proj_explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.captum_tracincp_fast_rand_proj_explain">[docs]</a>
 <span class="k">def</span> <span class="nf">captum_tracincp_fast_rand_proj_explain</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
     <span class="n">test_tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -1493,7 +1494,7 @@
 
 
 <div class="viewcode-block" id="captum_tracincp_fast_rand_proj_self_influence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.captum_tracincp_fast_rand_proj_self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.captum_tracincp_fast_rand_proj_self_influence">[docs]</a>
 <span class="k">def</span> <span class="nf">captum_tracincp_fast_rand_proj_self_influence</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
     <span class="n">train_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>

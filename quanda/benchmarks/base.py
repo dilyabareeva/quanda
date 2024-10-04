@@ -20,7 +20,6 @@ class Benchmark(ABC):
     def __init__(self, *args, **kwargs):
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
-        self.dataset_str: Optional[str] = None
         self._checkpoint_paths: Optional[List[str]] = None
 
     @classmethod
@@ -41,16 +40,17 @@ class Benchmark(ABC):
     @abstractmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """
-        This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
+        This method loads precomputed benchmark components from a file and creates an instance from the state
+        dictionary.
 
         Parameters
         ----------
         name : str
             Name of the benchmark to be loaded.
-        eval_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
-        batch_size : int, optional
-            Batch size to be used, by default 32.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        device : str
+            Device to load the model on.
 
         Raises
         ------
@@ -118,7 +118,7 @@ class Benchmark(ABC):
 
         raise NotImplementedError
 
-    def set_devices(
+    def _set_devices(
         self,
         model: torch.nn.Module,
     ):
@@ -135,7 +135,7 @@ class Benchmark(ABC):
         else:
             self.device = torch.device("cpu")
 
-    def process_dataset(
+    def _process_dataset(
         cls,
         dataset: Union[str, torch.utils.data.Dataset],
         transform: Optional[Callable] = None,
@@ -164,7 +164,7 @@ class Benchmark(ABC):
         else:
             return dataset
 
-    def build_eval_dataset(
+    def _build_eval_dataset(
         self,
         dataset_str: str,
         eval_indices: List[int],
@@ -193,9 +193,8 @@ class Benchmark(ABC):
         test_dataset = HFtoTV(load_dataset(dataset_str, split=dataset_split), transform=transform)
         return torch.utils.data.Subset(test_dataset, eval_indices)
 
-    @property
-    def checkpoint_paths(self) -> List[str]:
+    def get_checkpoint_paths(self) -> List[str]:
         assert (
             self._checkpoint_paths is not None
-        ), "checkpoint_paths can only be called after instantiating a benchmark using the download method."
+        ), "get_checkpoint_paths can only be called after instantiating a benchmark using the download method."
         return self._checkpoint_paths

@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -113,12 +114,12 @@
 
 
 <div class="viewcode-block" id="RepresenterSoftmax">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.RepresenterSoftmax">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.RepresenterSoftmax">[docs]</a>
 <span class="k">class</span> <span class="nc">RepresenterSoftmax</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Internal class for classification model training to use within Representer Points explainer.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RepresenterSoftmax.__init__">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.RepresenterSoftmax.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.RepresenterSoftmax.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">W</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="nb">str</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initializer for the RepresenterSoftmax class.</span>
@@ -135,7 +136,7 @@
 
 
 <div class="viewcode-block" id="RepresenterSoftmax.forward">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.RepresenterSoftmax.forward">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.RepresenterSoftmax.forward">[docs]</a>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Forward pass implementation of the RepresenterSoftmax class. Implements final linear layer and softmax.</span>
@@ -168,7 +169,7 @@
 
 
 <div class="viewcode-block" id="softmax_torch">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.softmax_torch">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.softmax_torch">[docs]</a>
 <span class="k">def</span> <span class="nf">softmax_torch</span><span class="p">(</span><span class="n">temp</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">N</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Torch implementation of the softmax function.</span>
@@ -194,7 +195,7 @@
 
 
 <div class="viewcode-block" id="av_samples">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.av_samples">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.av_samples">[docs]</a>
 <span class="k">def</span> <span class="nf">av_samples</span><span class="p">(</span><span class="n">av_dataset</span><span class="p">:</span> <span class="n">AV</span><span class="o">.</span><span class="n">AVDataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Concatenates the samples of an captum AV dataset.</span>
@@ -223,7 +224,7 @@
 
 
 <div class="viewcode-block" id="RepresenterPoints">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.RepresenterPoints">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.RepresenterPoints">[docs]</a>
 <span class="k">class</span> <span class="nc">RepresenterPoints</span><span class="p">(</span><span class="n">Explainer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A wrapper class for explaining the predictions of a deep neural network using representer points,</span>
@@ -245,7 +246,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RepresenterPoints.__init__">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.RepresenterPoints.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.RepresenterPoints.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">],</span>
@@ -412,7 +413,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_acts</span>
 
 <div class="viewcode-block" id="RepresenterPoints.explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.RepresenterPoints.explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.RepresenterPoints.explain">[docs]</a>
     <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Explain the predictions of the model for a given test batch.</span>
@@ -450,7 +451,7 @@
 
 
 <div class="viewcode-block" id="RepresenterPoints.train">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.RepresenterPoints.train">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.RepresenterPoints.train">[docs]</a>
     <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Train the model to obtain the representer point coefficients.</span>
@@ -525,7 +526,7 @@
 
 
 <div class="viewcode-block" id="RepresenterPoints.backtracking_line_search">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.RepresenterPoints.backtracking_line_search">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.RepresenterPoints.backtracking_line_search">[docs]</a>
     <span class="k">def</span> <span class="nf">backtracking_line_search</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">grad</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">val</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">N</span><span class="p">:</span> <span class="nb">int</span>
     <span class="p">):</span>
@@ -565,7 +566,7 @@
 
 
 <div class="viewcode-block" id="RepresenterPoints.self_influence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.RepresenterPoints.self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.representer_points.html#quanda.explainers.wrappers.RepresenterPoints.self_influence">[docs]</a>
     <span class="k">def</span> <span class="nf">self_influence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        For representer points, we define the self-influence as the coefficients of</span>

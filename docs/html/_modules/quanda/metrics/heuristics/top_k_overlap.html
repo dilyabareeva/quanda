@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -82,7 +83,7 @@
 
 
 <div class="viewcode-block" id="TopKOverlapMetric">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.TopKOverlapMetric">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric">[docs]</a>
 <span class="k">class</span> <span class="nc">TopKOverlapMetric</span><span class="p">(</span><span class="n">Metric</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Metric that measures the overlap of top-k explanations across all test samples, as argued in Barshan et al. (2020).</span>
@@ -96,7 +97,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="TopKOverlapMetric.__init__">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.TopKOverlapMetric.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -135,7 +136,7 @@
 
 
 <div class="viewcode-block" id="TopKOverlapMetric.update">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.TopKOverlapMetric.update">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">explanations</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -156,7 +157,7 @@
 
 
 <div class="viewcode-block" id="TopKOverlapMetric.compute">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.TopKOverlapMetric.compute">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.compute">[docs]</a>
     <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute the metric score.</span>
@@ -170,14 +171,14 @@
 
 
 <div class="viewcode-block" id="TopKOverlapMetric.reset">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.TopKOverlapMetric.reset">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.reset">[docs]</a>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the metric state.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_top_k_examples</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_k</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="TopKOverlapMetric.load_state_dict">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.TopKOverlapMetric.load_state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.load_state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load the metric state from a state dictionary.</span>
@@ -191,7 +192,7 @@
 
 
 <div class="viewcode-block" id="TopKOverlapMetric.state_dict">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.TopKOverlapMetric.state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the metric state as a dictionary.</span>

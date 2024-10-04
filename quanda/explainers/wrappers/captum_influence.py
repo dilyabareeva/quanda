@@ -31,6 +31,7 @@ from quanda.utils.common import (
     ds_len,
     get_load_state_dict_func,
     map_location_context,
+    process_targets,
 )
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity
@@ -90,13 +91,13 @@ class CaptumInfluence(Explainer, ABC):
         self.captum_explainer = self.explainer_cls(**explain_kwargs)
 
     @abstractmethod
-    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
+    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
         """
         Abstract method for computing influence scores for the test samples.
 
         Parameters
         ----------
-        test : torch.Tensor
+        test_tensor : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor], optional
             Labels for the test samples. Defaults to None.
@@ -268,13 +269,13 @@ class CaptumSimilarity(CaptumInfluence):
             raise ValueError("A single layer shall be passed to the CaptumSimilarity explainer.")
         self._layer = layers[0]
 
-    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor] = torch.tensor(0)):
+    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor] = torch.tensor(0)):
         """
         Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test : torch.Tensor
+        test_tensor : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor], optional
             Labels for the test samples. This argument is ignored.
@@ -284,14 +285,14 @@ class CaptumSimilarity(CaptumInfluence):
         torch.Tensor
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
-        test = test.to(self.device)
+        test_tensor = test_tensor.to(self.device)
 
         with map_location_context(self.device), default_tensor_type(self.device):
             topk_idx_1, topk_val_1 = self.captum_explainer_1.influence(
-                inputs=test, top_k=ds_len(self.train_dataset) - self.modulo_batch_size
+                inputs=test_tensor, top_k=ds_len(self.train_dataset) - self.modulo_batch_size
             )[self.layer]
             if self.modulo_batch_size > 0:
-                topk_idx_2, topk_val_2 = self.captum_explainer_2.influence(inputs=test, top_k=self.modulo_batch_size)[
+                topk_idx_2, topk_val_2 = self.captum_explainer_2.influence(inputs=test_tensor, top_k=self.modulo_batch_size)[
                     self.layer
                 ]
                 _, inverted_idx_1 = topk_idx_1.sort()
@@ -550,13 +551,13 @@ class CaptumArnoldi(CaptumInfluence):
         )
         self.init_explainer(**explainer_kwargs)
 
-    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]):
+    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]):
         """
         Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test : torch.Tensor
+        test_tensor : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
@@ -566,15 +567,15 @@ class CaptumArnoldi(CaptumInfluence):
         torch.Tensor
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
-        test = test.to(self.device)
-        targets = self._process_targets(targets)
+        test_tensor = test_tensor.to(self.device)
+        targets = process_targets(targets, self.device)
 
         if isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
         else:
             targets = targets.to(self.device)
 
-        influence_scores = self.captum_explainer.influence(inputs=(test, targets))
+        influence_scores = self.captum_explainer.influence(inputs=(test_tensor, targets))
         return influence_scores
 
     def self_influence(self, batch_size: int = 1) -> torch.Tensor:
@@ -769,13 +770,13 @@ class CaptumTracInCP(CaptumInfluence):
         self.init_explainer(**explainer_kwargs)
         self.device = device
 
-    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]):
+    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]):
         """
         Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test : torch.Tensor
+        test_tensor : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
@@ -785,15 +786,15 @@ class CaptumTracInCP(CaptumInfluence):
         torch.Tensor
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
-        test = test.to(self.device)
-        targets = self._process_targets(targets)
+        test_tensor = test_tensor.to(self.device)
+        targets = process_targets(targets, self.device)
 
         if isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
         else:
             targets = targets.to(self.device)
 
-        influence_scores = self.captum_explainer.influence(inputs=(test, targets))
+        influence_scores = self.captum_explainer.influence(inputs=(test_tensor, targets))
         return influence_scores
 
     def self_influence(self, batch_size: int = 1) -> torch.Tensor:
@@ -993,13 +994,13 @@ class CaptumTracInCPFast(CaptumInfluence):
         )
         self.init_explainer(**explainer_kwargs)
 
-    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]):
+    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]):
         """
         Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test : torch.Tensor
+        test_tensor : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
@@ -1009,15 +1010,15 @@ class CaptumTracInCPFast(CaptumInfluence):
         torch.Tensor
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
-        test = test.to(self.device)
-        targets = self._process_targets(targets)
+        test_tensor = test_tensor.to(self.device)
+        targets = process_targets(targets, self.device)
 
         if isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
         else:
             targets = targets.to(self.device)
 
-        influence_scores = self.captum_explainer.influence(inputs=(test, targets), k=None)
+        influence_scores = self.captum_explainer.influence(inputs=(test_tensor, targets), k=None)
         return influence_scores
 
     def self_influence(self, batch_size: int = 1) -> torch.Tensor:
@@ -1253,13 +1254,13 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 
         self.init_explainer(**explainer_kwargs)
 
-    def explain(self, test: torch.Tensor, targets: Union[List[int], torch.Tensor]):
+    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]):
         """
         Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test : torch.Tensor
+        test_tensor : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
@@ -1269,15 +1270,15 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         torch.Tensor
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
-        test = test.to(self.device)
-        targets = self._process_targets(targets)
+        test_tensor = test_tensor.to(self.device)
+        targets = process_targets(targets, self.device)
 
         if isinstance(targets, list):
             targets = torch.tensor(targets).to(self.device)
         else:
             targets = targets.to(self.device)
 
-        influence_scores = self.captum_explainer.influence(inputs=(test, targets), k=None)
+        influence_scores = self.captum_explainer.influence(inputs=(test_tensor, targets), k=None)
         return influence_scores
 
 

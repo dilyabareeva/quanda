@@ -190,7 +190,7 @@ def main():
     for i, (data, target) in enumerate(tqdm(test_loader)):
         data, target = data.to(DEVICE), target.to(DEVICE)
         tda = explainer.explain(
-            test=data,
+            test_tensor=data,
         )
         model_rand.update(data, tda)
         id_class.update(target, tda)

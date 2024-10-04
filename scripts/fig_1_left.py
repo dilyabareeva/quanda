@@ -44,7 +44,7 @@ os.makedirs(explanations_dir, exist_ok=True)
 
 n_epochs = 10
 checkpoints = [
-    os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(1, n_epochs, 2)
+    os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(5, n_epochs, 1)
 ]
 
 # Dataset Construction
@@ -62,7 +62,7 @@ device = "cpu"
 
 # Define transformations
 regular_transforms = transforms.Compose(
-    [transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
+    [transforms.Resize((64, 64)), transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
 )
 
 # Load the TinyImageNet dataset
@@ -128,7 +128,7 @@ train_set = special_dataset(
     shortcut_fn=add_yellow_square,
     backdoor_dataset=panda_set,
     shortcut_transform_indices=torch.load(os.path.join(metadata_dir, "all_train_shortcut_indices_for_generation.pth")),
-    flipping_transform_dict=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
+    flipping_transform_dict={},
 )
 
 test_set_grouped = LabelGroupingDataset(
@@ -166,81 +166,40 @@ dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, s
 
 test_dogs = torch.load(os.path.join(metadata_dir, "big_eval_test_dogs_indices.pth"))
 test_cats = torch.load(os.path.join(metadata_dir, "big_eval_test_cats_indices.pth"))
-cat_dog_dataset = torch.utils.data.Subset(test_set_grouped, test_cats + test_dogs)
-cat_dog_ungrouped_dataset = torch.utils.data.Subset(test_set_transform, test_cats + test_dogs)
-dataloader = torch.utils.data.DataLoader(cat_dog_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+
+
+clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
+clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
+dataloader = torch.utils.data.DataLoader(clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
 explanation_methods = [
     "representer_points",
-    # "trak", "representer_points", "random", "tracincpfast", "arnoldi"
+    "arnoldi",
+    "tracincpfast",
+    "trak",
 ]
-for method in explanation_methods:
+TRANSP_COLORS = ["#FFDDBB", "#83BA59", "#FFDAD4", "#EDDCFF"]
+for ij, method in enumerate(explanation_methods):
     method_save_dir = os.path.join(explanations_dir, method)
     subset_save_dir = os.path.join(method_save_dir, "subclass")
     explanations = EC.load(subset_save_dir)
-    for i, (test_tensor, test_labels) in enumerate(dataloader):
-        if i != 0:
-            continue
-        test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
-        explanations = explanations[i]
-        explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
-        for j in range(len(explanations)):
-            if j != 19:
-                continue
-            visualize_top_3_bottom_3_influential(
-                train_set,
-                test_tensor[j : j + 1],
-                test_labels[j : j + 1],
-                explanation_targets[j : j + 1],
-                explanations[j : j + 1],
-                r_name_dict,
-                save_path=None,
-            )
-            save_influential_samples(
-                train_set,
-                test_tensor[j : j + 1],
-                explanations[j : j + 1],
-                denormalize,
-                ["cat_" + str(j)],
-                r_name_dict,
-                top_k=7,
-                save_path="../fig_1_images",
-            )
+    test_tensor, test_labels = next(iter(dataloader))
+    test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
+    explanations = explanations[0]
+    explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
+    j = 63
+    save_influential_samples(
+        train_set,
+        test_tensor[j : j + 1],
+        explanations[j : j + 1],
+        denormalize,
+        ["gazelle_" + str(j)],
+        r_name_dict,
+        top_k=7,
+        save_path="../fig_1_images",
+        method=method,
+        color=TRANSP_COLORS[ij],
+    )
 
-            color_palette = []
-            for pal in ["Reds", "Blues", "Oranges"]:
-                palette = sns.color_palette(pal, 10)
-                color_palette.append(palette.as_hex()[7])
-
-            sns.set_style(style="white")
-            plt.rcParams.update(
-                {
-                    "text.usetex": True,
-                    "font.family": "Helvetica",
-                    "font.size": 8,
-                    "xtick.labelsize": 8,
-                    "ytick.labelsize": 8,
-                }
-            )
-
-            plt.figure(figsize=(192 / 72.27, 51 / 72.27))
-            g = sns.histplot(
-                data={r"Attribution": explanations[j].cpu().numpy()},
-                x=r"Attribution",
-                kde=True,
-                kde_kws={"bw_adjust": 1.0},
-                line_kws={"linewidth": 1.8},
-                bins=200,
-                palette=sns.color_palette(color_palette),
-            )
-
-            # do not display axis labels
-            g.set(xlabel=None, ylabel=None)
-
-            # do not display x-ticks, y-ticks
-            g.set(xticks=[], yticks=[])
-            plt.tight_layout()
-            plt.savefig(f"../fig_1_images/distributon_cat_{j}.png", dpi=500)
-            plt.show()
 
 # i=0, j=5

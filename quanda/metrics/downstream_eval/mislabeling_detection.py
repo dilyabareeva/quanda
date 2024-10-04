@@ -8,6 +8,7 @@ from quanda.explainers.global_ranking import (
     aggr_types,
 )
 from quanda.metrics.base import Metric
+from quanda.utils.common import ds_len
 
 
 class MislabelingDetectionMetric(Metric):
@@ -262,7 +263,7 @@ class MislabelingDetectionMetric(Metric):
         mislabeling_set = set(self.mislabeling_indices)
         success_arr = torch.tensor([elem.item() in mislabeling_set for elem in global_ranking])
         normalized_curve = torch.cumsum(success_arr * 1.0, dim=0) / len(self.mislabeling_indices)
-        score = torch.trapezoid(normalized_curve) / self.dataset_length
+        score = torch.trapezoid(normalized_curve) / ds_len(self.train_dataset)
         return {
             "score": score.item(),
             "success_arr": success_arr,

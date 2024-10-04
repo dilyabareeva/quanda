@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -85,7 +86,7 @@
 
 
 <div class="viewcode-block" id="ModelRandomizationMetric">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.ModelRandomizationMetric">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.model_randomization.html#quanda.metrics.heuristics.ModelRandomizationMetric">[docs]</a>
 <span class="k">class</span> <span class="nc">ModelRandomizationMetric</span><span class="p">(</span><span class="n">Metric</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Metric to evaluate the dependence of the attributions on the model parameters.</span>
@@ -100,7 +101,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ModelRandomizationMetric.__init__">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.ModelRandomizationMetric.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.model_randomization.html#quanda.metrics.heuristics.ModelRandomizationMetric.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -168,7 +169,7 @@
 
 
 <div class="viewcode-block" id="ModelRandomizationMetric.update">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.ModelRandomizationMetric.update">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.model_randomization.html#quanda.metrics.heuristics.ModelRandomizationMetric.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">test_data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -198,7 +199,7 @@
 
 
 <div class="viewcode-block" id="ModelRandomizationMetric.compute">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.ModelRandomizationMetric.compute">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.model_randomization.html#quanda.metrics.heuristics.ModelRandomizationMetric.compute">[docs]</a>
     <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute and return the mean score.</span>
@@ -211,7 +212,7 @@
 
 
 <div class="viewcode-block" id="ModelRandomizationMetric.reset">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.ModelRandomizationMetric.reset">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.model_randomization.html#quanda.metrics.heuristics.ModelRandomizationMetric.reset">[docs]</a>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resets the state of the model randomization.</span>
@@ -227,7 +228,7 @@
 
 
 <div class="viewcode-block" id="ModelRandomizationMetric.state_dict">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.ModelRandomizationMetric.state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.model_randomization.html#quanda.metrics.heuristics.ModelRandomizationMetric.state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the state of the metric.</span>
@@ -245,7 +246,7 @@
 
 
 <div class="viewcode-block" id="ModelRandomizationMetric.load_state_dict">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.ModelRandomizationMetric.load_state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.model_randomization.html#quanda.metrics.heuristics.ModelRandomizationMetric.load_state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load the state of the metric.</span>

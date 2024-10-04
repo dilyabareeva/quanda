@@ -4,6 +4,7 @@ import torch
 from torcheval.metrics.functional import binary_auprc
 
 from quanda.metrics.base import Metric
+from quanda.utils.common import ds_len
 
 
 class ShortcutDetectionMetric(Metric):
@@ -61,7 +62,7 @@ class ShortcutDetectionMetric(Metric):
         self.auprc_scores: List[torch.Tensor] = []
         self.shortcut_indices = shortcut_indices
         self.binary_shortcut_indices: torch.Tensor = torch.tensor(
-            [1 if i in self.shortcut_indices else 0 for i in range(self.dataset_length)], device=self.device
+            [1 if i in self.shortcut_indices else 0 for i in range(ds_len(self.train_dataset))], device=self.device
         )
         self.shortcut_cls = shortcut_cls
         self._validate_shortcut_labels()

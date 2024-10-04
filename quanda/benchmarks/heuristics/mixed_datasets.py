@@ -155,13 +155,13 @@ class MixedDatasets(Benchmark):
         logger.info(f"Generating {MixedDatasets.name} benchmark components based on passed arguments...")
 
         obj = cls()
-        obj.set_devices(model)
+        obj._set_devices(model)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.adversarial_label = adversarial_label
         obj.filter_by_prediction = filter_by_prediction
 
-        pr_base_dataset = obj.process_dataset(base_dataset, transform=data_transform, dataset_split=dataset_split)
+        pr_base_dataset = obj._process_dataset(base_dataset, transform=data_transform, dataset_split=dataset_split)
 
         adversarial_dataset = SingleClassImageDataset(
             root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
@@ -239,7 +239,7 @@ class MixedDatasets(Benchmark):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
-        eval_dataset = obj.build_eval_dataset(
+        eval_dataset = obj._build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=sample_transforms[bench_state["dataset_transform"]],
@@ -355,7 +355,7 @@ class MixedDatasets(Benchmark):
 
         obj = cls()
         obj.model = model
-        obj.base_dataset = obj.process_dataset(base_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(base_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
@@ -367,7 +367,7 @@ class MixedDatasets(Benchmark):
 
         obj.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, obj.base_dataset])
         obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [0] * ds_len(obj.base_dataset)
-        obj.set_devices(model)
+        obj._set_devices(model)
 
         obj._checkpoint_paths = checkpoint_paths
 
@@ -423,7 +423,7 @@ class MixedDatasets(Benchmark):
                     targets = self.model(inputs).argmax(dim=-1)
             else:
                 targets = labels
-            explanations = explainer.explain(test=inputs, targets=targets)
+            explanations = explainer.explain(test_tensor=inputs, targets=targets)
             metric.update(explanations, test_tensor=inputs, test_labels=labels)
 
         return metric.compute()

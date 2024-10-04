@@ -1,9 +1,12 @@
 import copy
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import wandb
 from dotenv import load_dotenv
+from matplotlib import font_manager, rcParams
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
@@ -61,16 +64,13 @@ df = df.pivot(index="method", columns="metric", values="score")
 
 # change values to rank, higher is better
 df = df.rank(axis=0, method="max", ascending=True)
-df = df - df.min()
-df = df / df.max()
-
 
 df.index.name = "explainer"
 
 # Rename metrics
 df = df.rename(
     columns={
-        "top_k_overlap": "Top-K\nCardinality",
+        "top_k_overlap": "Top-K\nOverlap",
         "subclass": "Subclass\nDetection",
         "mislabeling": "Mislabeling\nDetection",
         "shortcut": "Shortcut\nDetection",
@@ -79,6 +79,8 @@ df = df.rename(
         "mixed_dataset": "Mixed Dataset\nSeparation",
     }
 )
+
+metrics = df.columns.tolist()
 
 # Rename methods
 df = df.rename(
@@ -93,7 +95,7 @@ df = df.rename(
 )
 
 # sort indices by a list
-sort_list = ["ArnoldiInf", "ReprPoints", "TracInCP", "TRAK-1", "Random"]
+sort_list = ["ReprPoints", "ArnoldiInf", "TracInCP", "TRAK-1", "Random"]
 
 df = df.loc[sort_list]
 
@@ -102,20 +104,24 @@ df.reset_index(inplace=True)
 
 print(df.head())
 
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib import font_manager, rcParams
 
-fonts = ["../assets/demo/Poppins-Regular.ttf", "../assets/demo/Poppins-Bold.ttf"]
+fonts = ["../assets/demo/Helvetica.ttf", "../assets/demo/Helvetica-Bold.ttf"]
 [font_manager.fontManager.addfont(font) for font in fonts]
-rcParams["font.family"] = "Poppins"
+
+# Set the font family to Helvetica
+rcParams["font.family"] = "Helvetica"
+
+# Optionally set the font weight and size if desired
+rcParams["font.weight"] = "normal"  # or 'bold' if you want bold text
+# rcParams['font.size'] = 10  # Set the default font size
 
 BG_WHITE = "#ffffff"
 BLUE = "#2a475e"
 GREY70 = "#B0A8B9"
 GREY_LIGHT = "#F4F4F4"  # "#f2efe8" #"#F8F3F3"
-COLORS = ["#EA4E38", "#7D53BA", "#7EAF6E", "#5E4B3D", "#6F97B1", "#EB9C38"]
 
+TRANSP_COLORS = ["#FFDDBB", "#83BA59", "#FFDAD4", "#EDDCFF"]
+COLORS = ["#EB9C38", "#83BA59", "#EA4E38", "#7D53BA", "#90918B", "#EB9C38"]
 RADIUS_RATIO = 1.2
 
 # The three species of penguins
@@ -124,7 +130,7 @@ SPECIES_N = len(SPECIES)
 # The four variables in the plot
 VARIABLES = df.columns.tolist()[1:]
 VARIABLES_N = len(VARIABLES)
-
+"""
 # The angles at which the values of the numeric variables are placed
 ANGLES = [n / VARIABLES_N * 2 * np.pi for n in range(VARIABLES_N)]
 ANGLES += ANGLES[:1]
@@ -180,7 +186,7 @@ ax.tick_params(axis="x", pad=-8)
 
 # Adjust individual tick label positions
 for tick_label, angle in zip(ax.get_xticklabels(), TANGLES[:-1]):
-    if tick_label.get_text() in ["Top-K\nCardinality", "Mixed Dataset\nSeparation"]:
+    if tick_label.get_text() in ["Top-K\nOverlap", "Mixed Dataset\nSeparation"]:
         tick_label.set_y(tick_label.get_position()[1] - 0.1)
     if tick_label.get_text() == "Mislabeling\nDetection":
         tick_label.set_y(tick_label.get_position()[1] + 0.05)
@@ -244,3 +250,87 @@ plt.show()
 
 # save fig_1
 fig.savefig("../scripts/fig_1.png", bbox_inches=None, pad_inches=0, dpi=1000)
+"""
+
+# Set figure size
+width_pt = 170 / 72.27
+height_pt = 110 / 72.27
+
+# Set up the figure and axis
+fig, ax = plt.subplots(figsize=(width_pt, height_pt), dpi=500)
+ax.set_facecolor("#FFFFFF")
+fig.patch.set_facecolor("#FAFAF2")
+
+# Number of groups (metrics)
+n_metrics = len(metrics)
+n_explainers = len(df)  # Number of explainers for each metric
+
+# Bar width (slightly reduced for spacing)
+bar_width = 0.12  # Reduce bar width for spacing between bars
+
+# Space between bars within a group
+bar_padding = 0.03  # Padding between bars
+
+# X locations for groups (use metrics as x positions)
+x_indices = np.arange(n_metrics)
+
+# Plot horizontal dashed lines for y=1 to y=5
+for y in [1, 2, 3, 4, 5][::-1]:
+    plt.axhline(y=y, linewidth=0.3, zorder=0, color="gray", linestyle="dashed")
+
+# Loop through each metric to plot bars
+for j, metric in enumerate(metrics):
+    # Get the values for this metric (one column of df)
+    metric_values = df[metric].values
+
+    # Sort values in descending order, and get the corresponding indices
+    sorted_indices = np.argsort(metric_values)[::-1]
+    sorted_values = metric_values[sorted_indices]
+
+    # Adjust x positions for spacing between bars
+    x_positions = x_indices[j] + np.arange(n_explainers) * (bar_width + bar_padding)
+
+    # Plot bars for this metric (one set of bars)
+    ax.bar(
+        x_positions,
+        sorted_values,
+        width=bar_width,
+        color=[COLORS[i % len(COLORS)] for i in sorted_indices],
+        edgecolor="none",
+        label=f"{metric}",
+    )
+
+# Set y-ticks to display 1, 2, 3, 4, 5
+ax.set_yticks([1, 2, 3, 4, 5])
+ax.set_yticklabels([5, 4, 3, 2, 1])
+ax.tick_params(axis="y", size=3, width=0.5)  # Reduce the y-tick marker size and width
+
+# Set x-ticks with rotated metric names
+ax.set_xticks(x_indices + (bar_width + bar_padding) * (n_explainers - 1) / 2)  # Center ticks
+ax.set_xticklabels(metrics, rotation=45, ha="center", fontsize=7)  # Rotate metric names for better visibility
+ax.tick_params(axis="x", pad=0, size=3, width=0.5)
+
+# Remove the y-axis label
+ax.set_ylabel("Rank", fontsize=7)  # Set y-axis label to empty
+
+# set label font size
+
+# Set y-tick label size to 6
+ax.tick_params(axis="y", labelsize=6)
+
+# Remove borders from the axes
+for spine in ax.spines.values():
+    spine.set_linewidth(0.3)
+    spine.set_color("black")  # Ensure the spines are visible with color
+
+plt.subplots_adjust(
+    left=0.15, right=0.95, top=0.85, bottom=0.38
+)  # Adjust the top margin (1 is the maximum, reduce for more space)
+
+
+# Show plot
+# plt.tight_layout()
+
+
+plt.savefig("../scripts/bar_rank.png", bbox_inches=None, pad_inches=0, dpi=1000)
+plt.show()

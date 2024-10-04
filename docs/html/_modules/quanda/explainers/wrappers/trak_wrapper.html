@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -105,7 +106,7 @@
 
 
 <div class="viewcode-block" id="TRAK">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.TRAK">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.trak_wrapper.html#quanda.explainers.wrappers.TRAK">[docs]</a>
 <span class="k">class</span> <span class="nc">TRAK</span><span class="p">(</span><span class="n">Explainer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interface for the TRAK [1] explainer as given by the official TRAK library [2].</span>
@@ -125,7 +126,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="TRAK.__init__">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.TRAK.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.trak_wrapper.html#quanda.explainers.wrappers.TRAK.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -254,7 +255,7 @@
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TRAK.explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.TRAK.explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.trak_wrapper.html#quanda.explainers.wrappers.TRAK.explain">[docs]</a>
     <span class="k">def</span> <span class="nf">explain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates explanations for the given test inputs.</span>
@@ -291,7 +292,7 @@
 
 
 <div class="viewcode-block" id="trak_explain">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.trak_explain">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.trak_wrapper.html#quanda.explainers.wrappers.trak_explain">[docs]</a>
 <span class="k">def</span> <span class="nf">trak_explain</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
     <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -338,7 +339,7 @@
 
 
 <div class="viewcode-block" id="trak_self_influence">
-<a class="viewcode-back" href="../../../../quanda.explainers.wrappers.html#quanda.explainers.wrappers.trak_self_influence">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.trak_wrapper.html#quanda.explainers.wrappers.trak_self_influence">[docs]</a>
 <span class="k">def</span> <span class="nf">trak_self_influence</span><span class="p">(</span>
     <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
     <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>

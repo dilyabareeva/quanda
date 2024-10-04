@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -99,7 +100,7 @@
 
 
 <div class="viewcode-block" id="MixedDatasets">
-<a class="viewcode-back" href="../../../../quanda.benchmarks.heuristics.html#quanda.benchmarks.heuristics.MixedDatasets">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets">[docs]</a>
 <span class="k">class</span> <span class="nc">MixedDatasets</span><span class="p">(</span><span class="n">Benchmark</span><span class="p">):</span>
     <span class="c1"># TODO: remove FILTER BY &quot;CORRECT&quot; PREDICTION FOR BACKDOOR implied https://arxiv.org/pdf/2201.10055</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -129,7 +130,7 @@
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Mixed Datasets&quot;</span>
 
 <div class="viewcode-block" id="MixedDatasets.__init__">
-<a class="viewcode-back" href="../../../../quanda.benchmarks.heuristics.html#quanda.benchmarks.heuristics.MixedDatasets.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="n">args</span><span class="p">,</span>
@@ -155,7 +156,7 @@
 
 
 <div class="viewcode-block" id="MixedDatasets.generate">
-<a class="viewcode-back" href="../../../../quanda.benchmarks.heuristics.html#quanda.benchmarks.heuristics.MixedDatasets.generate">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets.generate">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -238,13 +239,13 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generating </span><span class="si">{</span><span class="n">MixedDatasets</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> benchmark components based on passed arguments...&quot;</span><span class="p">)</span>
 
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
-        <span class="n">obj</span><span class="o">.</span><span class="n">set_devices</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_set_devices</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">eval_dataset</span> <span class="o">=</span> <span class="n">eval_dataset</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">use_predictions</span> <span class="o">=</span> <span class="n">use_predictions</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">adversarial_label</span> <span class="o">=</span> <span class="n">adversarial_label</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">filter_by_prediction</span> <span class="o">=</span> <span class="n">filter_by_prediction</span>
 
-        <span class="n">pr_base_dataset</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">process_dataset</span><span class="p">(</span><span class="n">base_dataset</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">data_transform</span><span class="p">,</span> <span class="n">dataset_split</span><span class="o">=</span><span class="n">dataset_split</span><span class="p">)</span>
+        <span class="n">pr_base_dataset</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">_process_dataset</span><span class="p">(</span><span class="n">base_dataset</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">data_transform</span><span class="p">,</span> <span class="n">dataset_split</span><span class="o">=</span><span class="n">dataset_split</span><span class="p">)</span>
 
         <span class="n">adversarial_dataset</span> <span class="o">=</span> <span class="n">SingleClassImageDataset</span><span class="p">(</span>
             <span class="n">root</span><span class="o">=</span><span class="n">adversarial_dir</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">adversarial_label</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">adversarial_transform</span>
@@ -295,7 +296,7 @@
 
 
 <div class="viewcode-block" id="MixedDatasets.download">
-<a class="viewcode-back" href="../../../../quanda.benchmarks.heuristics.html#quanda.benchmarks.heuristics.MixedDatasets.download">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets.download">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">download</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cache_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -325,7 +326,7 @@
             <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ckpt</span><span class="p">,</span> <span class="n">save_path</span><span class="p">)</span>
             <span class="n">checkpoint_paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
 
-        <span class="n">eval_dataset</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">build_eval_dataset</span><span class="p">(</span>
+        <span class="n">eval_dataset</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">_build_eval_dataset</span><span class="p">(</span>
             <span class="n">dataset_str</span><span class="o">=</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;dataset_str&quot;</span><span class="p">],</span>
             <span class="n">eval_indices</span><span class="o">=</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;eval_test_indices&quot;</span><span class="p">],</span>
             <span class="n">transform</span><span class="o">=</span><span class="n">sample_transforms</span><span class="p">[</span><span class="n">bench_state</span><span class="p">[</span><span class="s2">&quot;dataset_transform&quot;</span><span class="p">]],</span>
@@ -389,7 +390,7 @@
         <span class="k">return</span> <span class="n">adversarial_dir</span>
 
 <div class="viewcode-block" id="MixedDatasets.assemble">
-<a class="viewcode-back" href="../../../../quanda.benchmarks.heuristics.html#quanda.benchmarks.heuristics.MixedDatasets.assemble">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets.assemble">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">assemble</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -444,7 +445,7 @@
 
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
-        <span class="n">obj</span><span class="o">.</span><span class="n">base_dataset</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">process_dataset</span><span class="p">(</span><span class="n">base_dataset</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">data_transform</span><span class="p">,</span> <span class="n">dataset_split</span><span class="o">=</span><span class="n">dataset_split</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">base_dataset</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">_process_dataset</span><span class="p">(</span><span class="n">base_dataset</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">data_transform</span><span class="p">,</span> <span class="n">dataset_split</span><span class="o">=</span><span class="n">dataset_split</span><span class="p">)</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">eval_dataset</span> <span class="o">=</span> <span class="n">eval_dataset</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">use_predictions</span> <span class="o">=</span> <span class="n">use_predictions</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">filter_by_prediction</span> <span class="o">=</span> <span class="n">filter_by_prediction</span>
@@ -456,7 +457,7 @@
 
         <span class="n">obj</span><span class="o">.</span><span class="n">mixed_dataset</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">ConcatDataset</span><span class="p">([</span><span class="n">adversarial_dataset</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">base_dataset</span><span class="p">])</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">adversarial_indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">ds_len</span><span class="p">(</span><span class="n">adversarial_dataset</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">ds_len</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">base_dataset</span><span class="p">)</span>
-        <span class="n">obj</span><span class="o">.</span><span class="n">set_devices</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_set_devices</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
 
         <span class="n">obj</span><span class="o">.</span><span class="n">_checkpoint_paths</span> <span class="o">=</span> <span class="n">checkpoint_paths</span>
 
@@ -464,7 +465,7 @@
 
 
 <div class="viewcode-block" id="MixedDatasets.evaluate">
-<a class="viewcode-back" href="../../../../quanda.benchmarks.heuristics.html#quanda.benchmarks.heuristics.MixedDatasets.evaluate">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.mixed_datasets.html#quanda.benchmarks.heuristics.MixedDatasets.evaluate">[docs]</a>
     <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">explainer_cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>

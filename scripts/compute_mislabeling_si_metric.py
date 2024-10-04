@@ -26,7 +26,7 @@ from quanda.utils.cache import ExplanationsCache as EC
 from quanda.utils.datasets.transformed import (
     LabelGroupingDataset,
     SampleTransformationDataset,
-    TransformedDataset,
+    TransformedDataset, LabelFlippingDataset,
 )
 from quanda.utils.functions import cosine_similarity
 from tutorials.utils.datasets import (
@@ -72,13 +72,13 @@ def compute_mislabeling_metric(
                 "https://tinyurl.com/47tc84fu",
             ]
         )
-        subprocess.run(["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18.zip"), "-d", metadata_dir])
+        subprocess.run(["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18_noisy_labels.zip"), "-d", metadata_dir])
         subprocess.run(["wget", "-qP", metadata_dir, "https://tinyurl.com/u4w2j22k"])
         subprocess.run(["unzip", "-qq", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
 
     n_epochs = 10
     checkpoints = [
-        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_epoch={epoch:02d}.ckpt") for epoch in range(1, n_epochs, 2)
+        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_noisy_labels_epoch={epoch:02d}.ckpt") for epoch in range(5, n_epochs, 1)
     ]
 
     # Dataset Construction
@@ -110,7 +110,7 @@ def compute_mislabeling_metric(
     with open(tiny_in_path + "val/val_annotations.txt", "r") as f:
         val_annotations = {line.split("\t")[0]: line.split("\t")[1] for line in f}
 
-    train_set = CustomDataset(tiny_in_path + "train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None)
+    train_set_original = CustomDataset(tiny_in_path + "train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None)
     holdout_set = AnnotatedDataset(
         local_path=tiny_in_path + "val", transforms=None, id_dict=id_dict, annotation=val_annotations
     )
@@ -135,26 +135,16 @@ def compute_mislabeling_metric(
         img.paste(yellow_square, (10, 10))  # Paste it onto the image at the specified position
         return img
 
-    train_set = special_dataset(
-        train_set,
-        n_classes,
-        new_n_classes,
-        regular_transforms,
-        class_to_group=class_to_group,
-        shortcut_fn=add_yellow_square,
-        backdoor_dataset=panda_set,
-        shortcut_transform_indices=torch.load(os.path.join(metadata_dir, "all_train_shortcut_indices_for_generation.pth")),
-        flipping_transform_dict=torch.load(os.path.join(metadata_dir, "all_train_flipped_dict_for_generation.pth")),
+    train_set_noisy_labels = LabelFlippingDataset(
+        dataset=train_set_original,
+        n_classes=n_classes,
+        dataset_transform=regular_transforms,
+        p=0.3,
     )
 
-    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
-    lit_model = LitModel.load_from_checkpoint(
-        checkpoints[-1],
-        n_batches=len(train_dataloader),
-        num_labels=new_n_classes,
-        device=device,
-        map_location=torch.device(device),
-    )
+    train_dataloader = torch.utils.data.DataLoader(train_set_noisy_labels, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    lit_model = LitModel(n_batches=len(train_dataloader), num_labels=n_classes, epochs=n_epochs,
+                               lr=3e-4)
     lit_model.eval()
 
     def load_state_dict(module: L.LightningModule, path: str) -> int:
@@ -220,10 +210,9 @@ def compute_mislabeling_metric(
             "checkpoint": checkpoints[-1],
             "loss_fn": torch.nn.CrossEntropyLoss(reduction="none"),
             "checkpoints_load_func": load_state_dict,
-            "projection_dim": 100,
+            "projection_dim": 500,
             "arnoldi_dim": 200,
             "batch_size": batch_size * 4,
-            "layers": ["model.fc"],  # only the last layer
             "device": device,
         }
 
@@ -249,7 +238,7 @@ def compute_mislabeling_metric(
 
     mislabeled = MislabelingDetectionMetric(
         model=lit_model,
-        train_dataset=train_set,
+        train_dataset=train_set_noisy_labels,
         mislabeling_indices=torch.load(os.path.join(metadata_dir, "all_train_flipped_indices.pth")),
         global_method="self-influence",
         explainer_cls=explainer_cls,

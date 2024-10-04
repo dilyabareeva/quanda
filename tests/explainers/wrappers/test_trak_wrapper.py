@@ -38,7 +38,7 @@ def test_trak(test_id, model, dataset, test_tensor, test_labels, method_kwargs, 
     os.mkdir(str(tmp_path) + "/trak_1_cache")
     explainer = TRAK(model=model, cache_dir=str(tmp_path) + "/trak_0_cache", train_dataset=dataset, **method_kwargs)
 
-    explanations = explainer.explain(test=test_tensor, targets=test_labels)
+    explanations = explainer.explain(test_tensor=test_tensor, targets=test_labels)
 
     batch_size = method_kwargs["batch_size"]
     ld = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
@@ -110,9 +110,9 @@ def test_trak_cache(test_id, model, dataset, test_tensor, test_labels, method_kw
 
     explainer = TRAK(model=model, cache_dir=str(tmp_path), train_dataset=dataset, **method_kwargs)
 
-    explanations = explainer.explain(test=test_tensor, targets=test_labels)
+    explanations = explainer.explain(test_tensor=test_tensor, targets=test_labels)
     test_tensor = torch.ones_like(test_tensor)[:2]
-    explanations_2 = explainer.explain(test=test_tensor, targets=test_labels[:2])
+    explanations_2 = explainer.explain(test_tensor=test_tensor, targets=test_labels[:2])
     assert (not torch.allclose(explanations[:2], explanations_2[:2])) and (
         explanations.shape[0] != explanations_2.shape[0]
     ), "Caching is problematic inside the lifetime of the wrapper"

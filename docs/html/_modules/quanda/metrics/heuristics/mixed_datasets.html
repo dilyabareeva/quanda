@@ -32,6 +32,7 @@
           
           <a href="../../../../index.html" class="icon icon-home">
             quanda
+              <img src="../../../../_static/quanda_panda_black_bg.png" class="logo" alt="Logo"/>
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -83,7 +84,7 @@
 
 
 <div class="viewcode-block" id="MixedDatasetsMetric">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.MixedDatasetsMetric">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.mixed_datasets.html#quanda.metrics.heuristics.MixedDatasetsMetric">[docs]</a>
 <span class="k">class</span> <span class="nc">MixedDatasetsMetric</span><span class="p">(</span><span class="n">Metric</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Metric that measures the performance of a given data attribution estimation method in separating dataset sources.</span>
@@ -109,7 +110,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MixedDatasetsMetric.__init__">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.MixedDatasetsMetric.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.mixed_datasets.html#quanda.metrics.heuristics.MixedDatasetsMetric.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -171,7 +172,7 @@
         <span class="k">return</span> <span class="n">adversarial_labels</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
 
 <div class="viewcode-block" id="MixedDatasetsMetric.update">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.MixedDatasetsMetric.update">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.mixed_datasets.html#quanda.metrics.heuristics.MixedDatasetsMetric.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">explanations</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -211,7 +212,7 @@
 
 
 <div class="viewcode-block" id="MixedDatasetsMetric.compute">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.MixedDatasetsMetric.compute">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.mixed_datasets.html#quanda.metrics.heuristics.MixedDatasetsMetric.compute">[docs]</a>
     <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Aggregates current results and return a metric score.</span>
@@ -225,7 +226,7 @@
 
 
 <div class="viewcode-block" id="MixedDatasetsMetric.reset">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.MixedDatasetsMetric.reset">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.mixed_datasets.html#quanda.metrics.heuristics.MixedDatasetsMetric.reset">[docs]</a>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Resets the metric state.</span>
@@ -234,7 +235,7 @@
 
 
 <div class="viewcode-block" id="MixedDatasetsMetric.load_state_dict">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.MixedDatasetsMetric.load_state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.mixed_datasets.html#quanda.metrics.heuristics.MixedDatasetsMetric.load_state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Loads the metric state.</span>
@@ -243,7 +244,7 @@
 
 
 <div class="viewcode-block" id="MixedDatasetsMetric.state_dict">
-<a class="viewcode-back" href="../../../../quanda.metrics.heuristics.html#quanda.metrics.heuristics.MixedDatasetsMetric.state_dict">[docs]</a>
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.mixed_datasets.html#quanda.metrics.heuristics.MixedDatasetsMetric.state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the metric state.</span>
