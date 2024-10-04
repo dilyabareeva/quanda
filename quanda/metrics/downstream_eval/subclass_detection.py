@@ -79,11 +79,14 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             If `test_tensor` and `test_classes` are not provided when `filter_by_prediction` is True.
         """
 
+        explanations = explanations.to(self.device)
+
         if (test_tensor is None or test_classes is None) and self.filter_by_prediction:
             raise ValueError("test_tensor and test_classes must be provided if filter_by_prediction is True")
 
         if isinstance(test_subclasses, list):
             test_subclasses = torch.tensor(test_subclasses)
+        test_subclasses = test_subclasses.to(self.device)
 
         if test_tensor is not None:
             test_tensor = test_tensor.to(self.device)
@@ -97,7 +100,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             pred_cls = self.model(test_tensor).argmax(dim=1)
             select_idx *= pred_cls == test_classes
 
-        explanations = explanations[select_idx].to(self.device)
+        explanations = explanations[select_idx]
         test_subclasses = test_subclasses[select_idx].to(self.device)
 
         top_one_xpl_indices = explanations.argmax(dim=1)

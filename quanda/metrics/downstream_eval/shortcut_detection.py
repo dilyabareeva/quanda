@@ -8,7 +8,7 @@ from quanda.utils.common import ds_len
 
 
 class ShortcutDetectionMetric(Metric):
-    # 2) TODO: Add the reference of the paper that introduced the shortcut detection task, after acceptance.
+
     """
     Metric for the shortcut detection evaluation task.
     Attributions of a  model with a shortcut is checked against the ground truth of shortcut samples.
@@ -18,7 +18,7 @@ class ShortcutDetectionMetric(Metric):
     ----------
     1) Koh, Pang Wei, and Percy Liang. (2017). Understanding black-box predictions via influence functions.
         International conference on machine learning. PMLR.
-
+    2) TODO: Add the reference of the paper that introduced the shortcut detection task.
     """
 
     def __init__(
@@ -116,7 +116,7 @@ class ShortcutDetectionMetric(Metric):
         if self.filter_by_class:
             select_idx *= test_labels != self.shortcut_cls
 
-        explanations = explanations[select_idx].to(self.device)
+        explanations = explanations[select_idx]
 
         self.auprc_scores.extend([binary_auprc(xpl, self.binary_shortcut_indices) for xpl in explanations])
 
