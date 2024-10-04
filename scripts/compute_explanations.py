@@ -88,7 +88,11 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
 
     # Define transformations
     regular_transforms = transforms.Compose(
-        [transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
+        [
+            transforms.ToTensor(),
+            transforms.Resize((64, 64)),
+            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        ]
     )
 
     denormalize = transforms.Compose(
@@ -165,7 +169,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         class_to_group=class_to_group,
     )
 
-    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=False)
     lit_model = LitModel.load_from_checkpoint(
         checkpoints[-1],
         n_batches=len(train_dataloader),
@@ -173,7 +177,7 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
         device=device,
         map_location=torch.device(device),
     )
-    lit_model.eval()
+    lit_model = lit_model.eval()
 
     def load_state_dict(module: L.LightningModule, path: str) -> int:
         checkpoints = torch.load(path, map_location=torch.device("cuda:1"))
@@ -354,7 +358,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
-                explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
+                ]
                 explanations_repr = explainer_repr.explain(test_tensor, explanation_targets)
                 EC.save(subset_save_dir, explanations_repr, i)
 
@@ -379,7 +385,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
-                explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
+                ]
                 import time
 
                 # Explain test samples
@@ -418,7 +426,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
-                explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
+                ]
                 explanations_arnoldi = explainer_arnoldi.explain(test_tensor=test_tensor, targets=explanation_targets)
                 EC.save(subset_save_dir, explanations_arnoldi, i)
 
@@ -441,7 +451,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
-                explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
+                ]
                 explanations_trak = explainer_trak.explain(test_tensor=test_tensor, targets=explanation_targets)
                 EC.save(subset_save_dir, explanations_trak, i)
 
@@ -459,7 +471,9 @@ def compute_explanations(method, tiny_in_path, panda_sketch_path, output_dir, ch
             for i, (test_tensor, test_labels) in enumerate(dataloaders[subset]):
                 subset_save_dir = os.path.join(method_save_dir, subset)
                 os.makedirs(subset_save_dir, exist_ok=True)
-                explanation_targets = lit_model.model(test_tensor.to(device)).argmax(dim=1)
+                explanation_targets = [
+                    lit_model.model(test_tensor[i].unsqueeze(0).to(device)).argmax().item() for i in range(len(test_tensor))
+                ]
                 explanations_rand = explainer_rand.explain(test_tensor=test_tensor, targets=explanation_targets)
                 EC.save(subset_save_dir, explanations_rand, i)
 
