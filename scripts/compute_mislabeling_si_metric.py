@@ -24,9 +24,10 @@ from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.metrics.heuristics import ModelRandomizationMetric
 from quanda.utils.cache import ExplanationsCache as EC
 from quanda.utils.datasets.transformed import (
+    LabelFlippingDataset,
     LabelGroupingDataset,
     SampleTransformationDataset,
-    TransformedDataset, LabelFlippingDataset,
+    TransformedDataset,
 )
 from quanda.utils.functions import cosine_similarity
 from tutorials.utils.datasets import (
@@ -72,13 +73,16 @@ def compute_mislabeling_metric(
                 "https://tinyurl.com/47tc84fu",
             ]
         )
-        subprocess.run(["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18_noisy_labels.zip"), "-d", metadata_dir])
+        subprocess.run(
+            ["unzip", "-qq", "-j", os.path.join(checkpoints_dir, "tiny_inet_resnet18_noisy_labels.zip"), "-d", metadata_dir]
+        )
         subprocess.run(["wget", "-qP", metadata_dir, "https://tinyurl.com/u4w2j22k"])
         subprocess.run(["unzip", "-qq", "-j", os.path.join(metadata_dir, "dataset_indices.zip"), "-d", metadata_dir])
 
     n_epochs = 10
     checkpoints = [
-        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_noisy_labels_epoch={epoch:02d}.ckpt") for epoch in range(5, n_epochs, 1)
+        os.path.join(checkpoints_dir, f"tiny_imagenet_resnet18_noisy_labels_epoch={epoch:02d}.ckpt")
+        for epoch in range(5, n_epochs, 1)
     ]
 
     # Dataset Construction
@@ -110,7 +114,9 @@ def compute_mislabeling_metric(
     with open(tiny_in_path + "val/val_annotations.txt", "r") as f:
         val_annotations = {line.split("\t")[0]: line.split("\t")[1] for line in f}
 
-    train_set_original = CustomDataset(tiny_in_path + "train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None)
+    train_set_original = CustomDataset(
+        tiny_in_path + "train", classes=list(id_dict.keys()), classes_to_idx=id_dict, transform=None
+    )
     holdout_set = AnnotatedDataset(
         local_path=tiny_in_path + "val", transforms=None, id_dict=id_dict, annotation=val_annotations
     )
@@ -142,9 +148,10 @@ def compute_mislabeling_metric(
         p=0.3,
     )
 
-    train_dataloader = torch.utils.data.DataLoader(train_set_noisy_labels, batch_size=batch_size, shuffle=False, num_workers=num_workers)
-    lit_model = LitModel(n_batches=len(train_dataloader), num_labels=n_classes, epochs=n_epochs,
-                               lr=3e-4)
+    train_dataloader = torch.utils.data.DataLoader(
+        train_set_noisy_labels, batch_size=batch_size, shuffle=False, num_workers=num_workers
+    )
+    lit_model = LitModel(n_batches=len(train_dataloader), num_labels=n_classes, epochs=n_epochs, lr=3e-4)
     lit_model.eval()
 
     def load_state_dict(module: L.LightningModule, path: str) -> int:
