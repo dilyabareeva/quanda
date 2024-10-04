@@ -51,7 +51,9 @@ class ShortcutDetection(Benchmark):
         """
         Initializer for the benchmark object. This initializer should not be used directly.
 
-        To instantiate the benchmark, use the `generate`, `assemble` or `download` class methods instead.
+        This initializer is not used directly, instead,
+        the `generate` or the `assemble` methods should be used.
+        Alternatively, `download` can be used to load a precomputed benchmark.
         """
         super().__init__()
 

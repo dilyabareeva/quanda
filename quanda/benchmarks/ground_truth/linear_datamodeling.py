@@ -45,7 +45,13 @@ class LinearDatamodeling(Benchmark):
         *args,
         **kwargs,
     ):
-        """Initializer for the `LinearDatamodeling` benchmark."""
+        """
+        Initializer for the `LinearDatamodeling` benchmark.
+
+        This initializer is not used directly, instead,
+        the `generate` or the `assemble` methods should be used.
+        Alternatively, `download` can be used to load a precomputed benchmark.
+        """
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
