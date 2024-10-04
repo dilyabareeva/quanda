@@ -29,7 +29,7 @@ from quanda.metrics.downstream_eval import (
 )
 from quanda.metrics.heuristics import (
     ModelRandomizationMetric,
-    TopKOverlapMetric,
+    TopKCardinalityMetric,
 )
 from quanda.utils.training import BasicLightningModule
 
@@ -133,7 +133,7 @@ def main():
 
     id_class = ClassDetectionMetric(model=model, train_dataset=train_set)
 
-    top_k = TopKOverlapMetric(model=model, train_dataset=train_set, top_k=1)
+    top_k = TopKCardinalityMetric(model=model, train_dataset=train_set, top_k=1)
 
     # dataset cleaning
     max_epochs = 1
@@ -193,7 +193,7 @@ def main():
 
     print("Model heuristics metric output:", model_rand.compute())
     print("Identical class metric output:", id_class.compute())
-    print("Top-k overlap metric output:", top_k.compute())
+    print("Top-k cardinality metric output:", top_k.compute())
 
     print("Dataset cleaning metric computation started...")
     print("Dataset cleaning metric output:", data_clean.compute())

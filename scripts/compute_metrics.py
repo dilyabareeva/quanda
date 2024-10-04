@@ -16,7 +16,10 @@ from quanda.metrics.downstream_eval import (
     ShortcutDetectionMetric,
     SubclassDetectionMetric,
 )
-from quanda.metrics.heuristics import MixedDatasetsMetric, TopKOverlapMetric
+from quanda.metrics.heuristics import (
+    MixedDatasetsMetric,
+    TopKCardinalityMetric,
+)
 from quanda.utils.cache import ExplanationsCache as EC
 from quanda.utils.datasets.transformed import (
     LabelGroupingDataset,
@@ -223,13 +226,13 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
     )
     # vis_dataloader(dataloaders["cat_dog"])
 
-    # Dataloader for Model Randomization, Top-K Overlap
+    # Dataloader for Model Randomization, Top-K Cardinality
     clean_samples = torch.load(os.path.join(metadata_dir, "big_eval_test_clean_indices.pth"))
     clean_dataset = torch.utils.data.Subset(test_set_grouped, clean_samples)
     dataloaders["randomization"] = torch.utils.data.DataLoader(
         clean_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
     )
-    dataloaders["top_k_overlap"] = dataloaders["randomization"]
+    dataloaders["top_k_cardinality"] = dataloaders["randomization"]
     # vis_dataloader(dataloaders["randomization"])
 
     # Dataloader for Mixed Datasets
@@ -285,12 +288,12 @@ def compute_metrics(metric, tiny_in_path, panda_sketch_path, explanations_dir, c
             score = id_subclass.compute()
             wandb.log({f"{method}_{metric}": score})
 
-    if metric == "top_k_overlap":
+    if metric == "top_k_cardinality":
         for method in explanation_methods:
             method_save_dir = os.path.join(explanations_dir, method)
             subset_save_dir = os.path.join(method_save_dir, metric)
             explanations = EC.load(subset_save_dir)
-            top_k = TopKOverlapMetric(model=lit_model, train_dataset=train_set, top_k=1)
+            top_k = TopKCardinalityMetric(model=lit_model, train_dataset=train_set, top_k=1)
             for i, (test_tensor, test_labels) in enumerate(dataloaders[metric]):
                 test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)
                 top_k.update(explanations[i].to(device))
@@ -328,7 +331,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--metric",
         required=True,
-        choices=["shortcut", "subclass", "top_k_overlap", "mixed_dataset"],
+        choices=["shortcut", "subclass", "top_k_cardinality", "mixed_dataset"],
         help="Choose the explanation metric to use.",
     )
 
