@@ -42,6 +42,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
     (<a href="http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf" target="_blank">Barshan et al., 2020</a>).
 </details>
 
+
 **quanda** is designed to meet the need of a comprehensive and systematic evaluation framework, allowing practitioners and researchers to obtain a detailed view of the performance of TDA methods in various contexts.
 
 ### Library Features
