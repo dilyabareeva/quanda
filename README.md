@@ -1,8 +1,8 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://tinyurl.com/4yad8eru">
-  <source media="(prefers-color-scheme: light)" srcset="https://tinyurl.com/2rmc7my5">
-  <img width="700" alt="quanda" src="https://tinyurl.com/79mn289u">
+  <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/aaf7afbf-0a75-4b2e-98a3-18cb90840286">
+  <source media="(prefers-color-scheme: light)" srcset="https://github.com/user-attachments/assets/0a2f8d93-8a0e-49bc-bf6f-9ab0e6b5c532">
+  <img width="700" alt="quanda" src="https://github.com/user-attachments/assets/50321264-28b3-43b0-a800-37645f965f4d">
 </picture>
 </p>
 
