@@ -1,6 +1,6 @@
 [project]
 name = "quanda"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Dilyara Bareeva", email="dilyabareeva@gmail.com" },
     {name = "Galip Ümit Yolcu", email = "galip.uemit.yolcu@hhi.fraunhofer.de" },
@@ -8,7 +8,7 @@ authors = [
 description = "Toolkit for quantitative evaluation of data attribution methods in PyTorch."
 license = { file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.8,<=3.11"
+requires-python = ">=3.8,<3.12"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
