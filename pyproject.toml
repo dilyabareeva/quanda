@@ -1,8 +1,9 @@
 [project]
 name = "quanda"
-version = "0.0.0"
+version = "0.0.1"
 authors = [
   { name="Dilyara Bareeva", email="dilyabareeva@gmail.com" },
+    {name = "Galip Ümit Yolcu", email = "galip.uemit.yolcu@hhi.fraunhofer.de" },
 ]
 description = "Toolkit for quantitative evaluation of data attribution methods in PyTorch."
 license = { file = "LICENSE" }
@@ -14,10 +15,6 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 keywords = ["interpretability", "xai", "machine learning", "deep learning"]
-
-[project.urls]
-Homepage = "https://github.com/dilyabareeva/quanda"
-Issues = "https://github.com/dilyabareeva/quanda/issues"
 
 dependencies = [
     "numpy>=1.19.5",
@@ -32,11 +29,18 @@ dependencies = [
     "torcheval>=0.0.6",
     "torchvision>=0.10.0",
 ]
-dynamic = ["version"]
+
+
+[project.urls]
+Homepage = "https://github.com/dilyabareeva/quanda"
+Issues = "https://github.com/dilyabareeva/quanda/issues"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.isort]
 profile = "black"
