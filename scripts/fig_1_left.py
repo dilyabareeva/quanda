@@ -175,7 +175,7 @@ TRANSP_COLORS = ["#FFDDBB", "#D4E7C5", "#FFDAD4", "#EDDCFF"]
 for ij, method in enumerate(explanation_methods):
     try:
         method_save_dir = os.path.join(explanations_dir, method)
-        subset_save_dir = os.path.join(method_save_dir, "subclass")
+        subset_save_dir = os.path.join(method_save_dir, "randomization")
         explanations = EC.load(subset_save_dir)
         test_tensor, test_labels = next(iter(dataloader))
         test_tensor, test_labels = test_tensor.to(device), test_labels.to(device)

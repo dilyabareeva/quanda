@@ -23,7 +23,7 @@ wandb.login(key=wandb_api_key)
 
 # Define WandB project and filters
 project_name = "quanda"
-methods = ["representer_points", "trak", "random", "tracincpfast", "arnoldi"]
+methods = ["representer_points", "trak", "tracincpfast", "arnoldi"] # "random"
 metrics = ["mislabeling_si", "shortcut", "subclass", "top_k_cardinality", "mixed_dataset"]
 
 # Initialize a WandB API object
@@ -84,7 +84,7 @@ metrics = [
     "Subclass\nDetection",
     "Mislabeling\nDetection",
     "Shortcut\nDetection",
-    "Top-K\nOverlap",
+    "Top-K\nCardinality",
     "Mixed Dataset\nSeparation",
 ]
 
@@ -101,7 +101,7 @@ df = df.rename(
 )
 
 # sort indices by a list
-sort_list = ["ReprPoints", "ArnoldiInf", "TracInCP", "TRAK-1", "Random"]
+sort_list = ["ReprPoints", "ArnoldiInf", "TracInCP", "TRAK-1"]
 
 df = df.loc[sort_list]
 
@@ -174,7 +174,7 @@ ax.set_facecolor(BG_WHITE)
 ax.set_theta_offset(np.pi / 2)
 ax.set_theta_direction(-1)
 
-# Setting lower limit to negative value reduces overlap
+# Setting lower limit to negative value reduces Cardinality
 # for values that are 0 (the minimums)
 ax.set_ylim(-0.1, 1.05)
 
@@ -260,7 +260,7 @@ fig.savefig("../scripts/fig_1.png", bbox_inches=None, pad_inches=0, dpi=1000)
 
 # Set figure size
 width_pt = 170 / 72.27
-height_pt = 110 / 72.27
+height_pt = 111 / 72.27
 
 # Set up the figure and axis
 fig, ax = plt.subplots(figsize=(width_pt, height_pt), dpi=500)
@@ -272,7 +272,7 @@ n_metrics = len(metrics)
 n_explainers = len(df)  # Number of explainers for each metric
 
 # Bar width (slightly reduced for spacing)
-bar_width = 0.12  # Reduce bar width for spacing between bars
+bar_width = 0.14  # Reduce bar width for spacing between bars
 
 # Space between bars within a group
 bar_padding = 0.03  # Padding between bars
@@ -281,7 +281,7 @@ bar_padding = 0.03  # Padding between bars
 x_indices = np.arange(n_metrics)
 
 # Plot horizontal dashed lines for y=1 to y=5
-for y in [1, 2, 3, 4, 5][::-1]:
+for y in [1, 2, 3, 4][::-1]:
     plt.axhline(y=y, linewidth=0.3, zorder=0, color="gray", linestyle="dashed")
 
 # Loop through each metric to plot bars
@@ -307,8 +307,8 @@ for j, metric in enumerate(metrics):
     )
 
 # Set y-ticks to display 1, 2, 3, 4, 5
-ax.set_yticks([1, 2, 3, 4, 5])
-ax.set_yticklabels([5, 4, 3, 2, 1])
+ax.set_yticks([1, 2, 3, 4])
+ax.set_yticklabels([4, 3, 2, 1])
 ax.tick_params(axis="y", size=3, width=0.5)  # Reduce the y-tick marker size and width
 
 # Set x-ticks with rotated metric names

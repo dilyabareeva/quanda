@@ -40,6 +40,11 @@ def save_influential_samples(
     color="#1f77b4",
 ):
     top_k = 3
+
+    # normalize influence scores by row
+    influence_scores = influence_scores - influence_scores.min(dim=1, keepdim=True)[0]
+    influence_scores = influence_scores / influence_scores.max(dim=1, keepdim=True)[0]
+
     # Get the top opponents and proponents
     top_k_proponents = torch.topk(influence_scores, top_k, dim=1, largest=True)
     top_k_opponents = torch.topk(influence_scores, top_k, dim=1, largest=False)
@@ -73,7 +78,7 @@ def save_influential_samples(
         nrows=1,
         ncols=top_k * 2 + 1,
         figsize=(image_width_pixels / dpi, height_in_inches),
-        gridspec_kw={"hspace": 0.0, "wspace": 0.1},
+        gridspec_kw={"hspace": 0.0, "wspace": 0.03},
         dpi=1000,
     )  # Reduced wspace to a smaller value
 
@@ -86,7 +91,7 @@ def save_influential_samples(
         ax.axis("off")  # Hide axes
         # Set the background color for each image area
         ax.set_facecolor(color)  # Set background color for the image frame
-        ax.text(0.5, -0.02, f"{label:.2f}", ha="center", va="top", fontsize=5, transform=ax.transAxes)
+        ax.text(0.5, -0.02, f"{label:.2f}", ha="center", va="top", fontsize=4, transform=ax.transAxes)
 
     # Create empty axes for the space between proponents and opponents
     empty_ax = axes[top_k]  # Position the empty ax in between
@@ -98,7 +103,7 @@ def save_influential_samples(
         ax.axis("off")  # Hide axes
         # Set the background color for each image area
         ax.set_facecolor(color)  # Set background color for the image frame
-        ax.text(0.5, -0.02, f"{label:.2f}", ha="center", va="top", fontsize=5, transform=ax.transAxes)
+        ax.text(0.5, -0.02, f"{label:.2f}", ha="center", va="top", fontsize=4, transform=ax.transAxes)
 
     # Adjust layout to remove whitespace and set spacing
     plt.subplots_adjust(
