@@ -256,12 +256,12 @@ score = dst_eval.evaluate(
 print(f"Subclass Detection Score: {score}")
 ```
 </details>
-
+<br>
 More detailed examples can be found in the [tutorials](tutorials) folder.
 
 ### Custom Explainers
 
-In addition to the built-in explainers, **quanda** supports custom explainer methods for evaluation. This section provides a guide on how to create a wrapper for a custom explainer that matches our interface.
+In addition to the built-in explainers, **quanda** supports the evaluatioon of custom explainer methods. This section provides a guide on how to create a wrapper for a custom explainer that matches our interface.
 
 <details>
 <summary><b><big>Step 1. Create an explainer class</big></b></summary>
