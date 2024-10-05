@@ -156,7 +156,7 @@ In the following, we provide a quick guide to **quanda** usage. To begin using *
 - **Test Batches (`test_tensor`) and Explanation Targets (`target`)**: A batch of test data (`test_tensor`) and the corresponding explanation targets (`target`). Generally, it is advisable to use the model's predicted labels as the targets. In the following, we assume the existence of a `torch.utils.data.DataLoader` to load the test data in batches, with variable name `test_loader`.
 
 
-As an example, we will demonstrate the generation of explanations using `SimilarityInfluence` data attribution from `Captum`.
+In the following usage examples, we will be using the `SimilarityInfluence` data attribution from `Captum`.
 #### Metrics Usage
 
 Next, we demonstrate how to evaluate explanations using the **Model Randomization** metric.
