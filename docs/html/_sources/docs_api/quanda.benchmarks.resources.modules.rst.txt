@@ -1,7 +1,0 @@
-quanda.benchmarks.resources.modules module
-==========================================
-
-.. automodule:: quanda.benchmarks.resources.modules
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -1,7 +1,0 @@
-quanda.utils.training.trainer module
-====================================
-
-.. automodule:: quanda.utils.training.trainer
-   :members:
-   :undoc-members:
-   :show-inheritance:

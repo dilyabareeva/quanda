@@ -1,7 +1,0 @@
-quanda.utils.functions.correlations module
-==========================================
-
-.. automodule:: quanda.utils.functions.correlations
-   :members:
-   :undoc-members:
-   :show-inheritance:

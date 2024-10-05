@@ -1,7 +1,0 @@
-quanda.utils.datasets.transformed.sample module
-===============================================
-
-.. automodule:: quanda.utils.datasets.transformed.sample
-   :members:
-   :undoc-members:
-   :show-inheritance:

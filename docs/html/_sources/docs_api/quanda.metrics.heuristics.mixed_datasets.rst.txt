@@ -1,7 +1,0 @@
-quanda.metrics.heuristics.mixed\_datasets module
-================================================
-
-.. automodule:: quanda.metrics.heuristics.mixed_datasets
-   :members:
-   :undoc-members:
-   :show-inheritance:

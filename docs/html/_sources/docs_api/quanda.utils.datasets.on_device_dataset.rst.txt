@@ -1,7 +1,0 @@
-quanda.utils.datasets.on\_device\_dataset module
-================================================
-
-.. automodule:: quanda.utils.datasets.on_device_dataset
-   :members:
-   :undoc-members:
-   :show-inheritance:

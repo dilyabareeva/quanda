@@ -1,7 +1,0 @@
-quanda.benchmarks.resources.benchmark\_urls module
-==================================================
-
-.. automodule:: quanda.benchmarks.resources.benchmark_urls
-   :members:
-   :undoc-members:
-   :show-inheritance:

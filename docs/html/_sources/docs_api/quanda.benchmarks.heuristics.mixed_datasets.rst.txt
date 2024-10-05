@@ -1,7 +1,0 @@
-quanda.benchmarks.heuristics.mixed\_datasets module
-===================================================
-
-.. automodule:: quanda.benchmarks.heuristics.mixed_datasets
-   :members:
-   :undoc-members:
-   :show-inheritance:

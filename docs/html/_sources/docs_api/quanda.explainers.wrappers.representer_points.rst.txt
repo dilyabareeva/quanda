@@ -1,7 +1,0 @@
-quanda.explainers.wrappers.representer\_points module
-=====================================================
-
-.. automodule:: quanda.explainers.wrappers.representer_points
-   :members:
-   :undoc-members:
-   :show-inheritance:

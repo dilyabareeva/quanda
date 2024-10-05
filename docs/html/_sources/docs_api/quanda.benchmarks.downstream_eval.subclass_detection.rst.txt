@@ -1,7 +1,0 @@
-quanda.benchmarks.downstream\_eval.subclass\_detection module
-=============================================================
-
-.. automodule:: quanda.benchmarks.downstream_eval.subclass_detection
-   :members:
-   :undoc-members:
-   :show-inheritance:

@@ -1,7 +1,0 @@
-quanda.explainers.wrappers.trak\_wrapper module
-===============================================
-
-.. automodule:: quanda.explainers.wrappers.trak_wrapper
-   :members:
-   :undoc-members:
-   :show-inheritance:

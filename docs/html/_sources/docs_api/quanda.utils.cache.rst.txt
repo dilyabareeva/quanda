@@ -1,7 +1,0 @@
-quanda.utils.cache module
-=========================
-
-.. automodule:: quanda.utils.cache
-   :members:
-   :undoc-members:
-   :show-inheritance:

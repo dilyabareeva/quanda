@@ -1,7 +1,0 @@
-quanda.explainers.global\_ranking.aggregators module
-====================================================
-
-.. automodule:: quanda.explainers.global_ranking.aggregators
-   :members:
-   :undoc-members:
-   :show-inheritance:

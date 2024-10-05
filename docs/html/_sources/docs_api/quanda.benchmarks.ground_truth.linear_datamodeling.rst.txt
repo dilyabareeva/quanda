@@ -1,7 +1,0 @@
-quanda.benchmarks.ground\_truth.linear\_datamodeling module
-===========================================================
-
-.. automodule:: quanda.benchmarks.ground_truth.linear_datamodeling
-   :members:
-   :undoc-members:
-   :show-inheritance:

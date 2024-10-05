@@ -1,7 +1,0 @@
-quanda.explainers.functional module
-===================================
-
-.. automodule:: quanda.explainers.functional
-   :members:
-   :undoc-members:
-   :show-inheritance:
