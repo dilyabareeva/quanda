@@ -112,7 +112,6 @@ class CaptumInfluence(Explainer, ABC):
 
 class CaptumSimilarity(CaptumInfluence):
     # TODO: incorporate SimilarityInfluence kwargs into init_kwargs
-    # TODO: Check usage of 'replace_nan' in SimilarityInfluence
     """
     Class for Similarity Influence wrapper. This explainer uses a similarity function on its inputs to rank the training data.
 
@@ -135,7 +134,7 @@ class CaptumSimilarity(CaptumInfluence):
         similarity_metric: Callable = cosine_similarity,
         similarity_direction: str = "max",
         batch_size: int = 1,
-        replace_nan: bool = False,
+        replace_nan: int = 0,
         load_from_disk: bool = True,
         **explainer_kwargs: Any,
     ):
@@ -164,8 +163,8 @@ class CaptumSimilarity(CaptumInfluence):
             Direction for similarity computation. Can be either "min" or "max". Defaults to "max".
         batch_size : int, optional
             Batch size used for iterating over the dataset. Defaults to 1.
-        replace_nan : bool, optional
-            Whether to replace NaN values in similarity scores. Defaults to False.
+        replace_nan : int, optional
+            The value to replace NaN values in similarity scores with. Defaults to 0.
         load_from_disk : bool, optional
             If True, activations will be loaded from disk if available, instead of being recomputed. Defaults to True.
         **explainer_kwargs : Any
@@ -459,6 +458,9 @@ class CaptumArnoldi(CaptumInfluence):
             If None, the entire train_dataset is used. Defaults to None.
         test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
             Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
+        sample_wise_grads_per_batch : bool, optional
+            Whether to compute sample-wise gradients per batch. Defaults to False.
+            Note: This feature is currently not supported.
         projection_dim : int, optional
             Captum's ArnoldiInfluenceFunction produces a low-rank approximation of the (inverse) Hessian.
             projection_dim is the rank of that approximation. Defaults to 50.
@@ -683,7 +685,7 @@ class CaptumTracInCP(CaptumInfluence):
         checkpoints: Union[str, List[str], Iterator],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
-        loss_fn: Optional[Union[torch.nn.Module, Callable]] = torch.nn.CrossEntropyLoss(reduction="sum"),
+        loss_fn: Optional[Union[torch.nn.Module, Callable]] = torch.nn.CrossEntropyLoss(reduction="none"),
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         sample_wise_grads_per_batch: bool = False,
@@ -705,13 +707,17 @@ class CaptumTracInCP(CaptumInfluence):
         layers : Optional[List[str]], optional
             Layers used to compute the gradients. Defaults to None.
         loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
-            Loss function used for influence computation. Defaults to CrossEntropyLoss with reduction='sum'.
+            Loss function used for influence computation.
+            If reduction='none', then sample_wise_grads_per_batch must be set to False.
+            Otherwise, sample_wise_grads_per_batch must be True. Defaults to CrossEntropyLoss with reduction='none'.
         batch_size : int, optional
             Batch size used for iterating over the dataset. Defaults to 1.
         test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
             Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.
         sample_wise_grads_per_batch : bool, optional
-            Whether to compute sample-wise gradients per batch. Defaults to False.
+            Whether to compute sample-wise gradients per batch.
+            If set to True, the loss function must use a reduction method (f.e. reduction='sum').
+            Defaults to False.
         device : Union[str, torch.device], optional
             Device to run the computation on. Defaults to "cpu".
         **explainer_kwargs : Any
@@ -895,7 +901,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
+        loss_fn: Optional[Union[torch.nn.Module, Callable]] = torch.nn.CrossEntropyLoss(reduction="sum"),
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         vectorize: bool = False,
