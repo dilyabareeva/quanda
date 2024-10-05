@@ -1,0 +1,7 @@
+quanda.metrics.heuristics.top\_k\_cardinality module
+====================================================
+
+.. automodule:: quanda.metrics.heuristics.top_k_cardinality
+   :members:
+   :undoc-members:
+   :show-inheritance:

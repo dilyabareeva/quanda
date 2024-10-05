@@ -99,55 +99,97 @@
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.explainers.global_ranking.global_ranking_strategies.</span></span><span class="sig-name descname"><span class="pre">GlobalAggrStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aggr_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalAggrStrategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class is used in some metrics to compute the global ranking of training data,
+by aggregating supplied local attributions.</p>
 <p class="rubric">Methods</p>
-<table class="docutils align-default">
+<table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>get_global_rank</strong></p></td>
-<td></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.get_global_rank" title="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.get_global_rank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_rank</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Compute global rank according to the aggregated scores.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>load_state_dict</strong></p></td>
-<td></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.load_state_dict" title="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.load_state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_state_dict</span></code></a>(state_dict, *args, **kwargs)</p></td>
+<td><p>Load the aggregator state from a dictionary</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>reset</strong></p></td>
-<td></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.reset" title="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Reset the aggregator state.</p></td>
 </tr>
-<tr class="row-even"><td><p><strong>state_dict</strong></p></td>
-<td></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.state_dict" title="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.state_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">state_dict</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Returns the aggregator state as a dictionary.</p></td>
 </tr>
-<tr class="row-odd"><td><p><strong>update</strong></p></td>
-<td></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.update" title="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a>(explanations, **kwargs)</p></td>
+<td><p>Updates the aggregator with the given explanations.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aggr_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalAggrStrategy.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.__init__" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Initializer for the <cite>GlobalAggrStrategy</cite> class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>aggr_type</strong> (<em>type</em>) – The type of the aggregator to be used for global ranking computation.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the aggregator type is not a subclass of <cite>BaseAggregator</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.get_global_rank">
 <span class="sig-name descname"><span class="pre">get_global_rank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalAggrStrategy.get_global_rank"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.get_global_rank" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Compute global rank according to the aggregated scores.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A 1D tensor containing the global ranking.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.load_state_dict">
 <span class="sig-name descname"><span class="pre">load_state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_dict</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalAggrStrategy.load_state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.load_state_dict" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Load the aggregator state from a dictionary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state_dict</strong> (<em>dict</em>) – State dictionary to load.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.reset">
 <span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalAggrStrategy.reset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.reset" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Reset the aggregator state.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.state_dict">
 <span class="sig-name descname"><span class="pre">state_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalAggrStrategy.state_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.state_dict" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns the aggregator state as a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The state dictionary.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explanations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalAggrStrategy.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalAggrStrategy.update" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Updates the aggregator with the given explanations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>explanations</strong> (<em>torch.Tensor</em>) – The local attributions to be aggregated.</p>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -155,15 +197,21 @@
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quanda.explainers.global_ranking.global_ranking_strategies.</span></span><span class="sig-name descname"><span class="pre">GlobalSelfInfluenceStrategy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="quanda.explainers.base.html#quanda.explainers.base.Explainer" title="quanda.explainers.base.Explainer"><span class="pre">Explainer</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalSelfInfluenceStrategy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This object is used in some metrics to compute the self-influence-based ranking of training data,
+using an <cite>Explainer</cite> object.</p>
 <p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.get_global_rank" title="quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.get_global_rank"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_global_rank</span></code></a>()</p></td>
+<td><p>Returns the global ranking of training data ordered by their self-influence scores.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.get_self_influence" title="quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.get_self_influence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_self_influence</span></code></a>()</p></td>
+<td><p>Computes self-influences using <cite>self.explainer</cite></p></td>
+</tr>
+</tbody>
+</table>
 <table class="docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><strong>get_global_rank</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>get_self_influence</strong></p></td>
-<td></td>
-</tr>
 <tr class="row-odd"><td><p><strong>load_state_dict</strong></p></td>
 <td></td>
 </tr>
@@ -181,17 +229,47 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explainer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="quanda.explainers.base.html#quanda.explainers.base.Explainer" title="quanda.explainers.base.Explainer"><span class="pre">Explainer</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalSelfInfluenceStrategy.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.__init__" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Initializer for the <cite>GlobalSelfInfluenceStrategy</cite> class.
+This class is used to generate a ranking of training data ordered by their self-influence scores,
+using an <cite>Explainer</cite> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>explainer</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="quanda.explainers.html#quanda.explainers.Explainer" title="quanda.explainers.Explainer"><em>Explainer</em></a><em>]</em><em>, </em><em>optional</em>) – <cite>Explainer</cite> object to use for self-influence computation, by default None</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <cite>explainer</cite> is not provided.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.get_global_rank">
 <span class="sig-name descname"><span class="pre">get_global_rank</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalSelfInfluenceStrategy.get_global_rank"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.get_global_rank" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Returns the global ranking of training data ordered by their self-influence scores.
+Cached to avoid recomputation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A 1D tensor containing the global ranking.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.get_self_influence">
 <span class="sig-name descname"><span class="pre">get_self_influence</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/explainers/global_ranking/global_ranking_strategies.html#GlobalSelfInfluenceStrategy.get_self_influence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.get_self_influence" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Computes self-influences using <cite>self.explainer</cite></p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A 1D tensor containing the self-influence scores.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.explainers.global_ranking.global_ranking_strategies.GlobalSelfInfluenceStrategy.load_state_dict">

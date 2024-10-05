@@ -163,11 +163,14 @@
 <span class="sd">            If `test_tensor` and `test_classes` are not provided when `filter_by_prediction` is True.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="n">explanations</span> <span class="o">=</span> <span class="n">explanations</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="p">(</span><span class="n">test_tensor</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">test_classes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_by_prediction</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;test_tensor and test_classes must be provided if filter_by_prediction is True&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">test_subclasses</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">test_subclasses</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">test_subclasses</span><span class="p">)</span>
+        <span class="n">test_subclasses</span> <span class="o">=</span> <span class="n">test_subclasses</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">test_tensor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">test_tensor</span> <span class="o">=</span> <span class="n">test_tensor</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -181,7 +184,7 @@
             <span class="n">pred_cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">test_tensor</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">select_idx</span> <span class="o">*=</span> <span class="n">pred_cls</span> <span class="o">==</span> <span class="n">test_classes</span>
 
-        <span class="n">explanations</span> <span class="o">=</span> <span class="n">explanations</span><span class="p">[</span><span class="n">select_idx</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">explanations</span> <span class="o">=</span> <span class="n">explanations</span><span class="p">[</span><span class="n">select_idx</span><span class="p">]</span>
         <span class="n">test_subclasses</span> <span class="o">=</span> <span class="n">test_subclasses</span><span class="p">[</span><span class="n">select_idx</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="n">top_one_xpl_indices</span> <span class="o">=</span> <span class="n">explanations</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>

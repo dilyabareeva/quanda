@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>quanda.benchmarks.heuristics.top_k_overlap &mdash; quanda 01.07.2024 documentation</title>
+  <title>quanda.benchmarks.heuristics.top_k_cardinality &mdash; quanda 01.07.2024 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
 
@@ -65,7 +65,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">quanda.benchmarks.heuristics.top_k_overlap</li>
+      <li class="breadcrumb-item active">quanda.benchmarks.heuristics.top_k_cardinality</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -74,7 +74,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for quanda.benchmarks.heuristics.top_k_overlap</h1><div class="highlight"><pre>
+  <h1>Source code for quanda.benchmarks.heuristics.top_k_cardinality</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
@@ -88,17 +88,17 @@
     <span class="n">load_module_from_bench_state</span><span class="p">,</span>
     <span class="n">sample_transforms</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">quanda.metrics.heuristics</span> <span class="kn">import</span> <span class="n">TopKOverlapMetric</span>
+<span class="kn">from</span> <span class="nn">quanda.metrics.heuristics</span> <span class="kn">import</span> <span class="n">TopKCardinalityMetric</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="TopKOverlap">
-<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.TopKOverlap">[docs]</a>
-<span class="k">class</span> <span class="nc">TopKOverlap</span><span class="p">(</span><span class="n">Benchmark</span><span class="p">):</span>
+<div class="viewcode-block" id="TopKCardinality">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_cardinality.html#quanda.benchmarks.heuristics.TopKCardinality">[docs]</a>
+<span class="k">class</span> <span class="nc">TopKCardinality</span><span class="p">(</span><span class="n">Benchmark</span><span class="p">):</span>
     <span class="c1"># TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Benchmark for the Top-K Overlap heuristic. This benchmark evaluates the dependence of the attributions</span>
+<span class="sd">    Benchmark for the Top-K Cardinality heuristic. This benchmark evaluates the dependence of the attributions</span>
 <span class="sd">    on the test samples being attributed.</span>
 
 <span class="sd">    The cardinality of the union of top-k attributed training samples is computed. A higher cardinality indicates</span>
@@ -110,17 +110,17 @@
 <span class="sd">    samples via relative influence. International Conference on Artificial Intelligence and Statistics. PMLR.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Top-K Overlap&quot;</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Top-K Cardinality&quot;</span>
 
-<div class="viewcode-block" id="TopKOverlap.__init__">
-<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.TopKOverlap.__init__">[docs]</a>
+<div class="viewcode-block" id="TopKCardinality.__init__">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_cardinality.html#quanda.benchmarks.heuristics.TopKCardinality.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="o">*</span><span class="n">args</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializer for the Top-K Overlap benchmark.</span>
+<span class="sd">        Initializer for the Top-K Cardinality benchmark.</span>
 
 <span class="sd">        This initializer is not used directly, instead,</span>
 <span class="sd">        the `generate` or the `assemble` methods should be used.</span>
@@ -135,8 +135,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">top_k</span><span class="p">:</span> <span class="nb">int</span></div>
 
 
-<div class="viewcode-block" id="TopKOverlap.generate">
-<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.TopKOverlap.generate">[docs]</a>
+<div class="viewcode-block" id="TopKCardinality.generate">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_cardinality.html#quanda.benchmarks.heuristics.TopKCardinality.generate">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -174,11 +174,11 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TopKOverlap</span>
+<span class="sd">        TopKCardinality</span>
 <span class="sd">            The benchmark instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generating </span><span class="si">{</span><span class="n">TopKOverlap</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> benchmark components based on passed arguments...&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generating </span><span class="si">{</span><span class="n">TopKCardinality</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> benchmark components based on passed arguments...&quot;</span><span class="p">)</span>
 
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">)</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">_set_devices</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
@@ -191,8 +191,8 @@
         <span class="k">return</span> <span class="n">obj</span></div>
 
 
-<div class="viewcode-block" id="TopKOverlap.download">
-<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.TopKOverlap.download">[docs]</a>
+<div class="viewcode-block" id="TopKCardinality.download">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_cardinality.html#quanda.benchmarks.heuristics.TopKCardinality.download">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">download</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -216,7 +216,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TopKOverlap</span>
+<span class="sd">        TopKCardinality</span>
 <span class="sd">            The benchmark instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
@@ -247,8 +247,8 @@
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TopKOverlap.assemble">
-<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.TopKOverlap.assemble">[docs]</a>
+<div class="viewcode-block" id="TopKCardinality.assemble">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_cardinality.html#quanda.benchmarks.heuristics.TopKCardinality.assemble">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">assemble</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -287,7 +287,7 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        TopKOverlap</span>
+<span class="sd">        TopKCardinality</span>
 <span class="sd">            The benchmark instance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
@@ -303,8 +303,8 @@
         <span class="k">return</span> <span class="n">obj</span></div>
 
 
-<div class="viewcode-block" id="TopKOverlap.evaluate">
-<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_overlap.html#quanda.benchmarks.heuristics.TopKOverlap.evaluate">[docs]</a>
+<div class="viewcode-block" id="TopKCardinality.evaluate">
+<a class="viewcode-back" href="../../../../docs_api/quanda.benchmarks.heuristics.top_k_cardinality.html#quanda.benchmarks.heuristics.TopKCardinality.evaluate">[docs]</a>
     <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">explainer_cls</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
@@ -335,7 +335,7 @@
 
         <span class="n">expl_dl</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">)</span>
 
-        <span class="n">metric</span> <span class="o">=</span> <span class="n">TopKOverlapMetric</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">train_dataset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">top_k</span><span class="p">)</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="n">TopKCardinalityMetric</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">train_dataset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">train_dataset</span><span class="p">,</span> <span class="n">top_k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">top_k</span><span class="p">)</span>
 
         <span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">expl_dl</span><span class="p">)</span>
         <span class="n">n_batches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">expl_dl</span><span class="p">)</span>

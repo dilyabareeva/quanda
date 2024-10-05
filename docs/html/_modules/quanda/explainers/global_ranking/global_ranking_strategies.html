@@ -88,12 +88,32 @@
 <div class="viewcode-block" id="GlobalSelfInfluenceStrategy">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.global_ranking_strategies.html#quanda.explainers.global_ranking.GlobalSelfInfluenceStrategy">[docs]</a>
 <span class="k">class</span> <span class="nc">GlobalSelfInfluenceStrategy</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object is used in some metrics to compute the self-influence-based ranking of training data,</span>
+<span class="sd">    using an `Explainer` object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
 <div class="viewcode-block" id="GlobalSelfInfluenceStrategy.__init__">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.global_ranking_strategies.html#quanda.explainers.global_ranking.GlobalSelfInfluenceStrategy.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">explainer</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Explainer</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializer for the `GlobalSelfInfluenceStrategy` class.</span>
+<span class="sd">        This class is used to generate a ranking of training data ordered by their self-influence scores,</span>
+<span class="sd">        using an `Explainer` object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        explainer : Optional[Explainer], optional</span>
+<span class="sd">            `Explainer` object to use for self-influence computation, by default None</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If `explainer` is not provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">explainer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;An explainer of type BaseExplainer is required for a metric with global method &#39;self-influence&#39;.&quot;</span>
@@ -104,6 +124,14 @@
 <div class="viewcode-block" id="GlobalSelfInfluenceStrategy.get_self_influence">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.global_ranking_strategies.html#quanda.explainers.global_ranking.GlobalSelfInfluenceStrategy.get_self_influence">[docs]</a>
     <span class="k">def</span> <span class="nf">get_self_influence</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes self-influences using `self.explainer`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            A 1D tensor containing the self-influence scores.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">explainer</span><span class="o">.</span><span class="n">self_influence</span><span class="p">()</span></div>
 
 
@@ -111,6 +139,15 @@
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.global_ranking_strategies.html#quanda.explainers.global_ranking.GlobalSelfInfluenceStrategy.get_global_rank">[docs]</a>
     <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">get_global_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the global ranking of training data ordered by their self-influence scores.</span>
+<span class="sd">        Cached to avoid recomputation.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            A 1D tensor containing the global ranking.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_self_influence</span><span class="p">()</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span></div>
 
 
@@ -154,12 +191,30 @@
 <div class="viewcode-block" id="GlobalAggrStrategy">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.global_ranking_strategies.html#quanda.explainers.global_ranking.GlobalAggrStrategy">[docs]</a>
 <span class="k">class</span> <span class="nc">GlobalAggrStrategy</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class is used in some metrics to compute the global ranking of training data,</span>
+<span class="sd">    by aggregating supplied local attributions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
 <div class="viewcode-block" id="GlobalAggrStrategy.__init__">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.global_ranking_strategies.html#quanda.explainers.global_ranking.GlobalAggrStrategy.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">aggr_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializer for the `GlobalAggrStrategy` class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        aggr_type : type</span>
+<span class="sd">            The type of the aggregator to be used for global ranking computation.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If the aggregator type is not a subclass of `BaseAggregator`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aggregator</span> <span class="o">=</span> <span class="n">aggr_type</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">global_rank</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
 
@@ -174,30 +229,65 @@
         <span class="n">explanations</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates the aggregator with the given explanations.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        explanations : torch.Tensor</span>
+<span class="sd">            The local attributions to be aggregated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aggregator</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">explanations</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="GlobalAggrStrategy.get_global_rank">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.global_ranking_strategies.html#quanda.explainers.global_ranking.GlobalAggrStrategy.get_global_rank">[docs]</a>
     <span class="k">def</span> <span class="nf">get_global_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute global rank according to the aggregated scores.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            A 1D tensor containing the global ranking.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregator</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span><span class="o">.</span><span class="n">argsort</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="GlobalAggrStrategy.reset">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.global_ranking_strategies.html#quanda.explainers.global_ranking.GlobalAggrStrategy.reset">[docs]</a>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset the aggregator state.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aggregator</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="GlobalAggrStrategy.load_state_dict">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.global_ranking_strategies.html#quanda.explainers.global_ranking.GlobalAggrStrategy.load_state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load the aggregator state from a dictionary</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        state_dict : dict</span>
+<span class="sd">            State dictionary to load.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aggregator</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="GlobalAggrStrategy.state_dict">
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.global_ranking.global_ranking_strategies.html#quanda.explainers.global_ranking.GlobalAggrStrategy.state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the aggregator state as a dictionary.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            The state dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregator</span><span class="o">.</span><span class="n">state_dict</span><span class="p">()</span></div>
 </div>
 

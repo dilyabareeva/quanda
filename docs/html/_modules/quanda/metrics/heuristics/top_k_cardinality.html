@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>quanda.metrics.heuristics.top_k_overlap &mdash; quanda 01.07.2024 documentation</title>
+  <title>quanda.metrics.heuristics.top_k_cardinality &mdash; quanda 01.07.2024 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
 
@@ -65,7 +65,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">quanda.metrics.heuristics.top_k_overlap</li>
+      <li class="breadcrumb-item active">quanda.metrics.heuristics.top_k_cardinality</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -74,7 +74,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for quanda.metrics.heuristics.top_k_overlap</h1><div class="highlight"><pre>
+  <h1>Source code for quanda.metrics.heuristics.top_k_cardinality</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
@@ -82,9 +82,9 @@
 <span class="kn">from</span> <span class="nn">quanda.metrics.base</span> <span class="kn">import</span> <span class="n">Metric</span>
 
 
-<div class="viewcode-block" id="TopKOverlapMetric">
-<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric">[docs]</a>
-<span class="k">class</span> <span class="nc">TopKOverlapMetric</span><span class="p">(</span><span class="n">Metric</span><span class="p">):</span>
+<div class="viewcode-block" id="TopKCardinalityMetric">
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_cardinality.html#quanda.metrics.heuristics.TopKCardinalityMetric">[docs]</a>
+<span class="k">class</span> <span class="nc">TopKCardinalityMetric</span><span class="p">(</span><span class="n">Metric</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Metric that measures the overlap of top-k explanations across all test samples, as argued in Barshan et al. (2020).</span>
 <span class="sd">    A good data attributor&#39;s attributions should depend on the input data,</span>
@@ -96,8 +96,8 @@
 <span class="sd">    samples via relative influence. International Conference on Artificial Intelligence and Statistics. PMLR.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="TopKOverlapMetric.__init__">
-<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.__init__">[docs]</a>
+<div class="viewcode-block" id="TopKCardinalityMetric.__init__">
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_cardinality.html#quanda.metrics.heuristics.TopKCardinalityMetric.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
@@ -111,7 +111,7 @@
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializer for the Top-K Overlap metric.</span>
+<span class="sd">        Initializer for the Top-K Cardinality metric.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -135,8 +135,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">all_top_k_examples</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">top_k</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TopKOverlapMetric.update">
-<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.update">[docs]</a>
+<div class="viewcode-block" id="TopKCardinalityMetric.update">
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_cardinality.html#quanda.metrics.heuristics.TopKCardinalityMetric.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">explanations</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -156,8 +156,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">all_top_k_examples</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">all_top_k_examples</span><span class="p">,</span> <span class="n">top_k_indices</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TopKOverlapMetric.compute">
-<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.compute">[docs]</a>
+<div class="viewcode-block" id="TopKCardinalityMetric.compute">
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_cardinality.html#quanda.metrics.heuristics.TopKCardinalityMetric.compute">[docs]</a>
     <span class="k">def</span> <span class="nf">compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute the metric score.</span>
@@ -170,15 +170,15 @@
         <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_top_k_examples</span><span class="p">))</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">numel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_top_k_examples</span><span class="p">)}</span></div>
 
 
-<div class="viewcode-block" id="TopKOverlapMetric.reset">
-<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.reset">[docs]</a>
+<div class="viewcode-block" id="TopKCardinalityMetric.reset">
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_cardinality.html#quanda.metrics.heuristics.TopKCardinalityMetric.reset">[docs]</a>
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset the metric state.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_top_k_examples</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_k</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TopKOverlapMetric.load_state_dict">
-<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.load_state_dict">[docs]</a>
+<div class="viewcode-block" id="TopKCardinalityMetric.load_state_dict">
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_cardinality.html#quanda.metrics.heuristics.TopKCardinalityMetric.load_state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">load_state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load the metric state from a state dictionary.</span>
@@ -191,8 +191,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">all_top_k_examples</span> <span class="o">=</span> <span class="n">state_dict</span><span class="p">[</span><span class="s2">&quot;all_top_k_examples&quot;</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="TopKOverlapMetric.state_dict">
-<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_overlap.html#quanda.metrics.heuristics.TopKOverlapMetric.state_dict">[docs]</a>
+<div class="viewcode-block" id="TopKCardinalityMetric.state_dict">
+<a class="viewcode-back" href="../../../../docs_api/quanda.metrics.heuristics.top_k_cardinality.html#quanda.metrics.heuristics.TopKCardinalityMetric.state_dict">[docs]</a>
     <span class="k">def</span> <span class="nf">state_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the metric state as a dictionary.</span>

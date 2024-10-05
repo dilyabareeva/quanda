@@ -4,11 +4,11 @@ Getting Started
 Installation
 ------------
 
-To install the latest release of **quanda**, use the following command in your terminal:
+To install **quanda**, download the repository and run the following command in the root directory:
 
 .. code-block:: console
 
-   (.venv) $ pip install git+https://github.com/dilyabareeva/quanda.git
+   (.venv) $ pip install -e .
 
 **quanda** requires Python 3.7 or later. It is recommended to use a virtual environment to install the package.
 

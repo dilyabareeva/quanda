@@ -207,7 +207,7 @@
             <span class="n">pred_cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">test_tensor</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">select_idx</span> <span class="o">*=</span> <span class="n">pred_cls</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">adversarial_label</span>
 
-        <span class="n">explanations</span> <span class="o">=</span> <span class="n">explanations</span><span class="p">[</span><span class="n">select_idx</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">explanations</span> <span class="o">=</span> <span class="n">explanations</span><span class="p">[</span><span class="n">select_idx</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">auprc_scores</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">binary_auprc</span><span class="p">(</span><span class="n">xpl</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adversarial_indices</span><span class="p">)</span> <span class="k">for</span> <span class="n">xpl</span> <span class="ow">in</span> <span class="n">explanations</span><span class="p">])</span></div>
 
 

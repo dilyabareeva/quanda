@@ -108,7 +108,7 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.base.Benchmark.download" title="quanda.benchmarks.base.Benchmark.download"><code class="xref py py-obj docutils literal notranslate"><span class="pre">download</span></code></a>(name, cache_dir, device, *args, ...)</p></td>
 <td><p>This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.base.Benchmark.evaluate" title="quanda.benchmarks.base.Benchmark.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(*args, **kwargs)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quanda.benchmarks.base.Benchmark.evaluate" title="quanda.benchmarks.base.Benchmark.evaluate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate</span></code></a>(explainer_cls[, expl_kwargs, ...])</p></td>
 <td><p>Run the evaluation using the benchmark.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#quanda.benchmarks.base.Benchmark.generate" title="quanda.benchmarks.base.Benchmark.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(*args, **kwargs)</p></td>
@@ -126,7 +126,8 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.benchmarks.base.Benchmark.__init__">
 <span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/base.html#Benchmark.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.base.Benchmark.__init__" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Initializer for the base <cite>Benchmark</cite> class.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.benchmarks.base.Benchmark.assemble">
@@ -170,11 +171,18 @@ dictionary.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="quanda.benchmarks.base.Benchmark.evaluate">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/base.html#Benchmark.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.base.Benchmark.evaluate" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">explainer_cls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expl_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/quanda/benchmarks/base.html#Benchmark.evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quanda.benchmarks.base.Benchmark.evaluate" title="Link to this definition"></a></dt>
 <dd><p>Run the evaluation using the benchmark.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>NotImplementedError</strong> – </p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>explainer_cls</strong> (<em>type</em>) – The explainer class to be used for evaluation.</p></li>
+<li><p><strong>expl_kwargs</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em><em>, </em><em>optional</em>) – Additional keyword arguments to be passed to the explainer, by default None.</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em><em>, </em><em>optional</em>) – Batch size for the evaluation, by default 8.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NotImplementedError</strong> – </p>
 </dd>
 </dl>
 </dd></dl>

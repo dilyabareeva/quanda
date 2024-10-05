@@ -14,4 +14,4 @@ Submodules
 
    quanda.benchmarks.heuristics.mixed_datasets
    quanda.benchmarks.heuristics.model_randomization
-   quanda.benchmarks.heuristics.top_k_overlap
+   quanda.benchmarks.heuristics.top_k_cardinality

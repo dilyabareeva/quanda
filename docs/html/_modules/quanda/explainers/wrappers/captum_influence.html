@@ -203,7 +203,6 @@
 <a class="viewcode-back" href="../../../../docs_api/quanda.explainers.wrappers.captum_influence.html#quanda.explainers.wrappers.CaptumSimilarity">[docs]</a>
 <span class="k">class</span> <span class="nc">CaptumSimilarity</span><span class="p">(</span><span class="n">CaptumInfluence</span><span class="p">):</span>
     <span class="c1"># TODO: incorporate SimilarityInfluence kwargs into init_kwargs</span>
-    <span class="c1"># TODO: Check usage of &#39;replace_nan&#39; in SimilarityInfluence</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for Similarity Influence wrapper. This explainer uses a similarity function on its inputs to rank the training data.</span>
 
@@ -228,7 +227,7 @@
         <span class="n">similarity_metric</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">cosine_similarity</span><span class="p">,</span>
         <span class="n">similarity_direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span>
         <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="n">replace_nan</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">replace_nan</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
         <span class="n">load_from_disk</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="o">**</span><span class="n">explainer_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">):</span>
@@ -257,8 +256,8 @@
 <span class="sd">            Direction for similarity computation. Can be either &quot;min&quot; or &quot;max&quot;. Defaults to &quot;max&quot;.</span>
 <span class="sd">        batch_size : int, optional</span>
 <span class="sd">            Batch size used for iterating over the dataset. Defaults to 1.</span>
-<span class="sd">        replace_nan : bool, optional</span>
-<span class="sd">            Whether to replace NaN values in similarity scores. Defaults to False.</span>
+<span class="sd">        replace_nan : int, optional</span>
+<span class="sd">            The value to replace NaN values in similarity scores with. Defaults to 0.</span>
 <span class="sd">        load_from_disk : bool, optional</span>
 <span class="sd">            If True, activations will be loaded from disk if available, instead of being recomputed. Defaults to True.</span>
 <span class="sd">        **explainer_kwargs : Any</span>
@@ -567,6 +566,9 @@
 <span class="sd">            If None, the entire train_dataset is used. Defaults to None.</span>
 <span class="sd">        test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional</span>
 <span class="sd">            Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.</span>
+<span class="sd">        sample_wise_grads_per_batch : bool, optional</span>
+<span class="sd">            Whether to compute sample-wise gradients per batch. Defaults to False.</span>
+<span class="sd">            Note: This feature is currently not supported.</span>
 <span class="sd">        projection_dim : int, optional</span>
 <span class="sd">            Captum&#39;s ArnoldiInfluenceFunction produces a low-rank approximation of the (inverse) Hessian.</span>
 <span class="sd">            projection_dim is the rank of that approximation. Defaults to 50.</span>
@@ -809,7 +811,7 @@
         <span class="n">checkpoints</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Iterator</span><span class="p">],</span>
         <span class="n">checkpoints_load_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">layers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">loss_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">),</span>
+        <span class="n">loss_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">),</span>
         <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">test_loss_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">sample_wise_grads_per_batch</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -831,13 +833,17 @@
 <span class="sd">        layers : Optional[List[str]], optional</span>
 <span class="sd">            Layers used to compute the gradients. Defaults to None.</span>
 <span class="sd">        loss_fn : Optional[Union[torch.nn.Module, Callable]], optional</span>
-<span class="sd">            Loss function used for influence computation. Defaults to CrossEntropyLoss with reduction=&#39;sum&#39;.</span>
+<span class="sd">            Loss function used for influence computation.</span>
+<span class="sd">            If reduction=&#39;none&#39;, then sample_wise_grads_per_batch must be set to False.</span>
+<span class="sd">            Otherwise, sample_wise_grads_per_batch must be True. Defaults to CrossEntropyLoss with reduction=&#39;none&#39;.</span>
 <span class="sd">        batch_size : int, optional</span>
 <span class="sd">            Batch size used for iterating over the dataset. Defaults to 1.</span>
 <span class="sd">        test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional</span>
 <span class="sd">            Loss function which is used for the test samples. If None, loss_fn is used. Defaults to None.</span>
 <span class="sd">        sample_wise_grads_per_batch : bool, optional</span>
-<span class="sd">            Whether to compute sample-wise gradients per batch. Defaults to False.</span>
+<span class="sd">            Whether to compute sample-wise gradients per batch.</span>
+<span class="sd">            If set to True, the loss function must use a reduction method (f.e. reduction=&#39;sum&#39;).</span>
+<span class="sd">            Defaults to False.</span>
 <span class="sd">        device : Union[str, torch.device], optional</span>
 <span class="sd">            Device to run the computation on. Defaults to &quot;cpu&quot;.</span>
 <span class="sd">        **explainer_kwargs : Any</span>
@@ -1039,7 +1045,7 @@
         <span class="n">train_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
         <span class="n">checkpoints</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Iterator</span><span class="p">],</span>
         <span class="n">checkpoints_load_func</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">loss_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">loss_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">(</span><span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">),</span>
         <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">test_loss_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">vectorize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>

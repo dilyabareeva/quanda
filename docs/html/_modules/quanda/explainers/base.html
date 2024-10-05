@@ -92,14 +92,6 @@
 <span class="sd">    Base class for explainer wrappers. Defines the interface that all</span>
 <span class="sd">    explainer classes must implement.</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    model : Union[torch.nn.Module, pl.LightningModule]</span>
-<span class="sd">        The model to be used for the influence computation.</span>
-<span class="sd">    train_dataset : torch.utils.data.Dataset</span>
-<span class="sd">        Training dataset to be used for the influence computation.</span>
-<span class="sd">    **kwargs : dict</span>
-<span class="sd">        Additional keyword arguments passed to the explainer.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Explainer.__init__">
@@ -110,6 +102,17 @@
         <span class="n">train_dataset</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializer for the `Explainer` class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model : Union[torch.nn.Module, pl.LightningModule]</span>
+<span class="sd">            The model to be used for the influence computation.</span>
+<span class="sd">        train_dataset : torch.utils.data.Dataset</span>
+<span class="sd">            Training dataset to be used for the influence computation.</span>
+<span class="sd">        **kwargs : dict</span>
+<span class="sd">            Additional keyword arguments passed to the explainer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
 
