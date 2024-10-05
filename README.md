@@ -41,10 +41,8 @@ Although there are various demonstrations of TDA’s potential for interpretabil
   <summary><b><big>Heuristics</big></b></summary>Finally, the community also used heuristics (desirable properties or sanity checks) to evaluate the quality of TDA techniques. These include comparing the attributions of a trained model and a randomized model (<a href="https://openreview.net/forum?id=9uvhpyQwzM_" target="_blank">Hanawa et al., 2021</a>) and measuring the amount of overlap between the attributions for different test samples 
     (<a href="http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf" target="_blank">Barshan et al., 2020</a>).
 </details>
-
-
-
-**quanda** is designed to meet the need of a comprehensive and systematic evaluation framework, allowing practitioners and researchers to obtain a detailed view of the performance of TDA methods in various contexts.
+<br>
+<b>quanda</b> is designed to meet the need of a comprehensive and systematic evaluation framework, allowing practitioners and researchers to obtain a detailed view of the performance of TDA methods in various contexts.
 
 ### Library Features
 
