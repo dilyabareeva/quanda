@@ -255,7 +255,8 @@ score = dst_eval.evaluate(
 print(f"Subclass Detection Score: {score}")
 ```
 </details>
-<br>
+
+
 More detailed examples can be found in the [tutorials](tutorials) folder.
 
 ### Custom Explainers
