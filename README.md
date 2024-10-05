@@ -1,8 +1,8 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://github-production-user-asset-6210df.s3.amazonaws.com/44092813/373869621-842c7fa4-bd86-4d8e-9a27-4fc573ed1536.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20241005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20241005T120023Z&X-Amz-Expires=300&X-Amz-Signature=5bd19194756c33069545d9d88786c2874f0323325da186599bd2fd04f7f9e75d&X-Amz-SignedHeaders=host">
-  <source media="(prefers-color-scheme: light)" srcset="https://github-production-user-asset-6210df.s3.amazonaws.com/44092813/373869621-842c7fa4-bd86-4d8e-9a27-4fc573ed1536.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20241005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20241005T120023Z&X-Amz-Expires=300&X-Amz-Signature=5bd19194756c33069545d9d88786c2874f0323325da186599bd2fd04f7f9e75d&X-Amz-SignedHeaders=host">
-  <img width="700" alt="quanda" src="https://github-production-user-asset-6210df.s3.amazonaws.com/44092813/373869621-842c7fa4-bd86-4d8e-9a27-4fc573ed1536.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20241005%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20241005T120023Z&X-Amz-Expires=300&X-Amz-Signature=5bd19194756c33069545d9d88786c2874f0323325da186599bd2fd04f7f9e75d&X-Amz-SignedHeaders=host">
+  <source media="(prefers-color-scheme: dark)" srcset="https://datacloud.hhi.fraunhofer.de/s/FHg7AEDxBAAdCYn/download/quanda_panda_day_n_night.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://datacloud.hhi.fraunhofer.de/s/FHg7AEDxBAAdCYn/download/quanda_panda_day_n_night.png">
+  <img width="700" alt="quanda" src="https://datacloud.hhi.fraunhofer.de/s/FHg7AEDxBAAdCYn/download/quanda_panda_day_n_night.png">
 </picture>
 </p>
 
