@@ -81,7 +81,7 @@ The `ModelRandomizationMetric` needs to instantiate a new explainer to generate 
    for i, (test_tensor, target) in enumerate(tqdm(test_loader)):
       test_tensor, target = test_tensor.to(DEVICE), target.to(DEVICE)
       tda = explainer.explain(
-         test=test_tensor,
+         test_tensor=test_tensor,
          targets=target
       )
       model_rand.update(test_data=test_tensor, explanations=tda, explanation_targets=target)

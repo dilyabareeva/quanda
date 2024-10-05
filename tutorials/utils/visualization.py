@@ -42,7 +42,8 @@ def save_influential_samples(
     top_k = 3
 
     # normalize influence scores by row
-    influence_scores = influence_scores / influence_scores.abs().max(dim=1, keepdim=True)[0]
+    influence_scores = influence_scores - influence_scores.min(dim=1, keepdim=True)[0]
+    influence_scores = influence_scores / influence_scores.max(dim=1, keepdim=True)[0]
 
     # Get the top opponents and proponents
     top_k_proponents = torch.topk(influence_scores, top_k, dim=1, largest=True)

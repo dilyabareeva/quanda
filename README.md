@@ -41,8 +41,8 @@ Although there are various demonstrations of TDA’s potential for interpretabil
   <summary><b><big>Heuristics</big></b></summary>Finally, the community also used heuristics (desirable properties or sanity checks) to evaluate the quality of TDA techniques. These include comparing the attributions of a trained model and a randomized model (<a href="https://openreview.net/forum?id=9uvhpyQwzM_" target="_blank">Hanawa et al., 2021</a>) and measuring the amount of overlap between the attributions for different test samples 
     (<a href="http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf" target="_blank">Barshan et al., 2020</a>).
 </details>
-
-**quanda** is designed to meet the need of a comprehensive and systematic evaluation framework, allowing practitioners and researchers to obtain a detailed view of the performance of TDA methods in various contexts.
+<br>
+<b>quanda</b> is designed to meet the need of a comprehensive and systematic evaluation framework, allowing practitioners and researchers to obtain a detailed view of the performance of TDA methods in various contexts.
 
 ### Library Features
 
@@ -155,7 +155,7 @@ In the following, we provide a quick guide to **quanda** usage. To begin using *
 - **Test Batches (`test_tensor`) and Explanation Targets (`target`)**: A batch of test data (`test_tensor`) and the corresponding explanation targets (`target`). Generally, it is advisable to use the model's predicted labels as the targets. In the following, we assume the existence of a `torch.utils.data.DataLoader` to load the test data in batches, with variable name `test_loader`.
 
 
-As an example, we will demonstrate the generation of explanations using `SimilarityInfluence` data attribution from `Captum`.
+In the following usage examples, we will be using the `SimilarityInfluence` data attribution from `Captum`.
 #### Metrics Usage
 
 Next, we demonstrate how to evaluate explanations using the **Model Randomization** metric.
@@ -180,8 +180,8 @@ from quanda.metrics.heuristics import ModelRandomizationMetric
 We now create our explainer. The device to be used by the explainer and metrics is inherited from the model, thus we set the model device explicitly.
 
 ```python
-DEVICE="cpu"
 model.to(DEVICE)
+
 explainer_kwargs = {
     "layers": "avgpool",
     "model_id": "default_model_id",
@@ -208,12 +208,12 @@ explainer_kwargs = {
     "cache_dir": "./cache"
 }
 model_rand = ModelRandomizationMetric(
-        model=model,
-        train_dataset=train_set,
-        explainer_cls=CaptumSimilarity,
-        expl_kwargs=explainer_kwargs,
-        correlation_fn="spearman",
-        seed=42,
+    model=model,
+    train_dataset=train_set,
+    explainer_cls=CaptumSimilarity,
+    expl_kwargs=explainer_kwargs,
+    correlation_fn="spearman",
+    seed=42,
 )
 ```
 </details>
@@ -255,12 +255,12 @@ score = dst_eval.evaluate(
 print(f"Subclass Detection Score: {score}")
 ```
 </details>
-
+<br>
 More detailed examples can be found in the [tutorials](tutorials) folder.
 
 ### Custom Explainers
 
-In addition to the built-in explainers, **quanda** supports custom explainer methods for evaluation. This section provides a guide on how to create a wrapper for a custom explainer that matches our interface.
+In addition to the built-in explainers, **quanda** supports the evaluatioon of custom explainer methods. This section provides a guide on how to create a wrapper for a custom explainer that matches our interface.
 
 <details>
 <summary><b><big>Step 1. Create an explainer class</big></b></summary>
@@ -289,7 +289,7 @@ Ensure that the output tensor has the shape `(test_samples, train_samples)`, whe
 ```python
 def explain(
   self,
-  test: torch.Tensor,
+  test_tensor: torch.Tensor,
   targets: Union[List[int], torch.Tensor]
 ) -> torch.Tensor:
     # Compute your influence scores here
