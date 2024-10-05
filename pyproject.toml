@@ -1,10 +1,23 @@
 [project]
 name = "quanda"
-description = "quanda"
+version = "0.0.0"
+authors = [
+  { name="Dilyara Bareeva", email="dilyabareeva@gmail.com" },
+]
+description = "Toolkit for quantitative evaluation of data attribution methods in PyTorch."
 license = { file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.8"
-keywords = ["explainable ai", "xai", "machine learning", "deep learning"]
+requires-python = ">=3.8,<=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+keywords = ["interpretability", "xai", "machine learning", "deep learning"]
+
+[project.urls]
+Homepage = "https://github.com/dilyabareeva/quanda"
+Issues = "https://github.com/dilyabareeva/quanda/issues"
 
 dependencies = [
     "numpy>=1.19.5",
@@ -20,6 +33,10 @@ dependencies = [
     "torchvision>=0.10.0",
 ]
 dynamic = ["version"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.isort]
 profile = "black"
