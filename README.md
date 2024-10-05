@@ -43,6 +43,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 </details>
 
 
+
 **quanda** is designed to meet the need of a comprehensive and systematic evaluation framework, allowing practitioners and researchers to obtain a detailed view of the performance of TDA methods in various contexts.
 
 ### Library Features
