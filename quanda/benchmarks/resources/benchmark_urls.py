@@ -6,4 +6,3 @@ benchmark_urls: dict = {
     "mnist_shortcut_detection": "https://datacloud.hhi.fraunhofer.de/s/yYGpZrRpDdbgXyT/download/mnist_shortcut_detection.pth",
     "mnist_class_detection": "https://datacloud.hhi.fraunhofer.de/s/R3XoDDHq4eNqjp3/download/mnist_class_detection.pth",
 }
-
