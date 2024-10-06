@@ -1,8 +1,8 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://tinyurl.com/4yad8eru">
-  <source media="(prefers-color-scheme: light)" srcset="https://tinyurl.com/2rmc7my5">
-  <img width="700" alt="quanda" src="https://tinyurl.com/79mn289u">
+  <source media="(prefers-color-scheme: dark)" srcset="https://datacloud.hhi.fraunhofer.de/s/jxRzEkyzrmLT6t6/download/quanda_panda_day_n_night.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://datacloud.hhi.fraunhofer.de/s/jxRzEkyzrmLT6t6/download/quanda_panda_day_n_night.png">
+  <img width="700" alt="quanda" src="https://datacloud.hhi.fraunhofer.de/s/jxRzEkyzrmLT6t6/download/quanda_panda_day_n_night.png">
 </picture>
 </p>
 
@@ -11,7 +11,7 @@
 </p>
 
 
-![py_versions](assets/readme/python-versions.svg)
+![py_versions](https://img.shields.io/pypi/pyversions/msmhelper)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![mypy](https://img.shields.io/badge/mypy-checked-green)
 ![flake8](https://img.shields.io/badge/flake8-checked-blueviolet)
