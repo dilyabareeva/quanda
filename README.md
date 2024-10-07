@@ -140,7 +140,8 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 To install the latest release of **quanda** use:
 
 ```setup
-pip install git+https://github.com/dilyabareeva/quanda.git
+pip install quanda
+pip install captum@git+https://github.com/pytorch/captum
 ```
 
 **quanda** requires Python 3.7 or later. It is recommended to use a virtual environment to install the package.
@@ -332,7 +333,7 @@ We have included a few [tutorials](tutorials) to demonstrate the usage of **quan
 To install the library with tutorial dependencies, run:
 
 ```bash
-pip install -e '.[tutorials]'
+pip install quanda[tutorials]
 ```
 
 ## 👩‍💻Contributing

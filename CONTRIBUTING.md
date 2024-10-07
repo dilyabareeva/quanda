@@ -43,7 +43,6 @@ To set up the development environment, clone the repository and install the depe
 
 ```bash
 pip install -e '.[dev]'
-pip uninstall quanda
 ```
 
 Install the pre-commit hooks to ensure code style is checked with each commit:

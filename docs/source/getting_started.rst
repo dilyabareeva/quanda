@@ -8,7 +8,8 @@ To install the latest release of **quanda**, use the following command in your t
 
 .. code-block:: console
 
-   (.venv) $ pip install git+https://github.com/dilyabareeva/quanda.git
+   (.venv) $ pip install quanda
+   (.venv) $ pip install captum@git+https://github.com/pytorch/captum
 
 **quanda** requires Python 3.7 or later. It is recommended to use a virtual environment to install the package.
 
