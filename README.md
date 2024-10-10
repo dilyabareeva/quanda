@@ -342,3 +342,17 @@ We welcome contributions to **quanda**! You could contribute by:
 - Submitting a pull request to fix a bug, add a new explainer wrapper, a new metric, or another feature.
 
 A detailed guide on how to contribute to **quanda** can be found [here](CONTRIBUTING.md).
+
+## 🔗Citation
+
+```bibtex
+@misc{bareeva2024quandainterpretabilitytoolkittraining,
+      title={Quanda: An Interpretability Toolkit for Training Data Attribution Evaluation and Beyond}, 
+      author={Dilyara Bareeva and Galip Ümit Yolcu and Anna Hedström and Niklas Schmolenski and Thomas Wiegand and Wojciech Samek and Sebastian Lapuschkin},
+      year={2024},
+      eprint={2410.07158},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2410.07158}, 
+}
+```
