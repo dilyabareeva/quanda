@@ -6,7 +6,7 @@ build:
     python: "3.10"
   jobs:
     pre_build:
-      - (cd ../ && make rst)
+      - make rst
 
 python:
   install:
