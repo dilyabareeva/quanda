@@ -15,6 +15,7 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 ![mypy](https://img.shields.io/badge/mypy-checked-green)
 ![flake8](https://img.shields.io/badge/flake8-checked-blueviolet)
+[![codecov](https://codecov.io/gh/dilyabareeva/quanda/graph/badge.svg?token=6SZS1VISQF)](https://codecov.io/gh/dilyabareeva/quanda)
 
 **quanda** _is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
 
