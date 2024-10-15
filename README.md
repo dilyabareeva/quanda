@@ -11,11 +11,13 @@
 </p>
 
 
-![py_versions](https://img.shields.io/pypi/pyversions/msmhelper)
+![py_versions](https://img.shields.io/pypi/pyversions/msmhelper?color=3A76A8)
+![PyPI - Version](https://img.shields.io/pypi/v/quanda?color=EB9C38)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-![mypy](https://img.shields.io/badge/mypy-checked-green)
-![flake8](https://img.shields.io/badge/flake8-checked-blueviolet)
+![mypy](https://img.shields.io/badge/mypy-checked-7EAF6E)
+![flake8](https://img.shields.io/badge/flake8-checked-7D53BA)
 [![codecov](https://codecov.io/gh/dilyabareeva/quanda/graph/badge.svg?token=6SZS1VISQF)](https://codecov.io/gh/dilyabareeva/quanda)
+![PyPI - License](https://img.shields.io/pypi/l/quanda?color=A20E0C)
 
 **quanda** _is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
 
