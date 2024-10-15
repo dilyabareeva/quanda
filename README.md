@@ -18,6 +18,7 @@
 ![flake8](https://img.shields.io/badge/flake8-checked-7D53BA)
 [![codecov](https://codecov.io/gh/dilyabareeva/quanda/graph/badge.svg?token=6SZS1VISQF)](https://codecov.io/gh/dilyabareeva/quanda)
 ![PyPI - License](https://img.shields.io/pypi/l/quanda?color=A20E0C)
+[![Documentation Status](https://readthedocs.org/projects/quanda/badge/?version=latest)](https://quanda.readthedocs.io/en/latest/?badge=latest)
 
 **quanda** _is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
 
