@@ -8,13 +8,14 @@
 
 import os
 import sys
+from datetime import datetime
 
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "quanda"
-copyright = "2024, Dilya, Galip"
-author = "Dilya, Galip"
-release = "01.07.2024"
+copyright = f"{str(datetime.utcnow().year)}, Dilyara Bareeva, Galip Ümit Yolcu"
+author = "Dilyara Bareeva, Galip Ümit Yolcu"
+release = "05.10.2024"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
