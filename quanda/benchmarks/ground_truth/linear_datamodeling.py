@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, List
 
 import lightning as L
 import torch
@@ -68,6 +68,8 @@ class LinearDatamodeling(Benchmark):
         self.use_predictions: bool
         self.correlation_fn: Union[Callable, CorrelationFnLiterals]
         self.seed: int
+        self.subset_ids: Optional[List[List[int]]]
+        self.pretrained_models: Optional[List[torch.nn.Module]]
 
     @classmethod
     def generate(
@@ -86,6 +88,8 @@ class LinearDatamodeling(Benchmark):
         seed: int = 42,
         use_predictions: bool = True,
         dataset_split: str = "train",
+        subset_ids: Optional[List[List[int]]] = None,
+        pretrained_models: Optional[List[torch.nn.Module]] = None,
         *args,
         **kwargs,
     ):
@@ -123,6 +127,10 @@ class LinearDatamodeling(Benchmark):
             Whether to use model predictions or the true test labels for the evaluation, defaults to False.
         dataset_split : str, optional
             The dataset split to use, by default "train". Only used if `train_dataset` is a string.
+        subset_ids : Optional[List[List[int]]], optional
+            A list of pre-defined subset indices, by default None.
+        pretrained_models : Optional[List[torch.nn.Module]], optional
+            A list of pre-trained models for each subset, by default None.
         """
 
         logger.info(f"Generating {LinearDatamodeling.name} benchmark components based on passed arguments...")
@@ -141,6 +149,8 @@ class LinearDatamodeling(Benchmark):
         obj.trainer_fit_kwargs = trainer_fit_kwargs
         obj.cache_dir = cache_dir
         obj.model_id = model_id
+        obj.subset_ids = subset_ids
+        obj.pretrained_models = pretrained_models
 
         return obj
 
@@ -185,6 +195,8 @@ class LinearDatamodeling(Benchmark):
             seed=bench_state["seed"],
             use_predictions=bench_state["use_predictions"],
             data_transform=dataset_transform,
+            subset_ids=bench_state.get("subset_ids", None),
+            pretrained_models=bench_state.get("pretrained_models", None),
         )
 
     @classmethod
@@ -204,6 +216,8 @@ class LinearDatamodeling(Benchmark):
         seed: int = 42,
         use_predictions: bool = True,
         dataset_split: str = "train",
+        subset_ids: Optional[List[List[int]]] = None,
+        pretrained_models: Optional[List[torch.nn.Module]] = None,
         *args,
         **kwargs,
     ):
@@ -241,6 +255,10 @@ class LinearDatamodeling(Benchmark):
             Whether to use model predictions or the true test labels for the evaluation, defaults to False.
         dataset_split : str, optional
             The dataset split to use, by default "train". Only used if `train_dataset` is a string.
+        subset_ids : Optional[List[List[int]]], optional
+            A list of pre-defined subset indices, by default None.
+        pretrained_models : Optional[List[torch.nn.Module]], optional
+            A list of pre-trained models for each subset, by default None.
         """
         obj = cls()
         obj.model = model
@@ -256,6 +274,8 @@ class LinearDatamodeling(Benchmark):
         obj.model_id = model_id
         obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj._set_devices(model)
+        obj.subset_ids = subset_ids
+        obj.pretrained_models = pretrained_models
 
         return obj
 
@@ -301,6 +321,8 @@ class LinearDatamodeling(Benchmark):
             correlation_fn=self.correlation_fn,
             seed=self.seed,
             batch_size=batch_size,
+            subset_ids=self.subset_ids,
+            pretrained_models=self.pretrained_models,
         )
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
