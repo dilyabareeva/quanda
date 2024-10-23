@@ -92,10 +92,3 @@ Benchmarks
    :maxdepth: 1
 
    docs_api/modules
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
