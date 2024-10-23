@@ -5,15 +5,15 @@
 Contribution Guide for quanda
 =============================
 
-**quanda** is an open source library that you can contribute in! We
+|quanda| is an open source library that you can contribute in! We
 encourage you to contribute new metrics and explainers, optimizations or
-to report any bugs you encounter while using **quanda**.
+to report any bugs you encounter while using |quanda|.
 
 In this guide, you will get a summary of the main components of
-**quanda**, as well as best practices for your own contributions.
+|quanda|, as well as best practices for your own contributions.
 
 If you have any questions regarding the codebase, please `open an
-issue <https://github.com/dilyabareeva/quanda/issues/new>`__ or write us
+issue <https://github.com/dilyabareeva/quanda/issues/new/choose>`__ or write us
 at dilyabareeva@gmail.com or galip.uemit.yolcu@hhi.fraunhofer.de.
 
 Table of Contents
@@ -54,7 +54,7 @@ General Guidelines
 ------------------
 
 This section describes the prerequisites and general principles to
-follow while contributing to **quanda**. Please read sections
+follow while contributing to |quanda|. Please read sections
 `Contributing a New Metric <#contributing-a-new-metric>`__ and
 `Contributing a New Benchmark <#contributing-a-new-benchmark>`__ for
 implementational details.
@@ -62,7 +62,7 @@ implementational details.
 Setting up the development environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before starting to code to contribute in **quanda**, you need to install
+Before starting to code to contribute in |quanda|, you need to install
 dependencies and make sure you use the correct development tools. To set
 up the development environment, clone the repository and install the
 dependencies:
@@ -95,12 +95,12 @@ Before you start writing your code, create a local branch from the
 Code Style
 ~~~~~~~~~~
 
-**quanda** follows `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`__
+|quanda| follows `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`__
 code style. We use `flake8 <https://pypi.org/project/flake8/>`__ for
 quick style checks and `black <https://github.com/psf/black>`__ for code
 formatting with a line-length of 127 characters.
 
-**quanda** uses `mypy <https://mypy-lang.org/>`__ static type checker.
+|quanda| uses `mypy <https://mypy-lang.org/>`__ static type checker.
 Please include type annotations for added code, and only write fully
 compatible code.
 
@@ -154,7 +154,7 @@ and then execute:
 Documentation
 ~~~~~~~~~~~~~
 
-**quanda** uses
+|quanda| uses
 `numpydoc <https://numpydoc.readthedocs.io/en/latest/format.html>`__
 format for docstrings. You should add complete docstrings for
 contributions, as well as related references to the literature whenever
@@ -180,7 +180,7 @@ ensure a seamless review process:
 -  Use ``@pytest.mark`` with fitting category for unit tests. If the new
    test cases include a new component, you can create a ``@pytest.mark``
    category and add that category with its description to ``pytest.ini``
--  **quanda** strives for >90% code coverage in tests. Verify coverage
+-  |quanda| strives for >90% code coverage in tests. Verify coverage
    and that all unit tests pass for all supported python versions by
    running:
 
@@ -200,7 +200,7 @@ or `gumityolcu <https://github.com/gumityolcu>`__.
 Contributing Metrics and Benchmarks
 -----------------------------------
 
-In **quanda**, evaluation strategies are divided into 3 groups:
+In |quanda|, evaluation strategies are divided into 3 groups:
 1-\ **Downstream Evaluation Tasks**: These approaches use the
 attributions to achieve a downstream task, like detecting mislabeled
 samples or predicting the class of a test sample. 2-\ **Heuristics**:
@@ -210,29 +210,29 @@ dependence on the model parameters and the test sample.
 attributions against a given ground truth, as in leave-1-out or
 leave-k-out retraining.
 
-Each evaluation strategy has corresponding ``Metric`` and ``Benchmark``
+Each evaluation strategy has corresponding :doc:`Metric <docs_api/quanda.metrics.base>` and :doc:`Benchmark <docs_api/quanda.benchmarks.base>`
 object, and these files are organized into folders corresponding to the
 different kinds of evaluation strategies listed above.
 
 In TDA evaluation, it is not uncommon to produce controlled settings
 (e.g. datasets that are manipulated in certain ways, while keeping track
 of what manipulations were exactly done, training models on these new
-datasets), which need to be handled with care. In **quanda**, a
-``Metric`` object concerns itself with everything that happens in the
+datasets), which need to be handled with care. In |quanda|, a
+:doc:`Metric <docs_api/quanda.metrics.base>` object concerns itself with everything that happens in the
 evaluation process **after** the generation of explanations using the
-``Explainer`` we want to evaluate. It expects to consume attributions,
+:doc:`Explainer <docs_api/quanda.explainers.base>` we want to evaluate. It expects to consume attributions,
 potentially along with extra data corresponding those attributions, to
 update its inner state through the ``update`` method. Finally, they
 output an overall metric score through the ``compute`` method.
 
-In contrast, ``Benchmark`` objects concern themselves with the whole
-evaluation process. Each ``Benchmark`` object contains a ``Metric``
-object, which it uses to compute the final score. However, ``Benchmark``
+In contrast, :doc:`Benchmark <docs_api/quanda.benchmarks.base>` objects concern themselves with the whole
+evaluation process. Each :doc:`Benchmark <docs_api/quanda.benchmarks.base>` object contains a :doc:`Metric <docs_api/quanda.metrics.base>`
+object, which it uses to compute the final score. However, :doc:`Benchmark <docs_api/quanda.benchmarks.base>`
 objects are also contain a model, a training dataset, and potentially a
 ``Trainer`` and a validation dataset.
 
-This section goes through the different methods of ``Metric`` and
-``Benchmark`` classes, with the intention of shedding light on how to
+This section goes through the different methods of :doc:`Metric <docs_api/quanda.metrics.base>` and
+:doc:`Benchmark <docs_api/quanda.benchmarks.base>` classes, with the intention of shedding light on how to
 structure your own contributions.
 
 Contributing a New Metric
@@ -241,7 +241,7 @@ Contributing a New Metric
 To contribute a metric, first identify which group of evaluation
 strategies your metric belongs to and create a file for it under the
 directory inside the ``quanda/metrics`` directory. The next step is to
-start implementing a subclass of the base ``Metric`` class, defined in
+start implementing a subclass of the base :doc:`Metric <docs_api/quanda.metrics.base>` class, defined in
 ``quanda/metrics/base.py``. The base initializer expects the trained
 model and the corresponding training dataset, which all metrics that are
 implemented currently use. We recommend calling the base initializer in
@@ -249,7 +249,7 @@ all cases.
 
 After handling the initializations inside the ``__init__`` methods, the
 ``update``, ``reset`` and ``compute`` methods should be implemented.
-Metrics in **quanda** are stateful. This means that they consume
+Metrics in |quanda| are stateful. This means that they consume
 explanations through ``update`` method, and they keep record of the
 intermediate results of the explanations they have seen in an internal
 state. The ``update`` method should take attributions, and any extra
@@ -284,10 +284,10 @@ methods for the user to be able to save and restore metric states.
 ``state_dict`` should return a dictionary containing all the data needed
 to completely store the state of the metric, whereas ``load_state_dict``
 should completely restore the metric state from that dictionary. ###
-Contributing a New Benchmark As explained above, the ``Benchmark``
+Contributing a New Benchmark As explained above, the :doc:`Benchmark <docs_api/quanda.benchmarks.base>`
 objects conduct the whole evaluation process, from start to finish.
 Thus, they use their corresponding metric. Benchmarks are not
-initialized using the ``__init__`` method. Instead, **quanda** offers
+initialized using the ``__init__`` method. Instead, |quanda| offers
 different initialization strategies. Below, we list the initialization
 methods that you should implement, along with their functionalities:
 
@@ -300,7 +300,7 @@ downloadable benchmark using a HuggingFace dataset, which we take from
 the user as a string. Another input, ``dataset_split : str = "train"``
 is also needed, to use when a HuggingFace dataset is downloaded. When
 you are implementing the ``generate`` function, you should additionally:
-- Create an instance of the ``Benchmark`` to return:
+- Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
 
 ::
 
@@ -324,10 +324,10 @@ you are implementing the ``generate`` function, you should additionally:
    ``generate`` should take a ``BaseTrainer`` or a Lightning ``Trainer``
    object as a parameter and handle the training.
 
-The class method ``assemble`` should generate the ``Benchmark`` object
+The class method ``assemble`` should generate the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` object
 from existing components, generated beforehand with the ``generate``
 method. Again, it should take a ``train_dataset`` and ``model``. You
-should again: - Create an instance of the ``Benchmark`` to return:
+should again: - Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
 
 ::
 

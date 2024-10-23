@@ -23,6 +23,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
+    "sphinx.ext.autosectionlabel",
     "numpydoc",
     "sphinx.ext.autosummary",
 ]
@@ -30,7 +31,10 @@ source_suffix = [".rst", ".md"]
 autosummary_generate = True
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-
+rst_epilog = f"""
+.. |quanda| image:: _static/quanda_black.png
+   :height: 2ex
+"""
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
@@ -39,9 +43,14 @@ html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 html_logo = "_static/quanda_white.png"
 templates_path = ["_templates"]
+html_css_files = ["css/table_line_wrapping.css"]
 
 # -- Extension configuration -------------------------------------------------
 
 autodoc_default_options = {
     "special-members": "__call__, __init__",
 }
+
+
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
