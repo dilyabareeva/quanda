@@ -36,10 +36,13 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 html_static_path = ["_static"]
-html_logo = "_static/quanda_white.png"
-templates_path = ["_templates"]
+html_theme_options = {
+    "light_logo": "quanda_panda_no_bg.png",
+    "dark_logo": "quanda_panda_black_bg.png",
+    "sidebar_hide_name": True,
+}
 
 # -- Extension configuration -------------------------------------------------
 
