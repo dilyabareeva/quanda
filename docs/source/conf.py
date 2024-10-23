@@ -42,10 +42,20 @@ html_theme_options = {
     "light_logo": "quanda_panda_no_bg.png",
     "dark_logo": "quanda_panda_black_bg.png",
     "sidebar_hide_name": True,
+    "light_css_variables": {
+        "color-background-primary": "#FFFFFF",
+        "color-background-secondary": "#FAFAF2",
+        "color-highlight-on-target": "#EDDCFF",
+        "color-brand-primary": "#396A11",
+    },
+    "dark_css_variables": {
+        "color-background-secondary": "#1A1C18",
+        "color-highlight-on-target": "#3F4A34",
+        "color-brand-primary": "#DEEBCE",
+    },
 }
 
-# -- Extension configuration -------------------------------------------------
-
+# -- Extension configuration ------------------------------------------------
 autodoc_default_options = {
     "special-members": "__call__, __init__",
 }
