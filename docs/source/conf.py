@@ -8,13 +8,14 @@
 
 import os
 import sys
+from datetime import datetime
 
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "quanda"
-copyright = "2024, Dilya, Galip"
-author = "Dilya, Galip"
-release = "01.07.2024"
+copyright = f"{str(datetime.utcnow().year)}, Dilyara Bareeva, Galip Ümit Yolcu"
+author = "Dilyara Bareeva, Galip Ümit Yolcu"
+release = "05.10.2024"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -39,14 +40,26 @@ rst_epilog = f"""
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 html_static_path = ["_static"]
-html_logo = "_static/quanda_white.png"
-templates_path = ["_templates"]
-html_css_files = ["css/table_line_wrapping.css"]
+html_theme_options = {
+    "light_logo": "quanda_panda_no_bg.png",
+    "dark_logo": "quanda_panda_black_bg.png",
+    "sidebar_hide_name": True,
+    "light_css_variables": {
+        "color-background-primary": "#FFFFFF",
+        "color-background-secondary": "#FAFAF2",
+        "color-highlight-on-target": "#EDDCFF",
+        "color-brand-primary": "#396A11",
+    },
+    "dark_css_variables": {
+        "color-background-secondary": "#1A1C18",
+        "color-highlight-on-target": "#3F4A34",
+        "color-brand-primary": "#DEEBCE",
+    },
+}
 
-# -- Extension configuration -------------------------------------------------
-
+# -- Extension configuration ------------------------------------------------
 autodoc_default_options = {
     "special-members": "__call__, __init__",
 }

@@ -152,10 +152,3 @@ If you find |quanda| useful and want to use it in your research, please cite it 
    :maxdepth: 1
 
    docs_api/modules
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

@@ -1,8 +1,8 @@
 <p align="center">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://tinyurl.com/4yad8eru">
-  <source media="(prefers-color-scheme: light)" srcset="https://tinyurl.com/2rmc7my5">
-  <img width="700" alt="quanda" src="https://tinyurl.com/79mn289u">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/dilyabareeva/quanda/refs/heads/main/assets/readme/quanda_panda_black_bg.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/dilyabareeva/quanda/refs/heads/main/assets/readme/quanda_panda_no_bg.png">
+  <img width="700" alt="quanda" src="https://raw.githubusercontent.com/dilyabareeva/quanda/refs/heads/main/assets/readme/quanda_panda_day_n_night.png">
 </picture>
 </p>
 
@@ -11,13 +11,20 @@
 </p>
 
 
-![py_versions](assets/readme/python-versions.svg)
+![py_versions](https://img.shields.io/pypi/pyversions/msmhelper?color=3A76A8)
+![PyPI - Version](https://img.shields.io/pypi/v/quanda?color=EB9C38)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-![mypy](https://img.shields.io/badge/mypy-checked-green)
-![flake8](https://img.shields.io/badge/flake8-checked-blueviolet)
+![mypy](https://img.shields.io/badge/mypy-checked-7EAF6E)
+![flake8](https://img.shields.io/badge/flake8-checked-7D53BA)
+[![codecov](https://codecov.io/gh/dilyabareeva/quanda/graph/badge.svg?token=6SZS1VISQF)](https://codecov.io/gh/dilyabareeva/quanda)
+![PyPI - License](https://img.shields.io/pypi/l/quanda?color=A20E0C)
+[![Documentation Status](https://readthedocs.org/projects/quanda/badge/?version=latest)](https://quanda.readthedocs.io/en/latest/?badge=latest)
+[![arXiv](https://img.shields.io/badge/arXiv-2410.07158-b31b1b.svg)](https://arxiv.org/abs/2410.07158)
 
 **quanda** _is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
 
+
+[📑 Shortcut to paper!](https://arxiv.org/pdf/2410.07158)
 
 ## 🐼 Library overview
 **Training data attribution** (TDA) methods attribute model output on a specific test sample to the training dataset that it was trained on. They reveal the training datapoints responsible for the model's decisions. Existing methods achieve this by estimating the counterfactual effect of removing datapoints from the training set ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html); [Bae et al., 2024](https://arxiv.org/abs/2405.12186)) tracking the contributions of training points to the loss reduction throughout training ([Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html)), using interpretable surrogate models ([Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html)) or finding training samples that are deemed similar to the test sample by the model ([Caruana et. al, 1999](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2232607/); [Hanawa et. al, 2021](https://openreview.net/forum?id=9uvhpyQwzM_)). In addition to model understanding, TDA has been used in a variety of applications such as debugging model behavior ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html); [K and Søgaard, 2021](https://arxiv.org/abs/2111.04683); [Guo et al., 2021](https://aclanthology.org/2021.emnlp-main.808)), data summarization ([Khanna et al., 2019](https://proceedings.mlr.press/v89/khanna19a.html); [Marion et al., 2023](https://openreview.net/forum?id=XUIYn3jo5T); [Yang et al., 2023](https://openreview.net/forum?id=4wZiAXD29TQ)), dataset selection ([Engstrom et al., 2024](https://openreview.net/forum?id=GC8HkKeH8s); [Chhabra et al., 2024](https://openreview.net/forum?id=HE9eUQlAvo)), fact tracing ([Akyurek et al., 2022](https://aclanthology.org/2022.findings-emnlp.180)) and machine unlearning ([Warnecke
@@ -140,7 +147,8 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 To install the latest release of **quanda** use:
 
 ```setup
-pip install git+https://github.com/dilyabareeva/quanda.git
+pip install quanda
+pip install captum@git+https://github.com/pytorch/captum
 ```
 
 **quanda** requires Python 3.7 or later. It is recommended to use a virtual environment to install the package.
@@ -332,7 +340,7 @@ We have included a few [tutorials](tutorials) to demonstrate the usage of **quan
 To install the library with tutorial dependencies, run:
 
 ```bash
-pip install -e '.[tutorials]'
+pip install quanda[tutorials]
 ```
 
 ## 👩‍💻Contributing
@@ -341,3 +349,17 @@ We welcome contributions to **quanda**! You could contribute by:
 - Submitting a pull request to fix a bug, add a new explainer wrapper, a new metric, or another feature.
 
 A detailed guide on how to contribute to **quanda** can be found [here](CONTRIBUTING.md).
+
+## 🔗Citation
+
+```bibtex
+@misc{bareeva2024quandainterpretabilitytoolkittraining,
+      title={Quanda: An Interpretability Toolkit for Training Data Attribution Evaluation and Beyond}, 
+      author={Dilyara Bareeva and Galip Ümit Yolcu and Anna Hedström and Niklas Schmolenski and Thomas Wiegand and Wojciech Samek and Sebastian Lapuschkin},
+      year={2024},
+      eprint={2410.07158},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2410.07158}, 
+}
+```
