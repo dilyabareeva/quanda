@@ -10,6 +10,10 @@ import os
 import sys
 from datetime import datetime
 
+from pygments.styles import get_style_by_name
+from pygments.style import Style
+from pygments.token import Token
+
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "quanda"
@@ -47,15 +51,13 @@ html_theme_options = {
     "dark_logo": "quanda_panda_black_bg.png",
     "sidebar_hide_name": True,
     "light_css_variables": {
-        "color-background-primary": "#FFFFFF",
-        "color-background-secondary": "#FAFAF2",
-        "color-highlight-on-target": "#EDDCFF",
-        "color-brand-primary": "#396A11",
+        "color-background-secondary": "#F6F3FA",
+        "color-highlight-on-target": "#FAFAF2",
     },
     "dark_css_variables": {
         "color-background-secondary": "#1A1C18",
         "color-highlight-on-target": "#3F4A34",
-        "color-brand-primary": "#DEEBCE",
+        "color-brand-primary": "#F6F3FA",
     },
 }
 
