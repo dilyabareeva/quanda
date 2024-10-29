@@ -51,7 +51,7 @@ Here we list the main components of |quanda| along with basic explanations of th
 
 .. raw:: html
 
-   <details><summary><b><big>Unified TDA Interface</big></b></summary>
+   <details><summary><b><big>Explainers</big></b></summary>
 
 |quanda| provides a unified interface for various TDA methods, symbolized by the :doc:`Explainer <docs_api/quanda.explainers.base>` base class. The interface design prioritizes ease of use and easy extensions, allowing users to quickly wrap their implementations to use within |quanda|.
 
@@ -193,6 +193,8 @@ If you find |quanda| useful and want to use it in your research, please cite it 
         primaryClass={cs.LG},
         url={https://arxiv.org/abs/2410.07158},
   }
+
+If you are using |quanda| for your scientific research, please also make sure to cite the original authors for the implemented metrics and TDA methods.
 
 .. toctree::
    :caption: Getting Started
