@@ -46,9 +46,9 @@ Then we need to do some preparation for the following computations.
 
 Downloading Precomputed Benchmarks
 ----------------------------------
-In this part of the tutorial, we will use the Shortcut Detection metric.
+In this part of the tutorial, we will use the :doc:`ShortcutDetection <../docs_api/quanda.benchmarks.downstream_eval.shortcut_detection>` metric.
 
-We will use the benchmark corresponding to this metric to evaluate all data attributors currently included in quanda in terms of their ability to detect when the model is using a shortcut.
+We will use the benchmark corresponding to this metric to evaluate all data attributors currently included in |quanda| in terms of their ability to detect when the model is using a shortcut.
 
 We will download the precomputed MNIST benchmark. This includes an MNIST dataset which has shortcut features (an 8-by-8 white box on a specific location) on a subset of its samples from the class 0, and a model trained on this dataset. This model has learned to classify images with these features to the class 0, and we will measure the extent to which this is reflected in the attributions of different methods.
 
@@ -136,7 +136,7 @@ We now prepare the initialization parameters of attributors: hyperparameters, an
 
 Run the benchmark evaluation on the attributors
 +++++++++++++++++++++++++++++++++++++++++++++++
-Note that some attributors take a long time to initialize or compute attributions. For a proof of concept, we recommend using ``CaptumSimilarity`` or ``RepresenterPoints``, or lowering the parameter values given above (i.e. using low ``proj_dim`` for TRAK or a low Hessian dataset size for Arnoldi Influence)
+Note that some attributors take a long time to initialize or compute attributions. For a proof of concept, we recommend using :doc:`CaptumSimilarity <../docs_api/quanda.explainers.wrappers.captum_influence>` or :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>`, or lowering the parameter values given above (i.e. using low ``proj_dim`` for TRAK or a low Hessian dataset size for :doc:`ArnoldiInfluence <../docs_api/quanda.explainers.wrappers.captum_influence>`)
 
 .. code-block:: python
 
@@ -155,9 +155,9 @@ At this point, the dictionary ``results`` contains the scores of the attributors
 
 Assembling Benchmarks from Existing Components
 ----------------------------------------------
-You may want to handle the creation of each component differently, using different datasets, architectures, training paradigms or a higher/lower percentage of manipulated samples. We now showcase how to create and use a quanda :doc:`Benchmark <docs_api/quanda.benchmarks.base>` object to use these components in the evaluation process.
+You may want to handle the creation of each component differently, using different datasets, architectures, training paradigms or a higher/lower percentage of manipulated samples. We now showcase how to create and use a |quanda| :doc:`Benchmark <../docs_api/quanda.benchmarks.base>` object to use these components in the evaluation process.
 
-To showcase different benchmarks, we will now switch to the ``MislabelingDetection`` benchmark. This benchmark evaluates the ability of data atttribution methods to identify mislabeled samples in the training dataset. This is done by training a model on a dataset which has a substantial amount of mislabeled samples. We then use the local data attribution methods to rank the training data. Original papers propose either using self-influence (i.e. the attribution of training samples on themselves) or some special methodology for each explainer (i.e. the global coefficients of the surrogate model in Representer Points). Quanda includes efficient implementation of self-influence or other strategies proposed in the original papers, whenever possible.
+To showcase different benchmarks, we will now switch to the :doc:`MislabelingDetection <../docs_api/quanda.benchmarks.downstream_eval.mislabeling_detection>` benchmark. This benchmark evaluates the ability of data atttribution methods to identify mislabeled samples in the training dataset. This is done by training a model on a dataset which has a substantial amount of mislabeled samples. We then use the local data attribution methods to rank the training data. Original papers propose either using self-influence (i.e. the attribution of training samples on themselves) or some special methodology for each explainer (i.e. the global coefficients of the surrogate model in Representer Points). Quanda includes efficient implementation of self-influence or other strategies proposed in the original papers, whenever possible.
 
 This ranking is then used to go through the dataset to check mislabelings. Quanda computes the cumulative mislabeling detection curve and returns the AUC score with respect to this curve.
 
@@ -173,14 +173,14 @@ Instead of creating the components from scratch, we will again download the benc
 
 Required Components
 +++++++++++++++++++
-In order to assemble a ``MislabelingDetection`` benchmark, we require the following components:
+In order to assemble a :doc:`MislabelingDetection <../docs_api/quanda.benchmarks.downstream_eval.mislabeling_detection>` benchmark, we require the following components:
 - A base training dataset with correct labels.
 - A dictionary containing mislabeling information: integer keys are the indices of samples to change labels, and the values correspond to the new (wrong) labels that were used to train the model
 - A model trained on the mislabeled dataset
 - Number of classes in the dataset
 - Dataset transform that was used during training, applied to samples before feeding them to the model. If the base dataset already includes the transform, then we can just set this to ``None``, which is the case in this tutorial. If the base dataset serves raw samples, then the ``dataset_transform`` parameter allows the usage of a transform.
 
-Let's collect these components from the downloaded benchmark. We then assemble the benchmark and evaluate the ``RepresenterPoints`` attributor with it. Note that the implementation depends on computing the self-influences of the whole training dataset. This procedure is fastest for the Representer Points attributor. Therefore, we use this explainer here.
+Let's collect these components from the downloaded benchmark. We then assemble the benchmark and evaluate the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor with it. Note that the implementation depends on computing the self-influences of the whole training dataset. This procedure is fastest for the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor. Therefore, we use this explainer here.
 
 .. code-block:: python
 
@@ -191,7 +191,7 @@ Let's collect these components from the downloaded benchmark. We then assemble t
 
 Assembling the benchmark and running the evaluation
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
-We are now ready to assemble and run the benchmark. After running the below code, the ``results`` dictionary will contain the score of the Representer Points attributor on the benchmark.
+We are now ready to assemble and run the benchmark. After running the below code, the ``results`` dictionary will contain the score of the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor on the benchmark.
 .. code-block:: python
 
     benchmark = MislabelingDetection.assemble(
@@ -218,15 +218,15 @@ Generating a Benchmark from Scratch
 -----------------------------------
 We will now showcase how a benchmark can be created from only vanilla components. Quanda takes in all requires components and generates the benchmark, including dataset manipulations and model training, if applicable. Then the benchmark can be used to evaluate different attributors. This is done through the ``Benchmark.generate`` method.
 
-We will go through this use-case with the ``SubclassDetection`` benchmark which groups classes of the base dataset into superclasses. A model is trained to predict these super classes, and the original labelhighest attributed datapoint for each test sample is observed. The benchmark expects this to be the same as the true class of the test sample.
+We will go through this use-case with the :doc:`SubclassDetection <../docs_api/quanda.benchmarks.downstream_eval.subclass_detection>` benchmark which groups classes of the base dataset into superclasses. A model is trained to predict these super classes, and the original labelhighest attributed datapoint for each test sample is observed. The benchmark expects this to be the same as the true class of the test sample.
 
 As such, we only need to provide these components to generate the benchmark:
 
 - a model for the architecture
-- a trainer: either a subclass instance of quanda's ``BaseTrainer`` or a Lightning ``Trainer`` object. If the trainer is a Lightning trainer, the `model` has to be a Lightning module. We will use a Lightning trainer with a Lightning module.
+- a trainer: either a subclass instance of |quanda|'s :doc:`BaseTrainer <../docs_api/quanda.utils.training.trainer>` or a Lightning ``Trainer`` object. If the trainer is a Lightning trainer, the `model` has to be a Lightning module. We will use a Lightning trainer with a Lightning module.
 - a base dataset
 - an evaluation dataset to be used as the test set for generating the attributions to evaluate
-- a dataset transform. As in the case of ``MislabelingDetection`` explained above, the ``dataset_transform`` parameter can be ``None`` if the ``base_dataset`` and ``eval_dataset`` already include the required sample transformations.
+- a dataset transform. As in the case of :doc:`MislabelingDetection <../docs_api/quanda.benchmarks.downstream_eval.mislabeling_detection>` explained above, the ``dataset_transform`` parameter can be ``None`` if the ``base_dataset`` and ``eval_dataset`` already include the required sample transformations.
 - the number of superclasses we want to generate the benchmark.
 
 Additionally, we can provide a dictionary which embodies a specific class grouping, or just use the default "random" value to randomly assign classes into superclasses, which is the approach we will take in this tutorial. Note that we will collect the base and evaluation datasets from the corresponding precomputed benchmark for simplicity and reproducibility. As such, these datasets will already include the transform required for sample normalization, which means we will supply ``dataset_transform=None``.
@@ -260,7 +260,7 @@ Additionally, we can provide a dictionary which embodies a specific class groupi
         class_to_group="random",
     )
 
-Now that we have trained the model on the MNIST dataset with randomly grouped classes, we finalize this tutorial by evaluating the `CaptumSimilarity` attributor. The ``results`` dictionary will contain the score of the attributor on the benchmark after running the following:
+Now that we have trained the model on the MNIST dataset with randomly grouped classes, we finalize this tutorial by evaluating the :doc:`CaptumSimilarity <quanda.explainers.wrappers.captum_influence>` attributor. The ``results`` dictionary will contain the score of the attributor on the benchmark after running the following:
 
 .. code-block:: python
 

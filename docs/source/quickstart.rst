@@ -163,7 +163,7 @@ By default, |quanda| includes a built-in method for calculating self-influence s
        # Compute your self-influence scores here
        return self_influence_scores
 
-For detailed examples, we refer to the :doc:`existing explainer wrappers <./explainers>` in |quanda|.
+For detailed examples, we refer to the :doc:`existing explainer wrappers <docs_api/quanda.explainers.wrappers>` in |quanda|.
 
 ⚠️ Usage Tips and Caveats
 +++++++++++++++++++++++++
