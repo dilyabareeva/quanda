@@ -65,6 +65,8 @@ html_css_files = [
 
 html_js_files = []
 
+html_title = "quanda Documentation"
+
 # -- Extension configuration ------------------------------------------------
 autodoc_default_options = {
     "special-members": "__call__, __init__",

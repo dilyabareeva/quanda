@@ -1,41 +1,83 @@
 
-Welcome to quanda's documentation!
+Welcome to |quanda|'s documentation!
 ==================================
 |quanda| is a toolkit for **quan**\ titative evaluation of **d**\ ata **a**\ ttribution methods in **PyTorch**.
 
 .. note::
     |quanda| is currently in development. We are actively working on expanding the library and improving the documentation. If you have any questions, please `open an issue <https://github.com/dilyabareeva/quanda/issues/new/choose>`_ or write us at dilyabareeva@gmail.com or galip.uemit.yolcu@hhi.fraunhofer.de.
 
-
-.. figure:: https://datacloud.hhi.fraunhofer.de/s/kkwrCaYHffW5J8R/preview
+.. figure:: https://datacloud.hhi.fraunhofer.de/s/zsP7GNmQy3F9Sgf/preview
    :alt: Figure 1
    :align: left
    :width: 120%
+   :figclass: only-light
 
-   |quanda| provides a unified and standardized framework to evaluate the quality of Training Data Attribution methods in different contexts and from different perspectives.
+   `Fig. 1:` |quanda| `provides a unified and standardized framework to evaluate the quality of Training Data Attribution methods in different contexts and from different perspectives.`
+
+.. figure:: https://datacloud.hhi.fraunhofer.de/s/ZGFtD6ejkSgFSAy/preview
+   :alt: Figure 1
+   :align: left
+   :width: 120%
+   :figclass: only-dark
+
+   `Fig. 1:` |quanda| `provides a unified and standardized framework to evaluate the quality of Training Data Attribution methods in different contexts and from different perspectives.`
 
 .. note::
     This page describes |quanda|'s purpose, design and features. For a quick start on |quanda|, please refer to the :doc:`Quickstart <./quickstart>` page.
 
 Training Data Attribution (TDA) is a new avenue in the interpretation of neural networks. While some methods attempt to estimate the counterfactual effects of training new models on the subsets of the training dataset, this ground truth is noisy and hard to compute. Therefore, the community have proposed evaluating these methods' performance on a downstream task, or measuring how well a method satisfies desired heuristic properties.
 
-|quanda| is designed to meet the need of a comprehensive and systematic evaluation framework, as well as a unified interface for attributors. Please visit the :doc:`Background <./background>` for a more detailed explanation of TDA and its evaluation with citations to the literature.
+|quanda| is designed to meet the need of a comprehensive and systematic evaluation framework, as well as a unified interface for attributors. Please visit the :doc:`Background <./background>` page for a more detailed explanation of TDA and its evaluation with citations to the literature.
 
 Library Features
 ----------------
-Here we list the main components of |quanda| along with basic explanations of their function. We refer the reader to the :doc:`contribution guide <./contributing>`, the :doc:`API reference <docs_api/modules>` and the :ref:`Basic Usage <quickstart:basic usage>`. Below is a schematic representation of the components of |quanda|:
+Here we list the main components of |quanda| along with basic explanations of their function. We refer the reader to the :doc:`contribution guide <./contributing>`, the :doc:`API reference <docs_api/modules>` and the :ref:`Basic Usage <quickstart:basic usage>` for further details. Below is a schematic representation of the components of |quanda|:
 
-.. figure:: _static/components.png
+.. figure:: https://datacloud.hhi.fraunhofer.de/s/Py48jdkj98jGoQw/preview
    :alt: Figure 2
    :align: center
    :width: 90%
+   :figclass: only-light
 
-   Components and their interactions in |quanda|
+   `Fig. 2: Components and their interactions in` |quanda|
 
+.. figure:: https://datacloud.hhi.fraunhofer.de/s/TAFa9Fso3ZLCd84/preview
+   :alt: Figure 2
+   :align: center
+   :width: 90%
+   :figclass: only-dark
 
-- **Unified TDA Interface**: |quanda| provides a unified interface for various TDA methods, symbolized by the :doc:`Explainer <docs_api/quanda.explainers.base>` base class. The interface design prioritizes ease of use and easy extensions, allowing users to quickly wrap their implementations to use within |quanda|.
-- **Metrics**: |quanda| provides a set of metrics to evaluate the effectiveness of TDA methods. These metrics are based on the latest research in the field. Most :doc:`Metric <docs_api/quanda.metrics.base>` objects in |quanda| are used to compute the evaluation scores from attributions over a test set. The :doc:`Metric <docs_api/quanda.metrics.base>` objects are designed to be easily extendable, allowing users to define their own metrics.
-- **Benchmarking**: Note that many metrics require training models in controlled settings, e.g. with mislabeled samples that are known. This means that the corresponding :doc:`Metric <docs_api/quanda.metrics.base>` objects can only be used if the user has prepared this controlled setup. Furthermore, :doc:`Metric <docs_api/quanda.metrics.base>` objects require generating the attributions beforehand. |quanda| provides a benchmarking tool to evaluate the performance of TDA methods on a given model, dataset and problem. For each :doc:`Metric <docs_api/quanda.metrics.base>` object, |quanda| provides a corresponding `Benchmark` object. The `Benchmark` objects handle the creation of the controlled setup, training the model, generating the attributions and evaluating them using the corresponding :doc:`Metric <docs_api/quanda.metrics.base>` object, if needed. Finally, we provide precomputed benchmarks, which can be used by initializing the object with the `load` method. Theses precomputed benchmarks allow the user to skip the creation of the controlled setup to directly start the evaluation process, while providing a standard benchmark for practitioners and researchers to compare their methods with.
+   `Fig. 2: Components and their interactions in` |quanda|
+
+.. raw:: html
+
+   <details><summary><b><big>Unified TDA Interface</big></b></summary>
+
+|quanda| provides a unified interface for various TDA methods, symbolized by the :doc:`Explainer <docs_api/quanda.explainers.base>` base class. The interface design prioritizes ease of use and easy extensions, allowing users to quickly wrap their implementations to use within |quanda|.
+
+.. raw:: html
+
+   </details>
+
+.. raw:: html
+
+   <details><summary><b><big>Metrics</big></b></summary>
+
+|quanda| provides a set of metrics to evaluate the effectiveness of TDA methods. These metrics are based on the latest research in the field. Most :doc:`Metric <docs_api/quanda.metrics.base>` objects in |quanda| are used to compute the evaluation scores from attributions over a test set. The :doc:`Metric <docs_api/quanda.metrics.base>` objects are designed to be easily extendable, allowing users to define their own metrics.
+
+.. raw:: html
+
+   </details>
+
+.. raw:: html
+
+   <details><summary><b><big>Benchmarks</big></b></summary>
+
+Note that many metrics require training models in controlled settings, e.g. with mislabeled samples that are known. This means that the corresponding :doc:`Metric <docs_api/quanda.metrics.base>` objects can only be used if the user has prepared this controlled setup. Furthermore, :doc:`Metric <docs_api/quanda.metrics.base>` objects require generating the attributions beforehand. |quanda| provides a benchmarking tool to evaluate the performance of TDA methods on a given model, dataset and problem. For each :doc:`Metric <docs_api/quanda.metrics.base>` object, |quanda| provides a :doc:`Benchmark <docs_api/quanda.benchmarks.base>` object. The :doc:`Benchmark <docs_api/quanda.benchmarks.base>` objects handle the creation of the controlled setup, training the model, generating the attributions and evaluating them using the corresponding :doc:`Metric <docs_api/quanda.metrics.base>` object, if needed. Finally, we provide precomputed benchmarks, which can be used by initializing the object with the ``load`` method. Theses precomputed benchmarks allow the user to skip the creation of the controlled setup to directly start the evaluation process, while providing a standard benchmark for practitioners and researchers to compare their methods with.
+
+.. raw:: html
+
+   </details>
 
 Supported TDA Methods
 ---------------------
