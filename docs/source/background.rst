@@ -34,6 +34,7 @@ To remedy the challenges associated with ground truth evaluation, the literature
     </details>
 
 .. raw:: html
+
     <details><summary><b><big>Heuristics</big></b></summary>
 
 Finally, the community also made use of heuristics (desirable properties or sanity checks) to evaluate the quality of TDA techniques. These include comparing the attributions of a trained model and a randomized model (`Hanawa et. al, 2021 <https://openreview.net/forum?id=9uvhpyQwzM_>`_) and measuring the amount of overlap between the attributions for different test samples (`Barshan et al., 2020 <http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf>`_).
