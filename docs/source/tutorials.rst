@@ -1,6 +1,5 @@
 Tutorials
 =========
-
 We have included a few tutorials to demonstrate the usage of |quanda|. To install the library with tutorial dependencies, run:
 
 .. code:: bash
@@ -15,4 +14,4 @@ The tutorials currently included in |quanda| are:
 
 .. warning::
 
-   The `Explainers` and `Metrics` tutorials depend on a data preparation and model training stage. In order to be able to run these tutorials, you need to go through this prerequisite step. Please run the `tutorial preparation notebook` before running these tutorials.
+   The `Explainers` and `Metrics` tutorials depend on a data preparation and model training stage. In order to be able to run these tutorials, you need to go through this prerequisite step. Please run the `tutorial preparation notebook <https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_prep.ipynb>`_ before running these tutorials.
