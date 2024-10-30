@@ -260,7 +260,7 @@ Additionally, we can provide a dictionary which embodies a specific class groupi
         class_to_group="random",
     )
 
-Now that we have trained the model on the MNIST dataset with randomly grouped classes, we finalize this tutorial by evaluating the :doc:`CaptumSimilarity <quanda.explainers.wrappers.captum_influence>` attributor. The ``results`` dictionary will contain the score of the attributor on the benchmark after running the following:
+Now that we have trained the model on the MNIST dataset with randomly grouped classes, we finalize this tutorial by evaluating the :doc:`CaptumSimilarity <../docs_api/quanda.explainers.wrappers.captum_influence>` attributor. The ``results`` dictionary will contain the score of the attributor on the benchmark after running the following:
 
 .. code-block:: python
 
