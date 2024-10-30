@@ -1,4 +1,4 @@
-Contribution Guide for quanda
+Contribution Guide for |quanda|
 =============================
 
 |quanda| is an open source library that you can contribute in! We
