@@ -197,21 +197,25 @@ If you find |quanda| useful and want to use it in your research, please cite it 
 If you are using |quanda| for your scientific research, please also make sure to cite the original authors for the implemented metrics and TDA methods.
 
 .. toctree::
-   :caption: Getting Started
+   :caption: Usage
 
    quickstart
-   background
    tutorials
-
-
-.. toctree::
-   :caption: Community
-
-   contributing
-
 
 .. toctree::
    :caption: API Reference
    :maxdepth: 1
 
    docs_api/modules
+
+.. toctree::
+   :caption: Background
+
+   background
+   how_to_evaluate
+
+.. toctree::
+   :caption: Community
+
+   contributing
+
