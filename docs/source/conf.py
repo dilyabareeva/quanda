@@ -10,8 +10,8 @@ import os
 import sys
 from datetime import datetime
 
-from pygments.styles import get_style_by_name
 from pygments.style import Style
+from pygments.styles import get_style_by_name
 from pygments.token import Token
 
 sys.path.insert(0, os.path.abspath("../.."))
@@ -28,15 +28,18 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
+    "sphinx.ext.autosectionlabel",
     "numpydoc",
     "sphinx.ext.autosummary",
 ]
 source_suffix = [".rst", ".md"]
 autosummary_generate = True
-templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+rst_epilog = f"""
+.. |quanda| raw:: html
 
-
+  <span class="poppins">quanda</span>
+"""
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
@@ -56,8 +59,19 @@ html_theme_options = {
         "color-brand-primary": "#F6F3FA",
     },
 }
+html_css_files = [
+    "css/quanda_text.css",
+]
+
+html_js_files = []
+
+html_title = "quanda Documentation"
 
 # -- Extension configuration ------------------------------------------------
 autodoc_default_options = {
     "special-members": "__call__, __init__",
 }
+
+
+# Make sure the target is unique
+autosectionlabel_prefix_document = True
