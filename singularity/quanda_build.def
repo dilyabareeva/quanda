@@ -3,12 +3,13 @@ From: ./quanda_pre_build.sif
 
 %files
   # Copies over the source code
-  ./quanda /opt/quanda
+  ../quanda /opt/quanda
 
 %post
   export PYTHONPATH="/opt/quanda/"
   export LD_LIBRARY_PATH=/opt/conda/lib
-
+  export "PATH=/opt/conda/bin:$PATH"
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
   cd /opt/quanda
   pip install .[tutorials]
 
@@ -17,4 +18,4 @@ From: ./quanda_pre_build.sif
 
 %runscript
   cd /opt/quanda
-  python -u scripts/train_model.py "$@"
+  python -u scripts/compute_explanations.py "$@"

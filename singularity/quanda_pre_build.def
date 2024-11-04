@@ -19,8 +19,8 @@ From: nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 
   pip install \
     numpy>=1.19.5 \
-    torch==2.0.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
-    torchvision==0.15.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
+    torch==2.0.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117 \
+    torchvision==0.15.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117 \
     captum@git+https://github.com/pytorch/captum \
     lightning>=1.4.0 \
     torchmetrics>=1.4.0 \
