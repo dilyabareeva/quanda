@@ -31,7 +31,7 @@ apptainer run --nv  --env "PYTHONPATH=." \
     --bind /data/datapool3/datasets:/mnt/dataset \
     --bind ${LOCAL_JOB_DIR}/job_results:/mnt/output \
     --bind /data/datapool3/datasets/quanda_metadata:/mnt/metadata\
-     ./train.sif \
+     ../singularity/train.sif \
     --method "$method" \
     --tiny_imgnet_path "/mnt/dataset" \
     --metadata_path "/mnt/metadata" \
