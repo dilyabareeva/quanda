@@ -3,7 +3,7 @@ From: ./quanda_pre_build.sif
 
 %files
   # Copies over the source code
-  ../quanda /opt/quanda
+  ../ /opt/quanda
 
 %post
   export PYTHONPATH="/opt/quanda/"
@@ -18,4 +18,4 @@ From: ./quanda_pre_build.sif
 
 %runscript
   cd /opt/quanda
-  python -u scripts/compute_explanations.py "$@"
+  python -u scripts/train_model.py "$@"
