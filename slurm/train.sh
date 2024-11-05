@@ -25,8 +25,6 @@ methods=("similarity" "representer_points" "tracincpfast" "arnoldi" "trak" "rand
 # Select the method based on the SLURM_ARRAY_TASK_ID
 method=${methods[$SLURM_ARRAY_TASK_ID]}
 
-echo "Compute Explanations"
-
 apptainer run --nv  --env "PYTHONPATH=." \
     --bind /data/datapool3/datasets:/mnt/dataset \
     --bind ${LOCAL_JOB_DIR}/outputs:/mnt/output \
@@ -36,8 +34,6 @@ apptainer run --nv  --env "PYTHONPATH=." \
     --tiny_imgnet_path "/mnt/dataset" \
     --metadata_path "/mnt/metadata" \
     --output_dir "/mnt/output" \
-    --checkpoints_dir "/mnt/tmp/" \
-    --metadata_dir "/mnt/tmp/" \
     --device "cuda" \
     "$@"
 
