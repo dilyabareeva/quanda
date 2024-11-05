@@ -120,7 +120,7 @@ def load_scheduler(name, optimizer, epochs):  # include warmup?
 def load_optimizer(name, model, lr, weight_decay, momentum):  # could add momentum as a variable
     optimizer_dict = {
         "sgd": SGD(model.parameters(), lr=lr, weight_decay=weight_decay, momentum=momentum),
-        "adam": Adam(model.parameters(), lr=lr, weight_decay=weight_decay, betas=(momentum, 0.999)),  # No momentum for ADAM
+        "adam": Adam(model.parameters(), lr=lr, weight_decay=weight_decay, betas=(0.9, 0.999)),  # No momentum for ADAM
         "rmsprop": RMSprop(model.parameters(), lr=lr, weight_decay=weight_decay, momentum=momentum),
     }
     optimizer = optimizer_dict.get(name, SGD(model.parameters(), lr=lr, weight_decay=weight_decay, momentum=momentum))
@@ -220,7 +220,8 @@ def train_model(
     torch.manual_seed(seed)
     # Downloading the datasets and checkpoints
     os.makedirs(output_dir, exist_ok=True)
-
+    save_id_base = f"{dataset_type}_{lr}_{scheduler}_{optimizer}{f'_aug' if augmentation is not None else ''}"
+    print(save_id_base)
     if download:
         os.makedirs(metadata_path, exist_ok=True)
         os.makedirs(tiny_imgnet_path, exist_ok=True)
@@ -252,7 +253,6 @@ def train_model(
     if augmentation is not None:
         augmentation = load_augmentation(augmentation)
 
-    save_id_base = f"{dataset_type}_{lr}_{scheduler}_{optimizer}{f'_aug' if augmentation is not None else ''}"
     # Load the TinyImageNet dataset
     tiny_imgnet_path = os.path.join(tiny_imgnet_path, "tiny-imagenet-200")
     with open(os.path.join(tiny_imgnet_path, "wnids.txt"), "r") as f:
@@ -563,7 +563,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--optimizer", required=False, type=str, default="adam")
     parser.add_argument("--weight_decay", required=False, type=float, default=0.0)
-    parser.add_argument("--momentum", required=False, type=float, default=0.9)
+    parser.add_argument("--momentum", required=False, type=float, default=0.0)
     parser.add_argument("--scheduler", required=False, type=str, default="constant")
     parser.add_argument("--loss", required=False, type=str, default="cross_entropy")
     parser.add_argument("--augmentation", required=False, type=str, default=None)
