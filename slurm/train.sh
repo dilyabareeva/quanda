@@ -52,5 +52,5 @@ apptainer run --nv  --env "PYTHONPATH=." \
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"
 tar -cf quanda_xpl_${SLURM_JOB_ID}.tar outputs
-cp quanda_xpl_${SLURM_JOB_ID}.tar $SLURM_SUBMIT_DIR/quanda_output/
+cp quanda_xpl_${SLURM_JOB_ID}.tar $SLURM_SUBMIT_DIR/outputs/
 rm -rf ${LOCAL_JOB_DIR}/outputs
