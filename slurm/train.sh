@@ -11,7 +11,7 @@
 source "/etc/slurm/local_job_dir.sh"
 
 # The next line is optional and for job statistics only. You may omit it if you do not need statistics.
-echo "$PWD/${SLURM_JOB_ID}_stats.out" > $LOCAL_JOB_DIR/stats_file_loc_cfg
+#echo "$PWD/${SLURM_JOB_ID}_stats.out" > $LOCAL_JOB_DIR/stats_file_loc_cfg
 
 echo "Extract tiny-imagegetnet-200.tar to ${LOCAL_JOB_DIR}"
 time unzip -qq $DATAPOOL3/datasets/tiny-imagenet-200.zip -d $LOCAL_JOB_DIR
