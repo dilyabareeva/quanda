@@ -3,6 +3,7 @@ From: pytorch/pytorch:2.3.0-cuda11.8-cudnn8-devel
 
 %files
   ../quanda /opt
+  ../scripts /opt
 
 %post
   export "PATH=/opt/conda/bin:$PATH"
@@ -23,5 +24,9 @@ From: pytorch/pytorch:2.3.0-cuda11.8-cudnn8-devel
     matplotlib>=3.4.0 \
     pillow>=8.3.0 \
     python-dotenv>=1.0.0 \
-    nltk>=3.6.0 \
-    wandb>=0.12.10
+
+  pip install tensorboard
+
+%runscript
+  cd /opt
+  python scripts/train_model.py "$@"
