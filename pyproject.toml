@@ -97,10 +97,6 @@ version_source = "tag"
 branch = "main"
 changelog_file = "CHANGELOG.md"
 
-branch = "main"
-changelog_file = "CHANGELOG.md"
-# build_command = "pip install poetry && poetry build"     # Add this line when using pypi
-
 [project.optional-dependencies]
 dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "coverage>=7.2.3",
