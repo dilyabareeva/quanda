@@ -438,7 +438,7 @@ def train_model(
         cnt = 0
         for inputs, targets in tqdm(iter(loader)):
             inputs = inputs.to(device)
-            targets = targets.long()
+            targets = targets.to(device)
             if isinstance(loss, BCEWithLogitsLoss):
                 targets = one_hot(targets, num_outputs).float()
             targets = targets.to(device)
