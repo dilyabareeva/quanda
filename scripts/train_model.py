@@ -304,6 +304,7 @@ def train_model(
     else:
         model = resnet18()
 
+    model.to(device=device)
     num_outputs = 200 if num_groups is None else num_groups
     model.avgpool = torch.nn.AdaptiveAvgPool2d(1)
     num_ftrs = model.fc.in_features
