@@ -1,21 +1,27 @@
-Bootstrap: localimage
-From: ./quanda_pre_build.sif
+Bootstrap: docker
+From: pytorch/pytorch:2.3.0-cuda11.8-cudnn8-devel
 
 %files
-  # Copies over the source code
-  ../ /opt/quanda
+  ../quanda /opt
 
 %post
-  export PYTHONPATH="/opt/quanda/"
-  export LD_LIBRARY_PATH=/opt/conda/lib
   export "PATH=/opt/conda/bin:$PATH"
-  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
-  cd /opt/quanda
-  pip install .[tutorials]
+  apt-get -y update
+  apt install -y git
 
-  # Install wget
-  apt-get update && apt-get install -y wget unzip
-
-%runscript
-  cd /opt/quanda
-  python -u scripts/train_model.py "$@"
+  pip install \
+    numpy \
+    torchvision \
+    captum@git+https://github.com/pytorch/captum \
+    lightning>=1.4.0 \
+    torchmetrics>=1.4.0 \
+    tqdm>=4.0.0 \
+    traker>=0.3.2 \
+    annoy>=1.17.0 \
+    datasets>=2.0.0 \
+    torcheval>=0.0.6 \
+    matplotlib>=3.4.0 \
+    pillow>=8.3.0 \
+    python-dotenv>=1.0.0 \
+    nltk>=3.6.0 \
+    wandb>=0.12.10
