@@ -304,11 +304,12 @@ def train_model(
     else:
         model = resnet18()
 
-    model.to(device=device)
     num_outputs = 200 if num_groups is None else num_groups
     model.avgpool = torch.nn.AdaptiveAvgPool2d(1)
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, num_outputs)
+    model.to(device=device)
+
     tensorboarddir = f"{dataset_type}_{lr}_{scheduler}_{optimizer}{f'_aug' if augmentation is not None else ''}"
     tensorboarddir = os.path.join(output_dir, tensorboarddir)
     writer = SummaryWriter(tensorboarddir)
@@ -438,13 +439,11 @@ def train_model(
         cnt = 0
         for inputs, targets in tqdm(iter(loader)):
             inputs = inputs.to(device)
-            targets = targets.to(device)
             if isinstance(loss, BCEWithLogitsLoss):
                 targets = one_hot(targets, num_outputs).float()
             targets = targets.to(device)
 
             y_true = torch.cat((y_true, targets), 0)
-
             optimizer.zero_grad()
             logits = model(inputs)
             l = loss(logits, targets)
