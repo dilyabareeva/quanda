@@ -37,6 +37,7 @@ from torchvision.transforms import (
     RandomHorizontalFlip,
     RandomResizedCrop,
     RandomRotation,
+    Resize,
 )
 from tqdm import tqdm
 
@@ -244,6 +245,8 @@ def train_model(
         [transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))]
     )
 
+    resize_regular_transform = transforms.Compose([Resize(size=(64, 64)), regular_transforms])
+
     denormalize = transforms.Compose(
         [transforms.Normalize(mean=[0, 0, 0], std=[1 / 0.229, 1 / 0.224, 1 / 0.225])]
         + [transforms.Normalize(mean=[-0.485, -0.456, -0.406], std=[1, 1, 1])]
@@ -268,7 +271,7 @@ def train_model(
         os.path.join(tiny_imgnet_path, "train"),
         classes=list(id_dict.keys()),
         classes_to_idx=id_dict,
-        transform=augmentation if dataset_type not in ["vanilla", "mixed"] else normalized_transform,
+        transform=augmentation if dataset_type in ["mislabeled", "shortcut"] else normalized_transform,
     )
 
     holdout_set = AnnotatedDataset(
@@ -353,6 +356,9 @@ def train_model(
         else:
             mislabeling_indices = torch.load(os.path.join(metadata_path, "mislabeling_indices"))
             mislabeling_labels = torch.load(os.path.join(metadata_path, "mislabeling_labels"))
+            mislabeling_labels = {
+                mislabeling_indices[i]: int(mislabeling_labels[i]) for i in range(mislabeling_labels.shape[0])
+            }
             train_set = LabelFlippingDataset(
                 dataset=train_set,
                 n_classes=200,
@@ -367,7 +373,7 @@ def train_model(
         # print(train_set[mislabeling_indices[i]][1]!=train_set.dataset.targets[mislabeling_indices[i]])
     elif dataset_type == "mixed":
         adversarial_dataset = SketchDataset(
-            root=os.path.join(metadata_path, "sketch"), label=bb_id, transform=regular_transforms, train=True
+            root=os.path.join(metadata_path, "sketch"), label=bb_id, transform=resize_regular_transform, train=True
         )
         adversarial_indices = [1] * len(adversarial_dataset) + [0] * len(train_set)
         train_set = torch.utils.data.ConcatDataset([adversarial_dataset, train_set])
@@ -503,9 +509,9 @@ def train_model(
                 "train_accuracy": train_acc,
             }
             if dataset_type == "shortcut":
-                save_dict["shortcut_indices"] = train_set.dataset.transform_indices  # change
+                save_dict["shortcut_indices"] = train_set.transform_indices
             elif dataset_type == "mislabeled":
-                save_dict["mislabeled_indices"] = train_set.dataset.transform_indices  # change
+                save_dict["mislabeled_indices"] = train_set.transform_indices
 
             save_id = f"{save_id_base}_{base_epoch + e}"
             model_save_path = os.path.join(output_dir, save_id)
