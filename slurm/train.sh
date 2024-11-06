@@ -10,27 +10,14 @@
 
 source "/etc/slurm/local_job_dir.sh"
 
-# The next line is optional and for job statistics only. You may omit it if you do not need statistics.
-#echo "$PWD/${SLURM_JOB_ID}_stats.out" > $LOCAL_JOB_DIR/stats_file_loc_cfg
-
-echo "Extract tiny-imagegetnet-200.tar to ${LOCAL_JOB_DIR}"
-time unzip -qq $DATAPOOL3/datasets/tiny-imagenet-200.zip -d $LOCAL_JOB_DIR
-
 # Make a folder locally on the node for job_results. This folder ensures that data is copied back even when the job fails
 mkdir -p "${LOCAL_JOB_DIR}/outputs"
-
-# List of methods
-methods=("similarity" "representer_points" "tracincpfast" "arnoldi" "trak" "random")
-
-# Select the method based on the SLURM_ARRAY_TASK_ID
-method=${methods[$SLURM_ARRAY_TASK_ID]}
 
 apptainer run --nv  --env "PYTHONPATH=." \
     --bind /data/datapool3/datasets:/mnt/dataset \
     --bind ${LOCAL_JOB_DIR}/outputs:/mnt/output \
     --bind /data/datapool3/datasets/quanda_metadata:/mnt/metadata\
      ../singularity/train.sif \
-    --method "$method" \
     --tiny_imgnet_path "/mnt/dataset" \
     --metadata_path "/mnt/metadata" \
     --output_dir "/mnt/output" \
