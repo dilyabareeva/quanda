@@ -445,7 +445,7 @@ def explain_model(
         x = x.to(device)
         y = y.to(device)
         pred = model(x).argmax(dim=-1)
-        explanations = torch.concat((explanations, explainer.explain()))
+        explanations = torch.concat((explanations, explainer.explain(x, pred)))
         torch.save()
 
 
