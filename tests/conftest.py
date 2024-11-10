@@ -1,11 +1,15 @@
 import json
 import os
 import pickle
+from typing import Tuple
 
 import numpy as np
 import pytest
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import torchvision
+from kronfluence.task import Task  # type: ignore
 from torch.utils.data import TensorDataset
 
 from quanda.benchmarks.downstream_eval import (
@@ -368,3 +372,47 @@ def get_lds_score():
     with open("tests/assets/lds_score.json", "r") as f:
         score_data = json.load(f)
     return score_data["lds_score"]
+
+
+class ClassificationTask(Task):
+    # Copied from: https://github.com/pomonam/kronfluence/blob/main/examples/cifar/analyze.py
+    def compute_train_loss(
+        self,
+        batch: Tuple[torch.Tensor, torch.Tensor],
+        model: nn.Module,
+        sample: bool = False,
+    ) -> torch.Tensor:
+        inputs, labels = batch
+        logits = model(inputs)
+        if not sample:
+            return F.cross_entropy(logits, labels, reduction="sum")
+        with torch.no_grad():
+            probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
+            sampled_labels = torch.multinomial(
+                probs,
+                num_samples=1,
+            ).flatten()
+        return F.cross_entropy(logits, sampled_labels, reduction="sum")
+
+    def compute_measurement(
+        self,
+        batch: Tuple[torch.Tensor, torch.Tensor],
+        model: nn.Module,
+    ) -> torch.Tensor:
+        # Copied from: https://github.com/MadryLab/trak/blob/main/trak/modelout_functions.py.
+        inputs, labels = batch
+        logits = model(inputs)
+
+        bindex = torch.arange(logits.shape[0]).to(device=logits.device, non_blocking=False)
+        logits_correct = logits[bindex, labels]
+
+        cloned_logits = logits.clone()
+        cloned_logits[bindex, labels] = torch.tensor(-torch.inf, device=logits.device, dtype=logits.dtype)
+
+        margins = logits_correct - cloned_logits.logsumexp(dim=-1)
+        return -margins.sum()
+
+
+@pytest.fixture
+def classification_task():
+    return ClassificationTask()
