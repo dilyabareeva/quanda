@@ -1,9 +1,5 @@
-<header>
-<style>
-  @font-face { font-family: Poppins; src: url('./docs/source/_static/Poppins-SemiBold.ttf'); }
-  .poppins { font-family: Poppins; font-size: 1em; }
-</style>
-</header>
+
+<link rel="stylesheet" type="text/css" href="docs/source/_static/css/quanda_text.css">
 
 <p align="center">
 <picture>
