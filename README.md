@@ -1,3 +1,8 @@
+<style>
+  @font-face { font-family: Poppins; src: url('../Poppins-SemiBold.ttf'); }
+  .poppins { font-family: Poppins; font-size: 1em; }
+</style>
+
 <p align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/dilyabareeva/quanda/refs/heads/main/assets/readme/quanda_panda_black_bg.png">
@@ -21,7 +26,7 @@
 [![Documentation Status](https://readthedocs.org/projects/quanda/badge/?version=latest)](https://quanda.readthedocs.io/en/latest/?badge=latest)
 [![arXiv](https://img.shields.io/badge/arXiv-2410.07158-b31b1b.svg)](https://arxiv.org/abs/2410.07158)
 
-**quanda** _is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
+<span class="poppins">quanda</span> is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
 
 
 [📑 Shortcut to paper!](https://arxiv.org/pdf/2410.07158)
