@@ -1,7 +1,9 @@
+<header>
 <style>
-  @font-face { font-family: Poppins; src: url('../Poppins-SemiBold.ttf'); }
+  @font-face { font-family: Poppins; src: url('./docs/source/_static/Poppins-SemiBold.ttf'); }
   .poppins { font-family: Poppins; font-size: 1em; }
 </style>
+</header>
 
 <p align="center">
 <picture>
