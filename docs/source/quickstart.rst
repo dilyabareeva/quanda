@@ -19,9 +19,9 @@ Basic Usage
 
 In the following, we provide a quick guide to |quanda| usage. To begin using |quanda|, ensure you have the following:
 
-- **Trained PyTorch Model (`model`)**: A PyTorch model that has already been trained on a relevant dataset. As a placeholder, we used the layer name "avgpool" below. Please replace it with the name of one of the layers in your model.
-- **PyTorch Dataset (`train_set`)**: The dataset used during the training of the model.
-- **Test Batches (`test_tensor`) and Explanation Targets (`target`)**: A batch of test data (`test_tensor`) and the corresponding explanation targets (`target`). Generally, it is advisable to use the model's predicted labels as the targets. In the following, we use the `torch.utils.data.DataLoader` to load the test data in batches.
+- **Trained PyTorch Model (``model``)**: A PyTorch model that has already been trained on a relevant dataset. As a placeholder, we used the layer name "avgpool" below. Please replace it with the name of one of the layers in your model.
+- **PyTorch Dataset (``train_set``)**: The dataset used during the training of the model.
+- **Test Batches (``test_tensor``) and Explanation Targets (``target``)**: A batch of test data (``test_tensor``) and the corresponding explanation targets (``target``). Generally, it is advisable to use the model's predicted labels as the targets. In the following, we use ``torch.utils.data.DataLoader`` to load the test data in batches.
 
 .. note::
    In the examples that follow, we will demonstrate the generation of explanations generated using ``SimilarityInfluence`` data attribution from ``Captum`` and the evaluation of these explanations using the **Model Randomization** metric.
