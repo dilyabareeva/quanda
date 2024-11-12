@@ -1,6 +1,3 @@
-
-<link rel="stylesheet" type="text/css" href="docs/source/_static/css/quanda_text.css">
-
 <p align="center">
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/dilyabareeva/quanda/refs/heads/main/assets/readme/quanda_panda_black_bg.png">
