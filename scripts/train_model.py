@@ -109,7 +109,7 @@ class SketchDataset(Dataset):
 def load_scheduler(name, optimizer, epochs):  # include warmup?
     scheduler_dict = {
         "constant": ConstantLR(optimizer=optimizer, last_epoch=-1),
-        # "step": StepLR(optimizer=optimizer, step_size=epochs // 20, gamma=0.1, last_epoch=epochs),
+        "step": StepLR(optimizer=optimizer, step_size=epochs // 20, gamma=0.1, last_epoch=epochs),
         "annealing": CosineAnnealingLR(
             optimizer=optimizer, T_max=epochs, last_epoch=epochs
         ),  # make it so that t_max updates to len(train_data) // batch_size (check that this is correct again)

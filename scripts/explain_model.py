@@ -362,6 +362,8 @@ def explain_model(
     model.avgpool = torch.nn.AdaptiveAvgPool2d(1)
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, num_outputs)
+    ckpt = torch.load(model_path, map_location=device)
+    model.load_state_dict(ckpt["model_state"])
     model.to(device=device)
 
     loss = load_loss(loss)
