@@ -167,7 +167,7 @@ To begin using **quanda** metrics, you need the following components:
 Next, we demonstrate how to evaluate explanations using the **Model Randomization** metric.
 
 <details>
-<summary><b><big>1. Import dependencies and library components</big></b></summary>
+<summary><b>1. Import dependencies and library components</b></summary>
 
 ```python
 from torch.utils.data import DataLoader
@@ -180,7 +180,7 @@ from quanda.metrics.heuristics import ModelRandomizationMetric
 
 <details>
 
-<summary><b><big>2. Create the explainer object</big></b></summary>
+<summary><b>2. Create the explainer object</b></summary>
 
 We now create our explainer. The device to be used by the explainer and metrics is inherited from the model, thus we set the model device explicitly.
 
@@ -203,7 +203,7 @@ explainer = CaptumSimilarity(
 
 <details>
 
-<summary><b><big>3. Initialize the metric</big></b></summary>
+<summary><b>3. Initialize the metric</b></summary>
 
 The `ModelRandomizationMetric` needs to instantiate a new explainer to generate explanations for a randomized model. These will be compared with the explanations of the original model. Therefore, `explainer_cls` is passed directly to the metric along with initialization parameters of the explainer for the randomized model.
 
@@ -225,7 +225,7 @@ model_rand = ModelRandomizationMetric(
 </details>
 
 <details>
-<summary><b><big>4. Iterate over test set to generate explanations and update the metric</big></b></summary>
+<summary><b>4. Iterate over test set to generate explanations and update the metric</b></summary>
 
 We now start producing explanations with our TDA method. We go through the test set batch-by-batch. For each batch, we first generate the attributions using the predicted labels, and we then update the metric with the produced explanations to showcase how to concurrently handle the explanation and evaluation processes.
 
@@ -249,7 +249,7 @@ print("Randomization metric output:", model_rand.compute())
 The pre-assembled benchmarks allow us to streamline the evaluation process by downloading the necessary data and models, and running the evaluation in a single command. The following code demonstrates how to use the `mnist_subclass_detection` benchmark:
 
 <details>
-<summary><b><big>1. Import dependencies and library components</big></b></summary>
+<summary><b>1. Import dependencies and library components</b></summary>
 
 ```python
 from quanda.explainers.wrappers import CaptumSimilarity
@@ -259,7 +259,7 @@ from quanda.benchmarks.downstream_eval import SubclassDetection
 
 <details>
 
-<summary><b><big>2. Prepare arguments for the explainer object</big></b></summary>
+<summary><b>2. Prepare arguments for the explainer object</b></summary>
 
 ```python
 DEVICE = "cpu"
@@ -273,7 +273,7 @@ explainer_kwargs = {
 ```
 </details>
 <details>
-<summary><b><big>3. Load a pre-assembled benchmark and score an explainer</big></b></summary>
+<summary><b>3. Load a pre-assembled benchmark and score an explainer</b></summary>
 
 ```python
 subclass_detect = SubclassDetection.download(
@@ -295,7 +295,7 @@ print(f"Subclass Detection Score: {score}")
 Next, we demonstrate assembling a benchmark with assets that the user has prepared. As in the [Using Metrics](#using-metrics) section, we will assume that the user has already trained `model` on `train_set`, and a corresponding `eval_set` to be used for generating and evaluating explanations.
 
 <details>
-<summary><b><big>1. Import dependencies and library components</big></b></summary>
+<summary><b>1. Import dependencies and library components</b></summary>
 
 ```python
 from quanda.explainers.wrappers import CaptumSimilarity
@@ -305,7 +305,7 @@ from quanda.benchmarks.ground_truth import TopKCardinality
 
 <details>
 
-<summary><b><big>2. Prepare arguments for the explainer object</big></b></summary>
+<summary><b>2. Prepare arguments for the explainer object</b></summary>
 
 ```python
 DEVICE = "cpu"
@@ -320,7 +320,7 @@ explainer_kwargs = {
 </details>
 
 <details>
-<summary><b><big>3. Assemble the benchmark object and run the evaluation</big></b></summary>
+<summary><b>3. Assemble the benchmark object and run the evaluation</b></summary>
 
 We now have everything we need, we can just assemble the benchmark and run it. This will encapsulate the process of instantiating the explainer, generating explanations and using the `TopKCardinalityMetric` to evaluate them.
 
@@ -346,7 +346,7 @@ Some evaluation strategies require a controlled setup or a different strategy of
 As in previous examples, we assume that `train_set` refers to  a vanilla training dataset, without any modifications for evaluation. Furthermore, we assume `model` refers to a torch `Module`, but in this example we do not require that `model` is trained. Finally, `n_classes` is the number of classes in the `train_set`.
 
 <details>
-<summary><b><big>1. Import dependencies and library components</big></b></summary>
+<summary><b>1. Import dependencies and library components</b></summary>
 
 ```python
 import torch
@@ -358,7 +358,7 @@ from quanda.benchmarks.downstream_eval import MislabelingDetection
 
 <details>
 
-<summary><b><big>2. Prepare arguments for the explainer object</big></b></summary>
+<summary><b>2. Prepare arguments for the explainer object</b></summary>
 
 ```python
 DEVICE = "cpu"
@@ -374,7 +374,7 @@ explainer_kwargs = {
 
 <details>
 
-<summary><b><big>3. Prepare the trainer</big></b></summary>
+<summary><b>3. Prepare the trainer</b></summary>
 
 For mislabeling detection, we will train a model from scratch. **quanda** allows to use Lightning `Trainer` objects. If you want to use Lightning trainers, `model` needs to be an instance of a Lightning `LightningModule`. Alternatively, you can use an instance of `quanda.utils.training.BaseTrainer`. In this example, we use a very simple training setup via the `quanda.utils.training.Trainer` class.
 
@@ -389,7 +389,7 @@ trainer = Trainer(
 </details>
 
 <details>
-<summary><b><big>4. Generate the benchmark object and run the evaluation</big></b></summary>
+<summary><b>4. Generate the benchmark object and run the evaluation</b></summary>
 
 We can now call the `generate` method to instantiate our `MislabelingDetection` object and directly start the evaluation process with it. The `generate` method takes care of model training using `trainer`, generation of explanations and their evaluation.
 
@@ -417,7 +417,7 @@ More detailed examples can be found in the [tutorials](tutorials) folder.
 In addition to the built-in explainers, **quanda** supports the evaluation of custom explainer methods. This section provides a guide on how to create a wrapper for a custom explainer that matches our interface.
 
 <details>
-<summary><b><big>Step 1. Create an explainer class</big></b></summary>
+<summary><b>Step 1. Create an explainer class</b></summary>
 
 Your custom explainer should inherit from the base [Explainer](quanda/explainers/base.py) class provided by **quanda**. The first step is to initialize your custom explainer within the `__init__` method.
 ```python
@@ -431,7 +431,7 @@ class CustomExplainer(Explainer):
 </details>
 
 <details>
-<summary><b><big>Step 2. Implement the explain method</big></b></summary>
+<summary><b>Step 2. Implement the explain method</b></summary>
 
 The core of your wrapper is the `explain` method. This function should take test samples and their corresponding target values as input and return a 2D tensor containing the influence scores.
 
@@ -452,7 +452,7 @@ def explain(
 </details>
 
 <details>
-<summary><b><big>Step 3. Implement the self_influence method (Optional) </big></b></summary>
+<summary><b>Step 3. Implement the self_influence method (Optional) </b></summary>
 
 By default, **quanda** includes a built-in method for calculating self-influence scores. This base implementation computes all attributions over the training dataset, and collects the diagonal values in the attribution matrix. However, you can override this method to provide a more efficient implementation. This method should calculate how much each training sample influences itself and return a tensor of the computed self-influence scores.
 
