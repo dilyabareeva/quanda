@@ -178,6 +178,8 @@ We now have everything we need, we can just assemble the benchmark and run it. T
       expl_kwargs=explain_fn_kwargs,
       batch_size=batch_size,
    )["score"]
+   print(f"Top K Cardinality Score: {score}")
+
 
 Generating the benchmark object from scratch
 ++++++++++++++++++++++++++++++++++++++++++++
@@ -226,25 +228,25 @@ We can now call the ``generate`` method to instantiate our :doc:`MislabelingDete
 
 .. code-block:: python
 
-   topk_cardinality = MislabelingDetection.generate(
+   mislabeling_detection = MislabelingDetection.generate(
       model=model,
       base_dataset=train_set,
       n_classes=n_classes,
       trainer=trainer,
    )
-   score = topk_cardinality.evaluate(
+   score = mislabeling_detection.evaluate(
       explainer_cls=CaptumSimilarity,
       expl_kwargs=explain_fn_kwargs,
       batch_size=batch_size,
    )["score"]
-   print(f"Subclass Detection Score: {score}")
+   print(f"Mislabeling Detection Score: {score}")
 
 More detailed examples can be found in the :doc:`tutorials <./tutorials>` page.
 
 Custom Explainers
 -----------------
 
-In addition to the built-in explainers, |quanda| supports the evaluatioon of custom explainer methods. This section provides a guide on how to create a wrapper for a custom explainer that matches our interface.
+In addition to the built-in explainers, |quanda| supports the evaluation of custom explainer methods. This section provides a guide on how to create a wrapper for a custom explainer that matches our interface.
 
 **Step 1. Create an explainer class**
 
