@@ -237,6 +237,7 @@ Additionally, we can provide a dictionary which embodies a specific class groupi
     Please note that calling ``SubclassDetection.generate`` will initiate model training, therefore it will potentially take a long time.
 
 .. code-block:: python
+
     from quanda.benchmarks.resources import pl_modules
     import lightning as L
 
