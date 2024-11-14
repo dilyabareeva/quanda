@@ -21,7 +21,7 @@
 [![Documentation Status](https://readthedocs.org/projects/quanda/badge/?version=latest)](https://quanda.readthedocs.io/en/latest/?badge=latest)
 [![arXiv](https://img.shields.io/badge/arXiv-2410.07158-b31b1b.svg)](https://arxiv.org/abs/2410.07158)
 
-**quanda** is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
+**quanda** _is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
 
 
 [📑 Shortcut to paper!](https://arxiv.org/pdf/2410.07158)
