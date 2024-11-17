@@ -21,6 +21,12 @@ class OnDeviceDataset(torch.utils.data.Dataset):
         self.device = device
 
     def __getitem__(self, idx):
+        # item = self.dataset[idx]
+        # if isinstance(item, dict):
+        #     return {key: torch.tensor(value).to(self.device) for key, value in item.items()}
+        # else:
+        #     data, target = item
+        #     return data.to(self.device), torch.tensor(target).to(self.device)
         data, target = self.dataset[idx]
         return data.to(self.device), torch.tensor(target).to(self.device)
 

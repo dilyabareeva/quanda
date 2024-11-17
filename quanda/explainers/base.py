@@ -41,6 +41,7 @@ class Explainer(ABC):
         else:
             self.device = torch.device("cpu")
 
+        # TODO: Handle huggingface format datasets
         # if dataset return samples not on device, move them to device
         if train_dataset[0][0].device != self.device:
             train_dataset = OnDeviceDataset(train_dataset, self.device)

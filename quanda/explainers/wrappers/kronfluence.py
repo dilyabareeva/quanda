@@ -1,8 +1,13 @@
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
 
 import torch
 from kronfluence.analyzer import Analyzer, prepare_model  # type: ignore
+from kronfluence.arguments import (  # type: ignore
+    FactorArguments,
+    ScoreArguments,
+)
 from kronfluence.task import Task  # type: ignore
+from kronfluence.utils.dataset import DataLoaderKwargs  # type: ignore
 from torch import nn
 from torch.utils.data import Dataset
 
@@ -11,6 +16,7 @@ from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
+from quanda.utils.common import process_targets
 
 
 class Kronfluence(Explainer):
@@ -40,6 +46,12 @@ class Kronfluence(Explainer):
         train_dataset: Dataset,
         batch_size: int = 1,
         device: Union[str, torch.device] = "cpu",
+        analysis_name: str = "kronfluence_analysis",
+        factors_name: str = "initial_factor",
+        factor_args: FactorArguments = None,
+        scores_name: str = "initial_score",
+        score_args: ScoreArguments = None,
+        dataloader_kwargs: DataLoaderKwargs = None,
     ):
         """
         Initializer for the `Kronfluence` explainer.
@@ -56,6 +68,18 @@ class Kronfluence(Explainer):
             Batch size used for iterating over the dataset. Defaults to 1.
         device : Union[str, torch.device], optional
             Device to run the computation on. Defaults to "cpu".
+        analysis_name : str, optional
+            Unique identifier for the analysis. Defaults to "kronfluence_analysis".
+        factors_name : str, optional
+            Unique identifier for the factor. Defaults to "initial_factor".
+        factor_args : FactorArguments, optional
+            Arguments for factor computation. Defaults to None.
+        scores_name : str, optional
+            The unique identifier for the score. Defaults to "initial_score".
+        score_args : ScoreArguments, optional
+            Arguments for score computation. Defaults to None.
+        dataloader_kwargs : DataLoaderKwargs, optional
+            DataLoader arguments. Defaults to None.
         """
         super().__init__(model=model, train_dataset=train_dataset)
         self.batch_size = batch_size
@@ -64,8 +88,11 @@ class Kronfluence(Explainer):
         self.task = task
         self.model = self._prepare_model()
 
-        self.factors_name = "initial_factor"
-        self.analysis_name = "kronfluence_analysis"
+        self.analysis_name = analysis_name
+        self.factor_args = factor_args
+        self.factors_name = factors_name
+        self.scores_name = scores_name
+        self.score_args = score_args
 
         self.analyzer = Analyzer(
             analysis_name=self.analysis_name,
@@ -73,9 +100,14 @@ class Kronfluence(Explainer):
             task=self.task,
         )
 
+        if dataloader_kwargs:
+            self.analyzer.set_dataloader_kwargs(dataloader_kwargs)
+
         self.analyzer.fit_all_factors(
             factors_name=self.factors_name,
             dataset=self.train_dataset,
+            factor_args=self.factor_args,
+            overwrite_output_dir=True,
         )
 
     def _prepare_model(self) -> nn.Module:
@@ -95,6 +127,8 @@ class Kronfluence(Explainer):
         self,
         test_tensor: torch.Tensor,
         targets: Union[List[int], torch.Tensor],
+        scores_name: Optional[str] = None,
+        score_args: ScoreArguments = None,
     ) -> torch.Tensor:
         """
         Compute influence scores for the test samples.
@@ -105,31 +139,41 @@ class Kronfluence(Explainer):
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
+        scores_name : str, optional
+            The unique identifier for the score. Overrides the instance variable if provided.
+        score_args : ScoreArguments, optional
+            Arguments for score computation. Overrides the instance variable if provided.
 
         Returns
         -------
         torch.Tensor
             2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
         """
-        scores_name = "initial_score"
-        if isinstance(targets, list):
-            targets = torch.tensor(targets)
+        targets = process_targets(targets, self.device)
         test_dataset = torch.utils.data.TensorDataset(test_tensor, targets)
+
+        scores_name = scores_name or self.scores_name
+        score_args = score_args or self.score_args
 
         self.analyzer.compute_pairwise_scores(
             scores_name=scores_name,
             factors_name=self.factors_name,
             query_dataset=test_dataset,
             train_dataset=self.train_dataset,
-            per_device_query_batch_size=1,
+            per_device_query_batch_size=self.batch_size,
+            score_args=score_args,
+            overwrite_output_dir=True,
         )
-
-        # TODO: Make "all_modules" a parameter
-        scores = self.analyzer.load_pairwise_scores(scores_name=scores_name)["all_modules"]
+        scores = self.analyzer.load_pairwise_scores(scores_name=self.scores_name)["all_modules"]
 
         return scores
 
-    def self_influence(self, batch_size: int = 1) -> torch.Tensor:
+    def self_influence(
+        self,
+        batch_size: int = 1,
+        scores_name: Optional[str] = None,
+        score_args: ScoreArguments = None,
+    ) -> torch.Tensor:
         """
         Compute self-influence scores.
 
@@ -137,22 +181,28 @@ class Kronfluence(Explainer):
         ----------
         batch_size : int, optional
             Batch size used for iterating over the dataset. This argument is ignored.
+        scores_name : str, optional
+            The unique identifier for the score. Overrides the instance variable if provided.
+        score_args : ScoreArguments, optional
+            Arguments for score computation. Overrides the instance variable if provided.
 
         Returns
         -------
         torch.Tensor
             Self-influence scores for each datapoint in train_dataset.
         """
-        scores_name = "initial_score"
+        scores_name = scores_name or self.scores_name
+        score_args = score_args or self.score_args
 
         self.analyzer.compute_self_scores(
             scores_name=scores_name,
             factors_name=self.factors_name,
             train_dataset=self.train_dataset,
+            score_args=score_args,
+            overwrite_output_dir=True,
         )
 
-        # TODO: Make "all_modules" a parameter
-        scores = self.analyzer.load_self_scores(scores_name=scores_name)["all_modules"]
+        scores = self.analyzer.load_self_scores(scores_name=self.scores_name)["all_modules"]
 
         return scores
 

@@ -1,7 +1,7 @@
 import json
 import os
 import pickle
-from typing import Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 import pytest
@@ -31,6 +31,20 @@ from quanda.utils.datasets.transformed.label_grouping import (
 )
 from quanda.utils.training.base_pl_module import BasicLightningModule
 from tests.models import LeNet
+
+# Copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
+GLUE_TASK_TO_KEYS = {
+    "cola": ("sentence", None),
+    "mnli": ("premise", "hypothesis"),
+    "mrpc": ("sentence1", "sentence2"),
+    "qnli": ("question", "sentence"),
+    "qqp": ("question1", "question2"),
+    "rte": ("sentence1", "sentence2"),
+    "sst2": ("sentence", None),
+    "stsb": ("sentence1", "sentence2"),
+    "wnli": ("sentence1", "sentence2"),
+}
+
 
 MNIST_IMAGE_SIZE = 28
 BATCH_SIZE = 124
@@ -416,3 +430,57 @@ class ClassificationTask(Task):
 @pytest.fixture
 def classification_task():
     return ClassificationTask()
+
+
+class TextClassificationTask(Task):
+    def compute_train_loss(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+        sample: bool = False,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+            token_type_ids=batch["token_type_ids"],
+        ).logits
+
+        if not sample:
+            return F.cross_entropy(logits, batch["labels"], reduction="sum")
+        with torch.no_grad():
+            probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
+            sampled_labels = torch.multinomial(
+                probs,
+                num_samples=1,
+            ).flatten()
+        return F.cross_entropy(logits, sampled_labels, reduction="sum")
+
+    def compute_measurement(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+    ) -> torch.Tensor:
+        # Copied from: https://github.com/MadryLab/trak/blob/main/trak/modelout_functions.py.
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+            token_type_ids=batch["token_type_ids"],
+        ).logits
+
+        labels = batch["labels"]
+        bindex = torch.arange(logits.shape[0]).to(device=logits.device, non_blocking=False)
+        logits_correct = logits[bindex, labels]
+
+        cloned_logits = logits.clone()
+        cloned_logits[bindex, labels] = torch.tensor(-torch.inf, device=logits.device, dtype=logits.dtype)
+
+        margins = logits_correct - cloned_logits.logsumexp(dim=-1)
+        return -margins.sum()
+
+    def get_attention_mask(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
+        return batch["attention_mask"]
+
+
+@pytest.fixture
+def text_classification_task():
+    return TextClassificationTask()
