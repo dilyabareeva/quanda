@@ -192,6 +192,7 @@ Let's collect these components from the downloaded benchmark. We then assemble t
 Assembling the benchmark and running the evaluation
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 We are now ready to assemble and run the benchmark. After running the below code, the ``results`` dictionary will contain the score of the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor on the benchmark.
+
 .. code-block:: python
 
     benchmark = MislabelingDetection.assemble(
@@ -236,6 +237,7 @@ Additionally, we can provide a dictionary which embodies a specific class groupi
     Please note that calling ``SubclassDetection.generate`` will initiate model training, therefore it will potentially take a long time.
 
 .. code-block:: python
+
     from quanda.benchmarks.resources import pl_modules
     import lightning as L
 
