@@ -35,6 +35,6 @@ apptainer run --nv  --env "PYTHONPATH=." \
 
 # This command copies all results generated in $LOCAL_JOB_DIR back to the submit folder regarding the job id.
 cd "$LOCAL_JOB_DIR"
-tar -cf train_${SLURM_JOB_ID}.tar outputs
-cp train_${SLURM_JOB_ID}.tar $SLURM_SUBMIT_DIR
-rm -rf ${LOCAL_JOB_DIR}/train_${SLURM_JOB_ID}.tar
+tar -czf train_${SLURM_JOB_ID}.tgz outputs
+cp train_${SLURM_JOB_ID}.tgz $SLURM_SUBMIT_DIR
+rm -rf ${LOCAL_JOB_DIR}/train_${SLURM_JOB_ID}.tgz
