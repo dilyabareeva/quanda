@@ -470,7 +470,7 @@ def train_model(
                     "ds_type": dataset_type,
                     "train_accuracy": train_acc,
                 }
-                path = os.path.join("./broken_model", f"{base_epoch + e}")
+                path = os.path.join(output_dir, f"broken_model_{base_epoch + e}")
                 torch.save(save_dict, path)
                 print("NaN loss")
                 exit()
