@@ -313,6 +313,13 @@ def train_model(
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, num_outputs)
     model.to(device=device)
+    # conv_list=[mod for name,mod in model.named_modules() if "conv" in name]
+    
+    # def hook(mod, inp, out):
+    #     print(out.shape)
+
+    # for m in conv_list:
+    #     m.register_forward_hook(hook)
 
     tensorboarddir = f"{dataset_type}_{lr}_{scheduler}_{optimizer}{f'_aug' if augmentation is not None else ''}"
     tensorboarddir = os.path.join(output_dir, tensorboarddir)
