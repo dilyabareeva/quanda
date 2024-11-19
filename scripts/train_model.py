@@ -181,7 +181,7 @@ def evaluate_model(model, device, num_outputs, batch_size, val_set):
     y_out = torch.empty((0, num_outputs), device=device)
 
     # for i, (inputs, targets) in enumerate(tqdm(iter(loader), total=len(loader))):
-    for i, (inputs, targets) in enumerate(iter(loader), total=len(loader)):
+    for i, (inputs, targets) in enumerate(iter(loader)):
         inputs = inputs.to(device)
         targets = targets.to(device)
         y_true = torch.cat((y_true, targets), 0)
