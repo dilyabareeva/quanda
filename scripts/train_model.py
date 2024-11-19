@@ -314,7 +314,7 @@ def train_model(
     model.fc = torch.nn.Linear(num_ftrs, num_outputs)
     model.to(device=device)
 
-    conv_list=[mod for name,mod in model.named_modules() if "conv" in name]
+    conv_list = [mod for name, mod in model.named_modules() if "conv" in name]
 
     def hook(mod, inp, out):
         print(f"{out.shape} - kernel {mod.kernel_size} - stride {mod.stride} - padding {mod.padding}")
@@ -452,7 +452,7 @@ def train_model(
         y_out = torch.empty((0, num_outputs), device=device)
         cum_loss = 0
         cnt = 0
-        for inputs, targets in tqdm(iter(loader)):
+        for inputs, targets in iter(loader):
             inputs = inputs.to(device)
             if isinstance(loss, BCEWithLogitsLoss):
                 targets = one_hot(targets, num_outputs).float()
