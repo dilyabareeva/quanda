@@ -125,8 +125,6 @@ def load_optimizer(name, model, lr, weight_decay, momentum):  # could add moment
         "rmsprop": RMSprop(model.parameters(), lr=lr, weight_decay=weight_decay, momentum=momentum),
     }
     optimizer = optimizer_dict.get(name, SGD(model.parameters(), lr=lr, weight_decay=weight_decay, momentum=momentum))
-    if name == "adam":
-        warnings.warn("For Adam, the given momentum value is used for beta_1.")
     return optimizer
 
 
@@ -139,7 +137,7 @@ def load_loss(name):  # add regularisation
 def load_augmentation(name, dataset_name):
     if name is None:
         return lambda x: x
-    shapes = {"MNIST": (28, 28), "CIFAR": (32, 32), "AWA": (224, 224)}
+    shapes = {"tiny_imagenet": (64,64)}
     trans_arr = []
     trans_dict = {
         "crop": RandomApply(
@@ -180,7 +178,8 @@ def evaluate_model(model, device, num_outputs, batch_size, val_set):
     y_true = torch.empty(0, device=device)
     y_out = torch.empty((0, num_outputs), device=device)
 
-    # for i, (inputs, targets) in enumerate(tqdm(iter(loader), total=len(loader))):
+    
+    #for i, (inputs, targets) in enumerate(tqdm(iter(loader), total=len(loader))):
     for i, (inputs, targets) in enumerate(iter(loader)):
         inputs = inputs.to(device)
         targets = targets.to(device)
@@ -196,8 +195,9 @@ def evaluate_model(model, device, num_outputs, batch_size, val_set):
 
 
 def train_model(
+    dataset_name,
     dataset_type,
-    tiny_imgnet_path,
+    dataset_path,
     metadata_path,
     output_dir,
     download,
@@ -207,6 +207,7 @@ def train_model(
     epochs,
     lr,
     batch_size,
+    validate_each,
     save_each,
     optimizer,
     weight_decay,
@@ -222,20 +223,21 @@ def train_model(
     torch.manual_seed(seed)
     # Downloading the datasets and checkpoints
     os.makedirs(output_dir, exist_ok=True)
-    save_id_base = f"{dataset_type}_{lr}_{scheduler}_{optimizer}_{weight_decay}{f'_aug' if augmentation is not None else ''}{f'_pre' if pretrained else ''}"
+    save_id_base = f"{dataset_type}_{lr}_{scheduler}_{optimizer}_{weight_decay}{f'_{augmentation}' if augmentation is not None else ''}{f'_pre' if pretrained else ''}"
     print(save_id_base)
+
     if download:
         os.makedirs(metadata_path, exist_ok=True)
-        os.makedirs(tiny_imgnet_path, exist_ok=True)
+        os.makedirs(dataset_path, exist_ok=True)
 
-        if not os.path.join(tiny_imgnet_path, "tiny-imagenet-200.zip"):
-            subprocess.run(["wget", "-qP", tiny_imgnet_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
+        if not os.path.join(dataset_path, "tiny-imagenet-200.zip"):
+            subprocess.run(["wget", "-qP", dataset_path, "http://cs231n.stanford.edu/tiny-imagenet-200.zip"])
         # if not os.path.join(metadata_path, "sketch.zip"):
         #     subprocess.run(
         #         ["wget", "-qP", metadata_path, "https://datacloud.hhi.fraunhofer.de/s/FpPWkzPmM3s9ZqF/download/sketch.zip"]
         #     )
-    if not os.path.exists(os.path.join(tiny_imgnet_path, "tiny-imagenet-200")):
-        subprocess.run(["unzip", "-qq", os.path.join(tiny_imgnet_path, "tiny-imagenet-200.zip"), "-d", tiny_imgnet_path])
+    if not os.path.exists(os.path.join(dataset_path, "tiny-imagenet-200")):
+        subprocess.run(["unzip", "-qq", os.path.join(dataset_path, "tiny-imagenet-200.zip"), "-d", dataset_path])
     if not os.path.exists(os.path.join(metadata_path, "sketch")):
         subprocess.run(["unzip", "-qq", os.path.join(metadata_path, "sketch.zip"), "-d", metadata_path])
 
@@ -258,25 +260,25 @@ def train_model(
         augmentation = load_augmentation(augmentation)
 
     # Load the TinyImageNet dataset
-    tiny_imgnet_path = os.path.join(tiny_imgnet_path, "tiny-imagenet-200")
-    with open(os.path.join(tiny_imgnet_path, "wnids.txt"), "r") as f:
+    dataset_path = os.path.join(dataset_path, "tiny-imagenet-200")
+    with open(os.path.join(dataset_path, "wnids.txt"), "r") as f:
         id_dict = {line.strip(): i for i, line in enumerate(f)}
 
-    with open(os.path.join(tiny_imgnet_path, "val/val_annotations.txt"), "r") as f:
+    with open(os.path.join(dataset_path, "val/val_annotations.txt"), "r") as f:
         val_annotations = {line.split("\t")[0]: line.split("\t")[1] for line in f}
 
     normalized_transform = (
         transforms.Compose([augmentation, regular_transforms]) if augmentation is not None else regular_transforms
     )
     train_set = CustomDataset(
-        os.path.join(tiny_imgnet_path, "train"),
+        os.path.join(dataset_path, "train"),
         classes=list(id_dict.keys()),
         classes_to_idx=id_dict,
         transform=augmentation if dataset_type in ["mislabeled", "shortcut"] else normalized_transform,
     )
 
     holdout_set = AnnotatedDataset(
-        local_path=os.path.join(tiny_imgnet_path, "val"),
+        local_path=os.path.join(dataset_path, "val"),
         transforms=regular_transforms,
         id_dict=id_dict,
         annotation=val_annotations,
@@ -291,7 +293,7 @@ def train_model(
     val_set = Subset(holdout_set, val_indices)
 
     wn_ids = {}
-    with open(os.path.join(tiny_imgnet_path, "words.txt"), "r") as f:
+    with open(os.path.join(dataset_path, "words.txt"), "r") as f:
         lines = f.readlines()
         for l in lines:
             l = l.replace("\n", "")
@@ -312,6 +314,8 @@ def train_model(
     model.avgpool = torch.nn.AdaptiveAvgPool2d(1)
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, num_outputs)
+    model.conv1 = torch.nn.Conv2d(3,64, kernel_size=(3,3), stride=(1,1), padding=(1,1))
+    model.maxpool = torch.nn.Sequential()
     model.to(device=device)
 
     # conv_list = [mod for name, mod in model.named_modules() if "conv" in name]
@@ -410,7 +414,6 @@ def train_model(
     train_acc = []
 
     saved_files = []
-
     if model_path is not None:
         checkpoint = torch.load(model_path, map_location=device)
         if checkpoint.get("model_state", None) != None:
@@ -445,6 +448,8 @@ def train_model(
     # best_model_yet = model_path
     # best_loss_yet = None
     loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
+    save_counter=0
+
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir, exist_ok=True)
     for e in range(epochs):
@@ -503,31 +508,34 @@ def train_model(
         print("\n==============\n")
         learning_rates.append(scheduler.get_lr())
         scheduler.step()
-        if (e + 1) % save_each == 0:
+        if (e + 1) % validate_each == 0:
+            save_counter+=1
             validation_epochs.append(e)
-            save_dict = {
-                "model_state": model.state_dict(),
-                "optimizer_state": optimizer.state_dict(),
-                "scheduler_state": scheduler.state_dict(),
-                "epoch": base_epoch + e,
-                "train_losses": train_losses,
-                "validation_losses": validation_losses,
-                "validation_epochs": validation_epochs,
-                "validation_accuracy": val_acc,
-                "learning_rates": learning_rates,
-                "train_accuracy": train_acc,
-            }
-            if dataset_type == "shortcut":
-                save_dict["shortcut_indices"] = train_set.transform_indices
-            elif dataset_type == "mislabeled":
-                save_dict["mislabeled_indices"] = train_set.transform_indices
+            if (save_counter+1) % save_each == 0:
+                save_counter=0
+                save_dict = {
+                    "model_state": model.state_dict(),
+                    "optimizer_state": optimizer.state_dict(),
+                    "scheduler_state": scheduler.state_dict(),
+                    "epoch": base_epoch + e,
+                    "train_losses": train_losses,
+                    "validation_losses": validation_losses,
+                    "validation_epochs": validation_epochs,
+                    "validation_accuracy": val_acc,
+                    "learning_rates": learning_rates,
+                    "train_accuracy": train_acc,
+                }
+                if dataset_type == "shortcut":
+                    save_dict["shortcut_indices"] = train_set.transform_indices
+                elif dataset_type == "mislabeled":
+                    save_dict["mislabeled_indices"] = train_set.transform_indices
 
-            save_id = f"{save_id_base}_{base_epoch + e}"
-            model_save_path = os.path.join(output_dir, save_id)
-            if not os.path.isdir(output_dir):
-                os.makedirs(output_dir, exist_ok=True)
-            torch.save(save_dict, model_save_path)
-            saved_files.append((model_save_path, save_id))
+                save_id = f"{save_id_base}_{base_epoch + e}"
+                model_save_path = os.path.join(output_dir, save_id)
+                if not os.path.isdir(output_dir):
+                    os.makedirs(output_dir, exist_ok=True)
+                torch.save(save_dict, model_save_path)
+                saved_files.append((model_save_path, save_id))
 
             valeval = evaluate_model(
                 model=model, device=device, num_outputs=num_outputs, batch_size=batch_size, val_set=val_set
@@ -559,16 +567,17 @@ if __name__ == "__main__":
     parser = ArgumentParser()
 
     # Define argument for method with choices
+    parser.add_argument("--dataset_name", required=True, default="tiny_imagenet", type=str, help="Name of the dataset")
     parser.add_argument("--dataset_type", required=True, choices=["vanilla", "mislabeled", "shortcut", "mixed", "subclass"])
 
     # Define other required arguments
-    parser.add_argument("--tiny_imgnet_path", required=True, type=str, help="Path to Tiny ImageNet dataset")
-    parser.add_argument("--model_path", required=False, type=str, default=None, help="Path to Tiny ImageNet dataset")
+    parser.add_argument("--dataset_path", required=True, type=str, help="Path to Tiny ImageNet dataset")
+    parser.add_argument("--model_path", required=False, type=str, default=None, help="Path to model checkpoint")
     parser.add_argument("--metadata_path", required=False, default=None)
     parser.add_argument("--output_dir", required=True, type=str, help="Directory to save outputs")
     parser.add_argument("--num_groups", required=False, type=int, default=None)
     parser.add_argument("--epochs", required=True, type=int, default=100)
-    parser.add_argument("--save_each", required=True, type=int, default=10)
+    parser.add_argument("--validate_each", required=True, type=int, default=None)
     parser.add_argument("--batch_size", required=True, type=int, default=64)
     parser.add_argument("--base_epoch", required=False, type=int, default=0)
     parser.add_argument("--lr", required=True, type=float, default=0.1)
@@ -582,6 +591,7 @@ if __name__ == "__main__":
     parser.add_argument("--scheduler", required=False, type=str, default="constant")
     parser.add_argument("--loss", required=False, type=str, default="cross_entropy")
     parser.add_argument("--augmentation", required=False, type=str, default=None)
+    parser.add_argument("--save_each", required=False, type=int, default=1)
 
     args = parser.parse_args()
 
@@ -590,8 +600,9 @@ if __name__ == "__main__":
 
     # Call the function with parsed arguments
     train_model(
+        args.dataset_name,
         args.dataset_type,
-        args.tiny_imgnet_path,
+        args.dataset_path,
         args.metadata_path,
         args.output_dir,
         args.download,
@@ -601,6 +612,7 @@ if __name__ == "__main__":
         args.epochs,
         args.lr,
         args.batch_size,
+        args.validate_each,
         args.save_each,
         args.optimizer,
         args.weight_decay,
