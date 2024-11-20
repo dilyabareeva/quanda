@@ -85,6 +85,19 @@ python_files = "test_*.py"
 [tool.setuptools]
 py-modules = []
 
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version_scheme = "pep440"
+version_provider = "standard"  # Standard Python versioning
+update_changelog_on_bump = true
+
+[tool.semantic_release]
+version_source = "commit"
+version_file = "quanda/__init__.py"  # File that contains the version
+branch = "main"
+changelog_file = "CHANGELOG.md"
+
 [project.optional-dependencies]
 dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "coverage>=7.2.3",
