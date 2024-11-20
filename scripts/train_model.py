@@ -222,7 +222,7 @@ def train_model(
     torch.manual_seed(seed)
     # Downloading the datasets and checkpoints
     os.makedirs(output_dir, exist_ok=True)
-    save_id_base = f"{dataset_type}_{lr}_{scheduler}_{optimizer}{f'_aug' if augmentation is not None else ''}"
+    save_id_base = f"{dataset_type}_{lr}_{scheduler}_{optimizer}_{weight_decay}{f'_aug' if augmentation is not None else ''}{f'_pre' if pretrained else ''}"
     print(save_id_base)
     if download:
         os.makedirs(metadata_path, exist_ok=True)
@@ -322,7 +322,7 @@ def train_model(
     # for m in conv_list:
     #     m.register_forward_hook(hook)
 
-    tensorboarddir = f"{dataset_type}_{lr}_{scheduler}_{optimizer}_{weight_decay}{f'_aug' if augmentation is not None else ''}{f'_pre' if pretrained else ''}"
+    tensorboarddir = save_id_base
     tensorboarddir = os.path.join(output_dir, tensorboarddir)
     writer = SummaryWriter(tensorboarddir)
     loss = load_loss(loss)
