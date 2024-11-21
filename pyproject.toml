@@ -87,10 +87,6 @@ py-modules = []
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-tag_format = "$version"
-version_scheme = "pep440"
-version_provider = "standard"
-update_changelog_on_bump = true
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
