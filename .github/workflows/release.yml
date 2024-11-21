@@ -29,11 +29,18 @@ jobs:
           github_token: ${{ secrets.QUANDA_ADMIN }}
           changelog: true
           tag: true
+          commit: false
 
       - name: Push changes to a new branch and create a PR
         run: |
           # Create a new branch from main
           git checkout -b version-bump-${{ steps.release.outputs.version }}
+
+          # Add the changes made by semantic-release (version update and changelog)
+          git add pyproject.toml CHANGELOG.md
+
+          # Commit the changes (version bump and changelog update)
+          git commit -m "chore: bump version to ${{ steps.release.outputs.version }} and update changelog"
 
           # Push changes to the new branch
           git push origin version-bump-${{ steps.release.outputs.version }}
