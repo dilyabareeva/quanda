@@ -1,4 +1,4 @@
-name: version_bumping
+name: release
 
 on:
   workflow_dispatch: # Allows manual triggering of the workflow
@@ -26,8 +26,7 @@ jobs:
         id: release
         uses: python-semantic-release/python-semantic-release@v8.3.0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.QUANDA_ADMIN }}
           changelog: true
           tag: true
-          commit: false
 
