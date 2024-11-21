@@ -30,9 +30,6 @@ jobs:
       - name: Verify Python Installation
         run: python --version
 
-      - name: Install dependencies
-        run: pip install git+https://github.com/pytorch/captum.git
-
       - name: Install tox-gh
         run: python -m pip install tox-gh>=1.2
 
