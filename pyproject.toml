@@ -1,6 +1,6 @@
 [project]
 name = "quanda"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Dilyara Bareeva", email="dilyabareeva@gmail.com" },
     {name = "Galip Ümit Yolcu", email = "galip.uemit.yolcu@hhi.fraunhofer.de" },
