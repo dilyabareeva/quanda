@@ -6,7 +6,7 @@ Welcome to |quanda|'s documentation!
 .. note::
     |quanda| is currently in development. We are actively working on expanding the library and improving the documentation. If you have any questions, please `open an issue <https://github.com/dilyabareeva/quanda/issues/new/choose>`_ or write us at dilyabareeva@gmail.com or galip.uemit.yolcu@hhi.fraunhofer.de.
 
-.. figure:: https://datacloud.hhi.fraunhofer.de/s/zsP7GNmQy3F9Sgf/preview
+.. figure:: _static/fig_1_source.png
    :alt: Figure 1
    :align: left
    :width: 120%
@@ -14,7 +14,7 @@ Welcome to |quanda|'s documentation!
 
    `Fig. 1:` |quanda| `provides a unified and standardized framework to evaluate the quality of Training Data Attribution methods in different contexts and from different perspectives.`
 
-.. figure:: https://datacloud.hhi.fraunhofer.de/s/ZGFtD6ejkSgFSAy/preview
+.. figure:: _static/fig_1_docs_darkmode.png
    :alt: Figure 1
    :align: left
    :width: 120%
@@ -33,7 +33,7 @@ Library Features
 ----------------
 Here we list the main components of |quanda| along with basic explanations of their function. We refer the reader to the :doc:`contribution guide <./contributing>`, the :doc:`API reference <docs_api/modules>` and the :ref:`Basic Usage <quickstart:basic usage>` for further details. Below is a schematic representation of the components of |quanda|:
 
-.. figure:: https://datacloud.hhi.fraunhofer.de/s/Py48jdkj98jGoQw/preview
+.. figure:: _static/components.png
    :alt: Figure 2
    :align: center
    :width: 90%
@@ -41,7 +41,7 @@ Here we list the main components of |quanda| along with basic explanations of th
 
    `Fig. 2: Components and their interactions in` |quanda|
 
-.. figure:: https://datacloud.hhi.fraunhofer.de/s/TAFa9Fso3ZLCd84/preview
+.. figure:: _static/components-darkmode.png
    :alt: Figure 2
    :align: center
    :width: 90%
