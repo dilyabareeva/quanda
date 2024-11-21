@@ -1,4 +1,4 @@
-name: release
+name: version_bumping
 
 on:
   workflow_dispatch: # Allows manual triggering of the workflow
@@ -27,3 +27,7 @@ jobs:
         uses: python-semantic-release/python-semantic-release@v8.3.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          changelog: true
+          tag: true
+          commit: false
+
