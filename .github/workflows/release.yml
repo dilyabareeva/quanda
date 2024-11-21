@@ -30,3 +30,17 @@ jobs:
           changelog: true
           tag: true
 
+      - name: Push changes to a new branch and create a PR
+        run: |
+          # Create a new branch from main
+          git checkout -b version-bump-${{ steps.release.outputs.version }}
+
+          # Push changes to the new branch
+          git push origin version-bump-${{ steps.release.outputs.version }}
+
+          # Create a pull request using GitHub CLI (gh)
+          gh pr create --base main --head version-bump-${{ steps.release.outputs.version }} --title "chore: Version bump to ${{ steps.release.outputs.version }}" --body "Automated version bump"
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.QUANDA_ADMIN }} 
+
