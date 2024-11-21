@@ -30,6 +30,7 @@ jobs:
           changelog: true
           tag: true
           commit: false
+          build: false
 
       - name: Push changes to a new branch and create a PR
         run: |
