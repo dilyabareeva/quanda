@@ -51,3 +51,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.QUANDA_ADMIN }} 
 
+      - name: Merge the Pull Request
+        run: |
+          # Find the PR number for the created branch
+          PR_NUMBER=$(gh pr list --state open --head version-bump-${{ steps.release.outputs.tag }} --json number --jq '.[0].number')
+
+          # Merge the PR
+          gh pr merge $PR_NUMBER --merge --admin
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.QUANDA_ADMIN }}
