@@ -1,7 +1,7 @@
 name: release
 
 on:
-  workflow_dispatch: # Allows manual triggering of the workflow
+  workflow_dispatch:
 
 jobs:
   cd:
