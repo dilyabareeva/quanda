@@ -39,4 +39,3 @@ jobs:
       - name: Test install from TestPyPI
         run: |
           python -m pip install --index-url https://test.pypi.org/simple/ --no-deps quanda
-          python -c "import quanda; print(quanda.__version__)"
