@@ -137,7 +137,7 @@ def load_loss(name):  # add regularisation
 def load_augmentation(name, dataset_name):
     if name is None:
         return lambda x: x
-    shapes = {"tiny_imagenet": (64,64)}
+    shapes = {"tiny_imagenet": (64, 64)}
     trans_arr = []
     trans_dict = {
         "crop": RandomApply(
@@ -178,8 +178,7 @@ def evaluate_model(model, device, num_outputs, batch_size, val_set):
     y_true = torch.empty(0, device=device)
     y_out = torch.empty((0, num_outputs), device=device)
 
-    
-    #for i, (inputs, targets) in enumerate(tqdm(iter(loader), total=len(loader))):
+    # for i, (inputs, targets) in enumerate(tqdm(iter(loader), total=len(loader))):
     for i, (inputs, targets) in enumerate(iter(loader)):
         inputs = inputs.to(device)
         targets = targets.to(device)
@@ -257,7 +256,7 @@ def train_model(
     if augmentation == "":
         augmentation = None
     if augmentation is not None:
-        augmentation = load_augmentation(augmentation)
+        augmentation = load_augmentation(augmentation, dataset_name)
 
     # Load the TinyImageNet dataset
     dataset_path = os.path.join(dataset_path, "tiny-imagenet-200")
@@ -314,7 +313,7 @@ def train_model(
     model.avgpool = torch.nn.AdaptiveAvgPool2d(1)
     num_ftrs = model.fc.in_features
     model.fc = torch.nn.Linear(num_ftrs, num_outputs)
-    model.conv1 = torch.nn.Conv2d(3,64, kernel_size=(3,3), stride=(1,1), padding=(1,1))
+    model.conv1 = torch.nn.Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
     model.maxpool = torch.nn.Sequential()
     model.to(device=device)
 
@@ -448,7 +447,7 @@ def train_model(
     # best_model_yet = model_path
     # best_loss_yet = None
     loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True)
-    save_counter=0
+    save_counter = 0
 
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir, exist_ok=True)
@@ -509,10 +508,10 @@ def train_model(
         learning_rates.append(scheduler.get_lr())
         scheduler.step()
         if (e + 1) % validate_each == 0:
-            save_counter+=1
+            save_counter += 1
             validation_epochs.append(e)
-            if (save_counter+1) % save_each == 0:
-                save_counter=0
+            if (save_counter + 1) % save_each == 0:
+                save_counter = 0
                 save_dict = {
                     "model_state": model.state_dict(),
                     "optimizer_state": optimizer.state_dict(),
