@@ -20,7 +20,7 @@ apptainer run --nv  --env "PYTHONPATH=." \
     --bind ${LOCAL_JOB_DIR}/outputs:/mnt/output \
     --bind /data/datapool3/datasets/quanda_metadata:/mnt/metadata\
      ../singularity/train.sif \
-    --tiny_imgnet_path "/mnt/dataset" \
+    --dataset_path "/mnt/dataset" \
     --metadata_path "/mnt/metadata" \
     --output_dir "/mnt/output" \
     --device "cuda" \
