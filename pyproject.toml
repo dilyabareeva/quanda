@@ -1,6 +1,6 @@
 [project]
 name = "quanda"
-version = "0.0.3"
+dynamic = ["version"]
 authors = [
   { name="Dilyara Bareeva", email="dilyabareeva@gmail.com" },
     {name = "Galip Ümit Yolcu", email = "galip.uemit.yolcu@hhi.fraunhofer.de" },
@@ -35,11 +35,17 @@ Homepage = "https://github.com/dilyabareeva/quanda"
 Issues = "https://github.com/dilyabareeva/quanda/issues"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.git]
+tag_pattern = "v*"
 
 [tool.isort]
 profile = "black"
@@ -88,8 +94,9 @@ py-modules = []
 name = "cz_conventional_commits"
 
 [tool.semantic_release]
+version_source = "tag"
 version_toml = ["pyproject.toml:project.version"]
-branch = "main"
+branch = "checkpoint_argument"
 changelog_file = "CHANGELOG.md"
 
 [project.optional-dependencies]

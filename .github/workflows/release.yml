@@ -18,9 +18,22 @@ jobs:
           python-version: "3.11"
 
       - name: Check-out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.sha }}
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade build hatchling hatch-vcs
+
+      - name: Setup | Force correct release branch on workflow sha
+        run: |
+          git checkout -B ${{ github.ref_name }} ${{ github.sha }}
+
+      - name: Verify dynamic version
+        run: hatchling version
 
       - name: Use Python Semantic Release to prepare release
         id: release
@@ -30,35 +43,6 @@ jobs:
           changelog: true
           tag: true
           commit: false
-          build: false
 
-      - name: Push changes to a new branch and create a PR
-        run: |
-          # Create a new branch from main
-          git checkout -b version-bump-${{ steps.release.outputs.tag }}
-
-          # Add the changes made by semantic-release (version update and changelog)
-          git add pyproject.toml CHANGELOG.md
-
-          # Commit the changes (version bump and changelog update)
-          git commit -m "chore: bump version to ${{ steps.release.outputs.tag }} and update changelog"
-
-          # Push changes to the new branch
-          git push origin version-bump-${{ steps.release.outputs.tag }}
-
-          # Create a pull request using GitHub CLI (gh)
-          gh pr create --base main --head version-bump-${{ steps.release.outputs.tag }} --title "chore: Version bump to ${{ steps.release.outputs.tag }}" --body "Automated version bump"
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.QUANDA_ADMIN }} 
-
-      - name: Merge the Pull Request
-        run: |
-          # Find the PR number for the created branch
-          PR_NUMBER=$(gh pr list --state open --head version-bump-${{ steps.release.outputs.tag }} --json number --jq '.[0].number')
-
-          # Merge the PR
-          gh pr merge $PR_NUMBER --merge --admin
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.QUANDA_ADMIN }}
+      - name: Check git version tag
+        run: git describe --tags --abbrev=0
