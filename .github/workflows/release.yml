@@ -18,9 +18,22 @@ jobs:
           python-version: "3.11"
 
       - name: Check-out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.sha }}
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade build setuptools setuptools_scm
+
+      - name: Setup | Force correct release branch on workflow sha
+        run: |
+          git checkout -B ${{ github.ref_name }} ${{ github.sha }}
+
+      - name: Verify dynamic version
+        run: python -m setuptools_scm
 
       - name: Use Python Semantic Release to prepare release
         id: release
@@ -30,7 +43,22 @@ jobs:
           changelog: true
           tag: true
           commit: false
-          build: false
+
+      - name: Build package
+        run: python3 -m build
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          verbose: true
+
+      - name: Test install from TestPyPI
+        run: |
+          python -m pip install --index-url https://test.pypi.org/simple/ --no-deps quanda
+
+      - name: Check git version tag
+        run: git describe --tags --abbrev=0
 
       - name: Push changes to a new branch and create a PR
         run: |
@@ -38,19 +66,19 @@ jobs:
           git checkout -b version-bump-${{ steps.release.outputs.tag }}
 
           # Add the changes made by semantic-release (version update and changelog)
-          git add pyproject.toml CHANGELOG.md
+          git add CHANGELOG.md
 
           # Commit the changes (version bump and changelog update)
-          git commit -m "chore: bump version to ${{ steps.release.outputs.tag }} and update changelog"
+          git commit -m "chore: Update changelog after version bump ${{ steps.release.outputs.tag }}"
 
           # Push changes to the new branch
           git push origin version-bump-${{ steps.release.outputs.tag }}
 
           # Create a pull request using GitHub CLI (gh)
-          gh pr create --base main --head version-bump-${{ steps.release.outputs.tag }} --title "chore: Version bump to ${{ steps.release.outputs.tag }}" --body "Automated version bump"
+          gh pr create --base main --head version-bump-${{ steps.release.outputs.tag }} --title "chore: Update changelog after version bump ${{ steps.release.outputs.tag }}" --body "Automated changelog update."
 
         env:
-          GITHUB_TOKEN: ${{ secrets.QUANDA_ADMIN }} 
+          GITHUB_TOKEN: ${{ secrets.QUANDA_ADMIN }}
 
       - name: Merge the Pull Request
         run: |

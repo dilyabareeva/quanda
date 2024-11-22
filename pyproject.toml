@@ -1,6 +1,6 @@
 [project]
 name = "quanda"
-version = "0.0.3"
+dynamic = ["version"]
 authors = [
   { name="Dilyara Bareeva", email="dilyabareeva@gmail.com" },
     {name = "Galip Ümit Yolcu", email = "galip.uemit.yolcu@hhi.fraunhofer.de" },
@@ -35,11 +35,12 @@ Homepage = "https://github.com/dilyabareeva/quanda"
 Issues = "https://github.com/dilyabareeva/quanda/issues"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=42", "setuptools-scm[toml]>=6.0"]
+build-backend = "setuptools.build_meta"
 
-[tool.hatch.metadata]
-allow-direct-references = true
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "node-and-date"
 
 [tool.isort]
 profile = "black"
