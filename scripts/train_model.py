@@ -135,7 +135,7 @@ def load_loss(name):  # add regularisation
 
 
 def load_augmentation(name, dataset_name):
-    if name is None:
+    if name is None or name == "null":
         return lambda x: x
     shapes = {"tiny_imagenet": (64, 64)}
     trans_arr = []
