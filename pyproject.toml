@@ -92,6 +92,7 @@ name = "cz_conventional_commits"
 version_toml = ["pyproject.toml:project.version"]
 branch = "main"
 changelog_file = "CHANGELOG.md"
+major_on_zero = false
 
 [project.optional-dependencies]
 dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
