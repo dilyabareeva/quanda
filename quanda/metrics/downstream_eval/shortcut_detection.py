@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Callable, Any
 
 import torch
 from torcheval.metrics.functional import binary_auprc
@@ -23,9 +23,11 @@ class ShortcutDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         shortcut_indices: Union[List[int], torch.Tensor],
         shortcut_cls: int,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
         filter_by_class: bool = False,
     ):
@@ -55,7 +57,10 @@ class ShortcutDetectionMetric(Metric):
         AssertionError
             If the shortcut samples are not all from to the shortcut class.
         """
-        super().__init__(model=model, train_dataset=train_dataset)
+        super().__init__(
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
+        )
+        self.load_last_checkpoint()
         if isinstance(shortcut_indices, list):
             shortcut_indices = torch.tensor(shortcut_indices)
         self.auprc_scores: List[torch.Tensor] = []

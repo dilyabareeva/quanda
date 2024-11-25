@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, Callable
 
 import torch
 
@@ -43,8 +43,10 @@ class MislabelingDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         mislabeling_indices: List[int],
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
@@ -78,9 +80,9 @@ class MislabelingDetectionMetric(Metric):
 
         """
         super().__init__(
-            model=model,
-            train_dataset=train_dataset,
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
         )
+        self.load_last_checkpoint()
         strategies = {
             "self-influence": GlobalSelfInfluenceStrategy,
             "aggr": GlobalAggrStrategy,
@@ -88,7 +90,15 @@ class MislabelingDetectionMetric(Metric):
         if expl_kwargs is None:
             expl_kwargs = {}
         self.explainer = (
-            None if explainer_cls is None else explainer_cls(model=model, train_dataset=train_dataset, **expl_kwargs)
+            None
+            if explainer_cls is None
+            else explainer_cls(
+                model=model,
+                checkpoints=checkpoints,
+                train_dataset=train_dataset,
+                checkpoint_load_func=checkpoint_load_func,
+                **expl_kwargs,
+            )
         )
 
         if isinstance(global_method, str):
@@ -110,9 +120,11 @@ class MislabelingDetectionMetric(Metric):
     def self_influence_based(
         cls,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         mislabeling_indices: List[int],
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         expl_kwargs: Optional[dict] = None,
         *args: Any,
         **kwargs: Any,
@@ -144,6 +156,8 @@ class MislabelingDetectionMetric(Metric):
         """
         return cls(
             model=model,
+            checkpoints=checkpoints,
+            checkpoint_load_func=checkpoint_load_func,
             mislabeling_indices=mislabeling_indices,
             train_dataset=train_dataset,
             global_method="self-influence",
@@ -155,6 +169,7 @@ class MislabelingDetectionMetric(Metric):
     def aggr_based(
         cls,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         mislabeling_indices: List[int],
         aggregator_cls: Union[str, type],
@@ -183,6 +198,7 @@ class MislabelingDetectionMetric(Metric):
         """
         return cls(
             model=model,
+            checkpoints=checkpoints,
             global_method=aggregator_cls,
             mislabeling_indices=mislabeling_indices,
             train_dataset=train_dataset,

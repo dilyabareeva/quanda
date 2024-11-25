@@ -10,13 +10,14 @@ from quanda.utils.functions import cosine_similarity
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, dataset, n_classes, n_groups, seed, test_labels, "
+    "test_id, init_method, model, checkpoint, dataset, n_classes, n_groups, seed, test_labels, "
     "batch_size, use_predictions, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
             "mnist1",
             "generate",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             10,
             2,
@@ -36,6 +37,7 @@ from quanda.utils.functions import cosine_similarity
             "mnist2",
             "assemble",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             10,
             2,
@@ -57,6 +59,7 @@ def test_topk_cardinality(
     test_id,
     init_method,
     model,
+    checkpoint,
     dataset,
     n_classes,
     n_groups,
@@ -72,11 +75,13 @@ def test_topk_cardinality(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "generate":
         dst_eval = TopKCardinality.generate(
             model=model,
+            checkpoints=checkpoint,
             train_dataset=dataset,
             eval_dataset=dataset,
             device="cpu",
@@ -85,6 +90,7 @@ def test_topk_cardinality(
     elif init_method == "assemble":
         dst_eval = TopKCardinality.assemble(
             model=model,
+            checkpoints=checkpoint,
             train_dataset=dataset,
             eval_dataset=dataset,
         )

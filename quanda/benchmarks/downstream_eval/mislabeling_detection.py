@@ -1,7 +1,7 @@
 import copy
 import logging
 import os
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union, Any
 
 import lightning as L
 import torch
@@ -13,6 +13,7 @@ from quanda.benchmarks.resources import (
     load_module_from_bench_state,
     sample_transforms,
 )
+from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
@@ -70,6 +71,8 @@ class MislabelingDetection(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
+        self.checkpoints: Union[str, List[str]]
+        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: Optional[torch.utils.data.Dataset]
         self.mislabeling_dataset: LabelFlippingDataset
@@ -91,6 +94,7 @@ class MislabelingDetection(Benchmark):
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
+        cache_dir: str,
         eval_dataset: Optional[torch.utils.data.Dataset] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -168,6 +172,7 @@ class MislabelingDetection(Benchmark):
         obj.use_predictions = use_predictions
         obj._generate(
             model=model,
+            cache_dir=cache_dir,
             val_dataset=val_dataset,
             p=p,
             global_method=global_method,
@@ -183,6 +188,7 @@ class MislabelingDetection(Benchmark):
     def _generate(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
+        cache_dir: str,
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable],
@@ -293,6 +299,10 @@ class MislabelingDetection(Benchmark):
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
+        # save check point to cache_dir
+        # TODO: add model id
+        torch.save(self.model.state_dict(), os.path.join(cache_dir, "model_mislabeling_detection.pth"))
+        self.checkpoints = [os.path.join(cache_dir, "model_mislabeling_detection.pth")]  # TODO: save checkpoints
         self.model.to(self.device)
         self.model.eval()
 
@@ -330,6 +340,8 @@ class MislabelingDetection(Benchmark):
 
         return obj.assemble(
             model=module,
+            checkpoints=bench_state["checkpoints_binary"],
+            checkpoint_load_func=bench_load_state_dict,
             base_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -344,9 +356,11 @@ class MislabelingDetection(Benchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
+        checkpoints: Union[str, List[str]],
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         mislabeling_labels: Dict[int, int],
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         eval_dataset: Optional[torch.utils.data.Dataset] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -402,6 +416,7 @@ class MislabelingDetection(Benchmark):
 
         obj = cls()
         obj.model = model
+        obj.checkpoints = checkpoints
         obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
@@ -425,6 +440,7 @@ class MislabelingDetection(Benchmark):
         obj.original_train_dl = torch.utils.data.DataLoader(obj.base_dataset, batch_size=batch_size)
         obj._checkpoint_paths = checkpoint_paths
         obj._set_devices(model)
+        obj.checkpoint_load_func = checkpoint_load_func
 
         return obj
 
@@ -454,7 +470,13 @@ class MislabelingDetection(Benchmark):
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.mislabeling_dataset, **expl_kwargs)
+        explainer = explainer_cls(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            train_dataset=self.mislabeling_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
+            **expl_kwargs,
+        )
 
         if self.eval_dataset is not None:
             mislabeling_expl_ds = LabelFlippingDataset(
@@ -464,6 +486,8 @@ class MislabelingDetection(Benchmark):
         if self.global_method != "self-influence":
             metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
+                checkpoints=self.checkpoints,
+                checkpoint_load_func=self.checkpoint_load_func,
                 train_dataset=self.mislabeling_dataset,
                 mislabeling_indices=self.mislabeling_indices,
                 aggregator_cls=self.global_method,
@@ -486,6 +510,8 @@ class MislabelingDetection(Benchmark):
         else:
             metric = MislabelingDetectionMetric.self_influence_based(
                 model=self.model,
+                checkpoints=self.checkpoints,
+                checkpoint_load_func=self.checkpoint_load_func,
                 train_dataset=self.mislabeling_dataset,
                 mislabeling_indices=self.mislabeling_indices,
                 explainer_cls=explainer_cls,

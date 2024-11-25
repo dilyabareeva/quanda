@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Any
 
 import torch
 import torch.utils
@@ -11,6 +11,7 @@ from quanda.benchmarks.resources import (
     load_module_from_bench_state,
     sample_transforms,
 )
+from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.heuristics import TopKCardinalityMetric
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,8 @@ class TopKCardinality(Benchmark):
         super().__init__()
 
         self.model: torch.nn.Module
+        self.checkpoints: Union[str, List[str]]
+        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
@@ -58,6 +61,7 @@ class TopKCardinality(Benchmark):
         cls,
         train_dataset: Union[str, torch.utils.data.Dataset],
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         eval_dataset: torch.utils.data.Dataset,
         data_transform: Optional[Callable] = None,
         top_k: int = 1,
@@ -103,6 +107,7 @@ class TopKCardinality(Benchmark):
         obj.top_k = top_k
         obj.use_predictions = use_predictions
         obj.model = model
+        obj.checkpoints = checkpoints
 
         return obj
 
@@ -152,6 +157,8 @@ class TopKCardinality(Benchmark):
 
         return obj.assemble(
             model=module,
+            checkpoints=bench_state["checkpoints_binary"],
+            checkpoint_load_func=bench_load_state_dict,
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -163,8 +170,10 @@ class TopKCardinality(Benchmark):
     def assemble(
         cls,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         top_k: int = 1,
         use_predictions: bool = True,
@@ -206,6 +215,8 @@ class TopKCardinality(Benchmark):
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.model = model
+        obj.checkpoints = checkpoints
+        obj.checkpoint_load_func = checkpoint_load_func
         obj.top_k = top_k
         obj._set_devices(model)
         obj._checkpoint_paths = checkpoint_paths
@@ -238,11 +249,23 @@ class TopKCardinality(Benchmark):
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
+        explainer = explainer_cls(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            train_dataset=self.train_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
+            **expl_kwargs,
+        )
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
-        metric = TopKCardinalityMetric(model=self.model, train_dataset=self.train_dataset, top_k=self.top_k)
+        metric = TopKCardinalityMetric(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            train_dataset=self.train_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
+            top_k=self.top_k,
+        )
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)

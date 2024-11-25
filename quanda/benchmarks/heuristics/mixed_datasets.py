@@ -2,7 +2,7 @@ import copy
 import logging
 import os
 import zipfile
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Any
 
 import lightning as L
 import requests
@@ -14,6 +14,7 @@ from quanda.benchmarks.resources import (
     load_module_from_bench_state,
     sample_transforms,
 )
+from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.common import ds_len
 from quanda.utils.datasets import SingleClassImageDataset
@@ -65,6 +66,8 @@ class MixedDatasets(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
+        self.checkpoints: Union[str, List[str]]
+        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.mixed_dataset: torch.utils.data.Dataset
@@ -82,6 +85,7 @@ class MixedDatasets(Benchmark):
         adversarial_dir: str,
         adversarial_label: int,
         trainer: Union[L.Trainer, BaseTrainer],
+        cache_dir: str,
         data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
@@ -155,6 +159,7 @@ class MixedDatasets(Benchmark):
         logger.info(f"Generating {MixedDatasets.name} benchmark components based on passed arguments...")
 
         obj = cls()
+        obj.cache_dir = cache_dir
         obj._set_devices(model)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
@@ -206,6 +211,8 @@ class MixedDatasets(Benchmark):
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
+        torch.save(obj.model.state_dict(), os.path.join(cache_dir, "model_mixed_datasets.pth"))
+        obj.checkpoints = [os.path.join(cache_dir, "model_mixed_datasets.pth")]  # TODO: save checkpoints
         obj.model.to(obj.device)
         obj.model.eval()
         return obj
@@ -257,6 +264,8 @@ class MixedDatasets(Benchmark):
 
         return obj.assemble(
             model=module,
+            checkpoints=bench_state["checkpoints_binary"],
+            checkpoint_load_func=bench_load_state_dict,
             base_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -307,10 +316,12 @@ class MixedDatasets(Benchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
+        checkpoints: Union[str, List[str]],
         eval_dataset: torch.utils.data.Dataset,
         base_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
@@ -357,6 +368,8 @@ class MixedDatasets(Benchmark):
 
         obj = cls()
         obj.model = model
+        obj.checkpoints = checkpoints
+        obj.checkpoint_load_func = checkpoint_load_func
         obj.base_dataset = obj._process_dataset(base_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
@@ -401,13 +414,21 @@ class MixedDatasets(Benchmark):
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.mixed_dataset, **expl_kwargs)
+        explainer = explainer_cls(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            train_dataset=self.mixed_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
+            **expl_kwargs,
+        )
 
         adversarial_expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
         metric = MixedDatasetsMetric(
             model=self.model,
+            checkpoints=self.checkpoints,
             train_dataset=self.mixed_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
             adversarial_indices=self.adversarial_indices,
             filter_by_prediction=self.filter_by_prediction,
             adversarial_cls=self.adversarial_label,

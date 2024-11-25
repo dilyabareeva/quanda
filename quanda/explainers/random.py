@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, Callable
 
 import torch
 
@@ -15,7 +15,9 @@ class RandomExplainer(Explainer):
     def __init__(
         self,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         seed: int = 27,
         **kwargs,
     ):
@@ -34,8 +36,11 @@ class RandomExplainer(Explainer):
         """
         super().__init__(
             model=model,
+            checkpoints=checkpoints,
             train_dataset=train_dataset,
+            checkpoint_load_func=checkpoint_load_func,
         )
+        self.load_last_checkpoint()
         self.seed = seed
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)

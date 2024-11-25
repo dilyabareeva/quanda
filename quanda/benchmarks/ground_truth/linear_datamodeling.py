@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, List, Any
 
 import lightning as L
 import torch
@@ -55,6 +55,8 @@ class LinearDatamodeling(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
+        self.checkpoints: Union[str, List[str]]
+        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
@@ -75,6 +77,7 @@ class LinearDatamodeling(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         trainer: Union[L.Trainer, BaseTrainer],
         cache_dir: str,
         model_id: str,
@@ -135,12 +138,14 @@ class LinearDatamodeling(Benchmark):
         obj.seed = seed
         obj.use_predictions = use_predictions
         obj.model = model
+        obj.cache_dir = cache_dir
         obj.trainer = trainer
         obj.m = m
         obj.alpha = alpha
         obj.trainer_fit_kwargs = trainer_fit_kwargs
         obj.cache_dir = cache_dir
         obj.model_id = model_id
+        obj.checkpoints = checkpoints
 
         return obj
 
@@ -191,6 +196,7 @@ class LinearDatamodeling(Benchmark):
     def assemble(
         cls,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         trainer: Union[L.Trainer, BaseTrainer],
@@ -198,6 +204,7 @@ class LinearDatamodeling(Benchmark):
         model_id: str,
         m: int = 100,
         alpha: float = 0.5,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
@@ -244,6 +251,7 @@ class LinearDatamodeling(Benchmark):
         """
         obj = cls()
         obj.model = model
+        obj.checkpoints = checkpoints
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.correlation_fn = correlation_fn
@@ -286,11 +294,14 @@ class LinearDatamodeling(Benchmark):
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
+        explainer = explainer_cls(
+            model=self.model, checkpoints=self.checkpoints, train_dataset=self.train_dataset, **expl_kwargs
+        )
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
         metric = LinearDatamodelingMetric(
             model=self.model,
+            checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
             alpha=self.alpha,
             m=self.m,

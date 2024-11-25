@@ -16,11 +16,12 @@ projector_cls = {
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist_trak_comp",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -28,7 +29,7 @@ projector_cls = {
         ),
     ],
 )
-def test_trak(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
+def test_trak(test_id, model, checkpoint, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
@@ -36,7 +37,9 @@ def test_trak(test_id, model, dataset, test_tensor, test_labels, method_kwargs, 
 
     os.mkdir(str(tmp_path) + "/trak_0_cache")
     os.mkdir(str(tmp_path) + "/trak_1_cache")
-    explainer = TRAK(model=model, cache_dir=str(tmp_path) + "/trak_0_cache", train_dataset=dataset, **method_kwargs)
+    explainer = TRAK(
+        model=model, checkpoints=checkpoint, cache_dir=str(tmp_path) + "/trak_0_cache", train_dataset=dataset, **method_kwargs
+    )
 
     explanations = explainer.explain(test_tensor=test_tensor, targets=test_labels)
 
@@ -90,11 +93,12 @@ def test_trak(test_id, model, dataset, test_tensor, test_labels, method_kwargs, 
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist_cache",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -102,13 +106,13 @@ def test_trak(test_id, model, dataset, test_tensor, test_labels, method_kwargs, 
         ),
     ],
 )
-def test_trak_cache(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
+def test_trak_cache(test_id, model, checkpoint, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
 
-    explainer = TRAK(model=model, cache_dir=str(tmp_path), train_dataset=dataset, **method_kwargs)
+    explainer = TRAK(model=model, checkpoints=checkpoint, cache_dir=str(tmp_path), train_dataset=dataset, **method_kwargs)
 
     explanations = explainer.explain(test_tensor=test_tensor, targets=test_labels)
     test_tensor = torch.ones_like(test_tensor)[:2]
@@ -120,11 +124,12 @@ def test_trak_cache(test_id, model, dataset, test_tensor, test_labels, method_kw
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist_funct",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -132,14 +137,18 @@ def test_trak_cache(test_id, model, dataset, test_tensor, test_labels, method_kw
         ),
     ],
 )
-def test_trak_explain_functional(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
+def test_trak_explain_functional(
+    test_id, model, checkpoint, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
+):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
 
     explanations = trak_explain(
         model=model,
+        checkpoints=checkpoint,
         cache_dir=str(tmp_path),
         test_tensor=test_tensor,
         train_dataset=dataset,
@@ -151,11 +160,12 @@ def test_trak_explain_functional(test_id, model, dataset, test_tensor, test_labe
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist_funct_cache",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -163,13 +173,17 @@ def test_trak_explain_functional(test_id, model, dataset, test_tensor, test_labe
         ),
     ],
 )
-def test_trak_explain_functional_cache(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
+def test_trak_explain_functional_cache(
+    test_id, model, checkpoint, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
+):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
     explanations_first = trak_explain(
         model=model,
+        checkpoints=checkpoint,
         cache_dir=str(tmp_path),
         test_tensor=test_tensor,
         train_dataset=dataset,
@@ -179,6 +193,7 @@ def test_trak_explain_functional_cache(test_id, model, dataset, test_tensor, tes
     test_tensor = torch.rand_like(test_tensor)
     explanations_second = trak_explain(
         model=model,
+        checkpoints=checkpoint,
         cache_dir=str(tmp_path),
         test_tensor=test_tensor,
         train_dataset=dataset,
@@ -192,11 +207,12 @@ def test_trak_explain_functional_cache(test_id, model, dataset, test_tensor, tes
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist_self_influence",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -204,12 +220,16 @@ def test_trak_explain_functional_cache(test_id, model, dataset, test_tensor, tes
         ),
     ],
 )
-def test_trak_self_influence_functional(test_id, model, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
+def test_trak_self_influence_functional(
+    test_id, model, checkpoint, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
+):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
 
     explanations = trak_self_influence(
         model=model,
+        checkpoints=checkpoint,
         cache_dir=str(tmp_path),
         train_dataset=dataset,
         **method_kwargs,

@@ -1,13 +1,13 @@
 import logging
 import os
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Any
 
 import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.resources import sample_transforms
-from quanda.benchmarks.resources.modules import load_module_from_bench_state
+from quanda.benchmarks.resources.modules import load_module_from_bench_state, bench_load_state_dict
 from quanda.metrics.downstream_eval import ClassDetectionMetric
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,8 @@ class ClassDetection(Benchmark):
         super().__init__()
 
         self.model: torch.nn.Module
+        self.checkpoints: Union[str, List[str]]
+        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
@@ -58,6 +60,7 @@ class ClassDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -93,6 +96,7 @@ class ClassDetection(Benchmark):
         obj = cls()
 
         obj.model = model
+        obj.checkpoints = checkpoints
         obj.eval_dataset = eval_dataset
         obj._set_devices(model)
         obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
@@ -140,6 +144,8 @@ class ClassDetection(Benchmark):
 
         return obj.assemble(
             model=module,
+            checkpoints=bench_state["checkpoints_binary"],
+            checkpoint_load_func=bench_load_state_dict,
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             data_transform=dataset_transform,
@@ -151,8 +157,10 @@ class ClassDetection(Benchmark):
     def assemble(
         cls,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -188,11 +196,12 @@ class ClassDetection(Benchmark):
 
         obj = cls()
         obj.model = model
+        obj.checkpoints = checkpoints
+        obj.checkpoint_load_func = checkpoint_load_func
         obj.eval_dataset = eval_dataset
         obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.use_predictions = use_predictions
         obj._set_devices(model)
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 
@@ -221,11 +230,23 @@ class ClassDetection(Benchmark):
         """
         self.model.eval()
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
+        explainer = explainer_cls(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            train_dataset=self.train_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
+            **expl_kwargs,
+        )
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
-        metric = ClassDetectionMetric(model=self.model, train_dataset=self.train_dataset, device=self.device)
+        metric = ClassDetectionMetric(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            train_dataset=self.train_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
+            device=self.device,
+        )
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)

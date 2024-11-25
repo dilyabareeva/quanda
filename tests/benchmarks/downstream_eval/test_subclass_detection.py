@@ -15,13 +15,14 @@ from quanda.utils.training.trainer import Trainer
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, "
+    "test_id, init_method, model, checkpoint, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, "
     "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
     [
         (
             "mnist",
             "generate",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -45,6 +46,7 @@ from quanda.utils.training.trainer import Trainer
             "mnist",
             "assemble",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -70,6 +72,7 @@ def test_subclass_detection(
     test_id,
     init_method,
     model,
+    checkpoint,
     optimizer,
     lr,
     criterion,
@@ -89,6 +92,7 @@ def test_subclass_detection(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
@@ -112,12 +116,14 @@ def test_subclass_detection(
             trainer_fit_kwargs={"max_epochs": max_epochs},
             seed=seed,
             batch_size=batch_size,
+            cache_dir=str(tmp_path),
             device="cpu",
         )
 
     elif init_method == "assemble":
         dst_eval = SubclassDetection.assemble(
             group_model=model,
+            checkpoints=checkpoint,
             base_dataset=dataset,
             eval_dataset=dataset,
             n_classes=n_classes,
@@ -195,6 +201,7 @@ def test_subclass_detection_generate_lightning_model(
         class_to_group=class_to_group,
         trainer_fit_kwargs={},
         seed=seed,
+        cache_dir=str(tmp_path),
         batch_size=batch_size,
     )
 

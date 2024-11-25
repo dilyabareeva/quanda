@@ -1,5 +1,6 @@
+import os
 import copy
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union, Any, Tuple
 
 import torch
 
@@ -24,8 +25,12 @@ class ModelRandomizationMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
+        model_id: str,
+        cache_dir: str,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         expl_kwargs: Optional[dict] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
@@ -52,23 +57,24 @@ class ModelRandomizationMetric(Metric):
             The random seed, by default 42.
         """
         super().__init__(
-            model=model,
-            train_dataset=train_dataset,
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
         )
-        self.model = model
-        self.train_dataset = train_dataset
+        self.load_last_checkpoint()
         self.expl_kwargs = expl_kwargs or {}
+        self.model_id = model_id
+        self.cache_dir = cache_dir
         self.seed = seed
 
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
-        self.rand_model = self._randomize_model(model)
+        self.rand_model, self.rand_checkpoint = self._randomize_model(self.model, self.cache_dir, self.model_id)
 
         if "model_id" in self.expl_kwargs:
             self.expl_kwargs["model_id"] += "_rand"
 
         self.rand_explainer = explainer_cls(
             model=self.rand_model,
+            checkpoints=self.rand_checkpoint,
             train_dataset=train_dataset,
             **self.expl_kwargs,
         )
@@ -163,7 +169,7 @@ class ModelRandomizationMetric(Metric):
         self.results = state_dict["results_dict"]
         self.rand_model.load_state_dict(state_dict["rnd_model"])
 
-    def _randomize_model(self, model: torch.nn.Module) -> torch.nn.Module:
+    def _randomize_model(self, model: torch.nn.Module, cache_dir: str, model_id: str) -> Tuple[torch.nn.Module, str]:
         """
         Randomize the model parameters. Currently, only linear and convolutional layers are supported.
 
@@ -180,6 +186,7 @@ class ModelRandomizationMetric(Metric):
         """
         # TODO: Add support for other layer types.
         rand_model = copy.deepcopy(model)
+
         for name, param in list(rand_model.named_parameters()):
             parent = get_parent_module_from_name(rand_model, name)
             # TODO: currently only linear layer is randomized, due to explainers' convergence issues
@@ -187,4 +194,7 @@ class ModelRandomizationMetric(Metric):
                 random_param_tensor = torch.nn.init.normal_(param, generator=self.generator)
                 parent.__setattr__(name.split(".")[-1], torch.nn.Parameter(random_param_tensor))
 
-        return rand_model
+        # save randomized checkpoint
+        torch.save(rand_model.state_dict(), os.path.join(cache_dir, f"{model_id}_rand.pth"))
+
+        return rand_model, os.path.join(cache_dir, f"{model_id}_rand.pth")

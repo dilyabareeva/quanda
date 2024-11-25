@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Any
 
 import torch
 from tqdm import tqdm
@@ -10,6 +10,7 @@ from quanda.benchmarks.resources import (
     load_module_from_bench_state,
     sample_transforms,
 )
+from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
@@ -51,6 +52,10 @@ class ModelRandomization(Benchmark):
         super().__init__()
 
         self.model: torch.nn.Module
+        self.model_id: str
+        self.cache_dir: str
+        self.checkpoints: Union[str, List[str]]
+        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
@@ -63,6 +68,9 @@ class ModelRandomization(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
+        cache_dir: str,
+        model_id: str = "0",
         data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
@@ -111,11 +119,14 @@ class ModelRandomization(Benchmark):
         obj.seed = seed
         obj.use_predictions = use_predictions
         obj.model = model
+        obj.model_id = model_id
+        obj.cache_dir = cache_dir
+        obj.checkpoints = checkpoints
 
         return obj
 
     @classmethod
-    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
+    def download(cls, name: str, cache_dir: str, device: str, model_id: str = "0", *args, **kwargs):
         """
         This method loads precomputed benchmark components from a file and creates an instance
         from the state dictionary.
@@ -154,6 +165,10 @@ class ModelRandomization(Benchmark):
 
         return obj.assemble(
             model=module,
+            cache_dir=cache_dir,
+            model_id=model_id,
+            checkpoints=bench_state["checkpoints_binary"],
+            checkpoint_load_func=bench_load_state_dict,
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -165,9 +180,13 @@ class ModelRandomization(Benchmark):
     def assemble(
         cls,
         model: torch.nn.Module,
+        cache_dir: str,
+        checkpoints: Union[str, List[str]],
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
+        model_id: str = "0",
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         use_predictions: bool = True,
@@ -209,13 +228,16 @@ class ModelRandomization(Benchmark):
         """
         obj = cls()
         obj.model = model
+        obj.model_id = model_id
+        obj.cache_dir = cache_dir
+        obj.checkpoints = checkpoints
+        obj.checkpoint_load_func = checkpoint_load_func
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.correlation_fn = correlation_fn
         obj.seed = seed
         obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
         obj._set_devices(model)
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 
@@ -246,11 +268,21 @@ class ModelRandomization(Benchmark):
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
+        explainer = explainer_cls(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            train_dataset=self.train_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
+            **expl_kwargs,
+        )
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
         metric = ModelRandomizationMetric(
             model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoint_load_func=self.checkpoint_load_func,
+            model_id=self.model_id,
+            cache_dir=self.cache_dir,
             train_dataset=self.train_dataset,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,

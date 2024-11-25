@@ -1,9 +1,16 @@
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, Callable
 
 import torch
 
 
-def _init_explainer(explainer_cls, model, train_dataset, **kwargs):
+def _init_explainer(
+    explainer_cls: type,
+    model: torch.nn.Module,
+    checkpoints: Union[str, List[str]],
+    train_dataset: torch.utils.data.Dataset,
+    checkpoint_load_func: Optional[Callable[..., Any]] = None,
+    **kwargs,
+):
     """
     Helper function to initialize an explainer.
 
@@ -25,7 +32,9 @@ def _init_explainer(explainer_cls, model, train_dataset, **kwargs):
     """
     explainer = explainer_cls(
         model=model,
+        checkpoints=checkpoints,
         train_dataset=train_dataset,
+        checkpoint_load_func=checkpoint_load_func,
         **kwargs,
     )
     return explainer
@@ -35,7 +44,9 @@ def explain_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
     test_tensor: torch.Tensor,
+    checkpoints: Union[str, List[str]],
     train_dataset: torch.utils.data.Dataset,
+    checkpoint_load_func: Optional[Callable[..., Any]] = None,
     targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -65,7 +76,9 @@ def explain_fn_from_explainer(
     explainer = _init_explainer(
         explainer_cls=explainer_cls,
         model=model,
+        checkpoints=checkpoints,
         train_dataset=train_dataset,
+        checkpoint_load_func=checkpoint_load_func,
         **kwargs,
     )
 
@@ -75,7 +88,9 @@ def explain_fn_from_explainer(
 def self_influence_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
+    checkpoints: Union[str, List[str]],
     train_dataset: torch.utils.data.Dataset,
+    checkpoint_load_func: Optional[Callable[..., Any]] = None,
     batch_size: int = 1,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -103,7 +118,9 @@ def self_influence_fn_from_explainer(
     explainer = _init_explainer(
         explainer_cls=explainer_cls,
         model=model,
+        checkpoints=checkpoints,
         train_dataset=train_dataset,
+        checkpoint_load_func=checkpoint_load_func,
         **kwargs,
     )
 

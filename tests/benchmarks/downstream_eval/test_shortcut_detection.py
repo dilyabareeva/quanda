@@ -15,13 +15,14 @@ from quanda.utils.training.trainer import Trainer
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, shortcut_cls,"
+    "test_id, init_method, model, checkpoint, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, shortcut_cls,"
     "shortcut_indices, p, seed, batch_size, explainer_cls, expl_kwargs, filter_by_class, expected_score",
     [
         (
             "mnist_generate",
             "generate",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -43,6 +44,7 @@ from quanda.utils.training.trainer import Trainer
             "mnist_assemble",
             "assemble",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -66,6 +68,7 @@ def test_shortcut_detection(
     test_id,
     init_method,
     model,
+    checkpoint,
     optimizer,
     lr,
     criterion,
@@ -86,6 +89,7 @@ def test_shortcut_detection(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
@@ -112,11 +116,13 @@ def test_shortcut_detection(
             sample_fn=sample_fn,
             trainer_fit_kwargs={"max_epochs": max_epochs},
             seed=seed,
+            cache_dir=str(tmp_path),
             batch_size=batch_size,
         )
     elif init_method == "assemble":
         dst_eval = ShortcutDetection.assemble(
             model=model,
+            checkpoints=checkpoint,
             base_dataset=dataset,
             n_classes=n_classes,
             eval_dataset=dataset,
@@ -204,6 +210,7 @@ def test_shortcut_detection_generate_from_pl_module(
         sample_fn=sample_fn,
         trainer_fit_kwargs={},
         seed=seed,
+        cache_dir=str(tmp_path),
         batch_size=batch_size,
     )
 

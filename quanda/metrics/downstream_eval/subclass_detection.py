@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Callable, Any
 
 import torch
 
@@ -22,8 +22,10 @@ class SubclassDetectionMetric(ClassDetectionMetric):
     def __init__(
         self,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         train_subclass_labels: torch.Tensor,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
         *args,
         **kwargs,
@@ -43,7 +45,10 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             Whether to filter the test samples to only calculate the metric on those samples, where the correct superclass is
             predicted, by default False.
         """
-        super().__init__(model, train_dataset)
+        super().__init__(
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
+        )
+        self.load_last_checkpoint()
         assert len(train_subclass_labels) == ds_len(self.train_dataset), (
             f"Number of subclass labels ({len(train_subclass_labels)}) "
             f"does not match the number of train dataset samples ({ds_len(self.train_dataset)})."

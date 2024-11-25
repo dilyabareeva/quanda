@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union, List, Callable, Any
 
 import torch
 
@@ -20,7 +20,9 @@ class TopKCardinalityMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
         model_id: Optional[str] = "0",
@@ -49,7 +51,10 @@ class TopKCardinalityMetric(Metric):
         top_k : int, optional
             The number of top-k explanations to consider, defaults to 1.
         """
-        super().__init__(model=model, train_dataset=train_dataset)
+        super().__init__(
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
+        )
+        self.load_last_checkpoint()
         self.top_k = top_k
         self.all_top_k_examples = torch.empty(0, top_k).to(self.device)
 

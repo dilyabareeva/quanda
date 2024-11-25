@@ -1,8 +1,8 @@
 import logging
 import warnings
 from importlib.util import find_spec
-from typing import Any, Iterable, List, Literal, Optional, Sized, Union
-
+from typing import Any, Iterable, List, Literal, Optional, Sized, Union, Callable
+import lightning as L
 import torch
 from trak import TRAKer
 from trak.modelout_functions import AbstractModelOutput
@@ -49,9 +49,11 @@ class TRAK(Explainer):
 
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, L.LightningModule],
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
         task: Union[AbstractModelOutput, str] = "image_classification",
         projector: TRAKProjectorLiteral = "basic",
@@ -100,7 +102,9 @@ class TRAK(Explainer):
 
         super(TRAK, self).__init__(
             model=model,
+            checkpoints=checkpoints,
             train_dataset=train_dataset,
+            checkpoint_load_func=checkpoint_load_func,
         )
         self.model_id = model_id
         self.cache_dir = cache_dir
@@ -210,6 +214,7 @@ class TRAK(Explainer):
 
 def trak_explain(
     model: torch.nn.Module,
+    checkpoints: Union[str, List[str]],
     model_id: str,
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
@@ -243,6 +248,7 @@ def trak_explain(
     return explain_fn_from_explainer(
         explainer_cls=TRAK,
         model=model,
+        checkpoints=checkpoints,
         model_id=model_id,
         cache_dir=cache_dir,
         test_tensor=test_tensor,
@@ -254,6 +260,7 @@ def trak_explain(
 
 def trak_self_influence(
     model: torch.nn.Module,
+    checkpoints: Union[str, List[str]],
     model_id: str,
     train_dataset: torch.utils.data.Dataset,
     cache_dir: str = "./cache",
@@ -284,6 +291,7 @@ def trak_self_influence(
     return self_influence_fn_from_explainer(
         explainer_cls=TRAK,
         model=model,
+        checkpoints=checkpoints,
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,

@@ -1,6 +1,6 @@
 import copy
 import os
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Any
 
 import lightning as L
 import torch
@@ -11,6 +11,7 @@ from quanda.benchmarks.resources import (
     load_module_from_bench_state,
     sample_transforms,
 )
+from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
@@ -58,6 +59,8 @@ class ShortcutDetection(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
+        self.checkpoints: Union[str, List[str]]
+        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.shortcut_dataset: SampleTransformationDataset
@@ -84,6 +87,7 @@ class ShortcutDetection(Benchmark):
         shortcut_cls: int,
         trainer: Union[L.Trainer, BaseTrainer],
         sample_fn: Callable,
+        cache_dir: str,
         filter_by_prediction: bool = True,
         filter_by_class: bool = False,
         use_predictions: bool = True,
@@ -155,6 +159,7 @@ class ShortcutDetection(Benchmark):
 
         obj._generate(
             model=model,
+            cache_dir=cache_dir,
             val_dataset=val_dataset,
             p=p,
             shortcut_cls=shortcut_cls,
@@ -171,6 +176,7 @@ class ShortcutDetection(Benchmark):
     def _generate(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
+        cache_dir: str,
         n_classes: int,
         shortcut_cls: int,
         sample_fn: Callable,
@@ -278,6 +284,10 @@ class ShortcutDetection(Benchmark):
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
+        # save check point to cache_dir
+        # TODO: add model id
+        torch.save(self.model.state_dict(), os.path.join(cache_dir, "model_shortcut_detection.pth"))
+        self.checkpoints = [os.path.join(cache_dir, "model_shortcut_detection.pth")]  # TODO: save checkpoints
         self.model.to(self.device)
         self.model.eval()
 
@@ -317,6 +327,8 @@ class ShortcutDetection(Benchmark):
 
         return obj.assemble(
             model=module,
+            checkpoints=bench_state["checkpoints_binary"],
+            checkpoint_load_func=bench_load_state_dict,
             base_dataset=bench_state["dataset_str"],
             n_classes=bench_state["n_classes"],
             eval_dataset=eval_dataset,
@@ -332,12 +344,14 @@ class ShortcutDetection(Benchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
+        checkpoints: Union[str, List[str]],
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         eval_dataset: torch.utils.data.Dataset,
         sample_fn: Callable,
         shortcut_cls: int,
         shortcut_indices: List[int],
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = True,
         filter_by_class: bool = False,
         use_predictions: bool = True,
@@ -392,6 +406,7 @@ class ShortcutDetection(Benchmark):
         """
         obj = cls()
         obj.model = model
+        obj.checkpoints = checkpoints
         obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.dataset_transform = dataset_transform
@@ -412,6 +427,7 @@ class ShortcutDetection(Benchmark):
         obj.sample_fn = sample_fn
         obj._checkpoint_paths = checkpoint_paths
         obj._set_devices(model)
+        obj.checkpoint_load_func = checkpoint_load_func
 
         return obj
 
@@ -444,7 +460,13 @@ class ShortcutDetection(Benchmark):
         self.original_train_dl = torch.utils.data.DataLoader(self.base_dataset, batch_size=batch_size)
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.shortcut_dataset, **expl_kwargs)
+        explainer = explainer_cls(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            train_dataset=self.shortcut_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
+            **expl_kwargs,
+        )
 
         shortcut_expl_ds = SampleTransformationDataset(
             dataset=self.eval_dataset,
@@ -456,6 +478,8 @@ class ShortcutDetection(Benchmark):
         expl_dl = torch.utils.data.DataLoader(shortcut_expl_ds, batch_size=batch_size)
         metric = ShortcutDetectionMetric(
             model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoint_load_func=self.checkpoint_load_func,
             train_dataset=self.shortcut_dataset,
             shortcut_indices=self.shortcut_indices,
             shortcut_cls=self.shortcut_cls,

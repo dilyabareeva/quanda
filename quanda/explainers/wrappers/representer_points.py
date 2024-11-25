@@ -159,10 +159,12 @@ class RepresenterPoints(Explainer):
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
-        model_id: str,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
+        model_id: str,
         features_layer: str,
         classifier_layer: str,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
         features_postprocess: Optional[Callable] = None,
         lmbd: float = 0.003,
@@ -217,8 +219,12 @@ class RepresenterPoints(Explainer):
         logger.info("Initializing Representer Point Selection explainer...")
         super(RepresenterPoints, self).__init__(
             model=model,
+            checkpoints=checkpoints,
             train_dataset=train_dataset,
+            checkpoint_load_func=checkpoint_load_func,
         )
+        self.load_last_checkpoint()
+
         self.model_id = model_id
         self.cache_dir = cache_dir
         self.normalize = normalize

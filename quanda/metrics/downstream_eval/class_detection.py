@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union, Callable, Any
 
 import torch
 
@@ -25,11 +25,9 @@ class ClassDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
-        explainer_cls: Optional[type] = None,
-        expl_kwargs: Optional[dict] = None,
-        model_id: Optional[str] = "0",
-        cache_dir: str = "./cache",
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         *args,
         **kwargs,
     ):
@@ -51,7 +49,10 @@ class ClassDetectionMetric(Metric):
         cache_dir : str, optional
             The cache directory, by default "./cache".
         """
-        super().__init__(model=model, train_dataset=train_dataset)
+        super().__init__(
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
+        )
+        self.load_last_checkpoint()
         self.scores: List[torch.Tensor] = []
 
     def update(self, test_labels: torch.Tensor, explanations: torch.Tensor):

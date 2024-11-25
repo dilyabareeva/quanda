@@ -17,6 +17,11 @@ def load_module_from_bench_state(bench_state: dict, device: str):
     return module
 
 
+def bench_load_state_dict(module: torch.nn.Module, checkpoint: dict):
+    module.model.load_state_dict(checkpoint["model_state_dict"])
+    return module
+
+
 class LeNet5(torch.nn.Module):
     """
     A torch implementation of LeNet architecture.

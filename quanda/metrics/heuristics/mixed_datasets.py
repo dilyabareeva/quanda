@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, Callable
 
 import torch
 from torcheval.metrics.functional import binary_auprc
@@ -33,8 +33,10 @@ class MixedDatasetsMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
+        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         adversarial_indices: Union[List[int], torch.Tensor],
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
         adversarial_label: Optional[int] = None,
         *args: Any,
@@ -67,9 +69,9 @@ class MixedDatasetsMetric(Metric):
             If the adversarial labels are not unique.
         """
         super().__init__(
-            model=model,
-            train_dataset=train_dataset,
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
         )
+        self.load_last_checkpoint()
         self.auprc_scores: List[torch.Tensor] = []
 
         if isinstance(adversarial_indices, list):

@@ -1,7 +1,7 @@
 import copy
 import logging
 import os
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union, Any
 
 import lightning as L
 import torch
@@ -12,6 +12,7 @@ from quanda.benchmarks.resources import (
     load_module_from_bench_state,
     sample_transforms,
 )
+from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
 from quanda.utils.common import ds_len
 from quanda.utils.datasets.transformed.label_grouping import (
@@ -54,6 +55,8 @@ class SubclassDetection(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
+        self.checkpoints: Union[str, List[str]]
+        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
         self.group_model: Union[torch.nn.Module, L.LightningModule]
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
@@ -74,6 +77,7 @@ class SubclassDetection(Benchmark):
         model: Union[torch.nn.Module, L.LightningModule],
         trainer: Union[L.Trainer, BaseTrainer],
         eval_dataset: torch.utils.data.Dataset,
+        cache_dir: str,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
         dataset_split: str = "train",
@@ -145,6 +149,7 @@ class SubclassDetection(Benchmark):
 
         obj._generate(
             trainer=trainer,
+            cache_dir=cache_dir,
             base_dataset=base_dataset,
             dataset_transform=dataset_transform,
             val_dataset=val_dataset,
@@ -160,6 +165,7 @@ class SubclassDetection(Benchmark):
     def _generate(
         self,
         trainer: Union[L.Trainer, BaseTrainer],
+        cache_dir: str,
         val_dataset: Optional[torch.utils.data.Dataset] = None,
         dataset_transform: Optional[Callable] = None,
         n_classes: int = 10,
@@ -257,6 +263,10 @@ class SubclassDetection(Benchmark):
         else:
             raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
 
+        # save check point to cache_dir
+        # TODO: add model id
+        torch.save(self.model.state_dict(), os.path.join(cache_dir, "model_subclass_detection.pth"))
+        self.checkpoints = [os.path.join(cache_dir, "model_subclass_detection.pth")]  # TODO: save checkpoints
         self.group_model.to(self.device)
         self.group_model.eval()
 
@@ -299,6 +309,8 @@ class SubclassDetection(Benchmark):
 
         return obj.assemble(
             group_model=module,
+            checkpoints=bench_state["checkpoints_binary"],
+            checkpoint_load_func=bench_load_state_dict,
             base_dataset=bench_state["dataset_str"],
             n_classes=bench_state["n_classes"],
             eval_dataset=eval_dataset,
@@ -312,10 +324,12 @@ class SubclassDetection(Benchmark):
     def assemble(
         cls,
         group_model: Union[torch.nn.Module, L.LightningModule],
+        checkpoints: Union[str, List[str]],
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         class_to_group: Dict[int, int],  # TODO: type specification
         eval_dataset: torch.utils.data.Dataset,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
         dataset_split: str = "train",
@@ -359,6 +373,8 @@ class SubclassDetection(Benchmark):
         """
         obj = cls()
         obj.group_model = group_model
+        obj.checkpoints = checkpoints
+        obj.checkpoint_load_func = checkpoint_load_func
         obj.base_dataset = obj._process_dataset(base_dataset, transform=None, dataset_split=dataset_split)
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
@@ -410,13 +426,21 @@ class SubclassDetection(Benchmark):
         self.group_model.eval()
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.group_model, train_dataset=self.grouped_dataset, **expl_kwargs)
+        explainer = explainer_cls(
+            model=self.group_model,
+            checkpoints=self.checkpoints,
+            train_dataset=self.grouped_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
+            **expl_kwargs,
+        )
 
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
 
         metric = SubclassDetectionMetric(
             model=self.group_model,
+            checkpoints=self.checkpoints,
             train_dataset=self.grouped_dataset,
+            checkpoint_load_func=self.checkpoint_load_func,
             train_subclass_labels=torch.tensor([self.base_dataset[s][1] for s in range(ds_len(self.base_dataset))]),
             filter_by_prediction=self.filter_by_prediction,
             device=self.device,
