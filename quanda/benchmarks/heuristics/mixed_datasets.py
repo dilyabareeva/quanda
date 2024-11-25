@@ -239,6 +239,8 @@ class MixedDatasets(Benchmark):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
+        # TODO: eval_dataset should be the adversarial test dataset
+        # adversarial dataset needs train test split (see SketchDataset in scripts/train_model.py)
         eval_dataset = obj._build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
