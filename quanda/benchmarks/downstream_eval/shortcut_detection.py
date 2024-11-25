@@ -301,7 +301,7 @@ class ShortcutDetection(Benchmark):
 
         checkpoint_paths = []
         for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
-            save_path = os.path.join(cache_dir, ckpt_name)
+            save_path = os.path.join(cache_dir, f"{name}_checkpoints", ckpt_name)
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
@@ -309,7 +309,7 @@ class ShortcutDetection(Benchmark):
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=None,
-            dataset_split="valid",
+            dataset_split=bench_state["test_split_name"],
         )
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
         sample_fn = sample_transforms[bench_state["sample_fn"]]
