@@ -200,6 +200,7 @@ def test_captum_arnoldi(test_id, model, checkpoint, dataset, test_tensor, test_l
         train_dataset=dataset,
         checkpoints=checkpoint,
         device="cpu",
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
     )
@@ -209,7 +210,7 @@ def test_captum_arnoldi(test_id, model, checkpoint, dataset, test_tensor, test_l
         model=model,
         train_dataset=dataset,
         checkpoint=checkpoint,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
     )
@@ -272,7 +273,7 @@ def test_captum_arnoldi_explain_functional(
         model=model,
         train_dataset=dataset,
         checkpoint=checkpoint,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         test_loss_fn=torch.nn.NLLLoss(reduction="none"),
         hessian_dataset=hessian_dataset,
@@ -283,6 +284,7 @@ def test_captum_arnoldi_explain_functional(
     explanations = captum_arnoldi_explain(
         model=model,
         checkpoints=checkpoint,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         test_tensor=test_tensor,
         train_dataset=dataset,
         explanation_targets=test_labels,
@@ -326,7 +328,7 @@ def test_captum_arnoldi_self_influence(test_id, model, checkpoint, dataset, meth
         model=model,
         train_dataset=dataset,
         checkpoint=checkpoint,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
     )
@@ -337,6 +339,7 @@ def test_captum_arnoldi_self_influence(test_id, model, checkpoint, dataset, meth
         train_dataset=dataset,
         device="cpu",
         checkpoints=checkpoint,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
     )
@@ -373,7 +376,6 @@ def test_captum_tracincp(test_id, model, dataset, test_tensor, test_lables, chec
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations = explainer_captum.influence(inputs=(test_tensor, test_lables))
@@ -382,7 +384,7 @@ def test_captum_tracincp(test_id, model, dataset, test_tensor, test_lables, chec
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         **method_kwargs,
     )
@@ -424,7 +426,6 @@ def test_captum_tracincp_explain_functional(
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations_exp = explainer_captum.influence(inputs=(test_tensor, test_labels))
@@ -435,7 +436,7 @@ def test_captum_tracincp_explain_functional(
         checkpoints=checkpoints,
         test_tensor=test_tensor,
         explanation_targets=test_labels,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         **method_kwargs,
     )
@@ -471,7 +472,6 @@ def test_captum_tracincp_self_influence(test_id, model, checkpoint, dataset, che
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations_exp = explainer_captum.self_influence(outer_loop_by_checkpoints=True)
@@ -480,7 +480,7 @@ def test_captum_tracincp_self_influence(test_id, model, checkpoint, dataset, che
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         **method_kwargs,
     )
@@ -521,7 +521,7 @@ def test_captum_tracincp_fast(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations = explainer_captum.influence(inputs=(test_tensor, test_labels), k=None)
@@ -531,7 +531,7 @@ def test_captum_tracincp_fast(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         **method_kwargs,
     )
@@ -574,7 +574,6 @@ def test_captum_tracincp_fast_explain_functional(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations_exp_simple = explainer_captum_simple.influence(inputs=(test_tensor, test_labels), k=None)
@@ -585,7 +584,7 @@ def test_captum_tracincp_fast_explain_functional(
         checkpoints=checkpoints,
         test_tensor=test_tensor,
         explanation_targets=test_labels,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         final_fc_layer=final_fc_layer,
         **method_kwargs,
@@ -597,7 +596,7 @@ def test_captum_tracincp_fast_explain_functional(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations_exp_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels), k=None)
@@ -609,7 +608,7 @@ def test_captum_tracincp_fast_explain_functional(
         checkpoints=checkpoints,
         test_tensor=test_tensor,
         explanation_targets=test_labels,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         **method_kwargs,
     )
@@ -643,7 +642,6 @@ def test_captum_tracincp_fast_self_influence(test_id, model, dataset, checkpoint
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations_exp = explainer_captum.self_influence(outer_loop_by_checkpoints=True)
@@ -653,7 +651,7 @@ def test_captum_tracincp_fast_self_influence(test_id, model, dataset, checkpoint
         checkpoints=checkpoints,
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         outer_loop_by_checkpoints=True,
         **method_kwargs,
@@ -697,7 +695,6 @@ def test_captum_tracincp_fast_rand_proj(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations = explainer_captum.influence(inputs=(test_tensor, test_labels), k=None)
@@ -707,7 +704,7 @@ def test_captum_tracincp_fast_rand_proj(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         **method_kwargs,
     )
@@ -753,7 +750,6 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations_exp_simple = explainer_captum_simple.influence(inputs=(test_tensor, test_labels), k=None)
@@ -764,7 +760,7 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
         checkpoints=checkpoints,
         test_tensor=test_tensor,
         explanation_targets=test_labels,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         final_fc_layer=final_fc_layer,
         **method_kwargs,
@@ -776,7 +772,7 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations_exp_complex = explainer_captum_complex.influence(inputs=(test_tensor, test_labels), k=None)
@@ -788,7 +784,7 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
         checkpoints=checkpoints,
         test_tensor=test_tensor,
         explanation_targets=test_labels,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         **method_kwargs,
     )
@@ -825,7 +821,6 @@ def test_captum_tracincp_fast_rand_proj_self_influence(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
     explanations_exp = explainer_captum.self_influence(outer_loop_by_checkpoints=True)
@@ -835,7 +830,7 @@ def test_captum_tracincp_fast_rand_proj_self_influence(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        checkpoint_load_func=get_load_state_dict_func("cpu"),
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         outer_loop_by_checkpoints=True,
         **method_kwargs,

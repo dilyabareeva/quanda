@@ -46,7 +46,7 @@ class MislabelingDetectionMetric(Metric):
         checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         mislabeling_indices: List[int],
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
@@ -80,7 +80,7 @@ class MislabelingDetectionMetric(Metric):
 
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
         )
         self.load_last_checkpoint()
         strategies = {
@@ -96,7 +96,7 @@ class MislabelingDetectionMetric(Metric):
                 model=model,
                 checkpoints=checkpoints,
                 train_dataset=train_dataset,
-                checkpoint_load_func=checkpoint_load_func,
+                checkpoints_load_func=checkpoints_load_func,
                 **expl_kwargs,
             )
         )
@@ -124,7 +124,7 @@ class MislabelingDetectionMetric(Metric):
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         mislabeling_indices: List[int],
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         expl_kwargs: Optional[dict] = None,
         *args: Any,
         **kwargs: Any,
@@ -157,7 +157,7 @@ class MislabelingDetectionMetric(Metric):
         return cls(
             model=model,
             checkpoints=checkpoints,
-            checkpoint_load_func=checkpoint_load_func,
+            checkpoints_load_func=checkpoints_load_func,
             mislabeling_indices=mislabeling_indices,
             train_dataset=train_dataset,
             global_method="self-influence",

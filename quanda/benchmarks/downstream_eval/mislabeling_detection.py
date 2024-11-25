@@ -72,7 +72,7 @@ class MislabelingDetection(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.checkpoints: Union[str, List[str]]
-        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
+        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: Optional[torch.utils.data.Dataset]
         self.mislabeling_dataset: LabelFlippingDataset
@@ -341,7 +341,7 @@ class MislabelingDetection(Benchmark):
         return obj.assemble(
             model=module,
             checkpoints=bench_state["checkpoints_binary"],
-            checkpoint_load_func=bench_load_state_dict,
+            checkpoints_load_func=bench_load_state_dict,
             base_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -360,7 +360,7 @@ class MislabelingDetection(Benchmark):
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         mislabeling_labels: Dict[int, int],
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         eval_dataset: Optional[torch.utils.data.Dataset] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -440,7 +440,7 @@ class MislabelingDetection(Benchmark):
         obj.original_train_dl = torch.utils.data.DataLoader(obj.base_dataset, batch_size=batch_size)
         obj._checkpoint_paths = checkpoint_paths
         obj._set_devices(model)
-        obj.checkpoint_load_func = checkpoint_load_func
+        obj.checkpoints_load_func = checkpoints_load_func
 
         return obj
 
@@ -474,7 +474,7 @@ class MislabelingDetection(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.mislabeling_dataset,
-            checkpoint_load_func=self.checkpoint_load_func,
+            checkpoints_load_func=self.checkpoints_load_func,
             **expl_kwargs,
         )
 
@@ -487,7 +487,7 @@ class MislabelingDetection(Benchmark):
             metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
                 checkpoints=self.checkpoints,
-                checkpoint_load_func=self.checkpoint_load_func,
+                checkpoints_load_func=self.checkpoints_load_func,
                 train_dataset=self.mislabeling_dataset,
                 mislabeling_indices=self.mislabeling_indices,
                 aggregator_cls=self.global_method,
@@ -511,7 +511,7 @@ class MislabelingDetection(Benchmark):
             metric = MislabelingDetectionMetric.self_influence_based(
                 model=self.model,
                 checkpoints=self.checkpoints,
-                checkpoint_load_func=self.checkpoint_load_func,
+                checkpoints_load_func=self.checkpoints_load_func,
                 train_dataset=self.mislabeling_dataset,
                 mislabeling_indices=self.mislabeling_indices,
                 explainer_cls=explainer_cls,

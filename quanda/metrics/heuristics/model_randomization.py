@@ -30,7 +30,7 @@ class ModelRandomizationMetric(Metric):
         checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         expl_kwargs: Optional[dict] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
@@ -57,7 +57,7 @@ class ModelRandomizationMetric(Metric):
             The random seed, by default 42.
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
         )
         self.load_last_checkpoint()
         self.expl_kwargs = expl_kwargs or {}

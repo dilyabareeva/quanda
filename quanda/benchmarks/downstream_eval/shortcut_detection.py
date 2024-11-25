@@ -60,7 +60,7 @@ class ShortcutDetection(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.checkpoints: Union[str, List[str]]
-        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
+        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.shortcut_dataset: SampleTransformationDataset
@@ -328,7 +328,7 @@ class ShortcutDetection(Benchmark):
         return obj.assemble(
             model=module,
             checkpoints=bench_state["checkpoints_binary"],
-            checkpoint_load_func=bench_load_state_dict,
+            checkpoints_load_func=bench_load_state_dict,
             base_dataset=bench_state["dataset_str"],
             n_classes=bench_state["n_classes"],
             eval_dataset=eval_dataset,
@@ -351,7 +351,7 @@ class ShortcutDetection(Benchmark):
         sample_fn: Callable,
         shortcut_cls: int,
         shortcut_indices: List[int],
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = True,
         filter_by_class: bool = False,
         use_predictions: bool = True,
@@ -427,7 +427,7 @@ class ShortcutDetection(Benchmark):
         obj.sample_fn = sample_fn
         obj._checkpoint_paths = checkpoint_paths
         obj._set_devices(model)
-        obj.checkpoint_load_func = checkpoint_load_func
+        obj.checkpoints_load_func = checkpoints_load_func
 
         return obj
 
@@ -464,7 +464,7 @@ class ShortcutDetection(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.shortcut_dataset,
-            checkpoint_load_func=self.checkpoint_load_func,
+            checkpoints_load_func=self.checkpoints_load_func,
             **expl_kwargs,
         )
 
@@ -479,7 +479,7 @@ class ShortcutDetection(Benchmark):
         metric = ShortcutDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
-            checkpoint_load_func=self.checkpoint_load_func,
+            checkpoints_load_func=self.checkpoints_load_func,
             train_dataset=self.shortcut_dataset,
             shortcut_indices=self.shortcut_indices,
             shortcut_cls=self.shortcut_cls,

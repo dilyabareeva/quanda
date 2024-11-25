@@ -25,7 +25,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         train_subclass_labels: torch.Tensor,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
         *args,
         **kwargs,
@@ -46,7 +46,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             predicted, by default False.
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
         )
         self.load_last_checkpoint()
         assert len(train_subclass_labels) == ds_len(self.train_dataset), (

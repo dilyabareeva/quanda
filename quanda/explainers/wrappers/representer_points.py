@@ -164,7 +164,7 @@ class RepresenterPoints(Explainer):
         model_id: str,
         features_layer: str,
         classifier_layer: str,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
         features_postprocess: Optional[Callable] = None,
         lmbd: float = 0.003,
@@ -221,7 +221,7 @@ class RepresenterPoints(Explainer):
             model=model,
             checkpoints=checkpoints,
             train_dataset=train_dataset,
-            checkpoint_load_func=checkpoint_load_func,
+            checkpoints_load_func=checkpoints_load_func,
         )
         self.load_last_checkpoint()
 

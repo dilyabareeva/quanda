@@ -55,7 +55,7 @@ class ModelRandomization(Benchmark):
         self.model_id: str
         self.cache_dir: str
         self.checkpoints: Union[str, List[str]]
-        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
+        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
@@ -168,7 +168,7 @@ class ModelRandomization(Benchmark):
             cache_dir=cache_dir,
             model_id=model_id,
             checkpoints=bench_state["checkpoints_binary"],
-            checkpoint_load_func=bench_load_state_dict,
+            checkpoints_load_func=bench_load_state_dict,
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -184,7 +184,7 @@ class ModelRandomization(Benchmark):
         checkpoints: Union[str, List[str]],
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         model_id: str = "0",
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
@@ -231,7 +231,7 @@ class ModelRandomization(Benchmark):
         obj.model_id = model_id
         obj.cache_dir = cache_dir
         obj.checkpoints = checkpoints
-        obj.checkpoint_load_func = checkpoint_load_func
+        obj.checkpoints_load_func = checkpoints_load_func
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.correlation_fn = correlation_fn
@@ -272,7 +272,7 @@ class ModelRandomization(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
-            checkpoint_load_func=self.checkpoint_load_func,
+            checkpoints_load_func=self.checkpoints_load_func,
             **expl_kwargs,
         )
         expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
@@ -280,7 +280,7 @@ class ModelRandomization(Benchmark):
         metric = ModelRandomizationMetric(
             model=self.model,
             checkpoints=self.checkpoints,
-            checkpoint_load_func=self.checkpoint_load_func,
+            checkpoints_load_func=self.checkpoints_load_func,
             model_id=self.model_id,
             cache_dir=self.cache_dir,
             train_dataset=self.train_dataset,

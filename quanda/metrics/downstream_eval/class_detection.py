@@ -27,7 +27,7 @@ class ClassDetectionMetric(Metric):
         model: torch.nn.Module,
         checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         *args,
         **kwargs,
     ):
@@ -50,7 +50,7 @@ class ClassDetectionMetric(Metric):
             The cache directory, by default "./cache".
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
         )
         self.load_last_checkpoint()
         self.scores: List[torch.Tensor] = []

@@ -20,7 +20,7 @@ class Explainer(ABC):
         model: Union[torch.nn.Module, L.LightningModule],
         checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         **kwargs,
     ):
         """Initializer for the `Explainer` class.
@@ -33,7 +33,7 @@ class Explainer(ABC):
             Path to the checkpoint file(s) to be used for the attribution computation.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
-        checkpoint_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, by default None.
         **kwargs : dict
             Additional keyword arguments passed to the explainer.
@@ -48,10 +48,10 @@ class Explainer(ABC):
         else:
             self.device = torch.device("cpu")
 
-        if checkpoint_load_func is None:
-            self.checkpoint_load_func = get_load_state_dict_func(self.device)
+        if checkpoints_load_func is None:
+            self.checkpoints_load_func = get_load_state_dict_func(self.device)
         else:
-            self.checkpoint_load_func = checkpoint_load_func
+            self.checkpoints_load_func = checkpoints_load_func
 
         # if dataset return samples not on device, move them to device
         if train_dataset[0][0].device != self.device:
@@ -114,4 +114,4 @@ class Explainer(ABC):
         checkpoint : str
             Path to the checkpoint file.
         """
-        self.checkpoint_load_func(self.model, self.checkpoints[-1])
+        self.checkpoints_load_func(self.model, self.checkpoints[-1])

@@ -67,7 +67,7 @@ class MixedDatasets(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.checkpoints: Union[str, List[str]]
-        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
+        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.mixed_dataset: torch.utils.data.Dataset
@@ -265,7 +265,7 @@ class MixedDatasets(Benchmark):
         return obj.assemble(
             model=module,
             checkpoints=bench_state["checkpoints_binary"],
-            checkpoint_load_func=bench_load_state_dict,
+            checkpoints_load_func=bench_load_state_dict,
             base_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -321,7 +321,7 @@ class MixedDatasets(Benchmark):
         base_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
@@ -369,7 +369,7 @@ class MixedDatasets(Benchmark):
         obj = cls()
         obj.model = model
         obj.checkpoints = checkpoints
-        obj.checkpoint_load_func = checkpoint_load_func
+        obj.checkpoints_load_func = checkpoints_load_func
         obj.base_dataset = obj._process_dataset(base_dataset, transform=data_transform, dataset_split=dataset_split)
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
@@ -418,7 +418,7 @@ class MixedDatasets(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.mixed_dataset,
-            checkpoint_load_func=self.checkpoint_load_func,
+            checkpoints_load_func=self.checkpoints_load_func,
             **expl_kwargs,
         )
 
@@ -428,7 +428,7 @@ class MixedDatasets(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.mixed_dataset,
-            checkpoint_load_func=self.checkpoint_load_func,
+            checkpoints_load_func=self.checkpoints_load_func,
             adversarial_indices=self.adversarial_indices,
             filter_by_prediction=self.filter_by_prediction,
             adversarial_cls=self.adversarial_label,

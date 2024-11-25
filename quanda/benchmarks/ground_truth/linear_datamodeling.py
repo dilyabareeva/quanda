@@ -56,7 +56,7 @@ class LinearDatamodeling(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.checkpoints: Union[str, List[str]]
-        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
+        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
@@ -204,7 +204,7 @@ class LinearDatamodeling(Benchmark):
         model_id: str,
         m: int = 100,
         alpha: float = 0.5,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",

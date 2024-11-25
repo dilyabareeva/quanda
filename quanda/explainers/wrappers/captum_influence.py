@@ -50,7 +50,7 @@ class CaptumInfluence(Explainer, ABC):
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         explain_kwargs: Any,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
     ):
         """
         Initializer for the base `CaptumInfluence` wrapper.
@@ -74,7 +74,7 @@ class CaptumInfluence(Explainer, ABC):
             model=model,
             checkpoints=checkpoints,
             train_dataset=train_dataset,
-            checkpoint_load_func=checkpoint_load_func,
+            checkpoints_load_func=checkpoints_load_func,
         )
         self.explainer_cls = explainer_cls
         self.explain_kwargs = explain_kwargs
@@ -131,7 +131,7 @@ class CaptumSimilarity(CaptumInfluence):
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
         layers: Union[str, List[str]],
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
         similarity_metric: Callable = cosine_similarity,
         similarity_direction: str = "max",
@@ -183,7 +183,7 @@ class CaptumSimilarity(CaptumInfluence):
         super().__init__(
             model=model,
             checkpoints=checkpoints,
-            checkpoint_load_func=checkpoint_load_func,
+            checkpoints_load_func=checkpoints_load_func,
             train_dataset=train_dataset,
             explainer_cls=SimilarityInfluence,
             explain_kwargs=explainer_kwargs,
@@ -424,7 +424,7 @@ class CaptumArnoldi(CaptumInfluence):
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str]],
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(reduction="none"),
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
         batch_size: int = 1,
         hessian_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -455,7 +455,7 @@ class CaptumArnoldi(CaptumInfluence):
         loss_fn : Union[torch.nn.Module, Callable], optional
             Loss function which is applied to the model. Required to be a reduction='none' loss.
             Defaults to CrossEntropyLoss with reduction='none'.
-        checkpoint_load_func : Optional[Callable], optional
+        checkpoints_load_func : Optional[Callable], optional
             Function to load checkpoints. If None, a default function is used. Defaults to None.
         layers : Optional[List[str]], optional
             Layers used to compute the gradients. If None, all layers are used. Defaults to None.
@@ -525,7 +525,7 @@ class CaptumArnoldi(CaptumInfluence):
             train_dataset=train_dataset,
             explainer_cls=ArnoldiInfluenceFunction,
             explain_kwargs=explainer_kwargs,
-            checkpoint_load_func=checkpoint_load_func,
+            checkpoints_load_func=checkpoints_load_func,
         )
 
         self.hessian_dataset = OnDeviceDataset(hessian_dataset, self.device) if hessian_dataset is not None else None
@@ -534,7 +534,7 @@ class CaptumArnoldi(CaptumInfluence):
                 "model": model,
                 "train_dataset": self.train_dataset,
                 "checkpoint": self.checkpoints[-1],
-                "checkpoint_load_func": self.checkpoint_load_func,
+                "checkpoints_load_func": self.checkpoints_load_func,
                 "layers": layers,
                 "loss_fn": loss_fn,
                 "batch_size": batch_size,
@@ -643,6 +643,7 @@ def captum_arnoldi_self_influence(
     model: torch.nn.Module,
     checkpoints: Union[str, List[str]],
     train_dataset: torch.utils.data.Dataset,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """
@@ -667,6 +668,7 @@ def captum_arnoldi_self_influence(
         model=model,
         checkpoints=checkpoints,
         train_dataset=train_dataset,
+        checkpoints_load_func=checkpoints_load_func,
         **kwargs,
     )
 
@@ -692,7 +694,7 @@ class CaptumTracInCP(CaptumInfluence):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
         loss_fn: Optional[Union[torch.nn.Module, Callable]] = torch.nn.CrossEntropyLoss(reduction="none"),
         batch_size: int = 1,
@@ -711,7 +713,7 @@ class CaptumTracInCP(CaptumInfluence):
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str], Iterator]
             Checkpoints for the model.
-        checkpoint_load_func : Optional[Callable], optional
+        checkpoints_load_func : Optional[Callable], optional
             Function to load checkpoints. If None, a default function is used. Defaults to None.
         layers : Optional[List[str]], optional
             Layers used to compute the gradients. Defaults to None.
@@ -747,7 +749,7 @@ class CaptumTracInCP(CaptumInfluence):
             train_dataset=train_dataset,
             explainer_cls=TracInCP,
             explain_kwargs=explainer_kwargs,
-            checkpoint_load_func=checkpoint_load_func,
+            checkpoints_load_func=checkpoints_load_func,
         )
 
         explainer_kwargs.update(
@@ -755,7 +757,7 @@ class CaptumTracInCP(CaptumInfluence):
                 "model": model,
                 "train_dataset": self.train_dataset,
                 "checkpoints": checkpoints,
-                "checkpoint_load_func": self.checkpoint_load_func,
+                "checkpoints_load_func": self.checkpoints_load_func,
                 "layers": layers,
                 "loss_fn": loss_fn,
                 "batch_size": batch_size,
@@ -910,7 +912,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         loss_fn: Optional[Union[torch.nn.Module, Callable]] = torch.nn.CrossEntropyLoss(reduction="sum"),
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
@@ -931,7 +933,7 @@ class CaptumTracInCPFast(CaptumInfluence):
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str], Iterator]
             Checkpoints for the model.
-        checkpoint_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load checkpoints. If None, a default function is used.
         loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
             Loss function used for influence computation. Defaults to `CrossEntropyLoss` with `reduction='sum'`.
@@ -963,7 +965,7 @@ class CaptumTracInCPFast(CaptumInfluence):
             train_dataset=train_dataset,
             explainer_cls=TracInCPFast,
             explain_kwargs=explainer_kwargs,
-            checkpoint_load_func=checkpoint_load_func,
+            checkpoints_load_func=checkpoints_load_func,
         )
 
         explainer_kwargs.update(
@@ -972,7 +974,7 @@ class CaptumTracInCPFast(CaptumInfluence):
                 "final_fc_layer": final_fc_layer,
                 "train_dataset": self.train_dataset,
                 "checkpoints": checkpoints,
-                "checkpoint_load_func": self.checkpoint_load_func,
+                "checkpoints_load_func": self.checkpoints_load_func,
                 "loss_fn": loss_fn,
                 "batch_size": batch_size,
                 "test_loss_fn": test_loss_fn,
@@ -1127,7 +1129,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(reduction="sum"),
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
@@ -1151,7 +1153,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str], Iterator]
             Checkpoints for the model.
-        checkpoint_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load checkpoints. If None, a default function is used.
         loss_fn : Union[torch.nn.Module, Callable], optional
             Loss function used for influence computation. Defaults to `CrossEntropyLoss` with `reduction='sum'`.
@@ -1207,7 +1209,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             train_dataset=train_dataset,
             explainer_cls=TracInCPFastRandProj,
             explain_kwargs=explainer_kwargs,
-            checkpoints_load_func=checkpoint_load_func,
+            checkpoints_load_func=checkpoints_load_func,
         )
 
         explainer_kwargs.update(
@@ -1216,7 +1218,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
                 "final_fc_layer": final_fc_layer,
                 "train_dataset": self.train_dataset,
                 "checkpoints": checkpoints,
-                "checkpoint_load_func": self.checkpoint_load_func,
+                
                 "loss_fn": loss_fn,
                 "batch_size": batch_size,
                 "test_loss_fn": test_loss_fn,

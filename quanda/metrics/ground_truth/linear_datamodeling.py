@@ -41,7 +41,7 @@ class LinearDatamodelingMetric(Metric):
         m: int = 100,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         trainer_fit_kwargs: Optional[dict] = None,
-        checkpoint_load_func: Optional[Callable] = None,
+        checkpoints_load_func: Optional[Callable] = None,
         seed: int = 42,
         batch_size: int = 32,
         model_id: Optional[str] = "0",
@@ -66,7 +66,7 @@ class LinearDatamodelingMetric(Metric):
             Correlation function to use, by default "spearman". Can be "spearman", "kendall", or a callable.
         trainer_fit_kwargs : Optional[dict], optional
             Additional keyword arguments for the trainer, by default None.
-        checkpoint_load_func : Optional[Callable], optional
+        checkpoints_load_func : Optional[Callable], optional
             Custom function to load a model state dictionary, by default None.
         seed : Optional[int], optional
             Random seed for reproducibility, by default 42.
@@ -78,7 +78,7 @@ class LinearDatamodelingMetric(Metric):
             The cache directory, by default "./cache".
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
         )
         self.load_last_checkpoint()
         self.device = torch.device("cpu")  # TODO: why is this CPU?
@@ -188,7 +188,7 @@ class LinearDatamodelingMetric(Metric):
         """
         model_ckpt_path = os.path.join(self.cache_dir, f"{self.model_id}_model_{model_idx}.ckpt")
         counterfactual_model = deepcopy(self.model)
-        self.checkpoint_load_func(counterfactual_model, model_ckpt_path)
+        self.checkpoints_load_func(counterfactual_model, model_ckpt_path)
         # counterfactual_model.load_state_dict(torch.load(model_ckpt_path, map_location=self.device))
         counterfactual_model.to(self.device)
         return counterfactual_model

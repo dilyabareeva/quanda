@@ -8,7 +8,7 @@ def _init_explainer(
     model: torch.nn.Module,
     checkpoints: Union[str, List[str]],
     train_dataset: torch.utils.data.Dataset,
-    checkpoint_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs,
 ):
     """
@@ -34,7 +34,7 @@ def _init_explainer(
         model=model,
         checkpoints=checkpoints,
         train_dataset=train_dataset,
-        checkpoint_load_func=checkpoint_load_func,
+        checkpoints_load_func=checkpoints_load_func,
         **kwargs,
     )
     return explainer
@@ -46,7 +46,7 @@ def explain_fn_from_explainer(
     test_tensor: torch.Tensor,
     checkpoints: Union[str, List[str]],
     train_dataset: torch.utils.data.Dataset,
-    checkpoint_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -78,7 +78,7 @@ def explain_fn_from_explainer(
         model=model,
         checkpoints=checkpoints,
         train_dataset=train_dataset,
-        checkpoint_load_func=checkpoint_load_func,
+        checkpoints_load_func=checkpoints_load_func,
         **kwargs,
     )
 
@@ -90,7 +90,7 @@ def self_influence_fn_from_explainer(
     model: torch.nn.Module,
     checkpoints: Union[str, List[str]],
     train_dataset: torch.utils.data.Dataset,
-    checkpoint_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     batch_size: int = 1,
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -120,7 +120,7 @@ def self_influence_fn_from_explainer(
         model=model,
         checkpoints=checkpoints,
         train_dataset=train_dataset,
-        checkpoint_load_func=checkpoint_load_func,
+        checkpoints_load_func=checkpoints_load_func,
         **kwargs,
     )
 

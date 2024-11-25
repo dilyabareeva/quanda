@@ -27,7 +27,7 @@ class ShortcutDetectionMetric(Metric):
         train_dataset: torch.utils.data.Dataset,
         shortcut_indices: Union[List[int], torch.Tensor],
         shortcut_cls: int,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
         filter_by_class: bool = False,
     ):
@@ -58,7 +58,7 @@ class ShortcutDetectionMetric(Metric):
             If the shortcut samples are not all from to the shortcut class.
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoint_load_func=checkpoint_load_func
+            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
         )
         self.load_last_checkpoint()
         if isinstance(shortcut_indices, list):

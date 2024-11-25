@@ -50,7 +50,7 @@ class TopKCardinality(Benchmark):
 
         self.model: torch.nn.Module
         self.checkpoints: Union[str, List[str]]
-        self.checkpoint_load_func: Optional[Callable[..., Any]] = None
+        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
@@ -158,7 +158,7 @@ class TopKCardinality(Benchmark):
         return obj.assemble(
             model=module,
             checkpoints=bench_state["checkpoints_binary"],
-            checkpoint_load_func=bench_load_state_dict,
+            checkpoints_load_func=bench_load_state_dict,
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -173,7 +173,7 @@ class TopKCardinality(Benchmark):
         checkpoints: Union[str, List[str]],
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         top_k: int = 1,
         use_predictions: bool = True,
@@ -216,7 +216,7 @@ class TopKCardinality(Benchmark):
         obj.use_predictions = use_predictions
         obj.model = model
         obj.checkpoints = checkpoints
-        obj.checkpoint_load_func = checkpoint_load_func
+        obj.checkpoints_load_func = checkpoints_load_func
         obj.top_k = top_k
         obj._set_devices(model)
         obj._checkpoint_paths = checkpoint_paths
@@ -253,7 +253,7 @@ class TopKCardinality(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
-            checkpoint_load_func=self.checkpoint_load_func,
+            checkpoints_load_func=self.checkpoints_load_func,
             **expl_kwargs,
         )
 
@@ -263,7 +263,7 @@ class TopKCardinality(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
-            checkpoint_load_func=self.checkpoint_load_func,
+            checkpoints_load_func=self.checkpoints_load_func,
             top_k=self.top_k,
         )
 
