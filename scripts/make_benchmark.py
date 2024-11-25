@@ -196,6 +196,7 @@ def train_model(
     dataset_type,
     dataset_path,
     metadata_path,
+    test_split_name,
     download,
     num_groups,
     device,
@@ -345,7 +346,7 @@ def train_model(
         adversarial_indices = [1] * len(adversarial_dataset) + [0] * len(train_set)
         train_set = torch.utils.data.ConcatDataset([adversarial_dataset, train_set])
 
-    bench_state = {}
+    bench_state = {"test_split_name": test_split_name}
 
     ckpt_names = []
     ckpt_binary = []
@@ -391,6 +392,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset_path", required=True, type=str, help="Path to Tiny ImageNet dataset")
     parser.add_argument("--models_dir", required=False, type=str, default=None, help="Path to model checkpoint")
     parser.add_argument("--metadata_path", required=False, default=None)
+    parser.add_argument("--test_split_name", required=False, default="valid")
     parser.add_argument("--num_groups", required=False, type=int, default=None)
     parser.add_argument("--batch_size", required=True, type=int, default=64)
     parser.add_argument("--output_dir", required=True, type=str)
@@ -409,6 +411,7 @@ if __name__ == "__main__":
         args.dataset_type,
         args.dataset_path,
         args.metadata_path,
+        args.test_split_name,
         args.download,
         args.num_groups,
         args.device,

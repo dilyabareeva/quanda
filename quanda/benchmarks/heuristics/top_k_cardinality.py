@@ -145,7 +145,7 @@ class TopKCardinality(Benchmark):
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split="test",
+            dataset_split=bench_state["test_split_name"],
         )
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
         module = load_module_from_bench_state(bench_state, device)

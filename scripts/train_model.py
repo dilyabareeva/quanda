@@ -106,13 +106,11 @@ class SketchDataset(Dataset):
         return image, self.label
 
 
-def load_scheduler(name, optimizer, epochs):  # include warmup?
+def load_scheduler(name, optimizer, epochs):
     scheduler_dict = {
         "constant": ConstantLR(optimizer=optimizer, last_epoch=-1),
         "step": StepLR(optimizer=optimizer, step_size=epochs // 20, gamma=0.1, last_epoch=epochs),
-        "annealing": CosineAnnealingLR(
-            optimizer=optimizer, T_max=epochs, last_epoch=epochs
-        ),  # make it so that t_max updates to len(train_data) // batch_size (check that this is correct again)
+        "annealing": CosineAnnealingLR(optimizer=optimizer, T_max=epochs, last_epoch=epochs),
     }
     scheduler = scheduler_dict.get(name, ConstantLR(optimizer=optimizer, last_epoch=-1))
     return scheduler
@@ -128,7 +126,7 @@ def load_optimizer(name, model, lr, weight_decay, momentum):  # could add moment
     return optimizer
 
 
-def load_loss(name):  # add regularisation
+def load_loss(name):
     loss_dict = {"cross_entropy": CrossEntropyLoss(), "bce": BCEWithLogitsLoss(reduction="sum"), "hinge": MultiMarginLoss()}
     loss = loss_dict.get(name, CrossEntropyLoss())
     return loss

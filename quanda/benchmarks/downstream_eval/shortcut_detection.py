@@ -309,7 +309,7 @@ class ShortcutDetection(Benchmark):
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=None,
-            dataset_split="test",
+            dataset_split="valid",
         )
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
         sample_fn = sample_transforms[bench_state["sample_fn"]]
