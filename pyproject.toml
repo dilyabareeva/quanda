@@ -1,6 +1,6 @@
 [project]
 name = "quanda"
-version = "0.0.2"
+dynamic = ["version"]
 authors = [
   { name="Dilyara Bareeva", email="dilyabareeva@gmail.com" },
     {name = "Galip Ümit Yolcu", email = "galip.uemit.yolcu@hhi.fraunhofer.de" },
@@ -19,7 +19,6 @@ keywords = ["interpretability", "xai", "machine learning", "deep learning"]
 dependencies = [
     "numpy>=1.19.5",
     "torch>=1.13.1",
-    "captum@git+https://github.com/pytorch/captum",
     "lightning>=1.4.0",
     "torchmetrics>=1.4.0",
     "tqdm>=4.0.0",
@@ -37,11 +36,12 @@ Homepage = "https://github.com/dilyabareeva/quanda"
 Issues = "https://github.com/dilyabareeva/quanda/issues"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=42", "setuptools-scm[toml]>=6.0"]
+build-backend = "setuptools.build_meta"
 
-[tool.hatch.metadata]
-allow-direct-references = true
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "node-and-date"
 
 [tool.isort]
 profile = "black"
@@ -85,6 +85,14 @@ python_files = "test_*.py"
 
 [tool.setuptools]
 py-modules = []
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+
+[tool.semantic_release]
+version_toml = ["pyproject.toml:project.version"]
+branch = "main"
+changelog_file = "CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
