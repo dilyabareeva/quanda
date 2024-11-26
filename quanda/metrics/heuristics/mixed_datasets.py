@@ -69,7 +69,10 @@ class MixedDatasetsMetric(Metric):
             If the adversarial labels are not unique.
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
+            model=model,
+            checkpoints=checkpoints,
+            train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
         )
         self.load_last_checkpoint()
         self.auprc_scores: List[torch.Tensor] = []

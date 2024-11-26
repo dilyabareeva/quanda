@@ -46,7 +46,10 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             predicted, by default False.
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
+            model=model,
+            checkpoints=checkpoints,
+            train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
         )
         self.load_last_checkpoint()
         assert len(train_subclass_labels) == ds_len(self.train_dataset), (

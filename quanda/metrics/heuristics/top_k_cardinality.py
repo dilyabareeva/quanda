@@ -52,7 +52,10 @@ class TopKCardinalityMetric(Metric):
             The number of top-k explanations to consider, defaults to 1.
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
+            model=model,
+            checkpoints=checkpoints,
+            train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
         )
         self.load_last_checkpoint()
         self.top_k = top_k

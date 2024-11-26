@@ -158,7 +158,12 @@ def test_linear_datamodeling(
         ]
         subsets.append(subset)
 
-    expl = explainer_cls(model=model, checkpoints=checkpoint, train_dataset=dataset, **expl_kwargs)
+    expl = explainer_cls(
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        **expl_kwargs,
+    )
     ldr = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
     explanations = torch.empty((0, len(dataset)))
     outputs = torch.empty((0, len(subsets)))

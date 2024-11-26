@@ -40,7 +40,9 @@ class Explainer(ABC):
         """
         self.device: Union[str, torch.device]
         self.model = model
-        self.checkpoints = checkpoints if isinstance(checkpoints, List) else [checkpoints]
+        self.checkpoints = (
+            checkpoints if isinstance(checkpoints, List) else [checkpoints]
+        )
 
         # if model has device attribute, use it, otherwise use the default device
         if next(model.parameters(), None) is not None:

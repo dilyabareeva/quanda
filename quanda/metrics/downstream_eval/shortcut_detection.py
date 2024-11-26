@@ -58,7 +58,10 @@ class ShortcutDetectionMetric(Metric):
             If the shortcut samples are not all from to the shortcut class.
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
+            model=model,
+            checkpoints=checkpoints,
+            train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
         )
         self.load_last_checkpoint()
         if isinstance(shortcut_indices, list):

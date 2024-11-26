@@ -25,11 +25,27 @@ projector_cls = {
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"model_id": "0", "batch_size": 8, "seed": 42, "proj_dim": 10, "projector": "basic"},
+            {
+                "model_id": "0",
+                "batch_size": 8,
+                "seed": 42,
+                "proj_dim": 10,
+                "projector": "basic",
+            },
         ),
     ],
 )
-def test_trak(test_id, model, checkpoint, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
+def test_trak(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_tensor,
+    test_labels,
+    method_kwargs,
+    request,
+    tmp_path,
+):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
@@ -38,10 +54,16 @@ def test_trak(test_id, model, checkpoint, dataset, test_tensor, test_labels, met
     os.mkdir(str(tmp_path) + "/trak_0_cache")
     os.mkdir(str(tmp_path) + "/trak_1_cache")
     explainer = TRAK(
-        model=model, checkpoints=checkpoint, cache_dir=str(tmp_path) + "/trak_0_cache", train_dataset=dataset, **method_kwargs
+        model=model,
+        checkpoints=checkpoint,
+        cache_dir=str(tmp_path) + "/trak_0_cache",
+        train_dataset=dataset,
+        **method_kwargs,
     )
 
-    explanations = explainer.explain(test_tensor=test_tensor, targets=test_labels)
+    explanations = explainer.explain(
+        test_tensor=test_tensor, targets=test_labels
+    )
 
     batch_size = method_kwargs["batch_size"]
     ld = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
@@ -75,7 +97,10 @@ def test_trak(test_id, model, checkpoint, dataset, test_tensor, test_labels, met
     traker.load_checkpoint(model.state_dict(), model_id=0)
 
     for i, (x, y) in enumerate(iter(ld)):
-        traker.featurize(batch=(x, y), inds=torch.tensor([i * batch_size + j for j in range(x.shape[0])]))
+        traker.featurize(
+            batch=(x, y),
+            inds=torch.tensor([i * batch_size + j for j in range(x.shape[0])]),
+        )
 
     traker.finalize_features()
     if projector == "basic":
@@ -83,12 +108,21 @@ def test_trak(test_id, model, checkpoint, dataset, test_tensor, test_labels, met
         traker.projector = projector_cls[projector](**projector_kwargs)
 
     traker.start_scoring_checkpoint(
-        model_id=0, checkpoint=model.state_dict(), exp_name="test", num_targets=test_tensor.shape[0]
+        model_id=0,
+        checkpoint=model.state_dict(),
+        exp_name="test",
+        num_targets=test_tensor.shape[0],
     )
-    traker.score(batch=(test_tensor, test_labels), num_samples=test_tensor.shape[0])
-    explanations_exp = torch.from_numpy(traker.finalize_scores(exp_name="test")).T
+    traker.score(
+        batch=(test_tensor, test_labels), num_samples=test_tensor.shape[0]
+    )
+    explanations_exp = torch.from_numpy(
+        traker.finalize_scores(exp_name="test")
+    ).T
 
-    assert torch.allclose(explanations, explanations_exp), "Training data attributions are not as expected"
+    assert torch.allclose(
+        explanations, explanations_exp
+    ), "Training data attributions are not as expected"
 
 
 @pytest.mark.explainers
@@ -102,22 +136,48 @@ def test_trak(test_id, model, checkpoint, dataset, test_tensor, test_labels, met
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"model_id": "0", "batch_size": 8, "seed": 42, "proj_dim": 10, "projector": "basic"},
+            {
+                "model_id": "0",
+                "batch_size": 8,
+                "seed": 42,
+                "proj_dim": 10,
+                "projector": "basic",
+            },
         ),
     ],
 )
-def test_trak_cache(test_id, model, checkpoint, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path):
+def test_trak_cache(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_tensor,
+    test_labels,
+    method_kwargs,
+    request,
+    tmp_path,
+):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
 
-    explainer = TRAK(model=model, checkpoints=checkpoint, cache_dir=str(tmp_path), train_dataset=dataset, **method_kwargs)
+    explainer = TRAK(
+        model=model,
+        checkpoints=checkpoint,
+        cache_dir=str(tmp_path),
+        train_dataset=dataset,
+        **method_kwargs,
+    )
 
-    explanations = explainer.explain(test_tensor=test_tensor, targets=test_labels)
+    explanations = explainer.explain(
+        test_tensor=test_tensor, targets=test_labels
+    )
     test_tensor = torch.ones_like(test_tensor)[:2]
-    explanations_2 = explainer.explain(test_tensor=test_tensor, targets=test_labels[:2])
-    assert (not torch.allclose(explanations[:2], explanations_2[:2])) and (
+    explanations_2 = explainer.explain(
+        test_tensor=test_tensor, targets=test_labels[:2]
+    )
+    assert (not torch.allclose(explanations[:2], explanations_2[:2])) & (
         explanations.shape[0] != explanations_2.shape[0]
     ), "Caching is problematic inside the lifetime of the wrapper"
 
@@ -133,12 +193,26 @@ def test_trak_cache(test_id, model, checkpoint, dataset, test_tensor, test_label
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"model_id": "0", "batch_size": 8, "seed": 42, "proj_dim": 10, "projector": "basic"},
+            {
+                "model_id": "0",
+                "batch_size": 8,
+                "seed": 42,
+                "proj_dim": 10,
+                "projector": "basic",
+            },
         ),
     ],
 )
 def test_trak_explain_functional(
-    test_id, model, checkpoint, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_tensor,
+    test_labels,
+    method_kwargs,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
@@ -155,7 +229,9 @@ def test_trak_explain_functional(
         explanation_targets=test_labels,
         **method_kwargs,
     )
-    assert explanations.shape[0] == len(test_labels), "Training data attributions are not as expected"
+    assert explanations.shape[0] == len(
+        test_labels
+    ), "Training data attributions are not as expected"
 
 
 @pytest.mark.explainers
@@ -169,12 +245,26 @@ def test_trak_explain_functional(
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"model_id": "0", "batch_size": 8, "seed": 42, "proj_dim": 10, "projector": "basic"},
+            {
+                "model_id": "0",
+                "batch_size": 8,
+                "seed": 42,
+                "proj_dim": 10,
+                "projector": "basic",
+            },
         ),
     ],
 )
 def test_trak_explain_functional_cache(
-    test_id, model, checkpoint, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_tensor,
+    test_labels,
+    method_kwargs,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
@@ -216,12 +306,26 @@ def test_trak_explain_functional_cache(
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            {"model_id": "0", "batch_size": 8, "seed": 42, "proj_dim": 10, "projector": "basic"},
+            {
+                "model_id": "0",
+                "batch_size": 8,
+                "seed": 42,
+                "proj_dim": 10,
+                "projector": "basic",
+            },
         ),
     ],
 )
 def test_trak_self_influence_functional(
-    test_id, model, checkpoint, dataset, test_tensor, test_labels, method_kwargs, request, tmp_path
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_tensor,
+    test_labels,
+    method_kwargs,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
@@ -235,4 +339,6 @@ def test_trak_self_influence_functional(
         **method_kwargs,
     )
 
-    assert explanations.shape[0] == len(dataset), "Training data attributions shape not as expected"
+    assert explanations.shape[0] == len(
+        dataset
+    ), "Training data attributions shape not as expected"

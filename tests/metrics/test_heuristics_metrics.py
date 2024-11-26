@@ -85,7 +85,9 @@ def test_randomization_metric(
         seed=42,
         device="cpu",
     )
-    metric.update(test_data=test_data, explanations=tda, explanation_targets=test_labels)
+    metric.update(
+        test_data=test_data, explanations=tda, explanation_targets=test_labels
+    )
 
     out = metric.compute()["score"]
     assert (out >= -1.0) & (out <= 1.0), "Test failed."
@@ -122,7 +124,15 @@ def test_randomization_metric(
     ],
 )
 def test_randomization_metric_model_randomization(
-    test_id, model, checkpoint, dataset, explainer_cls, expl_kwargs, corr_fn, request, tmp_path
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    explainer_cls,
+    expl_kwargs,
+    corr_fn,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
@@ -141,7 +151,9 @@ def test_randomization_metric_model_randomization(
         correlation_fn=corr_fn,
     )
     rand_model = metric.rand_model
-    for (name1, param1), (name2, param2) in zip(model.named_parameters(), rand_model.named_parameters()):
+    for (name1, param1), (name2, param2) in zip(
+        model.named_parameters(), rand_model.named_parameters()
+    ):
         parent = get_parent_module_from_name(rand_model, name1)
         if isinstance(parent, (torch.nn.Linear)):
             assert not torch.allclose(param1.data, param2.data), "Test failed."
@@ -178,7 +190,13 @@ def test_top_k_cardinality_metrics(
     checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     explanations = request.getfixturevalue(explanations)
-    metric = TopKCardinalityMetric(model=model, checkpoints=checkpoint, train_dataset=dataset, top_k=top_k, device="cpu")
+    metric = TopKCardinalityMetric(
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        top_k=top_k,
+        device="cpu",
+    )
     metric.update(explanations=explanations)
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)

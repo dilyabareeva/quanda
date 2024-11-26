@@ -50,7 +50,10 @@ class ClassDetectionMetric(Metric):
             The cache directory, by default "./cache".
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
+            model=model,
+            checkpoints=checkpoints,
+            train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
         )
         self.load_last_checkpoint()
         self.scores: List[torch.Tensor] = []

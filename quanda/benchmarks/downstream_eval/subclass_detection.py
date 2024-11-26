@@ -137,11 +137,17 @@ class SubclassDetection(Benchmark):
             The benchmark instance.
         """
 
-        logger.info(f"Generating {SubclassDetection.name} benchmark components based on passed arguments...")
+        logger.info(
+            f"Generating {SubclassDetection.name} benchmark components based on passed arguments..."
+        )
 
         obj = cls()
         obj._set_devices(model)
-        obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(
+            base_dataset,
+            transform=dataset_transform,
+            dataset_split=dataset_split,
+        )
         obj.model = model
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
@@ -220,8 +226,12 @@ class SubclassDetection(Benchmark):
         self.n_groups = n_groups
         self.dataset_transform = dataset_transform
 
-        self.grouped_train_dl = torch.utils.data.DataLoader(self.grouped_dataset, batch_size=batch_size)
-        self.original_train_dl = torch.utils.data.DataLoader(self.base_dataset, batch_size=batch_size)
+        self.grouped_train_dl = torch.utils.data.DataLoader(
+            self.grouped_dataset, batch_size=batch_size
+        )
+        self.original_train_dl = torch.utils.data.DataLoader(
+            self.base_dataset, batch_size=batch_size
+        )
 
         if val_dataset:
             grouped_val_dataset = LabelGroupingDataset(
@@ -230,7 +240,9 @@ class SubclassDetection(Benchmark):
                 n_classes=n_classes,
                 class_to_group=self.class_to_group,
             )
-            self.grouped_val_dl = torch.utils.data.DataLoader(grouped_val_dataset, batch_size=batch_size)
+            self.grouped_val_dl = torch.utils.data.DataLoader(
+                grouped_val_dataset, batch_size=batch_size
+            )
         else:
             self.grouped_val_dl = None
 
@@ -240,7 +252,9 @@ class SubclassDetection(Benchmark):
 
         if isinstance(trainer, L.Trainer):
             if not isinstance(self.group_model, L.LightningModule):
-                raise ValueError("Model should be a LightningModule if Trainer is a Lightning Trainer")
+                raise ValueError(
+                    "Model should be a LightningModule if Trainer is a Lightning Trainer"
+                )
 
             trainer.fit(
                 model=self.group_model,
@@ -251,7 +265,9 @@ class SubclassDetection(Benchmark):
 
         elif isinstance(trainer, BaseTrainer):
             if not isinstance(self.group_model, torch.nn.Module):
-                raise ValueError("Model should be a torch.nn.Module if Trainer is a BaseTrainer")
+                raise ValueError(
+                    "Model should be a torch.nn.Module if Trainer is a BaseTrainer"
+                )
 
             trainer.fit(
                 model=self.group_model,
@@ -261,12 +277,19 @@ class SubclassDetection(Benchmark):
             )
 
         else:
-            raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
+            raise ValueError(
+                "Trainer should be a Lightning Trainer or a BaseTrainer"
+            )
 
         # save check point to cache_dir
         # TODO: add model id
-        torch.save(self.model.state_dict(), os.path.join(cache_dir, "model_subclass_detection.pth"))
-        self.checkpoints = [os.path.join(cache_dir, "model_subclass_detection.pth")]  # TODO: save checkpoints
+        torch.save(
+            self.model.state_dict(),
+            os.path.join(cache_dir, "model_subclass_detection.pth"),
+        )
+        self.checkpoints = [
+            os.path.join(cache_dir, "model_subclass_detection.pth")
+        ]  # TODO: save checkpoints
         self.group_model.to(self.device)
         self.group_model.eval()
 
@@ -290,10 +313,14 @@ class SubclassDetection(Benchmark):
             The benchmark instance.
         """
         obj = cls()
-        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
+        bench_state = obj._get_bench_state(
+            name, cache_dir, device, *args, **kwargs
+        )
 
         checkpoint_paths = []
-        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+        for ckpt_name, ckpt in zip(
+            bench_state["checkpoints"], bench_state["checkpoints_binary"]
+        ):
             save_path = os.path.join(cache_dir, ckpt_name)
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
@@ -375,7 +402,9 @@ class SubclassDetection(Benchmark):
         obj.group_model = group_model
         obj.checkpoints = checkpoints
         obj.checkpoints_load_func = checkpoints_load_func
-        obj.base_dataset = obj._process_dataset(base_dataset, transform=None, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(
+            base_dataset, transform=None, dataset_split=dataset_split
+        )
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
@@ -389,8 +418,12 @@ class SubclassDetection(Benchmark):
             n_classes=obj.n_classes,
             class_to_group=class_to_group,
         )
-        obj.grouped_train_dl = torch.utils.data.DataLoader(obj.grouped_dataset, batch_size=batch_size)
-        obj.original_train_dl = torch.utils.data.DataLoader(obj.base_dataset, batch_size=batch_size)
+        obj.grouped_train_dl = torch.utils.data.DataLoader(
+            obj.grouped_dataset, batch_size=batch_size
+        )
+        obj.original_train_dl = torch.utils.data.DataLoader(
+            obj.base_dataset, batch_size=batch_size
+        )
 
         obj._checkpoint_paths = checkpoint_paths
 
@@ -434,14 +467,21 @@ class SubclassDetection(Benchmark):
             **expl_kwargs,
         )
 
-        expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
+        expl_dl = torch.utils.data.DataLoader(
+            self.eval_dataset, batch_size=batch_size
+        )
 
         metric = SubclassDetectionMetric(
             model=self.group_model,
             checkpoints=self.checkpoints,
             train_dataset=self.grouped_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
-            train_subclass_labels=torch.tensor([self.base_dataset[s][1] for s in range(ds_len(self.base_dataset))]),
+            train_subclass_labels=torch.tensor(
+                [
+                    self.base_dataset[s][1]
+                    for s in range(ds_len(self.base_dataset))
+                ]
+            ),
             filter_by_prediction=self.filter_by_prediction,
             device=self.device,
         )
@@ -450,10 +490,15 @@ class SubclassDetection(Benchmark):
         n_batches = len(expl_dl)
 
         for i, (inputs, labels) in enumerate(pbar):
-            pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
+            pbar.set_description(
+                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
+            )
 
             inputs, labels = inputs.to(self.device), labels.to(self.device)
-            grouped_labels = torch.tensor([self.class_to_group[i.item()] for i in labels], device=labels.device)
+            grouped_labels = torch.tensor(
+                [self.class_to_group[i.item()] for i in labels],
+                device=labels.device,
+            )
             if self.use_predictions:
                 with torch.no_grad():
                     output = self.group_model(inputs)
@@ -466,6 +511,11 @@ class SubclassDetection(Benchmark):
                 targets=targets,
             )
 
-            metric.update(labels, explanations, test_tensor=inputs, test_classes=grouped_labels)
+            metric.update(
+                labels,
+                explanations,
+                test_tensor=inputs,
+                test_classes=grouped_labels,
+            )
 
         return metric.compute()

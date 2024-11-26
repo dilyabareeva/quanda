@@ -13,7 +13,6 @@ from quanda.metrics.downstream_eval import (
     SubclassDetectionMetric,
 )
 from quanda.utils.functions import cosine_similarity
-from quanda.utils.training import Trainer
 
 
 @pytest.mark.downstream_eval_metrics
@@ -48,7 +47,12 @@ def test_identical_class_metrics(
     test_labels = request.getfixturevalue(test_labels)
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
-    metric = ClassDetectionMetric(model=model, checkpoints=checkpoint, train_dataset=dataset, device="cpu")
+    metric = ClassDetectionMetric(
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        device="cpu",
+    )
     metric.update(test_labels=test_labels, explanations=tda)
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)
@@ -114,7 +118,11 @@ def test_identical_subclass_metrics(
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
             "self-influence",
-            {"layers": "fc_2", "similarity_metric": cosine_similarity, "model_id": "test"},
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+                "model_id": "test",
+            },
             0.4921875,
         ),
         (
@@ -173,7 +181,9 @@ def test_mislabeling_detection_metric(
             global_method=global_method,
             device="cpu",
         )
-        metric.update(test_data=test_samples, test_labels=test_labels, explanations=tda)
+        metric.update(
+            test_data=test_samples, test_labels=test_labels, explanations=tda
+        )
     else:
         metric = MislabelingDetectionMetric(
             model=model,
@@ -237,11 +247,23 @@ def test_shortcut_detection_metric(
     tda = request.getfixturevalue(explanations)
     if assert_err:
         with pytest.raises(AssertionError):
-            metric = ShortcutDetectionMetric(model, checkpoint, dataset, poisoned_ids, poisoned_cls)
+            metric = ShortcutDetectionMetric(
+                model, checkpoint, dataset, poisoned_ids, poisoned_cls
+            )
     else:
-        metric = ShortcutDetectionMetric(model, checkpoint, dataset, poisoned_ids, poisoned_cls)
+        metric = ShortcutDetectionMetric(
+            model, checkpoint, dataset, poisoned_ids, poisoned_cls
+        )
         metric.update(tda)
         score = metric.compute()["score"]
-        binary_ids = torch.tensor([1 if i in poisoned_ids else 0 for i in range(len(dataset))])
-        expected_score = torch.tensor([binary_auprc(tda[i], binary_ids) for i in range(tda.shape[0])]).mean().item()
+        binary_ids = torch.tensor(
+            [1 if i in poisoned_ids else 0 for i in range(len(dataset))]
+        )
+        expected_score = (
+            torch.tensor(
+                [binary_auprc(tda[i], binary_ids) for i in range(tda.shape[0])]
+            )
+            .mean()
+            .item()
+        )
         assert math.isclose(score, expected_score, abs_tol=0.00001)

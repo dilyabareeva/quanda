@@ -57,7 +57,10 @@ class ModelRandomizationMetric(Metric):
             The random seed, by default 42.
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
+            model=model,
+            checkpoints=checkpoints,
+            train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
         )
         self.load_last_checkpoint()
         self.expl_kwargs = expl_kwargs or {}
@@ -67,7 +70,9 @@ class ModelRandomizationMetric(Metric):
 
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
-        self.rand_model, self.rand_checkpoint = self._randomize_model(self.model, self.cache_dir, self.model_id)
+        self.rand_model, self.rand_checkpoint = self._randomize_model(
+            self.model, self.cache_dir, self.model_id
+        )
 
         if "model_id" in self.expl_kwargs:
             self.expl_kwargs["model_id"] += "_rand"
@@ -178,7 +183,9 @@ class ModelRandomizationMetric(Metric):
         self.results = state_dict["results_dict"]
         self.rand_model.load_state_dict(state_dict["rnd_model"])
 
-    def _randomize_model(self, model: torch.nn.Module, cache_dir: str, model_id: str) -> Tuple[torch.nn.Module, str]:
+    def _randomize_model(
+        self, model: torch.nn.Module, cache_dir: str, model_id: str
+    ) -> Tuple[torch.nn.Module, str]:
         """
         Randomize the model parameters. Currently, only linear and convolutional layers are supported.
 
@@ -209,6 +216,9 @@ class ModelRandomizationMetric(Metric):
                 )
 
         # save randomized checkpoint
-        torch.save(rand_model.state_dict(), os.path.join(cache_dir, f"{model_id}_rand.pth"))
+        torch.save(
+            rand_model.state_dict(),
+            os.path.join(cache_dir, f"{model_id}_rand.pth"),
+        )
 
         return rand_model, os.path.join(cache_dir, f"{model_id}_rand.pth")

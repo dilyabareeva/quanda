@@ -91,7 +91,11 @@ class CaptumInfluence(Explainer, ABC):
         self.captum_explainer = self.explainer_cls(**explain_kwargs)
 
     @abstractmethod
-    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
+    def explain(
+        self,
+        test_tensor: torch.Tensor,
+        targets: Union[List[int], torch.Tensor],
+    ) -> torch.Tensor:
         """
         Abstract method for computing influence scores for the test samples.
 
@@ -196,7 +200,8 @@ class CaptumSimilarity(CaptumInfluence):
         self.modulo_batch_size = ds_len(train_dataset) % batch_size
         # divide train_dataset into two subsets to make up for a batching bug
         self.train_set_1 = torch.utils.data.Subset(
-            self.train_dataset, [i for i in range(ds_len(train_dataset) - self.modulo_batch_size)]
+            self.train_dataset,
+            [i for i in range(ds_len(train_dataset) - self.modulo_batch_size)],
         )
 
         explainer_kwargs.update(
@@ -220,7 +225,9 @@ class CaptumSimilarity(CaptumInfluence):
             self.model,
             self.model_id,
             self.layer,
-            torch.utils.data.DataLoader(self.train_set_1, batch_size, shuffle=False),
+            torch.utils.data.DataLoader(
+                self.train_set_1, batch_size, shuffle=False
+            ),
             identifier="src",
             load_from_disk=load_from_disk,
             return_activations=True,
@@ -233,7 +240,13 @@ class CaptumSimilarity(CaptumInfluence):
         if self.modulo_batch_size > 0:
             self.train_set_2 = torch.utils.data.Subset(
                 self.train_dataset,
-                [i for i in range(ds_len(train_dataset) - self.modulo_batch_size, ds_len(train_dataset))],
+                [
+                    i
+                    for i in range(
+                        ds_len(train_dataset) - self.modulo_batch_size,
+                        ds_len(train_dataset),
+                    )
+                ],
             )
             explainer_kwargs_2 = explainer_kwargs.copy()
             explainer_kwargs_2["influence_src_dataset"] = self.train_set_2
@@ -245,7 +258,9 @@ class CaptumSimilarity(CaptumInfluence):
                 self.model,
                 self.model_id + "_suppl_act",
                 self.layer,
-                torch.utils.data.DataLoader(self.train_set_2, ds_len(self.train_set_2), shuffle=False),
+                torch.utils.data.DataLoader(
+                    self.train_set_2, ds_len(self.train_set_2), shuffle=False
+                ),
                 identifier="src",
                 load_from_disk=load_from_disk,
                 return_activations=True,
@@ -256,7 +271,9 @@ class CaptumSimilarity(CaptumInfluence):
         # explicitly specifying explain method kwargs as instance attributes
 
         if "top_k" in explainer_kwargs:
-            warnings.warn("top_k is not supported by CaptumSimilarity explainer. Ignoring the argument.")
+            warnings.warn(
+                "top_k is not supported by CaptumSimilarity explainer. Ignoring the argument."
+            )
 
     @property
     def layer(self):
@@ -273,10 +290,16 @@ class CaptumSimilarity(CaptumInfluence):
             self._layer = layers
             return
         if len(layers) != 1:
-            raise ValueError("A single layer shall be passed to the CaptumSimilarity explainer.")
+            raise ValueError(
+                "A single layer shall be passed to the CaptumSimilarity explainer."
+            )
         self._layer = layers[0]
 
-    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor] = torch.tensor(0)):
+    def explain(
+        self,
+        test_tensor: torch.Tensor,
+        targets: Union[List[int], torch.Tensor] = torch.tensor(0),
+    ):
         """
         Compute influence scores for the test samples.
 
@@ -294,18 +317,26 @@ class CaptumSimilarity(CaptumInfluence):
         """
         test_tensor = test_tensor.to(self.device)
 
-        with map_location_context(self.device), default_tensor_type(self.device):
+        with (
+            map_location_context(self.device),
+            default_tensor_type(self.device),
+        ):
             topk_idx_1, topk_val_1 = self.captum_explainer_1.influence(
-                inputs=test_tensor, top_k=ds_len(self.train_dataset) - self.modulo_batch_size
+                inputs=test_tensor,
+                top_k=ds_len(self.train_dataset) - self.modulo_batch_size,
             )[self.layer]
             if self.modulo_batch_size > 0:
-                topk_idx_2, topk_val_2 = self.captum_explainer_2.influence(inputs=test_tensor, top_k=self.modulo_batch_size)[
-                    self.layer
-                ]
+                topk_idx_2, topk_val_2 = self.captum_explainer_2.influence(
+                    inputs=test_tensor, top_k=self.modulo_batch_size
+                )[self.layer]
                 _, inverted_idx_1 = topk_idx_1.sort()
                 _, inverted_idx_2 = topk_idx_2.sort()
                 return torch.cat(
-                    [torch.gather(topk_val_1, 1, inverted_idx_1), torch.gather(topk_val_2, 1, inverted_idx_2)], dim=1
+                    [
+                        torch.gather(topk_val_1, 1, inverted_idx_1),
+                        torch.gather(topk_val_2, 1, inverted_idx_2),
+                    ],
+                    dim=1,
                 )
             else:
                 _, inverted_idx = topk_idx_1.sort()
@@ -423,7 +454,9 @@ class CaptumArnoldi(CaptumInfluence):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str]],
-        loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(reduction="none"),
+        loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(
+            reduction="none"
+        ),
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
         batch_size: int = 1,
@@ -517,7 +550,9 @@ class CaptumArnoldi(CaptumInfluence):
         for arg in unsupported_args:
             if arg in explainer_kwargs:
                 explainer_kwargs.pop(arg)
-                warnings.warn(f"{arg} is not supported by CaptumArnoldi explainer. Ignoring the argument.")
+                warnings.warn(
+                    f"{arg} is not supported by CaptumArnoldi explainer. Ignoring the argument."
+                )
 
         super().__init__(
             model=model,
@@ -528,7 +563,11 @@ class CaptumArnoldi(CaptumInfluence):
             checkpoints_load_func=checkpoints_load_func,
         )
 
-        self.hessian_dataset = OnDeviceDataset(hessian_dataset, self.device) if hessian_dataset is not None else None
+        self.hessian_dataset = (
+            OnDeviceDataset(hessian_dataset, self.device)
+            if hessian_dataset is not None
+            else None
+        )
         explainer_kwargs.update(
             {
                 "model": model,
@@ -554,7 +593,11 @@ class CaptumArnoldi(CaptumInfluence):
         )
         self.init_explainer(**explainer_kwargs)
 
-    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]):
+    def explain(
+        self,
+        test_tensor: torch.Tensor,
+        targets: Union[List[int], torch.Tensor],
+    ):
         """
         Compute influence scores for the test samples.
 
@@ -578,7 +621,9 @@ class CaptumArnoldi(CaptumInfluence):
         else:
             targets = targets.to(self.device)
 
-        influence_scores = self.captum_explainer.influence(inputs=(test_tensor, targets))
+        influence_scores = self.captum_explainer.influence(
+            inputs=(test_tensor, targets)
+        )
         return influence_scores
 
     def self_influence(self, batch_size: int = 1) -> torch.Tensor:
@@ -595,7 +640,9 @@ class CaptumArnoldi(CaptumInfluence):
         torch.Tensor
             Self-influence scores for each datapoint in train_dataset.
         """
-        influence_scores = self.captum_explainer.self_influence(inputs_dataset=None)
+        influence_scores = self.captum_explainer.self_influence(
+            inputs_dataset=None
+        )
         return influence_scores
 
 
@@ -696,7 +743,9 @@ class CaptumTracInCP(CaptumInfluence):
         checkpoints: Union[str, List[str], Iterator],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
-        loss_fn: Optional[Union[torch.nn.Module, Callable]] = torch.nn.CrossEntropyLoss(reduction="none"),
+        loss_fn: Optional[
+            Union[torch.nn.Module, Callable]
+        ] = torch.nn.CrossEntropyLoss(reduction="none"),
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         sample_wise_grads_per_batch: bool = False,
@@ -740,9 +789,13 @@ class CaptumTracInCP(CaptumInfluence):
         for arg in unsupported_args:
             if arg in explainer_kwargs:
                 explainer_kwargs.pop(arg)
-                warnings.warn(f"{arg} is not supported by CaptumTraceInCP explainer. Ignoring the argument.")
+                warnings.warn(
+                    f"{arg} is not supported by CaptumTraceInCP explainer. Ignoring the argument."
+                )
 
-        self.outer_loop_by_checkpoints = explainer_kwargs.pop("outer_loop_by_checkpoints", False)
+        self.outer_loop_by_checkpoints = explainer_kwargs.pop(
+            "outer_loop_by_checkpoints", False
+        )
         super().__init__(
             model=model,
             checkpoints=checkpoints,
@@ -770,7 +823,11 @@ class CaptumTracInCP(CaptumInfluence):
         self.init_explainer(**explainer_kwargs)
         self.device = device
 
-    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]):
+    def explain(
+        self,
+        test_tensor: torch.Tensor,
+        targets: Union[List[int], torch.Tensor],
+    ):
         """
         Compute influence scores for the test samples.
 
@@ -794,7 +851,9 @@ class CaptumTracInCP(CaptumInfluence):
         else:
             targets = targets.to(self.device)
 
-        influence_scores = self.captum_explainer.influence(inputs=(test_tensor, targets))
+        influence_scores = self.captum_explainer.influence(
+            inputs=(test_tensor, targets)
+        )
         return influence_scores
 
     def self_influence(self, batch_size: int = 1) -> torch.Tensor:
@@ -812,7 +871,8 @@ class CaptumTracInCP(CaptumInfluence):
             Self-influence scores for each datapoint in train_dataset.
         """
         influence_scores = self.captum_explainer.self_influence(
-            inputs=None, outer_loop_by_checkpoints=self.outer_loop_by_checkpoints
+            inputs=None,
+            outer_loop_by_checkpoints=self.outer_loop_by_checkpoints,
         )
         return influence_scores
 
@@ -913,7 +973,9 @@ class CaptumTracInCPFast(CaptumInfluence):
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        loss_fn: Optional[Union[torch.nn.Module, Callable]] = torch.nn.CrossEntropyLoss(reduction="sum"),
+        loss_fn: Optional[
+            Union[torch.nn.Module, Callable]
+        ] = torch.nn.CrossEntropyLoss(reduction="sum"),
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         vectorize: bool = False,
@@ -955,9 +1017,13 @@ class CaptumTracInCPFast(CaptumInfluence):
         for arg in unsupported_args:
             if arg in explainer_kwargs:
                 explainer_kwargs.pop(arg)
-                warnings.warn(f"{arg} is not supported by CaptumTraceInCPFast explainer. Ignoring the argument.")
+                warnings.warn(
+                    f"{arg} is not supported by CaptumTraceInCPFast explainer. Ignoring the argument."
+                )
 
-        self.outer_loop_by_checkpoints = explainer_kwargs.pop("outer_loop_by_checkpoints", False)
+        self.outer_loop_by_checkpoints = explainer_kwargs.pop(
+            "outer_loop_by_checkpoints", False
+        )
 
         super().__init__(
             model=model,
@@ -984,7 +1050,11 @@ class CaptumTracInCPFast(CaptumInfluence):
         )
         self.init_explainer(**explainer_kwargs)
 
-    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]):
+    def explain(
+        self,
+        test_tensor: torch.Tensor,
+        targets: Union[List[int], torch.Tensor],
+    ):
         """
         Compute influence scores for the test samples.
 
@@ -1008,7 +1078,9 @@ class CaptumTracInCPFast(CaptumInfluence):
         else:
             targets = targets.to(self.device)
 
-        influence_scores = self.captum_explainer.influence(inputs=(test_tensor, targets), k=None)
+        influence_scores = self.captum_explainer.influence(
+            inputs=(test_tensor, targets), k=None
+        )
         return influence_scores
 
     def self_influence(self, batch_size: int = 1) -> torch.Tensor:
@@ -1026,7 +1098,8 @@ class CaptumTracInCPFast(CaptumInfluence):
             Self-influence scores for each datapoint in train_dataset.
         """
         influence_scores = self.captum_explainer.self_influence(
-            inputs=None, outer_loop_by_checkpoints=self.outer_loop_by_checkpoints
+            inputs=None,
+            outer_loop_by_checkpoints=self.outer_loop_by_checkpoints,
         )
         return influence_scores
 
@@ -1130,7 +1203,9 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str], Iterator],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(reduction="sum"),
+        loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(
+            reduction="sum"
+        ),
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         vectorize: bool = False,
@@ -1200,9 +1275,13 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         for arg in unsupported_args:
             if arg in explainer_kwargs:
                 explainer_kwargs.pop(arg)
-                warnings.warn(f"{arg} is not supported by CaptumTraceInCPFastRandProj explainer. Ignoring the argument.")
+                warnings.warn(
+                    f"{arg} is not supported by CaptumTraceInCPFastRandProj explainer. Ignoring the argument."
+                )
 
-        self.outer_loop_by_checkpoints = explainer_kwargs.pop("outer_loop_by_checkpoints", False)
+        self.outer_loop_by_checkpoints = explainer_kwargs.pop(
+            "outer_loop_by_checkpoints", False
+        )
         super().__init__(
             model=model,
             checkpoints=checkpoints,
@@ -1218,7 +1297,6 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
                 "final_fc_layer": final_fc_layer,
                 "train_dataset": self.train_dataset,
                 "checkpoints": checkpoints,
-                
                 "loss_fn": loss_fn,
                 "batch_size": batch_size,
                 "test_loss_fn": test_loss_fn,
@@ -1232,7 +1310,11 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 
         self.init_explainer(**explainer_kwargs)
 
-    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]):
+    def explain(
+        self,
+        test_tensor: torch.Tensor,
+        targets: Union[List[int], torch.Tensor],
+    ):
         """
         Compute influence scores for the test samples.
 
@@ -1256,7 +1338,9 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         else:
             targets = targets.to(self.device)
 
-        influence_scores = self.captum_explainer.influence(inputs=(test_tensor, targets), k=None)
+        influence_scores = self.captum_explainer.influence(
+            inputs=(test_tensor, targets), k=None
+        )
         return influence_scores
 
 

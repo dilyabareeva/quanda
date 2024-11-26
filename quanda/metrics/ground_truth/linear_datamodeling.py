@@ -7,7 +7,6 @@ import torch
 from torch.utils.data import DataLoader
 
 from quanda.metrics.base import Metric
-from quanda.utils.common import get_load_state_dict_func
 from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
 from quanda.utils.training import BaseTrainer
 
@@ -78,7 +77,10 @@ class LinearDatamodelingMetric(Metric):
             The cache directory, by default "./cache".
         """
         super().__init__(
-            model=model, checkpoints=checkpoints, train_dataset=train_dataset, checkpoints_load_func=checkpoints_load_func
+            model=model,
+            checkpoints=checkpoints,
+            train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
         )
         self.load_last_checkpoint()
         self.device = torch.device("cpu")  # TODO: why is this CPU?

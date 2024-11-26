@@ -151,7 +151,11 @@ class ShortcutDetection(Benchmark):
         """
         obj = cls()
         obj._set_devices(model)
-        obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(
+            base_dataset,
+            transform=dataset_transform,
+            dataset_split=dataset_split,
+        )
         obj.eval_dataset = eval_dataset
         obj.filter_by_prediction = filter_by_prediction
         obj.filter_by_class = filter_by_class
@@ -240,8 +244,12 @@ class ShortcutDetection(Benchmark):
         self.shortcut_indices = self.shortcut_dataset.transform_indices
         self.shortcut_cls = shortcut_cls
         self.sample_fn = sample_fn
-        self.shortcut_train_dl = torch.utils.data.DataLoader(self.shortcut_dataset, batch_size=batch_size)
-        self.original_train_dl = torch.utils.data.DataLoader(self.base_dataset, batch_size=batch_size)
+        self.shortcut_train_dl = torch.utils.data.DataLoader(
+            self.shortcut_dataset, batch_size=batch_size
+        )
+        self.original_train_dl = torch.utils.data.DataLoader(
+            self.base_dataset, batch_size=batch_size
+        )
         if val_dataset:
             shortcut_val_dataset = SampleTransformationDataset(
                 dataset=val_dataset,
@@ -251,7 +259,9 @@ class ShortcutDetection(Benchmark):
                 sample_fn=sample_fn,
                 n_classes=self.n_classes,
             )
-            self.shortcut_val_dl = torch.utils.data.DataLoader(shortcut_val_dataset, batch_size=batch_size)
+            self.shortcut_val_dl = torch.utils.data.DataLoader(
+                shortcut_val_dataset, batch_size=batch_size
+            )
         else:
             self.shortcut_val_dl = None
 
@@ -261,7 +271,9 @@ class ShortcutDetection(Benchmark):
 
         if isinstance(trainer, L.Trainer):
             if not isinstance(self.model, L.LightningModule):
-                raise ValueError("Model should be a LightningModule if Trainer is a Lightning Trainer")
+                raise ValueError(
+                    "Model should be a LightningModule if Trainer is a Lightning Trainer"
+                )
 
             trainer.fit(
                 model=self.model,
@@ -272,7 +284,9 @@ class ShortcutDetection(Benchmark):
 
         elif isinstance(trainer, BaseTrainer):
             if not isinstance(self.model, torch.nn.Module):
-                raise ValueError("Model should be a torch.nn.Module if Trainer is a BaseTrainer")
+                raise ValueError(
+                    "Model should be a torch.nn.Module if Trainer is a BaseTrainer"
+                )
 
             trainer.fit(
                 model=self.model,
@@ -282,12 +296,19 @@ class ShortcutDetection(Benchmark):
             )
 
         else:
-            raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
+            raise ValueError(
+                "Trainer should be a Lightning Trainer or a BaseTrainer"
+            )
 
         # save check point to cache_dir
         # TODO: add model id
-        torch.save(self.model.state_dict(), os.path.join(cache_dir, "model_shortcut_detection.pth"))
-        self.checkpoints = [os.path.join(cache_dir, "model_shortcut_detection.pth")]  # TODO: save checkpoints
+        torch.save(
+            self.model.state_dict(),
+            os.path.join(cache_dir, "model_shortcut_detection.pth"),
+        )
+        self.checkpoints = [
+            os.path.join(cache_dir, "model_shortcut_detection.pth")
+        ]  # TODO: save checkpoints
         self.model.to(self.device)
         self.model.eval()
 
@@ -307,10 +328,14 @@ class ShortcutDetection(Benchmark):
         """
 
         obj = cls()
-        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
+        bench_state = obj._get_bench_state(
+            name, cache_dir, device, *args, **kwargs
+        )
 
         checkpoint_paths = []
-        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+        for ckpt_name, ckpt in zip(
+            bench_state["checkpoints"], bench_state["checkpoints_binary"]
+        ):
             save_path = os.path.join(cache_dir, ckpt_name)
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
@@ -407,7 +432,11 @@ class ShortcutDetection(Benchmark):
         obj = cls()
         obj.model = model
         obj.checkpoints = checkpoints
-        obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(
+            base_dataset,
+            transform=dataset_transform,
+            dataset_split=dataset_split,
+        )
         obj.eval_dataset = eval_dataset
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
@@ -415,7 +444,9 @@ class ShortcutDetection(Benchmark):
         obj.filter_by_prediction = filter_by_prediction
         obj.filter_by_class = filter_by_class
         obj.shortcut_dataset = SampleTransformationDataset(
-            dataset=obj._process_dataset(base_dataset, transform=None, dataset_split=dataset_split),
+            dataset=obj._process_dataset(
+                base_dataset, transform=None, dataset_split=dataset_split
+            ),
             cls_idx=shortcut_cls,
             dataset_transform=dataset_transform,
             sample_fn=sample_fn,
@@ -456,8 +487,12 @@ class ShortcutDetection(Benchmark):
         """
         self.model.eval()
 
-        self.shortcut_train_dl = torch.utils.data.DataLoader(self.shortcut_dataset, batch_size=batch_size)
-        self.original_train_dl = torch.utils.data.DataLoader(self.base_dataset, batch_size=batch_size)
+        self.shortcut_train_dl = torch.utils.data.DataLoader(
+            self.shortcut_dataset, batch_size=batch_size
+        )
+        self.original_train_dl = torch.utils.data.DataLoader(
+            self.base_dataset, batch_size=batch_size
+        )
 
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(
@@ -475,7 +510,9 @@ class ShortcutDetection(Benchmark):
             sample_fn=self.sample_fn,
             p=1.0,
         )
-        expl_dl = torch.utils.data.DataLoader(shortcut_expl_ds, batch_size=batch_size)
+        expl_dl = torch.utils.data.DataLoader(
+            shortcut_expl_ds, batch_size=batch_size
+        )
         metric = ShortcutDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
@@ -490,7 +527,9 @@ class ShortcutDetection(Benchmark):
         n_batches = len(expl_dl)
 
         for i, (input, labels) in enumerate(pbar):
-            pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
+            pbar.set_description(
+                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
+            )
 
             input, labels = input.to(self.device), labels.to(self.device)
 

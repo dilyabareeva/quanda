@@ -257,8 +257,9 @@ class RepresenterPoints(Explainer):
         self.learned_weights: torch.Tensor
         self.coefficients: torch.Tensor
 
-        with map_location_context(self.device), default_tensor_type(
-            self.device
+        with (
+            map_location_context(self.device),
+            default_tensor_type(self.device),
         ):
             self.samples = av_samples(act_dataset)
 

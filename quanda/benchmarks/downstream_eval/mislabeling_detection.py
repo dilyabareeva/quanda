@@ -159,7 +159,9 @@ class MislabelingDetection(Benchmark):
             The benchmark instance.
         """
 
-        logger.info(f"Generating {MislabelingDetection.name} benchmark components based on passed arguments...")
+        logger.info(
+            f"Generating {MislabelingDetection.name} benchmark components based on passed arguments..."
+        )
         if global_method != "self-influence":
             assert (
                 eval_dataset is not None
@@ -167,7 +169,11 @@ class MislabelingDetection(Benchmark):
 
         obj = cls()
         obj._set_devices(model)
-        obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(
+            base_dataset,
+            transform=dataset_transform,
+            dataset_split=dataset_split,
+        )
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj._generate(
@@ -246,7 +252,11 @@ class MislabelingDetection(Benchmark):
         self.global_method = global_method
         self.n_classes = n_classes
         self.dataset_transform = dataset_transform
-        mislabeling_indices = list(mislabeling_labels.keys()) if mislabeling_labels is not None else None
+        mislabeling_indices = (
+            list(mislabeling_labels.keys())
+            if mislabeling_labels is not None
+            else None
+        )
 
         self.mislabeling_dataset = LabelFlippingDataset(
             dataset=self.base_dataset,
@@ -260,13 +270,22 @@ class MislabelingDetection(Benchmark):
 
         self.mislabeling_indices = self.mislabeling_dataset.transform_indices
         self.mislabeling_labels = self.mislabeling_dataset.mislabeling_labels
-        self.mislabeling_train_dl = torch.utils.data.DataLoader(self.mislabeling_dataset, batch_size=batch_size)
-        self.original_train_dl = torch.utils.data.DataLoader(self.base_dataset, batch_size=batch_size)
+        self.mislabeling_train_dl = torch.utils.data.DataLoader(
+            self.mislabeling_dataset, batch_size=batch_size
+        )
+        self.original_train_dl = torch.utils.data.DataLoader(
+            self.base_dataset, batch_size=batch_size
+        )
         if val_dataset:
             mislabeling_val_dataset = LabelFlippingDataset(
-                dataset=val_dataset, dataset_transform=self.dataset_transform, p=self.p, n_classes=self.n_classes
+                dataset=val_dataset,
+                dataset_transform=self.dataset_transform,
+                p=self.p,
+                n_classes=self.n_classes,
             )
-            self.mislabeling_val_dl = torch.utils.data.DataLoader(mislabeling_val_dataset, batch_size=batch_size)
+            self.mislabeling_val_dl = torch.utils.data.DataLoader(
+                mislabeling_val_dataset, batch_size=batch_size
+            )
         else:
             self.mislabeling_val_dl = None
 
@@ -276,7 +295,9 @@ class MislabelingDetection(Benchmark):
 
         if isinstance(trainer, L.Trainer):
             if not isinstance(self.model, L.LightningModule):
-                raise ValueError("Model should be a LightningModule if Trainer is a Lightning Trainer")
+                raise ValueError(
+                    "Model should be a LightningModule if Trainer is a Lightning Trainer"
+                )
 
             trainer.fit(
                 model=self.model,
@@ -287,7 +308,9 @@ class MislabelingDetection(Benchmark):
 
         elif isinstance(trainer, BaseTrainer):
             if not isinstance(self.model, torch.nn.Module):
-                raise ValueError("Model should be a torch.nn.Module if Trainer is a BaseTrainer")
+                raise ValueError(
+                    "Model should be a torch.nn.Module if Trainer is a BaseTrainer"
+                )
 
             trainer.fit(
                 model=self.model,
@@ -297,12 +320,19 @@ class MislabelingDetection(Benchmark):
             )
 
         else:
-            raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
+            raise ValueError(
+                "Trainer should be a Lightning Trainer or a BaseTrainer"
+            )
 
         # save check point to cache_dir
         # TODO: add model id
-        torch.save(self.model.state_dict(), os.path.join(cache_dir, "model_mislabeling_detection.pth"))
-        self.checkpoints = [os.path.join(cache_dir, "model_mislabeling_detection.pth")]  # TODO: save checkpoints
+        torch.save(
+            self.model.state_dict(),
+            os.path.join(cache_dir, "model_mislabeling_detection.pth"),
+        )
+        self.checkpoints = [
+            os.path.join(cache_dir, "model_mislabeling_detection.pth")
+        ]  # TODO: save checkpoints
         self.model.to(self.device)
         self.model.eval()
 
@@ -321,10 +351,14 @@ class MislabelingDetection(Benchmark):
             Device to load the model on.
         """
         obj = cls()
-        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
+        bench_state = obj._get_bench_state(
+            name, cache_dir, device, *args, **kwargs
+        )
 
         checkpoint_paths = []
-        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+        for ckpt_name, ckpt in zip(
+            bench_state["checkpoints"], bench_state["checkpoints_binary"]
+        ):
             save_path = os.path.join(cache_dir, ckpt_name)
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
@@ -417,16 +451,26 @@ class MislabelingDetection(Benchmark):
         obj = cls()
         obj.model = model
         obj.checkpoints = checkpoints
-        obj.base_dataset = obj._process_dataset(base_dataset, transform=dataset_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(
+            base_dataset,
+            transform=dataset_transform,
+            dataset_split=dataset_split,
+        )
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
         obj.n_classes = n_classes
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
-        mislabeling_indices = list(mislabeling_labels.keys()) if mislabeling_labels is not None else None
+        mislabeling_indices = (
+            list(mislabeling_labels.keys())
+            if mislabeling_labels is not None
+            else None
+        )
 
         obj.mislabeling_dataset = LabelFlippingDataset(
-            dataset=obj._process_dataset(base_dataset, transform=None, dataset_split=dataset_split),
+            dataset=obj._process_dataset(
+                base_dataset, transform=None, dataset_split=dataset_split
+            ),
             dataset_transform=dataset_transform,
             transform_indices=mislabeling_indices,
             n_classes=n_classes,
@@ -436,8 +480,12 @@ class MislabelingDetection(Benchmark):
         obj.mislabeling_indices = obj.mislabeling_dataset.transform_indices
         obj.mislabeling_labels = obj.mislabeling_dataset.mislabeling_labels
 
-        obj.mislabeling_train_dl = torch.utils.data.DataLoader(obj.mislabeling_dataset, batch_size=batch_size)
-        obj.original_train_dl = torch.utils.data.DataLoader(obj.base_dataset, batch_size=batch_size)
+        obj.mislabeling_train_dl = torch.utils.data.DataLoader(
+            obj.mislabeling_dataset, batch_size=batch_size
+        )
+        obj.original_train_dl = torch.utils.data.DataLoader(
+            obj.base_dataset, batch_size=batch_size
+        )
         obj._checkpoint_paths = checkpoint_paths
         obj._set_devices(model)
         obj.checkpoints_load_func = checkpoints_load_func
@@ -480,9 +528,14 @@ class MislabelingDetection(Benchmark):
 
         if self.eval_dataset is not None:
             mislabeling_expl_ds = LabelFlippingDataset(
-                dataset=self.eval_dataset, dataset_transform=self.dataset_transform, n_classes=self.n_classes, p=0.0
+                dataset=self.eval_dataset,
+                dataset_transform=self.dataset_transform,
+                n_classes=self.n_classes,
+                p=0.0,
             )
-            expl_dl = torch.utils.data.DataLoader(mislabeling_expl_ds, batch_size=batch_size)
+            expl_dl = torch.utils.data.DataLoader(
+                mislabeling_expl_ds, batch_size=batch_size
+            )
         if self.global_method != "self-influence":
             metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
@@ -497,7 +550,9 @@ class MislabelingDetection(Benchmark):
             n_batches = len(expl_dl)
 
             for i, (inputs, labels) in enumerate(pbar):
-                pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
+                pbar.set_description(
+                    "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
+                )
 
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 if self.use_predictions:
@@ -505,8 +560,14 @@ class MislabelingDetection(Benchmark):
                         targets = self.model(inputs).argmax(dim=-1)
                 else:
                     targets = labels
-                explanations = explainer.explain(test_tensor=inputs, targets=targets)
-                metric.update(test_data=inputs, test_labels=labels, explanations=explanations)
+                explanations = explainer.explain(
+                    test_tensor=inputs, targets=targets
+                )
+                metric.update(
+                    test_data=inputs,
+                    test_labels=labels,
+                    explanations=explanations,
+                )
         else:
             metric = MislabelingDetectionMetric.self_influence_based(
                 model=self.model,

@@ -7,7 +7,10 @@ from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.resources import sample_transforms
-from quanda.benchmarks.resources.modules import load_module_from_bench_state, bench_load_state_dict
+from quanda.benchmarks.resources.modules import (
+    load_module_from_bench_state,
+    bench_load_state_dict,
+)
 from quanda.metrics.downstream_eval import ClassDetectionMetric
 
 logger = logging.getLogger(__name__)
@@ -92,14 +95,20 @@ class ClassDetection(Benchmark):
             The benchmark instance.
         """
 
-        logger.info(f"Generating {ClassDetection.name} benchmark components based on passed arguments...")
+        logger.info(
+            f"Generating {ClassDetection.name} benchmark components based on passed arguments..."
+        )
         obj = cls()
 
         obj.model = model
         obj.checkpoints = checkpoints
         obj.eval_dataset = eval_dataset
         obj._set_devices(model)
-        obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj.train_dataset = obj._process_dataset(
+            train_dataset,
+            transform=data_transform,
+            dataset_split=dataset_split,
+        )
         obj.use_predictions = use_predictions
 
         return obj
@@ -125,10 +134,14 @@ class ClassDetection(Benchmark):
         """
 
         obj = cls()
-        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
+        bench_state = obj._get_bench_state(
+            name, cache_dir, device, *args, **kwargs
+        )
 
         checkpoint_paths = []
-        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+        for ckpt_name, ckpt in zip(
+            bench_state["checkpoints"], bench_state["checkpoints_binary"]
+        ):
             save_path = os.path.join(cache_dir, ckpt_name)
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
@@ -199,7 +212,11 @@ class ClassDetection(Benchmark):
         obj.checkpoints = checkpoints
         obj.checkpoints_load_func = checkpoints_load_func
         obj.eval_dataset = eval_dataset
-        obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj.train_dataset = obj._process_dataset(
+            train_dataset,
+            transform=data_transform,
+            dataset_split=dataset_split,
+        )
         obj.use_predictions = use_predictions
         obj._set_devices(model)
 
@@ -238,7 +255,9 @@ class ClassDetection(Benchmark):
             **expl_kwargs,
         )
 
-        expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
+        expl_dl = torch.utils.data.DataLoader(
+            self.eval_dataset, batch_size=batch_size
+        )
 
         metric = ClassDetectionMetric(
             model=self.model,
@@ -252,7 +271,9 @@ class ClassDetection(Benchmark):
         n_batches = len(expl_dl)
 
         for i, (input, labels) in enumerate(pbar):
-            pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
+            pbar.set_description(
+                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
+            )
 
             input, labels = input.to(self.device), labels.to(self.device)
 

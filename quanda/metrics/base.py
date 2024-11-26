@@ -34,7 +34,9 @@ class Metric(ABC):
         """
         self.device: Union[str, torch.device]
         self.model: torch.nn.Module = model
-        self.checkpoints = checkpoints if isinstance(checkpoints, List) else [checkpoints]
+        self.checkpoints = (
+            checkpoints if isinstance(checkpoints, List) else [checkpoints]
+        )
         self.train_dataset: torch.utils.data.Dataset = train_dataset
 
         # if model has device attribute, use it, otherwise use the default device
