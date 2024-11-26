@@ -34,7 +34,7 @@ def _init_explainer(explainer_cls, model, train_dataset, **kwargs):
 def explain_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
-    test_tensor: torch.Tensor,
+    test_tensor: Union[torch.Tensor, dict],
     train_dataset: torch.utils.data.Dataset,
     targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,

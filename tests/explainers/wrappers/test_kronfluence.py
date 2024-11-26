@@ -1,9 +1,23 @@
+from argparse import ArgumentParser
+
 import pytest
+import torch as ch
+import torch.nn as nn
+from datasets import load_dataset
 from kronfluence.arguments import (  # type: ignore
     FactorArguments,
     ScoreArguments,
 )
 from kronfluence.utils.dataset import DataLoaderKwargs  # type: ignore
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+from transformers import (
+    AutoConfig,
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    DataCollatorWithPadding,
+    default_data_collator,
+)
 
 from quanda.explainers.wrappers import (
     Kronfluence,
@@ -352,5 +366,152 @@ def test_kronfluence_self_influence_functional_with_optional_args(
         factor_args=factor_args,
         score_args=score_args,
     )
+
+    assert self_influence_scores.shape == (len(train_dataset),), "Self-influence scores have incorrect shape"
+
+
+# Partially copied from https://github.com/MadryLab/trak/blob/main/examples/qnli.py
+GLUE_TASK_TO_KEYS = {
+    "cola": ("sentence", None),
+    "mnli": ("premise", "hypothesis"),
+    "mrpc": ("sentence1", "sentence2"),
+    "qnli": ("question", "sentence"),
+    "qqp": ("question1", "question2"),
+    "rte": ("sentence1", "sentence2"),
+    "sst2": ("sentence", None),
+    "stsb": ("sentence1", "sentence2"),
+    "wnli": ("sentence1", "sentence2"),
+}
+
+TRAIN_SET_SIZE = 10
+VAL_SET_SIZE = 4
+
+
+class SequenceClassificationModel(nn.Module):
+    """
+    Wrapper for HuggingFace sequence classification models.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.config = AutoConfig.from_pretrained(
+            "gchhablani/bert-base-cased-finetuned-qnli",
+            num_labels=2,
+            finetuning_task="qnli",
+            cache_dir=None,
+            revision="main",
+            token=None,
+        )
+
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            "gchhablani/bert-base-cased-finetuned-qnli",
+            config=self.config,
+            cache_dir=None,
+            revision="main",
+            token=None,
+            ignore_mismatched_sizes=False,
+        )
+
+        self.model.eval()
+
+    def forward(self, input_ids, token_type_ids, attention_mask):
+        return self.model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+
+
+def get_dataset(split, inds=None):
+    raw_datasets = load_dataset(
+        "glue",
+        "qnli",
+        cache_dir=None,
+        use_auth_token=None,
+    )
+    label_list = raw_datasets["train"].features["label"].names
+    sentence1_key, sentence2_key = GLUE_TASK_TO_KEYS["qnli"]
+
+    label_to_id = None
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "gchhablani/bert-base-cased-finetuned-qnli", cache_dir=None, use_fast=True, revision="main", token=None
+    )
+
+    padding = "max_length"
+    max_seq_length = 128
+
+    def preprocess_function(examples):
+        args = (examples[sentence1_key],) if sentence2_key is None else (examples[sentence1_key], examples[sentence2_key])
+        result = tokenizer(*args, padding=padding, max_length=max_seq_length, truncation=True)
+
+        result["labels"] = examples["label"]
+
+        return result
+
+    raw_datasets = raw_datasets.map(
+        preprocess_function,
+        batched=True,
+        load_from_cache_file=(not False),
+        desc="Running tokenizer on dataset",
+    )
+
+    if split == "train":
+        train_dataset = raw_datasets["train"]
+        ds = train_dataset
+    else:
+        eval_dataset = raw_datasets["validation"]
+        ds = eval_dataset
+    return ds
+
+
+def init_model(ckpt_path, device="cpu"):
+    model = SequenceClassificationModel()
+    return model
+
+
+def init_loaders(batch_size=2):
+    ds_train = get_dataset("train")
+    ds_train = ds_train.select(range(TRAIN_SET_SIZE))
+    ds_val = get_dataset("validation")
+    ds_val = ds_val.select(range(VAL_SET_SIZE))
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "gchhablani/bert-base-cased-finetuned-qnli", cache_dir=None, use_fast=True, revision="main", token=None
+    )
+
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+
+    return DataLoader(ds_train, batch_size=batch_size, shuffle=False, collate_fn=data_collator), DataLoader(
+        ds_val, batch_size=batch_size, shuffle=False, collate_fn=data_collator
+    )
+
+
+def process_batch(batch):
+    return batch["input_ids"], batch["token_type_ids"], batch["attention_mask"], batch["labels"]
+
+
+@pytest.mark.explainers
+def test_kronfluence_self_influence_qnli(
+    load_qnli_model,
+    text_classification_task,
+):
+    loader_train, loader_val = init_loaders()
+
+    model = init_model(".", "cpu")
+
+    train_dataset = loader_train.dataset
+    test_dataset = loader_val.dataset
+
+    train_dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "token_type_ids", "labels"])
+    test_dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "token_type_ids", "labels"])
+
+    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, collate_fn=default_data_collator)
+    test_batch = next(iter(test_loader))
+
+    explainer = Kronfluence(
+        model=model,
+        task=text_classification_task,
+        train_dataset=train_dataset,
+        batch_size=1,
+        device="cpu",
+    )
+    self_influence_scores = explainer.self_influence()
 
     assert self_influence_scores.shape == (len(train_dataset),), "Self-influence scores have incorrect shape"

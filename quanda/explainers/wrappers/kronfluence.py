@@ -1,6 +1,7 @@
 from typing import Any, List, Optional, Union
 
 import torch
+from datasets import DatasetDict  # type: ignore
 from kronfluence.analyzer import Analyzer, prepare_model  # type: ignore
 from kronfluence.arguments import (  # type: ignore
     FactorArguments,
@@ -125,7 +126,7 @@ class Kronfluence(Explainer):
 
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_tensor: Union[torch.Tensor, DatasetDict],
         targets: Union[List[int], torch.Tensor],
         scores_name: Optional[str] = None,
         score_args: ScoreArguments = None,
@@ -210,7 +211,7 @@ class Kronfluence(Explainer):
 def kronfluence_explain(
     model: nn.Module,
     task: Task,
-    test_tensor: torch.Tensor,
+    test_tensor: Union[torch.Tensor, DatasetDict],
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: Dataset,
     **kwargs: Any,
