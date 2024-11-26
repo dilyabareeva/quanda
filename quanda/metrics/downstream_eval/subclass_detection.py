@@ -1,3 +1,5 @@
+"""Subclass Detection Metric."""
+
 from typing import List, Optional, Union, Callable, Any
 
 import torch
@@ -7,16 +9,18 @@ from quanda.utils.common import ds_len
 
 
 class SubclassDetectionMetric(ClassDetectionMetric):
-    """
-    Subclass Detection Metric as defined in Hanawa et al. (2021).
+    """Subclass Detection Metric as defined in Hanawa et al. (2021).
+
     A model is trained on a dataset where labels are grouped into superclasses.
-    The metric evaluates the performance of an attribution method in detecting the subclass of a test sample
-    from its highest attributed training point.
+    The metric evaluates the performance of an attribution method in detecting
+    the subclass of a test sample from its highest attributed training point.
 
     References
     ----------
-    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations. In International
-    Conference on Learning Representations.
+    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of
+    similarity-based explanations. In International Conference on Learning
+    Representations.
+
     """
 
     def __init__(
@@ -27,23 +31,26 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         train_subclass_labels: torch.Tensor,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
-        *args,
-        **kwargs,
     ):
-        """
-        Initializer for the Subclass Detection metric.
+        """Initialize the Subclass Detection metric.
 
         Parameters
         ----------
         model : torch.nn.Module
             The model associated with the attributions to be evaluated.
+        checkpoints : Union[str, List[str]]
+            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset that was used to train `model`.
         train_subclass_labels : torch.Tensor
             The subclass labels of the training dataset.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            The function to load the checkpoint(s), by default None.
         filter_by_prediction : bool, optional
-            Whether to filter the test samples to only calculate the metric on those samples, where the correct superclass is
-            predicted, by default False.
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the correct superclass is predicted, by
+            default False.
+
         """
         super().__init__(
             model=model,
@@ -54,7 +61,8 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         self.load_last_checkpoint()
         assert len(train_subclass_labels) == ds_len(self.train_dataset), (
             f"Number of subclass labels ({len(train_subclass_labels)}) "
-            f"does not match the number of train dataset samples ({ds_len(self.train_dataset)})."
+            f"does not match the number of train dataset samples "
+            f"({ds_len(self.train_dataset)})."
         )
         self.subclass_labels = train_subclass_labels
         self.filter_by_prediction = filter_by_prediction
@@ -66,8 +74,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         test_tensor: Optional[torch.Tensor] = None,
         test_classes: Optional[torch.Tensor] = None,
     ):
-        """
-        Update the metric state with the provided explanations.
+        """Update the metric state with the provided explanations.
 
         Parameters
         ----------
@@ -77,23 +84,27 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             Explanations of the test samples
         test_tensor: Optional[torch.Tensor]
             Test samples to used to generate the explanations.
-            Only required if `filter_by_prediction` is True during initalization.
+            Only required if `filter_by_prediction` is True during
+            initalization.
         test_classes: Optional[torch.Tensor]
-            The true superclasses of the test samples. Only required if `filter_by_prediction` is True during initalization.
+            The true superclasses of the test samples. Only required if
+            `filter_by_prediction` is True during initalization.
 
         Raises
         ------
         ValueError
-            If `test_tensor` and `test_classes` are not provided when `filter_by_prediction` is True.
-        """
+            If `test_tensor` and `test_classes` are not provided when
+            `filter_by_prediction` is True.
 
+        """
         explanations = explanations.to(self.device)
 
         if (
             test_tensor is None or test_classes is None
         ) and self.filter_by_prediction:
             raise ValueError(
-                "test_tensor and test_classes must be provided if filter_by_prediction is True"
+                "test_tensor and test_classes must be provided if "
+                "filter_by_prediction is True"
             )
 
         if isinstance(test_subclasses, list):

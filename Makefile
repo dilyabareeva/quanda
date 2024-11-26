@@ -5,6 +5,7 @@ SHELL = /bin/bash
 .PHONY: clean-format
 clean-format:
 	python -m ruff check --fix .
+	ruff check --fix --select D --select E501 quanda
 	python -m ruff format .
 	python -m mypy quanda --check-untyped-defs
 	rm -f .coverage

@@ -1,3 +1,5 @@
+"""Model Randomization benchmark module."""
+
 import logging
 import os
 from typing import Callable, List, Optional, Union, Any
@@ -20,19 +22,23 @@ logger = logging.getLogger(__name__)
 
 
 class ModelRandomization(Benchmark):
-    # TODO: remove UNKNOWN IF PREDICTED LABELS ARE USED https://arxiv.org/pdf/2006.04528
-    """
-    Benchmark for the model randomization heuristic.
+    # TODO: remove UNKNOWN IF PREDICTED LABELS ARE USED
+    #  https://arxiv.org/pdf/2006.04528
+    """Benchmark for the model randomization heuristic.
 
-    This benchmark is used to evaluate the dependence of the attributions on the model parameters.
+    This benchmark is used to evaluate the dependence of the attributions on
+    the model parameters.
 
     References
     ----------
-    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations. In International
-    Conference on Learning Representations.
+    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of
+    similarity-based explanations. In International Conference on Learning
+    Representations.
 
-    2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., & Kim, B. (2018). Sanity checks for saliency
-    maps. In Advances in Neural Information Processing Systems (Vol. 31).
+    2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., & Kim,
+    B. (2018). Sanity checks for saliency maps. In Advances in Neural
+    Information Processing Systems (Vol. 31).
+
     """
 
     name: str = "Model Randomization"
@@ -42,8 +48,7 @@ class ModelRandomization(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Initializer for the Model Randomization benchmark.
+        """Initialize the Model Randomization benchmark.
 
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
@@ -70,6 +75,7 @@ class ModelRandomization(Benchmark):
         model: torch.nn.Module,
         checkpoints: Union[str, List[str]],
         cache_dir: str,
+        checkpoint_load_func: Optional[Callable[..., Any]] = None,
         model_id: str = "0",
         data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
@@ -79,17 +85,25 @@ class ModelRandomization(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        This method generates the benchmark components and creates an instance.
+        """Generate the benchmark components and creates an instance.
 
         Parameters
         ----------
         train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed, it should be a HuggingFace dataset name.
+            The training dataset used to train `model`. If a string is passed,
+            it should be a HuggingFace dataset name.
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
         model : torch.nn.Module
             The model used to generate attributions.
+        checkpoints : Union[str, List[str]]
+            Path to the checkpoint(s) to load the model from.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        checkpoint_load_func : Optional[Callable[..., Any]], optional
+            Function to load the checkpoint(s), by default None.
+        model_id : str, optional
+            Identifier for the model, by default "0".
         data_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
@@ -99,18 +113,25 @@ class ModelRandomization(Benchmark):
         seed : int, optional
             Seed to be used for the evaluation, by default 42.
         use_predictions: bool
-            Whether to use the model's predictions for generating attributions. Defaults to True.
+            Whether to use the model's predictions for generating attributions.
+            Defaults to True.
         dataset_split : str, optional
-            The dataset split to use, by default "train". Only used if `train_dataset` is a string.
+            The dataset split to use, by default "train". Only used if
+            `train_dataset` is a string.
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Returns
         -------
         ModelRandomization
             The benchmark instance.
-        """
 
+        """
         logger.info(
-            f"Generating {ModelRandomization.name} benchmark components based on passed arguments..."
+            f"Generating {ModelRandomization.name} benchmark components based "
+            f"on passed arguments..."
         )
 
         obj = cls()
@@ -128,6 +149,7 @@ class ModelRandomization(Benchmark):
         obj.model_id = model_id
         obj.cache_dir = cache_dir
         obj.checkpoints = checkpoints
+        obj
 
         return obj
 
@@ -141,9 +163,10 @@ class ModelRandomization(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        This method loads precomputed benchmark components from a file and creates an instance
-        from the state dictionary.
+        """Download a precomputed benchmark.
+
+        Load precomputed benchmark components from a file and creates an
+        instance from the state dictionary.
 
         Parameters
         ----------
@@ -153,11 +176,18 @@ class ModelRandomization(Benchmark):
             Directory to store the downloaded benchmark components.
         device : str
             Device to load the model on.
+        model_id : str, optional
+            Identifier for the model, by default "0".
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Returns
         -------
         ModelRandomization
             The benchmark instance.
+
         """
         obj = cls()
         bench_state = obj._get_bench_state(
@@ -213,19 +243,28 @@ class ModelRandomization(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Assembles the benchmark from existing components.
+        """Assembles the benchmark from existing components.
 
         Parameters
         ----------
         model : Union[torch.nn.Module, L.LightningModule]
-            Model to be used for the benchmark. This model should be trained on the mislabeled dataset.
+            Model to be used for the benchmark. This model should be trained on
+            the mislabeled dataset.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        checkpoints : Union[str, List[str]]
+            Path to the checkpoint(s) to load the model from.
         train_dataset : Union[str, torch.utils.data.Dataset]
-            Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
+            Training dataset to be used for the benchmark. If a string is
+            passed, it should be a HuggingFace dataset.
         eval_dataset : torch.utils.data.Dataset
             Evaluation dataset to be used for the benchmark.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the checkpoint(s), by default None.
         data_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
+        model_id : str, optional
+            Identifier for the model, by default "0".
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
             Correlation function to be used for the evaluation.
             Can be "spearman" or "kendall", or a callable.
@@ -233,16 +272,24 @@ class ModelRandomization(Benchmark):
         seed : int, optional
             Seed to be used for the evaluation, by default 42.
         use_predictions: bool
-            Whether to use the model's predictions for generating attributions. Defaults to True.
+            Whether to use the model's predictions for generating attributions.
+            Defaults to True.
         dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default "train".
+            The dataset split, only used for HuggingFace datasets, by default
+            "train".
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
+            List of paths to the checkpoints. This parameter is only used for
+            downloaded benchmarks, by default None.
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Returns
         -------
         ModelRandomization
             The benchmark instance.
+
         """
         obj = cls()
         obj.model = model
@@ -269,8 +316,7 @@ class ModelRandomization(Benchmark):
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
     ):
-        """
-        Evaluate the given data attributor.
+        """Evaluate the given data attributor.
 
         Parameters
         ----------
@@ -285,8 +331,8 @@ class ModelRandomization(Benchmark):
         -------
         Dict[str, float]
             Dictionary containing the evaluation results.
-        """
 
+        """
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}

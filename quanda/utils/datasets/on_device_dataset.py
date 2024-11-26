@@ -1,3 +1,5 @@
+"""Module to move a dataset to a device."""
+
 from typing import Sized, Union
 
 import torch
@@ -11,8 +13,7 @@ class OnDeviceDataset(torch.utils.data.Dataset):
         dataset: torch.utils.data.Dataset,
         device: Union[str, torch.device],
     ):
-        """
-        Constructor for the OnDeviceDataset class.
+        """Construct the OnDeviceDataset class.
 
         Parameters
         ----------
@@ -20,24 +21,18 @@ class OnDeviceDataset(torch.utils.data.Dataset):
             The dataset to move to the device.
         device : Union[str, torch.device]
             The device to move the dataset to.
+
         """
         self.dataset = dataset
         self.device = device
 
     def __getitem__(self, idx):
+        """Get a sample by index."""
         data, target = self.dataset[idx]
         return data.to(self.device), torch.tensor(target).to(self.device)
 
     def __len__(self):
-        """
-        Not all datasets are sized. If the dataset is not sized,
-        we create a DataLoader to get the length.
-
-        Returns
-        -------
-        int
-            Dataset length.
-        """
+        """Get dataset length."""
         if isinstance(self.dataset, Sized):
             return len(self.dataset)
         dl = torch.utils.data.DataLoader(self.dataset, batch_size=1)

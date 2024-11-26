@@ -1,3 +1,5 @@
+"""Module for training PyTorch models using Lightning."""
+
 import abc
 from abc import abstractmethod
 from typing import Callable, Optional
@@ -25,18 +27,49 @@ class BaseTrainer(metaclass=abc.ABCMeta):
         *args,
         **kwargs,
     ) -> torch.nn.Module:
+        """Train a model using the provided dataloaders.
+
+        Parameters
+        ----------
+        model: torch.nn.Module
+            Model to train.
+        train_dataloaders: torch.utils.data.dataloader.DataLoader
+            Dataloader for the training data.
+        val_dataloaders: Optional[torch.utils.data.dataloader.DataLoader]
+            Dataloader for the validation data, defaults to None.
+        accelerator: str
+            The accelerator to use for training, by default "cpu".
+        trainer_fit_kwargs: Optional[dict]
+            Additional keyword arguments to pass to the trainer's fit method,
+            defaults to None.
+        args: Any
+            Additional arguments to pass to the fit method.
+        kwargs: Any
+            Additional keyword arguments to pass to the fit method.
+        kwargs
+
+        Returns
+        -------
+        torch.nn.Module
+            The trained model.
+
+        """
         raise NotImplementedError
 
     def get_model(self) -> torch.nn.Module:
+        """Get the model that was trained.
+
+        Returns
+        -------
+        torch.nn.Module
+            The trained model.
+
+        """
         raise NotImplementedError
 
 
 class Trainer(BaseTrainer):
-    """
-    Simple class for training PyTorch models using Lightning. Supports only the most basic training arguments, such as
-    optimizer, learning rate, maximum number of epochs, and loss function, and single-device training.
-    For more complex training procedures, consider using PyTorch Lightning Module/ Trainer directly.
-    """
+    """Simple class for training PyTorch models using Lightning."""
 
     def __init__(
         self,
@@ -50,8 +83,7 @@ class Trainer(BaseTrainer):
         seed: int = 27,
         accelerator: str = "cpu",
     ):
-        """
-        Constructor for the Trainer class.
+        """Construct the Trainer class.
 
         Parameters
         ----------
@@ -73,6 +105,7 @@ class Trainer(BaseTrainer):
             The seed for the projector, by default 27.
         accelerator : str, optional
             The accelerator to use for training, by default "cpu".
+
         """
         self.optimizer = optimizer
         self.lr = lr
@@ -97,8 +130,7 @@ class Trainer(BaseTrainer):
         *args,
         **kwargs,
     ):
-        """
-        Train a model using the provided dataloaders.
+        """Train a model using the provided dataloaders.
 
         Parameters
         ----------
@@ -106,10 +138,15 @@ class Trainer(BaseTrainer):
             Model to train.
         train_dataloaders : torch.utils.data.dataloader.DataLoader
             Dataloader for the training data.
-        val_dataloaders : Optional[torch.utils.data.dataloader.DataLoader], optional
+        val_dataloaders : Optional[torch.utils.data.dataloader.DataLoader]
             Dataloader for the validation data, defaults to None.
         accelerator : str, optional
             The accelerator to use for training, by default "cpu".
+        args : Any
+            Additional arguments to pass to the fit method.
+        kwargs : Any
+            Additional keyword arguments to pass to the fit method.
+
         """
         module = BasicLightningModule(
             model=model,

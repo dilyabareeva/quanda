@@ -1,3 +1,5 @@
+"""Top-K Cardinality benchmark module."""
+
 import logging
 import os
 from typing import Callable, List, Optional, Union, Any
@@ -19,17 +21,20 @@ logger = logging.getLogger(__name__)
 
 class TopKCardinality(Benchmark):
     # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
-    """
-    Benchmark for the Top-K Cardinality heuristic. This benchmark evaluates the dependence of the attributions
-    on the test samples being attributed.
+    """Benchmark for the Top-K Cardinality heuristic.
 
-    The cardinality of the union of top-k attributed training samples is computed. A higher cardinality indicates
-    variance in the attributions, which indicates dependence on the test samples.
+    This benchmark evaluates the dependence of the attributions on the test
+    samples being attributed. The cardinality of the union of top-k attributed
+    training samples is computed. A higher cardinality indicates variance in
+    the attributions, which indicates dependence on the test samples.
 
     References
     ----------
-    1) Barshan, Elnaz, Marc-Etienne Brunet, and Gintare Karolina Dziugaite. (2020). Relatif: Identifying explanatory training
-    samples via relative influence. International Conference on Artificial Intelligence and Statistics. PMLR.
+    1) Barshan, Elnaz, Marc-Etienne Brunet, and Gintare Karolina Dziugaite.
+    (2020). Relatif: Identifying explanatory training samples via relative
+    influence. International Conference on Artificial Intelligence and
+    Statistics. PMLR.
+
     """
 
     name: str = "Top-K Cardinality"
@@ -39,8 +44,7 @@ class TopKCardinality(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Initializer for the Top-K Cardinality benchmark.
+        """Initialize the Top-K Cardinality benchmark.
 
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
@@ -63,6 +67,7 @@ class TopKCardinality(Benchmark):
         model: torch.nn.Module,
         checkpoints: Union[str, List[str]],
         eval_dataset: torch.utils.data.Dataset,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         top_k: int = 1,
         use_predictions: bool = True,
@@ -70,8 +75,7 @@ class TopKCardinality(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Generates the benchmark by specifying parameters.
+        """Generate the benchmark by specifying parameters.
 
         The evaluation can then be run using the `evaluate` method.
 
@@ -81,25 +85,35 @@ class TopKCardinality(Benchmark):
             The training dataset used to train the model.
         model : torch.nn.Module
             The model to be evaluated.
+        checkpoints : Union[str, List[str]]
+            The path to the checkpoint(s) to load the model from.
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            The function to load the checkpoint(s), by default None
         data_transform : Optional[Callable], optional
             The transform to be applied to the dataset, by default None
         top_k : int, optional
             The number of top-k samples to consider, by default 1
         use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by default True
+            Whether to use the model's predictions for the evaluation, by
+            default True
         dataset_split : str, optional
             _description_, by default "train"
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Returns
         -------
         TopKCardinality
             The benchmark instance.
-        """
 
+        """
         logger.info(
-            f"Generating {TopKCardinality.name} benchmark components based on passed arguments..."
+            f"Generating {TopKCardinality.name} benchmark components based on "
+            f"passed arguments..."
         )
 
         obj = cls(train_dataset)
@@ -114,6 +128,7 @@ class TopKCardinality(Benchmark):
         obj.use_predictions = use_predictions
         obj.model = model
         obj.checkpoints = checkpoints
+        obj.checkpoints_load_func = checkpoints_load_func
 
         return obj
 
@@ -126,8 +141,10 @@ class TopKCardinality(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
+        """Download a precomputed benchmark from URL.
+
+        Load precomputed benchmark components from a file and creates an
+        instance from the state dictionary.
 
         Parameters
         ----------
@@ -137,11 +154,16 @@ class TopKCardinality(Benchmark):
             Directory where the benchmark components are stored.
         device : str
             Device to be used for the model.
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Returns
         -------
         TopKCardinality
             The benchmark instance.
+
         """
         obj = cls()
         bench_state = obj._get_bench_state(
@@ -192,32 +214,43 @@ class TopKCardinality(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Assembles the benchmark from existing components.
+        """Assembles the benchmark from existing components.
 
         Parameters
         ----------
         model : torch.nn.Module
             The model to be evaluated.
+        checkpoints : Union[str, List[str]]
+            The path to the checkpoint(s) to load the model from.
         train_dataset : Union[str, torch.utils.data.Dataset]
             The training dataset used to train the model.
         eval_dataset : torch.utils.data.Dataset
             The dataset to be used for the evaluation.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            The function to load the checkpoint(s), by default None.
         data_transform : Optional[Callable], optional
             The transform to be applied to the dataset, by default None.
         top_k : int, optional
             The number of top-k samples to consider, by default 1.
         use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by default True.
+            Whether to use the model's predictions for the evaluation, by
+            default True.
         dataset_split : str, optional
-            The dataset split, by default "train", only used for HuggingFace datasets.
+            The dataset split, by default "train", only used for HuggingFace
+            datasets.
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
+            List of paths to the checkpoints. This parameter is only used for
+            downloaded benchmarks, by default None.
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Returns
         -------
         TopKCardinality
             The benchmark instance.
+
         """
         obj = cls()
         obj._set_devices(model)
@@ -243,13 +276,13 @@ class TopKCardinality(Benchmark):
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
     ):
-        """
-        Evaluates the benchmark using a given explanation method.
+        """Evaluate the benchmark using a given explanation method.
 
         Parameters
         ----------
         explainer_cls: type
-            The explanation class inheriting from the base Explainer class to be used for evaluation.
+            The explanation class inheriting from the base Explainer class to
+            be used for evaluation.
         expl_kwargs: Optional[dict], optional
             Keyword arguments for the explainer, by default None.
         batch_size: int, optional
@@ -259,6 +292,7 @@ class TopKCardinality(Benchmark):
         -------
         Dict[str, float]
             Dictionary containing the metric score.
+
         """
         self.model.eval()
 

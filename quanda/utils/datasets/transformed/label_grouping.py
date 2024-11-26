@@ -1,3 +1,5 @@
+"""Dataset wrapper that groups the classes of a dataset into superclasses."""
+
 import warnings
 from typing import Callable, Dict, List, Literal, Optional, Union
 
@@ -9,7 +11,7 @@ ClassToGroupLiterals = Literal["random"]
 
 
 class LabelGroupingDataset(TransformedDataset):
-    """Dataset wrapper that groups the classes of a dataset into superclasses."""
+    """Dataset wrapper that groups the classes into superclasses."""
 
     def __init__(
         self,
@@ -21,8 +23,7 @@ class LabelGroupingDataset(TransformedDataset):
         n_groups: Optional[int] = None,
         class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
     ):
-        """
-        Constructor for the LabelGroupingDataset class.
+        """Construct the LabelGroupingDataset class.
 
         Parameters
         ----------
@@ -39,14 +40,17 @@ class LabelGroupingDataset(TransformedDataset):
         n_groups : Optional[int], optional
             Number of groups to divide the classes into, defaults to None.
         class_to_group : Union[ClassToGroupLiterals, Dict[int, int]], optional
-            Dictionary of class to group assignment or "random" to assign classes randomly, defaults to "random".
+            Dictionary of class to group assignment or "random" to assign
+            classes randomly, defaults to "random".
 
         Raises
         ------
         ValueError
             If class_to_group is "random" and n_groups is not specified.
         ValueError
-            If class_to_group dictionary length does not match number of classes.
+            If class_to_group dictionary length does not match number of
+            classes.
+
         """
         super().__init__(
             dataset=dataset,
@@ -61,7 +65,8 @@ class LabelGroupingDataset(TransformedDataset):
         if class_to_group == "random":
             if n_groups is None:
                 raise ValueError(
-                    "n_classes and n_groups must be specified when class_to_group is 'random'"
+                    "n_classes and n_groups must be specified when "
+                    "class_to_group is 'random'"
                 )
 
             self.n_classes = n_classes
@@ -75,7 +80,8 @@ class LabelGroupingDataset(TransformedDataset):
         elif isinstance(class_to_group, dict):
             if n_groups is not None:
                 warnings.warn(
-                    "Class-to-group assignment is used. n_groups parameter is ignored."
+                    "Class-to-group assignment is used. n_groups parameter is "
+                    "ignored."
                 )
 
             self.class_to_group = class_to_group
@@ -91,22 +97,26 @@ class LabelGroupingDataset(TransformedDataset):
         self.label_fn = lambda x: self.class_to_group[x]
 
     def _validate_class_to_group(self):
-        """
-        Validates the class_to_group dictionary.
+        """Validate the class_to_group dictionary.
 
         Raises
         ------
         ValueError
-            If the length of the class_to_group dictionary does not match the number of classes.
+            If the length of the class_to_group dictionary does not match the
+            number of classes.
         ValueError
-            If there are invalid group assignments in the class_to_group dictionary.
+            If there are invalid group assignments in the class_to_group
+            dictionary.
+
         """
         if not len(self.class_to_group) == self.n_classes:
             raise ValueError(
-                f"Length of class_to_group dictionary ({len(self.class_to_group)}) "
+                f"Length of class_to_group dictionary "
+                f"({len(self.class_to_group)}) "
                 f"does not match number of classes ({self.n_classes})"
             )
         if not all([g in self.groups for g in self.class_to_group.values()]):
             raise ValueError(
-                f"Invalid group assignment in class_to_group: {self.class_to_group.values()}"
+                f"Invalid group assignment in class_to_group: "
+                f"{self.class_to_group.values()}"
             )

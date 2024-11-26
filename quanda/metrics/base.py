@@ -1,3 +1,5 @@
+"""Base class for metrics."""
+
 from abc import ABC, abstractmethod
 from typing import Any, Union, List, Optional, Callable
 
@@ -7,9 +9,7 @@ from quanda.utils.common import get_load_state_dict_func
 
 
 class Metric(ABC):
-    """
-    Base class for metrics.
-    """
+    """Base class for metrics."""
 
     def __init__(
         self,
@@ -18,19 +18,21 @@ class Metric(ABC):
         train_dataset: torch.utils.data.Dataset,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
     ):
-        """
-        Base class for metrics.
+        """Initialize metric.
 
         Parameters
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
             The model to be used for the influence computation.
         checkpoints : Union[str, List[str]]
-            Path to the checkpoint file(s) to be used for the attribution computation.
+            Path to the checkpoint file(s) to be used for the attribution
+            computation.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, by default None.
+            Function to load the model from the checkpoint file, by default
+            None.
+
         """
         self.device: Union[str, torch.device]
         self.model: torch.nn.Module = model
@@ -39,7 +41,7 @@ class Metric(ABC):
         )
         self.train_dataset: torch.utils.data.Dataset = train_dataset
 
-        # if model has device attribute, use it, otherwise use the default device
+        # if model has device attribute, use it, otherwise the
         if next(model.parameters(), None) is not None:
             self.device = next(model.parameters()).device
         else:
@@ -56,39 +58,34 @@ class Metric(ABC):
         *args: Any,
         **kwargs: Any,
     ):
-        """
-        Used to update the metric with new data.
+        """Update the metric with new data.
 
         Raises
         ------
         NotImplementedError
+
         """
         raise NotImplementedError
 
     @abstractmethod
     def compute(self) -> Any:
-        """
-        Used to compute the metric score.
+        """Compute the metric score.
 
         Raises
         ------
         NotImplementedError
-        """
 
+        """
         raise NotImplementedError
 
     @abstractmethod
     def reset(self):
-        """
-        Used to reset the metric state.
-
-        """
+        """Reset the metric state."""
         raise NotImplementedError
 
     @abstractmethod
     def load_state_dict(self, state_dict: dict):
-        """
-        Used to load the metric state.
+        """Load the metric state.
 
         Parameters
         ----------
@@ -98,29 +95,28 @@ class Metric(ABC):
         Raises
         ------
         NotImplementedError
-        """
 
+        """
         raise NotImplementedError
 
     @abstractmethod
     def state_dict(self) -> dict:
-        """
-        Used to get the metric state.
+        """Get the metric state.
 
         Raises
         ------
         NotImplementedError
-        """
 
+        """
         raise NotImplementedError
 
     def load_last_checkpoint(self):
-        """
-        Load the model from the checkpoint file.
+        """Load the model from the checkpoint file.
 
         Parameters
         ----------
         checkpoint : str
             Path to the checkpoint file.
+
         """
         self.checkpoints_load_func(self.model, self.checkpoints[-1])

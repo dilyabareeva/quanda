@@ -1,3 +1,5 @@
+"""Mixed Datasets benchmark module."""
+
 import copy
 import logging
 import os
@@ -24,27 +26,32 @@ logger = logging.getLogger(__name__)
 
 
 class MixedDatasets(Benchmark):
-    # TODO: remove FILTER BY "CORRECT" PREDICTION FOR BACKDOOR implied https://arxiv.org/pdf/2201.10055
-    """
-    Benchmark that measures the performance of a given influence estimation method in separating dataset sources.
+    # TODO: remove FILTER BY "CORRECT" PREDICTION FOR BACKDOOR implied
+    #  https://arxiv.org/pdf/2201.10055
+    """Mixed Datasets Benchmark.
 
-    Evaluates the performance of a given data attribution estimation method in identifying adversarial examples in a
-    classification task.
+    Evaluates the performance of a given data attribution estimation method in
+    identifying adversarial examples in a classification task.
 
-    The training dataset is assumed to consist of a "clean" and "adversarial" subsets, whereby the number of samples
-    in the clean dataset is significantly larger than the number of samples in the adversarial dataset. All adversarial
-    samples are labeled with one label from the clean dataset. The evaluation is based on the area under the
-    precision-recall curve (AUPRC), which quantifies the ranking of the influence of adversarial relative to clean
-    samples. AUPRC is chosen because it provides better insight into performance in highly-skewed classification tasks
-    where false positives are common.
+    The training dataset is assumed to consist of a "clean" and "adversarial"
+    subsets, whereby the number of samples in the clean dataset is
+    significantly larger than the number of samples in the adversarial dataset.
+    All adversarial samples are labeled with one label from the clean dataset.
+    The evaluation is based on the area under the precision-recall curve
+    (AUPRC), which quantifies the ranking of the influence of adversarial
+    relative to clean samples. AUPRC is chosen because it provides better
+    insight into performance in highly-skewed classification tasks where
+    false positives are common.
 
-    Unlike the original implementation, we only employ a single trained model, but we aggregate the AUPRC scores across
+    Unlike the original implementation, we only employ a single trained model,
+    but we aggregate the AUPRC scores across
     multiple test samples.
 
     References
     ----------
-    1) Hammoudeh, Z., & Lowd, D. (2022). Identifying a training-set attack's target using renormalized influence
-    estimation. In Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security
+    1) Hammoudeh, Z., & Lowd, D. (2022). Identifying a training-set attack's
+    target using renormalized influence estimation. In Proceedings of the 2022
+    ACM SIGSAC Conference on Computer and Communications Security
     (pp. 1367-1381).
 
     """
@@ -56,8 +63,7 @@ class MixedDatasets(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Initializer for the Mixed Datasets benchmark.
+        """Initialize the Mixed Datasets benchmark.
 
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
@@ -97,43 +103,54 @@ class MixedDatasets(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Generates the benchmark with passed components.
+        """Generate the benchmark with passed components.
 
-        This module handles the dataset creation and model training on the mixed dataset.
-        The evaluation can then be run using the `evaluate` method.
+        This module handles the dataset creation and model training on the
+        mixed dataset. The evaluation can then be run using the `evaluate`
+        method.
 
         Parameters
         ----------
         model: Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
         base_dataset: Union[str, torch.utils.data.Dataset]
-            Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
-            If a torch Dataset is passed, every item of the dataset is a tuple of the form (input, label).
+            Clean dataset to be used for the benchmark. If a string is passed,
+            it should be a HuggingFace dataset. If a torch Dataset is passed,
+            every item of the dataset is a tuple of the form (input, label).
         eval_dataset: torch.utils.data.Dataset
-            The dataset containing the adversarial examples used for evaluation. They should belong to
-            the same dataset and the same class as the samples in the adversarial dataset.
+            The dataset containing the adversarial examples used for
+            evaluation. They should belong to the same dataset and the same
+            class as the samples in the adversarial dataset.
         adversarial_dir: str
-            Path to directory containing the adversarial dataset. Typically consists of the same class of objects
-            (e.g. images of the same class).
+            Path to directory containing the adversarial dataset. Typically
+            consists of the same class of objects (e.g. images of the same
+            class).
         adversarial_label: int
             The label to be used for the adversarial dataset.
         trainer: Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the model. Can be a Lightning Trainer or a `BaseTrainer`.
+            Trainer to be used for training the model. Can be a Lightning
+            Trainer or a `BaseTrainer`.
+        cache_dir: str
+            Directory to store the generated benchmark.
         data_transform: Optional[Callable], optional
             Transform to be applied to the clean dataset, by default None.
         use_predictions: bool, optional
-            Whether to use the model's predictions for generating attributions. Defaults to True.
+            Whether to use the model's predictions for generating attributions.
+            Defaults to True.
         filter_by_prediction: bool, optional
-            Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.
+            Whether to filter the adversarial examples to only use correctly
+            predicted test samples. Defaults to True.
         dataset_split: str, optional
-            The dataset split, only used for HuggingFace datasets, by default "train".
+            The dataset split, only used for HuggingFace datasets, by default
+            "train".
         adversarial_transform : Optional[Callable], optional
-             Transform to be applied to the adversarial dataset, by default None.
+             Transform to be applied to the adversarial dataset, by default
+             None.
         val_dataset: Optional[torch.utils.data.Dataset], optional
             Validation dataset to be used for the benchmark, by default None.
         trainer_fit_kwargs: Optional[dict], optional
-            Additional keyword arguments for the trainer's fit method, by default None.
+            Additional keyword arguments for the trainer's fit method, by
+            default None.
         batch_size: int, optional
             Batch size that is used for training, by default 8
         args: Any
@@ -149,15 +166,18 @@ class MixedDatasets(Benchmark):
         Raises
         ------
         ValueError
-            If the model is not a LightningModule and the trainer is a Lightning Trainer.
+            If the model is not a LightningModule and the trainer is a
+            Lightning Trainer.
         ValueError
-            If the model is not a torch.nn.Module and the trainer is a BaseTrainer.
+            If the model is not a torch.nn.Module and the trainer is a
+            BaseTrainer.
         ValueError
             If the trainer is neither a Lightning Trainer nor a BaseTrainer.
-        """
 
+        """
         logger.info(
-            f"Generating {MixedDatasets.name} benchmark components based on passed arguments..."
+            f"Generating {MixedDatasets.name} benchmark components based on "
+            f"passed arguments..."
         )
 
         obj = cls()
@@ -203,7 +223,8 @@ class MixedDatasets(Benchmark):
         if isinstance(trainer, L.Trainer):
             if not isinstance(obj.model, L.LightningModule):
                 raise ValueError(
-                    "Model should be a LightningModule if Trainer is a Lightning Trainer"
+                    "Model should be a LightningModule if Trainer is a "
+                    "Lightning Trainer"
                 )
 
             trainer.fit(
@@ -216,7 +237,8 @@ class MixedDatasets(Benchmark):
         elif isinstance(trainer, BaseTrainer):
             if not isinstance(obj.model, torch.nn.Module):
                 raise ValueError(
-                    "Model should be a torch.nn.Module if Trainer is a BaseTrainer"
+                    "Model should be a torch.nn.Module if Trainer is a "
+                    "BaseTrainer"
                 )
 
             trainer.fit(
@@ -244,9 +266,10 @@ class MixedDatasets(Benchmark):
 
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """
-        This method loads precomputed benchmark components from a file and creates an instance
-        from the state dictionary.
+        """Download a precomputed benchmark.
+
+        Load precomputed benchmark components from a file and creates an
+        instance from the state dictionary.
 
         Parameters
         ----------
@@ -256,11 +279,16 @@ class MixedDatasets(Benchmark):
             Directory to store the downloaded benchmark components.
         device : str
             Device to load the model on.
+        args : Any
+            Additional positional arguments.
+        kwargs : Any
+            Additional keyword arguments.
 
         Returns
         -------
         MixedDatasets
             The benchmark instance.
+
         """
         obj = cls()
         bench_state = obj._get_bench_state(
@@ -313,8 +341,10 @@ class MixedDatasets(Benchmark):
     def _download_adversarial_dataset(
         name: str, adversarial_dir_url: str, cache_dir: str
     ):
-        """
-        Downloads the adversarial dataset from the given URL and returns the path to the downloaded directory.
+        """Download the adversarial dataset.
+
+        Download the adversarial dataset from the given URL and returns the
+        path to the downloaded directory.
 
         Parameters
         ----------
@@ -329,8 +359,8 @@ class MixedDatasets(Benchmark):
         -------
         str
             Path to the downloaded adversarial dataset directory.
-        """
 
+        """
         # Download the zip file and extract into cache dir
         adversarial_dir = os.path.join(
             cache_dir, name + "_adversarial_dataset"
@@ -370,41 +400,55 @@ class MixedDatasets(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Assembles the benchmark from the given components.
+        """Assembles the benchmark from the given components.
 
         Parameters
         ----------
         model: Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
+        checkpoints: Union[str, List[str]]
+            Path to the checkpoint(s) to load the model from.
         eval_dataset: torch.utils.data.Dataset
-            The dataset containing the adversarial examples used for evaluation. They should belong to
-            the same dataset and the same class as the samples in the adversarial dataset.
+            The dataset containing the adversarial examples used for
+            evaluation. They should belong to the same dataset and the same
+            class as the samples in the adversarial dataset.
         base_dataset: Union[str, torch.utils.data.Dataset]
-            Clean dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
+            Clean dataset to be used for the benchmark. If a string is passed,
+            it should be a HuggingFace dataset.
         adversarial_dir: str
             Path to the adversarial dataset of a single class.
         adversarial_label: int
             The label to be used for the adversarial dataset.
+        checkpoints_load_func: Optional[Callable[..., Any]], optional
+            Function to load the checkpoint(s), by default None.
         data_transform: Optional[Callable], optional
             Transform to be applied to the clean dataset, by default None.
         use_predictions: bool, optional
-            Whether to use the model's predictions for generating attributions. Defaults to True.
+            Whether to use the model's predictions for generating attributions.
+            Defaults to True.
         filter_by_prediction: bool, optional
-            Whether to filter the adversarial examples to only use correctly predicted test samples. Defaults to True.
+            Whether to filter the adversarial examples to only use correctly
+            predicted test samples. Defaults to True.
         adversarial_transform: Optional[Callable], optional
-            Transform to be applied to the adversarial dataset, by default None.
+            Transform to be applied to the adversarial dataset, by default
+            None.
         dataset_split: str, optional
-            The dataset split, only used for HuggingFace datasets, by default "train".
+            The dataset split, only used for HuggingFace datasets, by default
+            "train".
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
+            List of paths to the checkpoints. This parameter is only used for
+            downloaded benchmarks, by default None.
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Returns
         -------
         MixedDatasets
             The benchmark instance.
-        """
 
+        """
         obj = cls()
         obj.model = model
         obj.checkpoints = checkpoints
@@ -441,13 +485,13 @@ class MixedDatasets(Benchmark):
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
     ):
-        """
-        Evaluates the benchmark using a given explanation method.
+        """Evaluate the benchmark using a given explanation method.
 
         Parameters
         ----------
         explainer_cls: type
-            The explanation class inheriting from the base Explainer class to be used for evaluation.
+            The explanation class inheriting from the base Explainer class to
+            be used for evaluation.
         expl_kwargs: Optional[dict], optional
             Keyword arguments for the explainer, by default None.
         batch_size: int, optional
@@ -457,6 +501,7 @@ class MixedDatasets(Benchmark):
         -------
         Dict[str, float]
             Dictionary containing the metric score.
+
         """
         self.model.eval()
 

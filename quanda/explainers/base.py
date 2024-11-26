@@ -1,3 +1,5 @@
+"""Base class for explainers."""
+
 from abc import ABC, abstractmethod
 from typing import List, Union, Optional, Callable, Any
 
@@ -9,9 +11,9 @@ from quanda.utils.datasets import OnDeviceDataset
 
 
 class Explainer(ABC):
-    """
-    Base class for explainer wrappers. Defines the interface that all
-    explainer classes must implement.
+    """Base class for explainer wrappers.
+
+    Defines the interface that all explainer classes must implement.
 
     """
 
@@ -23,20 +25,23 @@ class Explainer(ABC):
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         **kwargs,
     ):
-        """Initializer for the `Explainer` class.
+        """Initialize the `Explainer` class.
 
         Parameters
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
             The model to be used for the influence computation.
         checkpoints : Union[str, List[str]]
-            Path to the checkpoint file(s) to be used for the attribution computation.
+            Path to the checkpoint file(s) to be used for the attribution
+            computation.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, by default None.
+            Function to load the model from the checkpoint file, by default
+            None.
         **kwargs : dict
             Additional keyword arguments passed to the explainer.
+
         """
         self.device: Union[str, torch.device]
         self.model = model
@@ -44,7 +49,7 @@ class Explainer(ABC):
             checkpoints if isinstance(checkpoints, List) else [checkpoints]
         )
 
-        # if model has device attribute, use it, otherwise use the default device
+        # if model has device attribute, use it, otherwise use the default
         if next(model.parameters(), None) is not None:
             self.device = next(model.parameters()).device
         else:
@@ -67,8 +72,7 @@ class Explainer(ABC):
         test_tensor: torch.Tensor,
         targets: Union[List[int], torch.Tensor],
     ) -> torch.Tensor:
-        """
-        Abstract method for computing influence scores for the test samples.
+        """Abstract method for computing influence scores for the test samples.
 
         Parameters
         ----------
@@ -80,14 +84,15 @@ class Explainer(ABC):
         Returns
         -------
         torch.Tensor
-            2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
+            2D Tensor of shape (test_samples, train_dataset_size) containing
+            the influence scores.
+
         """
         raise NotImplementedError
 
     @cache_result
     def self_influence(self, batch_size: int = 32) -> torch.Tensor:
-        """
-        Compute self-influence scores for the training dataset by explaining the dataset one by one.
+        """Compute self-influence scores by explaining one by one.
 
         Parameters
         ----------
@@ -98,8 +103,8 @@ class Explainer(ABC):
         -------
         torch.Tensor
             Self-influence score for each datapoint in the training dataset.
-        """
 
+        """
         # Pre-allcate memory for influences, because torch.cat is slow
         influences = torch.empty(
             (ds_len(self.train_dataset),), device=self.device
@@ -120,12 +125,12 @@ class Explainer(ABC):
         return influences
 
     def load_last_checkpoint(self):
-        """
-        Load the model from the checkpoint file.
+        """Load the model from the checkpoint file.
 
         Parameters
         ----------
         checkpoint : str
             Path to the checkpoint file.
+
         """
         self.checkpoints_load_func(self.model, self.checkpoints[-1])

@@ -1,3 +1,5 @@
+"""Common utility functions for the Quanda package."""
+
 import functools
 from contextlib import contextmanager
 from functools import reduce
@@ -8,8 +10,7 @@ import torch.utils.data
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
-    """
-    Simple helper function to get a module from a model by name.
+    """Get a module from a model by name.
 
     Parameters
     ----------
@@ -22,6 +23,7 @@ def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
     -------
     Any
         The module extracted from the model.
+
     """
     return reduce(getattr, layer_name.split("."), model)
 
@@ -29,8 +31,7 @@ def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
 def get_parent_module_from_name(
     model: torch.nn.Module, layer_name: str
 ) -> Any:
-    """
-    Get the parent module of a module in a model by name.
+    """Get the parent module of a module in a model by name.
 
     Parameters
     ----------
@@ -43,6 +44,7 @@ def get_parent_module_from_name(
     -------
     Any
         The module extracted from the model.
+
     """
     return reduce(getattr, layer_name.split(".")[:-1], model)
 
@@ -50,8 +52,7 @@ def get_parent_module_from_name(
 def make_func(
     func: Callable, func_kwargs: Optional[Mapping[str, Any]] = None, **kwargs
 ) -> functools.partial:
-    """
-    A function for creating a partial function with the given arguments.
+    """Create a partial function with the given arguments.
 
     Parameters
     ----------
@@ -59,11 +60,14 @@ def make_func(
         The function to create a partial function from.
     func_kwargs : Optional[Mapping[str, Any]]
         Optional keyword arguments to fix for the function.
+    kwargs : Any
+        Additional keyword arguments for the function.
 
     Returns
     -------
     functools.partial
         The partial function with the given arguments.
+
     """
     if func_kwargs is not None:
         _func_kwargs = kwargs.copy()
@@ -75,7 +79,7 @@ def make_func(
 
 
 def cache_result(method):
-    """Decorator to cache method results."""
+    """Decorate functions to cache method results."""
     cache_attr = f"_{method.__name__}_cache"
 
     @functools.wraps(method)
@@ -92,8 +96,7 @@ def class_accuracy(
     loader: torch.utils.data.DataLoader,
     device: Union[str, torch.device] = "cpu",
 ):
-    """
-    Return accuracy on a dataset given by the data loader.
+    """Return accuracy on a dataset given by the data loader.
 
     Parameters
     ----------
@@ -121,18 +124,17 @@ def class_accuracy(
 
 
 # Taken directly from Captum with minor changes
-# (required because Captum's Arnoldi Influence Function does not allow to specify device)
 def _load_flexible_state_dict(
     model: torch.nn.Module, path: str, device: Union[str, torch.device]
 ) -> float:
-    """
-    Helper to load pytorch models. This function attempts to find compatibility for
-    loading models that were trained on different devices / with DataParallel but are
-    being loaded in a different environment.
+    """Load pytorch models.
 
-    Assumes that the model has been saved as a state_dict in some capacity. This can
-    either be a single state dict, or a nesting dictionary which contains the model
-    state_dict and other information.
+    This function attempts to find compatibility for
+    loading models that were trained on different devices / with DataParallel
+    but are being loaded in a different environment. Assumes that the model has
+    been saved as a state_dict in some capacity. This can either be a single
+    state dict, or a nesting dictionary which contains the model state_dict
+    and other information.
 
     Parameters
     ----------
@@ -151,6 +153,7 @@ def _load_flexible_state_dict(
     Notes
     -----
     The module state_dict is modified in-place.
+
     """
     if isinstance(device, str):
         device = torch.device(device)
@@ -178,13 +181,13 @@ def _load_flexible_state_dict(
 
 
 def get_load_state_dict_func(device: Union[str, torch.device]):
-    """
-    Function to get a load_state_dict function that loads a model state dict
+    """Get a load_state_dict function that loads a model state dict.
 
     Parameters
     ----------
     device : Union[str, torch.device]
         The device to load the model on.
+
     """
 
     def load_state_dict(model: torch.nn.Module, path: str) -> float:
@@ -195,8 +198,7 @@ def get_load_state_dict_func(device: Union[str, torch.device]):
 
 @contextmanager
 def default_tensor_type(device: Union[str, torch.device]):
-    """
-    Context manager to temporarily change the default tensor type.
+    """Context manager to temporarily change the default tensor type.
 
     Parameters
     ----------
@@ -233,8 +235,7 @@ def default_tensor_type(device: Union[str, torch.device]):
 
 @contextmanager
 def map_location_context(device: Union[str, torch.device]):
-    """
-    Context manager to temporarily change the map_location parameter of torch.load.
+    """Context manager to temporarily change the map_location of torch.load.
 
     Parameters
     ----------
@@ -244,6 +245,7 @@ def map_location_context(device: Union[str, torch.device]):
     Returns
     -------
     None
+
     """
     original_load = torch.load
 
@@ -262,8 +264,7 @@ def map_location_context(device: Union[str, torch.device]):
 
 
 def ds_len(dataset: torch.utils.data.Dataset) -> int:
-    """
-    Get the length of the dataset.
+    """Get the length of the dataset.
 
     Parameters
     ----------
@@ -274,6 +275,7 @@ def ds_len(dataset: torch.utils.data.Dataset) -> int:
     -------
     int
         The length of the dataset.
+
     """
     if isinstance(dataset, Sized):
         return len(dataset)
@@ -284,8 +286,7 @@ def ds_len(dataset: torch.utils.data.Dataset) -> int:
 def process_targets(
     targets: Union[List[int], torch.Tensor], device: Union[str, torch.device]
 ) -> torch.Tensor:
-    """
-    Convert target labels to torch.Tensor and move them to the device.
+    """Convert target labels to torch.Tensor and move them to the device.
 
     Parameters
     ----------
@@ -298,6 +299,7 @@ def process_targets(
     -------
     torch.Tensor or None
         The processed targets as a tensor, or None if no targets are provided.
+
     """
     if targets is not None:
         if isinstance(targets, list):

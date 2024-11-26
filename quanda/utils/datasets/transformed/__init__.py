@@ -1,3 +1,5 @@
+"""Transformed datasets module."""
+
 from quanda.utils.datasets.transformed.base import TransformedDataset
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,

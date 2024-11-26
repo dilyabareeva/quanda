@@ -1,3 +1,5 @@
+"""Base class for all benchmarks."""
+
 import os
 from abc import ABC, abstractmethod
 from typing import Callable, List, Optional, Union
@@ -11,16 +13,12 @@ from quanda.utils.datasets.image_datasets import HFtoTV
 
 
 class Benchmark(ABC):
-    """
-    Base class for all benchmarks.
-    """
+    """Base class for all benchmarks."""
 
     name: str
 
     def __init__(self, *args, **kwargs):
-        """
-        Initializer for the base `Benchmark` class.
-        """
+        """Initialize the base `Benchmark` class."""
         self.device: Optional[Union[str, torch.device]]
         self.bench_state: dict
         self._checkpoint_paths: Optional[List[str]] = None
@@ -28,23 +26,24 @@ class Benchmark(ABC):
     @classmethod
     @abstractmethod
     def generate(cls, *args, **kwargs):
-        """
-        Generates the benchmark by specifying parameters.
+        """Generate the benchmark by specifying parameters.
 
         The evaluation can then be run using the `evaluate` method.
 
         Raises
         ------
         NotImplementedError
+
         """
         raise NotImplementedError
 
     @classmethod
     @abstractmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """
-        This method loads precomputed benchmark components from a file and creates an instance from the state
-        dictionary.
+        """Download a precomputed benchmark.
+
+        Load precomputed benchmark components from a file and creates an
+        instance from the state dictionary.
 
         Parameters
         ----------
@@ -54,19 +53,25 @@ class Benchmark(ABC):
             Directory to store the downloaded benchmark components.
         device : str
             Device to load the model on.
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Raises
         ------
         NotImplementedError
-        """
 
+        """
         raise NotImplementedError
 
     def _get_bench_state(
-        self, name: str, cache_dir: str, device: str, *args, **kwargs
+        self,
+        name: str,
+        cache_dir: str,
+        device: str,
     ):
-        """
-        Downloads a benchmark state dictionary of a benchmark and returns.
+        """Download a benchmark state dictionary of a benchmark and returns.
 
         Parameters
         ----------
@@ -81,6 +86,7 @@ class Benchmark(ABC):
         -------
         dict
             Benchmark state dictionary.
+
         """
         # check if file exists
         if not os.path.exists(os.path.join(cache_dir, name + ".pth")):
@@ -102,12 +108,12 @@ class Benchmark(ABC):
     @classmethod
     @abstractmethod
     def assemble(cls, *args, **kwargs):
-        """
-        Assembles the benchmark from existing components.
+        """Assembles the benchmark from existing components.
 
         Raises
         ------
         NotImplementedError
+
         """
         raise NotImplementedError
 
@@ -118,36 +124,36 @@ class Benchmark(ABC):
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
     ):
-        """
-        Run the evaluation using the benchmark.
+        """Run the evaluation using the benchmark.
 
         Parameters
         ----------
         explainer_cls : type
             The explainer class to be used for evaluation.
         expl_kwargs : Optional[dict], optional
-            Additional keyword arguments to be passed to the explainer, by default None.
+            Additional keyword arguments to be passed to the explainer, by
+            default None.
         batch_size : int, optional
             Batch size for the evaluation, by default 8.
 
         Raises
         ------
         NotImplementedError
-        """
 
+        """
         raise NotImplementedError
 
     def _set_devices(
         self,
         model: torch.nn.Module,
     ):
-        """
-        Infer device from model.
+        """Infer device from model.
 
         Parameters
         ----------
         model : torch.nn.Module
             The model associated with the attributions to be evaluated.
+
         """
         if next(model.parameters(), None) is not None:
             self.device = next(model.parameters()).device
@@ -160,8 +166,7 @@ class Benchmark(ABC):
         transform: Optional[Callable] = None,
         dataset_split: str = "train",
     ):
-        """
-        Return the dataset using the given parameters.
+        """Return the dataset using the given parameters.
 
         Parameters
         ----------
@@ -170,12 +175,14 @@ class Benchmark(ABC):
         transform : Optional[Callable], optional
             The transform to be applied to the dataset, by default None.
         dataset_split : str, optional
-            The dataset split, by default "train", only used for HuggingFace datasets.
+            The dataset split, by default "train", only used for HuggingFace
+            datasets.
 
         Returns
         -------
         torch,utils.data.Dataset
             The dataset.
+
         """
         if isinstance(dataset, str):
             cls.dataset_str = dataset
@@ -192,8 +199,7 @@ class Benchmark(ABC):
         transform: Optional[Callable] = None,
         dataset_split: str = "test",
     ):
-        """
-        Downloads the HuggingFace evaluation dataset from given name.
+        """Download the HuggingFace evaluation dataset from given name.
 
         Parameters
         ----------
@@ -210,6 +216,7 @@ class Benchmark(ABC):
         -------
         torch.utils.data.Dataset
             The evaluation dataset.
+
         """
         test_dataset = HFtoTV(
             load_dataset(dataset_str, split=dataset_split), transform=transform
@@ -217,7 +224,9 @@ class Benchmark(ABC):
         return torch.utils.data.Subset(test_dataset, eval_indices)
 
     def get_checkpoint_paths(self) -> List[str]:
+        """Return the paths to the checkpoints."""
         assert (
             self._checkpoint_paths is not None
-        ), "get_checkpoint_paths can only be called after instantiating a benchmark using the download method."
+        ), ("get_checkpoint_paths can only be called after instantiating a "
+            "benchmark using the download method.")
         return self._checkpoint_paths

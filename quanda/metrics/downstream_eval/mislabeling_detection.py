@@ -1,3 +1,5 @@
+"""Mislabeling Detection Metric."""
+
 from typing import Any, List, Optional, Union, Callable
 
 import torch
@@ -12,32 +14,35 @@ from quanda.utils.common import ds_len
 
 
 class MislabelingDetectionMetric(Metric):
-    """
-    Metric for noisy label detection.
+    """Metric for noisy label detection.
 
-    This metric is used to evaluate attributions for detecting mislabeled samples.
-
-    Given the ground truth of mislabeled samples, and a strategy to get a global ranking
-    of datapoints from a local explainer, the area under the mislabeled sample detection
-    curve is computed following Kwon et al. (2024).
+    Given the ground truth of mislabeled samples, and a strategy to get a
+    global ranking of datapoints from a local explainer, the area under the
+    mislabeled sample detection curve is computed following Kwon et al. (2024).
 
     References
     ----------
-    1) Koh, P. W., & Liang, P. (2017). Understanding black-box predictions via influence functions. In International
-    Conference on Machine Learning (pp. 1885-1894). PMLR.
+    1) Koh, P. W., & Liang, P. (2017). Understanding black-box predictions via
+    influence functions. In International Conference on Machine Learning
+    (pp. 1885-1894). PMLR.
 
-    2) Yeh, C.-K., Kim, J., Yen, I. E., Ravikumar, P., & Dhillon, I. S. (2018). Representer point selection
-    for explaining deep neural networks. In Advances in Neural Information Processing Systems (Vol. 31).
+    2) Yeh, C.-K., Kim, J., Yen, I. E., Ravikumar, P., & Dhillon, I. S. (2018).
+    Representer point selection for explaining deep neural networks. In
+    Advances in Neural Information Processing Systems (Vol. 31).
 
-    3) Pruthi, G., Liu, F., Sundararajan, M., & Kale, S. (2020). Estimating training data influence by tracing gradient
-    descent. In Advances in Neural Information Processing Systems (Vol. 33, pp. 19920-19930).
+    3) Pruthi, G., Liu, F., Sundararajan, M., & Kale, S. (2020). Estimating
+    training data influence by tracing gradient descent. In Advances in Neural
+    Information Processing Systems (Vol. 33, pp. 19920-19930).
 
-    4) Picard, A. M., Vigouroux, D., Zamolodtchikov, P., Vincenot, Q., Loubes, J.-M., & Pauwels, E. (2022). Leveraging
-    influence functions for dataset exploration and cleaning. In 11th European Congress on Embedded Real-Time Systems
-    (ERTS 2022) (pp. 1-8). Toulouse, France.
+    4) Picard, A. M., Vigouroux, D., Zamolodtchikov, P., Vincenot, Q., Loubes,
+    J.-M., & Pauwels, E. (2022). Leveraging influence functions for dataset
+    exploration and cleaning. In 11th European Congress on Embedded Real-Time
+    Systems (ERTS 2022) (pp. 1-8). Toulouse, France.
 
-    5) Kwon, Y., Wu, E., Wu, K., & Zou, J. (2024). DataInf: Efficiently estimating data influence in LoRA-tuned LLMs and
-    diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).
+    5) Kwon, Y., Wu, E., Wu, K., & Zou, J. (2024). DataInf: Efficiently
+    estimating data influence in LoRA-tuned LLMs and diffusion models. In The
+    Twelfth International Conference on Learning Representations (pp. 1-8).
+
     """
 
     def __init__(
@@ -50,31 +55,35 @@ class MislabelingDetectionMetric(Metric):
         global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
-        *args: Any,
-        **kwargs: Any,
     ):
-        """
-        Initializer for the Mislabeling Detection metric.
+        """Initialize the Mislabeling Detection metric.
 
         This initializer is not used directly.
-        Instead, the `self_influence_based` or `aggr_based` methods should be used.
+        Instead, the `self_influence_based` or `aggr_based` methods should be
+        used.
 
         Parameters
         ----------
         model : torch.nn.Module
             The model associated with the attributions to be evaluated.
+        checkpoints : Union[str, List[str]]
+            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset that was used to train `model`.
         mislabeling_indices : List[int]
             A list of ground truth mislabeled indices of the `train_dataset`.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            The function to load the checkpoint(s), by default None.
         global_method : Union[str, type], optional
             The methodology to generate a global ranking from local explainer.
-            It can be "self-influence" or a subclass of `quanda.explainers.aggregators.BaseAggregator`.
-            Defaults to "self-influence".
+            It can be "self-influence" or a subclass of
+            `quanda.explainers.aggregators.BaseAggregator`. Defaults to
+            "self-influence".
         explainer_cls : Optional[type], optional
             The explainer class. Defaults to None.
-            This parameter should be a subclass of `quanda.explainers.BaseExplainer` whenever `global_method`
-            is "self-influence".
+            This parameter should be a subclass of
+            `quanda.explainers.BaseExplainer` whenever `global_method` is
+            "self-influence".
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer class.
 
@@ -136,19 +145,23 @@ class MislabelingDetectionMetric(Metric):
         *args: Any,
         **kwargs: Any,
     ):
-        """
-        Perform self-influence based mislabeling detection.
+        """Perform self-influence based mislabeling detection.
 
         Parameters
         ----------
         model : torch.nn.Module
-            The trained model which was used for the attributions to be evaluated.
+            The trained model which was used for the attributions to be
+            evaluated.
+        checkpoints : Union[str, List[str]]
+            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train `model`.
         explainer_cls : type
             The class of the explainer used for self-influence computation.
         mislabeling_indices : List[int]
             The indices of the poisoned samples in the training dataset.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            The function to load the checkpoint(s), by default None.
         expl_kwargs : Optional[dict]
             Optional keyword arguments for the explainer class.
         *args : Any
@@ -159,7 +172,9 @@ class MislabelingDetectionMetric(Metric):
         Returns
         -------
         MislabelingDetectionMetric
-            An instance of the mislabeling detection metric with self-influence strategy.
+            An instance of the mislabeling detection metric with self-influence
+            strategy.
+
         """
         return cls(
             model=model,
@@ -180,27 +195,28 @@ class MislabelingDetectionMetric(Metric):
         train_dataset: torch.utils.data.Dataset,
         mislabeling_indices: List[int],
         aggregator_cls: Union[str, type],
-        *args,
-        **kwargs,
     ):
-        """
-        Perform aggregation-based mislabeling detection.
+        """Perform aggregation-based mislabeling detection.
 
         Parameters
         ----------
         model : torch.nn.Module
             The model to be evaluated.
+        checkpoints : Union[str, List[str]]
+            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train the model.
         mislabeling_indices : List[int]
             The indices of the poisoned samples in the training dataset.
         aggregator_cls : Union[str, type]
-            The class of the aggregation method to be used, or a string indicating the method.
+            The class of the aggregation method to be used, or a string
+            indicating the method.
 
         Returns
         -------
         MislabelingDetectionMetric
-            An instance of the class for aggregation-based mislabeling detection.
+            An instance of the class for aggregation-based mislabeling
+            detection.
 
         """
         return cls(
@@ -218,8 +234,8 @@ class MislabelingDetectionMetric(Metric):
         explanations: torch.Tensor,
         **kwargs,
     ):
-        """
-        Update the aggregator based metric with local attributions.
+        """Update the aggregator based metric with local attributions.
+
         This method is not used for self-influence based mislabeling detection.
 
         Parameters
@@ -230,8 +246,10 @@ class MislabelingDetectionMetric(Metric):
             The true labels of the test data.
         explanations : torch.Tensor
             The local attributions to be added to the aggregated scores.
-        """
+        kwargs : Any
+            Additional keyword arguments.
 
+        """
         explanations = explanations.to(self.device)
         test_data = test_data.to(self.device)
         test_labels = test_labels.to(self.device)
@@ -248,39 +266,41 @@ class MislabelingDetectionMetric(Metric):
         """Reset the global ranking strategy."""
         self.strategy.reset(*args, **kwargs)
 
-    def load_state_dict(self, state_dict: dict, *args, **kwargs):
-        """
-        Load previously computed state for the metric.
+    def load_state_dict(self, state_dict: dict):
+        """Load previously computed state for the metric.
 
         Parameters
         ----------
         state_dict : dict
             A state dictionary for the metric
+
         """
         self.strategy.load_state_dict(state_dict)
 
     def state_dict(self, *args, **kwargs):
-        """
-        Returns the state dictionary of the metric.
+        """Returnthe state dictionary of the metric.
 
         Returns
         -------
         dict
             The state dictionary of the metric.
+
         """
         return self.strategy.state_dict()
 
     def compute(self, *args, **kwargs):
-        """
-        Compute the mislabeling detection metrics.
+        """Compute the mislabeling detection metrics.
 
         Returns
         -------
         dict
             A dictionary containing the following elements:
-            - `success_arr`: A tensor indicating the mislabeling detection success of each element in the global ranking.
+            - `success_arr`: A tensor indicating the mislabeling detection
+            success of each element in the global ranking.
             - `curve`: The normalized curve of cumulative success rate.
-            - `score`: The mislabeling detection score, i.e. the area under `curve`.
+            - `score`: The mislabeling detection score, i.e. the area under
+            `curve`.
+
         """
         global_ranking = self.strategy.get_global_rank(*args, **kwargs)
         mislabeling_set = set(self.mislabeling_indices)
