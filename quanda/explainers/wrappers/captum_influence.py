@@ -1297,6 +1297,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
                 "final_fc_layer": final_fc_layer,
                 "train_dataset": self.train_dataset,
                 "checkpoints": checkpoints,
+                "checkpoints_load_func": self.checkpoints_load_func,
                 "loss_fn": loss_fn,
                 "batch_size": batch_size,
                 "test_loss_fn": test_loss_fn,
