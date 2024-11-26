@@ -171,7 +171,7 @@ def test_trak_cache(
     explanations_2 = explainer.explain(
         test_tensor=test_tensor, targets=test_labels[:2]
     )
-    assert (not torch.allclose(explanations[:2], explanations_2[:2])) and (
+    assert (not torch.allclose(explanations[:2], explanations_2[:2])) & (
         explanations.shape[0] != explanations_2.shape[0]
     ), "Caching is problematic inside the lifetime of the wrapper"
 

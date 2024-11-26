@@ -131,8 +131,8 @@ def test_explanations_cache(
 
     assert (
         ExplanationsCache.exists(cache_path)
-        and isinstance(
+        & isinstance(
             ExplanationsCache.load(cache_path), BatchedCachedExplanations
         )
-        and not ExplanationsCache.exists(cashew_path)
+        & (not ExplanationsCache.exists(cashew_path))
     ), "Explanations cache not as expected."
