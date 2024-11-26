@@ -81,6 +81,7 @@ class MixedDatasets(Benchmark):
         self.use_predictions: bool
         self.adversarial_label: int
         self.filter_by_prediction: bool
+        self.cache_dir: str
 
     @classmethod
     def generate(
@@ -525,7 +526,7 @@ class MixedDatasets(Benchmark):
             checkpoints_load_func=self.checkpoints_load_func,
             adversarial_indices=self.adversarial_indices,
             filter_by_prediction=self.filter_by_prediction,
-            adversarial_cls=self.adversarial_label,
+            adversarial_label=self.adversarial_label,
         )
 
         pbar = tqdm(adversarial_expl_dl)

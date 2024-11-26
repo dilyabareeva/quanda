@@ -530,7 +530,6 @@ class SubclassDetection(Benchmark):
                 ]
             ),
             filter_by_prediction=self.filter_by_prediction,
-            device=self.device,
         )
 
         pbar = tqdm(expl_dl)

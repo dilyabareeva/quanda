@@ -83,7 +83,6 @@ def test_randomization_metric(
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),
         seed=42,
-        device="cpu",
     )
     metric.update(
         test_data=test_data, explanations=tda, explanation_targets=test_labels
@@ -140,14 +139,13 @@ def test_randomization_metric_model_randomization(
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     metric = ModelRandomizationMetric(
         model=model,
-        model_id=0,
+        model_id="0",
         cache_dir=str(tmp_path),
         checkpoints=checkpoint,
         train_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         seed=42,
-        device="cpu",
         correlation_fn=corr_fn,
     )
     rand_model = metric.rand_model
@@ -195,7 +193,6 @@ def test_top_k_cardinality_metrics(
         checkpoints=checkpoint,
         train_dataset=dataset,
         top_k=top_k,
-        device="cpu",
     )
     metric.update(explanations=explanations)
     score = metric.compute()["score"]

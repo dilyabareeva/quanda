@@ -302,7 +302,6 @@ class ClassDetection(Benchmark):
             checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
-            device=self.device,
         )
 
         pbar = tqdm(expl_dl)

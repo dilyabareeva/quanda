@@ -51,7 +51,6 @@ def test_identical_class_metrics(
         model=model,
         checkpoints=checkpoint,
         train_dataset=dataset,
-        device="cpu",
     )
     metric.update(test_labels=test_labels, explanations=tda)
     score = metric.compute()["score"]
@@ -98,7 +97,6 @@ def test_identical_subclass_metrics(
         checkpoints=checkpoint,
         train_dataset=dataset,
         train_subclass_labels=subclass_labels,
-        device="cpu",
     )
     metric.update(test_subclasses=test_labels, explanations=tda)
     score = metric.compute()["score"]
@@ -179,7 +177,6 @@ def test_mislabeling_detection_metric(
             train_dataset=dataset,
             mislabeling_indices=dataset.transform_indices,
             global_method=global_method,
-            device="cpu",
         )
         metric.update(
             test_data=test_samples, test_labels=test_labels, explanations=tda
@@ -193,7 +190,6 @@ def test_mislabeling_detection_metric(
             mislabeling_indices=dataset.transform_indices,
             explainer_cls=CaptumSimilarity,
             expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
-            device="cpu",
         )
     score = metric.compute()["score"]
 

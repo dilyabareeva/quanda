@@ -1,5 +1,5 @@
 """Benchmark for the Linear Datamodeling Score metric."""
-
+import os
 import logging
 from typing import Callable, Optional, Union, List, Any
 
@@ -12,6 +12,7 @@ from quanda.benchmarks.resources import (
     load_module_from_bench_state,
     sample_transforms,
 )
+from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
@@ -208,6 +209,8 @@ class LinearDatamodeling(Benchmark):
 
         return obj.assemble(
             model=module,
+            checkpoints=bench_state["checkpoints_binary"],
+            checkpoints_load_func=bench_load_state_dict,
             train_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             m=bench_state["m"],

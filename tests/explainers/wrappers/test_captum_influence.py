@@ -337,7 +337,6 @@ def test_captum_arnoldi_explain_functional(
     explanations = captum_arnoldi_explain(
         model=model,
         checkpoints=checkpoint,
-        checkpoints_load_func=get_load_state_dict_func("cpu"),
         test_tensor=test_tensor,
         train_dataset=dataset,
         explanation_targets=test_labels,
@@ -520,7 +519,6 @@ def test_captum_tracincp_explain_functional(
         checkpoints=checkpoints,
         test_tensor=test_tensor,
         explanation_targets=test_labels,
-        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         **method_kwargs,
     )

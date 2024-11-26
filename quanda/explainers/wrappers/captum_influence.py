@@ -371,7 +371,7 @@ def captum_similarity_explain(
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     cache_dir: str = "./cache",
-    checkpoint_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """Functional interface for the `CaptumSimilarity` explainer.
@@ -390,7 +390,7 @@ def captum_similarity_explain(
         Training dataset to be used for the influence computation.
     cache_dir : str, optional
         Directory for caching activations. Defaults to "./cache".
-    checkpoint_load_func : Optional[Callable], optional
+    checkpoints_load_func : Optional[Callable], optional
         Function to load checkpoints. If None, a default function is used.
         Defaults to None.
     **kwargs : Any
@@ -411,7 +411,7 @@ def captum_similarity_explain(
         cache_dir=cache_dir,
         test_tensor=test_tensor,
         train_dataset=train_dataset,
-        checkpoint_load_func=checkpoint_load_func,
+        checkpoints_load_func=checkpoints_load_func,
         **kwargs,
     )
 
@@ -704,7 +704,7 @@ def captum_arnoldi_explain(
     test_tensor: torch.Tensor,
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
-    checkpoint_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """Functional interface for the `CaptumArnoldi` explainer.
@@ -721,7 +721,7 @@ def captum_arnoldi_explain(
         Labels for the test samples.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    checkpoint_load_func : Optional[Callable], optional
+    checkpoints_load_func : Optional[Callable], optional
         Function to load checkpoints. If None, a default function is used.
         Defaults to None.
     **kwargs : Any
@@ -741,7 +741,7 @@ def captum_arnoldi_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
-        checkpoint_load_func=checkpoint_load_func,
+        checkpoints_load_func=checkpoints_load_func,
         **kwargs,
     )
 
@@ -808,7 +808,7 @@ class CaptumTracInCP(CaptumInfluence):
         self,
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
-        checkpoints: Union[str, List[str], Iterator],
+        checkpoints: Union[str, List[str]],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
         loss_fn: Optional[
@@ -828,7 +828,7 @@ class CaptumTracInCP(CaptumInfluence):
             The model to be used for the influence computation.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
-        checkpoints : Union[str, List[str], Iterator]
+        checkpoints : Union[str, List[str]]
             Checkpoints for the model.
         checkpoints_load_func : Optional[Callable], optional
             Function to load checkpoints. If None, a default function is used.
@@ -959,7 +959,7 @@ def captum_tracincp_explain(
     test_tensor: torch.Tensor,
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
-    checkpoint_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """Functional interface for the `CaptumTracInCP` explainer.
@@ -976,7 +976,7 @@ def captum_tracincp_explain(
         Labels for the test samples.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
-    checkpoint_load_func : Optional[Callable], optional
+    checkpoints_load_func : Optional[Callable], optional
         Function to load checkpoints. If None, a default function is used.
         Defaults to None.
     **kwargs : Any
@@ -996,7 +996,7 @@ def captum_tracincp_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
-        checkpoints_load_func=checkpoint_load_func,
+        checkpoints_load_func=checkpoints_load_func,
         **kwargs,
     )
 
@@ -1067,7 +1067,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         model: torch.nn.Module,
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        checkpoints: Union[str, List[str], Iterator],
+        checkpoints: Union[str, List[str]],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         loss_fn: Optional[
             Union[torch.nn.Module, Callable]
@@ -1088,7 +1088,7 @@ class CaptumTracInCPFast(CaptumInfluence):
             Final fully connected layer of the model.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
-        checkpoints : Union[str, List[str], Iterator]
+        checkpoints : Union[str, List[str]]
             Checkpoints for the model.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load checkpoints. If None, a default function is used.
@@ -1315,7 +1315,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         model: Union[torch.nn.Module, L.LightningModule],
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
-        checkpoints: Union[str, List[str], Iterator],
+        checkpoints: Union[str, List[str]],
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(
             reduction="sum"
@@ -1339,7 +1339,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             Final fully connected layer of the model.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
-        checkpoints : Union[str, List[str], Iterator]
+        checkpoints : Union[str, List[str]]
             Checkpoints for the model.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load checkpoints. If None, a default function is used.

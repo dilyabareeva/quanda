@@ -75,7 +75,7 @@ class ModelRandomization(Benchmark):
         model: torch.nn.Module,
         checkpoints: Union[str, List[str]],
         cache_dir: str,
-        checkpoint_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         model_id: str = "0",
         data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
@@ -100,7 +100,7 @@ class ModelRandomization(Benchmark):
             Path to the checkpoint(s) to load the model from.
         cache_dir : str
             Directory to store the downloaded benchmark components.
-        checkpoint_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the checkpoint(s), by default None.
         model_id : str, optional
             Identifier for the model, by default "0".

@@ -195,6 +195,7 @@ class MislabelingDetectionMetric(Metric):
         train_dataset: torch.utils.data.Dataset,
         mislabeling_indices: List[int],
         aggregator_cls: Union[str, type],
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
     ):
         """Perform aggregation-based mislabeling detection.
 
@@ -211,6 +212,8 @@ class MislabelingDetectionMetric(Metric):
         aggregator_cls : Union[str, type]
             The class of the aggregation method to be used, or a string
             indicating the method.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            The function to load the checkpoint(s), by default.
 
         Returns
         -------

@@ -13,7 +13,7 @@ from quanda.utils.functions import cosine_similarity
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
-            {"layers": "relu_4", "similarity_metric": cosine_similarity},
+            {},
         ),
     ],
 )
@@ -27,10 +27,7 @@ def test_random_explainer_self_influence(
     explainer = RandomExplainer(
         model=model,
         checkpoints=checkpoint,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
-        device="cpu",
         **method_kwargs,
     )
 
@@ -50,7 +47,7 @@ def test_random_explainer_self_influence(
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
-            {"layers": "relu_4", "similarity_metric": cosine_similarity},
+            {},
         ),
     ],
 )
@@ -72,10 +69,7 @@ def test_random_explainer_explain(
     explainer = RandomExplainer(
         model=model,
         checkpoints=checkpoint,
-        model_id="test_id",
-        cache_dir=str(tmp_path),
         train_dataset=dataset,
-        device="cpu",
         **method_kwargs,
     )
 
