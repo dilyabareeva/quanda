@@ -8,7 +8,7 @@ authors = [
 description = "Toolkit for quantitative evaluation of data attribution methods in PyTorch."
 license = { file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.8,<3.12"
+requires-python = ">=3.9,<3.12"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
