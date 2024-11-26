@@ -192,7 +192,7 @@ class ModelRandomizationMetric(Metric):
         self.results = state_dict["results_dict"]
         self.rand_model.load_state_dict(state_dict["rnd_model"])
 
-    def _randomize_model(self) -> Tuple[torch.nn.Module, str]:
+    def _randomize_model(self) -> Tuple[torch.nn.Module, List[str]]:
         """Randomize the model parameters.
 
         Currently, only linear and convolutional layers are supported.
@@ -207,24 +207,33 @@ class ModelRandomizationMetric(Metric):
 
         """
         # TODO: Add support for other layer types.
+
         rand_model = copy.deepcopy(self.model)
+        rand_checkpoints = []
 
-        for name, param in list(rand_model.named_parameters()):
-            parent = get_parent_module_from_name(rand_model, name)
-            # TODO: currently only linear layer is randomized
-            if isinstance(parent, (torch.nn.Linear)):
-                random_param_tensor = torch.nn.init.normal_(
-                    param, generator=self.generator
-                )
-                parent.__setattr__(
-                    name.split(".")[-1],
-                    torch.nn.Parameter(random_param_tensor),
-                )
+        for i, chckpt in enumerate(self.checkpoints):
+            self.checkpoints_load_func(rand_model, chckpt)
 
-        # save randomized checkpoint
-        torch.save(
-            rand_model.state_dict(),
-            os.path.join(self.cache_dir, f"{self.model_id}_rand.pth"),
-        )
+            for name, param in list(rand_model.named_parameters()):
+                parent = get_parent_module_from_name(rand_model, name)
+                # TODO: currently only linear layer is randomized
+                if isinstance(parent, (torch.nn.Linear)):
+                    random_param_tensor = torch.nn.init.normal_(
+                        param, generator=self.generator
+                    )
+                    parent.__setattr__(
+                        name.split(".")[-1],
+                        torch.nn.Parameter(random_param_tensor),
+                    )
 
-        return rand_model, os.path.join(self.cache_dir, f"{self.model_id}_rand.pth")
+            # save randomized checkpoint
+            chckpt_path = os.path.join(
+                self.cache_dir, f"{self.model_id}_rand_{i}.pth"
+            )
+            torch.save(
+                rand_model.state_dict(),
+                chckpt_path,
+            )
+            rand_checkpoints.append(chckpt_path)
+
+        return rand_model, rand_checkpoints

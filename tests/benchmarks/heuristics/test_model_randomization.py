@@ -120,7 +120,7 @@ def test_model_randomization(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            0.4520220458507538,
+            0.509926438331604,
         ),
     ],
 )
