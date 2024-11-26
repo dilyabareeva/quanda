@@ -26,7 +26,9 @@ def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
     return reduce(getattr, layer_name.split("."), model)
 
 
-def get_parent_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
+def get_parent_module_from_name(
+    model: torch.nn.Module, layer_name: str
+) -> Any:
     """
     Get the parent module of a module in a model by name.
 
@@ -45,7 +47,9 @@ def get_parent_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
     return reduce(getattr, layer_name.split(".")[:-1], model)
 
 
-def make_func(func: Callable, func_kwargs: Optional[Mapping[str, Any]] = None, **kwargs) -> functools.partial:
+def make_func(
+    func: Callable, func_kwargs: Optional[Mapping[str, Any]] = None, **kwargs
+) -> functools.partial:
     """
     A function for creating a partial function with the given arguments.
 
@@ -83,7 +87,11 @@ def cache_result(method):
     return wrapper
 
 
-def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, device: Union[str, torch.device] = "cpu"):
+def class_accuracy(
+    net: torch.nn.Module,
+    loader: torch.utils.data.DataLoader,
+    device: Union[str, torch.device] = "cpu",
+):
     """
     Return accuracy on a dataset given by the data loader.
 
@@ -114,7 +122,9 @@ def class_accuracy(net: torch.nn.Module, loader: torch.utils.data.DataLoader, de
 
 # Taken directly from Captum with minor changes
 # (required because Captum's Arnoldi Influence Function does not allow to specify device)
-def _load_flexible_state_dict(model: torch.nn.Module, path: str, device: Union[str, torch.device]) -> float:
+def _load_flexible_state_dict(
+    model: torch.nn.Module, path: str, device: Union[str, torch.device]
+) -> float:
     """
     Helper to load pytorch models. This function attempts to find compatibility for
     loading models that were trained on different devices / with DataParallel but are
@@ -271,7 +281,9 @@ def ds_len(dataset: torch.utils.data.Dataset) -> int:
     return len(dl)
 
 
-def process_targets(targets: Union[List[int], torch.Tensor], device: Union[str, torch.device]) -> torch.Tensor:
+def process_targets(
+    targets: Union[List[int], torch.Tensor], device: Union[str, torch.device]
+) -> torch.Tensor:
     """
     Convert target labels to torch.Tensor and move them to the device.
 

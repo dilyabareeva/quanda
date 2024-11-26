@@ -7,8 +7,22 @@ from quanda.utils.datasets.transformed import LabelFlippingDataset
 @pytest.mark.parametrize(
     "dataset, n_classes, seed, flipped_labels, expected, err",
     [
-        ("load_mnist_dataset", 10, 27, "mnist_seed_27_mislabeling_labels", "mnist_seed_27_mislabeling_labels", None),
-        ("load_mnist_dataset", 10, 27, None, "mnist_seed_27_mislabeling_labels", None),
+        (
+            "load_mnist_dataset",
+            10,
+            27,
+            "mnist_seed_27_mislabeling_labels",
+            "mnist_seed_27_mislabeling_labels",
+            None,
+        ),
+        (
+            "load_mnist_dataset",
+            10,
+            27,
+            None,
+            "mnist_seed_27_mislabeling_labels",
+            None,
+        ),
         ("load_mnist_dataset", 10, 27, [], None, ValueError),
     ],
 )
@@ -37,12 +51,18 @@ def test_label_flipping_dataset(
         if err is not None:
             with pytest.raises(err):
                 flipped_dataset = LabelFlippingDataset(
-                    dataset=dataset, n_classes=n_classes, seed=seed, mislabeling_labels=flipped_labels
+                    dataset=dataset,
+                    n_classes=n_classes,
+                    seed=seed,
+                    mislabeling_labels=flipped_labels,
                 )
             return
         else:
             flipped_dataset = LabelFlippingDataset(
-                dataset=dataset, n_classes=n_classes, seed=seed, mislabeling_labels=flipped_labels
+                dataset=dataset,
+                n_classes=n_classes,
+                seed=seed,
+                mislabeling_labels=flipped_labels,
             )
             assertions = []
             labels = flipped_dataset.mislabeling_labels

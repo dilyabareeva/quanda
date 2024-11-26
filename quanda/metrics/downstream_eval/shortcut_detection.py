@@ -66,7 +66,11 @@ class ShortcutDetectionMetric(Metric):
         self.auprc_scores: List[torch.Tensor] = []
         self.shortcut_indices = shortcut_indices
         self.binary_shortcut_indices: torch.Tensor = torch.tensor(
-            [1 if i in self.shortcut_indices else 0 for i in range(ds_len(self.train_dataset))], device=self.device
+            [
+                1 if i in self.shortcut_indices else 0
+                for i in range(ds_len(self.train_dataset))
+            ],
+            device=self.device,
         )
         self.shortcut_cls = shortcut_cls
         self._validate_shortcut_labels()
@@ -76,7 +80,10 @@ class ShortcutDetectionMetric(Metric):
 
     def _validate_shortcut_labels(self):
         """Validate the adversarial labels in the training dataset."""
-        shortcut_labels = torch.tensor([self.train_dataset[int(i)][1] for i in self.shortcut_indices], device=self.device)
+        shortcut_labels = torch.tensor(
+            [self.train_dataset[int(i)][1] for i in self.shortcut_indices],
+            device=self.device,
+        )
         assert torch.all(
             shortcut_labels == self.shortcut_cls
         ), f"shortcut indices don't have the correct class.\
@@ -103,9 +110,15 @@ class ShortcutDetectionMetric(Metric):
         explanations = explanations.to(self.device)
 
         if test_tensor is None and self.filter_by_prediction:
-            raise ValueError("test_tensor must be provided if filter_by_prediction is True")
-        if test_labels is None and (self.filter_by_prediction or self.filter_by_class):
-            raise ValueError("test_labels must be provided if filter_by_prediction or filter_by_class is True")
+            raise ValueError(
+                "test_tensor must be provided if filter_by_prediction is True"
+            )
+        if test_labels is None and (
+            self.filter_by_prediction or self.filter_by_class
+        ):
+            raise ValueError(
+                "test_labels must be provided if filter_by_prediction or filter_by_class is True"
+            )
 
         if test_tensor is not None:
             test_tensor = test_tensor.to(self.device)
@@ -122,7 +135,12 @@ class ShortcutDetectionMetric(Metric):
 
         explanations = explanations[select_idx]
 
-        self.auprc_scores.extend([binary_auprc(xpl, self.binary_shortcut_indices) for xpl in explanations])
+        self.auprc_scores.extend(
+            [
+                binary_auprc(xpl, self.binary_shortcut_indices)
+                for xpl in explanations
+            ]
+        )
 
     def compute(self, *args, **kwargs):
         """

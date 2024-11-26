@@ -29,11 +29,15 @@ def test_transformed_dataset_len(
     request,
 ):
     if sized:
-        dataset = TensorDataset(torch.ones((length, 100)), torch.ones((length,)))
+        dataset = TensorDataset(
+            torch.ones((length, 100)), torch.ones((length,))
+        )
         dataset = TransformedDataset(dataset=dataset, n_classes=2)
         assert len(dataset) == length
     else:
-        dataset = UnsizedTensorDataset(torch.ones((length, 100)), torch.ones((length,)))
+        dataset = UnsizedTensorDataset(
+            torch.ones((length, 100)), torch.ones((length,))
+        )
         with pytest.raises(err):
             dataset = TransformedDataset(dataset=dataset, n_classes=2)
 
@@ -47,7 +51,12 @@ def test_transformed_dataset_len(
 )
 def test_transformed_dataset(dataset, n_classes, sample_fn, label_fn, request):
     dataset = request.getfixturevalue(dataset)
-    trans_ds = TransformedDataset(dataset=dataset, n_classes=n_classes, sample_fn=sample_fn, label_fn=label_fn)
+    trans_ds = TransformedDataset(
+        dataset=dataset,
+        n_classes=n_classes,
+        sample_fn=sample_fn,
+        label_fn=label_fn,
+    )
     cond1 = torch.all(trans_ds[0][0] == 0.0)
     cond2 = trans_ds[0][1] == 0.0
     cond3 = not torch.allclose(trans_ds[0][0], dataset[0][0])

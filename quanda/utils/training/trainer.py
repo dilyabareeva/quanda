@@ -17,7 +17,9 @@ class BaseTrainer(metaclass=abc.ABCMeta):
         self,
         model: torch.nn.Module,
         train_dataloaders: torch.utils.data.dataloader.DataLoader,
-        val_dataloaders: Optional[torch.utils.data.dataloader.DataLoader] = None,
+        val_dataloaders: Optional[
+            torch.utils.data.dataloader.DataLoader
+        ] = None,
         accelerator: str = "cpu",
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
@@ -88,7 +90,9 @@ class Trainer(BaseTrainer):
         self,
         model: torch.nn.Module,
         train_dataloaders: torch.utils.data.dataloader.DataLoader,
-        val_dataloaders: Optional[torch.utils.data.dataloader.DataLoader] = None,
+        val_dataloaders: Optional[
+            torch.utils.data.dataloader.DataLoader
+        ] = None,
         accelerator: str = "cpu",
         *args,
         **kwargs,
@@ -117,7 +121,9 @@ class Trainer(BaseTrainer):
             scheduler_kwargs=self.scheduler_kwargs,
         )
 
-        trainer = L.Trainer(max_epochs=self.max_epochs, devices=1, accelerator=accelerator)
+        trainer = L.Trainer(
+            max_epochs=self.max_epochs, devices=1, accelerator=accelerator
+        )
         trainer.fit(module, train_dataloaders, val_dataloaders)
 
         model.load_state_dict(module.model.state_dict())

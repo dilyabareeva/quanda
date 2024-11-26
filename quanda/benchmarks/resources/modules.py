@@ -11,7 +11,9 @@ def load_module_from_bench_state(bench_state: dict, device: str):
     module_type = pl_modules[module_str]
     module = module_type(num_labels=num_labels, device=device)
 
-    module.model.load_state_dict(bench_state["checkpoints_binary"][-1]["model_state_dict"])
+    module.model.load_state_dict(
+        bench_state["checkpoints_binary"][-1]["model_state_dict"]
+    )
     module.to(device)
     module.eval()
     return module
@@ -53,7 +55,14 @@ class LeNet5(torch.nn.Module):
 
 
 class MnistModel(L.LightningModule):
-    def __init__(self, lr=1e-4, epochs=24, weight_decay=0.01, num_labels=64, device="cuda:0"):
+    def __init__(
+        self,
+        lr=1e-4,
+        epochs=24,
+        weight_decay=0.01,
+        num_labels=64,
+        device="cuda:0",
+    ):
         super(MnistModel, self).__init__()
         self._init_model(num_labels)
         self.model.to(device)
@@ -76,7 +85,9 @@ class MnistModel(L.LightningModule):
         labs = labs.to(self.device)
         out = self.model(ims)
         loss = self.criterion(out, labs)
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log(
+            "train_loss", loss, on_step=True, on_epoch=True, prog_bar=True
+        )
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -95,12 +106,18 @@ class MnistModel(L.LightningModule):
         x, y = batch
         y_hat = self.model(x)
         loss = self.criterion(y_hat, y)
-        acc = accuracy(y_hat, y, task="multiclass", num_classes=self.num_labels)
+        acc = accuracy(
+            y_hat, y, task="multiclass", num_classes=self.num_labels
+        )
         return loss, acc
 
     def configure_optimizers(self):
-        optimizer = AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.epochs, eta_min=self.lr * 1e-4)
+        optimizer = AdamW(
+            self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay
+        )
+        scheduler = lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=self.epochs, eta_min=self.lr * 1e-4
+        )
         return [optimizer], [scheduler]
 
     def on_save_checkpoint(self, checkpoint):

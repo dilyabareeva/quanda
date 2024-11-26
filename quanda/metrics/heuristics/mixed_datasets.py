@@ -87,8 +87,15 @@ class MixedDatasetsMetric(Metric):
 
     def _validate_adversarial_labels(self) -> int:
         """Validate the adversarial labels in the training dataset."""
-        adversarial_labels = set([self.train_dataset[i][1] for i in torch.where(self.adversarial_indices == 1)[0]])
-        assert len(adversarial_labels) == 1, "Adversarial labels must be unique."
+        adversarial_labels = set(
+            [
+                self.train_dataset[i][1]
+                for i in torch.where(self.adversarial_indices == 1)[0]
+            ]
+        )
+        assert (
+            len(adversarial_labels) == 1
+        ), "Adversarial labels must be unique."
         return adversarial_labels.pop()
 
     def update(
@@ -112,8 +119,12 @@ class MixedDatasetsMetric(Metric):
         """
         explanations = explanations.to(self.device)
 
-        if (test_tensor is None or test_labels is None) and self.filter_by_prediction:
-            raise ValueError("test_tensor must be provided if filter_by_prediction is True")
+        if (
+            test_tensor is None or test_labels is None
+        ) and self.filter_by_prediction:
+            raise ValueError(
+                "test_tensor must be provided if filter_by_prediction is True"
+            )
 
         if test_tensor is not None:
             test_tensor = test_tensor.to(self.device)
@@ -126,7 +137,12 @@ class MixedDatasetsMetric(Metric):
             select_idx *= pred_cls == self.adversarial_label
 
         explanations = explanations[select_idx]
-        self.auprc_scores.extend([binary_auprc(xpl, self.adversarial_indices) for xpl in explanations])
+        self.auprc_scores.extend(
+            [
+                binary_auprc(xpl, self.adversarial_indices)
+                for xpl in explanations
+            ]
+        )
 
     def compute(self, *args, **kwargs):
         """

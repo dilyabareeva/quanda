@@ -86,8 +86,12 @@ class SubclassDetectionMetric(ClassDetectionMetric):
 
         explanations = explanations.to(self.device)
 
-        if (test_tensor is None or test_classes is None) and self.filter_by_prediction:
-            raise ValueError("test_tensor and test_classes must be provided if filter_by_prediction is True")
+        if (
+            test_tensor is None or test_classes is None
+        ) and self.filter_by_prediction:
+            raise ValueError(
+                "test_tensor and test_classes must be provided if filter_by_prediction is True"
+            )
 
         if isinstance(test_subclasses, list):
             test_subclasses = torch.tensor(test_subclasses)
@@ -109,7 +113,9 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         test_subclasses = test_subclasses[select_idx].to(self.device)
 
         top_one_xpl_indices = explanations.argmax(dim=1)
-        top_one_xpl_targets = torch.stack([self.subclass_labels[int(i)] for i in top_one_xpl_indices]).to(self.device)
+        top_one_xpl_targets = torch.stack(
+            [self.subclass_labels[int(i)] for i in top_one_xpl_indices]
+        ).to(self.device)
 
         score = (test_subclasses == top_one_xpl_targets) * 1.0
         self.scores.append(score)

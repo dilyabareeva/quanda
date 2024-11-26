@@ -111,10 +111,14 @@ class TRAK(Explainer):
         self.dataset = train_dataset
         self.proj_dim = proj_dim
         self.batch_size = batch_size
-        self.cache_dir = cache_dir if cache_dir is not None else f"./trak_{model_id}_cache"
+        self.cache_dir = (
+            cache_dir if cache_dir is not None else f"./trak_{model_id}_cache"
+        )
         self.lambda_reg = lambda_reg
         num_params_for_grad = 0
-        params_iter = params_ldr if params_ldr is not None else self.model.parameters()
+        params_iter = (
+            params_ldr if params_ldr is not None else self.model.parameters()
+        )
         for p in list(params_iter):
             num_params_for_grad = num_params_for_grad + p.numel()
 
@@ -123,7 +127,9 @@ class TRAK(Explainer):
             if find_spec("fast_jl"):
                 projector = "cuda"
             else:
-                warnings.warn("Could not find cuda installation of TRAK. Defaulting to BasicProjector.")
+                warnings.warn(
+                    "Could not find cuda installation of TRAK. Defaulting to BasicProjector."
+                )
                 projector = "basic"
 
         projector_kwargs = {
@@ -153,15 +159,24 @@ class TRAK(Explainer):
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 
         # Train the TRAK explainer: featurize the training data
-        ld = torch.utils.data.DataLoader(self.dataset, batch_size=self.batch_size)
+        ld = torch.utils.data.DataLoader(
+            self.dataset, batch_size=self.batch_size
+        )
         for i, (x, y) in enumerate(iter(ld)):
             batch = x.to(self.device), y.to(self.device)
-            self.traker.featurize(batch=batch, inds=torch.tensor([i * self.batch_size + j for j in range(x.shape[0])]))
+            self.traker.featurize(
+                batch=batch,
+                inds=torch.tensor(
+                    [i * self.batch_size + j for j in range(x.shape[0])]
+                ),
+            )
         self.traker.finalize_features()
 
         # finalize_features frees memory so projector.proj_matrix needs to be reconstructed
         if projector == "basic":
-            self.traker.projector = projector_cls[projector](**projector_kwargs)
+            self.traker.projector = projector_cls[projector](
+                **projector_kwargs
+            )
 
     @property
     def dataset_length(self) -> int:
@@ -179,7 +194,11 @@ class TRAK(Explainer):
         dl = torch.utils.data.DataLoader(self.dataset, batch_size=1)
         return len(dl)
 
-    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]):
+    def explain(
+        self,
+        test_tensor: torch.Tensor,
+        targets: Union[List[int], torch.Tensor],
+    ):
         """
         Generates explanations for the given test inputs.
 
@@ -198,16 +217,24 @@ class TRAK(Explainer):
         test_tensor = test_tensor.to(self.device)
         targets = process_targets(targets, self.device)
 
-        grads = self.traker.gradient_computer.compute_per_sample_grad(batch=(test_tensor, targets))
+        grads = self.traker.gradient_computer.compute_per_sample_grad(
+            batch=(test_tensor, targets)
+        )
 
-        g_target = self.traker.projector.project(grads, model_id=self.traker.saver.current_model_id)
+        g_target = self.traker.projector.project(
+            grads, model_id=self.traker.saver.current_model_id
+        )
         g_target /= self.traker.normalize_factor
 
-        g = torch.as_tensor(self.traker.saver.current_store["features"], device=self.device)
+        g = torch.as_tensor(
+            self.traker.saver.current_store["features"], device=self.device
+        )
 
         out_to_loss = self.traker.saver.current_store["out_to_loss"]
 
-        explanations = get_matrix_mult(g, g_target).detach().cpu() * out_to_loss
+        explanations = (
+            get_matrix_mult(g, g_target).detach().cpu() * out_to_loss
+        )
 
         return explanations.T
 

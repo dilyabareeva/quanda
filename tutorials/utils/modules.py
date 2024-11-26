@@ -7,7 +7,16 @@ from torchvision.models import ResNet18_Weights, resnet18
 
 
 class LitModel(L.LightningModule):
-    def __init__(self, n_batches, lr=1e-4, epochs=24, weight_decay=0.01, num_labels=64, pretrained=True, device="cuda:0"):
+    def __init__(
+        self,
+        n_batches,
+        lr=1e-4,
+        epochs=24,
+        weight_decay=0.01,
+        num_labels=64,
+        pretrained=True,
+        device="cuda:0",
+    ):
         super(LitModel, self).__init__()
         self._init_model(num_labels, pretrained)
         self.model.to(device)
@@ -37,7 +46,9 @@ class LitModel(L.LightningModule):
         labs = labs.to(self.device)
         out = self.model(ims)
         loss = self.criterion(out, labs)
-        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
+        self.log(
+            "train_loss", loss, on_step=True, on_epoch=True, prog_bar=True
+        )
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -56,12 +67,18 @@ class LitModel(L.LightningModule):
         x, y = batch
         y_hat = self.model(x)
         loss = self.criterion(y_hat, y)
-        acc = accuracy(y_hat, y, task="multiclass", num_classes=self.num_labels)
+        acc = accuracy(
+            y_hat, y, task="multiclass", num_classes=self.num_labels
+        )
         return loss, acc
 
     def configure_optimizers(self):
-        optimizer = AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.epochs, eta_min=self.lr * 1e-4)
+        optimizer = AdamW(
+            self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay
+        )
+        scheduler = lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=self.epochs, eta_min=self.lr * 1e-4
+        )
         return [optimizer], [scheduler]
 
     def on_save_checkpoint(self, checkpoint):

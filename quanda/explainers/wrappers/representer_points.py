@@ -238,7 +238,9 @@ class RepresenterPoints(Explainer):
         self.features_postprocess = features_postprocess
         self.show_progress = show_progress
 
-        self.dataloader = torch.utils.data.DataLoader(self.train_dataset, batch_size=batch_size, shuffle=False)
+        self.dataloader = torch.utils.data.DataLoader(
+            self.train_dataset, batch_size=batch_size, shuffle=False
+        )
 
         with default_tensor_type(self.device):
             act_dataset = AV.generate_dataset_activations(
@@ -255,24 +257,37 @@ class RepresenterPoints(Explainer):
         self.learned_weights: torch.Tensor
         self.coefficients: torch.Tensor
 
-        with map_location_context(self.device), default_tensor_type(self.device):
+        with map_location_context(self.device), default_tensor_type(
+            self.device
+        ):
             self.samples = av_samples(act_dataset)
 
         if self.features_postprocess is not None:
             self.samples = self.features_postprocess(self.samples)
 
-        self.labels = torch.tensor([train_dataset[i][1] for i in range(ds_len(self.train_dataset))], device=self.device).type(
-            torch.int
-        )
+        self.labels = torch.tensor(
+            [train_dataset[i][1] for i in range(ds_len(self.train_dataset))],
+            device=self.device,
+        ).type(torch.int)
 
         self.mean = self.samples.mean(dim=0)
-        self.std_dev = torch.sqrt(torch.sum((self.samples - self.mean) ** 2, dim=0) / self.samples.shape[0])
-        self.samples = self._normalize_features(self.samples) if normalize else self.samples
+        self.std_dev = torch.sqrt(
+            torch.sum((self.samples - self.mean) ** 2, dim=0)
+            / self.samples.shape[0]
+        )
+        self.samples = (
+            self._normalize_features(self.samples)
+            if normalize
+            else self.samples
+        )
 
         if load_from_disk:
             try:
                 self.coefficients = torch.load(
-                    os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"), weights_only=True
+                    os.path.join(
+                        self.cache_dir, f"{self.model_id}_repr_weights.pt"
+                    ),
+                    weights_only=True,
                 )
             except FileNotFoundError:
                 self.train()
@@ -328,7 +343,11 @@ class RepresenterPoints(Explainer):
 
         return self.current_acts
 
-    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
+    def explain(
+        self,
+        test_tensor: torch.Tensor,
+        targets: Union[List[int], torch.Tensor],
+    ) -> torch.Tensor:
         """
         Explain the predictions of the model for a given test batch.
 
@@ -372,13 +391,26 @@ class RepresenterPoints(Explainer):
         ValueError
             If the gradient of the final layer parameters can not be obtained.
         """
-        samples_with_bias = torch.cat([self.samples, torch.ones((self.samples.shape[0], 1), device=self.device)], dim=1)
-        linear_classifier = reduce(getattr, self.classifier_layer.split("."), self.model)
+        samples_with_bias = torch.cat(
+            [
+                self.samples,
+                torch.ones((self.samples.shape[0], 1), device=self.device),
+            ],
+            dim=1,
+        )
+        linear_classifier = reduce(
+            getattr, self.classifier_layer.split("."), self.model
+        )
         logits = linear_classifier(self.samples)
         labels = softmax_torch(logits, self.samples.shape[0])
 
-        weight_linear, bias_linear = linear_classifier.weight.data, linear_classifier.bias.data
-        w_and_b = torch.concatenate([weight_linear.T, bias_linear.unsqueeze(0)])
+        weight_linear, bias_linear = (
+            linear_classifier.weight.data,
+            linear_classifier.bias.data,
+        )
+        w_and_b = torch.concatenate(
+            [weight_linear.T, bias_linear.unsqueeze(0)]
+        )
         model = RepresenterSoftmax(w_and_b, self.device)
 
         x = nn.Parameter(samples_with_bias.to(self.device))
@@ -388,7 +420,10 @@ class RepresenterPoints(Explainer):
         min_loss = self.min_loss
         optimizer = optim.SGD([model.W], lr=self.lr)
         if self.show_progress:
-            pbar = tqdm(range(self.epoch), desc="Representer Training | Epoch: 0 | Loss: 0 | Phi Loss: 0 | Grad: 0")
+            pbar = tqdm(
+                range(self.epoch),
+                desc="Representer Training | Epoch: 0 | Loss: 0 | Phi Loss: 0 | Grad: 0",
+            )
 
         for epoch in range(self.epoch):
             phi_loss = 0
@@ -402,7 +437,9 @@ class RepresenterPoints(Explainer):
             if model.W.grad is None:
                 raise ValueError("Gradient is None")
 
-            grad_loss = torch.mean(torch.abs(model.W.grad)).detach().cpu().numpy()
+            grad_loss = (
+                torch.mean(torch.abs(model.W.grad)).detach().cpu().numpy()
+            )
 
             # save the W with lowest loss
             if grad_loss < min_loss:
@@ -411,7 +448,9 @@ class RepresenterPoints(Explainer):
                 min_loss = grad_loss
                 best_W = temp_W
                 if min_loss < init_grad / 200:
-                    logger.info("Stopping criteria reached in epoch :{}".format(epoch))
+                    logger.info(
+                        "Stopping criteria reached in epoch :{}".format(epoch)
+                    )
                     break
             self.backtracking_line_search(model, model.W.grad, x, y, loss, N)
             if self.show_progress:
@@ -423,7 +462,9 @@ class RepresenterPoints(Explainer):
                 pbar.update(1)
 
         # calculate w based on the representer theorem's decomposition
-        temp = torch.matmul(x, nn.Parameter(best_W.to(self.device), requires_grad=True))
+        temp = torch.matmul(
+            x, nn.Parameter(best_W.to(self.device), requires_grad=True)
+        )
         self.learned_weight = best_W.T
         softmax_value = softmax_torch(temp, N)
         # derivative of softmax cross entropy
@@ -433,10 +474,19 @@ class RepresenterPoints(Explainer):
         self.coefficients = weight_matrix
 
         # save weight matrix to cache
-        torch.save(weight_matrix, os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"))
+        torch.save(
+            weight_matrix,
+            os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"),
+        )
 
     def backtracking_line_search(
-        self, model: torch.nn.Module, grad: torch.Tensor, x: torch.Tensor, y: torch.Tensor, val: torch.Tensor, N: int
+        self,
+        model: torch.nn.Module,
+        grad: torch.Tensor,
+        x: torch.Tensor,
+        y: torch.Tensor,
+        val: torch.Tensor,
+        N: int,
     ):
         """
         Implementation of the backtracking line search algorithm.
@@ -462,12 +512,17 @@ class RepresenterPoints(Explainer):
         grad_np = grad.detach().cpu().numpy()
 
         while True:
-            model.W = nn.Parameter(torch.from_numpy(W_O - t * grad_np).to(self.device), requires_grad=True)
+            model.W = nn.Parameter(
+                torch.from_numpy(W_O - t * grad_np).to(self.device),
+                requires_grad=True,
+            )
             (Phi, L2) = model(x, y)
             val_n = Phi / N + L2 * self.lmbd
             if t < self.epsilon:
                 break
-            if (val_n - val + t * torch.norm(grad) ** 2 / 2).detach().cpu().numpy() >= 0:
+            if (
+                val_n - val + t * torch.norm(grad) ** 2 / 2
+            ).detach().cpu().numpy() >= 0:
                 t = beta * t
             else:
                 break
@@ -485,4 +540,6 @@ class RepresenterPoints(Explainer):
         """
 
         # coefficients for each training label
-        return self.coefficients[torch.arange(self.coefficients.shape[0]), self.labels]
+        return self.coefficients[
+            torch.arange(self.coefficients.shape[0]), self.labels
+        ]

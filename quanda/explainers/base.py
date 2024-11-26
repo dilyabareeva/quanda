@@ -60,7 +60,11 @@ class Explainer(ABC):
         self.train_dataset = train_dataset
 
     @abstractmethod
-    def explain(self, test_tensor: torch.Tensor, targets: Union[List[int], torch.Tensor]) -> torch.Tensor:
+    def explain(
+        self,
+        test_tensor: torch.Tensor,
+        targets: Union[List[int], torch.Tensor],
+    ) -> torch.Tensor:
         """
         Abstract method for computing influence scores for the test samples.
 
@@ -95,12 +99,20 @@ class Explainer(ABC):
         """
 
         # Pre-allcate memory for influences, because torch.cat is slow
-        influences = torch.empty((ds_len(self.train_dataset),), device=self.device)
-        ldr = torch.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)
+        influences = torch.empty(
+            (ds_len(self.train_dataset),), device=self.device
+        )
+        ldr = torch.utils.data.DataLoader(
+            self.train_dataset, shuffle=False, batch_size=batch_size
+        )
         batch_size = min(batch_size, ds_len(self.train_dataset))
 
-        for i, (x, y) in zip(range(0, ds_len(self.train_dataset), batch_size), ldr):
-            explanations = self.explain(test_tensor=x.to(self.device), targets=y.to(self.device))
+        for i, (x, y) in zip(
+            range(0, ds_len(self.train_dataset), batch_size), ldr
+        ):
+            explanations = self.explain(
+                test_tensor=x.to(self.device), targets=y.to(self.device)
+            )
             influences[i : i + batch_size] = explanations.diag(diagonal=i)
 
         return influences

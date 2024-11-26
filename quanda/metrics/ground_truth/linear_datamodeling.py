@@ -87,7 +87,10 @@ class LinearDatamodelingMetric(Metric):
         self.model_id = model_id
 
         # TODO: create a validation utility function
-        if isinstance(correlation_fn, str) and correlation_fn in correlation_functions:
+        if (
+            isinstance(correlation_fn, str)
+            and correlation_fn in correlation_functions
+        ):
             self.corr_measure = correlation_functions[correlation_fn]
         elif callable(correlation_fn):
             self.corr_measure = correlation_fn
@@ -133,7 +136,9 @@ class LinearDatamodelingMetric(Metric):
 
         subsets = []
         for _ in range(self.m):
-            indices = torch.randperm(N, generator=self.generator)[:subset_size].tolist()
+            indices = torch.randperm(N, generator=self.generator)[
+                :subset_size
+            ].tolist()
             subsets.append(torch.utils.data.Subset(dataset, indices))
 
         return subsets
@@ -152,11 +157,15 @@ class LinearDatamodelingMetric(Metric):
         """
         for i, subset in enumerate(self.subsets):
             counterfactual_model = deepcopy(self.model)
-            subset_loader = DataLoader(subset, batch_size=self.batch_size, shuffle=False)
+            subset_loader = DataLoader(
+                subset, batch_size=self.batch_size, shuffle=False
+            )
             self.trainer_fit_kwargs = self.trainer_fit_kwargs or {}
             if isinstance(self.trainer, L.Trainer):
                 if not isinstance(self.model, L.LightningModule):
-                    raise ValueError("Model should be a LightningModule if Trainer is a Lightning Trainer")
+                    raise ValueError(
+                        "Model should be a LightningModule if Trainer is a Lightning Trainer"
+                    )
 
                 self.trainer.fit(
                     model=self.model,
@@ -166,10 +175,18 @@ class LinearDatamodelingMetric(Metric):
 
             elif isinstance(self.trainer, BaseTrainer):
                 if not isinstance(self.model, torch.nn.Module):
-                    raise ValueError("Model should be a torch.nn.Module if Trainer is a BaseTrainer")
-                self.trainer.fit(model=counterfactual_model, train_dataloaders=subset_loader, **self.trainer_fit_kwargs)
+                    raise ValueError(
+                        "Model should be a torch.nn.Module if Trainer is a BaseTrainer"
+                    )
+                self.trainer.fit(
+                    model=counterfactual_model,
+                    train_dataloaders=subset_loader,
+                    **self.trainer_fit_kwargs,
+                )
 
-            model_ckpt_path = os.path.join(self.cache_dir, f"{self.model_id}_model_{i}.ckpt")
+            model_ckpt_path = os.path.join(
+                self.cache_dir, f"{self.model_id}_model_{i}.ckpt"
+            )
             torch.save(counterfactual_model.state_dict(), model_ckpt_path)
 
     def load_counterfactual_model(self, model_idx: int):
@@ -186,7 +203,9 @@ class LinearDatamodelingMetric(Metric):
         torch.nn.Module
             The loaded model.
         """
-        model_ckpt_path = os.path.join(self.cache_dir, f"{self.model_id}_model_{model_idx}.ckpt")
+        model_ckpt_path = os.path.join(
+            self.cache_dir, f"{self.model_id}_model_{model_idx}.ckpt"
+        )
         counterfactual_model = deepcopy(self.model)
         self.checkpoints_load_func(counterfactual_model, model_ckpt_path)
         # counterfactual_model.load_state_dict(torch.load(model_ckpt_path, map_location=self.device))
@@ -232,10 +251,15 @@ class LinearDatamodelingMetric(Metric):
             counterfactual_model = self.load_counterfactual_model(s)
             counterfactual_output = counterfactual_model(test_tensor).detach()
 
-            if counterfactual_output.ndim == 1 or counterfactual_output.shape[1] == 1:
+            if (
+                counterfactual_output.ndim == 1
+                or counterfactual_output.shape[1] == 1
+            ):
                 counterfactual_output = counterfactual_output.squeeze()
             else:
-                counterfactual_output = counterfactual_output.gather(1, explanation_targets.unsqueeze(1)).squeeze(1)
+                counterfactual_output = counterfactual_output.gather(
+                    1, explanation_targets.unsqueeze(1)
+                ).squeeze(1)
 
             model_output_list.append(counterfactual_output)
 

@@ -45,7 +45,11 @@ class RandomExplainer(Explainer):
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
 
-    def explain(self, test_tensor: torch.Tensor, targets: Optional[Union[List[int], torch.Tensor]] = None):
+    def explain(
+        self,
+        test_tensor: torch.Tensor,
+        targets: Optional[Union[List[int], torch.Tensor]] = None,
+    ):
         """
         Random explainer does not explain anything, just returns random values.
 
@@ -63,10 +67,17 @@ class RandomExplainer(Explainer):
             Random tensor of shape `(test.shape[0],train_dataset_length)`
 
         """
-        return torch.rand(test_tensor.size(0), ds_len(self.train_dataset), generator=self.generator, device=self.device)
+        return torch.rand(
+            test_tensor.size(0),
+            ds_len(self.train_dataset),
+            generator=self.generator,
+            device=self.device,
+        )
 
     @cache_result
-    def self_influence(self, batch_size: int = 32, **kwargs: Any) -> torch.Tensor:
+    def self_influence(
+        self, batch_size: int = 32, **kwargs: Any
+    ) -> torch.Tensor:
         """
         Random self-influence is just a vector of random values of the length of the training dataset.
 
@@ -80,4 +91,8 @@ class RandomExplainer(Explainer):
         torch.Tensor
             Random tensor of shape `(train dataset length,)`
         """
-        return torch.rand(ds_len(self.train_dataset), generator=self.generator, device=self.device)
+        return torch.rand(
+            ds_len(self.train_dataset),
+            generator=self.generator,
+            device=self.device,
+        )

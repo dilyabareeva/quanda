@@ -74,7 +74,9 @@ class TopKCardinalityMetric(Metric):
         explanations = explanations.to(self.device)
 
         _, top_k_indices = explanations.topk(k=self.top_k, dim=1)
-        self.all_top_k_examples = torch.concat((self.all_top_k_examples, top_k_indices), dim=0)
+        self.all_top_k_examples = torch.concat(
+            (self.all_top_k_examples, top_k_indices), dim=0
+        )
 
     def compute(self, *args, **kwargs):
         """
@@ -85,7 +87,10 @@ class TopKCardinalityMetric(Metric):
         dict
             A dictionary containing the metric score in the `score` field.
         """
-        return {"score": len(torch.unique(self.all_top_k_examples)) / torch.numel(self.all_top_k_examples)}
+        return {
+            "score": len(torch.unique(self.all_top_k_examples))
+            / torch.numel(self.all_top_k_examples)
+        }
 
     def reset(self, *args, **kwargs):
         """Reset the metric state."""
