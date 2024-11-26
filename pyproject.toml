@@ -83,7 +83,8 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-ignore = ["E203"]
+ignore = ["E203", "PT006"]
+extend-select = ["PT", "C901"]
 exclude = [
     "build/",
     "dist/",
