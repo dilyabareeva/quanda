@@ -5,15 +5,11 @@ as a reference only.
 """
 
 import matplotlib.colors as mcolors
-import matplotlib.patches as patches
 import matplotlib.pyplot as plt
-import numpy as np
-import plotly.graph_objects as go
 import torch
 from matplotlib import font_manager, rcParams
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Rectangle
-from plotly.subplots import make_subplots
 from torchvision.utils import save_image
 
 fonts = ["../assets/demo/Helvetica.ttf", "../assets/demo/Helvetica-Bold.ttf"]

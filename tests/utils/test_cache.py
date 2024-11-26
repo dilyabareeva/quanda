@@ -2,9 +2,6 @@ import os
 
 import pytest
 import torch
-from captum.influence._core.arnoldi_influence_function import (  # type: ignore
-    ArnoldiInfluenceFunction,
-)
 
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache

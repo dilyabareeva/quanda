@@ -8,7 +8,7 @@ move the validation logic into a validation decorator at a later point.
 
 
 def validate_checkpoints_load_func(
-    checkpoints_load_func: Callable[..., Any]
+    checkpoints_load_func: Callable[..., Any],
 ) -> None:
     """
     Validate the checkpoints_load_func function for captum explainers.

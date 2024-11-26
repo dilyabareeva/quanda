@@ -1,5 +1,4 @@
 import math
-from copy import deepcopy
 from functools import reduce
 
 import pytest
@@ -227,7 +226,7 @@ def test_mixed_dataset_download(
     dst_eval.eval_dataset = torch.utils.data.Subset(
         dst_eval.eval_dataset, list(range(16))
     )
-    adversarial_indices_backup = dst_eval.adversarial_indices
+
     dst_eval.adversarial_indices = dst_eval.adversarial_indices[:16]
     dst_eval.filter_by_prediction = filter_by_prediction
     score = dst_eval.evaluate(
@@ -254,13 +253,11 @@ def test_mixed_dataset_download(
         )
         for x, y in iter(train_ld):
             x = x.to(dst_eval.device)
-            y_train = y.to(dst_eval.device)
             dst_eval.model(x)
         act_train = activation[0]
         activation = []
         for x, y in iter(test_ld):
             x = x.to(dst_eval.device)
-            y_test = y.to(dst_eval.device)
             y_preds = dst_eval.model(x).argmax(dim=-1)
             select_idx = torch.tensor([True] * 16)
             if filter_by_prediction:

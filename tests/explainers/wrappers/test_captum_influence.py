@@ -4,7 +4,6 @@ from captum.influence import TracInCP, TracInCPFast, TracInCPFastRandProj
 from captum.influence._core.arnoldi_influence_function import (  # type: ignore
     ArnoldiInfluenceFunction,
 )
-from torch.utils.data import TensorDataset
 
 from quanda.explainers.wrappers import (
     CaptumArnoldi,
@@ -109,7 +108,6 @@ def test_captum_similarity_self_influence(
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
-    explanations_exp = request.getfixturevalue(explanations)
 
     explainer = CaptumSimilarity(
         model=model,

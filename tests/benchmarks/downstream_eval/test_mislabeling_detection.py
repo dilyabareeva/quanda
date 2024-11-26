@@ -307,7 +307,6 @@ def test_mislabeling_detection_download(
         )
         for x, y in iter(train_ld):
             x = x.to(dst_eval.device)
-            y_train = y.to(dst_eval.device)
             dst_eval.model(x)
         act_train = activation[0]
         activation = []

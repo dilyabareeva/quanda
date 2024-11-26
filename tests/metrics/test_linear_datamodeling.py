@@ -1,9 +1,5 @@
-from copy import deepcopy
-from typing import Callable, Optional, Union
-
 import pytest
 import torch
-from torch.utils.data import DataLoader, Subset
 
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.ground_truth.linear_datamodeling import (

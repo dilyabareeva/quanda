@@ -1,6 +1,5 @@
 import math
 
-import lightning as L
 import pytest
 import torch
 

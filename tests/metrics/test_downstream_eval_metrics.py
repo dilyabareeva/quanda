@@ -13,7 +13,6 @@ from quanda.metrics.downstream_eval import (
     SubclassDetectionMetric,
 )
 from quanda.utils.functions import cosine_similarity
-from quanda.utils.training import Trainer
 
 
 @pytest.mark.downstream_eval_metrics

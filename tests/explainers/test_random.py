@@ -1,8 +1,4 @@
-import os
-from typing import List, Optional, Union
-
 import pytest
-import torch
 
 from quanda.explainers import RandomExplainer
 from quanda.utils.functions import cosine_similarity

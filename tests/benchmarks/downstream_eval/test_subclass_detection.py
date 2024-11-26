@@ -278,7 +278,6 @@ def test_subclass_detection_download(
         for x, y in iter(test_ld):
             x = x.to(dst_eval.device)
             y_test = y.to(dst_eval.device)
-            y_preds = dst_eval.group_model(x).argmax(dim=-1)
             dst_eval.group_model(x)
         act_test = activation[0]
         act_test = torch.nn.functional.normalize(act_test, dim=-1)
@@ -308,9 +307,6 @@ def test_subclass_detection_download_sanity_checks(
     test_id, benchmark, batch_size, request
 ):
     dst_eval = request.getfixturevalue(benchmark)
-    ldr = torch.utils.data.DataLoader(
-        dst_eval.grouped_dataset, batch_size=batch_size
-    )
     assertions = [
         dst_eval.grouped_dataset[i][1]
         == dst_eval.class_to_group[dst_eval.base_dataset[i][1]]
