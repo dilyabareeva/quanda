@@ -432,7 +432,7 @@ class RepresenterPoints(Explainer):
             pbar = tqdm(
                 range(self.epoch),
                 desc="Representer Training | Epoch: 0 | Loss: 0 | Phi Loss: "
-                     "0 | Grad: 0",
+                "0 | Grad: 0",
             )
 
         for epoch in range(self.epoch):

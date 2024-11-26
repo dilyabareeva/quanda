@@ -225,8 +225,8 @@ class Benchmark(ABC):
 
     def get_checkpoint_paths(self) -> List[str]:
         """Return the paths to the checkpoints."""
-        assert (
-            self._checkpoint_paths is not None
-        ), ("get_checkpoint_paths can only be called after instantiating a "
-            "benchmark using the download method.")
+        assert self._checkpoint_paths is not None, (
+            "get_checkpoint_paths can only be called after instantiating a "
+            "benchmark using the download method."
+        )
         return self._checkpoint_paths

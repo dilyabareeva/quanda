@@ -189,11 +189,11 @@ class MislabelingDetection(Benchmark):
             f"based on passed arguments..."
         )
         if global_method != "self-influence":
-            assert (
-                eval_dataset is not None
-            ), ("MislabelingDetection should have "
+            assert eval_dataset is not None, (
+                "MislabelingDetection should have "
                 "global_method='self-influence' or eval_dataset should be "
-                "given.")
+                "given."
+            )
 
         obj = cls()
         obj._set_devices(model)
@@ -504,11 +504,11 @@ class MislabelingDetection(Benchmark):
 
         """
         if global_method != "self-influence":
-            assert (
-                eval_dataset is not None
-            ), ("MislabelingDetection should have "
+            assert eval_dataset is not None, (
+                "MislabelingDetection should have "
                 "global_method='self-influence' or eval_dataset should be "
-                "given.")
+                "given."
+            )
 
         obj = cls()
         obj.model = model

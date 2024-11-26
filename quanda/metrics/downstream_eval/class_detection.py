@@ -79,10 +79,10 @@ class ClassDetectionMetric(Metric):
             Explanations of the test samples.
 
         """
-        assert (
-            test_labels.shape[0] == explanations.shape[0]
-        ), (f"Number of explanations ({explanations.shape[0]}) does not match "
-            f"the number of labels ({test_labels.shape[0]}).")
+        assert test_labels.shape[0] == explanations.shape[0], (
+            f"Number of explanations ({explanations.shape[0]}) does not match "
+            f"the number of labels ({test_labels.shape[0]})."
+        )
 
         test_labels = test_labels.to(self.device)
         explanations = explanations.to(self.device)
