@@ -8,13 +8,30 @@ from quanda.explainers import AbsSumAggregator, SumAggregator
 @pytest.mark.parametrize(
     "test_id, explanations, aggregator, expected",
     [
-        ("mnist0", "load_mnist_explanations_similarity_1", AbsSumAggregator, {}),
+        (
+            "mnist0",
+            "load_mnist_explanations_similarity_1",
+            AbsSumAggregator,
+            {},
+        ),
         ("mnist1", "load_mnist_explanations_similarity_1", SumAggregator, {}),
-        ("mnist2", "load_mnist_explanations_similarity_1", SumAggregator, {"err_expl": ValueError}),
-        ("mnist3", "load_mnist_explanations_similarity_1", SumAggregator, {"err_reset": ValueError}),
+        (
+            "mnist2",
+            "load_mnist_explanations_similarity_1",
+            SumAggregator,
+            {"err_expl": ValueError},
+        ),
+        (
+            "mnist3",
+            "load_mnist_explanations_similarity_1",
+            SumAggregator,
+            {"err_reset": ValueError},
+        ),
     ],
 )
-def test_aggregator_update(test_id, explanations, aggregator, expected, request):
+def test_aggregator_update(
+    test_id, explanations, aggregator, expected, request
+):
     explanations = request.getfixturevalue(explanations)
     aggregator = aggregator()
     aggregator.update(explanations)
@@ -30,7 +47,9 @@ def test_aggregator_update(test_id, explanations, aggregator, expected, request)
                 global_rank = aggregator.compute().argsort()
         else:
             global_rank = aggregator.compute().argsort()
-            assert torch.allclose(global_rank, explanations.sum(dim=0).argsort())
+            assert torch.allclose(
+                global_rank, explanations.sum(dim=0).argsort()
+            )
 
 
 @pytest.mark.aggregators

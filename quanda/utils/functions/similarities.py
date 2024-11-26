@@ -29,8 +29,12 @@ def cosine_similarity(test, train, replace_nan=0) -> Tensor:
     test_norm = torch.linalg.norm(test, ord=2, dim=1, keepdim=True)
     train_norm = torch.linalg.norm(train, ord=2, dim=1, keepdim=True)
 
-    test = torch.where(test_norm != 0.0, test / test_norm, Tensor([replace_nan]))
-    train = torch.where(train_norm != 0.0, train / train_norm, Tensor([replace_nan])).T
+    test = torch.where(
+        test_norm != 0.0, test / test_norm, Tensor([replace_nan])
+    )
+    train = torch.where(
+        train_norm != 0.0, train / train_norm, Tensor([replace_nan])
+    ).T
 
     similarity = torch.mm(test, train)
     return similarity

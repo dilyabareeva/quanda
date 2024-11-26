@@ -78,9 +78,17 @@ class TransformedDataset(Dataset):
         self.torch_rng.manual_seed(seed)
 
         if transform_indices is None:
-            trans_idx = torch.rand(len(self), generator=self.torch_rng) <= self.p
+            trans_idx = (
+                torch.rand(len(self), generator=self.torch_rng) <= self.p
+            )
             if self.cls_idx is not None:
-                trans_idx *= torch.tensor([self.dataset[s][1] == self.cls_idx for s in range(len(self))], dtype=torch.bool)
+                trans_idx *= torch.tensor(
+                    [
+                        self.dataset[s][1] == self.cls_idx
+                        for s in range(len(self))
+                    ],
+                    dtype=torch.bool,
+                )
             self.transform_indices = torch.where(trans_idx)[0].tolist()
         else:
             self.transform_indices = transform_indices
@@ -113,7 +121,9 @@ class TransformedDataset(Dataset):
 
     def __len__(self):
         if not hasattr(self.dataset, "__len__"):
-            raise ValueError("Dataset needs to implement __len__ to use the TransformedDataset class.")
+            raise ValueError(
+                "Dataset needs to implement __len__ to use the TransformedDataset class."
+            )
         else:
             return len(self.dataset)
 

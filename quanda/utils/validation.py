@@ -7,7 +7,9 @@ move the validation logic into a validation decorator at a later point.
 """
 
 
-def validate_checkpoints_load_func(checkpoints_load_func: Callable[..., Any]) -> None:
+def validate_checkpoints_load_func(
+    checkpoints_load_func: Callable[..., Any]
+) -> None:
     """
     Validate the checkpoints_load_func function for captum explainers.
 
@@ -29,4 +31,6 @@ def validate_checkpoints_load_func(checkpoints_load_func: Callable[..., Any]) ->
     parameters = list(signature.parameters.values())
 
     if len(parameters) < 2:
-        raise ValueError(f"checkpoints_load_func must have at least 2 required parameters. Got {len(parameters)}.")
+        raise ValueError(
+            f"checkpoints_load_func must have at least 2 required parameters. Got {len(parameters)}."
+        )

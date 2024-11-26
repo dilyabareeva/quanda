@@ -88,18 +88,26 @@ class MislabelingDetectionMetric(Metric):
         if expl_kwargs is None:
             expl_kwargs = {}
         self.explainer = (
-            None if explainer_cls is None else explainer_cls(model=model, train_dataset=train_dataset, **expl_kwargs)
+            None
+            if explainer_cls is None
+            else explainer_cls(
+                model=model, train_dataset=train_dataset, **expl_kwargs
+            )
         )
 
         if isinstance(global_method, str):
             if global_method == "self-influence":
-                self.strategy = strategies[global_method](explainer=self.explainer)
+                self.strategy = strategies[global_method](
+                    explainer=self.explainer
+                )
 
             elif global_method in aggr_types.keys():
                 aggr_type = aggr_types[global_method]
                 self.strategy = strategies["aggr"](aggr_type=aggr_type)
             else:
-                raise ValueError(f"Global method {global_method} is not supported.")
+                raise ValueError(
+                    f"Global method {global_method} is not supported."
+                )
         elif isinstance(global_method, type):
             self.strategy = strategies["aggr"](
                 aggr_type=global_method,
@@ -261,8 +269,12 @@ class MislabelingDetectionMetric(Metric):
         """
         global_ranking = self.strategy.get_global_rank(*args, **kwargs)
         mislabeling_set = set(self.mislabeling_indices)
-        success_arr = torch.tensor([elem.item() in mislabeling_set for elem in global_ranking])
-        normalized_curve = torch.cumsum(success_arr * 1.0, dim=0) / len(self.mislabeling_indices)
+        success_arr = torch.tensor(
+            [elem.item() in mislabeling_set for elem in global_ranking]
+        )
+        normalized_curve = torch.cumsum(success_arr * 1.0, dim=0) / len(
+            self.mislabeling_indices
+        )
         score = torch.trapezoid(normalized_curve) / ds_len(self.train_dataset)
         return {
             "score": score.item(),

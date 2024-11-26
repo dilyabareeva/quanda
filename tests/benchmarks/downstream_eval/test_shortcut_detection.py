@@ -90,7 +90,11 @@ def test_shortcut_detection(
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
     sample_fn = request.getfixturevalue(sample_fn)
-    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
+    expl_kwargs = {
+        **expl_kwargs,
+        "model_id": "test",
+        "cache_dir": str(tmp_path),
+    }
     if init_method == "generate":
         trainer = Trainer(
             max_epochs=max_epochs,
@@ -188,7 +192,11 @@ def test_shortcut_detection_generate_from_pl_module(
 ):
     pl_module = request.getfixturevalue(pl_module)
     dataset = request.getfixturevalue(dataset)
-    expl_kwargs = {**expl_kwargs, "model_id": "test", "cache_dir": str(tmp_path)}
+    expl_kwargs = {
+        **expl_kwargs,
+        "model_id": "test",
+        "cache_dir": str(tmp_path),
+    }
     trainer = L.Trainer(max_epochs=max_epochs)
     sample_fn = request.getfixturevalue(sample_fn)
     dst_eval = ShortcutDetection.generate(
@@ -292,10 +300,18 @@ def test_shortcut_detection_download(
     dst_eval = request.getfixturevalue(benchmark)
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.base_dataset = torch.utils.data.Subset(dst_eval.base_dataset, list(range(16)))
-    dst_eval.shortcut_dataset = torch.utils.data.Subset(dst_eval.shortcut_dataset, list(range(16)))
-    dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
-    dst_eval.shortcut_indices = [i for i in dst_eval.shortcut_indices if i < 16]
+    dst_eval.base_dataset = torch.utils.data.Subset(
+        dst_eval.base_dataset, list(range(16))
+    )
+    dst_eval.shortcut_dataset = torch.utils.data.Subset(
+        dst_eval.shortcut_dataset, list(range(16))
+    )
+    dst_eval.eval_dataset = torch.utils.data.Subset(
+        dst_eval.eval_dataset, list(range(16))
+    )
+    dst_eval.shortcut_indices = [
+        i for i in dst_eval.shortcut_indices if i < 16
+    ]
     dst_eval.filter_by_class = filter_by_class
     dst_eval.filter_by_prediction = filter_by_prediction
 
@@ -310,7 +326,9 @@ def test_shortcut_detection_download(
         def hook(model, input, output):
             activation.append(output.detach())
 
-        exp_layer = reduce(getattr, expl_kwargs["layers"].split("."), dst_eval.model)
+        exp_layer = reduce(
+            getattr, expl_kwargs["layers"].split("."), dst_eval.model
+        )
         exp_layer.register_forward_hook(hook)
         shortcut_expl_ds = SampleTransformationDataset(
             dataset=dst_eval.eval_dataset,
@@ -319,8 +337,12 @@ def test_shortcut_detection_download(
             sample_fn=dst_eval.sample_fn,
             p=1.0,
         )
-        train_ld = torch.utils.data.DataLoader(dst_eval.shortcut_dataset, batch_size=16, shuffle=False)
-        test_ld = torch.utils.data.DataLoader(shortcut_expl_ds, batch_size=16, shuffle=False)
+        train_ld = torch.utils.data.DataLoader(
+            dst_eval.shortcut_dataset, batch_size=16, shuffle=False
+        )
+        test_ld = torch.utils.data.DataLoader(
+            shortcut_expl_ds, batch_size=16, shuffle=False
+        )
         for x, y in iter(train_ld):
             x = x.to(dst_eval.device)
             y_train = y.to(dst_eval.device)
@@ -343,9 +365,16 @@ def test_shortcut_detection_download(
         act_train = torch.nn.functional.normalize(act_train, dim=-1)
         IP = torch.matmul(act_test, act_train.T)
         binary_shortcut_indices: torch.Tensor = torch.tensor(
-            [1 if i in dst_eval.shortcut_indices else 0 for i in range(16)], device=dst_eval.device
+            [1 if i in dst_eval.shortcut_indices else 0 for i in range(16)],
+            device=dst_eval.device,
         )
-        expected_score = torch.tensor([binary_auprc(xpl, binary_shortcut_indices) for xpl in IP]).mean().item()
+        expected_score = (
+            torch.tensor(
+                [binary_auprc(xpl, binary_shortcut_indices) for xpl in IP]
+            )
+            .mean()
+            .item()
+        )
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
@@ -360,7 +389,9 @@ def test_shortcut_detection_download(
         ),
     ],
 )
-def test_shortcut_detection_download_sanity_checks(test_id, benchmark, request):
+def test_shortcut_detection_download_sanity_checks(
+    test_id, benchmark, request
+):
     dst_eval = request.getfixturevalue(benchmark)
     assertions = []
     for i in dst_eval.shortcut_indices:

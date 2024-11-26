@@ -152,7 +152,9 @@ class MixedDatasets(Benchmark):
             If the trainer is neither a Lightning Trainer nor a BaseTrainer.
         """
 
-        logger.info(f"Generating {MixedDatasets.name} benchmark components based on passed arguments...")
+        logger.info(
+            f"Generating {MixedDatasets.name} benchmark components based on passed arguments..."
+        )
 
         obj = cls()
         obj._set_devices(model)
@@ -161,19 +163,31 @@ class MixedDatasets(Benchmark):
         obj.adversarial_label = adversarial_label
         obj.filter_by_prediction = filter_by_prediction
 
-        pr_base_dataset = obj._process_dataset(base_dataset, transform=data_transform, dataset_split=dataset_split)
-
-        adversarial_dataset = SingleClassImageDataset(
-            root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
+        pr_base_dataset = obj._process_dataset(
+            base_dataset, transform=data_transform, dataset_split=dataset_split
         )
 
-        obj.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, pr_base_dataset])
-        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [0] * ds_len(pr_base_dataset)
+        adversarial_dataset = SingleClassImageDataset(
+            root=adversarial_dir,
+            label=adversarial_label,
+            transform=adversarial_transform,
+        )
 
-        mixed_train_dl = torch.utils.data.DataLoader(obj.mixed_dataset, batch_size=batch_size)
+        obj.mixed_dataset = torch.utils.data.ConcatDataset(
+            [adversarial_dataset, pr_base_dataset]
+        )
+        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [
+            0
+        ] * ds_len(pr_base_dataset)
+
+        mixed_train_dl = torch.utils.data.DataLoader(
+            obj.mixed_dataset, batch_size=batch_size
+        )
 
         if val_dataset is not None:
-            val_dl = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size)
+            val_dl = torch.utils.data.DataLoader(
+                val_dataset, batch_size=batch_size
+            )
         else:
             val_dl = None
 
@@ -183,7 +197,9 @@ class MixedDatasets(Benchmark):
 
         if isinstance(trainer, L.Trainer):
             if not isinstance(obj.model, L.LightningModule):
-                raise ValueError("Model should be a LightningModule if Trainer is a Lightning Trainer")
+                raise ValueError(
+                    "Model should be a LightningModule if Trainer is a Lightning Trainer"
+                )
 
             trainer.fit(
                 model=obj.model,
@@ -194,7 +210,9 @@ class MixedDatasets(Benchmark):
 
         elif isinstance(trainer, BaseTrainer):
             if not isinstance(obj.model, torch.nn.Module):
-                raise ValueError("Model should be a torch.nn.Module if Trainer is a BaseTrainer")
+                raise ValueError(
+                    "Model should be a torch.nn.Module if Trainer is a BaseTrainer"
+                )
 
             trainer.fit(
                 model=obj.model,
@@ -204,7 +222,9 @@ class MixedDatasets(Benchmark):
             )
 
         else:
-            raise ValueError("Trainer should be a Lightning Trainer or a BaseTrainer")
+            raise ValueError(
+                "Trainer should be a Lightning Trainer or a BaseTrainer"
+            )
 
         obj.model.to(obj.device)
         obj.model.eval()
@@ -231,10 +251,14 @@ class MixedDatasets(Benchmark):
             The benchmark instance.
         """
         obj = cls()
-        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
+        bench_state = obj._get_bench_state(
+            name, cache_dir, device, *args, **kwargs
+        )
 
         checkpoint_paths = []
-        for ckpt_name, ckpt in zip(bench_state["checkpoints"], bench_state["checkpoints_binary"]):
+        for ckpt_name, ckpt in zip(
+            bench_state["checkpoints"], bench_state["checkpoints_binary"]
+        ):
             save_path = os.path.join(cache_dir, ckpt_name)
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
@@ -250,10 +274,14 @@ class MixedDatasets(Benchmark):
 
         adversarial_dir_url = bench_state["adversarial_dir_url"]
         adversarial_dir = obj._download_adversarial_dataset(
-            name=name, adversarial_dir_url=adversarial_dir_url, cache_dir=cache_dir
+            name=name,
+            adversarial_dir_url=adversarial_dir_url,
+            cache_dir=cache_dir,
         )
 
-        adversarial_transform = sample_transforms[bench_state["adversarial_transform"]]
+        adversarial_transform = sample_transforms[
+            bench_state["adversarial_transform"]
+        ]
 
         return obj.assemble(
             model=module,
@@ -268,7 +296,9 @@ class MixedDatasets(Benchmark):
         )
 
     @staticmethod
-    def _download_adversarial_dataset(name: str, adversarial_dir_url: str, cache_dir: str):
+    def _download_adversarial_dataset(
+        name: str, adversarial_dir_url: str, cache_dir: str
+    ):
         """
         Downloads the adversarial dataset from the given URL and returns the path to the downloaded directory.
 
@@ -288,11 +318,15 @@ class MixedDatasets(Benchmark):
         """
 
         # Download the zip file and extract into cache dir
-        adversarial_dir = os.path.join(cache_dir, name + "_adversarial_dataset")
+        adversarial_dir = os.path.join(
+            cache_dir, name + "_adversarial_dataset"
+        )
         os.makedirs(adversarial_dir, exist_ok=True)
 
         # download
-        adversarial_dir_zip = os.path.join(adversarial_dir, "adversarial_dataset.zip")
+        adversarial_dir_zip = os.path.join(
+            adversarial_dir, "adversarial_dataset.zip"
+        )
         with open(adversarial_dir_zip, "wb") as f:
             response = requests.get(adversarial_dir_url)
             f.write(response.content)
@@ -357,18 +391,26 @@ class MixedDatasets(Benchmark):
 
         obj = cls()
         obj.model = model
-        obj.base_dataset = obj._process_dataset(base_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj.base_dataset = obj._process_dataset(
+            base_dataset, transform=data_transform, dataset_split=dataset_split
+        )
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
         obj.adversarial_label = adversarial_label
 
         adversarial_dataset = SingleClassImageDataset(
-            root=adversarial_dir, label=adversarial_label, transform=adversarial_transform
+            root=adversarial_dir,
+            label=adversarial_label,
+            transform=adversarial_transform,
         )
 
-        obj.mixed_dataset = torch.utils.data.ConcatDataset([adversarial_dataset, obj.base_dataset])
-        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [0] * ds_len(obj.base_dataset)
+        obj.mixed_dataset = torch.utils.data.ConcatDataset(
+            [adversarial_dataset, obj.base_dataset]
+        )
+        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [
+            0
+        ] * ds_len(obj.base_dataset)
         obj._set_devices(model)
 
         obj._checkpoint_paths = checkpoint_paths
@@ -401,9 +443,13 @@ class MixedDatasets(Benchmark):
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.mixed_dataset, **expl_kwargs)
+        explainer = explainer_cls(
+            model=self.model, train_dataset=self.mixed_dataset, **expl_kwargs
+        )
 
-        adversarial_expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
+        adversarial_expl_dl = torch.utils.data.DataLoader(
+            self.eval_dataset, batch_size=batch_size
+        )
 
         metric = MixedDatasetsMetric(
             model=self.model,
@@ -417,7 +463,9 @@ class MixedDatasets(Benchmark):
         n_batches = len(adversarial_expl_dl)
 
         for i, (inputs, labels) in enumerate(pbar):
-            pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
+            pbar.set_description(
+                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
+            )
 
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             if self.use_predictions:
@@ -425,7 +473,9 @@ class MixedDatasets(Benchmark):
                     targets = self.model(inputs).argmax(dim=-1)
             else:
                 targets = labels
-            explanations = explainer.explain(test_tensor=inputs, targets=targets)
+            explanations = explainer.explain(
+                test_tensor=inputs, targets=targets
+            )
             metric.update(explanations, test_tensor=inputs, test_labels=labels)
 
         return metric.compute()

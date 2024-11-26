@@ -56,7 +56,9 @@ class BatchedCachedExplanations:
 
         self.av_filesearch = os.path.join(cache_dir, "*.pt")
         self.files = glob.glob(self.av_filesearch)
-        self.batch_size = torch.load(self.files[0], map_location=self.device, weights_only=True).shape[0]
+        self.batch_size = torch.load(
+            self.files[0], map_location=self.device, weights_only=True
+        ).shape[0]
 
     def __getitem__(self, idx: int) -> torch.Tensor:
         """
@@ -119,7 +121,9 @@ class ExplanationsCache(Cache):
         bool
             True if the explanations exist, False otherwise.
         """
-        av_filesearch = os.path.join(path, "*.pt" if num_id is None else f"{num_id}.pt")
+        av_filesearch = os.path.join(
+            path, "*.pt" if num_id is None else f"{num_id}.pt"
+        )
         return os.path.exists(path) and len(glob.glob(av_filesearch)) > 0
 
     @staticmethod
@@ -169,7 +173,9 @@ class ExplanationsCache(Cache):
             BatchedCachedExplanations object that can load explanations lazily by index.
         """
         if os.path.exists(path):
-            xpl_dataset = BatchedCachedExplanations(cache_dir=path, device=device)
+            xpl_dataset = BatchedCachedExplanations(
+                cache_dir=path, device=device
+            )
             return xpl_dataset
         else:
             raise RuntimeError(f"Explanations were not found at path {path}")

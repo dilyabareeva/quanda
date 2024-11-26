@@ -35,7 +35,9 @@ RANDOM_SEED = 42
 
 
 def pytest_configure(config):
-    config.addinivalue_line("markers", "local: only run this test if running locally")
+    config.addinivalue_line(
+        "markers", "local: only run this test if running locally"
+    )
 
 
 def pytest_runtest_setup(item):
@@ -73,7 +75,12 @@ def load_rand_test_predictions():
 @pytest.fixture
 def mnist_range_explanations():
     return torch.tensor(
-        [[i * 1.0 for i in range(8)], [i * 1.0 for i in range(8)], [i * 1.0 for i in range(8)]], dtype=torch.float
+        [
+            [i * 1.0 for i in range(8)],
+            [i * 1.0 for i in range(8)],
+            [i * 1.0 for i in range(8)],
+        ],
+        dtype=torch.float,
     )
 
 
@@ -84,7 +91,10 @@ def range_ranking():
 
 @pytest.fixture
 def mnist_seed_27_mislabeling_labels():
-    with open("tests/assets/mnist_test_suite_1/mnist_seed_27_poisoned_labels.json", "r") as f:
+    with open(
+        "tests/assets/mnist_test_suite_1/mnist_seed_27_poisoned_labels.json",
+        "r",
+    ) as f:
         return json.load(f)
 
 
@@ -108,7 +118,11 @@ def get_mnist_checkpoints():
 def load_mnist_model():
     """Load a pre-trained LeNet classification model (architecture at quantus/helpers/models)."""
     model = LeNet()
-    model.load_state_dict(torch.load("tests/assets/mnist", map_location="cpu", pickle_module=pickle))
+    model.load_state_dict(
+        torch.load(
+            "tests/assets/mnist", map_location="cpu", pickle_module=pickle
+        )
+    )
     return model
 
 
@@ -116,7 +130,11 @@ def load_mnist_model():
 def load_mnist_pl_module():
     """Load a pre-trained LeNet classification model (architecture at quantus/helpers/models)."""
     model = LeNet()
-    model.load_state_dict(torch.load("tests/assets/mnist", map_location="cpu", pickle_module=pickle))
+    model.load_state_dict(
+        torch.load(
+            "tests/assets/mnist", map_location="cpu", pickle_module=pickle
+        )
+    )
 
     pl_module = BasicLightningModule(
         model=model,
@@ -132,7 +150,13 @@ def load_mnist_pl_module():
 def load_mnist_grouped_model():
     """Load a pre-trained LeNet classification model (architecture at quantus/helpers/models)."""
     model = LeNet(num_outputs=2)
-    model.load_state_dict(torch.load("tests/assets/mnist_grouped_model", map_location="cpu", pickle_module=pickle))
+    model.load_state_dict(
+        torch.load(
+            "tests/assets/mnist_grouped_model",
+            map_location="cpu",
+            pickle_module=pickle,
+        )
+    )
     return model
 
 
@@ -145,11 +169,15 @@ def load_init_mnist_model():
 @pytest.fixture
 def load_mnist_dataset():
     """Load a batch of MNIST digits: inputs and outputs to use for testing."""
-    x_batch = (np.loadtxt("tests/assets/mnist_x").astype(float).reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE)))[
-        :MINI_BATCH_SIZE
-    ]
+    x_batch = (
+        np.loadtxt("tests/assets/mnist_x")
+        .astype(float)
+        .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
+    )[:MINI_BATCH_SIZE]
     y_batch = np.loadtxt("tests/assets/mnist_y").astype(int)[:MINI_BATCH_SIZE]
-    dataset = TestTensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
+    dataset = TestTensorDataset(
+        torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
+    )
     return dataset
 
 
@@ -167,11 +195,15 @@ def load_mnist_adversarial_indices():
 
 @pytest.fixture
 def load_grouped_mnist_dataset():
-    x_batch = (np.loadtxt("tests/assets/mnist_x").astype(float).reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE)))[
-        :MINI_BATCH_SIZE
-    ]
+    x_batch = (
+        np.loadtxt("tests/assets/mnist_x")
+        .astype(float)
+        .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
+    )[:MINI_BATCH_SIZE]
     y_batch = np.loadtxt("tests/assets/mnist_y").astype(int)[:MINI_BATCH_SIZE]
-    dataset = TestTensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
+    dataset = TestTensorDataset(
+        torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
+    )
     return LabelGroupingDataset(
         dataset,
         n_classes=10,
@@ -183,11 +215,15 @@ def load_grouped_mnist_dataset():
 
 @pytest.fixture
 def load_mislabeling_mnist_dataset():
-    x_batch = (np.loadtxt("tests/assets/mnist_x").astype(float).reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE)))[
-        :MINI_BATCH_SIZE
-    ]
+    x_batch = (
+        np.loadtxt("tests/assets/mnist_x")
+        .astype(float)
+        .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
+    )[:MINI_BATCH_SIZE]
     y_batch = np.loadtxt("tests/assets/mnist_y").astype(int)[:MINI_BATCH_SIZE]
-    dataset = TestTensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
+    dataset = TestTensorDataset(
+        torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
+    )
     return LabelFlippingDataset(
         dataset,
         n_classes=10,
@@ -199,12 +235,18 @@ def load_mislabeling_mnist_dataset():
 @pytest.fixture
 def load_mnist_dataloader():
     """Load a batch of MNIST digits: inputs and outputs to use for testing."""
-    x_batch = (np.loadtxt("tests/assets/mnist_x").astype(float).reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE)))[
-        :MINI_BATCH_SIZE
-    ]
+    x_batch = (
+        np.loadtxt("tests/assets/mnist_x")
+        .astype(float)
+        .reshape((BATCH_SIZE, 1, MNIST_IMAGE_SIZE, MNIST_IMAGE_SIZE))
+    )[:MINI_BATCH_SIZE]
     y_batch = np.loadtxt("tests/assets/mnist_y").astype(int)[:MINI_BATCH_SIZE]
-    dataset = TensorDataset(torch.tensor(x_batch).float(), torch.tensor(y_batch).long())
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=MINI_BATCH_SIZE, shuffle=False)
+    dataset = TensorDataset(
+        torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
+    )
+    dataloader = torch.utils.data.DataLoader(
+        dataset, batch_size=MINI_BATCH_SIZE, shuffle=False
+    )
     return dataloader
 
 
@@ -228,12 +270,16 @@ def load_mnist_test_labels_1():
 
 @pytest.fixture
 def load_mnist_explanations_similarity_1():
-    return torch.load("tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt")
+    return torch.load(
+        "tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt"
+    )
 
 
 @pytest.fixture
 def load_mnist_explanations_dot_similarity_1():
-    return torch.load("tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_dot_tda.pt")
+    return torch.load(
+        "tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_dot_tda.pt"
+    )
 
 
 @pytest.fixture
@@ -287,7 +333,9 @@ def load_fashion_mnist_path():
 @pytest.fixture
 def mnist_white_square_transformation():
     def add_white_square(img):
-        img[:, 8:13, 10:15] = 1.0  # Paste it onto the image at the specified position
+        img[
+            :, 8:13, 10:15
+        ] = 1.0  # Paste it onto the image at the specified position
         return img
 
     return add_white_square
@@ -297,7 +345,9 @@ def mnist_white_square_transformation():
 def mnist_class_detection_benchmark(tmp_path_factory):
     dst_eval = ClassDetection.download(
         name="mnist_class_detection",
-        cache_dir=str(tmp_path_factory.mktemp("mnist_class_detection_benchmark")),
+        cache_dir=str(
+            tmp_path_factory.mktemp("mnist_class_detection_benchmark")
+        ),
         device="cpu",
     )
     return dst_eval
@@ -307,7 +357,9 @@ def mnist_class_detection_benchmark(tmp_path_factory):
 def mnist_subclass_detection_benchmark(tmp_path_factory):
     dst_eval = SubclassDetection.download(
         name="mnist_subclass_detection",
-        cache_dir=str(tmp_path_factory.mktemp("mnist_subclass_detection_benchmark")),
+        cache_dir=str(
+            tmp_path_factory.mktemp("mnist_subclass_detection_benchmark")
+        ),
         device="cpu",
     )
     return dst_eval
@@ -317,7 +369,9 @@ def mnist_subclass_detection_benchmark(tmp_path_factory):
 def mnist_mislabeling_detection_benchmark(tmp_path_factory):
     dst_eval = MislabelingDetection.download(
         name="mnist_mislabeling_detection",
-        cache_dir=str(tmp_path_factory.mktemp("mnist_mislabeling_detection_benchmark")),
+        cache_dir=str(
+            tmp_path_factory.mktemp("mnist_mislabeling_detection_benchmark")
+        ),
         device="cpu",
     )
     return dst_eval
@@ -327,7 +381,9 @@ def mnist_mislabeling_detection_benchmark(tmp_path_factory):
 def mnist_shortcut_detection_benchmark(tmp_path_factory):
     dst_eval = ShortcutDetection.download(
         name="mnist_shortcut_detection",
-        cache_dir=str(tmp_path_factory.mktemp("mnist_shortcut_detection_benchmark")),
+        cache_dir=str(
+            tmp_path_factory.mktemp("mnist_shortcut_detection_benchmark")
+        ),
         device="cpu",
     )
     return dst_eval
@@ -337,7 +393,9 @@ def mnist_shortcut_detection_benchmark(tmp_path_factory):
 def mnist_mixed_datasets_benchmark(tmp_path_factory):
     dst_eval = MixedDatasets.download(
         name="mnist_mixed_datasets",
-        cache_dir=str(tmp_path_factory.mktemp("mnist_mixed_datasets_benchmark")),
+        cache_dir=str(
+            tmp_path_factory.mktemp("mnist_mixed_datasets_benchmark")
+        ),
         device="cpu",
     )
     return dst_eval
@@ -347,7 +405,9 @@ def mnist_mixed_datasets_benchmark(tmp_path_factory):
 def mnist_model_randomization_benchmark(tmp_path_factory):
     dst_eval = ModelRandomization.download(
         name="mnist_class_detection",
-        cache_dir=str(tmp_path_factory.mktemp("mnist_class_detection_benchmark")),
+        cache_dir=str(
+            tmp_path_factory.mktemp("mnist_class_detection_benchmark")
+        ),
         device="cpu",
     )
     return dst_eval
@@ -357,7 +417,9 @@ def mnist_model_randomization_benchmark(tmp_path_factory):
 def mnist_top_k_cardinality_benchmark(tmp_path_factory):
     dst_eval = TopKCardinality.download(
         name="mnist_class_detection",
-        cache_dir=str(tmp_path_factory.mktemp("mnist_class_detection_benchmark")),
+        cache_dir=str(
+            tmp_path_factory.mktemp("mnist_class_detection_benchmark")
+        ),
         device="cpu",
     )
     return dst_eval

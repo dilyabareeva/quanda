@@ -125,11 +125,17 @@ class LinearDatamodeling(Benchmark):
             The dataset split to use, by default "train". Only used if `train_dataset` is a string.
         """
 
-        logger.info(f"Generating {LinearDatamodeling.name} benchmark components based on passed arguments...")
+        logger.info(
+            f"Generating {LinearDatamodeling.name} benchmark components based on passed arguments..."
+        )
 
         obj = cls()
         obj._set_devices(model)
-        obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj.train_dataset = obj._process_dataset(
+            train_dataset,
+            transform=data_transform,
+            dataset_split=dataset_split,
+        )
         obj.eval_dataset = eval_dataset
         obj.correlation_fn = correlation_fn
         obj.seed = seed
@@ -160,7 +166,9 @@ class LinearDatamodeling(Benchmark):
             Device to load the model on.
         """
         obj = cls()
-        bench_state = obj._get_bench_state(name, cache_dir, device, *args, **kwargs)
+        bench_state = obj._get_bench_state(
+            name, cache_dir, device, *args, **kwargs
+        )
 
         eval_dataset = obj._build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
@@ -254,7 +262,11 @@ class LinearDatamodeling(Benchmark):
         obj.seed = seed
         obj.cache_dir = cache_dir
         obj.model_id = model_id
-        obj.train_dataset = obj._process_dataset(train_dataset, transform=data_transform, dataset_split=dataset_split)
+        obj.train_dataset = obj._process_dataset(
+            train_dataset,
+            transform=data_transform,
+            dataset_split=dataset_split,
+        )
         obj._set_devices(model)
 
         return obj
@@ -286,8 +298,12 @@ class LinearDatamodeling(Benchmark):
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(model=self.model, train_dataset=self.train_dataset, **expl_kwargs)
-        expl_dl = torch.utils.data.DataLoader(self.eval_dataset, batch_size=batch_size)
+        explainer = explainer_cls(
+            model=self.model, train_dataset=self.train_dataset, **expl_kwargs
+        )
+        expl_dl = torch.utils.data.DataLoader(
+            self.eval_dataset, batch_size=batch_size
+        )
 
         metric = LinearDatamodelingMetric(
             model=self.model,
@@ -306,7 +322,9 @@ class LinearDatamodeling(Benchmark):
         n_batches = len(expl_dl)
 
         for i, (input, labels) in enumerate(pbar):
-            pbar.set_description("Metric evaluation, batch %d/%d" % (i + 1, n_batches))
+            pbar.set_description(
+                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
+            )
 
             input, labels = input.to(self.device), labels.to(self.device)
 
@@ -322,6 +340,10 @@ class LinearDatamodeling(Benchmark):
                 targets=targets,
             )
 
-            metric.update(explanations=explanations, test_tensor=input, explanation_targets=targets)
+            metric.update(
+                explanations=explanations,
+                test_tensor=input,
+                explanation_targets=targets,
+            )
 
         return metric.compute()

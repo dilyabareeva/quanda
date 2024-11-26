@@ -60,8 +60,7 @@ ignore_missing_imports = true
 
 # Black formatting
 [tool.black]
-line-length = 127
-include = '\.pyi?$'
+line-length = 79
 exclude = '''
 /(
       .eggs         # exclude a few common directories in the

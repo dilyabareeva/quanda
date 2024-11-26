@@ -62,7 +62,7 @@ Before you start writing your code, create a local branch from the **latest vers
 ### Code Style
 
 **quanda** follows [PEP-8](https://www.python.org/dev/peps/pep-0008/) code style.
-We use [flake8](https://pypi.org/project/flake8/) for quick style checks and [black](https://github.com/psf/black) for code formatting with a line-length of 127 characters.
+We use [flake8](https://pypi.org/project/flake8/) for quick style checks and [black](https://github.com/psf/black) for code formatting with a line-length of 79 characters.
 
 **quanda** uses [mypy](https://mypy-lang.org/) static type checker. Please include type annotations for added code, and only write fully compatible code.
 
