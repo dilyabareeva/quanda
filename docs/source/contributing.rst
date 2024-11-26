@@ -80,7 +80,7 @@ formatted and linted correctly:
 
 .. code:: bash
 
-   make style
+   make clean-format
 
 Branching
 ~~~~~~~~~
@@ -92,9 +92,9 @@ Code Style
 ~~~~~~~~~~
 
 |quanda| follows `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`__
-code style. We use `flake8 <https://pypi.org/project/flake8/>`__ for
-quick style checks and `black <https://github.com/psf/black>`__ for code
-formatting with a line-length of 127 characters.
+code style. We use `ruff <https://github.com/astral-sh/ruff/>`__ for
+linting and code formatting with a line-length of 79 characters.
+
 
 |quanda| uses `mypy <https://mypy-lang.org/>`__ static type checker.
 Please include type annotations for added code, and only write fully
@@ -169,7 +169,7 @@ ensure a seamless review process:
 
 .. code:: bash
 
-   make style
+   make clean-format
 
 -  Make sure to add mypy style typing annotations whenever possible
 -  Create unit tests for new functionality under the ``tests/`` folder.
