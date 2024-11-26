@@ -1,9 +1,5 @@
-from copy import deepcopy
-from typing import Callable, Optional, Union
-
 import pytest
 import torch
-from torch.utils.data import DataLoader, Subset
 
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.ground_truth.linear_datamodeling import (
@@ -88,4 +84,6 @@ def test_linear_datamodeling(
 
     score = metric.compute()["score"]
 
-    assert abs(score - get_lds_score) < 0.01, "LDS scores differ significantly."
+    assert (
+        abs(score - get_lds_score) < 0.01
+    ), "LDS scores differ significantly."

@@ -56,7 +56,9 @@ class LabelFlippingDataset(TransformedDataset):
             self.mislabeling_labels = mislabeling_labels
         else:
             self.mislabeling_labels = {
-                i: self._poison(self.dataset[i][1]) for i in range(len(self)) if i in self.transform_indices
+                i: self._poison(self.dataset[i][1])
+                for i in range(len(self))
+                if i in self.transform_indices
             }
 
     def _poison(self, original_label):

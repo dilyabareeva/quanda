@@ -1,8 +1,4 @@
-import os
-from typing import List, Optional, Union
-
 import pytest
-import torch
 
 from quanda.explainers import RandomExplainer
 from quanda.utils.functions import cosine_similarity
@@ -20,7 +16,9 @@ from quanda.utils.functions import cosine_similarity
         ),
     ],
 )
-def test_random_explainer_self_influence(test_id, model, dataset, method_kwargs, request, tmp_path):
+def test_random_explainer_self_influence(
+    test_id, model, dataset, method_kwargs, request, tmp_path
+):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
 
@@ -34,7 +32,9 @@ def test_random_explainer_self_influence(test_id, model, dataset, method_kwargs,
     )
 
     self_influence = explainer.self_influence()
-    assert self_influence.shape[0] == dataset.__len__(), "Self-influence shape does not match the dataset."
+    assert (
+        self_influence.shape[0] == dataset.__len__()
+    ), "Self-influence shape does not match the dataset."
 
 
 @pytest.mark.explainers
@@ -50,7 +50,9 @@ def test_random_explainer_self_influence(test_id, model, dataset, method_kwargs,
         ),
     ],
 )
-def test_random_explainer_explain(test_id, model, dataset, test_batch, method_kwargs, request, tmp_path):
+def test_random_explainer_explain(
+    test_id, model, dataset, test_batch, method_kwargs, request, tmp_path
+):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     test_batch = request.getfixturevalue(test_batch)
@@ -65,4 +67,6 @@ def test_random_explainer_explain(test_id, model, dataset, test_batch, method_kw
     )
 
     tda = explainer.explain(test_batch)
-    assert tda.shape[0] == test_batch.shape[0], "Self-influence shape does not match the dataset."
+    assert (
+        tda.shape[0] == test_batch.shape[0]
+    ), "Self-influence shape does not match the dataset."

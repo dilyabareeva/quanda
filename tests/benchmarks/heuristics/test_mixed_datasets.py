@@ -1,5 +1,4 @@
 import math
-from copy import deepcopy
 from functools import reduce
 
 import pytest
@@ -88,7 +87,11 @@ def test_mixed_datasets(
     dataset = request.getfixturevalue(dataset)
     adversarial_transforms = request.getfixturevalue(adversarial_transforms)
     adversarial_path = request.getfixturevalue(adversarial_path)
-    eval_dataset = SingleClassImageDataset(root=adversarial_path, label=adversarial_label, transform=adversarial_transforms)
+    eval_dataset = SingleClassImageDataset(
+        root=adversarial_path,
+        label=adversarial_label,
+        transform=adversarial_transforms,
+    )
 
     if init_method == "generate":
         trainer = Trainer(
@@ -141,18 +144,29 @@ def test_mixed_datasets(
         ),
     ],
 )
-def test_mixed_dataset_download_sanity_checks(test_id, benchmark, batch_size, request):
+def test_mixed_dataset_download_sanity_checks(
+    test_id, benchmark, batch_size, request
+):
     dst_eval = request.getfixturevalue(benchmark)
-    nonadv_indices = torch.where(1 - torch.tensor(dst_eval.adversarial_indices))[0]
+    nonadv_indices = torch.where(
+        1 - torch.tensor(dst_eval.adversarial_indices)
+    )[0]
     assertions = []
     assert len(nonadv_indices) == len(dst_eval.base_dataset)
-    len_adv_ds = len(torch.where(torch.tensor(dst_eval.adversarial_indices))[0])
-    assertions.append(all([idx.item() >= len_adv_ds for idx in nonadv_indices[:500]]))
+    len_adv_ds = len(
+        torch.where(torch.tensor(dst_eval.adversarial_indices))[0]
+    )
+    assertions.append(
+        all([idx.item() >= len_adv_ds for idx in nonadv_indices[:500]])
+    )
 
     assertions.append(
         all(
             [
-                torch.allclose(dst_eval.base_dataset[i.item() - len_adv_ds][0], dst_eval.mixed_dataset[i.item()][0])
+                torch.allclose(
+                    dst_eval.base_dataset[i.item() - len_adv_ds][0],
+                    dst_eval.mixed_dataset[i.item()][0],
+                )
                 for i in nonadv_indices[:100]
             ]
         )
@@ -193,14 +207,26 @@ def test_mixed_dataset_download_sanity_checks(test_id, benchmark, batch_size, re
     ],
 )
 def test_mixed_dataset_download(
-    test_id, benchmark, batch_size, explainer_cls, expl_kwargs, filter_by_prediction, expected_score, tmp_path, request
+    test_id,
+    benchmark,
+    batch_size,
+    explainer_cls,
+    expl_kwargs,
+    filter_by_prediction,
+    expected_score,
+    tmp_path,
+    request,
 ):
     dst_eval = request.getfixturevalue(benchmark)
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.mixed_dataset = torch.utils.data.Subset(dst_eval.mixed_dataset, list(range(16)))
-    dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
-    adversarial_indices_backup = dst_eval.adversarial_indices
+    dst_eval.mixed_dataset = torch.utils.data.Subset(
+        dst_eval.mixed_dataset, list(range(16))
+    )
+    dst_eval.eval_dataset = torch.utils.data.Subset(
+        dst_eval.eval_dataset, list(range(16))
+    )
+
     dst_eval.adversarial_indices = dst_eval.adversarial_indices[:16]
     dst_eval.filter_by_prediction = filter_by_prediction
     score = dst_eval.evaluate(
@@ -215,19 +241,23 @@ def test_mixed_dataset_download(
         def hook(model, input, output):
             activation.append(output.detach())
 
-        exp_layer = reduce(getattr, expl_kwargs["layers"].split("."), dst_eval.model)
+        exp_layer = reduce(
+            getattr, expl_kwargs["layers"].split("."), dst_eval.model
+        )
         exp_layer.register_forward_hook(hook)
-        train_ld = torch.utils.data.DataLoader(dst_eval.mixed_dataset, batch_size=16, shuffle=False)
-        test_ld = torch.utils.data.DataLoader(dst_eval.eval_dataset, batch_size=16, shuffle=False)
+        train_ld = torch.utils.data.DataLoader(
+            dst_eval.mixed_dataset, batch_size=16, shuffle=False
+        )
+        test_ld = torch.utils.data.DataLoader(
+            dst_eval.eval_dataset, batch_size=16, shuffle=False
+        )
         for x, y in iter(train_ld):
             x = x.to(dst_eval.device)
-            y_train = y.to(dst_eval.device)
             dst_eval.model(x)
         act_train = activation[0]
         activation = []
         for x, y in iter(test_ld):
             x = x.to(dst_eval.device)
-            y_test = y.to(dst_eval.device)
             y_preds = dst_eval.model(x).argmax(dim=-1)
             select_idx = torch.tensor([True] * 16)
             if filter_by_prediction:
@@ -239,7 +269,16 @@ def test_mixed_dataset_download(
         act_train = torch.nn.functional.normalize(act_train, dim=-1)
         IP = torch.matmul(act_test, act_train.T)
         expected_score = (
-            torch.tensor([binary_auprc(xpl, torch.tensor(dst_eval.adversarial_indices)) for xpl in IP]).mean().item()
+            torch.tensor(
+                [
+                    binary_auprc(
+                        xpl, torch.tensor(dst_eval.adversarial_indices)
+                    )
+                    for xpl in IP
+                ]
+            )
+            .mean()
+            .item()
         )
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)

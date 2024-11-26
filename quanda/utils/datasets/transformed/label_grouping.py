@@ -60,16 +60,23 @@ class LabelGroupingDataset(TransformedDataset):
 
         if class_to_group == "random":
             if n_groups is None:
-                raise ValueError("n_classes and n_groups must be specified when class_to_group is 'random'")
+                raise ValueError(
+                    "n_classes and n_groups must be specified when class_to_group is 'random'"
+                )
 
             self.n_classes = n_classes
             self.n_groups = n_groups
 
-            self.class_to_group = {i: self.rng.randrange(self.n_groups) for i in range(self.n_classes)}
+            self.class_to_group = {
+                i: self.rng.randrange(self.n_groups)
+                for i in range(self.n_classes)
+            }
 
         elif isinstance(class_to_group, dict):
             if n_groups is not None:
-                warnings.warn("Class-to-group assignment is used. n_groups parameter is ignored.")
+                warnings.warn(
+                    "Class-to-group assignment is used. n_groups parameter is ignored."
+                )
 
             self.class_to_group = class_to_group
             self.n_classes = len(self.class_to_group)
@@ -100,4 +107,6 @@ class LabelGroupingDataset(TransformedDataset):
                 f"does not match number of classes ({self.n_classes})"
             )
         if not all([g in self.groups for g in self.class_to_group.values()]):
-            raise ValueError(f"Invalid group assignment in class_to_group: {self.class_to_group.values()}")
+            raise ValueError(
+                f"Invalid group assignment in class_to_group: {self.class_to_group.values()}"
+            )

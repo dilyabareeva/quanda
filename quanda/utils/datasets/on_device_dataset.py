@@ -6,7 +6,11 @@ import torch
 class OnDeviceDataset(torch.utils.data.Dataset):
     """Wrapper to move a dataset to a device."""
 
-    def __init__(self, dataset: torch.utils.data.Dataset, device: Union[str, torch.device]):
+    def __init__(
+        self,
+        dataset: torch.utils.data.Dataset,
+        device: Union[str, torch.device],
+    ):
         """
         Constructor for the OnDeviceDataset class.
 

@@ -76,7 +76,10 @@ class ModelRandomizationMetric(Metric):
         self.results: Dict[str, List] = {"scores": []}
 
         # TODO: create a validation utility function
-        if isinstance(correlation_fn, str) and correlation_fn in correlation_functions:
+        if (
+            isinstance(correlation_fn, str)
+            and correlation_fn in correlation_functions
+        ):
             self.corr_measure = correlation_functions[correlation_fn]
         elif callable(correlation_fn):
             self.corr_measure = correlation_fn
@@ -106,9 +109,15 @@ class ModelRandomizationMetric(Metric):
         """
         explanations = explanations.to(self.device)
         test_data = test_data.to(self.device)
-        explanation_targets = explanation_targets.to(self.device) if explanation_targets is not None else None
+        explanation_targets = (
+            explanation_targets.to(self.device)
+            if explanation_targets is not None
+            else None
+        )
 
-        rand_explanations = self.rand_explainer.explain(test_tensor=test_data, targets=explanation_targets).to(self.device)
+        rand_explanations = self.rand_explainer.explain(
+            test_tensor=test_data, targets=explanation_targets
+        ).to(self.device)
 
         corrs = self.corr_measure(explanations, rand_explanations)
         self.results["scores"].append(corrs)
@@ -184,7 +193,12 @@ class ModelRandomizationMetric(Metric):
             parent = get_parent_module_from_name(rand_model, name)
             # TODO: currently only linear layer is randomized, due to explainers' convergence issues
             if isinstance(parent, (torch.nn.Linear)):
-                random_param_tensor = torch.nn.init.normal_(param, generator=self.generator)
-                parent.__setattr__(name.split(".")[-1], torch.nn.Parameter(random_param_tensor))
+                random_param_tensor = torch.nn.init.normal_(
+                    param, generator=self.generator
+                )
+                parent.__setattr__(
+                    name.split(".")[-1],
+                    torch.nn.Parameter(random_param_tensor),
+                )
 
         return rand_model

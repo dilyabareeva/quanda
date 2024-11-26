@@ -74,9 +74,12 @@ class ClassDetectionMetric(Metric):
         explanations = explanations.to(self.device)
 
         _, top_one_xpl_indices = explanations.topk(k=1, dim=1)
-        top_one_xpl_targets = torch.tensor([self.train_dataset[int(i)][1] for i in top_one_xpl_indices.squeeze()]).to(
-            self.device
-        )
+        top_one_xpl_targets = torch.tensor(
+            [
+                self.train_dataset[int(i)][1]
+                for i in top_one_xpl_indices.squeeze()
+            ]
+        ).to(self.device)
         scores = (test_labels == top_one_xpl_targets) * 1.0
         self.scores.append(scores)
 

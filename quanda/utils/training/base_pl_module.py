@@ -44,10 +44,14 @@ class BasicLightningModule(L.LightningModule):
         self.model = model
         self.optimizer = optimizer
         self.lr = lr
-        self.optimizer_kwargs = optimizer_kwargs if optimizer_kwargs is not None else {}
+        self.optimizer_kwargs = (
+            optimizer_kwargs if optimizer_kwargs is not None else {}
+        )
         self.criterion = criterion
         self.scheduler = scheduler
-        self.scheduler_kwargs = scheduler_kwargs if scheduler_kwargs is not None else {}
+        self.scheduler_kwargs = (
+            scheduler_kwargs if scheduler_kwargs is not None else {}
+        )
 
     def forward(self, inputs):
         """
@@ -119,13 +123,19 @@ class BasicLightningModule(L.LightningModule):
         ValueError
             If the scheduler is not an instance of the expected class.
         """
-        optimizer = self.optimizer(self.model.parameters(), lr=self.lr, **self.optimizer_kwargs)
+        optimizer = self.optimizer(
+            self.model.parameters(), lr=self.lr, **self.optimizer_kwargs
+        )
         if not isinstance(optimizer, torch.optim.Optimizer):
-            raise ValueError("optimizer must be an instance of torch.optim.Optimizer")
+            raise ValueError(
+                "optimizer must be an instance of torch.optim.Optimizer"
+            )
         if self.scheduler is not None:
             scheduler = self.scheduler(optimizer, **self.scheduler_kwargs)
             if not isinstance(scheduler, torch.optim.lr_scheduler.LRScheduler):
-                raise ValueError("scheduler must be an instance of torch.optim.lr_scheduler.LRScheduler")
+                raise ValueError(
+                    "scheduler must be an instance of torch.optim.lr_scheduler.LRScheduler"
+                )
             return {"optimizer": optimizer, "lr_scheduler": scheduler}
         return optimizer
 

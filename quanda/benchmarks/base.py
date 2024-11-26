@@ -62,7 +62,9 @@ class Benchmark(ABC):
 
         raise NotImplementedError
 
-    def _get_bench_state(self, name: str, cache_dir: str, device: str, *args, **kwargs):
+    def _get_bench_state(
+        self, name: str, cache_dir: str, device: str, *args, **kwargs
+    ):
         """
         Downloads a benchmark state dictionary of a benchmark and returns.
 
@@ -91,7 +93,11 @@ class Benchmark(ABC):
             with open(os.path.join(cache_dir, name + ".pth"), "wb") as f:
                 f.write(response.content)
 
-        return torch.load(os.path.join(cache_dir, name + ".pth"), map_location=device, weights_only=True)
+        return torch.load(
+            os.path.join(cache_dir, name + ".pth"),
+            map_location=device,
+            weights_only=True,
+        )
 
     @classmethod
     @abstractmethod
@@ -173,7 +179,9 @@ class Benchmark(ABC):
         """
         if isinstance(dataset, str):
             cls.dataset_str = dataset
-            return HFtoTV(load_dataset(dataset, split=dataset_split), transform=transform)
+            return HFtoTV(
+                load_dataset(dataset, split=dataset_split), transform=transform
+            )
         else:
             return dataset
 
@@ -203,7 +211,9 @@ class Benchmark(ABC):
         torch.utils.data.Dataset
             The evaluation dataset.
         """
-        test_dataset = HFtoTV(load_dataset(dataset_str, split=dataset_split), transform=transform)
+        test_dataset = HFtoTV(
+            load_dataset(dataset_str, split=dataset_split), transform=transform
+        )
         return torch.utils.data.Subset(test_dataset, eval_indices)
 
     def get_checkpoint_paths(self) -> List[str]:

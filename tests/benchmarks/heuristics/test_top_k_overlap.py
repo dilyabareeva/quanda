@@ -120,13 +120,24 @@ def test_topk_cardinality(
     ],
 )
 def test_top_k_cardinality_download(
-    test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score, tmp_path, request
+    test_id,
+    benchmark_name,
+    batch_size,
+    explainer_cls,
+    expl_kwargs,
+    expected_score,
+    tmp_path,
+    request,
 ):
     dst_eval = request.getfixturevalue(benchmark_name)
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
-    dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
+    dst_eval.train_dataset = torch.utils.data.Subset(
+        dst_eval.train_dataset, list(range(16))
+    )
+    dst_eval.eval_dataset = torch.utils.data.Subset(
+        dst_eval.eval_dataset, list(range(16))
+    )
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
