@@ -197,9 +197,6 @@ class ModelRandomizationMetric(Metric):
 
         Currently, only linear and convolutional layers are supported.
 
-        Parameters
-        ----------
-
         Returns
         -------
         torch.nn.Module

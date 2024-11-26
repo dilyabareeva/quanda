@@ -1,5 +1,5 @@
 """Benchmark for the Linear Datamodeling Score metric."""
-import os
+
 import logging
 from typing import Callable, Optional, Union, List, Any
 

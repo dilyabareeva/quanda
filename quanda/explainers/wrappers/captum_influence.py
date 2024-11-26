@@ -3,7 +3,7 @@
 import logging
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Iterator, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 import lightning as L
 import torch
