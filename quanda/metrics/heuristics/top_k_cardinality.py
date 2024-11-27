@@ -27,8 +27,8 @@ class TopKCardinalityMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         top_k: int = 1,
     ):
@@ -38,20 +38,13 @@ class TopKCardinalityMetric(Metric):
         ----------
         model : torch.nn.Module
             The model associated with the attributions to be evaluated.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset that was used to train `model`.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            The function to load the checkpoint(s), by default None.
-        explainer_cls : Optional[type], optional
-            The explainer class. Defaults to None.
-        expl_kwargs : Optional[dict], optional
-            Additional keyword arguments for the explainer class.
-        model_id : Optional[str], optional
-            An identifier for the model, by default "0".
-        cache_dir : str, optional
-            The cache directory, defaults to "./cache".
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         top_k : int, optional
             The number of top-k explanations to consider, defaults to 1.
 
@@ -62,7 +55,7 @@ class TopKCardinalityMetric(Metric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        self.load_last_checkpoint()
+
         self.top_k = top_k
         self.all_top_k_examples = torch.empty(0, top_k).to(self.device)
 

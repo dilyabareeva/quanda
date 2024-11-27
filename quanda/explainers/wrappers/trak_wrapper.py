@@ -62,9 +62,9 @@ class TRAK(Explainer):
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
         task: Union[AbstractModelOutput, str] = "image_classification",
@@ -83,14 +83,15 @@ class TRAK(Explainer):
         ----------
         model : torch.nn.Module
             The model to be explained.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train the model.
         model_id : str
             The model identifier.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            The function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         cache_dir : str
             The directory to save the TRAK cache.
         task : Union[AbstractModelOutput, str], optional
@@ -261,11 +262,11 @@ class TRAK(Explainer):
 
 def trak_explain(
     model: torch.nn.Module,
-    checkpoints: Union[str, List[str]],
     model_id: str,
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     explanation_targets: Union[List[int], torch.Tensor],
+    checkpoints: Optional[Union[str, List[str]]] = None,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
     cache_dir: str = "./cache",
     **kwargs: Any,
@@ -276,8 +277,6 @@ def trak_explain(
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
         The model to be explained.
-    checkpoints : Union[str, List[str]]
-        The path to the checkpoint(s) to load the model from.
     model_id : Optional[str], optional
         Identifier for the model, by default None.
     test_tensor : torch.Tensor
@@ -286,8 +285,11 @@ def trak_explain(
         The training dataset used to train the model.
     explanation_targets : Union[List[int], torch.Tensor]
         The target model outputs to explain.
+    checkpoints : Optional[Union[str, List[str]]], optional
+        Path to the model checkpoint file(s), defaults to None.
     checkpoints_load_func : Optional[Callable[..., Any]], optional
-        The function to load the checkpoint(s), by default None.
+        Function to load the model from the checkpoint file, takes
+        (model, checkpoint path) as two arguments, by default None.
     cache_dir : Optional[str], optional
         The directory to use for caching, by default None.
     kwargs : Any
@@ -315,9 +317,9 @@ def trak_explain(
 
 def trak_self_influence(
     model: torch.nn.Module,
-    checkpoints: Union[str, List[str]],
     model_id: str,
     train_dataset: torch.utils.data.Dataset,
+    checkpoints: Optional[Union[str, List[str]]] = None,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
     cache_dir: str = "./cache",
     batch_size: int = 32,
@@ -329,14 +331,15 @@ def trak_self_influence(
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
         The model to be explained.
-    checkpoints : Union[str, List[str]]
-        The path to the checkpoint(s) to load the model from
     model_id : str
         Identifier for the model.
     train_dataset : torch.utils.data.Dataset
         The training dataset used to train the model.
+    checkpoints : Optional[Union[str, List[str]]], optional
+        Path to the model checkpoint file(s), defaults to None.
     checkpoints_load_func : Optional[Callable[..., Any]], optional
-        The function to load the checkpoint(s), by default None.
+        Function to load the model from the checkpoint file, takes
+        (model, checkpoint path) as two arguments, by default None.
     cache_dir : Optional[str]
         The directory to use for caching.
     batch_size : int, optional

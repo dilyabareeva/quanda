@@ -6,7 +6,12 @@ from typing import List, Union, Optional, Callable, Any
 import lightning as L
 import torch
 
-from quanda.utils.common import cache_result, ds_len, get_load_state_dict_func
+from quanda.utils.common import (
+    cache_result,
+    ds_len,
+    get_load_state_dict_func,
+    load_last_checkpoint,
+)
 from quanda.utils.datasets import OnDeviceDataset
 
 
@@ -20,8 +25,8 @@ class Explainer(ABC):
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         **kwargs,
     ):
@@ -31,23 +36,19 @@ class Explainer(ABC):
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
             The model to be used for the influence computation.
-        checkpoints : Union[str, List[str]]
-            Path to the checkpoint file(s) to be used for the attribution
-            computation.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, by default
-            None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         **kwargs : dict
             Additional keyword arguments passed to the explainer.
 
         """
         self.device: Union[str, torch.device]
         self.model = model
-        self.checkpoints = (
-            checkpoints if isinstance(checkpoints, List) else [checkpoints]
-        )
 
         # if model has device attribute, use it, otherwise use the default
         if next(model.parameters(), None) is not None:
@@ -59,6 +60,13 @@ class Explainer(ABC):
             self.checkpoints_load_func = get_load_state_dict_func(self.device)
         else:
             self.checkpoints_load_func = checkpoints_load_func
+
+        if checkpoints is None:
+            self.checkpoints = []
+        else:
+            self.checkpoints = (
+                checkpoints if isinstance(checkpoints, List) else [checkpoints]
+            )
 
         # if dataset return samples not on device, move them to device
         if train_dataset[0][0].device != self.device:
@@ -133,4 +141,8 @@ class Explainer(ABC):
             Path to the checkpoint file.
 
         """
-        self.checkpoints_load_func(self.model, self.checkpoints[-1])
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )

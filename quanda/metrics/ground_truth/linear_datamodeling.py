@@ -36,13 +36,13 @@ class LinearDatamodelingMetric(Metric):
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         trainer: Union[L.Trainer, BaseTrainer],
         alpha: float = 0.5,
         m: int = 100,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         trainer_fit_kwargs: Optional[dict] = None,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable] = None,
         seed: int = 42,
         batch_size: int = 32,
@@ -55,8 +55,6 @@ class LinearDatamodelingMetric(Metric):
         ----------
         model : Union[torch.nn.Module, L.LightningModule]
             The model used to generate attributions.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train models.
         trainer : Union[L.Trainer, BaseTrainer]
@@ -71,8 +69,11 @@ class LinearDatamodelingMetric(Metric):
             "spearman", "kendall", or a callable.
         trainer_fit_kwargs : Optional[dict], optional
             Additional keyword arguments for the trainer, by default None.
-        checkpoints_load_func : Optional[Callable], optional
-            Custom function to load a model state dictionary, by default None.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         seed : Optional[int], optional
             Random seed for reproducibility, by default 42.
         batch_size : int, optional
@@ -89,7 +90,7 @@ class LinearDatamodelingMetric(Metric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        self.load_last_checkpoint()
+
         self.device = torch.device("cpu")  # TODO: why is this CPU?
 
         self.cache_dir = cache_dir

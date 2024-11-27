@@ -26,10 +26,10 @@ class ShortcutDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         shortcut_indices: Union[List[int], torch.Tensor],
         shortcut_cls: int,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
         filter_by_class: bool = False,
@@ -41,8 +41,6 @@ class ShortcutDetectionMetric(Metric):
         model : torch.nn.Module
             Model associated with the attributions to be evaluated. The
             checkpoint of the model should be loaded.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             Training dataset used to train `model`. Each item of the dataset
             should be a tuple of the form
@@ -51,8 +49,11 @@ class ShortcutDetectionMetric(Metric):
             A list of ground truth shortcut indices of the `train_dataset`.
         shortcut_cls : int
             Class of the shortcut samples.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            The function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the shortcut class
@@ -74,7 +75,7 @@ class ShortcutDetectionMetric(Metric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        self.load_last_checkpoint()
+
         if isinstance(shortcut_indices, list):
             shortcut_indices = torch.tensor(shortcut_indices)
         self.auprc_scores: List[torch.Tensor] = []

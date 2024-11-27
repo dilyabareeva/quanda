@@ -2,13 +2,14 @@
 
 import os
 from abc import ABC, abstractmethod
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Any
 
 import requests
 import torch
 from datasets import load_dataset  # type: ignore
 
 from quanda.benchmarks.resources import benchmark_urls
+from quanda.utils.common import get_load_state_dict_func
 from quanda.utils.datasets.image_datasets import HFtoTV
 
 
@@ -19,9 +20,11 @@ class Benchmark(ABC):
 
     def __init__(self, *args, **kwargs):
         """Initialize the base `Benchmark` class."""
-        self.device: Optional[Union[str, torch.device]]
+        self.device: Union[str, torch.device]
         self.bench_state: dict
         self._checkpoint_paths: Optional[List[str]] = None
+        self._checkpoints_load_func: Optional[Callable[..., Any]] = None
+        self._checkpoints: Optional[Union[str, List[str]]] = None
 
     @classmethod
     @abstractmethod
@@ -230,3 +233,34 @@ class Benchmark(ABC):
             "benchmark using the download method."
         )
         return self._checkpoint_paths
+
+    @property
+    def checkpoints_load_func(self):
+        """Return the function to load the checkpoints."""
+        return self._checkpoints_load_func
+
+    @checkpoints_load_func.setter
+    def checkpoints_load_func(self, value):
+        """Set the function to load the checkpoints."""
+        if self.device is None:
+            raise ValueError(
+                "The device must be set before setting the "
+                "checkpoints_load_func."
+            )
+        if value is None:
+            self._checkpoints_load_func = get_load_state_dict_func(self.device)
+        else:
+            self._checkpoints_load_func = value
+
+    @property
+    def checkpoints(self):
+        """Return the checkpoint paths."""
+        return self._checkpoints
+
+    @checkpoints.setter
+    def checkpoints(self, value):
+        """Set the checkpoint paths."""
+        if value is None:
+            self._checkpoints = []
+        else:
+            self._checkpoints = value if isinstance(value, List) else [value]

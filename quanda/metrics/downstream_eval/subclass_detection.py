@@ -26,9 +26,9 @@ class SubclassDetectionMetric(ClassDetectionMetric):
     def __init__(
         self,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         train_subclass_labels: torch.Tensor,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
     ):
@@ -38,14 +38,15 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         ----------
         model : torch.nn.Module
             The model associated with the attributions to be evaluated.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset that was used to train `model`.
         train_subclass_labels : torch.Tensor
             The subclass labels of the training dataset.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            The function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the correct superclass is predicted, by
@@ -58,7 +59,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        self.load_last_checkpoint()
+
         assert len(train_subclass_labels) == ds_len(self.train_dataset), (
             f"Number of subclass labels ({len(train_subclass_labels)}) "
             f"does not match the number of train dataset samples "

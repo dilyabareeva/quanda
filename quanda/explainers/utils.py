@@ -8,8 +8,8 @@ import torch
 def _init_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
-    checkpoints: Union[str, List[str]],
     train_dataset: torch.utils.data.Dataset,
+    checkpoints: Optional[Union[str, List[str]]] = None,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs,
 ):
@@ -21,12 +21,13 @@ def _init_explainer(
         The explainer class to initialize.
     model : torch.nn.Module
         The model to be used for the influence computation.
-    checkpoints : Union[str, List[str]]
-        The path to the checkpoint(s) to load the model from.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
+    checkpoints : Optional[Union[str, List[str]]], optional
+        Path to the model checkpoint file(s), defaults to None.
     checkpoints_load_func : Optional[Callable[..., Any]], optional
-        The function to load the checkpoint(s), by default None.
+        Function to load the model from the checkpoint file, takes
+        (model, checkpoint path) as two arguments, by default None.
     **kwargs : dict
         Additional keyword arguments passed to the explainer.
 
@@ -50,8 +51,8 @@ def explain_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
     test_tensor: torch.Tensor,
-    checkpoints: Union[str, List[str]],
     train_dataset: torch.utils.data.Dataset,
+    checkpoints: Optional[Union[str, List[str]]] = None,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
     targets: Optional[Union[List[int], torch.Tensor]] = None,
     **kwargs: Any,
@@ -64,14 +65,15 @@ def explain_fn_from_explainer(
         The explainer class to use for computing explanations.
     model : torch.nn.Module
         The model to be used for the influence computation.
-    checkpoints : Union[str, List[str]]
-        The path to the checkpoint(s) to load the model from.
     test_tensor : torch.Tensor
         The test samples for which influence scores are computed.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
+    checkpoints : Optional[Union[str, List[str]]], optional
+        Path to the model checkpoint file(s), defaults to None.
     checkpoints_load_func : Optional[Callable[..., Any]], optional
-        The function to load the checkpoint(s), by default None.
+        Function to load the model from the checkpoint file, takes
+        (model, checkpoint path) as two arguments, by default None.
     targets : Optional[Union[List[int], torch.Tensor]], optional
         Labels for the test samples. Defaults to None.
     **kwargs : dict
@@ -99,8 +101,8 @@ def explain_fn_from_explainer(
 def self_influence_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
-    checkpoints: Union[str, List[str]],
     train_dataset: torch.utils.data.Dataset,
+    checkpoints: Optional[Union[str, List[str]]] = None,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
     batch_size: int = 1,
     **kwargs: Any,
@@ -113,12 +115,13 @@ def self_influence_fn_from_explainer(
         The explainer class to use for computing explanations.
     model : torch.nn.Module
         The model to be used for the influence computation.
-    checkpoints : Union[str, List[str]]
-        The path to the checkpoint(s) to load the model from.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
+    checkpoints : Optional[Union[str, List[str]]], optional
+        Path to the model checkpoint file(s), defaults to None.
     checkpoints_load_func : Optional[Callable[..., Any]], optional
-        The function to load the checkpoint(s), by default None.
+        Function to load the model from the checkpoint file, takes
+        (model, checkpoint path) as two arguments, by default None.
     batch_size : int, optional
         Batch size used for iterating over the dataset. Defaults to 1.
     **kwargs : dict

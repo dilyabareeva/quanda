@@ -31,10 +31,10 @@ class ModelRandomizationMetric(Metric):
         model: torch.nn.Module,
         model_id: str,
         cache_dir: str,
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
@@ -49,16 +49,17 @@ class ModelRandomizationMetric(Metric):
             The identifier of the model.
         cache_dir : str
             The cache directory.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train `model`.
         explainer_cls : type
             The class of the explainer to evaluate.
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            The function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
             The correlation function to use, by default "spearman".
             Can be "spearman", "kendall" or a callable.
@@ -72,7 +73,7 @@ class ModelRandomizationMetric(Metric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        self.load_last_checkpoint()
+
         self.expl_kwargs = expl_kwargs or {}
         self.model_id = model_id
         self.cache_dir = cache_dir

@@ -46,10 +46,10 @@ class CaptumInfluence(Explainer, ABC):
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         explain_kwargs: Any,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
     ):
         """Initialize the base `CaptumInfluence` wrapper.
@@ -58,17 +58,17 @@ class CaptumInfluence(Explainer, ABC):
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
             The model to be used for the influence computation.
-        checkpoints : Union[str, List[str]]
-            Checkpoints for the model.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         explainer_cls : type
             The class of the explainer from Captum.
         explain_kwargs : Any
             Additional keyword arguments for the explainer.
-        checkpoints_load_func : Optional[Callable], optional
-            Function to load checkpoints. If None, a default function is used.
-            Defaults to None.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
 
         """
         super().__init__(
@@ -137,10 +137,10 @@ class CaptumSimilarity(CaptumInfluence):
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
         layers: Union[str, List[str]],
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
         similarity_metric: Callable = cosine_similarity,
@@ -207,7 +207,6 @@ class CaptumSimilarity(CaptumInfluence):
             explainer_cls=SimilarityInfluence,
             explain_kwargs=explainer_kwargs,
         )
-        self.load_last_checkpoint()
 
         self.model_id = model_id
         self.cache_dir = cache_dir
@@ -366,11 +365,11 @@ class CaptumSimilarity(CaptumInfluence):
 
 def captum_similarity_explain(
     model: Union[torch.nn.Module, L.LightningModule],
-    checkpoints: Union[str, List[str]],
     model_id: str,
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     cache_dir: str = "./cache",
+    checkpoints: Optional[Union[str, List[str]]] = None,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:

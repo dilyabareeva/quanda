@@ -33,8 +33,8 @@ class ClassDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
     ):
         """Initialize the Class Detection metric.
@@ -43,20 +43,13 @@ class ClassDetectionMetric(Metric):
         ----------
         model : torch.nn.Module
             The model associated with the attributions to be evaluated.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset that was used to train `model`.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            The function to load the checkpoint(s), by default None.
-        explainer_cls : Optional[type], optional
-            The explainer class. Defaults to None.
-        expl_kwargs : Optional[dict], optional
-            Additional keyword arguments for the explainer class.
-        model_id : Optional[str], optional
-            An identifier for the model, by default "0".
-        cache_dir : str, optional
-            The cache directory, by default "./cache".
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
 
         """
         super().__init__(
@@ -65,7 +58,7 @@ class ClassDetectionMetric(Metric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        self.load_last_checkpoint()
+
         self.scores: List[torch.Tensor] = []
 
     def update(self, test_labels: torch.Tensor, explanations: torch.Tensor):

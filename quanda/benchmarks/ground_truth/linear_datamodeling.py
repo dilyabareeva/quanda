@@ -16,6 +16,7 @@ from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
+from quanda.utils.common import load_last_checkpoint
 from quanda.utils.functions import CorrelationFnLiterals
 from quanda.utils.training import BaseTrainer
 
@@ -58,8 +59,7 @@ class LinearDatamodeling(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-        self.checkpoints: Union[str, List[str]]
-        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
+
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
@@ -80,10 +80,10 @@ class LinearDatamodeling(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         trainer: Union[L.Trainer, BaseTrainer],
         cache_dir: str,
         model_id: str,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         data_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         m: int = 100,
@@ -104,8 +104,6 @@ class LinearDatamodeling(Benchmark):
             it should be a HuggingFace dataset name.
         model : torch.nn.Module
             The model used to generate attributions.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
         trainer : Union[L.Trainer, BaseTrainer]
@@ -117,6 +115,8 @@ class LinearDatamodeling(Benchmark):
             trained on different subsets of the training data.
         model_id : str
             Identifier for the model, to be used in naming cached checkpoints.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         data_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
@@ -151,6 +151,9 @@ class LinearDatamodeling(Benchmark):
 
         obj = cls()
         obj._set_devices(model)
+        # this sets the function to the default value
+        obj.checkpoints_load_func = None
+
         obj.train_dataset = obj._process_dataset(
             train_dataset,
             transform=data_transform,
@@ -229,7 +232,6 @@ class LinearDatamodeling(Benchmark):
     def assemble(
         cls,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         trainer: Union[L.Trainer, BaseTrainer],
@@ -237,6 +239,7 @@ class LinearDatamodeling(Benchmark):
         model_id: str,
         m: int = 100,
         alpha: float = 0.5,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         data_transform: Optional[Callable] = None,
@@ -253,8 +256,6 @@ class LinearDatamodeling(Benchmark):
         ----------
         model : torch.nn.Module
             The model used to generate attributions.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : Union[str, torch.utils.data.Dataset]
             The training dataset used to train `model`. If a string is passed,
             it should be a HuggingFace dataset name.
@@ -275,8 +276,11 @@ class LinearDatamodeling(Benchmark):
         alpha: float, optional
             Percentage of datapoints to be used for training the models, by
             default 0.5.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         trainer_fit_kwargs : Optional[dict], optional
             Additional keyword arguments to be passed to the `fit` method of
             the trainer, by default None.
@@ -300,6 +304,7 @@ class LinearDatamodeling(Benchmark):
         """
         obj = cls()
         obj.model = model
+        obj._set_devices(model)
         obj.checkpoints = checkpoints
         obj.checkpoints_load_func = checkpoints_load_func
         obj.eval_dataset = eval_dataset
@@ -317,7 +322,8 @@ class LinearDatamodeling(Benchmark):
             transform=data_transform,
             dataset_split=dataset_split,
         )
-        obj._set_devices(model)
+        # this sets the function to the default value
+        obj.checkpoints_load_func = None
 
         return obj
 
@@ -344,6 +350,11 @@ class LinearDatamodeling(Benchmark):
             Dictionary containing the evaluation results.
 
         """
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}

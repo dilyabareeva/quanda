@@ -306,3 +306,26 @@ def process_targets(
             targets = torch.tensor(targets)
         targets = targets.to(device)
     return targets
+
+
+def load_last_checkpoint(
+    model: torch.nn.Module,
+    checkpoints: List[str],
+    checkpoints_load_func: Callable[..., Any],
+):
+    """Load the model from the checkpoint file.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        The model to load the checkpoint into.
+    checkpoints : Optional[Union[str, List[str]]], optional
+        Path to the model checkpoint file(s), defaults to None.
+    checkpoints_load_func : Optional[Callable[..., Any]], optional
+        Function to load the model from the checkpoint file, takes
+        (model, checkpoint path) as two arguments, by default None.
+
+    """
+    if len(checkpoints) == 0:
+        return
+    checkpoints_load_func(model, checkpoints[-1])

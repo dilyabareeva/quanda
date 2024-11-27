@@ -39,9 +39,9 @@ class MixedDatasetsMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         adversarial_indices: Union[List[int], torch.Tensor],
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
         adversarial_label: Optional[int] = None,
@@ -52,9 +52,6 @@ class MixedDatasetsMetric(Metric):
         ----------
         model: torch.nn.Module
             The model associated with the attributions to be evaluated.
-        checkpoints: Union[str, List[str]]
-            The path to the checkpoint file or a list of paths to the
-            checkpoint files.
         train_dataset: torch.utils.data.Dataset
             The training dataset that was used to train `model`. Every item of
             the dataset is a tuple of the form (input, label). Consist of clean
@@ -63,9 +60,11 @@ class MixedDatasetsMetric(Metric):
         adversarial_indices: Union[List[int], torch.Tensor]
             A binary vector of ground truth adversarial indices of the
             `train_dataset`.
-        checkpoints_load_func: Optional[Callable[..., Any]], optional
-            The function to load the model from the checkpoint file, by default
-            None.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         filter_by_prediction: bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the adversarial class
@@ -87,7 +86,7 @@ class MixedDatasetsMetric(Metric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        self.load_last_checkpoint()
+
         self.auprc_scores: List[torch.Tensor] = []
 
         if isinstance(adversarial_indices, list):

@@ -17,6 +17,7 @@ from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
+from quanda.utils.common import load_last_checkpoint
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
 )
@@ -65,8 +66,7 @@ class ShortcutDetection(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-        self.checkpoints: Union[str, List[str]]
-        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
+
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.shortcut_dataset: SampleTransformationDataset
@@ -167,6 +167,9 @@ class ShortcutDetection(Benchmark):
         """
         obj = cls()
         obj._set_devices(model)
+        # this sets the function to the default value
+        obj.checkpoints_load_func = None
+
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
@@ -400,13 +403,13 @@ class ShortcutDetection(Benchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        checkpoints: Union[str, List[str]],
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         eval_dataset: torch.utils.data.Dataset,
         sample_fn: Callable,
         shortcut_cls: int,
         shortcut_indices: List[int],
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = True,
         filter_by_class: bool = False,
@@ -424,8 +427,6 @@ class ShortcutDetection(Benchmark):
         model : Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark. This model should be trained on
             the mislabeled dataset.
-        checkpoints : Union[str, List[str]]
-            Path to the checkpoint(s) to load the model from.
         base_dataset : Union[str, torch.utils.data.Dataset]
             Training dataset to be used for the benchmark. If a string is
             passed, it should be a HuggingFace dataset.
@@ -439,8 +440,11 @@ class ShortcutDetection(Benchmark):
             The class to use.
         shortcut_indices : List[int]
             Binary list of indices to poison.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the shortcut class
@@ -527,6 +531,11 @@ class ShortcutDetection(Benchmark):
             Dictionary containing the evaluation results.
 
         """
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )
         self.model.eval()
 
         self.shortcut_train_dl = torch.utils.data.DataLoader(

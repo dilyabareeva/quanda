@@ -16,7 +16,7 @@ from quanda.benchmarks.resources import (
 )
 from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
-from quanda.utils.common import ds_len
+from quanda.utils.common import ds_len, load_last_checkpoint
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
@@ -59,8 +59,7 @@ class SubclassDetection(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-        self.checkpoints: Union[str, List[str]]
-        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
+
         self.group_model: Union[torch.nn.Module, L.LightningModule]
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
@@ -160,6 +159,9 @@ class SubclassDetection(Benchmark):
 
         obj = cls()
         obj._set_devices(model)
+        # this sets the function to the default value
+        obj.checkpoints_load_func = None
+
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
@@ -385,11 +387,11 @@ class SubclassDetection(Benchmark):
     def assemble(
         cls,
         group_model: Union[torch.nn.Module, L.LightningModule],
-        checkpoints: Union[str, List[str]],
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         class_to_group: Dict[int, int],  # TODO: type specification
         eval_dataset: torch.utils.data.Dataset,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
@@ -404,8 +406,6 @@ class SubclassDetection(Benchmark):
         ----------
         group_model : Union[torch.nn.Module, L.LightningModule]
             The model used to generate attributions.
-        checkpoints : Union[str, List[str]]
-            Path to the checkpoint(s) to load the model from.
         base_dataset : Union[str, torch.utils.data.Dataset]
             Original dataset to use in training.
         n_classes : int
@@ -414,8 +414,11 @@ class SubclassDetection(Benchmark):
             Mapping of classes to groups.
         eval_dataset : torch.utils.data.Dataset
             Evaluation dataset to be used for the benchmark.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         use_predictions : bool, optional
             Whether to use the model's predictions for the evaluation, by
             default True.
@@ -442,6 +445,7 @@ class SubclassDetection(Benchmark):
         """
         obj = cls()
         obj.group_model = group_model
+        obj._set_devices(group_model)
         obj.checkpoints = checkpoints
         obj.checkpoints_load_func = checkpoints_load_func
         obj.base_dataset = obj._process_dataset(
@@ -468,8 +472,6 @@ class SubclassDetection(Benchmark):
         )
 
         obj._checkpoint_paths = checkpoint_paths
-
-        obj._set_devices(group_model)
 
         return obj
 
@@ -503,6 +505,11 @@ class SubclassDetection(Benchmark):
             Dictionary containing the metric score.
 
         """
+        load_last_checkpoint(
+            model=self.group_model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )
         self.group_model.eval()
 
         expl_kwargs = expl_kwargs or {}

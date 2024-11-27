@@ -14,6 +14,7 @@ from quanda.benchmarks.resources.modules import (
     bench_load_state_dict,
 )
 from quanda.metrics.downstream_eval import ClassDetectionMetric
+from quanda.utils.common import load_last_checkpoint
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +57,7 @@ class ClassDetection(Benchmark):
         super().__init__()
 
         self.model: torch.nn.Module
-        self.checkpoints: Union[str, List[str]]
-        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
+
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
@@ -68,7 +68,7 @@ class ClassDetection(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
@@ -89,10 +89,11 @@ class ClassDetection(Benchmark):
             The evaluation dataset to be used for the benchmark.
         model : torch.nn.Module
             The model used to generate attributions.
-        checkpoints : Union[str, List[str]]
-            The checkpoint paths to be used for the evaluation.
-        checkpoints_load_func : Optional[Callable], optional
-            The function to load the model's state dict, by default None.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         data_transform : Optional[Callable], optional
             The transform to be applied to the dataset, by default None.
         use_predictions : bool, optional
@@ -120,10 +121,11 @@ class ClassDetection(Benchmark):
         obj = cls()
 
         obj.model = model
+        obj._set_devices(model)
+
         obj.checkpoints = checkpoints
         obj.checkpoints_load_func = checkpoints_load_func
         obj.eval_dataset = eval_dataset
-        obj._set_devices(model)
         obj.train_dataset = obj._process_dataset(
             train_dataset,
             transform=data_transform,
@@ -196,9 +198,9 @@ class ClassDetection(Benchmark):
     def assemble(
         cls,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
@@ -213,15 +215,16 @@ class ClassDetection(Benchmark):
         ----------
         model : torch.nn.Module
             The model used to generate attributions.
-        checkpoints : Union[str, List[str]]
-            The checkpoint paths to be used for the evaluation.
         train_dataset : Union[str, torch.utils.data.Dataset]
             The training dataset used to train `model`. If a string is passed,
             it should be a HuggingFace dataset name.
         eval_dataset : torch.utils.data.Dataset
             The evaluation dataset to be used for the benchmark.
-        checkpoints_load_func : Optional[Callable], optional
-            The function to load the model's state dict, by default None.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         data_transform : Optional[Callable], optional
             The transform to be applied to the dataset, by default None.
         use_predictions : bool, optional
@@ -246,6 +249,7 @@ class ClassDetection(Benchmark):
         """
         obj = cls()
         obj.model = model
+        obj._set_devices(model)
         obj.checkpoints = checkpoints
         obj.checkpoints_load_func = checkpoints_load_func
         obj.eval_dataset = eval_dataset
@@ -255,7 +259,6 @@ class ClassDetection(Benchmark):
             dataset_split=dataset_split,
         )
         obj.use_predictions = use_predictions
-        obj._set_devices(model)
 
         return obj
 
@@ -283,6 +286,11 @@ class ClassDetection(Benchmark):
             Dictionary containing the metric score.
 
         """
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )
         self.model.eval()
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(

@@ -16,6 +16,7 @@ from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
+from quanda.utils.common import load_last_checkpoint
 from quanda.utils.functions import CorrelationFnLiterals
 
 logger = logging.getLogger(__name__)
@@ -59,8 +60,7 @@ class ModelRandomization(Benchmark):
         self.model: torch.nn.Module
         self.model_id: str
         self.cache_dir: str
-        self.checkpoints: Union[str, List[str]]
-        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
+
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
@@ -73,8 +73,8 @@ class ModelRandomization(Benchmark):
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         cache_dir: str,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         model_id: str = "0",
         data_transform: Optional[Callable] = None,
@@ -96,12 +96,13 @@ class ModelRandomization(Benchmark):
             The evaluation dataset to be used for the benchmark.
         model : torch.nn.Module
             The model used to generate attributions.
-        checkpoints : Union[str, List[str]]
-            Path to the checkpoint(s) to load the model from.
         cache_dir : str
             Directory to store the downloaded benchmark components.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         model_id : str, optional
             Identifier for the model, by default "0".
         data_transform : Optional[Callable], optional
@@ -149,7 +150,7 @@ class ModelRandomization(Benchmark):
         obj.model_id = model_id
         obj.cache_dir = cache_dir
         obj.checkpoints = checkpoints
-        obj
+        obj.checkpoints_load_func = None
 
         return obj
 
@@ -229,9 +230,9 @@ class ModelRandomization(Benchmark):
         cls,
         model: torch.nn.Module,
         cache_dir: str,
-        checkpoints: Union[str, List[str]],
         train_dataset: Union[str, torch.utils.data.Dataset],
         eval_dataset: torch.utils.data.Dataset,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         model_id: str = "0",
@@ -252,15 +253,16 @@ class ModelRandomization(Benchmark):
             the mislabeled dataset.
         cache_dir : str
             Directory to store the downloaded benchmark components.
-        checkpoints : Union[str, List[str]]
-            Path to the checkpoint(s) to load the model from.
         train_dataset : Union[str, torch.utils.data.Dataset]
             Training dataset to be used for the benchmark. If a string is
             passed, it should be a HuggingFace dataset.
         eval_dataset : torch.utils.data.Dataset
             Evaluation dataset to be used for the benchmark.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         data_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
         model_id : str, optional
@@ -293,6 +295,7 @@ class ModelRandomization(Benchmark):
         """
         obj = cls()
         obj.model = model
+        obj._set_devices(model)
         obj.model_id = model_id
         obj.cache_dir = cache_dir
         obj.checkpoints = checkpoints
@@ -306,7 +309,6 @@ class ModelRandomization(Benchmark):
             transform=data_transform,
             dataset_split=dataset_split,
         )
-        obj._set_devices(model)
 
         return obj
 
@@ -333,6 +335,11 @@ class ModelRandomization(Benchmark):
             Dictionary containing the evaluation results.
 
         """
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}

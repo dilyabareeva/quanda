@@ -244,11 +244,19 @@ def test_shortcut_detection_metric(
     if assert_err:
         with pytest.raises(AssertionError):
             metric = ShortcutDetectionMetric(
-                model, checkpoint, dataset, poisoned_ids, poisoned_cls
+                model,
+                dataset,
+                poisoned_ids,
+                poisoned_cls,
+                checkpoints=checkpoint,
             )
     else:
         metric = ShortcutDetectionMetric(
-            model, checkpoint, dataset, poisoned_ids, poisoned_cls
+            model,
+            dataset,
+            poisoned_ids,
+            poisoned_cls,
+            checkpoints=checkpoint,
         )
         metric.update(tda)
         score = metric.compute()["score"]

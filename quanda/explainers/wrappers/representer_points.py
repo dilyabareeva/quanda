@@ -163,11 +163,11 @@ class RepresenterPoints(Explainer):
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
         features_layer: str,
         classifier_layer: str,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
         features_postprocess: Optional[Callable] = None,
@@ -187,8 +187,6 @@ class RepresenterPoints(Explainer):
         ----------
         model : Union[torch.nn.Module, L.LightningModule]
             The model to be explained.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         model_id : str
             The model identifier.
         train_dataset : torch.utils.data.Dataset
@@ -197,8 +195,11 @@ class RepresenterPoints(Explainer):
             The name of the penuultimate layer of the model.
         classifier_layer : str
             The name of the final classifier layer of the model.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            The function to load the checkpoint(s), defaults to None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         cache_dir : str, optional
             The directory to save the cache, defaults to "./cache".
         features_postprocess : Optional[Callable], optional
@@ -231,7 +232,6 @@ class RepresenterPoints(Explainer):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        self.load_last_checkpoint()
 
         self.model_id = model_id
         self.cache_dir = cache_dir

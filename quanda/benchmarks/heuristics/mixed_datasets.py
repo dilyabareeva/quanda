@@ -18,7 +18,7 @@ from quanda.benchmarks.resources import (
 )
 from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
-from quanda.utils.common import ds_len
+from quanda.utils.common import ds_len, load_last_checkpoint
 from quanda.utils.datasets import SingleClassImageDataset
 from quanda.utils.training.trainer import BaseTrainer
 
@@ -72,8 +72,7 @@ class MixedDatasets(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-        self.checkpoints: Union[str, List[str]]
-        self.checkpoints_load_func: Optional[Callable[..., Any]] = None
+
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.mixed_dataset: torch.utils.data.Dataset
@@ -184,6 +183,9 @@ class MixedDatasets(Benchmark):
         obj = cls()
         obj.cache_dir = cache_dir
         obj._set_devices(model)
+        # this sets the function to the default value
+        obj.checkpoints_load_func = None
+
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
         obj.adversarial_label = adversarial_label
@@ -386,11 +388,11 @@ class MixedDatasets(Benchmark):
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
-        checkpoints: Union[str, List[str]],
         eval_dataset: torch.utils.data.Dataset,
         base_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
         use_predictions: bool = True,
@@ -407,8 +409,6 @@ class MixedDatasets(Benchmark):
         ----------
         model: Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
-        checkpoints: Union[str, List[str]]
-            Path to the checkpoint(s) to load the model from.
         eval_dataset: torch.utils.data.Dataset
             The dataset containing the adversarial examples used for
             evaluation. They should belong to the same dataset and the same
@@ -420,8 +420,11 @@ class MixedDatasets(Benchmark):
             Path to the adversarial dataset of a single class.
         adversarial_label: int
             The label to be used for the adversarial dataset.
-        checkpoints_load_func: Optional[Callable[..., Any]], optional
-            Function to load the checkpoint(s), by default None.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         data_transform: Optional[Callable], optional
             Transform to be applied to the clean dataset, by default None.
         use_predictions: bool, optional
@@ -452,6 +455,7 @@ class MixedDatasets(Benchmark):
         """
         obj = cls()
         obj.model = model
+        obj._set_devices(model)
         obj.checkpoints = checkpoints
         obj.checkpoints_load_func = checkpoints_load_func
         obj.base_dataset = obj._process_dataset(
@@ -474,7 +478,6 @@ class MixedDatasets(Benchmark):
         obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [
             0
         ] * ds_len(obj.base_dataset)
-        obj._set_devices(model)
 
         obj._checkpoint_paths = checkpoint_paths
 
@@ -504,6 +507,11 @@ class MixedDatasets(Benchmark):
             Dictionary containing the metric score.
 
         """
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}

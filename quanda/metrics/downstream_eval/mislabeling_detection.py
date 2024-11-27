@@ -48,9 +48,9 @@ class MislabelingDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         mislabeling_indices: List[int],
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         global_method: Union[str, type] = "self-influence",
         explainer_cls: Optional[type] = None,
@@ -66,14 +66,15 @@ class MislabelingDetectionMetric(Metric):
         ----------
         model : torch.nn.Module
             The model associated with the attributions to be evaluated.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset that was used to train `model`.
         mislabeling_indices : List[int]
             A list of ground truth mislabeled indices of the `train_dataset`.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            The function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         global_method : Union[str, type], optional
             The methodology to generate a global ranking from local explainer.
             It can be "self-influence" or a subclass of
@@ -94,7 +95,7 @@ class MislabelingDetectionMetric(Metric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        self.load_last_checkpoint()
+
         strategies = {
             "self-influence": GlobalSelfInfluenceStrategy,
             "aggr": GlobalAggrStrategy,
@@ -136,10 +137,10 @@ class MislabelingDetectionMetric(Metric):
     def self_influence_based(
         cls,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         mislabeling_indices: List[int],
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         expl_kwargs: Optional[dict] = None,
         *args: Any,
@@ -152,16 +153,17 @@ class MislabelingDetectionMetric(Metric):
         model : torch.nn.Module
             The trained model which was used for the attributions to be
             evaluated.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train `model`.
         explainer_cls : type
             The class of the explainer used for self-influence computation.
         mislabeling_indices : List[int]
             The indices of the poisoned samples in the training dataset.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            The function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         expl_kwargs : Optional[dict]
             Optional keyword arguments for the explainer class.
         *args : Any
@@ -191,11 +193,9 @@ class MislabelingDetectionMetric(Metric):
     def aggr_based(
         cls,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
         mislabeling_indices: List[int],
         aggregator_cls: Union[str, type],
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
     ):
         """Perform aggregation-based mislabeling detection.
 
@@ -203,8 +203,6 @@ class MislabelingDetectionMetric(Metric):
         ----------
         model : torch.nn.Module
             The model to be evaluated.
-        checkpoints : Union[str, List[str]]
-            The path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train the model.
         mislabeling_indices : List[int]
@@ -212,8 +210,6 @@ class MislabelingDetectionMetric(Metric):
         aggregator_cls : Union[str, type]
             The class of the aggregation method to be used, or a string
             indicating the method.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            The function to load the checkpoint(s), by default.
 
         Returns
         -------
@@ -224,7 +220,6 @@ class MislabelingDetectionMetric(Metric):
         """
         return cls(
             model=model,
-            checkpoints=checkpoints,
             global_method=aggregator_cls,
             mislabeling_indices=mislabeling_indices,
             train_dataset=train_dataset,

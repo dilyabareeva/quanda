@@ -18,8 +18,8 @@ class RandomExplainer(Explainer):
     def __init__(
         self,
         model: torch.nn.Module,
-        checkpoints: Union[str, List[str]],
         train_dataset: torch.utils.data.Dataset,
+        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         seed: int = 27,
     ):
@@ -29,12 +29,13 @@ class RandomExplainer(Explainer):
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
             Trained model to be explained.
-        checkpoints : Union[str, List[str]]
-            Path to the checkpoint(s) to load the model from.
         train_dataset : torch.utils.data.Dataset
             Training dataset that was used to train the model.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the checkpoint(s), by default None.
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         seed : int, optional
             Seed for random number generator, by default 27.
 
@@ -45,7 +46,7 @@ class RandomExplainer(Explainer):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        self.load_last_checkpoint()
+
         self.seed = seed
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
