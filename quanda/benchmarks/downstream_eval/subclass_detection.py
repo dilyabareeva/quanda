@@ -313,7 +313,7 @@ class SubclassDetection(Benchmark):
         # save check point to cache_dir
         # TODO: add model id
         torch.save(
-            self.model.state_dict(),
+            self.group_model.state_dict(),
             os.path.join(cache_dir, "model_subclass_detection.pth"),
         )
         self.checkpoints = [
