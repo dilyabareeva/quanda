@@ -115,13 +115,20 @@ class Explainer(ABC):
         -------
         torch.Tensor
             Self-influence score for each datapoint in the training dataset.
+
         """
         # Pre-allocate memory for influences, because torch.cat is slow
-        influences = torch.empty((ds_len(self.train_dataset),), device=self.device)
-        ldr = torch.utils.data.DataLoader(self.train_dataset, shuffle=False, batch_size=batch_size)
+        influences = torch.empty(
+            (ds_len(self.train_dataset),), device=self.device
+        )
+        ldr = torch.utils.data.DataLoader(
+            self.train_dataset, shuffle=False, batch_size=batch_size
+        )
         batch_size = min(batch_size, ds_len(self.train_dataset))
 
-        for i, batch in zip(range(0, ds_len(self.train_dataset), batch_size), ldr):
+        for i, batch in zip(
+            range(0, ds_len(self.train_dataset), batch_size), ldr
+        ):
             inputs, targets = self.extract_batch(batch)
             inputs = self.move_to_device(inputs, self.device)
             targets = targets.to(self.device)
@@ -131,17 +138,19 @@ class Explainer(ABC):
         return influences
 
     def move_to_device(self, data, device):
+        """Move data to the device."""
         if isinstance(data, DatasetDict):
-            return {k: v.to(device) if torch.is_tensor(v) else v for k, v in data.items()}  # TODO: Validate this
+            return {
+                k: v.to(device) if torch.is_tensor(v) else v
+                for k, v in data.items()
+            }  # TODO: Validate this
         elif torch.is_tensor(data):
             return data.to(device)
         else:
             return data
 
     def extract_batch(self, batch):
-        """
-        Extract inputs and targets from a batch.
-        """
+        """Extract inputs and targets from a batch."""
         if isinstance(batch, DatasetDict):
             if "labels" in batch:
                 targets = batch["labels"]
@@ -150,9 +159,26 @@ class Explainer(ABC):
                 targets = batch["label"]
                 inputs = {k: v for k, v in batch.items() if k != "label"}
             else:
-                raise ValueError("Batch dict does not contain 'labels' or 'label'")
+                raise ValueError(
+                    "Batch dict does not contain 'labels' or 'label'"
+                )
         else:
             *inputs, targets = batch
             if len(inputs) == 1:
                 inputs = inputs[0]
         return inputs, targets
+
+    def load_last_checkpoint(self):
+        """Load the model from the checkpoint file.
+
+        Parameters
+        ----------
+        checkpoint : str
+            Path to the checkpoint file.
+
+        """
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )

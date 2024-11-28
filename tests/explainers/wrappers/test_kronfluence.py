@@ -1,7 +1,4 @@
-from argparse import ArgumentParser
-
 import pytest
-import torch as ch
 import torch.nn as nn
 from datasets import load_dataset
 from kronfluence.arguments import (  # type: ignore
@@ -10,13 +7,11 @@ from kronfluence.arguments import (  # type: ignore
 )
 from kronfluence.utils.dataset import DataLoaderKwargs  # type: ignore
 from torch.utils.data import DataLoader
-from tqdm import tqdm
 from transformers import (
     AutoConfig,
     AutoModelForSequenceClassification,
     AutoTokenizer,
     DataCollatorWithPadding,
-    default_data_collator,
 )
 
 from quanda.explainers.wrappers import (
@@ -62,9 +57,14 @@ def test_kronfluence_explain(
         batch_size=1,
         device="cpu",
     )
-    explanations = explainer.explain(test_tensor=test_tensor, targets=test_labels)
+    explanations = explainer.explain(
+        test_tensor=test_tensor, targets=test_labels
+    )
 
-    assert explanations.shape == (len(test_tensor), len(train_dataset)), "Training data attributions have incorrect shape"
+    assert explanations.shape == (
+        len(test_tensor),
+        len(train_dataset),
+    ), "Training data attributions have incorrect shape"
 
 
 @pytest.mark.explainers
@@ -99,7 +99,9 @@ def test_kronfluence_self_influence(
     )
     self_influence_scores = explainer.self_influence()
 
-    assert self_influence_scores.shape == (len(train_dataset),), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (
+        len(train_dataset),
+    ), "Self-influence scores have incorrect shape"
 
 
 @pytest.mark.explainers
@@ -141,7 +143,10 @@ def test_kronfluence_explain_functional(
         device="cpu",
     )
 
-    assert explanations.shape == (len(test_tensor), len(train_dataset)), "Training data attributions have incorrect shape"
+    assert explanations.shape == (
+        len(test_tensor),
+        len(train_dataset),
+    ), "Training data attributions have incorrect shape"
 
 
 @pytest.mark.explainers
@@ -175,7 +180,9 @@ def test_kronfluence_self_influence_functional(
         device="cpu",
     )
 
-    assert self_influence_scores.shape == (len(train_dataset),), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (
+        len(train_dataset),
+    ), "Self-influence scores have incorrect shape"
 
 
 @pytest.mark.explainers
@@ -276,7 +283,9 @@ def test_kronfluence_self_influence_with_optional_args(
 
     self_influence_scores = explainer.self_influence(score_args=score_args)
 
-    assert self_influence_scores.shape == (len(train_dataset),), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (
+        len(train_dataset),
+    ), "Self-influence scores have incorrect shape"
 
 
 @pytest.mark.explainers
@@ -367,7 +376,9 @@ def test_kronfluence_self_influence_functional_with_optional_args(
         score_args=score_args,
     )
 
-    assert self_influence_scores.shape == (len(train_dataset),), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (
+        len(train_dataset),
+    ), "Self-influence scores have incorrect shape"
 
 
 # Partially copied from https://github.com/MadryLab/trak/blob/main/examples/qnli.py
@@ -415,7 +426,11 @@ class SequenceClassificationModel(nn.Module):
         self.model.eval()
 
     def forward(self, input_ids, token_type_ids, attention_mask):
-        return self.model(input_ids=input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        return self.model(
+            input_ids=input_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+        )
 
 
 def get_dataset(split, inds=None):
@@ -425,21 +440,28 @@ def get_dataset(split, inds=None):
         cache_dir=None,
         use_auth_token=None,
     )
-    label_list = raw_datasets["train"].features["label"].names
     sentence1_key, sentence2_key = GLUE_TASK_TO_KEYS["qnli"]
 
-    label_to_id = None
-
     tokenizer = AutoTokenizer.from_pretrained(
-        "gchhablani/bert-base-cased-finetuned-qnli", cache_dir=None, use_fast=True, revision="main", token=None
+        "gchhablani/bert-base-cased-finetuned-qnli",
+        cache_dir=None,
+        use_fast=True,
+        revision="main",
+        token=None,
     )
 
     padding = "max_length"
     max_seq_length = 128
 
     def preprocess_function(examples):
-        args = (examples[sentence1_key],) if sentence2_key is None else (examples[sentence1_key], examples[sentence2_key])
-        result = tokenizer(*args, padding=padding, max_length=max_seq_length, truncation=True)
+        args = (
+            (examples[sentence1_key],)
+            if sentence2_key is None
+            else (examples[sentence1_key], examples[sentence2_key])
+        )
+        result = tokenizer(
+            *args, padding=padding, max_length=max_seq_length, truncation=True
+        )
 
         result["labels"] = examples["label"]
 
@@ -473,18 +495,32 @@ def init_loaders(batch_size=2):
     ds_val = ds_val.select(range(VAL_SET_SIZE))
 
     tokenizer = AutoTokenizer.from_pretrained(
-        "gchhablani/bert-base-cased-finetuned-qnli", cache_dir=None, use_fast=True, revision="main", token=None
+        "gchhablani/bert-base-cased-finetuned-qnli",
+        cache_dir=None,
+        use_fast=True,
+        revision="main",
+        token=None,
     )
 
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
-    return DataLoader(ds_train, batch_size=batch_size, shuffle=False, collate_fn=data_collator), DataLoader(
+    return DataLoader(
+        ds_train,
+        batch_size=batch_size,
+        shuffle=False,
+        collate_fn=data_collator,
+    ), DataLoader(
         ds_val, batch_size=batch_size, shuffle=False, collate_fn=data_collator
     )
 
 
 def process_batch(batch):
-    return batch["input_ids"], batch["token_type_ids"], batch["attention_mask"], batch["labels"]
+    return (
+        batch["input_ids"],
+        batch["token_type_ids"],
+        batch["attention_mask"],
+        batch["labels"],
+    )
 
 
 @pytest.mark.explainers
@@ -499,11 +535,14 @@ def test_kronfluence_self_influence_qnli(
     train_dataset = loader_train.dataset
     test_dataset = loader_val.dataset
 
-    train_dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "token_type_ids", "labels"])
-    test_dataset.set_format(type="torch", columns=["input_ids", "attention_mask", "token_type_ids", "labels"])
-
-    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, collate_fn=default_data_collator)
-    test_batch = next(iter(test_loader))
+    train_dataset.set_format(
+        type="torch",
+        columns=["input_ids", "attention_mask", "token_type_ids", "labels"],
+    )
+    test_dataset.set_format(
+        type="torch",
+        columns=["input_ids", "attention_mask", "token_type_ids", "labels"],
+    )
 
     explainer = Kronfluence(
         model=model,
@@ -514,4 +553,6 @@ def test_kronfluence_self_influence_qnli(
     )
     self_influence_scores = explainer.self_influence()
 
-    assert self_influence_scores.shape == (len(train_dataset),), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (
+        len(train_dataset),
+    ), "Self-influence scores have incorrect shape"

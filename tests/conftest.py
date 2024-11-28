@@ -11,7 +11,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 from kronfluence.task import Task  # type: ignore
-from torch import nn
 from torch.utils.data import Dataset, TensorDataset
 from transformers import (
     AutoConfig,
@@ -489,11 +488,15 @@ class ClassificationTask(Task):
         inputs, labels = batch
         logits = model(inputs)
 
-        bindex = torch.arange(logits.shape[0]).to(device=logits.device, non_blocking=False)
+        bindex = torch.arange(logits.shape[0]).to(
+            device=logits.device, non_blocking=False
+        )
         logits_correct = logits[bindex, labels]
 
         cloned_logits = logits.clone()
-        cloned_logits[bindex, labels] = torch.tensor(-torch.inf, device=logits.device, dtype=logits.dtype)
+        cloned_logits[bindex, labels] = torch.tensor(
+            -torch.inf, device=logits.device, dtype=logits.dtype
+        )
 
         margins = logits_correct - cloned_logits.logsumexp(dim=-1)
         return -margins.sum()
@@ -540,16 +543,22 @@ class TextClassificationTask(Task):
         ).logits
 
         labels = batch["labels"]
-        bindex = torch.arange(logits.shape[0]).to(device=logits.device, non_blocking=False)
+        bindex = torch.arange(logits.shape[0]).to(
+            device=logits.device, non_blocking=False
+        )
         logits_correct = logits[bindex, labels]
 
         cloned_logits = logits.clone()
-        cloned_logits[bindex, labels] = torch.tensor(-torch.inf, device=logits.device, dtype=logits.dtype)
+        cloned_logits[bindex, labels] = torch.tensor(
+            -torch.inf, device=logits.device, dtype=logits.dtype
+        )
 
         margins = logits_correct - cloned_logits.logsumexp(dim=-1)
         return -margins.sum()
 
-    def get_attention_mask(self, batch: Dict[str, torch.Tensor]) -> torch.Tensor:
+    def get_attention_mask(
+        self, batch: Dict[str, torch.Tensor]
+    ) -> torch.Tensor:
         return batch["attention_mask"]
 
 
@@ -604,15 +613,23 @@ def get_glue_dataset(
     num_labels = len(label_list)
     assert num_labels == 2
 
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-cased", use_fast=True, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        "bert-base-cased", use_fast=True, trust_remote_code=True
+    )
 
     sentence1_key, sentence2_key = GLUE_TASK_TO_KEYS[data_name]
     padding = "max_length"
     max_seq_length = 128
 
     def preprocess_function(examples):
-        texts = (examples[sentence1_key],) if sentence2_key is None else (examples[sentence1_key], examples[sentence2_key])
-        result = tokenizer(*texts, padding=padding, max_length=max_seq_length, truncation=True)
+        texts = (
+            (examples[sentence1_key],)
+            if sentence2_key is None
+            else (examples[sentence1_key], examples[sentence2_key])
+        )
+        result = tokenizer(
+            *texts, padding=padding, max_length=max_seq_length, truncation=True
+        )
         if "label" in examples:
             result["labels"] = examples["label"]
         return result

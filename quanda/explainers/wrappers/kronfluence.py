@@ -1,3 +1,5 @@
+"""Kronfluence data attribution wrapper."""
+
 from typing import Any, List, Optional, Union
 
 import torch
@@ -21,23 +23,28 @@ from quanda.utils.common import process_targets
 
 
 class Kronfluence(Explainer):
-    """
-    Class for Kronfluence Explainer.
+    """Class for Kronfluence Explainer.
 
-    This explainer uses the Kronfluence package [2] to compute training data attributions.
+    This explainer uses the Kronfluence package [2] to compute training data
+    attributions.
 
     Notes
     -----
-    The user is referred to the Kronfluences' codebase [2] for detailed explanations of the parameters.
+    The user is referred to the Kronfluences' codebase [2] for detailed
+    explanations of the parameters.
 
     References
     ----------
-    (1) Roger Grosse, Juhan Bae, Cem Anil, Nelson Elhage, Alex Tamkin, Amirhossein Tajdini, Benoit Steiner,
-        Dustin Li, Esin Durmus, Ethan Perez, Evan Hubinger, Kamilė Lukošiūtė, Karina Nguyen, Nicholas Joseph,
+    (1) Roger Grosse, Juhan Bae, Cem Anil, Nelson Elhage, Alex Tamkin,
+    Amirhossein Tajdini, Benoit Steiner,
+        Dustin Li, Esin Durmus, Ethan Perez, Evan Hubinger, Kamilė Lukošiūtė,
+        Karina Nguyen, Nicholas Joseph,
         Sam McCandlish, Jared Kaplan, Samuel R. Bowman. (2023).
-        "Studying large language model generalization with influence functions". arXiv preprint arXiv:2308.03296.
+        "Studying large language model generalization with influence
+        functions". arXiv preprint arXiv:2308.03296.
 
     (2) https://github.com/pomonam/kronfluence
+
     """
 
     def __init__(
@@ -54,8 +61,7 @@ class Kronfluence(Explainer):
         score_args: ScoreArguments = None,
         dataloader_kwargs: DataLoaderKwargs = None,
     ):
-        """
-        Initializer for the `Kronfluence` explainer.
+        """Initialize the `Kronfluence` explainer.
 
         Parameters
         ----------
@@ -70,7 +76,8 @@ class Kronfluence(Explainer):
         device : Union[str, torch.device], optional
             Device to run the computation on. Defaults to "cpu".
         analysis_name : str, optional
-            Unique identifier for the analysis. Defaults to "kronfluence_analysis".
+            Unique identifier for the analysis. Defaults to
+            "kronfluence_analysis".
         factors_name : str, optional
             Unique identifier for the factor. Defaults to "initial_factor".
         factor_args : FactorArguments, optional
@@ -81,6 +88,7 @@ class Kronfluence(Explainer):
             Arguments for score computation. Defaults to None.
         dataloader_kwargs : DataLoaderKwargs, optional
             DataLoader arguments. Defaults to None.
+
         """
         super().__init__(model=model, train_dataset=train_dataset)
         self.batch_size = batch_size
@@ -112,13 +120,13 @@ class Kronfluence(Explainer):
         )
 
     def _prepare_model(self) -> nn.Module:
-        """
-        Prepare the model by moving it to the specified device and calling Kronfluences' `prepare_model` function.
+        """Move model to the specified device and calling `prepare_model`.
 
         Returns
         -------
         nn.Module
             The prepared model.
+
         """
         self.model.to(self.device)
         prepared_model = prepare_model(model=self.model, task=self.task)
@@ -131,8 +139,7 @@ class Kronfluence(Explainer):
         scores_name: Optional[str] = None,
         score_args: ScoreArguments = None,
     ) -> torch.Tensor:
-        """
-        Compute influence scores for the test samples.
+        """Compute influence scores for the test samples.
 
         Parameters
         ----------
@@ -141,14 +148,18 @@ class Kronfluence(Explainer):
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
         scores_name : str, optional
-            The unique identifier for the score. Overrides the instance variable if provided.
+            The unique identifier for the score. Overrides the instance
+            variable if provided.
         score_args : ScoreArguments, optional
-            Arguments for score computation. Overrides the instance variable if provided.
+            Arguments for score computation. Overrides the instance variable
+            if provided.
 
         Returns
         -------
         torch.Tensor
-            2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
+            2D Tensor of shape (test_samples, train_dataset_size) containing
+            the influence scores.
+
         """
         targets = process_targets(targets, self.device)
         test_dataset = torch.utils.data.TensorDataset(test_tensor, targets)
@@ -165,7 +176,9 @@ class Kronfluence(Explainer):
             score_args=score_args,
             overwrite_output_dir=True,
         )
-        scores = self.analyzer.load_pairwise_scores(scores_name=self.scores_name)["all_modules"]
+        scores = self.analyzer.load_pairwise_scores(
+            scores_name=self.scores_name
+        )["all_modules"]
 
         return scores
 
@@ -175,22 +188,25 @@ class Kronfluence(Explainer):
         scores_name: Optional[str] = None,
         score_args: ScoreArguments = None,
     ) -> torch.Tensor:
-        """
-        Compute self-influence scores.
+        """Compute self-influence scores.
 
         Parameters
         ----------
         batch_size : int, optional
-            Batch size used for iterating over the dataset. This argument is ignored.
+            Batch size used for iterating over the dataset. This argument is
+            ignored.
         scores_name : str, optional
-            The unique identifier for the score. Overrides the instance variable if provided.
+            The unique identifier for the score. Overrides the instance
+            variable if provided.
         score_args : ScoreArguments, optional
-            Arguments for score computation. Overrides the instance variable if provided.
+            Arguments for score computation. Overrides the instance variable
+            if provided.
 
         Returns
         -------
         torch.Tensor
             Self-influence scores for each datapoint in train_dataset.
+
         """
         scores_name = scores_name or self.scores_name
         score_args = score_args or self.score_args
@@ -203,7 +219,9 @@ class Kronfluence(Explainer):
             overwrite_output_dir=True,
         )
 
-        scores = self.analyzer.load_self_scores(scores_name=self.scores_name)["all_modules"]
+        scores = self.analyzer.load_self_scores(scores_name=self.scores_name)[
+            "all_modules"
+        ]
 
         return scores
 
@@ -216,8 +234,7 @@ def kronfluence_explain(
     train_dataset: Dataset,
     **kwargs: Any,
 ) -> torch.Tensor:
-    """
-    Functional interface for the `Kronfluence` explainer.
+    """Functional interface for the `Kronfluence` explainer.
 
     Parameters
     ----------
@@ -237,7 +254,9 @@ def kronfluence_explain(
     Returns
     -------
     torch.Tensor
-        2D Tensor of shape (test_samples, train_dataset_size) containing the influence scores.
+        2D Tensor of shape (test_samples, train_dataset_size) containing the
+        influence scores.
+
     """
     return explain_fn_from_explainer(
         explainer_cls=Kronfluence,
@@ -256,8 +275,7 @@ def kronfluence_self_influence(
     train_dataset: Dataset,
     **kwargs: Any,
 ) -> torch.Tensor:
-    """
-    Functional interface for the self-influence scores using the `Kronfluence` explainer.
+    """Functional interface for `Kronfluence` explainer.
 
     Parameters
     ----------
@@ -274,6 +292,7 @@ def kronfluence_self_influence(
     -------
     torch.Tensor
         Self-influence scores for each datapoint in train_dataset.
+
     """
     return self_influence_fn_from_explainer(
         explainer_cls=Kronfluence,
