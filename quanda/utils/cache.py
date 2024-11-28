@@ -1,3 +1,5 @@
+"""Module for caching explanations."""
+
 import glob
 import os
 from typing import Any, Optional, Union
@@ -7,12 +9,7 @@ from torch import Tensor
 
 
 class Cache:
-    """
-    Abstract class for caching. Methods of this class are static.
-    """
-
-    def __init__(self):
-        pass
+    """Abstract class for caching. Methods of this class are static."""
 
     @staticmethod
     def save(*args, **kwargs) -> None:
@@ -31,17 +28,14 @@ class Cache:
 
 
 class BatchedCachedExplanations:
-    """
-    Utility class for lazy loading and saving batched explanations.
-    """
+    """Utility class for lazy loading and saving batched explanations."""
 
     def __init__(
         self,
         cache_dir: str,
         device: Optional[Union[str, torch.device]] = None,
     ):
-        """
-        Utility class for loading and saving batched explanations.
+        """Load and save batched explanations.
 
         Parameters
         ----------
@@ -49,6 +43,7 @@ class BatchedCachedExplanations:
             Directory containing the cached explanations.
         device: Optional[Union[str, torch.device]]
             Device to load the explanations on.
+
         """
         super().__init__()
         self.cache_dir = cache_dir
@@ -56,11 +51,12 @@ class BatchedCachedExplanations:
 
         self.av_filesearch = os.path.join(cache_dir, "*.pt")
         self.files = glob.glob(self.av_filesearch)
-        self.batch_size = torch.load(self.files[0], map_location=self.device, weights_only=True).shape[0]
+        self.batch_size = torch.load(
+            self.files[0], map_location=self.device, weights_only=True
+        ).shape[0]
 
     def __getitem__(self, idx: int) -> torch.Tensor:
-        """
-        Get the explanation at the specified index.
+        """Get the explanation at the specified index.
 
         Parameters
         ----------
@@ -71,8 +67,8 @@ class BatchedCachedExplanations:
         -------
         torch.Tensor
             The explanation at the specified index.
-        """
 
+        """
         assert idx < len(self.files), "Layer index is out of bounds!"
         fl = self.files[idx]
         xpl = torch.load(fl, map_location=self.device, weights_only=True)
@@ -80,32 +76,26 @@ class BatchedCachedExplanations:
         return xpl
 
     def __len__(self) -> int:
-        """
-        Get the number of explanations in the cache.
+        """Get the number of explanations in the cache.
 
         Returns
         -------
         int
             Number of explanations in the cache.
+
         """
         return len(self.files)
 
 
 class ExplanationsCache(Cache):
-    """
-    Class for caching generated explanations at a given path.
-    """
-
-    def __init__(self):
-        super().__init__()
+    """Class for caching generated explanations at a given path."""
 
     @staticmethod
     def exists(
         path: str,
         num_id: Optional[Union[str, int]] = None,
     ) -> bool:
-        """
-        Check if the explanations exist at the given path.
+        """Check if the explanations exist at the given path.
 
         Parameters
         ----------
@@ -118,8 +108,11 @@ class ExplanationsCache(Cache):
         -------
         bool
             True if the explanations exist, False otherwise.
+
         """
-        av_filesearch = os.path.join(path, "*.pt" if num_id is None else f"{num_id}.pt")
+        av_filesearch = os.path.join(
+            path, "*.pt" if num_id is None else f"{num_id}.pt"
+        )
         return os.path.exists(path) and len(glob.glob(av_filesearch)) > 0
 
     @staticmethod
@@ -128,8 +121,7 @@ class ExplanationsCache(Cache):
         exp_tensors: Tensor,
         num_id: Union[str, int],
     ) -> None:
-        """
-        Save the explanations to the given path.
+        """Save the explanations to the given path.
 
         Parameters
         ----------
@@ -153,8 +145,7 @@ class ExplanationsCache(Cache):
         path: str,
         device: Optional[Union[str, torch.device]] = None,
     ) -> BatchedCachedExplanations:
-        """
-        Load the explanations from the given path.
+        """Load the explanations from the given path.
 
         Parameters
         ----------
@@ -166,10 +157,14 @@ class ExplanationsCache(Cache):
         Returns
         -------
         BatchedCachedExplanations
-            BatchedCachedExplanations object that can load explanations lazily by index.
+            BatchedCachedExplanations object that can load explanations lazily
+            by index.
+
         """
         if os.path.exists(path):
-            xpl_dataset = BatchedCachedExplanations(cache_dir=path, device=device)
+            xpl_dataset = BatchedCachedExplanations(
+                cache_dir=path, device=device
+            )
             return xpl_dataset
         else:
             raise RuntimeError(f"Explanations were not found at path {path}")

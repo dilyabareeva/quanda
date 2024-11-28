@@ -1,3 +1,5 @@
+"""Training data attribution methods."""
+
 from quanda.explainers import utils, wrappers
 from quanda.explainers.base import Explainer
 from quanda.explainers.functional import ExplainFunc, ExplainFuncMini

@@ -1,3 +1,5 @@
+"""Linear Datamodeling Score (LDS) metric ."""
+
 import os
 from copy import deepcopy
 from typing import Callable, Dict, List, Optional, Union
@@ -7,28 +9,28 @@ import torch
 from torch.utils.data import DataLoader
 
 from quanda.metrics.base import Metric
-from quanda.utils.common import get_load_state_dict_func
 from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
 from quanda.utils.training import BaseTrainer
 
 
 class LinearDatamodelingMetric(Metric):
-    """
-    Metric to evaluate data attribution methods using the Linear Datamodeling Score (LDS).
+    """Metric for the Linear Datamodeling Score (LDS).
 
-    The LDS measures how well a data attribution method can predict the effect of retraining
-    a model on different subsets of the training data. It computes the correlation between
-    the model’s output when retrained on subsets of the data and the attribution method's predictions
-    of those outputs.
+    The LDS measures how well a data attribution method can predict the effect
+    of retraining a model on different subsets of the training data. It
+    computes the correlation between the model’s output when retrained on
+    subsets of the data and the attribution method's predictions of those
+    outputs.
 
     References
     ----------
     1) Sung Min Park, Kristian Georgiev, Andrew Ilyas, Guillaume Leclerc,
-        and Aleksander Mądry. (2023). "TRAK: attributing model behavior at scale".
-        In Proceedings of the 40th International Conference on Machine Learning" (ICML'23), Vol. 202.
-        JMLR.org, Article 1128, (27074–27113).
+        and Aleksander Mądry. (2023). "TRAK: attributing model behavior at
+        scale". In Proceedings of the 40th International Conference on Machine
+        Learning" (ICML'23), Vol. 202. JMLR.org, Article 1128, (27074–27113).
 
     2) https://github.com/MadryLab/trak/
+
     """
 
     def __init__(
@@ -40,14 +42,14 @@ class LinearDatamodelingMetric(Metric):
         m: int = 100,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         trainer_fit_kwargs: Optional[dict] = None,
-        load_state_dict: Optional[Callable] = None,
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable] = None,
         seed: int = 42,
         batch_size: int = 32,
         model_id: Optional[str] = "0",
         cache_dir: str = "./cache",
     ):
-        """
-        Initialize the LinearDatamodelingMetric.
+        """Initialize the LinearDatamodelingMetric.
 
         Parameters
         ----------
@@ -58,15 +60,20 @@ class LinearDatamodelingMetric(Metric):
         trainer : Union[L.Trainer, BaseTrainer]
             Trainer object used to fit the model on the sampled subsets.
         alpha : float, optional
-            The fraction of the training data to include in each subset, by default 0.5.
+            The fraction of the training data to include in each subset, by
+            default 0.5.
         m : int, optional
             Number of subsets to sample, by default 100.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to use, by default "spearman". Can be "spearman", "kendall", or a callable.
+            Correlation function to use, by default "spearman". Can be
+            "spearman", "kendall", or a callable.
         trainer_fit_kwargs : Optional[dict], optional
             Additional keyword arguments for the trainer, by default None.
-        load_state_dict : Optional[Callable], optional
-            Custom function to load a model state dictionary, by default None.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         seed : Optional[int], optional
             Random seed for reproducibility, by default 42.
         batch_size : int, optional
@@ -75,25 +82,32 @@ class LinearDatamodelingMetric(Metric):
             An identifier for the model, by default "0".
         cache_dir : str
             The cache directory, by default "./cache".
+
         """
-        super().__init__(model=model, train_dataset=train_dataset)
-        self.device = torch.device("cpu")
-        if load_state_dict is None:
-            self.load_model_state_dict = get_load_state_dict_func(self.device)
-        else:
-            self.load_model_state_dict = load_state_dict
+        super().__init__(
+            model=model,
+            checkpoints=checkpoints,
+            train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
+        )
+
+        self.device = torch.device("cpu")  # TODO: why is this CPU?
 
         self.cache_dir = cache_dir
         self.model_id = model_id
 
         # TODO: create a validation utility function
-        if isinstance(correlation_fn, str) and correlation_fn in correlation_functions:
+        if (
+            isinstance(correlation_fn, str)
+            and correlation_fn in correlation_functions
+        ):
             self.corr_measure = correlation_functions[correlation_fn]
         elif callable(correlation_fn):
             self.corr_measure = correlation_fn
         else:
             raise ValueError(
-                f"Invalid correlation function: expected one of {list(correlation_functions.keys())} or"
+                f"Invalid correlation function: expected one of "
+                f"{list(correlation_functions.keys())} or"
                 f"a Callable, but got {self.corr_measure}."
             )
 
@@ -115,8 +129,7 @@ class LinearDatamodelingMetric(Metric):
         self.create_counterfactual_models()
 
     def sample_subsets(self, dataset):
-        """
-        Randomly sample m subsets of the training set, each of size alpha * N.
+        """Randomly sample m subsets of the training set, each of size alpha*N.
 
         Parameters
         ----------
@@ -127,36 +140,45 @@ class LinearDatamodelingMetric(Metric):
         -------
         List[torch.utils.data.Subset]
             A list of m subsets of the training data.
+
         """
         N = len(dataset)
         subset_size = int(self.alpha * N)
 
         subsets = []
         for _ in range(self.m):
-            indices = torch.randperm(N, generator=self.generator)[:subset_size].tolist()
+            indices = torch.randperm(N, generator=self.generator)[
+                :subset_size
+            ].tolist()
             subsets.append(torch.utils.data.Subset(dataset, indices))
 
         return subsets
 
     def create_counterfactual_models(self):
-        """
-        For each subset of the training data, this function creates a new model, trains it
-        on the subset and stores it in the cache directory.
+        """Train counterfactual model on a subset.
 
         Raises
         ------
         ValueError
-            If the model is not a LightningModule and the trainer is a Lightning Trainer.
+            If the model is not a LightningModule and the trainer is a
+            Lightning Trainer.
         ValueError
-            If the model is not a torch.nn.Module and the trainer is a BaseTrainer.
+            If the model is not a torch.nn.Module and the trainer is a
+            BaseTrainer.
+
         """
         for i, subset in enumerate(self.subsets):
             counterfactual_model = deepcopy(self.model)
-            subset_loader = DataLoader(subset, batch_size=self.batch_size, shuffle=False)
+            subset_loader = DataLoader(
+                subset, batch_size=self.batch_size, shuffle=False
+            )
             self.trainer_fit_kwargs = self.trainer_fit_kwargs or {}
             if isinstance(self.trainer, L.Trainer):
                 if not isinstance(self.model, L.LightningModule):
-                    raise ValueError("Model should be a LightningModule if Trainer is a Lightning Trainer")
+                    raise ValueError(
+                        "Model should be a LightningModule if Trainer is a "
+                        "Lightning Trainer"
+                    )
 
                 self.trainer.fit(
                     model=self.model,
@@ -166,15 +188,23 @@ class LinearDatamodelingMetric(Metric):
 
             elif isinstance(self.trainer, BaseTrainer):
                 if not isinstance(self.model, torch.nn.Module):
-                    raise ValueError("Model should be a torch.nn.Module if Trainer is a BaseTrainer")
-                self.trainer.fit(model=counterfactual_model, train_dataloaders=subset_loader, **self.trainer_fit_kwargs)
+                    raise ValueError(
+                        "Model should be a torch.nn.Module if Trainer is a "
+                        "BaseTrainer"
+                    )
+                self.trainer.fit(
+                    model=counterfactual_model,
+                    train_dataloaders=subset_loader,
+                    **self.trainer_fit_kwargs,
+                )
 
-            model_ckpt_path = os.path.join(self.cache_dir, f"{self.model_id}_model_{i}.ckpt")
+            model_ckpt_path = os.path.join(
+                self.cache_dir, f"{self.model_id}_model_{i}.ckpt"
+            )
             torch.save(counterfactual_model.state_dict(), model_ckpt_path)
 
     def load_counterfactual_model(self, model_idx: int):
-        """
-        Load a model checkpoint.
+        """Load a model checkpoint.
 
         Parameters
         ----------
@@ -185,11 +215,14 @@ class LinearDatamodelingMetric(Metric):
         -------
         torch.nn.Module
             The loaded model.
+
         """
-        model_ckpt_path = os.path.join(self.cache_dir, f"{self.model_id}_model_{model_idx}.ckpt")
+        model_ckpt_path = os.path.join(
+            self.cache_dir, f"{self.model_id}_model_{model_idx}.ckpt"
+        )
         counterfactual_model = deepcopy(self.model)
-        self.load_model_state_dict(counterfactual_model, model_ckpt_path)
-        # counterfactual_model.load_state_dict(torch.load(model_ckpt_path, map_location=self.device))
+        self.checkpoints_load_func(counterfactual_model, model_ckpt_path)
+
         counterfactual_model.to(self.device)
         return counterfactual_model
 
@@ -200,21 +233,24 @@ class LinearDatamodelingMetric(Metric):
         explanation_targets: torch.Tensor,
         **kwargs,
     ):
-        """
-        Update the evaluation scores based on the provided test data and explanations.
+        """Update the evaluation scores based on new data.
 
         Parameters
         ----------
         test_tensor : torch.Tensor
             The test data used for evaluation.
         explanations : torch.Tensor
-            The explanation scores for the test data with shape (test_samples, dataset_size).
+            The explanation scores for the test data with shape (test_samples,
+            dataset_size).
         explanation_targets : torch.Tensor
             The target values for the explanations.
+        kwargs: Any
+            Additional keyword arguments
 
         Returns
         -------
         None
+
         """
         predicted_output_list = []
         model_output_list = []
@@ -232,10 +268,15 @@ class LinearDatamodelingMetric(Metric):
             counterfactual_model = self.load_counterfactual_model(s)
             counterfactual_output = counterfactual_model(test_tensor).detach()
 
-            if counterfactual_output.ndim == 1 or counterfactual_output.shape[1] == 1:
+            if (
+                counterfactual_output.ndim == 1
+                or counterfactual_output.shape[1] == 1
+            ):
                 counterfactual_output = counterfactual_output.squeeze()
             else:
-                counterfactual_output = counterfactual_output.gather(1, explanation_targets.unsqueeze(1)).squeeze(1)
+                counterfactual_output = counterfactual_output.gather(
+                    1, explanation_targets.unsqueeze(1)
+                ).squeeze(1)
 
             model_output_list.append(counterfactual_output)
 
@@ -247,32 +288,30 @@ class LinearDatamodelingMetric(Metric):
         self.results["scores"].append(batch_lds_scores)
 
     def reset(self, *args, **kwargs):
-        """
-        Reset the LDS score and resample subsets of the training data.
-        """
+        """Reset the LDS score and resample subsets of the training data."""
         self.results = {"scores": []}
         self.subsets = self.sample_subsets(dataset=self.train_dataset)
 
-    def load_state_dict(self, state_dict: dict, *args, **kwargs):
-        """
-        Load the state of the metric.
+    def load_state_dict(self, state_dict: dict):
+        """Load the state of the metric.
 
         Parameters
         ----------
         state_dict : dict
             The state dictionary of the metric
+
         """
         self.results["scores"] = state_dict["scores"]
         self.subsets = state_dict["subsets"]
 
     def state_dict(self, *args, **kwargs):
-        """
-        Return the current state of the metric.
+        """Return the current state of the metric.
 
         Returns
         -------
         dict
             The current state of the LDS metric, containing scores and subsets.
+
         """
         return {
             "scores": self.results["scores"],
@@ -280,11 +319,11 @@ class LinearDatamodelingMetric(Metric):
         }
 
     def compute(self, *args, **kwargs):
-        """
-        Compute and return the mean score.
+        """Compute and return the mean score.
 
         Returns
         -------
             dict: A dictionary containing the mean score.
+
         """
         return {"score": torch.cat(self.results["scores"]).mean().item()}

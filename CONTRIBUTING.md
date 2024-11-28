@@ -52,17 +52,21 @@ pre-commit install
 
 Alternatively, run the makefile before a commit to ensure the code is formatted and linted correctly:
 ```bash
-make style
+make clean-format
 ```
 
 ### Branching
 
 Before you start writing your code, create a local branch from the **latest version** of `main`.
 
+### Commit Messages
+
+Please make sure to write clear and concise commit messages in the [Angular commit message format](https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#commits).
+
 ### Code Style
 
 **quanda** follows [PEP-8](https://www.python.org/dev/peps/pep-0008/) code style.
-We use [flake8](https://pypi.org/project/flake8/) for quick style checks and [black](https://github.com/psf/black) for code formatting with a line-length of 127 characters.
+We use [ruff](https://github.com/astral-sh/ruff) for linting and code formatting with a line-length of 79 characters.
 
 **quanda** uses [mypy](https://mypy-lang.org/) static type checker. Please include type annotations for added code, and only write fully compatible code.
 
@@ -110,7 +114,7 @@ Before you create your pull request, please go through this checklist to ensure 
 - Make sure that the latest version of the code from the `main` branch is merged into your working branch.
 - Run style and linting checks to format source code and detect typing errors:
 ```bash
-make style
+make clean-format
 ```
 - Make sure to add mypy style typing annotations whenever possible
 - Create unit tests for new functionality under the `tests/` folder.

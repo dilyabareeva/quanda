@@ -10,9 +10,6 @@ import os
 import sys
 from datetime import datetime
 
-from pygments.style import Style
-from pygments.styles import get_style_by_name
-from pygments.token import Token
 
 sys.path.insert(0, os.path.abspath("../.."))
 
@@ -35,7 +32,7 @@ extensions = [
 source_suffix = [".rst", ".md"]
 autosummary_generate = True
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-rst_epilog = f"""
+rst_epilog = """
 .. |quanda| raw:: html
 
   <span class="poppins">quanda</span>

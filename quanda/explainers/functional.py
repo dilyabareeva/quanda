@@ -1,3 +1,5 @@
+"""Functional explainers."""
+
 from typing import Any, List, Optional, Protocol, Union
 
 import torch
@@ -17,6 +19,7 @@ class ExplainFunc(Protocol):
         explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
         **kwargs: Any,
     ) -> torch.Tensor:
+        """Explain function."""
         pass
 
 
@@ -29,4 +32,5 @@ class ExplainFuncMini(Protocol):
         explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
         **kwargs: Any,
     ) -> torch.Tensor:
+        """Explain function."""
         pass

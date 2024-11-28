@@ -1,3 +1,5 @@
+"""Downstream evaluation metrics."""
+
 from quanda.metrics.downstream_eval.class_detection import ClassDetectionMetric
 from quanda.metrics.downstream_eval.mislabeling_detection import (
     MislabelingDetectionMetric,

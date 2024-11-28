@@ -1,19 +1,14 @@
-"""
-The `visualization.py` file contains utility functions used in the tutorials to visualize the results
+"""The `visualization.py` file contains utility functions used in the tutorials to visualize the results
 and is not part of the quanda library release. The code is not well-tested, well-documented and is provided
 as a reference only.
 """
 
 import matplotlib.colors as mcolors
-import matplotlib.patches as patches
 import matplotlib.pyplot as plt
-import numpy as np
-import plotly.graph_objects as go
 import torch
 from matplotlib import font_manager, rcParams
 from matplotlib.gridspec import GridSpec
 from matplotlib.patches import Rectangle
-from plotly.subplots import make_subplots
 from torchvision.utils import save_image
 
 fonts = ["../assets/demo/Helvetica.ttf", "../assets/demo/Helvetica-Bold.ttf"]
@@ -42,8 +37,12 @@ def save_influential_samples(
     top_k = 3
 
     # normalize influence scores by row
-    influence_scores = influence_scores - influence_scores.min(dim=1, keepdim=True)[0]
-    influence_scores = influence_scores / influence_scores.max(dim=1, keepdim=True)[0]
+    influence_scores = (
+        influence_scores - influence_scores.min(dim=1, keepdim=True)[0]
+    )
+    influence_scores = (
+        influence_scores / influence_scores.max(dim=1, keepdim=True)[0]
+    )
 
     # Get the top opponents and proponents
     top_k_proponents = torch.topk(influence_scores, top_k, dim=1, largest=True)
@@ -56,13 +55,33 @@ def save_influential_samples(
 
     # Collect proponents images
     for idx, elements in enumerate(top_k_proponents.indices):
-        proponents_images.extend([denormalize(train_dataset[int(i)][0]).permute(1, 2, 0).numpy() for i in elements])
-        proponent_labels.extend([top_k_proponents.values[idx][i].item() for i in range(len(elements))])
+        proponents_images.extend(
+            [
+                denormalize(train_dataset[int(i)][0]).permute(1, 2, 0).numpy()
+                for i in elements
+            ]
+        )
+        proponent_labels.extend(
+            [
+                top_k_proponents.values[idx][i].item()
+                for i in range(len(elements))
+            ]
+        )
 
     # Collect opponents images
     for idx, elements in enumerate(top_k_opponents.indices):
-        opponents_images.extend([denormalize(train_dataset[int(i)][0]).permute(1, 2, 0).numpy() for i in elements])
-        opponent_labels.extend([top_k_opponents.values[idx][i].item() for i in range(len(elements))])
+        opponents_images.extend(
+            [
+                denormalize(train_dataset[int(i)][0]).permute(1, 2, 0).numpy()
+                for i in elements
+            ]
+        )
+        opponent_labels.extend(
+            [
+                top_k_opponents.values[idx][i].item()
+                for i in range(len(elements))
+            ]
+        )
 
     # Reverse the order of proponents images
     proponents_images = proponents_images[::-1]
@@ -91,19 +110,37 @@ def save_influential_samples(
         ax.axis("off")  # Hide axes
         # Set the background color for each image area
         ax.set_facecolor(color)  # Set background color for the image frame
-        ax.text(0.5, -0.02, f"{label:.2f}", ha="center", va="top", fontsize=4, transform=ax.transAxes)
+        ax.text(
+            0.5,
+            -0.02,
+            f"{label:.2f}",
+            ha="center",
+            va="top",
+            fontsize=4,
+            transform=ax.transAxes,
+        )
 
     # Create empty axes for the space between proponents and opponents
     empty_ax = axes[top_k]  # Position the empty ax in between
     empty_ax.axis("off")  # Hide the empty axes
 
     # Plot proponents images and labels
-    for ax, img, label in zip(axes[top_k + 1 :], proponents_images, proponent_labels):
+    for ax, img, label in zip(
+        axes[top_k + 1 :], proponents_images, proponent_labels
+    ):
         ax.imshow(img)
         ax.axis("off")  # Hide axes
         # Set the background color for each image area
         ax.set_facecolor(color)  # Set background color for the image frame
-        ax.text(0.5, -0.02, f"{label:.2f}", ha="center", va="top", fontsize=4, transform=ax.transAxes)
+        ax.text(
+            0.5,
+            -0.02,
+            f"{label:.2f}",
+            ha="center",
+            va="top",
+            fontsize=4,
+            transform=ax.transAxes,
+        )
 
     # Adjust layout to remove whitespace and set spacing
     plt.subplots_adjust(
@@ -111,7 +148,9 @@ def save_influential_samples(
     )  # Set wspace to a very small value for tighter spacing
 
     # Save the figure if needed
-    plt.savefig(f"{save_path}/test_{method}.png", pad_inches=0, dpi=1000)  # Save the plot without extra space
+    plt.savefig(
+        f"{save_path}/test_{method}.png", pad_inches=0, dpi=1000
+    )  # Save the plot without extra space
 
     plt.show()  # Show the plot
 
@@ -121,16 +160,29 @@ def save_influential_samples(
 
 
 def visualize_top_3_bottom_3_influential(
-    train_dataset, test_tensor, test_targets, predicted, influence_scores, label_dict, save_path=None
+    train_dataset,
+    test_tensor,
+    test_targets,
+    predicted,
+    influence_scores,
+    label_dict,
+    save_path=None,
 ):
     num_samples = len(test_tensor)
     plt.figure(figsize=(24, 5 * num_samples))
     gs = GridSpec(num_samples, 17, height_ratios=[1] * num_samples)
 
-    all_colors = [color for color in mcolors.CSS4_COLORS.values() if mcolors.rgb_to_hsv(mcolors.to_rgb(color))[2] < 0.7]
+    all_colors = [
+        color
+        for color in mcolors.CSS4_COLORS.values()
+        if mcolors.rgb_to_hsv(mcolors.to_rgb(color))[2] < 0.7
+    ]
 
     unique_labels = list(label_dict.values())
-    label_colors = {label: all_colors[i % len(all_colors)] for i, label in enumerate(unique_labels)}
+    label_colors = {
+        label: all_colors[i % len(all_colors)]
+        for i, label in enumerate(unique_labels)
+    }
 
     top_k = 3
     top_k_proponents = torch.topk(influence_scores, top_k, dim=1, largest=True)
@@ -141,29 +193,47 @@ def visualize_top_3_bottom_3_influential(
     top_k_opponents_indices = top_k_opponents.indices
     top_k_opponents_scores = top_k_opponents.values
 
-    predicted_labels_str = [label_dict.get(int(label_num), "Unknown") for label_num in predicted]
+    predicted_labels_str = [
+        label_dict.get(int(label_num), "Unknown") for label_num in predicted
+    ]
 
     for test_idx in range(num_samples):
         test_image = test_tensor[test_idx]
-        test_image = (test_image - test_image.min()) / (test_image.max() - test_image.min())
+        test_image = (test_image - test_image.min()) / (
+            test_image.max() - test_image.min()
+        )
         test_label_num = test_targets[test_idx].item()
         test_label_str = label_dict.get(test_label_num, "Unknown")
         test_label_color = label_colors.get(test_label_str, "gray")
 
         proponents_data = [
-            (train_dataset[int(idx)][0], train_dataset[int(idx)][1]) for idx in top_k_proponents_indices[test_idx]
+            (train_dataset[int(idx)][0], train_dataset[int(idx)][1])
+            for idx in top_k_proponents_indices[test_idx]
         ]
         proponents_images = [img for img, _ in proponents_data]
-        proponents_images = [(img - img.min()) / (img.max() - img.min()) for img in proponents_images]
-        proponents_labels_str = [label_dict.get(label_num, "Unknown") for _, label_num in proponents_data]
+        proponents_images = [
+            (img - img.min()) / (img.max() - img.min())
+            for img in proponents_images
+        ]
+        proponents_labels_str = [
+            label_dict.get(label_num, "Unknown")
+            for _, label_num in proponents_data
+        ]
         proponents_scores = top_k_proponents_scores[test_idx]
 
         opponents_data = [
-            (train_dataset[int(idx)][0], train_dataset[int(idx)][1]) for idx in reversed(top_k_opponents_indices[test_idx])
+            (train_dataset[int(idx)][0], train_dataset[int(idx)][1])
+            for idx in reversed(top_k_opponents_indices[test_idx])
         ]
         opponents_images = [img for img, _ in opponents_data]
-        opponents_images = [(img - img.min()) / (img.max() - img.min()) for img in opponents_images]
-        opponents_labels_str = [label_dict.get(label_num, "Unknown") for _, label_num in opponents_data]
+        opponents_images = [
+            (img - img.min()) / (img.max() - img.min())
+            for img in opponents_images
+        ]
+        opponents_labels_str = [
+            label_dict.get(label_num, "Unknown")
+            for _, label_num in opponents_data
+        ]
         opponents_scores = list(reversed(top_k_opponents_scores[test_idx]))
 
         # Plot test sample
@@ -184,7 +254,16 @@ def visualize_top_3_bottom_3_influential(
             pred_color = "green"
         else:
             pred_color = "red"
-        ax.add_patch(Rectangle((0, -0.15), 1, 0.22, transform=ax.transAxes, color=pred_color, clip_on=False))
+        ax.add_patch(
+            Rectangle(
+                (0, -0.15),
+                1,
+                0.22,
+                transform=ax.transAxes,
+                color=pred_color,
+                clip_on=False,
+            )
+        )
         ax.text(
             0.5,
             0.05,
@@ -198,7 +277,9 @@ def visualize_top_3_bottom_3_influential(
         plt.axis("off")
 
         # Plot proponents
-        for i, (img, score, label_str) in enumerate(zip(proponents_images, proponents_scores, proponents_labels_str)):
+        for i, (img, score, label_str) in enumerate(
+            zip(proponents_images, proponents_scores, proponents_labels_str)
+        ):
             ax = plt.subplot(gs[test_idx, 4 + i * 2 : 4 + (i * 2 + 2)])
             label_color = label_colors.get(label_str, "gray")
             ax.imshow(img.permute(1, 2, 0))
@@ -213,14 +294,32 @@ def visualize_top_3_bottom_3_influential(
                 verticalalignment="top",
                 bbox=dict(facecolor=label_color, edgecolor="none", pad=8),
             )
-            ax.add_patch(Rectangle((0, -0.15), 1, 0.12, transform=ax.transAxes, color="black", clip_on=False))
+            ax.add_patch(
+                Rectangle(
+                    (0, -0.15),
+                    1,
+                    0.12,
+                    transform=ax.transAxes,
+                    color="black",
+                    clip_on=False,
+                )
+            )
             ax.text(
-                0.5, -0.05, f"Score: {score:.4f}", transform=ax.transAxes, ha="center", va="top", fontsize=16, color="white"
+                0.5,
+                -0.05,
+                f"Score: {score:.4f}",
+                transform=ax.transAxes,
+                ha="center",
+                va="top",
+                fontsize=16,
+                color="white",
             )
             plt.axis("off")
 
         # Plot opponents
-        for i, (img, score, label_str) in enumerate(zip(opponents_images, opponents_scores, opponents_labels_str)):
+        for i, (img, score, label_str) in enumerate(
+            zip(opponents_images, opponents_scores, opponents_labels_str)
+        ):
             ax = plt.subplot(gs[test_idx, 11 + i * 2 : 11 + (i * 2 + 2)])
             label_color = label_colors.get(label_str, "gray")
             ax.imshow(img.permute(1, 2, 0))
@@ -235,9 +334,25 @@ def visualize_top_3_bottom_3_influential(
                 verticalalignment="top",
                 bbox=dict(facecolor=label_color, edgecolor="none", pad=8),
             )
-            ax.add_patch(Rectangle((0, -0.15), 1, 0.12, transform=ax.transAxes, color="black", clip_on=False))
+            ax.add_patch(
+                Rectangle(
+                    (0, -0.15),
+                    1,
+                    0.12,
+                    transform=ax.transAxes,
+                    color="black",
+                    clip_on=False,
+                )
+            )
             ax.text(
-                0.5, -0.05, f"Score: {score:.4f}", transform=ax.transAxes, ha="center", va="top", fontsize=16, color="white"
+                0.5,
+                -0.05,
+                f"Score: {score:.4f}",
+                transform=ax.transAxes,
+                ha="center",
+                va="top",
+                fontsize=16,
+                color="white",
             )
             plt.axis("off")
 
@@ -247,12 +362,16 @@ def visualize_top_3_bottom_3_influential(
     plt.show()
 
 
-def visualize_samples(images, labels, row_headers, denormalize, label_to_name_dict):
+def visualize_samples(
+    images, labels, row_headers, denormalize, label_to_name_dict
+):
     if len(row_headers) != 4:
         raise ValueError("row_headers must have 4 elements")
 
     grid_size = (4, 3)
-    fig, axes = plt.subplots(grid_size[0], grid_size[1], figsize=(6, 5.5), dpi=180)
+    fig, axes = plt.subplots(
+        grid_size[0], grid_size[1], figsize=(6, 5.5), dpi=180
+    )
 
     images = images[: grid_size[0] * grid_size[1]]
     labels = labels[: grid_size[0] * grid_size[1]]
@@ -264,11 +383,21 @@ def visualize_samples(images, labels, row_headers, denormalize, label_to_name_di
         ax.imshow(img)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_xlabel(f"{label}", fontsize=12, color="black", fontweight="regular")
+        ax.set_xlabel(
+            f"{label}", fontsize=12, color="black", fontweight="regular"
+        )
 
     # Add row descriptions to the left of each row (horizontally)
     for i, header in enumerate(row_headers):
-        fig.text(0.02, 0.9 - (i / grid_size[0]), header, va="top", ha="right", fontsize=14, color="black")
+        fig.text(
+            0.02,
+            0.9 - (i / grid_size[0]),
+            header,
+            va="top",
+            ha="right",
+            fontsize=14,
+            color="black",
+        )
 
     # Adjust spacing between images for even spacing
     plt.subplots_adjust(wspace=0.4, hspace=0.4, left=0.1, right=0.9)

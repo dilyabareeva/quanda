@@ -1,5 +1,8 @@
+"""Model randomization metric."""
+
+import os
 import copy
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union, Any, Tuple
 
 import torch
 
@@ -9,66 +12,83 @@ from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
 
 
 class ModelRandomizationMetric(Metric):
-    """
-    Metric to evaluate the dependence of the attributions on the model parameters.
+    """Evaluate the dependence of the attributions on the model parameters.
 
     References
     ----------
-    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of similarity-based explanations. In International
-    Conference on Learning Representations.
+    1) Hanawa, K., Yokoi, S., Hara, S., & Inui, K. (2021). Evaluation of
+    similarity-based explanations. In International Conference on Learning
+    Representations.
 
-    2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., & Kim, B. (2018). Sanity checks for saliency
-    maps. In Advances in Neural Information Processing Systems (Vol. 31).
+    2) Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., & Kim,
+    B. (2018). Sanity checks for saliency maps. In Advances in Neural
+    Information Processing Systems (Vol. 31).
+
     """
 
     def __init__(
         self,
         model: torch.nn.Module,
+        model_id: str,
+        cache_dir: str,
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
-        *args,
-        **kwargs,
     ):
-        """
-        Initialize the ModelRandomizationMetric.
+        """Initialize the ModelRandomizationMetric.
 
         Parameters
         ----------
         model : torch.nn.Module
             The model used to generate attributions.
+        model_id : str
+            The identifier of the model.
+        cache_dir : str
+            The cache directory.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train `model`.
         explainer_cls : type
             The class of the explainer to evaluate.
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
             The correlation function to use, by default "spearman".
             Can be "spearman", "kendall" or a callable.
         seed : int, optional
             The random seed, by default 42.
+
         """
         super().__init__(
             model=model,
+            checkpoints=checkpoints,
             train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
         )
-        self.model = model
-        self.train_dataset = train_dataset
+
         self.expl_kwargs = expl_kwargs or {}
+        self.model_id = model_id
+        self.cache_dir = cache_dir
         self.seed = seed
 
         self.generator = torch.Generator(device=self.device)
         self.generator.manual_seed(self.seed)
-        self.rand_model = self._randomize_model(model)
+        self.rand_model, self.rand_checkpoint = self._randomize_model()
 
         if "model_id" in self.expl_kwargs:
             self.expl_kwargs["model_id"] += "_rand"
 
         self.rand_explainer = explainer_cls(
             model=self.rand_model,
+            checkpoints=self.rand_checkpoint,
             train_dataset=train_dataset,
             **self.expl_kwargs,
         )
@@ -76,13 +96,17 @@ class ModelRandomizationMetric(Metric):
         self.results: Dict[str, List] = {"scores": []}
 
         # TODO: create a validation utility function
-        if isinstance(correlation_fn, str) and correlation_fn in correlation_functions:
+        if (
+            isinstance(correlation_fn, str)
+            and correlation_fn in correlation_functions
+        ):
             self.corr_measure = correlation_functions[correlation_fn]
         elif callable(correlation_fn):
             self.corr_measure = correlation_fn
         else:
             raise ValueError(
-                f"Invalid correlation function: expected one of {list(correlation_functions.keys())} or"
+                f"Invalid correlation function: expected one of "
+                f"{list(correlation_functions.keys())} or"
                 f"a Callable, but got {self.corr_measure}."
             )
 
@@ -92,8 +116,7 @@ class ModelRandomizationMetric(Metric):
         explanations: torch.Tensor,
         explanation_targets: Optional[torch.Tensor] = None,
     ):
-        """
-        Update the evaluation scores based on the provided test data and explanations.
+        """Update the evaluation scores based on the provided data.
 
         Parameters
         ----------
@@ -103,47 +126,54 @@ class ModelRandomizationMetric(Metric):
             The explanations generated by the model.
         explanation_targets : Optional[torch.Tensor], optional
             The target values for the explanations, by default None.
+
         """
         explanations = explanations.to(self.device)
         test_data = test_data.to(self.device)
-        explanation_targets = explanation_targets.to(self.device) if explanation_targets is not None else None
+        explanation_targets = (
+            explanation_targets.to(self.device)
+            if explanation_targets is not None
+            else None
+        )
 
-        rand_explanations = self.rand_explainer.explain(test_tensor=test_data, targets=explanation_targets).to(self.device)
+        rand_explanations = self.rand_explainer.explain(
+            test_tensor=test_data, targets=explanation_targets
+        ).to(self.device)
 
         corrs = self.corr_measure(explanations, rand_explanations)
         self.results["scores"].append(corrs)
 
     def compute(self):
-        """
-        Compute and return the mean score.
+        """Compute and return the mean score.
 
         Returns
         -------
             dict: A dictionary containing the mean score.
+
         """
         return {"score": torch.cat(self.results["scores"]).mean().item()}
 
     def reset(self):
-        """
-        Resets the state of the model randomization.
+        """Reset the state of the model randomization.
 
-        This method resets the state of the model randomization by clearing the results and
-        reseeding the random number generator. It also randomizes the model using the
+        This method resets the state of the model randomization by clearing the
+        results and reseeding the random number generator. It also randomizes
+        the model using the
         `_randomize_model` method.
 
         """
         self.results = {"scores": []}
         self.generator.manual_seed(self.seed)
-        self.rand_model = self._randomize_model(self.model)
+        self.rand_model, self.rand_checkpoint = self._randomize_model()
 
     def state_dict(self) -> Dict:
-        """
-        Return the state of the metric.
+        """Return the state of the metric.
 
         Returns
         -------
         Dict
             The state of the metric
+
         """
         state_dict = {
             "results_dict": self.results,
@@ -152,25 +182,21 @@ class ModelRandomizationMetric(Metric):
         return state_dict
 
     def load_state_dict(self, state_dict: dict):
-        """
-        Load the state of the metric.
+        """Load the state of the metric.
 
         Parameters
         ----------
         state_dict : dict
             The state dictionary of the metric
+
         """
         self.results = state_dict["results_dict"]
         self.rand_model.load_state_dict(state_dict["rnd_model"])
 
-    def _randomize_model(self, model: torch.nn.Module) -> torch.nn.Module:
-        """
-        Randomize the model parameters. Currently, only linear and convolutional layers are supported.
+    def _randomize_model(self) -> Tuple[torch.nn.Module, List[str]]:
+        """Randomize the model parameters.
 
-        Parameters
-        ----------
-        model: torch.nn.Module
-            The model to randomize.
+        Currently, only linear and convolutional layers are supported.
 
         Returns
         -------
@@ -179,12 +205,33 @@ class ModelRandomizationMetric(Metric):
 
         """
         # TODO: Add support for other layer types.
-        rand_model = copy.deepcopy(model)
-        for name, param in list(rand_model.named_parameters()):
-            parent = get_parent_module_from_name(rand_model, name)
-            # TODO: currently only linear layer is randomized, due to explainers' convergence issues
-            if isinstance(parent, (torch.nn.Linear)):
-                random_param_tensor = torch.nn.init.normal_(param, generator=self.generator)
-                parent.__setattr__(name.split(".")[-1], torch.nn.Parameter(random_param_tensor))
 
-        return rand_model
+        rand_model = copy.deepcopy(self.model)
+        rand_checkpoints = []
+
+        for i, chckpt in enumerate(self.checkpoints):
+            self.checkpoints_load_func(rand_model, chckpt)
+
+            for name, param in list(rand_model.named_parameters()):
+                parent = get_parent_module_from_name(rand_model, name)
+                # TODO: currently only linear layer is randomized
+                if isinstance(parent, (torch.nn.Linear)):
+                    random_param_tensor = torch.nn.init.normal_(
+                        param, generator=self.generator
+                    )
+                    parent.__setattr__(
+                        name.split(".")[-1],
+                        torch.nn.Parameter(random_param_tensor),
+                    )
+
+            # save randomized checkpoint
+            chckpt_path = os.path.join(
+                self.cache_dir, f"{self.model_id}_rand_{i}.pth"
+            )
+            torch.save(
+                rand_model.state_dict(),
+                chckpt_path,
+            )
+            rand_checkpoints.append(chckpt_path)
+
+        return rand_model, rand_checkpoints

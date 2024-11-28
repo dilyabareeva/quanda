@@ -1,3 +1,5 @@
+"""Module for the SampleTransformationDataset class."""
+
 from typing import Callable, List, Optional
 
 import torch
@@ -6,7 +8,7 @@ from quanda.utils.datasets.transformed import TransformedDataset
 
 
 class SampleTransformationDataset(TransformedDataset):
-    """Dataset wrapper that applies a sample-specific transformation function to the samples."""
+    """Dataset wrapper for sample-specific transformation function."""
 
     def __init__(
         self,
@@ -19,8 +21,7 @@ class SampleTransformationDataset(TransformedDataset):
         p: float = 1.0,
         seed: int = 42,
     ):
-        """
-        Constructor for the SampleTransformationDataset class.
+        """Construct the SampleTransformationDataset class.
 
         Parameters
         ----------
@@ -38,9 +39,11 @@ class SampleTransformationDataset(TransformedDataset):
             Class index to transform instances of, defaults to None.
             If `transform_indices`is given, this parameter is ignored.
         p : float, optional
-            The probability of transformation for each instance to transform, defaults to 1.0.
+            The probability of transformation for each instance to transform,
+            defaults to 1.0.
         seed : int, optional
             Seed for the random number generator, defaults to 42.
+
         """
         super().__init__(
             dataset=dataset,
