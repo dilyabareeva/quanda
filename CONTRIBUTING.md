@@ -59,6 +59,10 @@ make clean-format
 
 Before you start writing your code, create a local branch from the **latest version** of `main`.
 
+### Commit Messages
+
+Please make sure to write clear and concise commit messages in the [Angular commit message format](https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#commits).
+
 ### Code Style
 
 **quanda** follows [PEP-8](https://www.python.org/dev/peps/pep-0008/) code style.

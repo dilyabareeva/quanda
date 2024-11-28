@@ -15,12 +15,13 @@ from quanda.utils.functions import correlation_functions, cosine_similarity
 
 @pytest.mark.heuristic_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_data, batch_size, explainer_cls, \
+    "test_id, model, checkpoint,dataset, test_data, batch_size, explainer_cls, \
     expl_kwargs, explanations, test_labels, correlation_fn",
     [
         (
             "mnist_update_only_spearman",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             8,
@@ -36,6 +37,7 @@ from quanda.utils.functions import correlation_functions, cosine_similarity
         (
             "mnist_update_only_kendall",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             8,
@@ -53,6 +55,7 @@ from quanda.utils.functions import correlation_functions, cosine_similarity
 def test_randomization_metric(
     test_id,
     model,
+    checkpoint,
     dataset,
     test_data,
     batch_size,
@@ -65,6 +68,7 @@ def test_randomization_metric(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     test_data = request.getfixturevalue(test_data)
     dataset = request.getfixturevalue(dataset)
     test_labels = request.getfixturevalue(test_labels)
@@ -72,12 +76,13 @@ def test_randomization_metric(
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     metric = ModelRandomizationMetric(
         model=model,
+        model_id=0,
+        checkpoints=checkpoint,
         train_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         cache_dir=str(tmp_path),
         seed=42,
-        device="cpu",
     )
     metric.update(
         test_data=test_data, explanations=tda, explanation_targets=test_labels
@@ -89,11 +94,12 @@ def test_randomization_metric(
 
 @pytest.mark.heuristic_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, explainer_cls, expl_kwargs, corr_fn",
+    "test_id, model, checkpoint,dataset, explainer_cls, expl_kwargs, corr_fn",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             CaptumSimilarity,
             {
@@ -105,6 +111,7 @@ def test_randomization_metric(
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             CaptumSimilarity,
             {
@@ -118,6 +125,7 @@ def test_randomization_metric(
 def test_randomization_metric_model_randomization(
     test_id,
     model,
+    checkpoint,
     dataset,
     explainer_cls,
     expl_kwargs,
@@ -126,15 +134,18 @@ def test_randomization_metric_model_randomization(
     tmp_path,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     metric = ModelRandomizationMetric(
         model=model,
+        model_id="0",
+        cache_dir=str(tmp_path),
+        checkpoints=checkpoint,
         train_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         seed=42,
-        device="cpu",
         correlation_fn=corr_fn,
     )
     rand_model = metric.rand_model
@@ -148,11 +159,12 @@ def test_randomization_metric_model_randomization(
 
 @pytest.mark.heuristic_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, top_k, batch_size, explanations, expected_score",
+    "test_id, model, checkpoint,dataset, top_k, batch_size, explanations, expected_score",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             3,
             8,
@@ -164,6 +176,7 @@ def test_randomization_metric_model_randomization(
 def test_top_k_cardinality_metrics(
     test_id,
     model,
+    checkpoint,
     dataset,
     top_k,
     batch_size,
@@ -172,10 +185,14 @@ def test_top_k_cardinality_metrics(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     explanations = request.getfixturevalue(explanations)
     metric = TopKCardinalityMetric(
-        model=model, train_dataset=dataset, top_k=top_k, device="cpu"
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        top_k=top_k,
     )
     metric.update(explanations=explanations)
     score = metric.compute()["score"]
@@ -185,11 +202,12 @@ def test_top_k_cardinality_metrics(
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, model, dataset, explanations, adversarial_indices, expected_score",
+    "test_id, model, checkpoint,dataset, explanations, adversarial_indices, expected_score",
     [
         (
             "mnist_1",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             "load_mnist_adversarial_indices",
@@ -200,6 +218,7 @@ def test_top_k_cardinality_metrics(
 def test_mixed_datasets_metric(
     test_id,
     model,
+    checkpoint,
     dataset,
     explanations,
     adversarial_indices,
@@ -210,11 +229,13 @@ def test_mixed_datasets_metric(
     dataset = request.getfixturevalue(dataset)
     explanations = request.getfixturevalue(explanations)
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     adversarial_indices = request.getfixturevalue(adversarial_indices)
 
     # Initialize the MixedDatasetsMetric
     metric = MixedDatasetsMetric(
         model=model,
+        checkpoints=checkpoint,
         train_dataset=dataset,
         adversarial_indices=adversarial_indices,
     )

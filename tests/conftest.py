@@ -99,7 +99,7 @@ def mnist_seed_27_mislabeling_labels():
 
 
 @pytest.fixture
-def get_mnist_checkpoints():
+def load_mnist_checkpoints():
     """Get paths to five checkpoints from a single training run."""
     checkpoint_paths = [
         "tests/assets/mnist_checkpoints/checkpoint-00",
@@ -108,10 +108,7 @@ def get_mnist_checkpoints():
         "tests/assets/mnist_checkpoints/checkpoint-03",
         "tests/assets/mnist_checkpoints/checkpoint-04",
     ]
-    checkpoints = []
-    for path in checkpoint_paths:
-        checkpoints.append(path)
-    return checkpoints
+    return checkpoint_paths
 
 
 @pytest.fixture
@@ -124,6 +121,12 @@ def load_mnist_model():
         )
     )
     return model
+
+
+@pytest.fixture
+def load_mnist_last_checkpoint():
+    """Load the path to the last checkpoint of a pre-trained LeNet classification model."""
+    return "tests/assets/mnist"
 
 
 @pytest.fixture

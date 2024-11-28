@@ -1,3 +1,5 @@
+"""Lightning modules for the benchmarks."""
+
 import lightning as L
 import torch
 from torch.nn import CrossEntropyLoss
@@ -6,6 +8,7 @@ from torchmetrics.functional import accuracy
 
 
 def load_module_from_bench_state(bench_state: dict, device: str):
+    """Load a module from the benchmark state."""
     module_str = bench_state.get("pl_module", "MnistModel")
     num_labels = bench_state.get("n_classes", 10)
     module_type = pl_modules[module_str]
@@ -19,13 +22,20 @@ def load_module_from_bench_state(bench_state: dict, device: str):
     return module
 
 
+def bench_load_state_dict(module: torch.nn.Module, checkpoint: dict):
+    """Load the state of the module from the checkpoint."""
+    module.model.load_state_dict(checkpoint["model_state_dict"])
+    return module
+
+
 class LeNet5(torch.nn.Module):
-    """
-    A torch implementation of LeNet architecture.
+    """A torch implementation of LeNet architecture.
+
     Adapted from: https://github.com/ChawDoe/LeNet5-MNIST-PyTorch.
     """
 
     def __init__(self, num_outputs=10):
+        """Initialize the model."""
         super().__init__()
         self.conv_1 = torch.nn.Conv2d(1, 6, 5)
         self.pool_1 = torch.nn.MaxPool2d(2, 2)
@@ -40,6 +50,7 @@ class LeNet5(torch.nn.Module):
         self.fc_3 = torch.nn.Linear(84, num_outputs)
 
     def forward(self, x):
+        """Forward the input."""
         x = self.pool_1(self.relu_1(self.conv_1(x)))
         x = self.pool_2(self.relu_2(self.conv_2(x)))
         x = x.view(x.shape[0], -1)
@@ -50,6 +61,8 @@ class LeNet5(torch.nn.Module):
 
 
 class MnistModel(L.LightningModule):
+    """A simple model for MNIST classification."""
+
     def __init__(
         self,
         lr=1e-4,
@@ -58,6 +71,7 @@ class MnistModel(L.LightningModule):
         num_labels=64,
         device="cuda:0",
     ):
+        """Initialize the model."""
         super(MnistModel, self).__init__()
         self._init_model(num_labels)
         self.model.to(device)
@@ -69,12 +83,15 @@ class MnistModel(L.LightningModule):
         self.save_hyperparameters()
 
     def _init_model(self, num_labels):
+        """Initialize the model."""
         self.model = LeNet5(num_outputs=num_labels)
 
     def forward(self, x):
+        """Forward the input."""
         return self.model(x)
 
     def training_step(self, batch, batch_idx):
+        """Perform training step."""
         ims, labs = batch
         ims = ims.to(self.device)
         labs = labs.to(self.device)
@@ -86,18 +103,21 @@ class MnistModel(L.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
+        """Perform validation step."""
         loss, acc = self._shared_eval_step(batch, batch_idx)
         metrics = {"val_acc": acc, "val_loss": loss}
         self.log_dict(metrics)
         return metrics
 
     def test_step(self, batch, batch_idx):
+        """Perform test step."""
         loss, acc = self._shared_eval_step(batch, batch_idx)
         metrics = {"test_acc": acc, "test_loss": loss}
         self.log_dict(metrics)
         return metrics
 
     def _shared_eval_step(self, batch, batch_idx):
+        """Shared evaluation step between test and val."""
         x, y = batch
         y_hat = self.model(x)
         loss = self.criterion(y_hat, y)
@@ -107,6 +127,7 @@ class MnistModel(L.LightningModule):
         return loss, acc
 
     def configure_optimizers(self):
+        """Configure the optimizer and scheduler."""
         optimizer = AdamW(
             self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay
         )
@@ -116,11 +137,11 @@ class MnistModel(L.LightningModule):
         return [optimizer], [scheduler]
 
     def on_save_checkpoint(self, checkpoint):
-        # Save the state of the model attribute manually
+        """Save the state of the model attribute manually."""
         checkpoint["model_state_dict"] = self.model.state_dict()
 
     def on_load_checkpoint(self, checkpoint):
-        # Load the state of the model attribute manually
+        """Load the state of the model attribute manually."""
         self.model.load_state_dict(checkpoint["model_state_dict"])
 
 

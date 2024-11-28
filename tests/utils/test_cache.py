@@ -10,11 +10,12 @@ from quanda.utils.functions import cosine_similarity
 
 @pytest.mark.utils
 @pytest.mark.parametrize(
-    "test_id, model, dataset, explanations, test_batches, method_kwargs",
+    "test_id, model, checkpoint,dataset, explanations, test_batches, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_batches",
@@ -25,6 +26,7 @@ from quanda.utils.functions import cosine_similarity
 def test_batched_cached_explanations(
     test_id,
     model,
+    checkpoint,
     dataset,
     explanations,
     test_batches,
@@ -33,11 +35,13 @@ def test_batched_cached_explanations(
     tmp_path,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     test_batches = request.getfixturevalue(test_batches)
 
     explainer = CaptumSimilarity(
         model=model,
+        checkpoints=checkpoint,
         model_id=test_id,
         cache_dir=str(tmp_path),
         train_dataset=dataset,
@@ -77,11 +81,12 @@ def test_batched_cached_explanations(
 
 @pytest.mark.utils
 @pytest.mark.parametrize(
-    "test_id, model, dataset, explanations, test_batches, method_kwargs",
+    "test_id, model, checkpoint,dataset, explanations, test_batches, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_batches",
@@ -92,6 +97,7 @@ def test_batched_cached_explanations(
 def test_explanations_cache(
     test_id,
     model,
+    checkpoint,
     dataset,
     explanations,
     test_batches,
@@ -100,11 +106,13 @@ def test_explanations_cache(
     tmp_path,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     test_batches = request.getfixturevalue(test_batches)
 
     explainer = CaptumSimilarity(
         model=model,
+        checkpoints=checkpoint,
         model_id=test_id,
         cache_dir=str(tmp_path),
         train_dataset=dataset,

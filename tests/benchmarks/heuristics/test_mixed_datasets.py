@@ -14,7 +14,7 @@ from quanda.utils.training import Trainer
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, optimizer, lr, criterion, max_epochs, dataset, adversarial_path,"
+    "test_id, init_method, model, checkpoint, optimizer, lr, criterion, max_epochs, dataset, adversarial_path,"
     "adversarial_label, adversarial_transforms, batch_size, explainer_cls, expl_kwargs,"
     "expected_score",
     [
@@ -22,6 +22,7 @@ from quanda.utils.training import Trainer
             "mnist_generate",
             "generate",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -43,6 +44,7 @@ from quanda.utils.training import Trainer
             "mnist_assemble",
             "assemble",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -66,6 +68,7 @@ def test_mixed_datasets(
     test_id,
     init_method,
     model,
+    checkpoint,
     optimizer,
     lr,
     criterion,
@@ -82,6 +85,7 @@ def test_mixed_datasets(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
@@ -110,12 +114,14 @@ def test_mixed_datasets(
             adversarial_dir=adversarial_path,
             adversarial_transform=adversarial_transforms,
             trainer_fit_kwargs={},
+            cache_dir=str(tmp_path),
             batch_size=batch_size,
         )
 
     elif init_method == "assemble":
         dst_eval = MixedDatasets.assemble(
             model=model,
+            checkpoints=checkpoint,
             base_dataset=dataset,
             eval_dataset=eval_dataset,
             adversarial_label=adversarial_label,

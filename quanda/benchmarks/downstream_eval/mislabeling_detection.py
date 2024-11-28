@@ -1,7 +1,9 @@
+"""Benchmark for noisy label detection."""
+
 import copy
 import logging
 import os
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union, Any
 
 import lightning as L
 import torch
@@ -13,7 +15,9 @@ from quanda.benchmarks.resources import (
     load_module_from_bench_state,
     sample_transforms,
 )
+from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
+from quanda.utils.common import load_last_checkpoint
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
@@ -23,33 +27,40 @@ logger = logging.getLogger(__name__)
 
 
 class MislabelingDetection(Benchmark):
-    # TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE PREDICTIONS
-    """
-    Benchmark for noisy label detection.
-    This benchmark generates a dataset with mislabeled samples, and trains a model on it.
-    Afterward, it evaluates the effectiveness of a given data attributor
-    for detecting the mislabeled examples using ´quanda.metrics.downstream_eval.MislabelingDetectionMetric´.
+    # TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE
+    #  PREDICTIONS
+    """Benchmark for noisy label detection.
 
-    This is done by computing a cumulative detection curve (as described in the below references)
-    and calculating the AUC following Kwon et al. (2024).
+    This benchmark generates a dataset with mislabeled samples, and trains a
+    model on it. Afterward, it evaluates the effectiveness of a given data
+    attributor for detecting the mislabeled examples using
+    ´quanda.metrics.downstream_eval.MislabelingDetectionMetric´.
+
+    This is done by computing a cumulative detection curve (as described in the
+    below references) and calculating the AUC following Kwon et al. (2024).
 
     References
     ----------
-    1) Koh, P. W., & Liang, P. (2017). Understanding black-box predictions via influence functions. In International
-    Conference on Machine Learning (pp. 1885-1894). PMLR.
+    1) Koh, P. W., & Liang, P. (2017). Understanding black-box predictions via
+    influence functions. In International Conference on Machine Learning
+    (pp. 1885-1894). PMLR.
 
-    2) Yeh, C.-K., Kim, J., Yen, I. E., Ravikumar, P., & Dhillon, I. S. (2018). Representer point selection
-    for explaining deep neural networks. In Advances in Neural Information Processing Systems (Vol. 31).
+    2) Yeh, C.-K., Kim, J., Yen, I. E., Ravikumar, P., & Dhillon, I. S. (2018).
+    Representer point selection for explaining deep neural networks. In
+    Advances in Neural Information Processing Systems (Vol. 31).
 
-    3) Pruthi, G., Liu, F., Sundararajan, M., & Kale, S. (2020). Estimating training data influence by tracing gradient
-    descent. In Advances in Neural Information Processing Systems (Vol. 33, pp. 19920-19930).
+    3) Pruthi, G., Liu, F., Sundararajan, M., & Kale, S. (2020). Estimating
+    training data influence by tracing gradient descent. In Advances in Neural
+    Information Processing Systems (Vol. 33, pp. 19920-19930).
 
-    4) Picard, A. M., Vigouroux, D., Zamolodtchikov, P., Vincenot, Q., Loubes, J.-M., & Pauwels, E. (2022). Leveraging
-    influence functions for dataset exploration and cleaning. In 11th European Congress on Embedded Real-Time Systems
-    (ERTS 2022) (pp. 1-8). Toulouse, France.
+    4) Picard, A. M., Vigouroux, D., Zamolodtchikov, P., Vincenot, Q., Loubes,
+    J.-M., & Pauwels, E. (2022). Leveraging influence functions for dataset
+    exploration and cleaning. In 11th European Congress on Embedded Real-Time
+    Systems (ERTS 2022) (pp. 1-8). Toulouse, France.
 
-    5) Kwon, Y., Wu, E., Wu, K., & Zou, J. (2024). DataInf: Efficiently estimating data influence in LoRA-tuned LLMs and
-    diffusion models. In The Twelfth International Conference on Learning Representations (pp. 1-8).
+    5) Kwon, Y., Wu, E., Wu, K., & Zou, J. (2024). DataInf: Efficiently
+    estimating data influence in LoRA-tuned LLMs and diffusion models. In The
+    Twelfth International Conference on Learning Representations (pp. 1-8).
 
     """
 
@@ -60,8 +71,7 @@ class MislabelingDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Initializer for the Mislabeling Detection benchmark.
+        """Initialize the Mislabeling Detection benchmark.
 
         This initializer is not used directly, instead,
         the `generate` or the `assemble` methods should be used.
@@ -70,6 +80,7 @@ class MislabelingDetection(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
+
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: Optional[torch.utils.data.Dataset]
         self.mislabeling_dataset: LabelFlippingDataset
@@ -91,6 +102,7 @@ class MislabelingDetection(Benchmark):
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
+        cache_dir: str,
         eval_dataset: Optional[torch.utils.data.Dataset] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -104,67 +116,89 @@ class MislabelingDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Generates the benchmark by specifying parameters.
-        This module handles the dataset creation and model training on the label-poisoned dataset.
-        The evaluation can then be run using the `evaluate` method.
+        """Generate the benchmark by specifying parameters.
+
+        This module handles the dataset creation and model training on the
+        label-poisoned dataset. The evaluation can then be run using the
+        `evaluate` method.
 
         Parameters
         ----------
         model : Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
-            Note that a new model will be trained on the label-poisoned dataset.
+            Note that a new model will be trained on the label-poisoned
+            dataset.
         base_dataset : Union[str, torch.utils.data.Dataset]
-            Vanilla training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
+            Vanilla training dataset to be used for the benchmark. If a string
+            is passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
         trainer : Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the model. Can be a Lightning Trainer or a `BaseTrainer`.
+            Trainer to be used for training the model. Can be a Lightning
+            Trainer or a `BaseTrainer`.
+        cache_dir : str
+            Directory to store the generated benchmark components.
         eval_dataset : Optional[torch.utils.data.Dataset]
             Dataset to be used for the evaluation.
-            This is only used if `global_method` is not "self-influence", by default None.
-            Original papers use the self-influence method to reach a global ranking of the data,
+            This is only used if `global_method` is not "self-influence", by
+            default None.
+            Original papers use the self-influence method to reach a global
+            ranking of the data,
             instead of using aggregations of generated local explanations.
         use_predictions : bool, optional
             Whether to use the model's predictions for the evaluation.
-            This is only used if `global_method` is not "self-influence", by default True.
-            Original papers use the self-influence method to reach a global ranking of the data,
+            This is only used if `global_method` is not "self-influence", by
+            default True.
+            Original papers use the self-influence method to reach a global
+            ranking of the data,
             instead of using aggregations of generated local explanations.
         dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default "train".
+            The dataset split, only used for HuggingFace datasets, by default
+            "train".
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
         val_dataset : Optional[torch.utils.data.Dataset], optional
             Validation dataset to be used for the benchmark, by default None
         global_method : Union[str, type], optional
             Method to generate a global ranking from local explainer.
-            It can be a subclass of `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
+            It can be a subclass of
+            `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
             Defaults to "self-influence".
         p : float, optional
             The probability of mislabeling per sample, by default 0.3.
         trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments for the trainer's fit method, by default None.
+            Additional keyword arguments for the trainer's fit method, by
+            default None.
         seed : int, optional
             Seed for reproducibility, by default 27.
         batch_size : int, optional
             Batch size that is used for training, by default 8.
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Returns
         -------
         MislabelingDetection
             The benchmark instance.
-        """
 
+        """
         logger.info(
-            f"Generating {MislabelingDetection.name} benchmark components based on passed arguments..."
+            f"Generating {MislabelingDetection.name} benchmark components "
+            f"based on passed arguments..."
         )
         if global_method != "self-influence":
-            assert (
-                eval_dataset is not None
-            ), "MislabelingDetection should have global_method='self-influence' or eval_dataset should be given."
+            assert eval_dataset is not None, (
+                "MislabelingDetection should have "
+                "global_method='self-influence' or eval_dataset should be "
+                "given."
+            )
 
         obj = cls()
         obj._set_devices(model)
+        # this sets the function to the default value
+        obj.checkpoints_load_func = None
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
@@ -174,6 +208,7 @@ class MislabelingDetection(Benchmark):
         obj.use_predictions = use_predictions
         obj._generate(
             model=model,
+            cache_dir=cache_dir,
             val_dataset=val_dataset,
             p=p,
             global_method=global_method,
@@ -189,6 +224,7 @@ class MislabelingDetection(Benchmark):
     def _generate(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
+        cache_dir: str,
         n_classes: int,
         trainer: Union[L.Trainer, BaseTrainer],
         dataset_transform: Optional[Callable],
@@ -200,33 +236,40 @@ class MislabelingDetection(Benchmark):
         seed: int = 27,
         batch_size: int = 8,
     ):
-        """
-        Generates the benchmark from components.
+        """Generate the benchmark from components.
+
         This function is internally used for generating the benchmark instance.
 
         Parameters
         ----------
         model : Union[torch.nn.Module, L.LightningModule]
             Model to be used for the benchmark.
-            Note that a new model will be trained on the label-poisoned dataset.
+            Note that a new model will be trained on the label-poisoned
+            dataset.
+        cache_dir : str
+            Directory to store the generated benchmark components.
         n_classes : int
             Number of classes in the dataset.
         trainer : Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the model. Can be a Lightning Trainer or a `BaseTrainer`.
+            Trainer to be used for training the model. Can be a Lightning
+            Trainer or a `BaseTrainer`.
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
         val_dataset : Optional[torch.utils.data.Dataset], optional
             Validation dataset to be used for the benchmark, by default None
         mislabeling_labels : Optional[Dict[int, int]], optional
-            Optional dictionary containing indices as keys and new labels as values, by default None
+            Optional dictionary containing indices as keys and new labels as
+            values, by default None
         global_method : Union[str, type], optional
             Method to generate a global ranking from local explainer.
-            It can be a subclass of `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
+            It can be a subclass of
+            `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
             Defaults to "self-influence".
         p : float, optional
             The probability of mislabeling per sample, by default 0.3.
         trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments for the trainer's fit method, by default None.
+            Additional keyword arguments for the trainer's fit method, by
+            default None.
         seed : int, optional
             Seed for reproducibility, by default 27.
         batch_size : int, optional
@@ -235,9 +278,11 @@ class MislabelingDetection(Benchmark):
         Raises
         ------
         ValueError
-            If the model is not a LightningModule and the trainer is a Lightning Trainer.
+            If the model is not a LightningModule and the trainer is a
+            Lightning Trainer.
         ValueError
-            If the model is not a torch.nn.Module and the trainer is a BaseTrainer.
+            If the model is not a torch.nn.Module and the trainer is a
+            BaseTrainer.
         ValueError
             If the trainer is neither a Lightning Trainer nor a BaseTrainer.
 
@@ -290,7 +335,8 @@ class MislabelingDetection(Benchmark):
         if isinstance(trainer, L.Trainer):
             if not isinstance(self.model, L.LightningModule):
                 raise ValueError(
-                    "Model should be a LightningModule if Trainer is a Lightning Trainer"
+                    "Model should be a LightningModule if Trainer is a "
+                    "Lightning Trainer"
                 )
 
             trainer.fit(
@@ -303,7 +349,8 @@ class MislabelingDetection(Benchmark):
         elif isinstance(trainer, BaseTrainer):
             if not isinstance(self.model, torch.nn.Module):
                 raise ValueError(
-                    "Model should be a torch.nn.Module if Trainer is a BaseTrainer"
+                    "Model should be a torch.nn.Module if Trainer is a "
+                    "BaseTrainer"
                 )
 
             trainer.fit(
@@ -318,13 +365,24 @@ class MislabelingDetection(Benchmark):
                 "Trainer should be a Lightning Trainer or a BaseTrainer"
             )
 
+        # save check point to cache_dir
+        # TODO: add model id
+        torch.save(
+            self.model.state_dict(),
+            os.path.join(cache_dir, "model_mislabeling_detection.pth"),
+        )
+        self.checkpoints = [
+            os.path.join(cache_dir, "model_mislabeling_detection.pth")
+        ]  # TODO: save checkpoints
         self.model.to(self.device)
         self.model.eval()
 
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """
-        This method loads precomputed benchmark components from a file and creates an instance from the state dictionary.
+        """Download a precomputed benchmark.
+
+        Load precomputed benchmark components from a file and creates an
+        instance from the state dictionary.
 
         Parameters
         ----------
@@ -334,6 +392,11 @@ class MislabelingDetection(Benchmark):
             Directory to store the downloaded benchmark components.
         device : str
             Device to load the model on.
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
+
         """
         obj = cls()
         bench_state = obj._get_bench_state(
@@ -359,6 +422,8 @@ class MislabelingDetection(Benchmark):
 
         return obj.assemble(
             model=module,
+            checkpoints=bench_state["checkpoints_binary"],
+            checkpoints_load_func=bench_load_state_dict,
             base_dataset=bench_state["dataset_str"],
             eval_dataset=eval_dataset,
             use_predictions=bench_state["use_predictions"],
@@ -376,6 +441,8 @@ class MislabelingDetection(Benchmark):
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         mislabeling_labels: Dict[int, int],
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         eval_dataset: Optional[torch.utils.data.Dataset] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -386,51 +453,69 @@ class MislabelingDetection(Benchmark):
         *args,
         **kwargs,
     ):
-        """
-        Assembles the benchmark from existing components.
+        """Assembles the benchmark from existing components.
 
         Parameters
         ----------
         model : Union[torch.nn.Module, L.LightningModule]
-            Model to be used for the benchmark. This model should be trained on the mislabeled dataset.
+            Model to be used for the benchmark. This model should be trained on
+            the mislabeled dataset.
         base_dataset : Union[str, torch.utils.data.Dataset]
-            Training dataset to be used for the benchmark. If a string is passed, it should be a HuggingFace dataset.
+            Training dataset to be used for the benchmark. If a string is
+            passed, it should be a HuggingFace dataset.
         n_classes : int
             Number of classes in the dataset.
         mislabeling_labels : Dict[int, int]
             Dictionary containing indices as keys and new labels as values.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         eval_dataset : Optional[torch.utils.data.Dataset]
             Dataset to be used for the evaluation by default None.
         use_predictions : bool, optional
             Whether to use the model's predictions for the evaluation.
-            This is only used if `global_method` is not "self-influence", by default True.
-            Original papers use the self-influence method to reach a global ranking of the data,
-            instead of using aggregations of generated local explanations.
+            This is only used if `global_method` is not "self-influence",
+            by default True. Original papers use the self-influence method to
+            reach a global ranking of the data, instead of using aggregations
+            of generated local explanations.
         dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default "train".
+            The dataset split, only used for HuggingFace datasets, by default
+            "train".
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None
         global_method : Union[str, type], optional
             Method to generate a global ranking from local explainer.
-            It can be a subclass of `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
+            It can be a subclass of
+            `quanda.explainers.aggregators.BaseAggregator` or "self-influence".
             Defaults to "self-influence".
         batch_size : int, optional
             Batch size that is used for training, by default 8.
         checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for downloaded benchmarks, by default None.
+            List of paths to the checkpoints. This parameter is only used for
+            downloaded benchmarks, by default None.
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Returns
         -------
         MislabelingDetection
             The benchmark instance.
+
         """
         if global_method != "self-influence":
-            assert (
-                eval_dataset is not None
-            ), "MislabelingDetection should have global_method='self-influence' or eval_dataset should be given."
+            assert eval_dataset is not None, (
+                "MislabelingDetection should have "
+                "global_method='self-influence' or eval_dataset should be "
+                "given."
+            )
 
         obj = cls()
         obj.model = model
+        obj.checkpoints = checkpoints
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
@@ -468,6 +553,7 @@ class MislabelingDetection(Benchmark):
         )
         obj._checkpoint_paths = checkpoint_paths
         obj._set_devices(model)
+        obj.checkpoints_load_func = checkpoints_load_func
 
         return obj
 
@@ -477,8 +563,7 @@ class MislabelingDetection(Benchmark):
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
     ):
-        """
-        Evaluate the given data attributor.
+        """Evaluate the given data attributor.
 
         Parameters
         ----------
@@ -493,13 +578,21 @@ class MislabelingDetection(Benchmark):
         -------
         dict
             Dictionary containing the evaluation results.
+
         """
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )
         self.model.eval()
 
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(
             model=self.model,
+            checkpoints=self.checkpoints,
             train_dataset=self.mislabeling_dataset,
+            checkpoints_load_func=self.checkpoints_load_func,
             **expl_kwargs,
         )
 
@@ -546,6 +639,8 @@ class MislabelingDetection(Benchmark):
         else:
             metric = MislabelingDetectionMetric.self_influence_based(
                 model=self.model,
+                checkpoints=self.checkpoints,
+                checkpoints_load_func=self.checkpoints_load_func,
                 train_dataset=self.mislabeling_dataset,
                 mislabeling_indices=self.mislabeling_indices,
                 explainer_cls=explainer_cls,

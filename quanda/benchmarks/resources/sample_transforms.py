@@ -1,8 +1,11 @@
+"""Torchvision transforms for benchmarks."""
+
 import torchvision.transforms as transforms  # type: ignore
 from PIL import Image
 
 
 def add_white_square_mnist(img):
+    """Add a white square to the center of the image."""
     square_size = (8, 8)
     white_square = Image.new("L", square_size, 255)
     img.paste(white_square, (15, 15))

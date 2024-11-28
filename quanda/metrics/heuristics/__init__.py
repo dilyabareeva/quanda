@@ -1,3 +1,5 @@
+"""Heuristic metrics."""
+
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,

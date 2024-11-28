@@ -1,4 +1,6 @@
-from typing import List, Optional, Union
+"""Shortcut Detection Metric."""
+
+from typing import List, Optional, Union, Callable, Any
 
 import torch
 from torcheval.metrics.functional import binary_auprc
@@ -8,16 +10,17 @@ from quanda.utils.common import ds_len
 
 
 class ShortcutDetectionMetric(Metric):
-    """
-    Metric for the shortcut detection evaluation task.
-    Attributions of a  model with a shortcut is checked against the ground truth of shortcut samples.
-    This strategy is inspired by Koh et al. (2017).
+    """Metric for the shortcut detection evaluation task.
+
+    Attributions of a  model with a shortcut is checked against the ground
+    truth of shortcut samples. This strategy is inspired by Koh et al. (2017).
 
     References
     ----------
-    1) Koh, Pang Wei, and Percy Liang. (2017). Understanding black-box predictions via influence functions.
-        International conference on machine learning. PMLR.
-    2) TODO: Add the reference of the paper that introduced the shortcut detection task.
+    1) Koh, Pang Wei, and Percy Liang. (2017). Understanding black-box
+    predictions via influence functions. International conference on machine
+    learning. PMLR.
+
     """
 
     def __init__(
@@ -26,36 +29,53 @@ class ShortcutDetectionMetric(Metric):
         train_dataset: torch.utils.data.Dataset,
         shortcut_indices: Union[List[int], torch.Tensor],
         shortcut_cls: int,
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
         filter_by_class: bool = False,
     ):
-        """
-        Initializer for the Shortcut Detection metric.
+        """Initialize the Shortcut Detection metric.
 
         Parameters
         ----------
         model : torch.nn.Module
-            Model associated with the attributions to be evaluated. The checkpoint of the model should be loaded.
+            Model associated with the attributions to be evaluated. The
+            checkpoint of the model should be loaded.
         train_dataset : torch.utils.data.Dataset
-            Training dataset used to train `model`. Each item of the dataset should be a tuple of the form
+            Training dataset used to train `model`. Each item of the dataset
+            should be a tuple of the form
             (input_tensor, label_tensor).
         shortcut_indices : Union[List[int], torch.Tensor]
             A list of ground truth shortcut indices of the `train_dataset`.
         shortcut_cls : int
             Class of the shortcut samples.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         filter_by_prediction : bool, optional
-            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the shortcut class
             is predicted, by default True.
         filter_by_class: bool, optional
-            Whether to filter the test samples to only calculate the metric on those samples, where the shortcut class
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the shortcut class
             is not assigned as the class, by default True.
 
         Raises
         ------
         AssertionError
             If the shortcut samples are not all from to the shortcut class.
+
         """
-        super().__init__(model=model, train_dataset=train_dataset)
+        super().__init__(
+            model=model,
+            checkpoints=checkpoints,
+            train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
+        )
+
         if isinstance(shortcut_indices, list):
             shortcut_indices = torch.tensor(shortcut_indices)
         self.auprc_scores: List[torch.Tensor] = []
@@ -90,17 +110,19 @@ class ShortcutDetectionMetric(Metric):
         test_tensor: Optional[torch.Tensor] = None,
         test_labels: Optional[torch.Tensor] = None,
     ):
-        """
-        Update the metric state with the provided explanations.
+        """Update the metric state with the provided explanations.
 
         Parameters
         ----------
         explanations : torch.Tensor
             Explanations to be evaluated.
         test_tensor : Union[List, torch.Tensor], optional
-            Test samples for which the explanations were computed. Not optional if `filter_by_prediction` is True.
+            Test samples for which the explanations were computed. Not optional
+            if `filter_by_prediction` is True.
         test_labels : torch.Tensor, optional
-            Labels of the test samples. Not optional if `filter_by_prediction` or `filter_by_class` is True.
+            Labels of the test samples. Not optional if `filter_by_prediction`
+            or `filter_by_class` is True.
+
         """
         explanations = explanations.to(self.device)
 
@@ -112,7 +134,8 @@ class ShortcutDetectionMetric(Metric):
             self.filter_by_prediction or self.filter_by_class
         ):
             raise ValueError(
-                "test_labels must be provided if filter_by_prediction or filter_by_class is True"
+                "test_labels must be provided if filter_by_prediction or "
+                "filter_by_class is True"
             )
 
         if test_tensor is not None:
@@ -138,42 +161,40 @@ class ShortcutDetectionMetric(Metric):
         )
 
     def compute(self, *args, **kwargs):
-        """
-        Aggregates current results and return a metric score.
+        """Aggregate current results and return a metric score.
 
         Returns
         -------
         Dict[str, float]
             Dictionary containing the metric score.
+
         """
         if len(self.auprc_scores) == 0:
             return {"score": 0.0}
         return {"score": torch.tensor(self.auprc_scores).mean().item()}
 
     def reset(self, *args, **kwargs):
-        """
-        Resets the metric state.
-        """
+        """Reset the metric state."""
         self.auprc_scores = []
 
-    def load_state_dict(self, state_dict: dict, *args, **kwargs):
-        """
-        Load previously computed state for the metric.
+    def load_state_dict(self, state_dict: dict):
+        """Load previously computed state for the metric.
 
         Parameters
         ----------
         state_dict : dict
             A state dictionary for the metric
+
         """
         self.auprc_scores = state_dict["auprc_scores"]
 
     def state_dict(self, *args, **kwargs):
-        """
-        Returns the metric state.
+        """Returnthe metric state.
 
-        Returns:
+        Returns
         -------
         dict
             The state dictionary of the global ranker.
+
         """
         return {"auprc_scores": self.auprc_scores}

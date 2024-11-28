@@ -12,13 +12,14 @@ from quanda.utils.functions import cosine_similarity
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, dataset, n_classes, n_groups, seed, test_labels, "
+    "test_id, init_method, model, checkpoint, dataset, n_classes, n_groups, seed, test_labels, "
     "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
             "mnist",
             "generate",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             10,
             2,
@@ -37,6 +38,7 @@ from quanda.utils.functions import cosine_similarity
             "mnist",
             "assemble",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             10,
             2,
@@ -57,6 +59,7 @@ def test_class_detection(
     test_id,
     init_method,
     model,
+    checkpoint,
     dataset,
     n_classes,
     n_groups,
@@ -71,11 +74,13 @@ def test_class_detection(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "generate":
         dst_eval = ClassDetection.generate(
             model=model,
+            checkpoints=checkpoint,
             train_dataset=dataset,
             eval_dataset=dataset,
             device="cpu",
@@ -83,7 +88,10 @@ def test_class_detection(
 
     elif init_method == "assemble":
         dst_eval = ClassDetection.assemble(
-            model=model, train_dataset=dataset, eval_dataset=dataset
+            model=model,
+            checkpoints=checkpoint,
+            train_dataset=dataset,
+            eval_dataset=dataset,
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
@@ -101,13 +109,14 @@ def test_class_detection(
 @pytest.mark.local
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, dataset, dataset_split, n_classes, n_groups, seed, test_labels, "
+    "test_id, init_method, model, checkpoint, dataset, dataset_split, n_classes, n_groups, seed, test_labels, "
     "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
             "mnist",
             "generate",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "imdb",
             "train[:1%]",
             10,
@@ -127,6 +136,7 @@ def test_class_detection(
             "mnist",
             "assemble",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "imdb",
             "train[:1%]",
             10,
@@ -148,6 +158,7 @@ def test_class_detection_hugging_face(
     test_id,
     init_method,
     model,
+    checkpoint,
     dataset,
     dataset_split,
     n_classes,
@@ -163,10 +174,12 @@ def test_class_detection_hugging_face(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
 
     if init_method == "generate":
         dst_eval = ClassDetection.generate(
             model=model,
+            checkpoints=checkpoint,
             train_dataset=dataset,
             eval_dataset=dataset,
             dataset_split=dataset_split,
@@ -176,6 +189,7 @@ def test_class_detection_hugging_face(
     elif init_method == "assemble":
         dst_eval = ClassDetection.assemble(
             model=model,
+            checkpoints=checkpoint,
             train_dataset=dataset,
             eval_dataset=dataset,
             dataset_split=dataset_split,

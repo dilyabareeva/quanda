@@ -10,13 +10,14 @@ from quanda.utils.functions import cosine_similarity
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, dataset, n_classes, n_groups, seed, test_labels, "
+    "test_id, init_method, model, checkpoint, dataset, n_classes, n_groups, seed, test_labels, "
     "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
             "mnist",
             "generate",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             10,
             2,
@@ -35,6 +36,7 @@ from quanda.utils.functions import cosine_similarity
             "mnist2",
             "assemble",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             10,
             2,
@@ -55,6 +57,7 @@ def test_model_randomization(
     test_id,
     init_method,
     model,
+    checkpoint,
     dataset,
     n_classes,
     n_groups,
@@ -69,11 +72,14 @@ def test_model_randomization(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "generate":
         dst_eval = ModelRandomization.generate(
             model=model,
+            cache_dir=str(tmp_path),
+            checkpoints=checkpoint,
             train_dataset=dataset,
             eval_dataset=dataset,
             device="cpu",
@@ -82,6 +88,8 @@ def test_model_randomization(
     elif init_method == "assemble":
         dst_eval = ModelRandomization.assemble(
             model=model,
+            cache_dir=str(tmp_path),
+            checkpoints=checkpoint,
             train_dataset=dataset,
             eval_dataset=dataset,
         )
@@ -112,7 +120,7 @@ def test_model_randomization(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            0.4520220458507538,
+            0.509926438331604,
         ),
     ],
 )

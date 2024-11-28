@@ -27,11 +27,12 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset,  explanations, test_tensor, batch_size, method_kwargs",
+    "test_id, model, checkpoint,dataset,  explanations, test_tensor, batch_size, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_1",
@@ -41,6 +42,7 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_1",
@@ -50,6 +52,7 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_explanations_dot_similarity_1",
             "load_mnist_test_samples_1",
@@ -61,6 +64,7 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
 def test_captum_similarity_explain(
     test_id,
     model,
+    checkpoint,
     dataset,
     explanations,
     test_tensor,
@@ -70,12 +74,14 @@ def test_captum_similarity_explain(
     tmp_path,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     explanations_exp = request.getfixturevalue(explanations)
 
     explainer = CaptumSimilarity(
         model=model,
+        checkpoints=checkpoint,
         model_id="test_id",
         cache_dir=str(tmp_path),
         train_dataset=dataset,
@@ -92,11 +98,12 @@ def test_captum_similarity_explain(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset,  explanations, method_kwargs",
+    "test_id, model, checkpoint,dataset,  explanations, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             {"layers": "relu_4", "similarity_metric": cosine_similarity},
@@ -104,13 +111,22 @@ def test_captum_similarity_explain(
     ],
 )
 def test_captum_similarity_self_influence(
-    test_id, model, dataset, explanations, method_kwargs, request, tmp_path
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    explanations,
+    method_kwargs,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
 
     explainer = CaptumSimilarity(
         model=model,
+        checkpoints=checkpoint,
         model_id="test_id",
         cache_dir=str(tmp_path),
         train_dataset=dataset,
@@ -126,11 +142,12 @@ def test_captum_similarity_self_influence(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, method_kwargs, explanations",
+    "test_id, model, checkpoint,dataset, test_tensor, method_kwargs, explanations",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             {"layers": "relu_4", "similarity_metric": cosine_similarity},
@@ -141,6 +158,7 @@ def test_captum_similarity_self_influence(
 def test_captum_similarity_explain_functional(
     test_id,
     model,
+    checkpoint,
     dataset,
     test_tensor,
     method_kwargs,
@@ -149,11 +167,13 @@ def test_captum_similarity_explain_functional(
     tmp_path,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     explanations_exp = request.getfixturevalue(explanations)
     explanations = captum_similarity_explain(
         model=model,
+        checkpoints=checkpoint,
         model_id="test_id",
         cache_dir=str(tmp_path),
         test_tensor=test_tensor,
@@ -168,11 +188,12 @@ def test_captum_similarity_explain_functional(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -181,6 +202,7 @@ def test_captum_similarity_explain_functional(
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -197,9 +219,17 @@ def test_captum_similarity_explain_functional(
     ],
 )
 def test_captum_arnoldi(
-    test_id, model, dataset, test_tensor, test_labels, method_kwargs, request
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_tensor,
+    test_labels,
+    method_kwargs,
+    request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
@@ -207,8 +237,9 @@ def test_captum_arnoldi(
     explainer = CaptumArnoldi(
         model=model,
         train_dataset=dataset,
-        checkpoint="tests/assets/mnist",
+        checkpoints=checkpoint,
         device="cpu",
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
     )
@@ -217,7 +248,7 @@ def test_captum_arnoldi(
     explainer_captum = ArnoldiInfluenceFunction(
         model=model,
         train_dataset=dataset,
-        checkpoint="tests/assets/mnist",
+        checkpoint=checkpoint,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
@@ -232,11 +263,12 @@ def test_captum_arnoldi(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -253,6 +285,7 @@ def test_captum_arnoldi(
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -272,6 +305,7 @@ def test_captum_arnoldi(
 def test_captum_arnoldi_explain_functional(
     test_id,
     model,
+    checkpoint,
     dataset,
     test_tensor,
     test_labels,
@@ -280,6 +314,7 @@ def test_captum_arnoldi_explain_functional(
     tmp_path,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     test_tensor = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
@@ -288,7 +323,7 @@ def test_captum_arnoldi_explain_functional(
     explainer_captum = ArnoldiInfluenceFunction(
         model=model,
         train_dataset=dataset,
-        checkpoint="tests/assets/mnist",
+        checkpoint=checkpoint,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         test_loss_fn=torch.nn.NLLLoss(reduction="none"),
@@ -301,11 +336,11 @@ def test_captum_arnoldi_explain_functional(
 
     explanations = captum_arnoldi_explain(
         model=model,
+        checkpoints=checkpoint,
         test_tensor=test_tensor,
         train_dataset=dataset,
         explanation_targets=test_labels,
         device="cpu",
-        checkpoint="tests/assets/mnist",
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         test_loss_fn=torch.nn.NLLLoss(reduction="none"),
         hessian_dataset=hessian_dataset,
@@ -318,11 +353,12 @@ def test_captum_arnoldi_explain_functional(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, method_kwargs",
+    "test_id, model, checkpoint,dataset, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             {
                 "batch_size": 1,
@@ -338,15 +374,16 @@ def test_captum_arnoldi_explain_functional(
     ],
 )
 def test_captum_arnoldi_self_influence(
-    test_id, model, dataset, method_kwargs, request
+    test_id, model, checkpoint, dataset, method_kwargs, request
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
 
     explainer_captum = ArnoldiInfluenceFunction(
         model=model,
         train_dataset=dataset,
-        checkpoint="tests/assets/mnist",
+        checkpoint=checkpoint,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
@@ -357,7 +394,8 @@ def test_captum_arnoldi_self_influence(
         model=model,
         train_dataset=dataset,
         device="cpu",
-        checkpoint="tests/assets/mnist",
+        checkpoints=checkpoint,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
     )
@@ -376,7 +414,7 @@ def test_captum_arnoldi_self_influence(
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            "get_mnist_checkpoints",
+            "load_mnist_checkpoints",
             {
                 "batch_size": 1,
                 "sample_wise_grads_per_batch": False,
@@ -435,7 +473,7 @@ def test_captum_tracincp(
             "mnist",
             "load_mnist_model",
             "load_mnist_dataset",
-            "get_mnist_checkpoints",
+            "load_mnist_checkpoints",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
             {
@@ -481,7 +519,6 @@ def test_captum_tracincp_explain_functional(
         checkpoints=checkpoints,
         test_tensor=test_tensor,
         explanation_targets=test_labels,
-        checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         **method_kwargs,
     )
@@ -492,13 +529,14 @@ def test_captum_tracincp_explain_functional(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, checkpoints, method_kwargs",
+    "test_id, model, checkpoint,dataset, checkpoints, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
-            "get_mnist_checkpoints",
+            "load_mnist_checkpoints",
             {
                 "batch_size": 1,
                 "sample_wise_grads_per_batch": False,
@@ -509,9 +547,10 @@ def test_captum_tracincp_explain_functional(
     ],
 )
 def test_captum_tracincp_self_influence(
-    test_id, model, dataset, checkpoints, method_kwargs, request
+    test_id, model, checkpoint, dataset, checkpoints, method_kwargs, request
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     checkpoints = request.getfixturevalue(checkpoints)
 
@@ -541,15 +580,16 @@ def test_captum_tracincp_self_influence(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, checkpoints, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_tensor, test_labels, checkpoints, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            "get_mnist_checkpoints",
+            "load_mnist_checkpoints",
             {
                 "batch_size": 1,
                 "loss_fn": torch.nn.CrossEntropyLoss(reduction="sum"),
@@ -560,6 +600,7 @@ def test_captum_tracincp_self_influence(
 def test_captum_tracincp_fast(
     test_id,
     model,
+    checkpoint,
     dataset,
     test_tensor,
     test_labels,
@@ -611,7 +652,7 @@ def test_captum_tracincp_fast(
             "mnist",
             "load_mnist_model",
             "load_mnist_dataset",
-            "get_mnist_checkpoints",
+            "load_mnist_checkpoints",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
             {
@@ -703,7 +744,7 @@ def test_captum_tracincp_fast_explain_functional(
             "mnist",
             "load_mnist_model",
             "load_mnist_dataset",
-            "get_mnist_checkpoints",
+            "load_mnist_checkpoints",
             {
                 "batch_size": 1,
                 "loss_fn": torch.nn.CrossEntropyLoss(reduction="sum"),
@@ -733,9 +774,9 @@ def test_captum_tracincp_fast_self_influence(
 
     explanations = captum_tracincp_fast_self_influence(
         model=model,
+        checkpoints=checkpoints,
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
-        checkpoints=checkpoints,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
         outer_loop_by_checkpoints=True,
@@ -748,15 +789,16 @@ def test_captum_tracincp_fast_self_influence(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, checkpoints, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_tensor, test_labels, checkpoints, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            "get_mnist_checkpoints",
+            "load_mnist_checkpoints",
             {
                 "batch_size": 1,
                 "loss_fn": torch.nn.CrossEntropyLoss(reduction="sum"),
@@ -769,6 +811,7 @@ def test_captum_tracincp_fast_self_influence(
 def test_captum_tracincp_fast_rand_proj(
     test_id,
     model,
+    checkpoint,
     dataset,
     test_tensor,
     test_labels,
@@ -814,13 +857,14 @@ def test_captum_tracincp_fast_rand_proj(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, checkpoints, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, checkpoints, test_tensor, test_labels, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
-            "get_mnist_checkpoints",
+            "load_mnist_checkpoints",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
             {
@@ -836,6 +880,7 @@ def test_captum_tracincp_fast_rand_proj(
 def test_captum_tracincp_fast_rand_proj_explain_functional(
     test_id,
     model,
+    checkpoint,
     dataset,
     checkpoints,
     test_tensor,
@@ -908,13 +953,14 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, checkpoints, method_kwargs",
+    "test_id, model, checkpoint,dataset, checkpoints, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
-            "get_mnist_checkpoints",
+            "load_mnist_checkpoints",
             {
                 "batch_size": 1,
                 "loss_fn": torch.nn.CrossEntropyLoss(reduction="sum"),
@@ -923,7 +969,14 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
     ],
 )
 def test_captum_tracincp_fast_rand_proj_self_influence(
-    test_id, model, dataset, checkpoints, method_kwargs, request, tmp_path
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    checkpoints,
+    method_kwargs,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)

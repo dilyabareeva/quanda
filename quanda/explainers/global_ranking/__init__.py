@@ -1,3 +1,5 @@
+"""Global ranking for attributions."""
+
 from quanda.explainers.global_ranking.aggregators import (
     AbsSumAggregator,
     BaseAggregator,

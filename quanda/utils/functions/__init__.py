@@ -1,3 +1,5 @@
+"""Util funcitons."""
+
 from quanda.utils.functions.correlations import (
     CorrelationFnLiterals,
     correlation_functions,

@@ -1,8 +1,19 @@
+"""Wrapper for the TRAK explainer as given by the official TRAK library."""
+
 import logging
 import warnings
 from importlib.util import find_spec
-from typing import Any, Iterable, List, Literal, Optional, Sized, Union
-
+from typing import (
+    Any,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Sized,
+    Union,
+    Callable,
+)
+import lightning as L
 import torch
 from trak import TRAKer
 from trak.modelout_functions import AbstractModelOutput
@@ -30,28 +41,31 @@ projector_cls = {
 
 
 class TRAK(Explainer):
-    """
-    Interface for the TRAK [1] explainer as given by the official TRAK library [2].
+    """Interface for the TRAK explainer as given by the official TRAK library.
 
     Notes
     -----
-    We refer the user to the official TRAK library [2] for more information on the details of parameters explainer.
+    We refer the user to the official TRAK library [2] for more information on
+    the details of parameters explainer.
 
     References
     ----------
     (1) Sung Min Park, Kristian Georgiev, Andrew Ilyas, Guillaume Leclerc,
-        and Aleksander Mądry. (2023). "TRAK: attributing model behavior at scale".
-        In Proceedings of the 40th International Conference on Machine Learning" (ICML'23), Vol. 202.
-        JMLR.org, Article 1128, (27074–27113).
+        and Aleksander Mądry. (2023). "TRAK: attributing model behavior at
+        scale". In Proceedings of the 40th International Conference on Machine
+        Learning" (ICML'23), Vol. 202. JMLR.org, Article 1128, (27074–27113).
 
     (2) https://github.com/MadryLab/trak/
+
     """
 
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
         task: Union[AbstractModelOutput, str] = "image_classification",
         projector: TRAKProjectorLiteral = "basic",
@@ -63,8 +77,7 @@ class TRAK(Explainer):
         load_from_disk: bool = True,
         lambda_reg: float = 0.0,
     ):
-        """
-        Initializes the TRAK explainer.
+        """Initialize the TRAK explainer.
 
         Parameters
         ----------
@@ -74,6 +87,11 @@ class TRAK(Explainer):
             The training dataset used to train the model.
         model_id : str
             The model identifier.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         cache_dir : str
             The directory to save the TRAK cache.
         task : Union[AbstractModelOutput, str], optional
@@ -89,18 +107,22 @@ class TRAK(Explainer):
         batch_size : int, optional
             The batch size, by default 32.
         params_ldr : Optional[Iterable], optional
-            Generator of model parameters, by default None, which uses all parameters.
+            Generator of model parameters, by default None, which uses all
+            parameters.
         load_from_disk : bool, optional
             Whether to load metadata from cache_dir, defaults to True.
         lambda_reg : int, optional
-            Optional regularization term to add to the diagonals of X^TX to make it invertible.
-        """
+            Optional regularization term to add to the diagonals of X^TX to
+            make it invertible.
 
+        """
         logging.info("Initializing TRAK explainer...")
 
         super(TRAK, self).__init__(
             model=model,
+            checkpoints=checkpoints,
             train_dataset=train_dataset,
+            checkpoints_load_func=checkpoints_load_func,
         )
         self.model_id = model_id
         self.cache_dir = cache_dir
@@ -124,7 +146,8 @@ class TRAK(Explainer):
                 projector = "cuda"
             else:
                 warnings.warn(
-                    "Could not find cuda installation of TRAK. Defaulting to BasicProjector."
+                    "Could not find cuda installation of TRAK. Defaulting to "
+                    "BasicProjector."
                 )
                 projector = "basic"
 
@@ -168,7 +191,6 @@ class TRAK(Explainer):
             )
         self.traker.finalize_features()
 
-        # finalize_features frees memory so projector.proj_matrix needs to be reconstructed
         if projector == "basic":
             self.traker.projector = projector_cls[projector](
                 **projector_kwargs
@@ -176,14 +198,17 @@ class TRAK(Explainer):
 
     @property
     def dataset_length(self) -> int:
-        """
-        By default, the length of the dataset is calculated by checking if the dataset is an instance of Sized.
-        If not, a DataLoader is created to calculate the length.
+        """Return dataset length for a torch dataset.
+
+        By default, the length of the dataset is calculated by checking if the
+        dataset is an instance of Sized. If not, a DataLoader is created to
+        calculate the length.
 
         Returns
         -------
         int
             The length of the training dataset.
+
         """
         if isinstance(self.dataset, Sized):
             return len(self.dataset)
@@ -195,8 +220,7 @@ class TRAK(Explainer):
         test_tensor: torch.Tensor,
         targets: Union[List[int], torch.Tensor],
     ):
-        """
-        Generates explanations for the given test inputs.
+        """Generate explanations for the given test inputs.
 
         Parameters
         ----------
@@ -209,6 +233,7 @@ class TRAK(Explainer):
         -------
         torch.Tensor
             The explanations generated by the explainer.
+
         """
         test_tensor = test_tensor.to(self.device)
         targets = process_targets(targets, self.device)
@@ -241,11 +266,12 @@ def trak_explain(
     test_tensor: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     explanation_targets: Union[List[int], torch.Tensor],
+    checkpoints: Optional[Union[str, List[str]]] = None,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     cache_dir: str = "./cache",
     **kwargs: Any,
 ) -> torch.Tensor:
-    """
-    Functional interface for the `TRAK` explainer.
+    """Functional interface for the `TRAK` explainer.
 
     Parameters
     ----------
@@ -259,22 +285,32 @@ def trak_explain(
         The training dataset used to train the model.
     explanation_targets : Union[List[int], torch.Tensor]
         The target model outputs to explain.
+    checkpoints : Optional[Union[str, List[str]]], optional
+        Path to the model checkpoint file(s), defaults to None.
+    checkpoints_load_func : Optional[Callable[..., Any]], optional
+        Function to load the model from the checkpoint file, takes
+        (model, checkpoint path) as two arguments, by default None.
     cache_dir : Optional[str], optional
         The directory to use for caching, by default None.
+    kwargs : Any
+        Additional keyword arguments for the explainer.
 
     Returns
     -------
     torch.Tensor
         The attributions for the test inputs.
+
     """
     return explain_fn_from_explainer(
         explainer_cls=TRAK,
         model=model,
+        checkpoints=checkpoints,
         model_id=model_id,
         cache_dir=cache_dir,
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
+        checkpoints_load_func=checkpoints_load_func,
         **kwargs,
     )
 
@@ -283,12 +319,13 @@ def trak_self_influence(
     model: torch.nn.Module,
     model_id: str,
     train_dataset: torch.utils.data.Dataset,
+    checkpoints: Optional[Union[str, List[str]]] = None,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     cache_dir: str = "./cache",
     batch_size: int = 32,
     **kwargs: Any,
 ) -> torch.Tensor:
-    """
-    Functional interface for the `TRAK` self-influence explainer.
+    """Functional interface for the `TRAK` self-influence explainer.
 
     Parameters
     ----------
@@ -298,22 +335,32 @@ def trak_self_influence(
         Identifier for the model.
     train_dataset : torch.utils.data.Dataset
         The training dataset used to train the model.
+    checkpoints : Optional[Union[str, List[str]]], optional
+        Path to the model checkpoint file(s), defaults to None.
+    checkpoints_load_func : Optional[Callable[..., Any]], optional
+        Function to load the model from the checkpoint file, takes
+        (model, checkpoint path) as two arguments, by default None.
     cache_dir : Optional[str]
         The directory to use for caching.
     batch_size : int, optional
         The batch size, by default 32.
+    kwargs : Any
+        Additional keyword arguments for the explainer.
 
     Returns
     -------
     torch.Tensor
         The self-influence scores.
+
     """
     return self_influence_fn_from_explainer(
         explainer_cls=TRAK,
         model=model,
+        checkpoints=checkpoints,
         model_id=model_id,
         cache_dir=cache_dir,
         train_dataset=train_dataset,
+        checkpoints_load_func=checkpoints_load_func,
         batch_size=batch_size,
         **kwargs,
     )

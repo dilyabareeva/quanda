@@ -1,3 +1,5 @@
+"""Base PyTorch Lightning module for training models."""
+
 from typing import Callable, Optional
 
 import lightning as L
@@ -19,8 +21,7 @@ class BasicLightningModule(L.LightningModule):
         *args,
         **kwargs,
     ):
-        """
-        Constructor for the BasicLightningModule class.
+        """Construct the BasicLightningModule class.
 
         Parameters
         ----------
@@ -38,6 +39,11 @@ class BasicLightningModule(L.LightningModule):
             Keyword arguments for the optimizer, defaults to None.
         scheduler_kwargs : Optional[dict], optional
             Keyword arguments for the scheduler, defaults to None.
+        args: Any
+            Any additional arguments to pass to the superclass.
+        kwargs: Any
+            Any additional keyword arguments to pass to the superclass.
+
         """
         # TODO: include lr scheduler and grad clipping
         super().__init__()
@@ -54,23 +60,23 @@ class BasicLightningModule(L.LightningModule):
         )
 
     def forward(self, inputs):
-        """
-        Wrapper for the forward pass of the model.
+        """Forward pass of the model.
 
         Parameters
         ----------
         inputs : torch.Tensor
+            Input to the model.
 
         Returns
         -------
         torch.Tensor
             Output of the model.
+
         """
         return self.model(inputs)
 
     def training_step(self, batch, batch_idx):
-        """
-        One training step.
+        """One training step.
 
         Parameters
         ----------
@@ -83,6 +89,7 @@ class BasicLightningModule(L.LightningModule):
         -------
         torch.Tensor
             Loss for the batch.
+
         """
         inputs, target = batch
         inputs, target = inputs.to(self.device), target.to(self.device)
@@ -91,8 +98,7 @@ class BasicLightningModule(L.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        """
-        One validation step.
+        """One validation step.
 
         Parameters
         ----------
@@ -105,6 +111,7 @@ class BasicLightningModule(L.LightningModule):
         -------
         torch.Tensor
             Loss for the batch.
+
         """
         inputs, target = batch
         inputs, target = inputs.to(self.device), target.to(self.device)
@@ -113,15 +120,16 @@ class BasicLightningModule(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
-        """
-        Creates the optimizer and scheduler for training.
+        """Create the optimizer and scheduler for training.
 
         Raises
         ------
         ValueError
-            If the optimizer or scheduler is not an instance of the expected class.
+            If the optimizer or scheduler is not an instance of the expected
+            class.
         ValueError
             If the scheduler is not an instance of the expected class.
+
         """
         optimizer = self.optimizer(
             self.model.parameters(), lr=self.lr, **self.optimizer_kwargs
@@ -134,15 +142,18 @@ class BasicLightningModule(L.LightningModule):
             scheduler = self.scheduler(optimizer, **self.scheduler_kwargs)
             if not isinstance(scheduler, torch.optim.lr_scheduler.LRScheduler):
                 raise ValueError(
-                    "scheduler must be an instance of torch.optim.lr_scheduler.LRScheduler"
+                    "scheduler must be an instance of "
+                    "torch.optim.lr_scheduler.LRScheduler"
                 )
             return {"optimizer": optimizer, "lr_scheduler": scheduler}
         return optimizer
 
     def on_save_checkpoint(self, checkpoint):
+        """Save the model state to a checkpoint."""
         # Save the state of the model attribute manually
         checkpoint["model_state_dict"] = self.model.state_dict()
 
     def on_load_checkpoint(self, checkpoint):
+        """Load the model state from a checkpoint."""
         # Load the state of the model attribute manually
         self.model.load_state_dict(checkpoint["model_state_dict"])

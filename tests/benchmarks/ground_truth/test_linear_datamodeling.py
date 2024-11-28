@@ -14,13 +14,14 @@ from quanda.utils.training.trainer import Trainer
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, optimizer, lr, criterion, dataset, n_classes, seed, "
+    "test_id, init_method, model, checkpoint, optimizer, lr, criterion, dataset, n_classes, seed, "
     "batch_size, explainer_cls, expl_kwargs, use_pred",
     [
         (
             "mnist0",
             "generate",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -36,6 +37,7 @@ from quanda.utils.training.trainer import Trainer
             "mnist1",
             "assemble",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -51,6 +53,7 @@ from quanda.utils.training.trainer import Trainer
             "mnist2",
             "assemble",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "torch_sgd_optimizer",
             0.01,
             "torch_cross_entropy_loss_object",
@@ -68,6 +71,7 @@ def test_linear_datamodeling(
     test_id,
     init_method,
     model,
+    checkpoint,
     optimizer,
     lr,
     criterion,
@@ -82,6 +86,7 @@ def test_linear_datamodeling(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     optimizer = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
     dataset = request.getfixturevalue(dataset)
@@ -100,6 +105,7 @@ def test_linear_datamodeling(
     if init_method == "generate":
         benchmark = LinearDatamodeling.generate(
             model=model,
+            checkpoints=checkpoint,
             trainer=trainer,
             train_dataset=dataset,
             eval_dataset=dataset,
@@ -118,6 +124,7 @@ def test_linear_datamodeling(
     elif init_method == "assemble":
         benchmark = LinearDatamodeling.assemble(
             model=model,
+            checkpoints=checkpoint,
             trainer=trainer,
             train_dataset=dataset,
             eval_dataset=dataset,
@@ -151,7 +158,12 @@ def test_linear_datamodeling(
         ]
         subsets.append(subset)
 
-    expl = explainer_cls(model=model, train_dataset=dataset, **expl_kwargs)
+    expl = explainer_cls(
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        **expl_kwargs,
+    )
     ldr = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
     explanations = torch.empty((0, len(dataset)))
     outputs = torch.empty((0, len(subsets)))

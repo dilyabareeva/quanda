@@ -1,3 +1,5 @@
+"""Wrapping explainers."""
+
 from quanda.explainers.wrappers.captum_influence import (
     CaptumArnoldi,
     CaptumInfluence,

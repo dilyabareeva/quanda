@@ -1,3 +1,5 @@
+"""Benchmark resources for Quanda."""
+
 from quanda.benchmarks.resources.benchmark_urls import benchmark_urls
 from quanda.benchmarks.resources.modules import (
     load_module_from_bench_state,

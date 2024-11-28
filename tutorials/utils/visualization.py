@@ -1,5 +1,4 @@
-"""
-The `visualization.py` file contains utility functions used in the tutorials to visualize the results
+"""The `visualization.py` file contains utility functions used in the tutorials to visualize the results
 and is not part of the quanda library release. The code is not well-tested, well-documented and is provided
 as a reference only.
 """
