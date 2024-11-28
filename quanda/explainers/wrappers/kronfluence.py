@@ -1,6 +1,6 @@
 """Kronfluence data attribution wrapper."""
 
-from typing import Any, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 from datasets import DatasetDict  # type: ignore
@@ -52,6 +52,8 @@ class Kronfluence(Explainer):
         model: nn.Module,
         task: Task,
         train_dataset: Dataset,
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         batch_size: int = 1,
         device: Union[str, torch.device] = "cpu",
         analysis_name: str = "kronfluence_analysis",
@@ -71,6 +73,11 @@ class Kronfluence(Explainer):
             The task associated with the model.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
         batch_size : int, optional
             Batch size used for iterating over the dataset. Defaults to 1.
         device : Union[str, torch.device], optional
@@ -90,7 +97,12 @@ class Kronfluence(Explainer):
             DataLoader arguments. Defaults to None.
 
         """
-        super().__init__(model=model, train_dataset=train_dataset)
+        super().__init__(
+            model=model,
+            train_dataset=train_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+        )
         self.batch_size = batch_size
         self.device = device
 
@@ -232,6 +244,8 @@ def kronfluence_explain(
     test_tensor: Union[torch.Tensor, DatasetDict],
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: Dataset,
+    checkpoints: Optional[Union[str, List[str]]] = None,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """Functional interface for the `Kronfluence` explainer.
@@ -248,6 +262,11 @@ def kronfluence_explain(
         Labels for the test samples.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
+    checkpoints : Optional[Union[str, List[str]]], optional
+        Path to the model checkpoint file(s), defaults to None.
+    checkpoints_load_func : Optional[Callable[..., Any]], optional
+        Function to load the model from the checkpoint file, takes
+        (model, checkpoint path) as two arguments, by default None.
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
 
@@ -265,6 +284,8 @@ def kronfluence_explain(
         test_tensor=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=checkpoints_load_func,
         **kwargs,
     )
 
@@ -273,6 +294,8 @@ def kronfluence_self_influence(
     model: nn.Module,
     task: Task,
     train_dataset: Dataset,
+    checkpoints: Optional[Union[str, List[str]]] = None,
+    checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """Functional interface for `Kronfluence` explainer.
@@ -285,6 +308,11 @@ def kronfluence_self_influence(
         The task associated with the model.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
+    checkpoints : Optional[Union[str, List[str]]], optional
+        Path to the model checkpoint file(s), defaults to None.
+    checkpoints_load_func : Optional[Callable[..., Any]], optional
+        Function to load the model from the checkpoint file, takes
+        (model, checkpoint path) as two arguments, by default None.
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
 
@@ -299,5 +327,7 @@ def kronfluence_self_influence(
         model=model,
         task=task,
         train_dataset=train_dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=checkpoints_load_func,
         **kwargs,
     )
