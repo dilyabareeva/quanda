@@ -228,12 +228,14 @@ def test_kronfluence_explain_with_optional_args(
         device="cpu",
         factor_args=factor_args,
         dataloader_kwargs=dataloader_kwargs,
+        overwrite_output_dir=True,
     )
 
     explanations = explainer.explain(
         test_tensor=test_tensor,
         targets=test_labels,
         score_args=score_args,
+        overwrite_output_dir=True,
     )
 
     assert explanations.shape == (
@@ -279,9 +281,12 @@ def test_kronfluence_self_influence_with_optional_args(
         device="cpu",
         factor_args=factor_args,
         dataloader_kwargs=dataloader_kwargs,
+        overwrite_output_dir=True,
     )
 
-    self_influence_scores = explainer.self_influence(score_args=score_args)
+    self_influence_scores = explainer.self_influence(
+        score_args=score_args, overwrite_output_dir=True
+    )
 
     assert self_influence_scores.shape == (
         len(train_dataset),
