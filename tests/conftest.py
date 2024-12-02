@@ -17,7 +17,6 @@ from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
 )
-
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
     MislabelingDetection,
@@ -51,7 +50,8 @@ GLUE_TASK_TO_KEYS = {
     "wnli": ("sentence1", "sentence2"),
 }
 
-
+QNLI_TRAIN_SET_SIZE = 4
+QNLI_VAL_SET_SIZE = 4
 MNIST_IMAGE_SIZE = 28
 BATCH_SIZE = 124
 MINI_BATCH_SIZE = 8
@@ -507,6 +507,7 @@ def classification_task():
     return ClassificationTask()
 
 
+# Partially copied from https://github.com/pomonam/kronfluence/tree/main/examples/glue.
 class TextClassificationTask(Task):
     def compute_train_loss(
         self,
@@ -567,37 +568,6 @@ def text_classification_task():
     return TextClassificationTask()
 
 
-# Partially copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
-GLUE_TASK_TO_KEYS = {
-    "cola": ("sentence", None),
-    "mnli": ("premise", "hypothesis"),
-    "mrpc": ("sentence1", "sentence2"),
-    "qnli": ("question", "sentence"),
-    "qqp": ("question1", "question2"),
-    "rte": ("sentence1", "sentence2"),
-    "sst2": ("sentence", None),
-    "stsb": ("sentence1", "sentence2"),
-    "wnli": ("sentence1", "sentence2"),
-}
-
-
-@pytest.fixture
-def load_qnli_model(data_name: str = "sst2") -> nn.Module:
-    config = AutoConfig.from_pretrained(
-        "gchhablani/bert-base-cased-finetuned-sst2",
-        num_labels=2,
-        finetuning_task=data_name,
-        trust_remote_code=True,
-    )
-    return AutoModelForSequenceClassification.from_pretrained(
-        "gchhablani/bert-base-cased-finetuned-sst2",
-        from_tf=False,
-        config=config,
-        ignore_mismatched_sizes=False,
-        trust_remote_code=True,
-    )
-
-
 def get_glue_dataset(
     data_name: str,
     split: str,
@@ -655,11 +625,101 @@ def get_glue_dataset(
     return ds
 
 
-@pytest.fixture
-def load_qnli_train_dataset():
-    return get_glue_dataset(data_name="sst2", split="train", max_samples=4)
+class SequenceClassificationModel(nn.Module):
+    """
+    Wrapper for HuggingFace sequence classification models.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.config = AutoConfig.from_pretrained(
+            "gchhablani/bert-base-cased-finetuned-qnli",
+            num_labels=2,
+            finetuning_task="qnli",
+            cache_dir=None,
+            revision="main",
+            token=None,
+        )
+
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            "gchhablani/bert-base-cased-finetuned-qnli",
+            config=self.config,
+            cache_dir=None,
+            revision="main",
+            token=None,
+            ignore_mismatched_sizes=False,
+        )
+
+        self.model.eval()
+
+    def forward(self, input_ids, token_type_ids, attention_mask):
+        return self.model(
+            input_ids=input_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+        )
+
+
+def get_dataset(split, inds=None):
+    raw_datasets = datasets.load_dataset(
+        "glue",
+        "qnli",
+        cache_dir=None,
+        use_auth_token=None,
+    )
+    sentence1_key, sentence2_key = GLUE_TASK_TO_KEYS["qnli"]
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "gchhablani/bert-base-cased-finetuned-qnli",
+        cache_dir=None,
+        use_fast=True,
+        revision="main",
+        token=None,
+    )
+
+    padding = "max_length"
+    max_seq_length = 128
+
+    def preprocess_function(examples):
+        args = (
+            (examples[sentence1_key],)
+            if sentence2_key is None
+            else (examples[sentence1_key], examples[sentence2_key])
+        )
+        result = tokenizer(
+            *args, padding=padding, max_length=max_seq_length, truncation=True
+        )
+
+        result["labels"] = examples["label"]
+
+        return result
+
+    raw_datasets = raw_datasets.map(
+        preprocess_function,
+        batched=True,
+        load_from_cache_file=(not False),
+        desc="Running tokenizer on dataset",
+    )
+
+    if split == "train":
+        train_dataset = raw_datasets["train"]
+        ds = train_dataset
+    else:
+        eval_dataset = raw_datasets["validation"]
+        ds = eval_dataset
+    return ds
 
 
 @pytest.fixture
-def load_qnli_test_dataset():
-    return get_glue_dataset(data_name="sst2", split="valid", max_samples=2)
+def qnli_model():
+    model = SequenceClassificationModel()
+    return model
+
+
+@pytest.fixture
+def qnli_dataset():
+    ds_train = get_dataset("train")
+    ds_train = ds_train.select(range(QNLI_TRAIN_SET_SIZE))
+    ds_val = get_dataset("validation")
+    ds_val = ds_val.select(range(QNLI_VAL_SET_SIZE))
+    return ds_train, ds_val
