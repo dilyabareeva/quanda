@@ -5,6 +5,7 @@ from typing import List, Union, Optional, Callable, Any
 
 import lightning as L
 import torch
+from datasets import Dataset, DatasetDict  # type: ignore
 
 from quanda.utils.common import (
     cache_result,
@@ -69,7 +70,10 @@ class Explainer(ABC):
             )
 
         # if dataset return samples not on device, move them to device
-        if train_dataset[0][0].device != self.device:
+        # TODO: fix this
+        if isinstance(train_dataset, (Dataset, DatasetDict)):
+            pass
+        elif train_dataset[0][0].device != self.device:
             train_dataset = OnDeviceDataset(train_dataset, self.device)
 
         self.train_dataset = train_dataset
@@ -77,7 +81,7 @@ class Explainer(ABC):
     @abstractmethod
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_tensor: Union[torch.Tensor, DatasetDict],
         targets: Union[List[int], torch.Tensor],
     ) -> torch.Tensor:
         """Abstract method for computing influence scores for the test samples.
