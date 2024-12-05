@@ -10,13 +10,14 @@ from quanda.utils.functions import cosine_similarity
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, dataset, n_classes, n_groups, seed, test_labels, "
+    "test_id, init_method, model, checkpoint, dataset, n_classes, n_groups, seed, test_labels, "
     "batch_size, use_predictions, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
             "mnist1",
             "generate",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             10,
             2,
@@ -36,6 +37,7 @@ from quanda.utils.functions import cosine_similarity
             "mnist2",
             "assemble",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             10,
             2,
@@ -57,6 +59,7 @@ def test_topk_cardinality(
     test_id,
     init_method,
     model,
+    checkpoint,
     dataset,
     n_classes,
     n_groups,
@@ -72,11 +75,13 @@ def test_topk_cardinality(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
 
     if init_method == "generate":
         dst_eval = TopKCardinality.generate(
             model=model,
+            checkpoints=checkpoint,
             train_dataset=dataset,
             eval_dataset=dataset,
             device="cpu",
@@ -85,6 +90,7 @@ def test_topk_cardinality(
     elif init_method == "assemble":
         dst_eval = TopKCardinality.assemble(
             model=model,
+            checkpoints=checkpoint,
             train_dataset=dataset,
             eval_dataset=dataset,
         )
@@ -120,13 +126,24 @@ def test_topk_cardinality(
     ],
 )
 def test_top_k_cardinality_download(
-    test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score, tmp_path, request
+    test_id,
+    benchmark_name,
+    batch_size,
+    explainer_cls,
+    expl_kwargs,
+    expected_score,
+    tmp_path,
+    request,
 ):
     dst_eval = request.getfixturevalue(benchmark_name)
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.train_dataset = torch.utils.data.Subset(dst_eval.train_dataset, list(range(16)))
-    dst_eval.eval_dataset = torch.utils.data.Subset(dst_eval.eval_dataset, list(range(16)))
+    dst_eval.train_dataset = torch.utils.data.Subset(
+        dst_eval.train_dataset, list(range(16))
+    )
+    dst_eval.eval_dataset = torch.utils.data.Subset(
+        dst_eval.eval_dataset, list(range(16))
+    )
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,

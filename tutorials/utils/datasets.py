@@ -16,7 +16,15 @@ from quanda.utils.datasets.transformed import (
 
 
 class CustomDataset(ImageFolder):
-    def __init__(self, root: str, classes: List[str], classes_to_idx: Dict[str, int], transform=None, *args, **kwargs):
+    def __init__(
+        self,
+        root: str,
+        classes: List[str],
+        classes_to_idx: Dict[str, int],
+        transform=None,
+        *args,
+        **kwargs,
+    ):
         self.classes = classes
         self.class_to_idx = classes_to_idx
         super().__init__(root=root, transform=transform, *args, **kwargs)
@@ -26,7 +34,9 @@ class CustomDataset(ImageFolder):
 
 
 class AnnotatedDataset(torch.utils.data.Dataset):
-    def __init__(self, local_path: str, id_dict: dict, annotation: dict, transforms=None):
+    def __init__(
+        self, local_path: str, id_dict: dict, annotation: dict, transforms=None
+    ):
         self.filenames = glob.glob(local_path + "/**/*.JPEG")
         self.transform = transforms
         self.id_dict = id_dict
@@ -86,12 +96,20 @@ def special_dataset(
         all_non_transf_idx = [
             i
             for i in range(len(sc_dataset))
-            if ((i not in sc_dataset.transform_indices) and (sc_dataset[i][1] not in [cat_class, dog_class]))
+            if (
+                (i not in sc_dataset.transform_indices)
+                and (sc_dataset[i][1] not in [cat_class, dog_class])
+            )
         ]
         random_rng = random.Random(seed)
-        flip_indices = random_rng.sample(all_non_transf_idx, int(p_flipping * len(sc_dataset)))
+        flip_indices = random_rng.sample(
+            all_non_transf_idx, int(p_flipping * len(sc_dataset))
+        )
         flipping_transform_dict = {
-            i: random_rng.choice(list(classes - {sc_dataset[i][1], cat_class, dog_class})) for i in flip_indices
+            i: random_rng.choice(
+                list(classes - {sc_dataset[i][1], cat_class, dog_class})
+            )
+            for i in flip_indices
         }
 
     flipped = LabelFlippingDataset(

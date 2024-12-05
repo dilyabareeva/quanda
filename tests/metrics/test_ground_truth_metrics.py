@@ -1,9 +1,5 @@
-from copy import deepcopy
-from typing import Callable, Optional, Union
-
 import pytest
 import torch
-from torch.utils.data import DataLoader, Subset
 
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.ground_truth.linear_datamodeling import (
@@ -15,11 +11,12 @@ from quanda.utils.training import Trainer
 
 @pytest.mark.ground_truth_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, optimizer, criterion, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_tensor, test_labels, optimizer, criterion, method_kwargs",
     [
         (
             "mnist",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
@@ -32,6 +29,7 @@ from quanda.utils.training import Trainer
 def test_linear_datamodeling(
     test_id,
     model,
+    checkpoint,
     dataset,
     test_tensor,
     test_labels,
@@ -43,6 +41,7 @@ def test_linear_datamodeling(
     tmp_path,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
     test_data = request.getfixturevalue(test_tensor)
     test_labels = request.getfixturevalue(test_labels)
@@ -58,6 +57,7 @@ def test_linear_datamodeling(
 
     explainer = CaptumSimilarity(
         model=model,
+        checkpoints=checkpoint,
         model_id="mnist_similarity",
         cache_dir=str(tmp_path),
         train_dataset=dataset,
@@ -69,6 +69,7 @@ def test_linear_datamodeling(
 
     metric = LinearDatamodelingMetric(
         model=model,
+        checkpoints=checkpoint,
         train_dataset=dataset,
         trainer=trainer,
         alpha=0.5,
@@ -88,4 +89,6 @@ def test_linear_datamodeling(
 
     score = metric.compute()["score"]
 
-    assert abs(score - get_lds_score) < 0.01, "LDS scores differ significantly."
+    assert (
+        abs(score - get_lds_score) < 0.01
+    ), "LDS scores differ significantly."

@@ -1,3 +1,5 @@
+"""URLs for downloading the benchmarks."""
+
 benchmark_urls: dict = {
     "mnist_top_k_cardinality": "https://datacloud.hhi.fraunhofer.de/s/32DKgtDZYbo75Xs/download/mnist_top_k_cardinality.pth",
     "mnist_subclass_detection": "https://datacloud.hhi.fraunhofer.de/s/ABY846RC2XyDCLa/download/mnist_subclass_detection.pth",

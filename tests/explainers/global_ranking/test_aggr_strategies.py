@@ -12,11 +12,12 @@ from quanda.utils.functions import cosine_similarity
 
 @pytest.mark.aggr_strategies
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_data, explainer_cls, expl_kwargs, expected",
+    "test_id, model, checkpoint,dataset, test_data, explainer_cls, expl_kwargs, expected",
     [
         (
             "mnist_si",
             "load_mnist_model",
+            "load_mnist_last_checkpoint",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
             CaptumSimilarity,
@@ -31,6 +32,7 @@ from quanda.utils.functions import cosine_similarity
 def test_global_self_influence_strategy(
     test_id,
     model,
+    checkpoint,
     dataset,
     test_data,
     explainer_cls,
@@ -40,11 +42,17 @@ def test_global_self_influence_strategy(
     request,
 ):
     model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
     test_data = request.getfixturevalue(test_data)
     dataset = request.getfixturevalue(dataset)
 
     explainer = explainer_cls(
-        model=model, train_dataset=dataset, cache_dir=str(tmp_path), model_id="mnist_model", **expl_kwargs
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        cache_dir=str(tmp_path),
+        model_id="mnist_model",
+        **expl_kwargs,
     )
     aggr_strat = GlobalSelfInfluenceStrategy(explainer=explainer)
     si = aggr_strat.get_self_influence()

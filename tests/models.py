@@ -2,8 +2,7 @@ import torch
 
 
 class LeNet(torch.nn.Module):
-    """
-    A torch implementation of LeNet architecture.
+    """A torch implementation of LeNet architecture.
     Adapted from: https://github.com/ChawDoe/LeNet5-MNIST-PyTorch.
     """
 

@@ -1,3 +1,5 @@
+"""Base class for transformed datasets."""
+
 import random
 from typing import Any, Callable, List, Optional
 
@@ -6,7 +8,7 @@ from torch.utils.data.dataset import Dataset
 
 
 class TransformedDataset(Dataset):
-    """Dataset wrapper that applies a transformation to a subset of the data."""
+    """Dataset wrapper that applies a transformation to a subset of data."""
 
     def __init__(
         self,
@@ -21,8 +23,7 @@ class TransformedDataset(Dataset):
         sample_fn: Optional[Callable] = None,
         label_fn: Optional[Callable] = None,
     ):
-        """
-        Constructor for the TransformedDataset class.
+        """Construct the the TransformedDataset class.
 
         Parameters
         ----------
@@ -40,15 +41,16 @@ class TransformedDataset(Dataset):
             Class index to transform instances of, defaults to None.
             If `transform_indices`is given, this parameter is ignored.
         p : float, optional
-            The probability of transformation for each instance to transform, defaults to 1.0.
+            The probability of transformation for each instance to transform,
+            defaults to 1.0.
         seed : int, optional
             Seed for the random number generator, defaults to 42.
         sample_fn : Optional[Callable], optional
            Transform function to apply to samples, defaults to None.
         label_fn : Optional[Callable], optional
             Transform function to apply to labels, defaults to None.
-        """
 
+        """
         # TODO: add validation for cls_idx and transform_indices
         super().__init__()
         self.dataset = dataset
@@ -78,14 +80,23 @@ class TransformedDataset(Dataset):
         self.torch_rng.manual_seed(seed)
 
         if transform_indices is None:
-            trans_idx = torch.rand(len(self), generator=self.torch_rng) <= self.p
+            trans_idx = (
+                torch.rand(len(self), generator=self.torch_rng) <= self.p
+            )
             if self.cls_idx is not None:
-                trans_idx *= torch.tensor([self.dataset[s][1] == self.cls_idx for s in range(len(self))], dtype=torch.bool)
+                trans_idx *= torch.tensor(
+                    [
+                        self.dataset[s][1] == self.cls_idx
+                        for s in range(len(self))
+                    ],
+                    dtype=torch.bool,
+                )
             self.transform_indices = torch.where(trans_idx)[0].tolist()
         else:
             self.transform_indices = transform_indices
 
     def __getitem__(self, index) -> Any:
+        """Get a sample by index."""
         x, y = self.dataset[index]
 
         return (
@@ -95,8 +106,7 @@ class TransformedDataset(Dataset):
         )
 
     def _get_original_label(self, index) -> int:
-        """
-        Function to get original label of a sample by index.
+        """Fet original label of a sample by index.
 
         Parameters
         ----------
@@ -107,16 +117,22 @@ class TransformedDataset(Dataset):
         -------
         int
             Original label of the sample.
+
         """
         _, y = self.dataset[index]
         return y
 
     def __len__(self):
+        """Get the length of the dataset."""
         if not hasattr(self.dataset, "__len__"):
-            raise ValueError("Dataset needs to implement __len__ to use the TransformedDataset class.")
+            raise ValueError(
+                "Dataset needs to implement __len__ to use the "
+                "TransformedDataset class."
+            )
         else:
             return len(self.dataset)
 
     @staticmethod
     def _identity(x: Any) -> Any:
+        """Identity function."""
         return x
