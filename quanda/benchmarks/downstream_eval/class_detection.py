@@ -170,9 +170,7 @@ class ClassDetection(Benchmark):
         for ckpt_name, ckpt in zip(
             bench_state["checkpoints"], bench_state["checkpoints_binary"]
         ):
-            save_path = os.path.join(
-                cache_dir, f"{name}_checkpoints", ckpt_name
-            )
+            save_path = os.path.join(cache_dir, ckpt_name)
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 

@@ -94,9 +94,7 @@ class Benchmark(ABC):
         # check if file exists
         if not os.path.exists(os.path.join(cache_dir, name + ".pth")):
             url = benchmark_urls[name]
-            os.makedirs(
-                os.path.join(cache_dir, f"{name}_checkpoints"), exist_ok=True
-            )
+            os.makedirs(os.path.join(cache_dir, name), exist_ok=True)
 
             # download to cache_dir
             response = requests.get(url)
