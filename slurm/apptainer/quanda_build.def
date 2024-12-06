@@ -1,0 +1,20 @@
+Bootstrap: localimage
+From: ./quanda_pre_build.sif
+
+%files
+  # Copies over the source code
+  ./quanda /opt/quanda
+
+%post
+  export PYTHONPATH="/opt/quanda/"
+  export LD_LIBRARY_PATH=/opt/conda/lib
+
+  cd /opt/quanda
+  pip install .[tutorials]
+
+  # Install wget
+  apt-get update && apt-get install -y wget unzip
+
+%runscript
+  cd /opt/quanda
+  python -u scripts/compute_explanations.py "$@"

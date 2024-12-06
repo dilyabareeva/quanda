@@ -1,0 +1,36 @@
+Bootstrap: docker
+From: nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
+
+%environment
+  export "PATH=/opt/conda/bin:$PATH"
+
+%post
+  apt-get -y update
+  apt install -y git
+  apt-get -y install curl
+
+  curl -o ~/miniconda.sh -O https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-x86_64.sh
+
+  chmod +x ~/miniconda.sh
+  ~/miniconda.sh -b -u -p /opt/conda
+  rm ~/miniconda.sh
+  export "PATH=/opt/conda/bin:$PATH"
+  export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/
+
+  pip install \
+    numpy>=1.19.5 \
+    torch==2.0.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
+    torchvision==0.15.0+cu117 --extra-index-url https://download.pytorch.org/whl/cu117
+    captum@git+https://github.com/pytorch/captum \
+    lightning>=1.4.0 \
+    torchmetrics>=1.4.0 \
+    tqdm>=4.0.0 \
+    traker>=0.3.2 \
+    annoy>=1.17.0 \
+    datasets>=2.0.0 \
+    torcheval>=0.0.6 \
+    matplotlib>=3.4.0 \
+    pillow>=8.3.0 \
+    python-dotenv>=1.0.0 \
+    nltk>=3.6.0 \
+    wandb>=0.12.10
