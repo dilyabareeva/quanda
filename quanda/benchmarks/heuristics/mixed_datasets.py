@@ -199,6 +199,7 @@ class MixedDatasets(Benchmark):
             root=adversarial_dir,
             label=adversarial_label,
             transform=adversarial_transform,
+            train=True,
         )
 
         obj.mixed_dataset = torch.utils.data.ConcatDataset(
@@ -306,15 +307,6 @@ class MixedDatasets(Benchmark):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
-        # TODO: eval_dataset should be the adversarial test dataset
-        # adversarial dataset needs train test split
-        # (see SketchDataset in scripts/train_model.py)
-        eval_dataset = obj._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split=bench_state["test_split_name"],
-        )
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
         module = load_module_from_bench_state(bench_state, device)
 
@@ -328,6 +320,13 @@ class MixedDatasets(Benchmark):
         adversarial_transform = sample_transforms[
             bench_state["adversarial_transform"]
         ]
+
+        eval_dataset = SingleClassImageDataset(
+            root=adversarial_dir,
+            label=bench_state["adversarial_label"],
+            transform=adversarial_transform,
+            train=False,
+        )
 
         return obj.assemble(
             model=module,
@@ -473,6 +472,7 @@ class MixedDatasets(Benchmark):
             root=adversarial_dir,
             label=adversarial_label,
             transform=adversarial_transform,
+            train=True,
         )
 
         obj.mixed_dataset = torch.utils.data.ConcatDataset(

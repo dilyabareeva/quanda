@@ -91,6 +91,7 @@ class Benchmark(ABC):
             Benchmark state dictionary.
 
         """
+        os.makedirs(cache_dir, exist_ok=True)
         # check if file exists
         if not os.path.exists(os.path.join(cache_dir, name + ".pth")):
             url = benchmark_urls[name]
