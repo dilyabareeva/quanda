@@ -12,7 +12,7 @@ repos:
 -   repo: local
     hooks:
     -   id: clean-format
-        name: clean-format
+        name: clean format
         entry: make
         args: ["clean-format"]
         language: system
