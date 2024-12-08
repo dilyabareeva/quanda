@@ -95,6 +95,7 @@ def test_mixed_datasets(
         root=adversarial_path,
         label=adversarial_label,
         transform=adversarial_transforms,
+        train=False,
     )
 
     if init_method == "generate":

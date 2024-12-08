@@ -1,6 +1,7 @@
 """Dataset classes for image datasets."""
 
 import glob
+import os
 
 import torch
 from PIL import Image  # type: ignore
@@ -10,14 +11,45 @@ from torch.utils.data import Dataset
 class SingleClassImageDataset(Dataset):
     """Dataset class for a single class of images."""
 
-    def __init__(self, root: str, label: int, transform=None):
-        """Construct the SingleClassImageDataset class."""
+    def __init__(
+        self,
+        root: str,
+        train: bool,
+        label: int,
+        transform=None,
+        *args,
+        **kwargs,
+    ):
+        """Construct the SingleClassImageDataset."""
         self.root = root
         self.label = label
         self.transform = transform
+        self.train = train
 
         # find all images in the root directory
-        self.filenames = glob.glob(root + "/*.png")
+        filenames = []
+        for extension in ["*.JPEG", "*.jpeg", "*.jpg", "*.png"]:
+            filenames += glob.glob(os.path.join(root, extension))
+
+        self.filenames = filenames
+
+        filenames = sorted(filenames)
+
+        if os.path.exists(os.path.join(root, "train_indices")):
+            train_indices = torch.load(os.path.join(root, "train_indices"))
+            test_indices = torch.load(os.path.join(root, "test_indices"))
+        else:
+            randrank = torch.randperm(len(filenames))
+            size = int(len(filenames) / 2)
+            train_indices = randrank[:size]
+            test_indices = randrank[size:]
+            torch.save(train_indices, os.path.join(root, "train_indices"))
+            torch.save(test_indices, os.path.join(root, "test_indices"))
+
+        if self.train:
+            self.filenames = [filenames[i] for i in train_indices]
+        else:
+            self.filenames = [filenames[i] for i in test_indices]
 
     def __len__(self):
         """Get dataset length."""

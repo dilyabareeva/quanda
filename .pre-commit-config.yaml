@@ -11,10 +11,10 @@ repos:
 
 -   repo: local
     hooks:
-    -   id: style
-        name: style
+    -   id: clean-format
+        name: clean format
         entry: make
-        args: ["style"]
+        args: ["clean-format"]
         language: system
         pass_filenames: false
 
