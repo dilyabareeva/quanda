@@ -73,6 +73,8 @@ class LinearDatamodeling(Benchmark):
         self.use_predictions: bool
         self.correlation_fn: Union[Callable, CorrelationFnLiterals]
         self.seed: int
+        self.subset_ids: Optional[List[List[int]]]
+        self.pretrained_models: Optional[List[torch.nn.Module]]
 
     @classmethod
     def generate(
@@ -92,6 +94,8 @@ class LinearDatamodeling(Benchmark):
         seed: int = 42,
         use_predictions: bool = True,
         dataset_split: str = "train",
+        subset_ids: Optional[List[List[int]]] = None,
+        pretrained_models: Optional[List[torch.nn.Module]] = None,
         *args,
         **kwargs,
     ):
@@ -121,10 +125,10 @@ class LinearDatamodeling(Benchmark):
             Transform to be applied to the dataset, by default None.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
             Correlation function to be used for the evaluation.
-        m: int, optional
+        m : int, optional
             Number of subsets to be used for training the models, by default
             100.
-        alpha: float, optional
+        alpha : float, optional
             Percentage of datapoints to be used for training the models, by
             default 0.5.
         trainer_fit_kwargs : Optional[dict], optional
@@ -138,9 +142,13 @@ class LinearDatamodeling(Benchmark):
         dataset_split : str, optional
             The dataset split to use, by default "train". Only used if
             `train_dataset` is a string.
-        args: Any
+        subset_ids : Optional[List[List[int]]], optional
+            A list of pre-defined subset indices, by default None.
+        pretrained_models : Optional[List[torch.nn.Module]], optional
+            A list of pre-trained models for each subset, by default None.
+        args : Any
             Variable length argument list.
-        kwargs: Any
+        kwargs : Any
             Arbitrary keyword arguments.
 
         """
@@ -163,8 +171,9 @@ class LinearDatamodeling(Benchmark):
         obj.correlation_fn = correlation_fn
         obj.seed = seed
         obj.use_predictions = use_predictions
+        obj.subset_ids = subset_ids
+        obj.pretrained_models = pretrained_models
         obj.model = model
-        obj.cache_dir = cache_dir
         obj.trainer = trainer
         obj.m = m
         obj.alpha = alpha
@@ -190,9 +199,9 @@ class LinearDatamodeling(Benchmark):
             Directory to store the downloaded benchmark components.
         device : str
             Device to load the model on.
-        args: Any
+        args : Any
             Variable length argument list.
-        kwargs: Any
+        kwargs : Any
             Arbitrary keyword arguments.
 
         """
@@ -225,6 +234,8 @@ class LinearDatamodeling(Benchmark):
             correlation_fn=bench_state["correlation_fn"],
             seed=bench_state["seed"],
             use_predictions=bench_state["use_predictions"],
+            subset_ids=bench_state["subset_ids"],
+            pretrained_models=bench_state["pretrained_models"],
             data_transform=dataset_transform,
         )
 
@@ -247,6 +258,8 @@ class LinearDatamodeling(Benchmark):
         seed: int = 42,
         use_predictions: bool = True,
         dataset_split: str = "train",
+        subset_ids: Optional[List[List[int]]] = None,
+        pretrained_models: Optional[List[torch.nn.Module]] = None,
         *args,
         **kwargs,
     ):
@@ -270,10 +283,10 @@ class LinearDatamodeling(Benchmark):
             training data.
         model_id : str
             Identifier for the model, to be used in naming cached checkpoints.
-        m: int, optional
+        m : int, optional
             Number of subsets to be used for training the models, by default
             100.
-        alpha: float, optional
+        alpha : float, optional
             Percentage of datapoints to be used for training the models, by
             default 0.5.
         checkpoints : Optional[Union[str, List[str]]], optional
@@ -296,9 +309,13 @@ class LinearDatamodeling(Benchmark):
         dataset_split : str, optional
             The dataset split to use, by default "train". Only used if
             `train_dataset` is a string.
-        args: Any
+        subset_ids : Optional[List[List[int]]], optional
+            A list of pre-defined subset indices, by default None.
+        pretrained_models : Optional[List[torch.nn.Module]], optional
+            A list of pre-trained models for each subset, by default None.
+        args : Any
             Additional arguments.
-        kwargs: Any
+        kwargs : Any
             Additional keyword arguments.
 
         """
@@ -309,6 +326,8 @@ class LinearDatamodeling(Benchmark):
         obj.checkpoints_load_func = checkpoints_load_func
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions
+        obj.subset_ids = subset_ids
+        obj.pretrained_models = pretrained_models
         obj.correlation_fn = correlation_fn
         obj.trainer = trainer
         obj.m = m
@@ -381,6 +400,8 @@ class LinearDatamodeling(Benchmark):
             correlation_fn=self.correlation_fn,
             seed=self.seed,
             batch_size=batch_size,
+            subset_ids=self.subset_ids,
+            pretrained_models=self.pretrained_models,
         )
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
