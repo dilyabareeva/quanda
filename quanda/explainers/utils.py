@@ -50,7 +50,7 @@ def _init_explainer(
 def explain_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
-    test_tensor: torch.Tensor,
+    test_tensor: Union[torch.Tensor, dict],
     train_dataset: torch.utils.data.Dataset,
     checkpoints: Optional[Union[str, List[str]]] = None,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
