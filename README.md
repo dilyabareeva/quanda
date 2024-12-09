@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  Toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods in <b>PyTorch</b>.
+  Interpretability toolkit for <b>quan</b>titative evaluation of <b>d</b>ata <b>a</b>ttribution methods in <b>PyTorch</b>.
 </p>
 
 
