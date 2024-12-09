@@ -14,4 +14,4 @@ The tutorials currently included in |quanda| are:
 
 .. note::
 
-   To access the code used for preparation of the models, the datasets and the metadata used in `Explainers` and `Metrics` tutorials, please refer to the `tutorial preparation notebook <https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_prep.ipynb>`_. It is not needed to run the preparation notebook to run the other tutorials, and it was only included for reproducibility purpose.
+   To access the code used for preparation of the models, the datasets and the metadata used in `Explainers` and `Metrics` tutorials, please refer to the `tutorial preparation notebook <https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_prep.ipynb>`_. Running the preparation notebook is not required for the other tutorials, and it was only included for reproducibility purposes.

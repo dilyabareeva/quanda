@@ -25,8 +25,6 @@ To begin using |quanda| metrics, you need the following components:
 - **Test Dataset (** ``eval_set`` **)**: The dataset to be used as test inputs for generating explanations. Explanations are generated with respect to an output neuron corresponding to a certain class. This class can be selected to be the ground truth label of the test points, or the classes predicted by the model. In the following we will use the predicted labels to generate explanations.
 Next, we demonstrate how to evaluate explanations using the **Model Randomization** metric.
 
-Next, we demonstrate how to evaluate explanations using the **Model Randomization** metric.
-
 **1. Import dependencies and library components**
 
 .. code-block:: python
@@ -121,7 +119,7 @@ The pre-assembled benchmarks allow us to streamline the evaluation process by do
       "cache_dir": "./cache"
    }
 
-**Step 3. Load a pre-assembled benchmark and score an explainer**
+**3. Load a pre-assembled benchmark and score an explainer**
 
 .. code:: python
 
@@ -162,7 +160,7 @@ Next, we demonstrate assembling a benchmark with assets that the user has prepar
       "cache_dir": "./cache"
    }
 
-**3.Assemble the benchmark object and run the evaluation**
+**3. Assemble the benchmark object and run the evaluation**
 
 We now have everything we need, we can just assemble the benchmark and run it. This will encapsulate the process of instantiating the explainer, generating explanations and using the :doc:`TopKCardinalityMetric <docs_api/quanda.metrics.heuristics.topk_cardinality.TopKCardinalityMetric>` to evaluate them.
 
@@ -184,7 +182,7 @@ We now have everything we need, we can just assemble the benchmark and run it. T
 Generating the benchmark object from scratch
 ++++++++++++++++++++++++++++++++++++++++++++
 
-Some evaluation strategies require a controlled setup or a different strategy of using attributors to evaluate them. For example, the :doc:`MislabelingDetectionMetric <docs_api/quanda.metric.downstream_eval.mislabeling_detection>` requires a dataset with known mislabeled examples. It computes the self-influence of training points to evaluate TDA methods. Therefore, it is fairly complicated to train a model on a mislabeled dataset, and then using the metric object or assembling a benchmark object to run the evaluation. While pre-assembled benchmarks allow to use pre-computed assets, |quanda| :doc:`Benchmark <docs_api/quanda.benchmarks.base>` objects provide the `generate` interface, which allows the user to prepare this setup from scratch.
+Some evaluation strategies require a controlled setup or a different strategy of using attributors to evaluate them. For example, the :doc:`MislabelingDetectionMetric <docs_api/quanda.metric.downstream_eval.mislabeling_detection>` requires a dataset with known mislabeled examples. It computes the self-influence of training points to evaluate TDA methods. Therefore, it is fairly complicated to train a model on a mislabeled dataset, and then using the metric object or assemble a benchmark object to run the evaluation. While pre-assembled benchmarks allow to use pre-computed assets, |quanda| :doc:`Benchmark <docs_api/quanda.benchmarks.base>` objects provide the `generate` interface, which allows the user to prepare this setup from scratch.
 
 As in previous examples, we assume that ``train_set`` refers to  a vanilla training dataset, without any modifications for evaluation. Furthermore, we assume ``model`` refers to a torch ``Module``, but in this example we do not require that ``model`` is trained. Finally, ``n_classes`` is the number of classes in the ``train_set``.
 
