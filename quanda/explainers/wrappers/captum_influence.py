@@ -460,8 +460,8 @@ def captum_similarity_self_influence(
 class CaptumArnoldi(CaptumInfluence):
     """Class for Arnoldi Influence Function wrapper.
 
-    This implements the ArnoldiInfluence method of Schioppa et. al. (2022) to
-    compute influence function explanations [2].
+    This implements the ArnoldiInfluence method of Schioppa et al. (2022) to
+    compute influence function explanations as described by Koh et al. (2017).
 
     Notes
     -----
