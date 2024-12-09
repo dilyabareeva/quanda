@@ -1,5 +1,7 @@
 import pytest
 import torch
+from lightning.pytorch import Trainer as LightningTrainer
+
 
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.ground_truth.linear_datamodeling import (
@@ -176,3 +178,50 @@ def test_linear_datamodeling_extended(
     score = metric.compute()["score"]
 
     assert isinstance(score, float), "Score should be a float."
+
+
+@pytest.mark.ground_truth_metrics
+@pytest.mark.parametrize(
+    "test_id, model, checkpoint, dataset",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+        ),
+    ],
+)
+def test_linear_datamodeling_lightning(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
+    dataset = request.getfixturevalue(dataset)
+
+    lightning_trainer = LightningTrainer(
+        max_epochs=0,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="Model should be a LightningModule if Trainer is a Lightning Trainer",
+    ):
+        LinearDatamodelingMetric(
+            model=model,
+            checkpoints=checkpoint,
+            train_dataset=dataset,
+            trainer=lightning_trainer,
+            alpha=0.5,
+            model_id=f"{test_id}_lds",
+            m=5,
+            seed=3,
+            correlation_fn="spearman",
+            cache_dir=str(tmp_path),
+            batch_size=1,
+        )
