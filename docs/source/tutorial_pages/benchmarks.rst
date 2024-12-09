@@ -1,7 +1,7 @@
 Benchmarks Tutorial
 ===================
 
-Welcome to the benchmark tutorial of |quanda|. This tutorial walks you through the process of using the benchmarking tools in |quanda| to evaluate a data attribution method. The tutorial includes 3 different examples of benchmarks. It includes all different initialization schemes: generating the benchmark from scratch, assembling a benchmark from existing assets and downloading a precomputed benchmark.
+Welcome to the benchmark tutorial of |quanda|. This tutorial walks you through the process of using the benchmarking tools in |quanda| to evaluate a data attribution method. This tutorial covers 3 different examples of benchmarks. It includes all different initialization schemes: generating the benchmark from scratch, assembling a benchmark from existing assets and downloading a precomputed benchmark.
 
 To install the library with tutorial dependencies, run:
 
@@ -30,7 +30,7 @@ Throughout this tutorial, we will be using a LeNet model trained on the MNIST da
         RepresenterPoints,
     )
 
-Then we need to do some preparation for the following computations.
+Next, we need to prepare for the following computations.
 
 .. code-block:: python
 
@@ -50,7 +50,7 @@ In this part of the tutorial, we will use the :doc:`ShortcutDetection <../docs_a
 
 We will use the benchmark corresponding to this metric to evaluate all data attributors currently included in |quanda| in terms of their ability to detect when the model is using a shortcut.
 
-We will download the precomputed MNIST benchmark. This includes an MNIST dataset which has shortcut features (an 8-by-8 white box on a specific location) on a subset of its samples from the class 0, and a model trained on this dataset. This model has learned to classify images with these features to the class 0, and we will measure the extent to which this is reflected in the attributions of different methods.
+We will download the precomputed MNIST benchmark. This includes an MNIST dataset which has shortcut features (an 8-by-8 white box on a specific location) on a subset of its samples from the class 0, and a model trained on this dataset. This model has learned to classify images with these features as class 0, and we will measure the extent to which this is reflected in the attributions of different methods.
 
 .. code-block:: python
 
@@ -157,7 +157,7 @@ Assembling Benchmarks from Existing Components
 ----------------------------------------------
 You may want to handle the creation of each component differently, using different datasets, architectures, training paradigms or a higher/lower percentage of manipulated samples. We now showcase how to create and use a |quanda| :doc:`Benchmark <../docs_api/quanda.benchmarks.base>` object to use these components in the evaluation process.
 
-To showcase different benchmarks, we will now switch to the :doc:`MislabelingDetection <../docs_api/quanda.benchmarks.downstream_eval.mislabeling_detection>` benchmark. This benchmark evaluates the ability of data atttribution methods to identify mislabeled samples in the training dataset. This is done by training a model on a dataset which has a substantial amount of mislabeled samples. We then use the local data attribution methods to rank the training data. Original papers propose either using self-influence (i.e. the attribution of training samples on themselves) or some special methodology for each explainer (i.e. the global coefficients of the surrogate model in Representer Points). Quanda includes efficient implementation of self-influence or other strategies proposed in the original papers, whenever possible.
+To showcase different benchmarks, we will now switch to the :doc:`MislabelingDetection <../docs_api/quanda.benchmarks.downstream_eval.mislabeling_detection>` benchmark. This benchmark evaluates the ability of data atttribution methods to identify mislabeled samples in the training dataset. This is done by training a model on a dataset which has a significant number of mislabeled samples. We then use the local data attribution methods to rank the training data. Original papers propose either using self-influence (i.e. the attribution of training samples on themselves) or some special methodology for each explainer (i.e. the global coefficients of the surrogate model in Representer Points). Quanda includes efficient implementation of self-influence or other strategies proposed in the original papers, whenever possible.
 
 This ranking is then used to go through the dataset to check mislabelings. Quanda computes the cumulative mislabeling detection curve and returns the AUC score with respect to this curve.
 

@@ -1,7 +1,7 @@
 Contribution Guide for |quanda|
 =============================
 
-|quanda| is an open source library that you can contribute in! We
+|quanda| is an open source library that you can contribute to! We
 encourage you to contribute new metrics and explainers, optimizations or
 to report any bugs you encounter while using |quanda|.
 
@@ -17,8 +17,8 @@ Table of Contents
 
 -  `Reporting Bugs <#reporting-bugs>`__
 -  `General Guidelines <#general-guidelines>`__
--  `Setting up the development
-   environment <#setting-up-the-development-environment>`__
+-  `Setting Up the Development
+   Environment <#setting-up-the-development-environment>`__
 -  `Branching <#branching>`__
 -  `Code Style <#code-style>`__
 -  `Unit Tests <#unit-tests>`__
@@ -40,11 +40,11 @@ If you come across a bug in the software, please check the repository
 this bug has already been reported. If the bug is not yet reported,
 please report the bug by `opening an
 issue <https://github.com/dilyabareeva/quanda/issues/new>`__. Please pay
-attention to add a descriptive title for the bug. Explain the bug
-shortly in the issue body, and add details on how to reproduce the buggy
+attention to add a descriptive title for the bug. Briefly explain
+the bug in the issue body, and add details on how to reproduce the faulty
 behaviour whenever possible.
 
-We will address the issue in the earliest convenience.
+We will address the issue at our earliest convenience.
 
 General Guidelines
 ------------------
@@ -124,8 +124,7 @@ Currently, the following markers are available to filter tests:
 -  aggr_strategies: aggr_strategies modules
 -  self_influence: self_influence methods of explainers
 
-Ideally, all contributions should include tests to ensure correctness of
-the algorithms involved.
+Ideally, all contributions should include tests to ensure correctness.
 
 Automated Checks
 ~~~~~~~~~~~~~~~~
@@ -346,7 +345,7 @@ should again: - Create an instance of the :doc:`Benchmark <docs_api/quanda.bench
 -  If the benchmark requires training a model, the ``model`` should be a
    model trained already in the correct context. This constitutes the
    main difference between the ``generate`` and ``assemble`` methods.
-   Thus, ``assemble`` is used to skip the costrly training process.
+   Thus, ``assemble`` is used to skip the costly training process.
    Otherwise, the ``assemble`` method is generally the same as the
    ``generate`` method.
 
