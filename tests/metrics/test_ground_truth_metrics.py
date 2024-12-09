@@ -112,7 +112,7 @@ def test_linear_datamodeling(
         ),
     ],
 )
-def test_linear_datamodeling_with_pretrained_models_and_subsets(
+def test_linear_datamodeling_extended(
     test_id,
     model,
     dataset,
