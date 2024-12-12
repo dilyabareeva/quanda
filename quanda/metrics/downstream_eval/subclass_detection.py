@@ -70,8 +70,8 @@ class SubclassDetectionMetric(ClassDetectionMetric):
 
     def update(
         self,
-        test_subclasses: Union[List[int], torch.Tensor],
         explanations: torch.Tensor,
+        test_subclasses: Union[List[int], torch.Tensor],
         test_tensor: Optional[torch.Tensor] = None,
         test_classes: Optional[torch.Tensor] = None,
     ):
@@ -79,10 +79,10 @@ class SubclassDetectionMetric(ClassDetectionMetric):
 
         Parameters
         ----------
-        test_subclasses : torch.Tensor
-            Original labels of the test samples
         explanations : torch.Tensor
-            Explanations of the test samples
+            Explanations of the test samples.
+        test_subclasses : torch.Tensor
+            Original labels of the test samples.
         test_tensor: Optional[torch.Tensor]
             Test samples to used to generate the explanations.
             Only required if `filter_by_prediction` is True during

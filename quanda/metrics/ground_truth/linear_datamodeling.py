@@ -228,22 +228,22 @@ class LinearDatamodelingMetric(Metric):
 
     def update(
         self,
-        test_tensor: torch.Tensor,
         explanations: torch.Tensor,
         explanation_targets: torch.Tensor,
+        test_tensor: torch.Tensor,
         **kwargs,
     ):
         """Update the evaluation scores based on new data.
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
-            The test data used for evaluation.
         explanations : torch.Tensor
             The explanation scores for the test data with shape (test_samples,
             dataset_size).
         explanation_targets : torch.Tensor
             The target values for the explanations.
+        test_tensor : torch.Tensor
+            The test data used for evaluation.
         kwargs: Any
             Additional keyword arguments
 

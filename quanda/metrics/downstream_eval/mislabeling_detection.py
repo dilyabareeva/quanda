@@ -227,9 +227,9 @@ class MislabelingDetectionMetric(Metric):
 
     def update(
         self,
+        explanations: torch.Tensor,
         test_data: torch.Tensor,
         test_labels: torch.Tensor,
-        explanations: torch.Tensor,
         **kwargs,
     ):
         """Update the aggregator based metric with local attributions.
@@ -238,12 +238,12 @@ class MislabelingDetectionMetric(Metric):
 
         Parameters
         ----------
+        explanations : torch.Tensor
+            The local attributions to be added to the aggregated scores.
         test_data : torch.Tensor
             The test data for which the attributions were computed.
         test_labels : torch.Tensor
             The true labels of the test data.
-        explanations : torch.Tensor
-            The local attributions to be added to the aggregated scores.
         kwargs : Any
             Additional keyword arguments.
 

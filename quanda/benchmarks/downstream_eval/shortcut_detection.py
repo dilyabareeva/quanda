@@ -595,6 +595,10 @@ class ShortcutDetection(Benchmark):
                 test_tensor=input,
                 targets=targets,
             )
-            metric.update(explanations, test_tensor=input, test_labels=labels)
+            metric.update(
+                explanations=explanations,
+                test_tensor=input,
+                test_labels=labels,
+            )
 
         return metric.compute()

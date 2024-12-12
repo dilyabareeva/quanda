@@ -565,8 +565,8 @@ class SubclassDetection(Benchmark):
             )
 
             metric.update(
-                labels,
-                explanations,
+                test_subclasses=labels,
+                explanations=explanations,
                 test_tensor=inputs,
                 test_classes=grouped_labels,
             )

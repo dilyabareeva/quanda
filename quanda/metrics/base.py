@@ -59,10 +59,20 @@ class Metric(ABC):
     @abstractmethod
     def update(
         self,
+        explanations: torch.Tensor,
         *args: Any,
         **kwargs: Any,
     ):
         """Update the metric with new data.
+
+        Parameters
+        ----------
+        explanations : torch.Tensor
+            Explanations of the test samples.
+        *args : Any
+            Additional positional arguments.
+        **kwargs : Any
+            Additional keyword arguments.
 
         Raises
         ------

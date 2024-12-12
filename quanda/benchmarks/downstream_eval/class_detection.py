@@ -333,6 +333,6 @@ class ClassDetection(Benchmark):
                 test_tensor=input,
                 targets=targets,
             )
-            metric.update(targets, explanations)
+            metric.update(explanations=explanations, test_labels=targets)
 
         return metric.compute()
