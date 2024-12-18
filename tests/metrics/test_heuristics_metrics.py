@@ -1,3 +1,5 @@
+import os
+import copy
 import math
 
 import pytest
@@ -9,8 +11,11 @@ from quanda.metrics.heuristics import (
     TopKCardinalityMetric,
 )
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
-from quanda.utils.common import get_parent_module_from_name
 from quanda.utils.functions import correlation_functions, cosine_similarity
+from quanda.utils.common import (
+    get_parent_module_from_name,
+    get_load_state_dict_func,
+)
 
 
 @pytest.mark.heuristic_metrics
@@ -90,6 +95,81 @@ def test_randomization_metric(
 
     out = metric.compute()["score"]
     assert (out >= -1.0) & (out <= 1.0), "Test failed."
+
+
+@pytest.mark.heuristic_metrics
+@pytest.mark.parametrize(
+    "test_id, model, seed",
+    [
+        ("transformer_randomization", "transformer_model", 42),
+    ],
+)
+def test_randomization_metric_transformer(
+    test_id, model, seed, tmp_path, request
+):
+    model = request.getfixturevalue(model)
+    model_id = "transformer"
+    cache_dir = str(tmp_path)
+    device = "cpu"
+    checkpoints = [os.path.join(cache_dir, "dummy.ckpt")]
+    checkpoints_load_func = get_load_state_dict_func(device)
+    generator = torch.Generator(device=device)
+    generator.manual_seed(seed)
+
+    original_params = {
+        name: p.clone().detach() for name, p in model.named_parameters()
+    }
+
+    def _randomize_model(
+        model,
+        model_id,
+        cache_dir,
+        checkpoints,
+        checkpoints_load_func,
+        generator,
+    ):
+        rand_model = copy.deepcopy(model)
+        rand_checkpoints = []
+
+        for i, _ in enumerate(checkpoints):
+            for name, param in list(rand_model.named_parameters()):
+                parent = get_parent_module_from_name(rand_model, name)
+                param_name = name.split(".")[-1]
+
+                random_param_tensor = torch.nn.init.normal_(
+                    param, generator=generator
+                )
+                parent.__setattr__(
+                    param_name, torch.nn.Parameter(random_param_tensor)
+                )
+
+            chckpt_path = os.path.join(cache_dir, f"{model_id}_rand_{i}.pth")
+            torch.save(
+                rand_model.state_dict(),
+                chckpt_path,
+            )
+            rand_checkpoints.append(chckpt_path)
+
+        return rand_model, rand_checkpoints
+
+    rand_model, _ = _randomize_model(
+        model,
+        model_id,
+        cache_dir,
+        checkpoints,
+        checkpoints_load_func,
+        generator,
+    )
+
+    for (name, original_param), (_, rand_param) in zip(
+        original_params.items(), rand_model.named_parameters()
+    ):
+        assert not torch.allclose(
+            original_param, rand_param
+        ), f"Parameter {name} was not randomized."
+        assert not torch.isnan(
+            rand_param
+        ).any(), f"Parameter {name} contains NaN values."
 
 
 @pytest.mark.heuristic_metrics

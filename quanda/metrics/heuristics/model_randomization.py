@@ -196,16 +196,12 @@ class ModelRandomizationMetric(Metric):
     def _randomize_model(self) -> Tuple[torch.nn.Module, List[str]]:
         """Randomize the model parameters.
 
-        Currently, only linear and convolutional layers are supported.
-
         Returns
         -------
         torch.nn.Module
             The randomized model.
 
         """
-        # TODO: Add support for other layer types.
-
         rand_model = copy.deepcopy(self.model)
         rand_checkpoints = []
 
@@ -214,15 +210,14 @@ class ModelRandomizationMetric(Metric):
 
             for name, param in list(rand_model.named_parameters()):
                 parent = get_parent_module_from_name(rand_model, name)
-                # TODO: currently only linear layer is randomized
-                if isinstance(parent, (torch.nn.Linear)):
-                    random_param_tensor = torch.nn.init.normal_(
-                        param, generator=self.generator
-                    )
-                    parent.__setattr__(
-                        name.split(".")[-1],
-                        torch.nn.Parameter(random_param_tensor),
-                    )
+                param_name = name.split(".")[-1]
+
+                random_param_tensor = torch.nn.init.normal_(
+                    param, generator=self.generator
+                )
+                parent.__setattr__(
+                    param_name, torch.nn.Parameter(random_param_tensor)
+                )
 
             # save randomized checkpoint
             chckpt_path = os.path.join(
