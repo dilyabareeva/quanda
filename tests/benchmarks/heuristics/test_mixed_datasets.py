@@ -15,7 +15,7 @@ from quanda.utils.training import Trainer
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, checkpoint, optimizer, lr, criterion, max_epochs, dataset, adversarial_path,"
-    "adversarial_label, adversarial_transforms, batch_size, explainer_cls, expl_kwargs,"
+    "adversarial_label, adversarial_transforms, adv_train_indices, adv_eval_indices,batch_size, explainer_cls, expl_kwargs,"
     "expected_score",
     [
         (
@@ -31,6 +31,8 @@ from quanda.utils.training import Trainer
             "load_fashion_mnist_path",
             3,
             "load_fashion_mnist_to_mnist_transform",
+            None,
+            None,
             8,
             CaptumSimilarity,
             {
@@ -53,6 +55,8 @@ from quanda.utils.training import Trainer
             "load_fashion_mnist_path",
             4,
             "load_fashion_mnist_to_mnist_transform",
+            None,
+            None,
             8,
             CaptumSimilarity,
             {
@@ -77,6 +81,8 @@ def test_mixed_datasets(
     adversarial_path,
     adversarial_label,
     adversarial_transforms,
+    adv_train_indices,
+    adv_eval_indices,
     batch_size,
     explainer_cls,
     expl_kwargs,
@@ -91,11 +97,12 @@ def test_mixed_datasets(
     dataset = request.getfixturevalue(dataset)
     adversarial_transforms = request.getfixturevalue(adversarial_transforms)
     adversarial_path = request.getfixturevalue(adversarial_path)
+
     eval_dataset = SingleClassImageDataset(
         root=adversarial_path,
         label=adversarial_label,
         transform=adversarial_transforms,
-        train=False,
+        indices=adv_eval_indices,
     )
 
     if init_method == "generate":
@@ -113,6 +120,7 @@ def test_mixed_datasets(
             eval_dataset=eval_dataset,
             adversarial_label=adversarial_label,
             adversarial_dir=adversarial_path,
+            adv_train_indices=adv_train_indices,
             adversarial_transform=adversarial_transforms,
             trainer_fit_kwargs={},
             cache_dir=str(tmp_path),
@@ -128,6 +136,7 @@ def test_mixed_datasets(
             adversarial_label=adversarial_label,
             adversarial_dir=adversarial_path,
             adversarial_transform=adversarial_transforms,
+            adv_train_indices=adv_train_indices,
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
@@ -231,7 +240,7 @@ def test_mixed_dataset_download(
         dst_eval.mixed_dataset, list(range(16))
     )
     dst_eval.eval_dataset = torch.utils.data.Subset(
-        dst_eval.eval_dataset, list(range(16))
+        dst_eval.eval_dataset, list(range(8))
     )
 
     dst_eval.adversarial_indices = dst_eval.adversarial_indices[:16]
@@ -256,7 +265,7 @@ def test_mixed_dataset_download(
             dst_eval.mixed_dataset, batch_size=16, shuffle=False
         )
         test_ld = torch.utils.data.DataLoader(
-            dst_eval.eval_dataset, batch_size=16, shuffle=False
+            dst_eval.eval_dataset, batch_size=8, shuffle=False
         )
         for x, y in iter(train_ld):
             x = x.to(dst_eval.device)
@@ -266,7 +275,7 @@ def test_mixed_dataset_download(
         for x, y in iter(test_ld):
             x = x.to(dst_eval.device)
             y_preds = dst_eval.model(x).argmax(dim=-1)
-            select_idx = torch.tensor([True] * 16)
+            select_idx = torch.tensor([True] * 8)
             if filter_by_prediction:
                 select_idx *= y_preds == dst_eval.adversarial_label
             dst_eval.model(x)

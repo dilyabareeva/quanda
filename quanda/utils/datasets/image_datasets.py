@@ -2,6 +2,7 @@
 
 import glob
 import os
+from typing import Optional, List
 
 import torch
 from PIL import Image  # type: ignore
@@ -14,49 +15,33 @@ class SingleClassImageDataset(Dataset):
     def __init__(
         self,
         root: str,
-        train: bool,
         label: int,
+        indices: Optional[List[int]] = None,
         transform=None,
-        *args,
-        **kwargs,
     ):
         """Construct the SingleClassImageDataset."""
         self.root = root
         self.label = label
         self.transform = transform
-        self.train = train
+        self.indices = indices
 
         # find all images in the root directory
         filenames = []
         for extension in ["*.JPEG", "*.jpeg", "*.jpg", "*.png"]:
             filenames += glob.glob(os.path.join(root, extension))
 
-        self.filenames = filenames
-
-        filenames = sorted(filenames)
-
-        if os.path.exists(os.path.join(root, "train_indices")):
-            train_indices = torch.load(os.path.join(root, "train_indices"))
-            test_indices = torch.load(os.path.join(root, "test_indices"))
-        else:
-            randrank = torch.randperm(len(filenames))
-            size = int(len(filenames) / 2)
-            train_indices = randrank[:size]
-            test_indices = randrank[size:]
-            torch.save(train_indices, os.path.join(root, "train_indices"))
-            torch.save(test_indices, os.path.join(root, "test_indices"))
-
-        if self.train:
-            self.filenames = [filenames[i] for i in train_indices]
-        else:
-            self.filenames = [filenames[i] for i in test_indices]
+        self.filenames = sorted(filenames)
 
     def __len__(self):
         """Get dataset length."""
-        return len(self.filenames)
+        if self.indices is None:
+            return len(self.filenames)
+        return len(self.indices)
 
     def __getitem__(self, idx):
         """Get a sample by index."""
+        if self.indices is not None:
+            idx = self.indices[idx]
         img_path = self.filenames[idx]
         image = Image.open(img_path).convert("RGB")
         if self.transform:
