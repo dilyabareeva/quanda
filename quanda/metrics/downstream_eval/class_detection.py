@@ -61,15 +61,15 @@ class ClassDetectionMetric(Metric):
 
         self.scores: List[torch.Tensor] = []
 
-    def update(self, test_labels: torch.Tensor, explanations: torch.Tensor):
+    def update(self, explanations: torch.Tensor, test_labels: torch.Tensor):
         """Update the metric state with the provided explanations.
 
         Parameters
         ----------
-        test_labels : torch.Tensor
-            Labels of the test samples.
         explanations : torch.Tensor
             Explanations of the test samples.
+        test_labels : torch.Tensor
+            Labels of the test samples.
 
         """
         assert test_labels.shape[0] == explanations.shape[0], (
