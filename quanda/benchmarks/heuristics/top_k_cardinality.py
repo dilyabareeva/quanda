@@ -345,6 +345,6 @@ class TopKCardinality(Benchmark):
                 test_tensor=input,
                 targets=targets,
             )
-            metric.update(explanations)
+            metric.update(explanations=explanations)
 
         return metric.compute()
