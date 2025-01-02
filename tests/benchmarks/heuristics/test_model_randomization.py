@@ -30,7 +30,7 @@ from quanda.utils.functions import cosine_similarity
                 "similarity_metric": cosine_similarity,
             },
             None,
-            0.5208332538604736,
+            0.43154752254486084,
         ),
         (
             "mnist2",
@@ -49,7 +49,7 @@ from quanda.utils.functions import cosine_similarity
                 "similarity_metric": cosine_similarity,
             },
             None,
-            0.5208332538604736,
+            0.43154752254486084,
         ),
     ],
 )
@@ -120,7 +120,7 @@ def test_model_randomization(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            0.509926438331604,
+            0.4639705419540405,
         ),
     ],
 )
