@@ -61,7 +61,7 @@ Before you start writing your code, create a local branch from the **latest vers
 
 ### Commit Messages
 
-Please make sure to write clear and concise commit messages in the [Angular commit message format](https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#commits).
+Please make sure to write clear and concise commit messages in the [Angular commit message format](https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#commits). For breaking changes that reflect in the API, please use exclamation mark in the commit tag, for example ```feat!``` or ```chore!```.
 
 ### Code Style
 
