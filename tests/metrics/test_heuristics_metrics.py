@@ -116,6 +116,7 @@ def test_randomization_metric_transformer(
     generator = torch.Generator(device=device)
     generator.manual_seed(seed)
 
+    # 1) Check if the parameters are correctly randomized
     original_params = {
         name: p.clone().detach() for name, p in model.named_parameters()
     }
@@ -170,6 +171,98 @@ def test_randomization_metric_transformer(
         assert not torch.isnan(
             rand_param
         ).any(), f"Parameter {name} contains NaN values."
+
+    # 2) Check if the output of the randomized model is not NaN
+    rand_model.eval()
+    batch_size = 2
+    seq_len = 10
+    vocab_size = 100
+    x = torch.randint(
+        low=0,
+        high=vocab_size,
+        size=(batch_size, seq_len),
+        dtype=torch.long,
+        device=device,
+    )
+
+    with torch.no_grad():
+        out = rand_model(x)
+
+    assert not torch.isnan(out).any(), "Randomized model output contains NaNs."
+
+
+@pytest.mark.heuristic_metrics
+@pytest.mark.parametrize(
+    "test_id, model, seed",
+    [
+        ("batchnorm_randomization", "batchnorm_model", 42),
+    ],
+)
+def test_randomization_metric_batchnorm(
+    test_id, model, seed, tmp_path, request
+):
+    model = request.getfixturevalue(model)
+    model_id = "batchnorm"
+    cache_dir = str(tmp_path)
+    device = "cpu"
+    checkpoint_path = os.path.join(tmp_path, "dummy.ckpt")
+    torch.save(model.state_dict(), checkpoint_path)
+    checkpoints = [checkpoint_path]
+    checkpoints_load_func = get_load_state_dict_func(device)
+    generator = torch.Generator(device=device)
+    generator.manual_seed(seed)
+
+    def _randomize_model(
+        model,
+        model_id,
+        cache_dir,
+        checkpoints,
+        checkpoints_load_func,
+        generator,
+    ):
+        rand_model = copy.deepcopy(model)
+        rand_checkpoints = []
+
+        for i, chckpt in enumerate(checkpoints):
+            checkpoints_load_func(rand_model, chckpt)
+
+            for name, param in list(rand_model.named_parameters()):
+                parent = get_parent_module_from_name(rand_model, name)
+                param_name = name.split(".")[-1]
+
+                random_param_tensor = torch.nn.init.normal_(
+                    param, generator=generator
+                )
+                parent.__setattr__(
+                    param_name, torch.nn.Parameter(random_param_tensor)
+                )
+
+            chckpt_path = os.path.join(cache_dir, f"{model_id}_rand_{i}.pth")
+            torch.save(rand_model.state_dict(), chckpt_path)
+            rand_checkpoints.append(chckpt_path)
+
+        return rand_model, rand_checkpoints
+
+    rand_model, _ = _randomize_model(
+        model=model,
+        model_id=model_id,
+        cache_dir=cache_dir,
+        checkpoints=checkpoints,
+        checkpoints_load_func=checkpoints_load_func,
+        generator=generator,
+    )
+
+    rand_model.eval()
+    batch_size = 4
+    x = torch.randn(batch_size, 1, 28, 28, device=device)
+
+    out = None
+    with torch.no_grad():
+        out = rand_model(x)
+
+    assert not torch.isnan(
+        out
+    ).any(), "Output contains NaNs after randomization!"
 
 
 @pytest.mark.heuristic_metrics

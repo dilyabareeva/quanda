@@ -55,3 +55,20 @@ class BasicTransformer(torch.nn.Module):
         emb = self.embedding(x)
         enc_out = self.encoder(emb)
         return self.fc_out(enc_out[:, 0, :])
+
+
+class BatchNormModel(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.conv = torch.nn.Conv2d(1, 4, kernel_size=3, stride=1, padding=1)
+        self.bn = torch.nn.BatchNorm2d(4)
+        self.relu = torch.nn.ReLU()
+        self.fc = torch.nn.Linear(4 * 28 * 28, 10)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.bn(x)
+        x = self.relu(x)
+        x = x.view(x.size(0), -1)
+        out = self.fc(x)
+        return out

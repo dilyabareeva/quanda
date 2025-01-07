@@ -26,7 +26,7 @@ from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
 from quanda.utils.training.base_pl_module import BasicLightningModule
-from tests.models import LeNet, BasicTransformer
+from tests.models import LeNet, BasicTransformer, BatchNormModel
 
 MNIST_IMAGE_SIZE = 28
 BATCH_SIZE = 124
@@ -438,3 +438,8 @@ def get_lds_score():
 @pytest.fixture
 def transformer_model():
     return BasicTransformer()
+
+
+@pytest.fixture
+def batchnorm_model():
+    return BatchNormModel()
