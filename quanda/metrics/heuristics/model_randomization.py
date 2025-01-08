@@ -212,12 +212,31 @@ class ModelRandomizationMetric(Metric):
                 parent = get_parent_module_from_name(rand_model, name)
                 param_name = name.split(".")[-1]
 
-                random_param_tensor = torch.nn.init.normal_(
-                    param, generator=self.generator
-                )
-                parent.__setattr__(
-                    param_name, torch.nn.Parameter(random_param_tensor)
-                )
+                if "weight" in name:
+                    if isinstance(
+                        parent,
+                        (
+                            torch.nn.BatchNorm1d,
+                            torch.nn.BatchNorm2d,
+                            torch.nn.BatchNorm3d,
+                        ),
+                    ):
+                        torch.nn.init.ones_(param)
+                    elif (
+                        isinstance(
+                            parent, (torch.nn.LayerNorm, torch.nn.Embedding)
+                        )
+                        or param.dim() == 1
+                    ):
+                        torch.nn.init.normal_(param)
+                    else:
+                        torch.nn.init.kaiming_normal_(
+                            param, generator=self.generator
+                        )
+                else:
+                    torch.nn.init.normal_(param)
+
+                parent.__setattr__(param_name, torch.nn.Parameter(param))
 
             # save randomized checkpoint
             chckpt_path = os.path.join(
