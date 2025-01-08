@@ -212,33 +212,62 @@ class ModelRandomizationMetric(Metric):
                 parent = get_parent_module_from_name(rand_model, name)
                 param_name = name.split(".")[-1]
 
-                if "weight" in name:
-                    if isinstance(
-                        parent,
-                        (
-                            torch.nn.BatchNorm1d,
-                            torch.nn.BatchNorm2d,
-                            torch.nn.BatchNorm3d,
-                        ),
-                    ):
-                        torch.nn.init.ones_(param)
-                    elif (
-                        isinstance(
-                            parent, (torch.nn.LayerNorm, torch.nn.Embedding)
-                        )
-                        or param.dim() == 1
-                    ):
-                        torch.nn.init.normal_(param)
-                    else:
-                        torch.nn.init.kaiming_normal_(
-                            param, generator=self.generator
-                        )
+                # Reset the parameters using the default method if available
+                if hasattr(parent, "reset_parameters"):
+                    parent.reset_parameters()
                 else:
-                    torch.nn.init.normal_(param)
+                    # Custom randomization
+                    if "weight" in name:
+                        if isinstance(
+                            parent,
+                            (
+                                torch.nn.BatchNorm1d,
+                                torch.nn.BatchNorm2d,
+                                torch.nn.BatchNorm3d,
+                                torch.nn.LayerNorm,
+                                torch.nn.InstanceNorm1d,
+                                torch.nn.InstanceNorm2d,
+                                torch.nn.InstanceNorm3d,
+                                torch.nn.GroupNorm,
+                            ),
+                        ):
+                            torch.nn.init.ones_(param)
+                        elif isinstance(parent, torch.nn.Embedding):
+                            torch.nn.init.normal_(param, mean=0.0, std=1.0)
+                        elif param.dim() == 1:
+                            torch.nn.init.normal_(
+                                param, generator=self.generator
+                            )
+                        else:
+                            torch.nn.init.kaiming_normal_(
+                                param, generator=self.generator
+                            )
+                    elif "bias" in name:
+                        torch.nn.init.zeros_(param)
+                    else:
+                        torch.nn.init.normal_(param, generator=self.generator)
 
-                parent.__setattr__(param_name, torch.nn.Parameter(param))
+                    # Replace parameter with randomized one
+                    parent.__setattr__(param_name, torch.nn.Parameter(param))
 
-            # save randomized checkpoint
+                # Reset running statistics if applicable
+                if isinstance(
+                    parent,
+                    (
+                        torch.nn.BatchNorm1d,
+                        torch.nn.BatchNorm2d,
+                        torch.nn.BatchNorm3d,
+                        torch.nn.InstanceNorm1d,
+                        torch.nn.InstanceNorm2d,
+                        torch.nn.InstanceNorm3d,
+                    ),
+                ):
+                    if hasattr(parent, "running_mean"):
+                        parent.running_mean.zero_()
+                    if hasattr(parent, "running_var"):
+                        parent.running_var.fill_(1.0)
+
+            # Save randomized checkpoint
             chckpt_path = os.path.join(
                 self.cache_dir, f"{self.model_id}_rand_{i}.pth"
             )

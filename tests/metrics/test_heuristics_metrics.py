@@ -1,5 +1,3 @@
-import os
-import copy
 import math
 
 import pytest
@@ -14,7 +12,6 @@ from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.functions import correlation_functions, cosine_similarity
 from quanda.utils.common import (
     get_parent_module_from_name,
-    get_load_state_dict_func,
 )
 
 
@@ -79,6 +76,7 @@ def test_randomization_metric(
     test_labels = request.getfixturevalue(test_labels)
     tda = request.getfixturevalue(explanations)
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
+
     metric = ModelRandomizationMetric(
         model=model,
         model_id=0,
@@ -105,94 +103,18 @@ def test_randomization_metric(
     ],
 )
 def test_randomization_metric_transformer(
-    test_id, model, seed, tmp_path, request
+    test_id, model, randomize_model, seed, tmp_path, request
 ):
     model = request.getfixturevalue(model)
-    model_id = "transformer"
-    cache_dir = str(tmp_path)
     device = "cpu"
-    checkpoints = [os.path.join(cache_dir, "dummy.ckpt")]
-    checkpoints_load_func = get_load_state_dict_func(device)
     generator = torch.Generator(device=device)
     generator.manual_seed(seed)
 
-    # 1) Check if the parameters are correctly randomized
-    original_params = {
-        name: p.clone().detach() for name, p in model.named_parameters()
-    }
-
-    def _randomize_model(
-        model,
-        model_id,
-        cache_dir,
-        checkpoints,
-        checkpoints_load_func,
-        generator,
-    ):
-        rand_model = copy.deepcopy(model)
-        rand_checkpoints = []
-
-        for i, _ in enumerate(checkpoints):
-            for name, param in list(rand_model.named_parameters()):
-                parent = get_parent_module_from_name(rand_model, name)
-                param_name = name.split(".")[-1]
-
-                if "weight" in name:
-                    if isinstance(
-                        parent,
-                        (
-                            torch.nn.BatchNorm1d,
-                            torch.nn.BatchNorm2d,
-                            torch.nn.BatchNorm3d,
-                        ),
-                    ):
-                        torch.nn.init.ones_(param)
-                    elif (
-                        isinstance(
-                            parent, (torch.nn.LayerNorm, torch.nn.Embedding)
-                        )
-                        or param.dim() == 1
-                    ):
-                        torch.nn.init.normal_(param)
-                    else:
-                        torch.nn.init.kaiming_normal_(
-                            param, generator=generator
-                        )
-                else:
-                    torch.nn.init.normal_(param)
-
-                parent.__setattr__(param_name, torch.nn.Parameter(param))
-
-            chckpt_path = os.path.join(cache_dir, f"{model_id}_rand_{i}.pth")
-            torch.save(
-                rand_model.state_dict(),
-                chckpt_path,
-            )
-            rand_checkpoints.append(chckpt_path)
-
-        return rand_model, rand_checkpoints
-
-    rand_model, _ = _randomize_model(
-        model,
-        model_id,
-        cache_dir,
-        checkpoints,
-        checkpoints_load_func,
-        generator,
+    rand_model = randomize_model(
+        model=model,
+        generator=generator,
     )
 
-    for (name, original_param), (_, rand_param) in zip(
-        original_params.items(), rand_model.named_parameters()
-    ):
-        assert not torch.allclose(
-            original_param, rand_param
-        ), f"Parameter {name} was not randomized."
-        assert not torch.isnan(
-            rand_param
-        ).any(), f"Parameter {name} contains NaN values."
-
-    # 2) Check if the output of the randomized model is not NaN
-    rand_model.eval()
     batch_size = 2
     seq_len = 10
     vocab_size = 100
@@ -204,10 +126,19 @@ def test_randomization_metric_transformer(
         device=device,
     )
 
+    model.eval()
+    rand_model.eval()
     with torch.no_grad():
-        out = rand_model(x)
+        original_out = model(x)
+        randomized_out = rand_model(x)
 
-    assert not torch.isnan(out).any(), "Randomized model output contains NaNs."
+    assert not torch.allclose(
+        original_out, randomized_out
+    ), "The model randomization did not work."
+
+    assert not torch.isnan(
+        randomized_out
+    ).any(), "Randomized model output contains NaN values."
 
 
 @pytest.mark.heuristic_metrics
@@ -218,75 +149,15 @@ def test_randomization_metric_transformer(
     ],
 )
 def test_randomization_metric_batchnorm(
-    test_id, model, seed, tmp_path, request
+    test_id, model, randomize_model, seed, tmp_path, request
 ):
     model = request.getfixturevalue(model)
-    model_id = "batchnorm"
-    cache_dir = str(tmp_path)
     device = "cpu"
-    checkpoint_path = os.path.join(tmp_path, "dummy.ckpt")
-    torch.save(model.state_dict(), checkpoint_path)
-    checkpoints = [checkpoint_path]
-    checkpoints_load_func = get_load_state_dict_func(device)
     generator = torch.Generator(device=device)
     generator.manual_seed(seed)
 
-    def _randomize_model(
-        model,
-        model_id,
-        cache_dir,
-        checkpoints,
-        checkpoints_load_func,
-        generator,
-    ):
-        rand_model = copy.deepcopy(model)
-        rand_checkpoints = []
-
-        for i, chckpt in enumerate(checkpoints):
-            checkpoints_load_func(rand_model, chckpt)
-
-            for name, param in list(rand_model.named_parameters()):
-                parent = get_parent_module_from_name(rand_model, name)
-                param_name = name.split(".")[-1]
-
-                if "weight" in name:
-                    if isinstance(
-                        parent,
-                        (
-                            torch.nn.BatchNorm1d,
-                            torch.nn.BatchNorm2d,
-                            torch.nn.BatchNorm3d,
-                        ),
-                    ):
-                        torch.nn.init.ones_(param)
-                    elif (
-                        isinstance(
-                            parent, (torch.nn.LayerNorm, torch.nn.Embedding)
-                        )
-                        or param.dim() == 1
-                    ):
-                        torch.nn.init.normal_(param)
-                    else:
-                        torch.nn.init.kaiming_normal_(
-                            param, generator=generator
-                        )
-                else:
-                    torch.nn.init.normal_(param)
-
-                parent.__setattr__(param_name, torch.nn.Parameter(param))
-
-            chckpt_path = os.path.join(cache_dir, f"{model_id}_rand_{i}.pth")
-            torch.save(rand_model.state_dict(), chckpt_path)
-            rand_checkpoints.append(chckpt_path)
-
-        return rand_model, rand_checkpoints
-
-    rand_model, _ = _randomize_model(
+    rand_model = randomize_model(
         model=model,
-        model_id=model_id,
-        cache_dir=cache_dir,
-        checkpoints=checkpoints,
-        checkpoints_load_func=checkpoints_load_func,
         generator=generator,
     )
 
