@@ -196,6 +196,7 @@ class ModelRandomizationMetric(Metric):
     def _randomize_parameter(self, param, parent, param_name):
         """Reset or randomize a parameter."""
         if hasattr(parent, "reset_parameters"):
+            torch.manual_seed(self.seed)
             parent.reset_parameters()
         else:
             if "weight" in param_name:
