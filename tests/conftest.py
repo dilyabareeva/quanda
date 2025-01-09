@@ -1,4 +1,3 @@
-import copy
 import json
 import os
 import pickle
@@ -27,8 +26,7 @@ from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
 from quanda.utils.training.base_pl_module import BasicLightningModule
-from quanda.utils.common import get_parent_module_from_name
-from tests.models import LeNet, BasicTransformer, BatchNormModel
+from tests.models import LeNet
 
 MNIST_IMAGE_SIZE = 28
 BATCH_SIZE = 124
@@ -435,78 +433,3 @@ def get_lds_score():
     with open("tests/assets/lds_score.json", "r") as f:
         score_data = json.load(f)
     return score_data["lds_score"]
-
-
-@pytest.fixture
-def transformer_model():
-    return BasicTransformer()
-
-
-@pytest.fixture
-def batchnorm_model():
-    return BatchNormModel()
-
-
-@pytest.fixture
-def randomize_model():
-    def _randomize_model(
-        model,
-        generator,
-    ):
-        rand_model = copy.deepcopy(model)
-        for name, param in list(rand_model.named_parameters()):
-            parent = get_parent_module_from_name(rand_model, name)
-            param_name = name.split(".")[-1]
-
-            if hasattr(parent, "reset_parameters"):
-                parent.reset_parameters()
-            else:
-                if "weight" in name:
-                    if isinstance(
-                        parent,
-                        (
-                            torch.nn.BatchNorm1d,
-                            torch.nn.BatchNorm2d,
-                            torch.nn.BatchNorm3d,
-                            torch.nn.LayerNorm,
-                            torch.nn.InstanceNorm1d,
-                            torch.nn.InstanceNorm2d,
-                            torch.nn.InstanceNorm3d,
-                            torch.nn.GroupNorm,
-                        ),
-                    ):
-                        torch.nn.init.ones_(param)
-                    elif isinstance(parent, torch.nn.Embedding):
-                        torch.nn.init.normal_(param, mean=0.0, std=1.0)
-                    elif param.dim() == 1:
-                        torch.nn.init.normal_(param, generator=generator)
-                    else:
-                        torch.nn.init.kaiming_normal_(
-                            param, generator=generator
-                        )
-                elif "bias" in name:
-                    torch.nn.init.zeros_(param)
-                else:
-                    torch.nn.init.normal_(param, generator=generator)
-
-                parent.__setattr__(param_name, torch.nn.Parameter(param))
-
-            if isinstance(
-                parent,
-                (
-                    torch.nn.BatchNorm1d,
-                    torch.nn.BatchNorm2d,
-                    torch.nn.BatchNorm3d,
-                    torch.nn.InstanceNorm1d,
-                    torch.nn.InstanceNorm2d,
-                    torch.nn.InstanceNorm3d,
-                ),
-            ):
-                if hasattr(parent, "running_mean"):
-                    parent.running_mean.zero_()
-                if hasattr(parent, "running_var"):
-                    parent.running_var.fill_(1.0)
-
-        return rand_model
-
-    return _randomize_model

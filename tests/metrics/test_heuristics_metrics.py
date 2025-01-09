@@ -69,6 +69,7 @@ def test_randomization_metric(
     tmp_path,
     request,
 ):
+    # 1) Check if the metric works correctly
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
     test_data = request.getfixturevalue(test_data)
@@ -94,84 +95,25 @@ def test_randomization_metric(
     out = metric.compute()["score"]
     assert (out >= -1.0) & (out <= 1.0), "Test failed."
 
-
-@pytest.mark.heuristic_metrics
-@pytest.mark.parametrize(
-    "test_id, model, seed",
-    [
-        ("transformer_randomization", "transformer_model", 42),
-    ],
-)
-def test_randomization_metric_transformer(
-    test_id, model, randomize_model, seed, tmp_path, request
-):
-    model = request.getfixturevalue(model)
-    device = "cpu"
-    generator = torch.Generator(device=device)
-    generator.manual_seed(seed)
-
-    rand_model = randomize_model(
-        model=model,
-        generator=generator,
-    )
+    # 2) Check if the randomization works correctly
+    rand_model = metric._randomize_model()[0]
 
     batch_size = 2
-    seq_len = 10
-    vocab_size = 100
-    x = torch.randint(
-        low=0,
-        high=vocab_size,
-        size=(batch_size, seq_len),
-        dtype=torch.long,
-        device=device,
-    )
+    input_shape = test_data[0].shape
+    random_tensor = torch.randn((batch_size, *input_shape), device="cpu")
 
     model.eval()
     rand_model.eval()
     with torch.no_grad():
-        original_out = model(x)
-        randomized_out = rand_model(x)
+        original_out = model(random_tensor)
+        randomized_out = rand_model(random_tensor)
 
     assert not torch.allclose(
         original_out, randomized_out
-    ), "The model randomization did not work."
-
+    ), "Outputs do not differ after randomization"
     assert not torch.isnan(
         randomized_out
-    ).any(), "Randomized model output contains NaN values."
-
-
-@pytest.mark.heuristic_metrics
-@pytest.mark.parametrize(
-    "test_id, model, seed",
-    [
-        ("batchnorm_randomization", "batchnorm_model", 42),
-    ],
-)
-def test_randomization_metric_batchnorm(
-    test_id, model, randomize_model, seed, tmp_path, request
-):
-    model = request.getfixturevalue(model)
-    device = "cpu"
-    generator = torch.Generator(device=device)
-    generator.manual_seed(seed)
-
-    rand_model = randomize_model(
-        model=model,
-        generator=generator,
-    )
-
-    rand_model.eval()
-    batch_size = 4
-    x = torch.randn(batch_size, 1, 28, 28, device=device)
-
-    out = None
-    with torch.no_grad():
-        out = rand_model(x)
-
-    assert not torch.isnan(
-        out
-    ).any(), "Output contains NaNs after randomization!"
+    ).any(), "Randomized model output contains NaNs."
 
 
 @pytest.mark.heuristic_metrics

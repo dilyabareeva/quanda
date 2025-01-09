@@ -193,6 +193,64 @@ class ModelRandomizationMetric(Metric):
         self.results = state_dict["results_dict"]
         self.rand_model.load_state_dict(state_dict["rnd_model"])
 
+    def _randomize_parameter(self, param, parent, param_name):
+        """Reset or randomize a parameter."""
+        if hasattr(parent, "reset_parameters"):
+            parent.reset_parameters()
+        else:
+            if "weight" in param_name:
+                if isinstance(
+                    parent,
+                    (
+                        torch.nn.BatchNorm1d,
+                        torch.nn.BatchNorm2d,
+                        torch.nn.BatchNorm3d,
+                        torch.nn.LayerNorm,
+                        torch.nn.InstanceNorm1d,
+                        torch.nn.InstanceNorm2d,
+                        torch.nn.InstanceNorm3d,
+                        torch.nn.GroupNorm,
+                    ),
+                ):
+                    torch.nn.init.ones_(param)
+                elif isinstance(parent, torch.nn.Embedding):
+                    torch.nn.init.normal_(param, mean=0.0, std=1.0)
+                elif param.dim() == 1:
+                    torch.nn.init.normal_(param, generator=self.generator)
+                else:
+                    torch.nn.init.kaiming_normal_(
+                        param, generator=self.generator
+                    )
+            elif "bias" in param_name:
+                torch.nn.init.zeros_(param)
+            else:
+                torch.nn.init.normal_(param, generator=self.generator)
+            parent.__setattr__(param_name, torch.nn.Parameter(param))
+
+    def _reset_running_stats(self, parent):
+        """Reset running statistics for applicable modules."""
+        if isinstance(
+            parent,
+            (
+                torch.nn.BatchNorm1d,
+                torch.nn.BatchNorm2d,
+                torch.nn.BatchNorm3d,
+                torch.nn.InstanceNorm1d,
+                torch.nn.InstanceNorm2d,
+                torch.nn.InstanceNorm3d,
+            ),
+        ):
+            if (
+                hasattr(parent, "running_mean")
+                and parent.running_mean is not None
+            ):
+                parent.running_mean.zero_()
+            if (
+                hasattr(parent, "running_var")
+                and parent.running_var is not None
+            ):
+                parent.running_var.fill_(1.0)
+
     def _randomize_model(self) -> Tuple[torch.nn.Module, List[str]]:
         """Randomize the model parameters.
 
@@ -211,70 +269,14 @@ class ModelRandomizationMetric(Metric):
             for name, param in list(rand_model.named_parameters()):
                 parent = get_parent_module_from_name(rand_model, name)
                 param_name = name.split(".")[-1]
-
-                # Reset the parameters using the default method if available
-                if hasattr(parent, "reset_parameters"):
-                    parent.reset_parameters()
-                else:
-                    # Custom randomization
-                    if "weight" in name:
-                        if isinstance(
-                            parent,
-                            (
-                                torch.nn.BatchNorm1d,
-                                torch.nn.BatchNorm2d,
-                                torch.nn.BatchNorm3d,
-                                torch.nn.LayerNorm,
-                                torch.nn.InstanceNorm1d,
-                                torch.nn.InstanceNorm2d,
-                                torch.nn.InstanceNorm3d,
-                                torch.nn.GroupNorm,
-                            ),
-                        ):
-                            torch.nn.init.ones_(param)
-                        elif isinstance(parent, torch.nn.Embedding):
-                            torch.nn.init.normal_(param, mean=0.0, std=1.0)
-                        elif param.dim() == 1:
-                            torch.nn.init.normal_(
-                                param, generator=self.generator
-                            )
-                        else:
-                            torch.nn.init.kaiming_normal_(
-                                param, generator=self.generator
-                            )
-                    elif "bias" in name:
-                        torch.nn.init.zeros_(param)
-                    else:
-                        torch.nn.init.normal_(param, generator=self.generator)
-
-                    # Replace parameter with randomized one
-                    parent.__setattr__(param_name, torch.nn.Parameter(param))
-
-                # Reset running statistics if applicable
-                if isinstance(
-                    parent,
-                    (
-                        torch.nn.BatchNorm1d,
-                        torch.nn.BatchNorm2d,
-                        torch.nn.BatchNorm3d,
-                        torch.nn.InstanceNorm1d,
-                        torch.nn.InstanceNorm2d,
-                        torch.nn.InstanceNorm3d,
-                    ),
-                ):
-                    if hasattr(parent, "running_mean"):
-                        parent.running_mean.zero_()
-                    if hasattr(parent, "running_var"):
-                        parent.running_var.fill_(1.0)
+                self._randomize_parameter(param, parent, param_name)
+                self._reset_running_stats(parent)
 
             # Save randomized checkpoint
             chckpt_path = os.path.join(
                 self.cache_dir, f"{self.model_id}_rand_{i}.pth"
             )
-            torch.save(
-                rand_model.state_dict(),
-                chckpt_path,
-            )
+            torch.save(rand_model.state_dict(), chckpt_path)
             rand_checkpoints.append(chckpt_path)
 
         return rand_model, rand_checkpoints
