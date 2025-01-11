@@ -90,6 +90,7 @@ class MixedDatasets(Benchmark):
         eval_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
+        adv_train_indices: List[int],
         trainer: Union[L.Trainer, BaseTrainer],
         cache_dir: str,
         data_transform: Optional[Callable] = None,
@@ -127,6 +128,8 @@ class MixedDatasets(Benchmark):
             class).
         adversarial_label: int
             The label to be used for the adversarial dataset.
+        adv_train_indices: List[int]
+            List of indices of the adversarial dataset used for training.
         trainer: Union[L.Trainer, BaseTrainer]
             Trainer to be used for training the model. Can be a Lightning
             Trainer or a `BaseTrainer`.
@@ -199,6 +202,7 @@ class MixedDatasets(Benchmark):
             root=adversarial_dir,
             label=adversarial_label,
             transform=adversarial_transform,
+            indices=adv_train_indices,
         )
 
         obj.mixed_dataset = torch.utils.data.ConcatDataset(
@@ -306,12 +310,6 @@ class MixedDatasets(Benchmark):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
-        eval_dataset = obj._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split="test",
-        )
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
         module = load_module_from_bench_state(bench_state, device)
 
@@ -325,6 +323,18 @@ class MixedDatasets(Benchmark):
         adversarial_transform = sample_transforms[
             bench_state["adversarial_transform"]
         ]
+        adv_test_indices = bench_state["adv_indices_test"]
+        eval_from_test_indices = bench_state["eval_test_indices"]
+        eval_indices = [adv_test_indices[i] for i in eval_from_test_indices]
+
+        eval_dataset = SingleClassImageDataset(
+            root=adversarial_dir,
+            label=bench_state["adversarial_label"],
+            transform=adversarial_transform,
+            indices=eval_indices,
+        )
+
+        adv_train_indices = bench_state["adv_indices_train"]
 
         return obj.assemble(
             model=module,
@@ -336,6 +346,7 @@ class MixedDatasets(Benchmark):
             adversarial_dir=adversarial_dir,
             adversarial_label=bench_state["adversarial_label"],
             adversarial_transform=adversarial_transform,
+            adv_train_indices = adv_train_indices,
             data_transform=dataset_transform,
             checkpoint_paths=checkpoint_paths,
         )
@@ -392,6 +403,7 @@ class MixedDatasets(Benchmark):
         base_dataset: torch.utils.data.Dataset,
         adversarial_dir: str,
         adversarial_label: int,
+        adv_train_indices: List[int],
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         data_transform: Optional[Callable] = None,
@@ -420,6 +432,8 @@ class MixedDatasets(Benchmark):
             Path to the adversarial dataset of a single class.
         adversarial_label: int
             The label to be used for the adversarial dataset.
+        adv_train_indices: List[int]
+            List of indices of the adversarial dataset used for training.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
@@ -470,6 +484,7 @@ class MixedDatasets(Benchmark):
             root=adversarial_dir,
             label=adversarial_label,
             transform=adversarial_transform,
+            indices=adv_train_indices,
         )
 
         obj.mixed_dataset = torch.utils.data.ConcatDataset(
@@ -554,6 +569,10 @@ class MixedDatasets(Benchmark):
             explanations = explainer.explain(
                 test_tensor=inputs, targets=targets
             )
-            metric.update(explanations, test_tensor=inputs, test_labels=labels)
+            metric.update(
+                explanations=explanations,
+                test_tensor=inputs,
+                test_labels=labels,
+            )
 
         return metric.compute()
