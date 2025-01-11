@@ -346,7 +346,7 @@ class MixedDatasets(Benchmark):
             adversarial_dir=adversarial_dir,
             adversarial_label=bench_state["adversarial_label"],
             adversarial_transform=adversarial_transform,
-            adv_train_indices = adv_train_indices,
+            adv_train_indices=adv_train_indices,
             data_transform=dataset_transform,
             checkpoint_paths=checkpoint_paths,
         )
