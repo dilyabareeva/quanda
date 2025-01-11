@@ -78,10 +78,16 @@ def test_randomization_metric(
     tda = request.getfixturevalue(explanations)
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
 
+    def _load_flexible_state_dict(model: torch.nn.Module, path: str):
+        checkpoint = torch.load(path, map_location="cpu")
+        model.load_state_dict(checkpoint, strict=False)
+        return model
+
     metric = ModelRandomizationMetric(
         model=model,
         model_id=0,
         checkpoints=checkpoint,
+        checkpoints_load_func=_load_flexible_state_dict,
         train_dataset=dataset,
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
@@ -96,14 +102,31 @@ def test_randomization_metric(
     assert (out >= -1.0) & (out <= 1.0), "Test failed."
 
     # 2) Check if the randomization works correctly
-    rand_model = metric._randomize_model()[0]
-
     batch_size = 2
     input_shape = test_data[0].shape
     random_tensor = torch.randn((batch_size, *input_shape), device="cpu")
 
-    model.eval()
+    rand_model = metric._randomize_model()[0]
     rand_model.eval()
+    model.eval()
+
+    with torch.no_grad():
+        original_out = model(random_tensor)
+        randomized_out = rand_model(random_tensor)
+
+    assert not torch.allclose(
+        original_out, randomized_out
+    ), "Outputs do not differ after randomization"
+    assert not torch.isnan(
+        randomized_out
+    ).any(), "Randomized model output contains NaNs."
+
+    # 3) Check if the randomization works correctly for custom parameters
+    model.custom_param = torch.nn.Parameter(torch.randn(4))
+    model.eval()
+    rand_model = metric._randomize_model()[0]
+    rand_model.eval()
+
     with torch.no_grad():
         original_out = model(random_tensor)
         randomized_out = rand_model(random_tensor)
