@@ -86,7 +86,7 @@ class LinearDatamodeling(Benchmark):
         cache_dir: str,
         model_id: str,
         checkpoints: Optional[Union[str, List[str]]] = None,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         m: int = 100,
         alpha: float = 0.5,
@@ -121,7 +121,7 @@ class LinearDatamodeling(Benchmark):
             Identifier for the model, to be used in naming cached checkpoints.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        data_transform : Optional[Callable], optional
+        dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
             Correlation function to be used for the evaluation.
@@ -164,7 +164,7 @@ class LinearDatamodeling(Benchmark):
 
         obj.train_dataset = obj._process_dataset(
             train_dataset,
-            transform=data_transform,
+            transform=dataset_transform,
             dataset_split=dataset_split,
         )
         obj.eval_dataset = eval_dataset
@@ -236,7 +236,7 @@ class LinearDatamodeling(Benchmark):
             use_predictions=bench_state["use_predictions"],
             subset_ids=bench_state["subset_ids"],
             pretrained_models=bench_state["pretrained_models"],
-            data_transform=dataset_transform,
+            dataset_transform=dataset_transform,
         )
 
     @classmethod
@@ -253,7 +253,7 @@ class LinearDatamodeling(Benchmark):
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         trainer_fit_kwargs: Optional[dict] = None,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         use_predictions: bool = True,
@@ -297,7 +297,7 @@ class LinearDatamodeling(Benchmark):
         trainer_fit_kwargs : Optional[dict], optional
             Additional keyword arguments to be passed to the `fit` method of
             the trainer, by default None.
-        data_transform : Optional[Callable], optional
+        dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
             Correlation function to be used for the evaluation.
@@ -338,7 +338,7 @@ class LinearDatamodeling(Benchmark):
         obj.model_id = model_id
         obj.train_dataset = obj._process_dataset(
             train_dataset,
-            transform=data_transform,
+            transform=dataset_transform,
             dataset_split=dataset_split,
         )
         # this sets the function to the default value

@@ -1,7 +1,6 @@
 """Top-K Cardinality benchmark module."""
 
 import logging
-import os
 from typing import Callable, List, Optional, Union, Any
 
 import torch
@@ -9,11 +8,6 @@ import torch.utils
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import (
-    load_module_from_bench_state,
-    sample_transforms,
-)
-from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.heuristics import TopKCardinalityMetric
 from quanda.utils.common import load_last_checkpoint
 
@@ -68,7 +62,7 @@ class TopKCardinality(Benchmark):
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         top_k: int = 1,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -92,7 +86,7 @@ class TopKCardinality(Benchmark):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
-        data_transform : Optional[Callable], optional
+        dataset_transform : Optional[Callable], optional
             The transform to be applied to the dataset, by default None
         top_k : int, optional
             The number of top-k samples to consider, by default 1
@@ -122,7 +116,7 @@ class TopKCardinality(Benchmark):
         obj.eval_dataset = eval_dataset
         obj.train_dataset = obj._process_dataset(
             train_dataset,
-            transform=data_transform,
+            transform=dataset_transform,
             dataset_split=dataset_split,
         )
         obj.top_k = top_k
@@ -134,72 +128,6 @@ class TopKCardinality(Benchmark):
         return obj
 
     @classmethod
-    def download(
-        cls,
-        name: str,
-        cache_dir: str,
-        device: str,
-        *args,
-        **kwargs,
-    ):
-        """Download a precomputed benchmark from URL.
-
-        Load precomputed benchmark components from a file and creates an
-        instance from the state dictionary.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory where the benchmark components are stored.
-        device : str
-            Device to be used for the model.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        TopKCardinality
-            The benchmark instance.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        checkpoint_paths = []
-        for ckpt_name, ckpt in zip(
-            bench_state["checkpoints"], bench_state["checkpoints_binary"]
-        ):
-            save_path = os.path.join(cache_dir, ckpt_name)
-            torch.save(ckpt, save_path)
-            checkpoint_paths.append(save_path)
-
-        eval_dataset = obj._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split=bench_state["test_split_name"],
-        )
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        return obj.assemble(
-            model=module,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            train_dataset=bench_state["dataset_str"],
-            eval_dataset=eval_dataset,
-            use_predictions=bench_state["use_predictions"],
-            data_transform=dataset_transform,
-            checkpoint_paths=checkpoint_paths,
-        )
-
-    @classmethod
     def assemble(
         cls,
         model: torch.nn.Module,
@@ -207,7 +135,7 @@ class TopKCardinality(Benchmark):
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         top_k: int = 1,
         use_predictions: bool = True,
         dataset_split: str = "train",
@@ -230,7 +158,7 @@ class TopKCardinality(Benchmark):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
-        data_transform : Optional[Callable], optional
+        dataset_transform : Optional[Callable], optional
             The transform to be applied to the dataset, by default None.
         top_k : int, optional
             The number of top-k samples to consider, by default 1.
@@ -258,7 +186,7 @@ class TopKCardinality(Benchmark):
         obj._set_devices(model)
         obj.train_dataset = obj._process_dataset(
             train_dataset,
-            transform=data_transform,
+            transform=dataset_transform,
             dataset_split=dataset_split,
         )
         obj.eval_dataset = eval_dataset

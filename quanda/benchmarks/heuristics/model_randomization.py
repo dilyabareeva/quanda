@@ -1,18 +1,12 @@
 """Model Randomization benchmark module."""
 
 import logging
-import os
 from typing import Callable, List, Optional, Union, Any
 
 import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import (
-    load_module_from_bench_state,
-    sample_transforms,
-)
-from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
@@ -77,7 +71,7 @@ class ModelRandomization(Benchmark):
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         model_id: str = "0",
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         use_predictions: bool = True,
@@ -105,7 +99,7 @@ class ModelRandomization(Benchmark):
             (model, checkpoint path) as two arguments, by default None.
         model_id : str, optional
             Identifier for the model, by default "0".
-        data_transform : Optional[Callable], optional
+        dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
             Correlation function to be used for the evaluation.
@@ -139,7 +133,7 @@ class ModelRandomization(Benchmark):
         obj._set_devices(model)
         obj.train_dataset = obj._process_dataset(
             train_dataset,
-            transform=data_transform,
+            transform=dataset_transform,
             dataset_split=dataset_split,
         )
         obj.eval_dataset = eval_dataset
@@ -155,77 +149,6 @@ class ModelRandomization(Benchmark):
         return obj
 
     @classmethod
-    def download(
-        cls,
-        name: str,
-        cache_dir: str,
-        device: str,
-        model_id: str = "0",
-        *args,
-        **kwargs,
-    ):
-        """Download a precomputed benchmark.
-
-        Load precomputed benchmark components from a file and creates an
-        instance from the state dictionary.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        device : str
-            Device to load the model on.
-        model_id : str, optional
-            Identifier for the model, by default "0".
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        ModelRandomization
-            The benchmark instance.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        checkpoint_paths = []
-        for ckpt_name, ckpt in zip(
-            bench_state["checkpoints"], bench_state["checkpoints_binary"]
-        ):
-            save_path = os.path.join(cache_dir, ckpt_name)
-            torch.save(ckpt, save_path)
-            checkpoint_paths.append(save_path)
-
-        eval_dataset = obj._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split=bench_state["test_split_name"],
-        )
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        return obj.assemble(
-            model=module,
-            cache_dir=cache_dir,
-            model_id=model_id,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            train_dataset=bench_state["dataset_str"],
-            eval_dataset=eval_dataset,
-            use_predictions=bench_state["use_predictions"],
-            data_transform=dataset_transform,
-            checkpoint_paths=checkpoint_paths,
-        )
-
-    @classmethod
     def assemble(
         cls,
         model: torch.nn.Module,
@@ -234,7 +157,7 @@ class ModelRandomization(Benchmark):
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         model_id: str = "0",
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
@@ -263,7 +186,7 @@ class ModelRandomization(Benchmark):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
-        data_transform : Optional[Callable], optional
+        dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
         model_id : str, optional
             Identifier for the model, by default "0".
@@ -306,7 +229,7 @@ class ModelRandomization(Benchmark):
         obj.seed = seed
         obj.train_dataset = obj._process_dataset(
             train_dataset,
-            transform=data_transform,
+            transform=dataset_transform,
             dataset_split=dataset_split,
         )
 

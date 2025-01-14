@@ -1,18 +1,12 @@
 """Class Detection benchmark."""
 
 import logging
-import os
 from typing import Callable, List, Optional, Union, Any
 
 import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import sample_transforms
-from quanda.benchmarks.resources.modules import (
-    load_module_from_bench_state,
-    bench_load_state_dict,
-)
 from quanda.metrics.downstream_eval import ClassDetectionMetric
 from quanda.utils.common import load_last_checkpoint
 
@@ -70,7 +64,7 @@ class ClassDetection(Benchmark):
         model: torch.nn.Module,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
         *args,
@@ -94,7 +88,7 @@ class ClassDetection(Benchmark):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
-        data_transform : Optional[Callable], optional
+        dataset_transform : Optional[Callable], optional
             The transform to be applied to the dataset, by default None.
         use_predictions : bool, optional
             Whether to use the model's predictions for the evaluation. Original
@@ -128,71 +122,12 @@ class ClassDetection(Benchmark):
         obj.eval_dataset = eval_dataset
         obj.train_dataset = obj._process_dataset(
             train_dataset,
-            transform=data_transform,
+            transform=dataset_transform,
             dataset_split=dataset_split,
         )
         obj.use_predictions = use_predictions
 
         return obj
-
-    @classmethod
-    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """Download a precomputed benchmark.
-
-        Download precomputed benchmark components and creates an instance
-        from them.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        device : str
-            Device to load the model on.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        ClassDetection
-            The benchmark instance.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        checkpoint_paths = []
-        for ckpt_name, ckpt in zip(
-            bench_state["checkpoints"], bench_state["checkpoints_binary"]
-        ):
-            save_path = os.path.join(cache_dir, ckpt_name)
-            torch.save(ckpt, save_path)
-            checkpoint_paths.append(save_path)
-
-        eval_dataset = obj._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split=bench_state["test_split_name"],
-        )
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        return obj.assemble(
-            model=module,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            train_dataset=bench_state["dataset_str"],
-            eval_dataset=eval_dataset,
-            data_transform=dataset_transform,
-            use_predictions=bench_state["use_predictions"],
-            checkpoint_paths=checkpoint_paths,
-        )
 
     @classmethod
     def assemble(
@@ -202,7 +137,7 @@ class ClassDetection(Benchmark):
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
         checkpoint_paths: Optional[List[str]] = None,
@@ -225,7 +160,7 @@ class ClassDetection(Benchmark):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
-        data_transform : Optional[Callable], optional
+        dataset_transform : Optional[Callable], optional
             The transform to be applied to the dataset, by default None.
         use_predictions : bool, optional
             Whether to use the model's predictions for the evaluation, by
@@ -255,7 +190,7 @@ class ClassDetection(Benchmark):
         obj.eval_dataset = eval_dataset
         obj.train_dataset = obj._process_dataset(
             train_dataset,
-            transform=data_transform,
+            transform=dataset_transform,
             dataset_split=dataset_split,
         )
         obj.use_predictions = use_predictions

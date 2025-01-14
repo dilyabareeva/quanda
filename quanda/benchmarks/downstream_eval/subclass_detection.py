@@ -10,11 +10,6 @@ import torch
 from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import (
-    load_module_from_bench_state,
-    sample_transforms,
-)
-from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
 from quanda.utils.common import ds_len, load_last_checkpoint
 from quanda.utils.datasets.transformed.label_grouping import (
@@ -323,67 +318,6 @@ class SubclassDetection(Benchmark):
         self.group_model.eval()
 
     @classmethod
-    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """Download a precomputed benchmark.
-
-        Load precomputed benchmark components from a file and creates an
-        instance from the state dictionary.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        device : str
-            Device to load the model on.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        SubclassDetection
-            The benchmark instance.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        checkpoint_paths = []
-        for ckpt_name, ckpt in zip(
-            bench_state["checkpoints"], bench_state["checkpoints_binary"]
-        ):
-            save_path = os.path.join(cache_dir, ckpt_name)
-            torch.save(ckpt, save_path)
-            checkpoint_paths.append(save_path)
-
-        eval_dataset = obj._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split=bench_state["test_split_name"],
-        )
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        return obj.assemble(
-            group_model=module,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            base_dataset=bench_state["dataset_str"],
-            n_classes=bench_state["n_classes"],
-            eval_dataset=eval_dataset,
-            use_predictions=bench_state["use_predictions"],
-            class_to_group=bench_state["class_to_group"],
-            dataset_transform=dataset_transform,
-            checkpoint_paths=checkpoint_paths,
-        )
-
-    @classmethod
     def assemble(
         cls,
         group_model: Union[torch.nn.Module, L.LightningModule],
@@ -399,6 +333,8 @@ class SubclassDetection(Benchmark):
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
         checkpoint_paths: Optional[List[str]] = None,
+        *args,
+        **kwargs,
     ):
         """Assembles the benchmark from existing components.
 

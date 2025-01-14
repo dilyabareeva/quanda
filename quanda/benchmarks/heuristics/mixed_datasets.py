@@ -93,7 +93,7 @@ class MixedDatasets(Benchmark):
         adv_train_indices: List[int],
         trainer: Union[L.Trainer, BaseTrainer],
         cache_dir: str,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
         dataset_split: str = "train",
@@ -135,7 +135,7 @@ class MixedDatasets(Benchmark):
             Trainer or a `BaseTrainer`.
         cache_dir: str
             Directory to store the generated benchmark.
-        data_transform: Optional[Callable], optional
+        dataset_transform: Optional[Callable], optional
             Transform to be applied to the clean dataset, by default None.
         use_predictions: bool, optional
             Whether to use the model's predictions for generating attributions.
@@ -195,7 +195,9 @@ class MixedDatasets(Benchmark):
         obj.filter_by_prediction = filter_by_prediction
 
         pr_base_dataset = obj._process_dataset(
-            base_dataset, transform=data_transform, dataset_split=dataset_split
+            base_dataset,
+            transform=dataset_transform,
+            dataset_split=dataset_split,
         )
 
         adversarial_dataset = SingleClassImageDataset(
@@ -346,8 +348,8 @@ class MixedDatasets(Benchmark):
             adversarial_dir=adversarial_dir,
             adversarial_label=bench_state["adversarial_label"],
             adversarial_transform=adversarial_transform,
-            adv_train_indices = adv_train_indices,
-            data_transform=dataset_transform,
+            adv_train_indices=adv_train_indices,
+            dataset_transform=dataset_transform,
             checkpoint_paths=checkpoint_paths,
         )
 
@@ -406,7 +408,7 @@ class MixedDatasets(Benchmark):
         adv_train_indices: List[int],
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
         adversarial_transform: Optional[Callable] = None,
@@ -439,7 +441,7 @@ class MixedDatasets(Benchmark):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
-        data_transform: Optional[Callable], optional
+        dataset_transform: Optional[Callable], optional
             Transform to be applied to the clean dataset, by default None.
         use_predictions: bool, optional
             Whether to use the model's predictions for generating attributions.
@@ -473,7 +475,9 @@ class MixedDatasets(Benchmark):
         obj.checkpoints = checkpoints
         obj.checkpoints_load_func = checkpoints_load_func
         obj.base_dataset = obj._process_dataset(
-            base_dataset, transform=data_transform, dataset_split=dataset_split
+            base_dataset,
+            transform=dataset_transform,
+            dataset_split=dataset_split,
         )
         obj.eval_dataset = eval_dataset
         obj.use_predictions = use_predictions

@@ -8,7 +8,12 @@ import requests
 import torch
 from datasets import load_dataset  # type: ignore
 
-from quanda.benchmarks.resources import benchmark_urls
+from quanda.benchmarks.resources import (
+    benchmark_urls,
+    sample_transforms,
+    load_module_from_bench_state,
+)
+from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.utils.common import get_load_state_dict_func
 from quanda.utils.datasets.image_datasets import HFtoTV
 
@@ -41,7 +46,6 @@ class Benchmark(ABC):
         raise NotImplementedError
 
     @classmethod
-    @abstractmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """Download a precomputed benchmark.
 
@@ -61,12 +65,18 @@ class Benchmark(ABC):
         kwargs: Any
             Additional keyword arguments.
 
-        Raises
-        ------
-        NotImplementedError
+        Returns
+        -------
+        Benchmark
+            The benchmark instance.
 
         """
-        raise NotImplementedError
+        obj = cls()
+        bench_state = obj._get_bench_state(
+            name, cache_dir, device, *args, **kwargs
+        )
+
+        return obj.parse_bench_state(bench_state, cache_dir, device=device)
 
     def _get_bench_state(
         self,
@@ -264,3 +274,79 @@ class Benchmark(ABC):
             self._checkpoints = []
         else:
             self._checkpoints = value if isinstance(value, List) else [value]
+
+    def parse_bench_state(
+        self,
+        bench_state: dict,
+        cache_dir: Optional[str] = None,
+        model_id: Optional[str] = None,
+        device: str = "cpu",
+    ):
+        """Parse the benchmark state dictionary."""
+
+        checkpoint_paths = []
+
+        assemble_dict = {}
+
+        for ckpt_name, ckpt in zip(
+            bench_state["checkpoints"], bench_state["checkpoints_binary"]
+        ):
+            save_path = os.path.join(cache_dir, ckpt_name)
+            torch.save(ckpt, save_path)
+            checkpoint_paths.append(save_path)
+
+        dataset_transform_str = bench_state.get("dataset_transform", None)
+        if dataset_transform_str:
+            dataset_transform = sample_transforms[dataset_transform_str]
+        else:
+            dataset_transform = None
+
+        sample_fn_str = bench_state.get("sample_fn", None)
+        if sample_fn_str:
+            sample_fn = sample_transforms[sample_fn_str]
+        else:
+            sample_fn = None
+
+        eval_dataset = self._build_eval_dataset(
+            dataset_str=bench_state["dataset_str"],
+            eval_indices=bench_state["eval_test_indices"],
+            transform=dataset_transform
+            if self.name != "Shortcut Detection"
+            else None,  # TODO: better way to handle this
+            dataset_split=bench_state["test_split_name"],
+        )
+
+        module = load_module_from_bench_state(bench_state, device)
+
+        # check the type of the instance self
+
+        assemble_dict["model"] = module
+        assemble_dict["group_model"] = (
+            module  # TODO: rename model to group_model in the benchmarks
+        )
+        assemble_dict["checkpoints"] = bench_state["checkpoints_binary"]
+        assemble_dict["checkpoints_load_func"] = bench_load_state_dict
+        assemble_dict["train_dataset"] = bench_state["dataset_str"]
+        assemble_dict["base_dataset"] = bench_state[
+            "dataset_str"
+        ]  # TODO: rename dataset_str to base/train_dataset_str
+        assemble_dict["eval_dataset"] = eval_dataset
+        assemble_dict["use_predictions"] = bench_state["use_predictions"]
+        assemble_dict["checkpoint_paths"] = checkpoint_paths
+        assemble_dict["dataset_transform"] = dataset_transform
+        assemble_dict["sample_fn"] = sample_fn
+        assemble_dict["cache_dir"] = cache_dir
+        assemble_dict["model_id"] = model_id
+
+        for el in [
+            "n_classes",
+            "mislabeling_labels",
+            "global_method",
+            "shortcut_indices",
+            "shortcut_cls",
+            "class_to_group",
+        ]:
+            if el in bench_state:
+                assemble_dict[el] = bench_state[el]
+
+        return self.assemble(**assemble_dict)
