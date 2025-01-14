@@ -17,8 +17,84 @@ from quanda.utils.common import (
 
 @pytest.mark.heuristic_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, test_data, batch_size, explainer_cls, \
-    expl_kwargs, explanations, test_labels, correlation_fn",
+    "test_id, model, checkpoint, dataset, test_data, "
+    "explainer_cls, expl_kwargs, explanations, test_labels",
+    [
+        (
+            "mnist_update_only_spearman",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_test_labels_1",
+        ),
+        (
+            "mnist_update_only_kendall",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_test_labels_1",
+        ),
+    ],
+)
+def test_randomization_metric_score(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_data,
+    explainer_cls,
+    expl_kwargs,
+    explanations,
+    test_labels,
+    tmp_path,
+    request,
+):
+    model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
+    test_data = request.getfixturevalue(test_data)
+    dataset = request.getfixturevalue(dataset)
+    test_labels = request.getfixturevalue(test_labels)
+    tda = request.getfixturevalue(explanations)
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
+
+    metric = ModelRandomizationMetric(
+        model=model,
+        model_id=0,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
+        cache_dir=str(tmp_path),
+        seed=42,
+    )
+    metric.update(
+        test_data=test_data, explanations=tda, explanation_targets=test_labels
+    )
+
+    out = metric.compute()["score"]
+    assert (out >= -1.0) & (
+        out <= 1.0
+    ), "Metric score is out of expected range."
+
+
+@pytest.mark.heuristic_metrics
+@pytest.mark.parametrize(
+    "test_id, model, checkpoint, dataset, test_data, batch_size, "
+    "explainer_cls, expl_kwargs, explanations, test_labels",
     [
         (
             "mnist_update_only_spearman",
@@ -34,7 +110,6 @@ from quanda.utils.common import (
             },
             "load_mnist_explanations_similarity_1",
             "load_mnist_test_labels_1",
-            "spearman",
         ),
         (
             "mnist_update_only_kendall",
@@ -50,11 +125,10 @@ from quanda.utils.common import (
             },
             "load_mnist_explanations_similarity_1",
             "load_mnist_test_labels_1",
-            "kendall",
         ),
     ],
 )
-def test_randomization_metric(
+def test_randomization_metric_randomization(
     test_id,
     model,
     checkpoint,
@@ -65,17 +139,106 @@ def test_randomization_metric(
     expl_kwargs,
     explanations,
     test_labels,
-    correlation_fn,
     tmp_path,
     request,
 ):
-    # 1) Check if the metric works correctly
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
     test_data = request.getfixturevalue(test_data)
     dataset = request.getfixturevalue(dataset)
     test_labels = request.getfixturevalue(test_labels)
-    tda = request.getfixturevalue(explanations)
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
+
+    metric = ModelRandomizationMetric(
+        model=model,
+        model_id=0,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
+        cache_dir=str(tmp_path),
+        seed=42,
+    )
+
+    # Generate a random batch of data
+    batch_size = 2
+    input_shape = test_data[0].shape
+    random_tensor = torch.randn((batch_size, *input_shape), device="cpu")
+
+    # Randomize model
+    rand_model = metric._randomize_model()[0]
+    rand_model.eval()
+    model.eval()
+
+    # Check if the outputs differ after randomization
+    with torch.no_grad():
+        original_out = model(random_tensor)
+        randomized_out = rand_model(random_tensor)
+
+    assert not torch.allclose(
+        original_out, randomized_out
+    ), "Outputs do not differ after randomization."
+    assert not torch.isnan(
+        randomized_out
+    ).any(), "Randomized model output contains NaNs."
+
+
+@pytest.mark.heuristic_metrics
+@pytest.mark.parametrize(
+    "test_id, model, checkpoint, dataset, test_data, batch_size, "
+    "explainer_cls, expl_kwargs, explanations, test_labels",
+    [
+        (
+            "mnist_update_only_spearman",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            8,
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_test_labels_1",
+        ),
+        (
+            "mnist_update_only_kendall",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            8,
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_test_labels_1",
+        ),
+    ],
+)
+def test_randomization_metric_custom_param(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_data,
+    batch_size,
+    explainer_cls,
+    expl_kwargs,
+    explanations,
+    test_labels,
+    tmp_path,
+    request,
+):
+    model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
+    test_data = request.getfixturevalue(test_data)
+    dataset = request.getfixturevalue(dataset)
+    test_labels = request.getfixturevalue(test_labels)
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
 
     def _load_flexible_state_dict(model: torch.nn.Module, path: str):
@@ -94,46 +257,39 @@ def test_randomization_metric(
         cache_dir=str(tmp_path),
         seed=42,
     )
-    metric.update(
-        test_data=test_data, explanations=tda, explanation_targets=test_labels
-    )
 
-    out = metric.compute()["score"]
-    assert (out >= -1.0) & (out <= 1.0), "Test failed."
+    # Add a custom parameter to the model
+    model.custom_param = torch.nn.Parameter(torch.randn(4))
+    model.eval()
 
-    # 2) Check if the randomization works correctly
+    # Save the original custom parameter
+    original_custom_param = model.custom_param.data.clone()
+
+    # Randomize model
+    rand_model = metric._randomize_model()[0]
+    rand_model.eval()
+
+    # Save the randomized custom parameter
+    randomized_custom_param = rand_model.custom_param.data.clone()
+
+    # Generate a random batch of data
     batch_size = 2
     input_shape = test_data[0].shape
     random_tensor = torch.randn((batch_size, *input_shape), device="cpu")
 
-    rand_model = metric._randomize_model()[0]
-    rand_model.eval()
-    model.eval()
-
+    # Check if both outputs and custom params differ after randomization
     with torch.no_grad():
         original_out = model(random_tensor)
         randomized_out = rand_model(random_tensor)
 
     assert not torch.allclose(
         original_out, randomized_out
-    ), "Outputs do not differ after randomization"
-    assert not torch.isnan(
-        randomized_out
-    ).any(), "Randomized model output contains NaNs."
-
-    # 3) Check if the randomization works correctly for custom parameters
-    model.custom_param = torch.nn.Parameter(torch.randn(4))
-    model.eval()
-    rand_model = metric._randomize_model()[0]
-    rand_model.eval()
-
-    with torch.no_grad():
-        original_out = model(random_tensor)
-        randomized_out = rand_model(random_tensor)
+    ), "Outputs do not differ after randomization."
 
     assert not torch.allclose(
-        original_out, randomized_out
-    ), "Outputs do not differ after randomization"
+        original_custom_param, randomized_custom_param
+    ), "Custom parameter did not change after randomization."
+
     assert not torch.isnan(
         randomized_out
     ).any(), "Randomized model output contains NaNs."
