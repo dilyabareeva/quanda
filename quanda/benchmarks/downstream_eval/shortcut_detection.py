@@ -161,10 +161,12 @@ class ShortcutDetection(Benchmark):
             An instance of the ShortcutDetection benchmark.
 
         """
-
         obj = cls()
 
         save_dir = os.path.join(cache_dir, "model_shortcut_detection.pth")
+        base_dataset = obj._process_dataset(
+            base_dataset, transform=None, dataset_split=dataset_split
+        )
         shortcut_dataset = SampleTransformationDataset(
             dataset=base_dataset,
             p=p,
@@ -315,7 +317,10 @@ class ShortcutDetection(Benchmark):
         obj.filter_by_class = filter_by_class
 
         if shortcut_dataset is not None:
-            warnings.warn("shortcut_dataset is not None. Ignoring other shortcut parameters.")
+            warnings.warn(
+                "shortcut_dataset is not None. Ignoring other shortcut "
+                "parameters."
+            )
             obj.shortcut_dataset = shortcut_dataset
         else:
             obj.shortcut_dataset = SampleTransformationDataset(

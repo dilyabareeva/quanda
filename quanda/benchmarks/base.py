@@ -226,7 +226,7 @@ class Benchmark(ABC):
         dataset: Union[str, torch.utils.data.Dataset],
         transform: Optional[Callable] = None,
         dataset_split: str = "train",
-    ):
+    ) -> torch.utils.data.Dataset:
         """Return the dataset using the given parameters.
 
         Parameters
@@ -350,6 +350,8 @@ class Benchmark(ABC):
         device: str = "cpu",
     ):
         """Parse the benchmark state dictionary."""
+        # TODO: this should be further refactored after the pipeline is done.
+        # TODO: fix this mess.
         checkpoint_paths = []
 
         assemble_dict = {}

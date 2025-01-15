@@ -56,6 +56,7 @@ class SubclassDetection(Benchmark):
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
+        self.grouped_dataset: LabelGroupingDataset
         self.dataset_transform: Optional[Callable]
         self.grouped_train_dl: torch.utils.data.DataLoader
         self.grouped_val_dl: Optional[torch.utils.data.DataLoader]
@@ -153,6 +154,10 @@ class SubclassDetection(Benchmark):
         obj = cls()
 
         save_dir = os.path.join(cache_dir, "model_subclass_detection.pth")
+
+        base_dataset = obj._process_dataset(
+            base_dataset, transform=None, dataset_split=dataset_split
+        )
         grouped_dataset = LabelGroupingDataset(
             dataset=base_dataset,
             dataset_transform=dataset_transform,
@@ -176,7 +181,6 @@ class SubclassDetection(Benchmark):
             dataset_split=dataset_split,
             dataset_transform=dataset_transform,
             batch_size=batch_size,
-
         )
 
         if val_dataset:

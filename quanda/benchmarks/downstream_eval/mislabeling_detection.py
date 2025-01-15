@@ -88,12 +88,6 @@ class MislabelingDetection(Benchmark):
         self.n_classes: int
         self.use_predictions: bool
 
-    def _poison(self, original_label):
-        """Poisons labels."""
-        label_arr = [i for i in range(self.n_classes) if original_label != i]
-        label_idx = self.rng.randint(0, len(label_arr) - 1)
-        return label_arr[label_idx]
-
     @classmethod
     def generate(
         cls,
@@ -194,7 +188,12 @@ class MislabelingDetection(Benchmark):
                 "given."
             )
 
+        obj = cls()
+
         save_dir = os.path.join(cache_dir, "model_mislabeling_detection.pth")
+        base_dataset = obj._process_dataset(
+            base_dataset, transform=None, dataset_split=dataset_split
+        )
         mislabeling_dataset = LabelFlippingDataset(
             dataset=base_dataset,
             p=p,
@@ -204,8 +203,6 @@ class MislabelingDetection(Benchmark):
         )
 
         mislabeling_labels = mislabeling_dataset.mislabeling_labels
-
-        obj = cls()
 
         obj = obj.assemble(
             model=model,
@@ -242,7 +239,7 @@ class MislabelingDetection(Benchmark):
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         mislabeling_labels: Dict[int, int],
-        mislabeling_dataset: Optional[torch.utils.data.Dataset] = None,
+        mislabeling_dataset: Optional[LabelFlippingDataset] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         eval_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -340,8 +337,10 @@ class MislabelingDetection(Benchmark):
         )
 
         if mislabeling_dataset is not None:
-            warnings.warn("mislabeling_dataset was passed, mislabeling_labels "
-                          "will be ignored.")
+            warnings.warn(
+                "mislabeling_dataset was passed, mislabeling_labels "
+                "will be ignored."
+            )
             obj.mislabeling_dataset = mislabeling_dataset
         else:
             obj.mislabeling_dataset = LabelFlippingDataset(

@@ -192,7 +192,6 @@ class MixedDatasets(Benchmark):
             filter_by_prediction=filter_by_prediction,
             adversarial_transform=adversarial_transform,
             dataset_split=dataset_split,
-
         )
 
         obj.model = obj._train_model(
@@ -211,7 +210,7 @@ class MixedDatasets(Benchmark):
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
         eval_dataset: torch.utils.data.Dataset,
-        base_dataset: torch.utils.data.Dataset,
+        base_dataset: Union[str, torch.utils.data.Dataset],
         adversarial_dir: str,
         adversarial_label: int,
         adv_train_indices: List[int],
