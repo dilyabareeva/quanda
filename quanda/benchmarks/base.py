@@ -242,11 +242,15 @@ class Benchmark(ABC):
             The dataset.
 
         """
+        cache_dir = os.getenv(
+            "HF_HOME", os.path.expanduser("~/.cache/huggingface/datasets")
+        )
+
         if isinstance(dataset, str):
             cls.dataset_str = dataset
             return HFtoTV(
-                load_dataset(dataset, split=dataset_split), transform=transform
-            )
+                load_dataset(dataset, name="mnist", split=dataset_split, cache_dir=cache_dir), transform=transform
+            ) # TODO: remove name="mnist"
         else:
             return dataset
 
@@ -277,12 +281,12 @@ class Benchmark(ABC):
 
         """
         cache_dir = os.getenv(
-            "HF_HOME", os.path.expanduser("~/.cache/huggingface")
+            "HF_HOME", os.path.expanduser("~/.cache/huggingface/datasets")
         )
         test_dataset = HFtoTV(
             load_dataset(
-                dataset_str, split=dataset_split, cache_dir=cache_dir
-            ),
+                dataset_str, name="mnist", split=dataset_split, cache_dir=cache_dir
+            ), # TODO: remove name="mnist"
             transform=transform,
         )
         return torch.utils.data.Subset(test_dataset, eval_indices)
