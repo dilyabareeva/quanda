@@ -1,6 +1,7 @@
 """Base class for all benchmarks."""
 
 import os
+import zipfile
 from abc import ABC, abstractmethod
 from typing import Callable, List, Optional, Union, Any
 
@@ -18,8 +19,10 @@ from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
-from quanda.utils.datasets.image_datasets import HFtoTV, \
-    SingleClassImageDataset
+from quanda.utils.datasets.image_datasets import (
+    HFtoTV,
+    SingleClassImageDataset,
+)
 import lightning as L
 
 from quanda.utils.training import BaseTrainer
@@ -249,8 +252,14 @@ class Benchmark(ABC):
         if isinstance(dataset, str):
             cls.dataset_str = dataset
             return HFtoTV(
-                load_dataset(dataset, name="mnist", split=dataset_split, cache_dir=cache_dir), transform=transform
-            ) # TODO: remove name="mnist"
+                load_dataset(
+                    dataset,
+                    name="mnist",
+                    split=dataset_split,
+                    cache_dir=cache_dir,
+                ),
+                transform=transform,
+            )  # TODO: remove name="mnist"
         else:
             return dataset
 
@@ -285,8 +294,11 @@ class Benchmark(ABC):
         )
         test_dataset = HFtoTV(
             load_dataset(
-                dataset_str, name="mnist", split=dataset_split, cache_dir=cache_dir
-            ), # TODO: remove name="mnist"
+                dataset_str,
+                name="mnist",
+                split=dataset_split,
+                cache_dir=cache_dir,
+            ),  # TODO: remove name="mnist"
             transform=transform,
         )
         return torch.utils.data.Subset(test_dataset, eval_indices)
@@ -382,7 +394,9 @@ class Benchmark(ABC):
             ]
             adv_test_indices = bench_state["adv_indices_test"]
             eval_from_test_indices = bench_state["eval_test_indices"]
-            eval_indices = [adv_test_indices[i] for i in eval_from_test_indices]
+            eval_indices = [
+                adv_test_indices[i] for i in eval_from_test_indices
+            ]
 
             eval_dataset = SingleClassImageDataset(
                 root=adversarial_dir,
@@ -394,9 +408,7 @@ class Benchmark(ABC):
             adv_train_indices = bench_state["adv_indices_train"]
             assemble_dict["adversarial_dir"] = adversarial_dir
             assemble_dict["adv_train_indices"] = adv_train_indices
-            assemble_dict["adversarial_label"] = bench_state["adversarial_label"]
             assemble_dict["adversarial_transform"] = adversarial_transform
-
 
         module = load_module_from_bench_state(bench_state, device)
 
@@ -420,6 +432,7 @@ class Benchmark(ABC):
         for el in [
             "n_classes",
             "mislabeling_labels",
+            "adversarial_label",
             "global_method",
             "shortcut_indices",
             "shortcut_cls",
@@ -573,3 +586,45 @@ class Benchmark(ABC):
         model.eval()
 
         return model
+
+    def _download_adversarial_dataset(
+        self, adversarial_dir_url: str, cache_dir: str
+    ):
+        """Download the adversarial dataset.
+
+        Download the adversarial dataset from the given URL and returns the
+        path to the downloaded directory.
+
+        Parameters
+        ----------
+        adversarial_dir_url: str
+            URL to the adversarial dataset.
+        cache_dir: str
+            Path to the cache directory.
+
+        Returns
+        -------
+        str
+            Path to the downloaded adversarial dataset directory.
+
+        """
+        name = self.name.replace(" ", "_").lower()
+        # Download the zip file and extract into cache dir
+        adversarial_dir = os.path.join(
+            cache_dir, name + "_adversarial_dataset"
+        )
+        os.makedirs(adversarial_dir, exist_ok=True)
+
+        # download
+        adversarial_dir_zip = os.path.join(
+            adversarial_dir, "adversarial_dataset.zip"
+        )
+        with open(adversarial_dir_zip, "wb") as f:
+            response = requests.get(adversarial_dir_url)
+            f.write(response.content)
+
+        # extract
+        with zipfile.ZipFile(adversarial_dir_zip, "r") as zip_ref:
+            zip_ref.extractall(adversarial_dir)
+
+        return adversarial_dir

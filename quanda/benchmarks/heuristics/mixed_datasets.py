@@ -2,19 +2,12 @@
 
 import logging
 import os
-import zipfile
 from typing import Callable, List, Optional, Union, Any
 
 import lightning as L
-import requests
 import torch
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import (
-    load_module_from_bench_state,
-    sample_transforms,
-)
-from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.common import ds_len
 from quanda.utils.datasets import SingleClassImageDataset
@@ -182,42 +175,25 @@ class MixedDatasets(Benchmark):
             f"passed arguments..."
         )
 
+        save_dir = os.path.join(cache_dir, "model_mixed_datasets.pth")
+
         obj = cls()
-        obj._assemble_common(
+        obj = obj.assemble(
             model=model,
             eval_dataset=eval_dataset,
-            checkpoints=[
-                os.path.join(cache_dir, "model_mixed_datasets.pth")
-            ],  # TODO: save checkpoints,
+            base_dataset=base_dataset,
+            adversarial_dir=adversarial_dir,
+            adversarial_label=adversarial_label,
+            adv_train_indices=adv_train_indices,
+            checkpoints=[save_dir],
             checkpoints_load_func=None,
+            dataset_transform=dataset_transform,
             use_predictions=use_predictions,
-        )
-        obj.cache_dir = cache_dir
-
-        obj.adversarial_label = adversarial_label
-        obj.filter_by_prediction = filter_by_prediction
-
-        pr_base_dataset = obj._process_dataset(
-            base_dataset,
-            transform=dataset_transform,
+            filter_by_prediction=filter_by_prediction,
+            adversarial_transform=adversarial_transform,
             dataset_split=dataset_split,
-        )
 
-        adversarial_dataset = SingleClassImageDataset(
-            root=adversarial_dir,
-            label=adversarial_label,
-            transform=adversarial_transform,
-            indices=adv_train_indices,
         )
-
-        obj.mixed_dataset = torch.utils.data.ConcatDataset(
-            [adversarial_dataset, pr_base_dataset]
-        )
-        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [
-            0
-        ] * ds_len(pr_base_dataset)
-
-        save_dir = os.path.join(cache_dir, "model_mixed_datasets.pth")
 
         obj.model = obj._train_model(
             model=model,
@@ -229,48 +205,6 @@ class MixedDatasets(Benchmark):
             batch_size=batch_size,
         )
         return obj
-
-    def _download_adversarial_dataset(
-        self, adversarial_dir_url: str, cache_dir: str
-    ):
-        """Download the adversarial dataset.
-
-        Download the adversarial dataset from the given URL and returns the
-        path to the downloaded directory.
-
-        Parameters
-        ----------
-        adversarial_dir_url: str
-            URL to the adversarial dataset.
-        cache_dir: str
-            Path to the cache directory.
-
-        Returns
-        -------
-        str
-            Path to the downloaded adversarial dataset directory.
-
-        """
-        name = self.name.replace(" ", "_").lower()
-        # Download the zip file and extract into cache dir
-        adversarial_dir = os.path.join(
-            cache_dir, name + "_adversarial_dataset"
-        )
-        os.makedirs(adversarial_dir, exist_ok=True)
-
-        # download
-        adversarial_dir_zip = os.path.join(
-            adversarial_dir, "adversarial_dataset.zip"
-        )
-        with open(adversarial_dir_zip, "wb") as f:
-            response = requests.get(adversarial_dir_url)
-            f.write(response.content)
-
-        # extract
-        with zipfile.ZipFile(adversarial_dir_zip, "r") as zip_ref:
-            zip_ref.extractall(adversarial_dir)
-
-        return adversarial_dir
 
     @classmethod
     def assemble(
@@ -288,7 +222,6 @@ class MixedDatasets(Benchmark):
         filter_by_prediction: bool = True,
         adversarial_transform: Optional[Callable] = None,
         dataset_split: str = "train",
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -330,9 +263,6 @@ class MixedDatasets(Benchmark):
         dataset_split: str, optional
             The dataset split, only used for HuggingFace datasets, by default
             "train".
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -373,8 +303,6 @@ class MixedDatasets(Benchmark):
         obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [
             0
         ] * ds_len(obj.base_dataset)
-
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 

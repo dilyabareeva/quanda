@@ -2,6 +2,7 @@
 
 import logging
 import os
+import warnings
 from typing import Callable, Dict, List, Optional, Union, Any
 
 import lightning as L
@@ -150,121 +151,52 @@ class SubclassDetection(Benchmark):
         )
 
         obj = cls()
-        obj._assemble_common(
+
+        save_dir = os.path.join(cache_dir, "model_subclass_detection.pth")
+        grouped_dataset = LabelGroupingDataset(
+            dataset=base_dataset,
+            dataset_transform=dataset_transform,
+            n_classes=n_classes,
+            n_groups=n_groups,
+            class_to_group=class_to_group,
+            seed=seed,
+        )
+
+        obj = obj.assemble(
             model=model,
+            base_dataset=base_dataset,
+            n_classes=n_classes,
+            class_to_group=grouped_dataset.class_to_group,
             eval_dataset=eval_dataset,
-            checkpoints=[
-                os.path.join(cache_dir, "model_subclass_detection.pth")
-            ],  # TODO: save checkpoints,
+            grouped_dataset=grouped_dataset,
+            checkpoints=[save_dir],
             checkpoints_load_func=None,
             use_predictions=use_predictions,
-        )
-
-        obj.base_dataset = obj._process_dataset(
-            base_dataset,
-            transform=dataset_transform,
+            filter_by_prediction=filter_by_prediction,
             dataset_split=dataset_split,
-        )
-        obj.filter_by_prediction = filter_by_prediction
-
-        obj._generate(
-            trainer=trainer,
-            cache_dir=cache_dir,
-            base_dataset=base_dataset,
             dataset_transform=dataset_transform,
-            val_dataset=val_dataset,
-            n_classes=n_classes,
-            n_groups=n_groups,
-            class_to_group=class_to_group,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-            seed=seed,
             batch_size=batch_size,
+
         )
-        return obj
-
-    def _generate(
-        self,
-        trainer: Union[L.Trainer, BaseTrainer],
-        cache_dir: str,
-        val_dataset: Optional[torch.utils.data.Dataset] = None,
-        dataset_transform: Optional[Callable] = None,
-        n_classes: int = 10,
-        n_groups: int = 2,
-        class_to_group: Union[ClassToGroupLiterals, Dict[int, int]] = "random",
-        trainer_fit_kwargs: Optional[dict] = None,
-        seed: int = 27,
-        batch_size: int = 8,
-        *args,
-        **kwargs,
-    ):
-        """Generate the benchmark components.
-
-        Parameters
-        ----------
-        trainer : Union[L.Trainer, BaseTrainer]
-            The trainer used to train the model.
-        cache_dir : str
-            Directory to store the generated benchmark components.
-        val_dataset : Optional[torch.utils.data.Dataset], optional
-            Validation dataset to be used for the benchmark, by default None.
-        dataset_transform : Optional[Callable], optional
-            The original dataset transform, by default None.
-        n_classes : int, optional
-            Number of classes of `base_dataset`, by default 10.
-        n_groups : int, optional
-            Number of groups to split the classes into, by default 2.
-        class_to_group : Union[ClassToGroupLiterals, Dict[int, int]], optional
-            Mapping of classes to groups, as a dictionary. For random grouping,
-            pass "random". By default "random".
-        trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments to be passed to the trainer's `fit`
-            method, by default None.
-        seed : int, optional
-            Random seed for reproducibility, by default 27.
-        batch_size : int, optional
-            Batch size for the dataloaders, by default 8.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        SubclassDetection
-            The benchmark instance.
-
-        """
-        self.grouped_dataset = LabelGroupingDataset(
-            dataset=self.base_dataset,
-            dataset_transform=dataset_transform,
-            n_classes=n_classes,
-            n_groups=n_groups,
-            class_to_group=class_to_group,
-            seed=seed,
-        )
-
-        self.class_to_group = self.grouped_dataset.class_to_group
-        self.n_classes = n_classes
-        self.n_groups = n_groups
-        self.dataset_transform = dataset_transform
 
         if val_dataset:
             val_dataset = LabelGroupingDataset(
                 dataset=val_dataset,
                 dataset_transform=dataset_transform,
                 n_classes=n_classes,
-                class_to_group=self.class_to_group,
+                class_to_group=obj.class_to_group,
             )
-        save_dir = os.path.join(cache_dir, "model_subclass_detection.pth")
-        self.model = self._train_model(
-            model=self.model,
+        obj.model = obj._train_model(
+            model=obj.model,
             trainer=trainer,
-            train_dataset=self.grouped_dataset,
+            train_dataset=obj.grouped_dataset,
             val_dataset=val_dataset,
             save_dir=save_dir,
             trainer_fit_kwargs=trainer_fit_kwargs,
             batch_size=batch_size,
         )
+
+        return obj
 
     @classmethod
     def assemble(
@@ -274,6 +206,7 @@ class SubclassDetection(Benchmark):
         n_classes: int,
         class_to_group: Dict[int, int],  # TODO: type specification
         eval_dataset: torch.utils.data.Dataset,
+        grouped_dataset: Optional[LabelGroupingDataset] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         use_predictions: bool = True,
@@ -299,6 +232,8 @@ class SubclassDetection(Benchmark):
             Mapping of classes to groups.
         eval_dataset : torch.utils.data.Dataset
             Evaluation dataset to be used for the benchmark.
+        grouped_dataset : Optional[LabelGroupingDataset], optional
+            The grouped dataset, by default None.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
@@ -350,12 +285,19 @@ class SubclassDetection(Benchmark):
         obj.n_classes = n_classes
         obj.filter_by_prediction = filter_by_prediction
 
-        obj.grouped_dataset = LabelGroupingDataset(
-            dataset=obj.base_dataset,
-            dataset_transform=dataset_transform,
-            n_classes=obj.n_classes,
-            class_to_group=class_to_group,
-        )
+        if grouped_dataset is not None:
+            warnings.warn(
+                "Using the provided grouped dataset. The class_to_group "
+                "parameter will be ignored."
+            )
+            obj.grouped_dataset = grouped_dataset
+        else:
+            obj.grouped_dataset = LabelGroupingDataset(
+                dataset=obj.base_dataset,
+                dataset_transform=dataset_transform,
+                n_classes=obj.n_classes,
+                class_to_group=class_to_group,
+            )
         obj.grouped_train_dl = torch.utils.data.DataLoader(
             obj.grouped_dataset, batch_size=batch_size
         )
