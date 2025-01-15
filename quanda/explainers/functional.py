@@ -12,7 +12,7 @@ class ExplainFunc(Protocol):
         self,
         model: torch.nn.Module,
         model_id: str,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         train_dataset: torch.utils.data.Dataset,
         device: Union[str, torch.device],
         cache_dir: str = "./cache",
@@ -28,7 +28,7 @@ class ExplainFuncMini(Protocol):
 
     def __call__(
         self,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
         **kwargs: Any,
     ) -> torch.Tensor:

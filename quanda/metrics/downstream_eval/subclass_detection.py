@@ -71,9 +71,9 @@ class SubclassDetectionMetric(ClassDetectionMetric):
     def update(
         self,
         explanations: torch.Tensor,
-        test_subclasses: Union[List[int], torch.Tensor],
-        test_tensor: Optional[torch.Tensor] = None,
-        test_classes: Optional[torch.Tensor] = None,
+        test_labels: Union[List[int], torch.Tensor],
+        test_data: Optional[torch.Tensor] = None,
+        grouped_labels: Optional[torch.Tensor] = None,
     ):
         """Update the metric state with the provided explanations.
 
@@ -81,56 +81,56 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         ----------
         explanations : torch.Tensor
             Explanations of the test samples.
-        test_subclasses : torch.Tensor
+        test_labels : torch.Tensor
             Original labels of the test samples.
-        test_tensor: Optional[torch.Tensor]
+        test_data: Optional[torch.Tensor]
             Test samples to used to generate the explanations.
             Only required if `filter_by_prediction` is True during
             initalization.
-        test_classes: Optional[torch.Tensor]
+        grouped_labels: Optional[torch.Tensor]
             The true superclasses of the test samples. Only required if
             `filter_by_prediction` is True during initalization.
 
         Raises
         ------
         ValueError
-            If `test_tensor` and `test_classes` are not provided when
+            If `test_data` and `grouped_labels` are not provided when
             `filter_by_prediction` is True.
 
         """
         explanations = explanations.to(self.device)
 
         if (
-            test_tensor is None or test_classes is None
+            test_data is None or grouped_labels is None
         ) and self.filter_by_prediction:
             raise ValueError(
-                "test_tensor and test_classes must be provided if "
+                "test_data and grouped_labels must be provided if "
                 "filter_by_prediction is True"
             )
 
-        if isinstance(test_subclasses, list):
-            test_subclasses = torch.tensor(test_subclasses)
-        test_subclasses = test_subclasses.to(self.device)
+        if isinstance(test_labels, list):
+            test_labels = torch.tensor(test_labels)
+        test_labels = test_labels.to(self.device)
 
-        if test_tensor is not None:
-            test_tensor = test_tensor.to(self.device)
-        if test_classes is not None:
-            if isinstance(test_classes, list):
-                test_classes = torch.tensor(test_classes)
-            test_classes = test_classes.to(self.device)
+        if test_data is not None:
+            test_data = test_data.to(self.device)
+        if grouped_labels is not None:
+            if isinstance(grouped_labels, list):
+                grouped_labels = torch.tensor(grouped_labels)
+            grouped_labels = grouped_labels.to(self.device)
 
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
         if self.filter_by_prediction:
-            pred_cls = self.model(test_tensor).argmax(dim=1)
-            select_idx *= pred_cls == test_classes
+            pred_cls = self.model(test_data).argmax(dim=1)
+            select_idx *= pred_cls == grouped_labels
 
         explanations = explanations[select_idx]
-        test_subclasses = test_subclasses[select_idx].to(self.device)
+        test_labels = test_labels[select_idx].to(self.device)
 
         top_one_xpl_indices = explanations.argmax(dim=1)
         top_one_xpl_targets = torch.stack(
             [self.subclass_labels[int(i)] for i in top_one_xpl_indices]
         ).to(self.device)
 
-        score = (test_subclasses == top_one_xpl_targets) * 1.0
+        score = (test_labels == top_one_xpl_targets) * 1.0
         self.scores.append(score)

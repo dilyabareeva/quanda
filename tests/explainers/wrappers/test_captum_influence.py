@@ -27,7 +27,7 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset,  explanations, test_tensor, batch_size, method_kwargs",
+    "test_id, model, checkpoint,dataset,  explanations, test_data, batch_size, method_kwargs",
     [
         (
             "mnist",
@@ -67,7 +67,7 @@ def test_captum_similarity_explain(
     checkpoint,
     dataset,
     explanations,
-    test_tensor,
+    test_data,
     batch_size,
     method_kwargs,
     request,
@@ -76,7 +76,7 @@ def test_captum_similarity_explain(
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     explanations_exp = request.getfixturevalue(explanations)
 
     explainer = CaptumSimilarity(
@@ -90,7 +90,7 @@ def test_captum_similarity_explain(
         **method_kwargs,
     )
 
-    explanations = explainer.explain(test_tensor)
+    explanations = explainer.explain(test_data)
     assert torch.allclose(
         explanations, explanations_exp
     ), "Training data attributions are not as expected"
@@ -142,7 +142,7 @@ def test_captum_similarity_self_influence(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, test_tensor, method_kwargs, explanations",
+    "test_id, model, checkpoint,dataset, test_data, method_kwargs, explanations",
     [
         (
             "mnist",
@@ -160,7 +160,7 @@ def test_captum_similarity_explain_functional(
     model,
     checkpoint,
     dataset,
-    test_tensor,
+    test_data,
     method_kwargs,
     explanations,
     request,
@@ -169,14 +169,14 @@ def test_captum_similarity_explain_functional(
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     explanations_exp = request.getfixturevalue(explanations)
     explanations = captum_similarity_explain(
         model=model,
         checkpoints=checkpoint,
         model_id="test_id",
         cache_dir=str(tmp_path),
-        test_tensor=test_tensor,
+        test_data=test_data,
         train_dataset=dataset,
         device="cpu",
         **method_kwargs,
@@ -188,7 +188,7 @@ def test_captum_similarity_explain_functional(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_data, test_labels, method_kwargs",
     [
         (
             "mnist",
@@ -223,7 +223,7 @@ def test_captum_arnoldi(
     model,
     checkpoint,
     dataset,
-    test_tensor,
+    test_data,
     test_labels,
     method_kwargs,
     request,
@@ -231,7 +231,7 @@ def test_captum_arnoldi(
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_labels = request.getfixturevalue(test_labels)
 
     explainer = CaptumArnoldi(
@@ -243,7 +243,7 @@ def test_captum_arnoldi(
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
     )
-    explanations = explainer.explain(test_tensor, test_labels)
+    explanations = explainer.explain(test_data, test_labels)
 
     explainer_captum = ArnoldiInfluenceFunction(
         model=model,
@@ -254,7 +254,7 @@ def test_captum_arnoldi(
         **method_kwargs,
     )
     explanations_captum = explainer_captum.influence(
-        inputs=(test_tensor, test_labels)
+        inputs=(test_data, test_labels)
     )
     assert torch.allclose(
         explanations, explanations_captum
@@ -263,7 +263,7 @@ def test_captum_arnoldi(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_data, test_labels, method_kwargs",
     [
         (
             "mnist",
@@ -307,7 +307,7 @@ def test_captum_arnoldi_explain_functional(
     model,
     checkpoint,
     dataset,
-    test_tensor,
+    test_data,
     test_labels,
     method_kwargs,
     request,
@@ -316,7 +316,7 @@ def test_captum_arnoldi_explain_functional(
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_labels = request.getfixturevalue(test_labels)
     hessian_dataset = torch.utils.data.Subset(dataset, [0, 1])
 
@@ -331,13 +331,13 @@ def test_captum_arnoldi_explain_functional(
         **method_kwargs,
     )
     explanations_exp = explainer_captum.influence(
-        inputs=(test_tensor, test_labels)
+        inputs=(test_data, test_labels)
     )
 
     explanations = captum_arnoldi_explain(
         model=model,
         checkpoints=checkpoint,
-        test_tensor=test_tensor,
+        test_data=test_data,
         train_dataset=dataset,
         explanation_targets=test_labels,
         device="cpu",
@@ -406,7 +406,7 @@ def test_captum_arnoldi_self_influence(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_lables, checkpoints, method_kwargs",
+    "test_id, model, dataset, test_data, test_lables, checkpoints, method_kwargs",
     [
         (
             "mnist",
@@ -427,7 +427,7 @@ def test_captum_tracincp(
     test_id,
     model,
     dataset,
-    test_tensor,
+    test_data,
     test_lables,
     checkpoints,
     method_kwargs,
@@ -435,7 +435,7 @@ def test_captum_tracincp(
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_lables = request.getfixturevalue(test_lables)
     checkpoints = request.getfixturevalue(checkpoints)
 
@@ -447,7 +447,7 @@ def test_captum_tracincp(
         **method_kwargs,
     )
     explanations = explainer_captum.influence(
-        inputs=(test_tensor, test_lables)
+        inputs=(test_data, test_lables)
     )
 
     explainer = CaptumTracInCP(
@@ -458,7 +458,7 @@ def test_captum_tracincp(
         device="cpu",
         **method_kwargs,
     )
-    explanations_exp = explainer.explain(test_tensor, test_lables)
+    explanations_exp = explainer.explain(test_data, test_lables)
 
     assert torch.allclose(
         explanations, explanations_exp
@@ -467,7 +467,7 @@ def test_captum_tracincp(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, checkpoints, test_tensor, test_labels, method_kwargs",
+    "test_id, model, dataset, checkpoints, test_data, test_labels, method_kwargs",
     [
         (
             "mnist",
@@ -490,7 +490,7 @@ def test_captum_tracincp_explain_functional(
     model,
     dataset,
     checkpoints,
-    test_tensor,
+    test_data,
     test_labels,
     method_kwargs,
     request,
@@ -499,7 +499,7 @@ def test_captum_tracincp_explain_functional(
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     checkpoints = request.getfixturevalue(checkpoints)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_labels = request.getfixturevalue(test_labels)
 
     explainer_captum = TracInCP(
@@ -510,14 +510,14 @@ def test_captum_tracincp_explain_functional(
         **method_kwargs,
     )
     explanations_exp = explainer_captum.influence(
-        inputs=(test_tensor, test_labels)
+        inputs=(test_data, test_labels)
     )
 
     explanations = captum_tracincp_explain(
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        test_tensor=test_tensor,
+        test_data=test_data,
         explanation_targets=test_labels,
         device="cpu",
         **method_kwargs,
@@ -580,7 +580,7 @@ def test_captum_tracincp_self_influence(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, test_tensor, test_labels, checkpoints, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_data, test_labels, checkpoints, method_kwargs",
     [
         (
             "mnist",
@@ -602,7 +602,7 @@ def test_captum_tracincp_fast(
     model,
     checkpoint,
     dataset,
-    test_tensor,
+    test_data,
     test_labels,
     checkpoints,
     method_kwargs,
@@ -611,7 +611,7 @@ def test_captum_tracincp_fast(
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_labels = request.getfixturevalue(test_labels)
     checkpoints = request.getfixturevalue(checkpoints)
     final_fc_layer = model.fc_3
@@ -625,7 +625,7 @@ def test_captum_tracincp_fast(
         **method_kwargs,
     )
     explanations = explainer_captum.influence(
-        inputs=(test_tensor, test_labels), k=None
+        inputs=(test_data, test_labels), k=None
     )
 
     explainer = CaptumTracInCPFast(
@@ -637,7 +637,7 @@ def test_captum_tracincp_fast(
         device="cpu",
         **method_kwargs,
     )
-    explanations_exp = explainer.explain(test_tensor, test_labels)
+    explanations_exp = explainer.explain(test_data, test_labels)
 
     assert torch.allclose(
         explanations, explanations_exp
@@ -646,7 +646,7 @@ def test_captum_tracincp_fast(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset, checkpoints, test_tensor, test_labels, method_kwargs",
+    "test_id, model, dataset, checkpoints, test_data, test_labels, method_kwargs",
     [
         (
             "mnist",
@@ -668,7 +668,7 @@ def test_captum_tracincp_fast_explain_functional(
     model,
     dataset,
     checkpoints,
-    test_tensor,
+    test_data,
     test_labels,
     method_kwargs,
     request,
@@ -677,7 +677,7 @@ def test_captum_tracincp_fast_explain_functional(
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     checkpoints = request.getfixturevalue(checkpoints)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_labels = request.getfixturevalue(test_labels)
     final_fc_layer = model.fc_3
 
@@ -690,14 +690,14 @@ def test_captum_tracincp_fast_explain_functional(
         **method_kwargs,
     )
     explanations_exp_simple = explainer_captum_simple.influence(
-        inputs=(test_tensor, test_labels), k=None
+        inputs=(test_data, test_labels), k=None
     )
 
     explanations_simple = captum_tracincp_fast_explain(
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        test_tensor=test_tensor,
+        test_data=test_data,
         explanation_targets=test_labels,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
@@ -717,7 +717,7 @@ def test_captum_tracincp_fast_explain_functional(
         **method_kwargs,
     )
     explanations_exp_complex = explainer_captum_complex.influence(
-        inputs=(test_tensor, test_labels), k=None
+        inputs=(test_data, test_labels), k=None
     )
 
     explanations_complex = captum_tracincp_fast_explain(
@@ -725,7 +725,7 @@ def test_captum_tracincp_fast_explain_functional(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        test_tensor=test_tensor,
+        test_data=test_data,
         explanation_targets=test_labels,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
@@ -789,7 +789,7 @@ def test_captum_tracincp_fast_self_influence(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, test_tensor, test_labels, checkpoints, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_data, test_labels, checkpoints, method_kwargs",
     [
         (
             "mnist",
@@ -813,7 +813,7 @@ def test_captum_tracincp_fast_rand_proj(
     model,
     checkpoint,
     dataset,
-    test_tensor,
+    test_data,
     test_labels,
     checkpoints,
     method_kwargs,
@@ -822,7 +822,7 @@ def test_captum_tracincp_fast_rand_proj(
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_labels = request.getfixturevalue(test_labels)
     checkpoints = request.getfixturevalue(checkpoints)
     final_fc_layer = model.fc_3
@@ -836,7 +836,7 @@ def test_captum_tracincp_fast_rand_proj(
         **method_kwargs,
     )
     explanations = explainer_captum.influence(
-        inputs=(test_tensor, test_labels), k=None
+        inputs=(test_data, test_labels), k=None
     )
 
     explainer = CaptumTracInCPFastRandProj(
@@ -848,7 +848,7 @@ def test_captum_tracincp_fast_rand_proj(
         device="cpu",
         **method_kwargs,
     )
-    explanations_exp = explainer.explain(test_tensor, test_labels)
+    explanations_exp = explainer.explain(test_data, test_labels)
 
     assert torch.allclose(
         explanations, explanations_exp
@@ -857,7 +857,7 @@ def test_captum_tracincp_fast_rand_proj(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, checkpoints, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, checkpoints, test_data, test_labels, method_kwargs",
     [
         (
             "mnist",
@@ -883,7 +883,7 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
     checkpoint,
     dataset,
     checkpoints,
-    test_tensor,
+    test_data,
     test_labels,
     method_kwargs,
     request,
@@ -892,7 +892,7 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
     checkpoints = request.getfixturevalue(checkpoints)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_labels = request.getfixturevalue(test_labels)
     final_fc_layer = model.fc_3
 
@@ -905,14 +905,14 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
         **method_kwargs,
     )
     explanations_exp_simple = explainer_captum_simple.influence(
-        inputs=(test_tensor, test_labels), k=None
+        inputs=(test_data, test_labels), k=None
     )
 
     explanations_simple = captum_tracincp_fast_rand_proj_explain(
         model=model,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        test_tensor=test_tensor,
+        test_data=test_data,
         explanation_targets=test_labels,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",
@@ -932,7 +932,7 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
         **method_kwargs,
     )
     explanations_exp_complex = explainer_captum_complex.influence(
-        inputs=(test_tensor, test_labels), k=None
+        inputs=(test_data, test_labels), k=None
     )
 
     explanations_complex = captum_tracincp_fast_rand_proj_explain(
@@ -940,7 +940,7 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
         final_fc_layer=final_fc_layer,
         train_dataset=dataset,
         checkpoints=checkpoints,
-        test_tensor=test_tensor,
+        test_data=test_data,
         explanation_targets=test_labels,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         device="cpu",

@@ -48,6 +48,7 @@ class ShortcutDetection(Benchmark):
     """
 
     name: str = "Shortcut Detection"
+    eval_args = ["test_data", "test_labels", "explanations"]
 
     def __init__(
         self,
@@ -470,27 +471,10 @@ class ShortcutDetection(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-        load_last_checkpoint(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            checkpoints_load_func=self.checkpoints_load_func,
-        )
-        self.model.eval()
-
-        self.shortcut_train_dl = torch.utils.data.DataLoader(
-            self.shortcut_dataset, batch_size=batch_size
-        )
-        self.original_train_dl = torch.utils.data.DataLoader(
-            self.base_dataset, batch_size=batch_size
-        )
-
-        expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            train_dataset=self.shortcut_dataset,
-            checkpoints_load_func=self.checkpoints_load_func,
-            **expl_kwargs,
+        explainer = self._prepare_explainer(
+            dataset=self.shortcut_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
         )
 
         shortcut_expl_ds = SampleTransformationDataset(
@@ -500,9 +484,7 @@ class ShortcutDetection(Benchmark):
             sample_fn=self.sample_fn,
             p=1.0,
         )
-        expl_dl = torch.utils.data.DataLoader(
-            shortcut_expl_ds, batch_size=batch_size
-        )
+
         metric = ShortcutDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
@@ -513,31 +495,9 @@ class ShortcutDetection(Benchmark):
             filter_by_prediction=self.filter_by_prediction,
             filter_by_class=self.filter_by_class,
         )
-        pbar = tqdm(expl_dl)
-        n_batches = len(expl_dl)
-
-        for i, (input, labels) in enumerate(pbar):
-            pbar.set_description(
-                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
-            )
-
-            input, labels = input.to(self.device), labels.to(self.device)
-
-            if self.use_predictions:
-                with torch.no_grad():
-                    output = self.model(input)
-                    targets = output.argmax(dim=-1)
-            else:
-                targets = labels
-
-            explanations = explainer.explain(
-                test_tensor=input,
-                targets=targets,
-            )
-            metric.update(
-                explanations=explanations,
-                test_tensor=input,
-                test_labels=labels,
-            )
-
-        return metric.compute()
+        return self._evaluate_dataset(
+            eval_dataset=shortcut_expl_ds,
+            explainer=explainer,
+            metric=metric,
+            batch_size=batch_size,
+        )

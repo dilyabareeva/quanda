@@ -122,7 +122,7 @@ def test_subclass_detection(
 
     elif init_method == "assemble":
         dst_eval = SubclassDetection.assemble(
-            group_model=model,
+            model=model,
             checkpoints=checkpoint,
             base_dataset=dataset,
             eval_dataset=dataset,
@@ -267,7 +267,7 @@ def test_subclass_detection_download(
             activation.append(output.detach())
 
         exp_layer = reduce(
-            getattr, expl_kwargs["layers"].split("."), dst_eval.group_model
+            getattr, expl_kwargs["layers"].split("."), dst_eval.model
         )
         exp_layer.register_forward_hook(hook)
         train_ld = torch.utils.data.DataLoader(
@@ -278,14 +278,14 @@ def test_subclass_detection_download(
         )
         for x, y in iter(train_ld):
             x = x.to(dst_eval.device)
-            dst_eval.group_model(x)
+            dst_eval.model(x)
         act_train = activation[0]
         activation = []
         y_train = torch.tensor([y for x, y in dst_eval.base_dataset])
         for x, y in iter(test_ld):
             x = x.to(dst_eval.device)
             y_test = y.to(dst_eval.device)
-            dst_eval.group_model(x)
+            dst_eval.model(x)
         act_test = activation[0]
         act_test = torch.nn.functional.normalize(act_test, dim=-1)
         act_train = torch.nn.functional.normalize(act_train, dim=-1)

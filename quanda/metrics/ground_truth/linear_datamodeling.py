@@ -250,8 +250,8 @@ class LinearDatamodelingMetric(Metric):
     def update(
         self,
         explanations: torch.Tensor,
-        explanation_targets: torch.Tensor,
-        test_tensor: torch.Tensor,
+        test_targets: torch.Tensor,
+        test_data: torch.Tensor,
         **kwargs,
     ):
         """Update the evaluation scores based on new data.
@@ -261,9 +261,9 @@ class LinearDatamodelingMetric(Metric):
         explanations : torch.Tensor
             The explanation scores for the test data with shape (test_samples,
             dataset_size).
-        explanation_targets : torch.Tensor
+        test_targets : torch.Tensor
             The target values for the explanations.
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             The test data used for evaluation.
         kwargs: Any
             Additional keyword arguments
@@ -287,7 +287,7 @@ class LinearDatamodelingMetric(Metric):
             predicted_output_list.append(g_tau)
 
             counterfactual_model = self.load_counterfactual_model(s)
-            counterfactual_output = counterfactual_model(test_tensor).detach()
+            counterfactual_output = counterfactual_model(test_data).detach()
 
             if (
                 counterfactual_output.ndim == 1
@@ -296,7 +296,7 @@ class LinearDatamodelingMetric(Metric):
                 counterfactual_output = counterfactual_output.squeeze()
             else:
                 counterfactual_output = counterfactual_output.gather(
-                    1, explanation_targets.unsqueeze(1)
+                    1, test_targets.unsqueeze(1)
                 ).squeeze(1)
 
             model_output_list.append(counterfactual_output)

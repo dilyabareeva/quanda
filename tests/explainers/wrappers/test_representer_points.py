@@ -5,7 +5,7 @@ from quanda.explainers.wrappers import RepresenterPoints
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, test_tensor, test_labels, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_data, test_labels, method_kwargs",
     [
         (
             "mnist_representer",
@@ -29,7 +29,7 @@ def test_representer_points_explain(
     model,
     checkpoint,
     dataset,
-    test_tensor,
+    test_data,
     test_labels,
     method_kwargs,
     request,
@@ -38,7 +38,7 @@ def test_representer_points_explain(
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
-    test_tensor = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_labels = request.getfixturevalue(test_labels)
 
     explainer = RepresenterPoints(
@@ -50,7 +50,7 @@ def test_representer_points_explain(
     )
 
     explanations = explainer.explain(
-        test_tensor=test_tensor, targets=test_labels
+        test_data=test_data, targets=test_labels
     )
 
     assert explanations.shape[0] == len(

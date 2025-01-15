@@ -60,6 +60,7 @@ class MislabelingDetection(Benchmark):
     """
 
     name: str = "Mislabeling Detection"
+    eval_args = ["test_data", "test_labels", "explanations"]
 
     def __init__(
         self,
@@ -521,33 +522,27 @@ class MislabelingDetection(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-        load_last_checkpoint(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            checkpoints_load_func=self.checkpoints_load_func,
-        )
-        self.model.eval()
-
-        expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            train_dataset=self.mislabeling_dataset,
-            checkpoints_load_func=self.checkpoints_load_func,
-            **expl_kwargs,
+        explainer = self._prepare_explainer(
+            dataset=self.mislabeling_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
         )
 
-        if self.eval_dataset is not None:
+        if self.global_method != "self-influence":
+
+            if self.eval_dataset is None:
+                raise ValueError(
+                    "eval_dataset should be given for non-self-influence "
+                    "methods."
+                )
+
             mislabeling_expl_ds = LabelFlippingDataset(
                 dataset=self.eval_dataset,
                 dataset_transform=self.dataset_transform,
                 n_classes=self.n_classes,
                 p=0.0,
             )
-            expl_dl = torch.utils.data.DataLoader(
-                mislabeling_expl_ds, batch_size=batch_size
-            )
-        if self.global_method != "self-influence":
+
             metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
                 train_dataset=self.mislabeling_dataset,
@@ -555,28 +550,13 @@ class MislabelingDetection(Benchmark):
                 aggregator_cls=self.global_method,
             )
 
-            pbar = tqdm(expl_dl)
-            n_batches = len(expl_dl)
+            return self._evaluate_dataset(
+                eval_dataset=mislabeling_expl_ds,
+                explainer=explainer,
+                metric=metric,
+                batch_size=batch_size,
+            )
 
-            for i, (inputs, labels) in enumerate(pbar):
-                pbar.set_description(
-                    "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
-                )
-
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
-                if self.use_predictions:
-                    with torch.no_grad():
-                        targets = self.model(inputs).argmax(dim=-1)
-                else:
-                    targets = labels
-                explanations = explainer.explain(
-                    test_tensor=inputs, targets=targets
-                )
-                metric.update(
-                    test_data=inputs,
-                    test_labels=labels,
-                    explanations=explanations,
-                )
         else:
             metric = MislabelingDetectionMetric.self_influence_based(
                 model=self.model,

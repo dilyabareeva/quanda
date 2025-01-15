@@ -39,6 +39,7 @@ class SubclassDetection(Benchmark):
     """
 
     name: str = "Subclass Detection"
+    eval_args = ["test_labels", "explanations", "test_data", "grouped_labels"]
 
     def __init__(
         self,
@@ -55,7 +56,7 @@ class SubclassDetection(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
 
-        self.group_model: Union[torch.nn.Module, L.LightningModule]
+        self.model: Union[torch.nn.Module, L.LightningModule]
         self.base_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
@@ -271,33 +272,33 @@ class SubclassDetection(Benchmark):
         else:
             self.grouped_val_dl = None
 
-        self.group_model = copy.deepcopy(self.model).train()
+        self.model.train()
 
         trainer_fit_kwargs = trainer_fit_kwargs or {}
 
         if isinstance(trainer, L.Trainer):
-            if not isinstance(self.group_model, L.LightningModule):
+            if not isinstance(self.model, L.LightningModule):
                 raise ValueError(
                     "Model should be a LightningModule if Trainer is a "
                     "Lightning Trainer"
                 )
 
             trainer.fit(
-                model=self.group_model,
+                model=self.model,
                 train_dataloaders=self.grouped_train_dl,
                 val_dataloaders=self.grouped_val_dl,
                 **trainer_fit_kwargs,
             )
 
         elif isinstance(trainer, BaseTrainer):
-            if not isinstance(self.group_model, torch.nn.Module):
+            if not isinstance(self.model, torch.nn.Module):
                 raise ValueError(
                     "Model should be a torch.nn.Module if Trainer is a "
                     "BaseTrainer"
                 )
 
             trainer.fit(
-                model=self.group_model,
+                model=self.model,
                 train_dataloaders=self.grouped_train_dl,
                 val_dataloaders=self.grouped_val_dl,
                 **trainer_fit_kwargs,
@@ -311,16 +312,16 @@ class SubclassDetection(Benchmark):
         # save check point to cache_dir
         # TODO: add model id
         torch.save(
-            self.group_model.state_dict(),
+            self.model.state_dict(),
             os.path.join(cache_dir, "model_subclass_detection.pth"),
         )
-        self.group_model.to(self.device)
-        self.group_model.eval()
+        self.model.to(self.device)
+        self.model.eval()
 
     @classmethod
     def assemble(
         cls,
-        group_model: Union[torch.nn.Module, L.LightningModule],
+        model: Union[torch.nn.Module, L.LightningModule],
         base_dataset: Union[str, torch.utils.data.Dataset],
         n_classes: int,
         class_to_group: Dict[int, int],  # TODO: type specification
@@ -340,7 +341,7 @@ class SubclassDetection(Benchmark):
 
         Parameters
         ----------
-        group_model : Union[torch.nn.Module, L.LightningModule]
+        model : Union[torch.nn.Module, L.LightningModule]
             The model used to generate attributions.
         base_dataset : Union[str, torch.utils.data.Dataset]
             Original dataset to use in training.
@@ -381,13 +382,13 @@ class SubclassDetection(Benchmark):
         """
         obj = cls()
         obj._assemble_common(
-            model=group_model, # TODO: we don't need model here
+            model=model, # TODO: we don't need model here
             eval_dataset=eval_dataset,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
             use_predictions=use_predictions
         )
-        obj.group_model = group_model
+        obj.model = model
 
         obj.base_dataset = obj._process_dataset(
             base_dataset, transform=None, dataset_split=dataset_split
@@ -444,28 +445,14 @@ class SubclassDetection(Benchmark):
             Dictionary containing the metric score.
 
         """
-        load_last_checkpoint(
-            model=self.group_model,
-            checkpoints=self.checkpoints,
-            checkpoints_load_func=self.checkpoints_load_func,
-        )
-        self.group_model.eval()
-
-        expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.group_model,
-            checkpoints=self.checkpoints,
-            train_dataset=self.grouped_dataset,
-            checkpoints_load_func=self.checkpoints_load_func,
-            **expl_kwargs,
-        )
-
-        expl_dl = torch.utils.data.DataLoader(
-            self.eval_dataset, batch_size=batch_size
+        explainer = self._prepare_explainer(
+            dataset=self.grouped_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
         )
 
         metric = SubclassDetectionMetric(
-            model=self.group_model,
+            model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.grouped_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
@@ -478,36 +465,9 @@ class SubclassDetection(Benchmark):
             filter_by_prediction=self.filter_by_prediction,
         )
 
-        pbar = tqdm(expl_dl)
-        n_batches = len(expl_dl)
-
-        for i, (inputs, labels) in enumerate(pbar):
-            pbar.set_description(
-                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
-            )
-
-            inputs, labels = inputs.to(self.device), labels.to(self.device)
-            grouped_labels = torch.tensor(
-                [self.class_to_group[i.item()] for i in labels],
-                device=labels.device,
-            )
-            if self.use_predictions:
-                with torch.no_grad():
-                    output = self.group_model(inputs)
-                    targets = output.argmax(dim=-1)
-            else:
-                targets = grouped_labels
-
-            explanations = explainer.explain(
-                test_tensor=inputs,
-                targets=targets,
-            )
-
-            metric.update(
-                test_subclasses=labels,
-                explanations=explanations,
-                test_tensor=inputs,
-                test_classes=grouped_labels,
-            )
-
-        return metric.compute()
+        return self._evaluate_dataset(
+            eval_dataset=self.eval_dataset,
+            explainer=explainer,
+            metric=metric,
+            batch_size=batch_size,
+        )

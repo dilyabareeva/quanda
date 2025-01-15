@@ -7,6 +7,7 @@ from typing import Callable, List, Optional, Union, Any
 import requests
 import torch
 from datasets import load_dataset  # type: ignore
+from tqdm import tqdm
 
 from quanda.benchmarks.resources import (
     benchmark_urls,
@@ -14,7 +15,9 @@ from quanda.benchmarks.resources import (
     load_module_from_bench_state,
 )
 from quanda.benchmarks.resources.modules import bench_load_state_dict
-from quanda.utils.common import get_load_state_dict_func
+from quanda.explainers import Explainer
+from quanda.metrics import Metric
+from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
 from quanda.utils.datasets.image_datasets import HFtoTV
 
 
@@ -22,6 +25,7 @@ class Benchmark(ABC):
     """Base class for all benchmarks."""
 
     name: str
+    eval_args: List = []
 
     def __init__(self, *args, **kwargs):
         """Initialize the base `Benchmark` class."""
@@ -76,7 +80,7 @@ class Benchmark(ABC):
             name, cache_dir, device, *args, **kwargs
         )
 
-        return obj.parse_bench_state(bench_state, cache_dir, device=device)
+        return obj._parse_bench_state(bench_state, cache_dir, device=device)
 
     def _get_bench_state(
         self,
@@ -267,8 +271,9 @@ class Benchmark(ABC):
             The evaluation dataset.
 
         """
+        cache_dir = os.getenv("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
         test_dataset = HFtoTV(
-            load_dataset(dataset_str, split=dataset_split), transform=transform
+            load_dataset(dataset_str, split=dataset_split, cache_dir=cache_dir), transform=transform
         )
         return torch.utils.data.Subset(test_dataset, eval_indices)
 
@@ -311,7 +316,7 @@ class Benchmark(ABC):
         else:
             self._checkpoints = value if isinstance(value, List) else [value]
 
-    def parse_bench_state(
+    def _parse_bench_state(
         self,
         bench_state: dict,
         cache_dir: Optional[str] = None,
@@ -357,9 +362,6 @@ class Benchmark(ABC):
         # check the type of the instance self
 
         assemble_dict["model"] = module
-        assemble_dict["group_model"] = (
-            module  # TODO: rename model to group_model in the benchmarks
-        )
         assemble_dict["checkpoints"] = bench_state["checkpoints_binary"]
         assemble_dict["checkpoints_load_func"] = bench_load_state_dict
         assemble_dict["train_dataset"] = bench_state["dataset_str"]
@@ -386,3 +388,79 @@ class Benchmark(ABC):
                 assemble_dict[el] = bench_state[el]
 
         return self.assemble(**assemble_dict)
+
+    def _evaluate_dataset(
+        self,
+        eval_dataset: torch.utils.data.Dataset,
+        explainer: Explainer,
+        metric: Metric,
+        batch_size: int,
+    ):
+
+        expl_dl = torch.utils.data.DataLoader(
+            eval_dataset, batch_size=batch_size
+        )
+
+        pbar = tqdm(expl_dl)
+        n_batches = len(expl_dl)
+
+        for i, (input, labels) in enumerate(pbar):
+            pbar.set_description(
+                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
+            )
+
+            input, labels = input.to(self.device), labels.to(self.device)
+
+            if self.use_predictions:
+                with torch.no_grad():
+                    output = self.model(input)
+                    targets = output.argmax(dim=-1)
+            else:
+                targets = labels
+
+            explanations = explainer.explain(
+                test_data=input,
+                targets=targets,
+            )
+            data_unit = {
+                "test_data": input,
+                "test_targets": targets,
+                "test_labels": labels,
+                "explanations": explanations,
+            }
+
+            if self.name == "Subclass Detection":
+                data_unit["grouped_labels"] = torch.tensor(
+                    [self.class_to_group[i.item()] for i in labels],
+                    device=labels.device,
+                )
+                if not self.use_predictions:
+                    data_unit["targets"] = data_unit["grouped_labels"]
+
+            eval_unit = {k: data_unit[k] for k in self.eval_args}
+            metric.update(**eval_unit)
+
+        return metric.compute()
+
+    def _prepare_explainer(
+            self,
+            dataset: torch.utils.data.Dataset,
+            explainer_cls: type,
+            expl_kwargs: Optional[dict] = None
+    ):
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )
+        self.model.eval()
+
+        expl_kwargs = expl_kwargs or {}
+        explainer = explainer_cls(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            train_dataset=dataset,
+            checkpoints_load_func=self.checkpoints_load_func,
+            **expl_kwargs,
+        )
+        return explainer

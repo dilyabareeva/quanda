@@ -76,7 +76,7 @@ def test_randomization_metric(
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     metric = ModelRandomizationMetric(
         model=model,
-        model_id=0,
+        model_id="0",
         checkpoints=checkpoint,
         train_dataset=dataset,
         explainer_cls=explainer_cls,
@@ -85,7 +85,7 @@ def test_randomization_metric(
         seed=42,
     )
     metric.update(
-        test_data=test_data, explanations=tda, explanation_targets=test_labels
+        test_data=test_data, explanations=tda, test_targets=test_labels
     )
 
     out = metric.compute()["score"]

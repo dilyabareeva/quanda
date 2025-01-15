@@ -37,6 +37,7 @@ class ModelRandomization(Benchmark):
     """
 
     name: str = "Model Randomization"
+    eval_args: dict = ["explanations", "test_data", "test_targets"]
 
     def __init__(
         self,
@@ -173,23 +174,10 @@ class ModelRandomization(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-        load_last_checkpoint(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            checkpoints_load_func=self.checkpoints_load_func,
-        )
-        self.model.eval()
-
-        expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            train_dataset=self.train_dataset,
-            checkpoints_load_func=self.checkpoints_load_func,
-            **expl_kwargs,
-        )
-        expl_dl = torch.utils.data.DataLoader(
-            self.eval_dataset, batch_size=batch_size
+        explainer = self._prepare_explainer(
+            dataset=self.train_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
         )
 
         metric = ModelRandomizationMetric(
@@ -204,32 +192,9 @@ class ModelRandomization(Benchmark):
             correlation_fn=self.correlation_fn,
             seed=self.seed,
         )
-        pbar = tqdm(expl_dl)
-        n_batches = len(expl_dl)
-
-        for i, (input, labels) in enumerate(pbar):
-            pbar.set_description(
-                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
-            )
-
-            input, labels = input.to(self.device), labels.to(self.device)
-
-            if self.use_predictions:
-                with torch.no_grad():
-                    output = self.model(input)
-                    targets = output.argmax(dim=-1)
-            else:
-                targets = labels
-
-            explanations = explainer.explain(
-                test_tensor=input,
-                targets=targets,
-            )
-
-            metric.update(
-                explanations=explanations,
-                test_data=input,
-                explanation_targets=targets,
-            )
-
-        return metric.compute()
+        return self._evaluate_dataset(
+            eval_dataset=self.eval_dataset,
+            explainer=explainer,
+            metric=metric,
+            batch_size=batch_size,
+        )
