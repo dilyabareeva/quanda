@@ -18,7 +18,8 @@ from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
-from quanda.utils.datasets.image_datasets import HFtoTV
+from quanda.utils.datasets.image_datasets import HFtoTV, \
+    SingleClassImageDataset
 import lightning as L
 
 from quanda.utils.training import BaseTrainer
@@ -364,6 +365,34 @@ class Benchmark(ABC):
             else None,  # TODO: better way to handle this
             dataset_split=bench_state["test_split_name"],
         )
+
+        if self.name == "Mixed Datasets":
+            adversarial_dir_url = bench_state["adversarial_dir_url"]
+            adversarial_dir = self._download_adversarial_dataset(
+                adversarial_dir_url=adversarial_dir_url,
+                cache_dir=cache_dir,
+            )
+
+            adversarial_transform = sample_transforms[
+                bench_state["adversarial_transform"]
+            ]
+            adv_test_indices = bench_state["adv_indices_test"]
+            eval_from_test_indices = bench_state["eval_test_indices"]
+            eval_indices = [adv_test_indices[i] for i in eval_from_test_indices]
+
+            eval_dataset = SingleClassImageDataset(
+                root=adversarial_dir,
+                label=bench_state["adversarial_label"],
+                transform=adversarial_transform,
+                indices=eval_indices,
+            )
+
+            adv_train_indices = bench_state["adv_indices_train"]
+            assemble_dict["adversarial_dir"] = adversarial_dir
+            assemble_dict["adv_train_indices"] = adv_train_indices
+            assemble_dict["adversarial_label"] = bench_state["adversarial_label"]
+            assemble_dict["adversarial_transform"] = adversarial_transform
+
 
         module = load_module_from_bench_state(bench_state, device)
 

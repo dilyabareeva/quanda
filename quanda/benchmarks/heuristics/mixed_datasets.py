@@ -230,89 +230,8 @@ class MixedDatasets(Benchmark):
         )
         return obj
 
-    @classmethod
-    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """Download a precomputed benchmark.
-
-        Load precomputed benchmark components from a file and creates an
-        instance from the state dictionary.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        device : str
-            Device to load the model on.
-        args : Any
-            Additional positional arguments.
-        kwargs : Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        MixedDatasets
-            The benchmark instance.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        checkpoint_paths = []
-        for ckpt_name, ckpt in zip(
-            bench_state["checkpoints"], bench_state["checkpoints_binary"]
-        ):
-            save_path = os.path.join(cache_dir, ckpt_name)
-            torch.save(ckpt, save_path)
-            checkpoint_paths.append(save_path)
-
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        adversarial_dir_url = bench_state["adversarial_dir_url"]
-        adversarial_dir = obj._download_adversarial_dataset(
-            name=name,
-            adversarial_dir_url=adversarial_dir_url,
-            cache_dir=cache_dir,
-        )
-
-        adversarial_transform = sample_transforms[
-            bench_state["adversarial_transform"]
-        ]
-        adv_test_indices = bench_state["adv_indices_test"]
-        eval_from_test_indices = bench_state["eval_test_indices"]
-        eval_indices = [adv_test_indices[i] for i in eval_from_test_indices]
-
-        eval_dataset = SingleClassImageDataset(
-            root=adversarial_dir,
-            label=bench_state["adversarial_label"],
-            transform=adversarial_transform,
-            indices=eval_indices,
-        )
-
-        adv_train_indices = bench_state["adv_indices_train"]
-
-        return obj.assemble(
-            model=module,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            base_dataset=bench_state["dataset_str"],
-            eval_dataset=eval_dataset,
-            use_predictions=bench_state["use_predictions"],
-            adversarial_dir=adversarial_dir,
-            adversarial_label=bench_state["adversarial_label"],
-            adversarial_transform=adversarial_transform,
-            adv_train_indices=adv_train_indices,
-            dataset_transform=dataset_transform,
-            checkpoint_paths=checkpoint_paths,
-        )
-
-    @staticmethod
     def _download_adversarial_dataset(
-        name: str, adversarial_dir_url: str, cache_dir: str
+        self, adversarial_dir_url: str, cache_dir: str
     ):
         """Download the adversarial dataset.
 
@@ -321,8 +240,6 @@ class MixedDatasets(Benchmark):
 
         Parameters
         ----------
-        name: str
-            Name of the benchmark.
         adversarial_dir_url: str
             URL to the adversarial dataset.
         cache_dir: str
@@ -334,6 +251,7 @@ class MixedDatasets(Benchmark):
             Path to the downloaded adversarial dataset directory.
 
         """
+        name = self.name.replace(" ", "_").lower()
         # Download the zip file and extract into cache dir
         adversarial_dir = os.path.join(
             cache_dir, name + "_adversarial_dataset"
