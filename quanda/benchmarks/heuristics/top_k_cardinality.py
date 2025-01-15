@@ -55,79 +55,6 @@ class TopKCardinality(Benchmark):
         self.top_k: int
 
     @classmethod
-    def generate(
-        cls,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        model: torch.nn.Module,
-        eval_dataset: torch.utils.data.Dataset,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        dataset_transform: Optional[Callable] = None,
-        top_k: int = 1,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        *args,
-        **kwargs,
-    ):
-        """Generate the benchmark by specifying parameters.
-
-        The evaluation can then be run using the `evaluate` method.
-
-        Parameters
-        ----------
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train the model.
-        model : torch.nn.Module
-            The model to be evaluated.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        dataset_transform : Optional[Callable], optional
-            The transform to be applied to the dataset, by default None
-        top_k : int, optional
-            The number of top-k samples to consider, by default 1
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by
-            default True
-        dataset_split : str, optional
-            _description_, by default "train"
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        TopKCardinality
-            The benchmark instance.
-
-        """
-        logger.info(
-            f"Generating {TopKCardinality.name} benchmark components based on "
-            f"passed arguments..."
-        )
-
-        obj = cls(train_dataset)
-        obj._set_devices(model)
-        obj.eval_dataset = eval_dataset
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
-        )
-        obj.top_k = top_k
-        obj.use_predictions = use_predictions
-        obj.model = model
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = checkpoints_load_func
-
-        return obj
-
-    @classmethod
     def assemble(
         cls,
         model: torch.nn.Module,
@@ -183,22 +110,25 @@ class TopKCardinality(Benchmark):
 
         """
         obj = cls()
-        obj._set_devices(model)
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            use_predictions=use_predictions
+        )
+
         obj.train_dataset = obj._process_dataset(
             train_dataset,
             transform=dataset_transform,
             dataset_split=dataset_split,
         )
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
-        obj.model = model
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = checkpoints_load_func
         obj.top_k = top_k
-        obj._set_devices(model)
         obj._checkpoint_paths = checkpoint_paths
 
         return obj
+
+    generate = assemble
 
     def evaluate(
         self,

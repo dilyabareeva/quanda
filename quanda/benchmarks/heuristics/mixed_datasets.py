@@ -184,13 +184,17 @@ class MixedDatasets(Benchmark):
         )
 
         obj = cls()
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=[
+                os.path.join(cache_dir, "model_mixed_datasets.pth")
+            ],  # TODO: save checkpoints,
+            checkpoints_load_func=None,
+            use_predictions=use_predictions
+        )
         obj.cache_dir = cache_dir
-        obj._set_devices(model)
-        # this sets the function to the default value
-        obj.checkpoints_load_func = None
 
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
         obj.adversarial_label = adversarial_label
         obj.filter_by_prediction = filter_by_prediction
 
@@ -266,9 +270,6 @@ class MixedDatasets(Benchmark):
             obj.model.state_dict(),
             os.path.join(cache_dir, "model_mixed_datasets.pth"),
         )
-        obj.checkpoints = [
-            os.path.join(cache_dir, "model_mixed_datasets.pth")
-        ]  # TODO: save checkpoints
         obj.model.to(obj.device)
         obj.model.eval()
         return obj
@@ -470,17 +471,18 @@ class MixedDatasets(Benchmark):
 
         """
         obj = cls()
-        obj.model = model
-        obj._set_devices(model)
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = checkpoints_load_func
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            use_predictions=use_predictions
+        )
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
             dataset_split=dataset_split,
         )
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
         obj.adversarial_label = adversarial_label
 

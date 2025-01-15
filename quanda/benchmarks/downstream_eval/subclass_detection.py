@@ -153,18 +153,21 @@ class SubclassDetection(Benchmark):
         )
 
         obj = cls()
-        obj._set_devices(model)
-        # this sets the function to the default value
-        obj.checkpoints_load_func = None
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=[
+                os.path.join(cache_dir, "model_subclass_detection.pth")
+            ],  # TODO: save checkpoints,
+            checkpoints_load_func=None,
+            use_predictions=use_predictions
+        )
 
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
             dataset_split=dataset_split,
         )
-        obj.model = model
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
 
         obj._generate(
@@ -311,9 +314,6 @@ class SubclassDetection(Benchmark):
             self.group_model.state_dict(),
             os.path.join(cache_dir, "model_subclass_detection.pth"),
         )
-        self.checkpoints = [
-            os.path.join(cache_dir, "model_subclass_detection.pth")
-        ]  # TODO: save checkpoints
         self.group_model.to(self.device)
         self.group_model.eval()
 
@@ -380,18 +380,21 @@ class SubclassDetection(Benchmark):
 
         """
         obj = cls()
+        obj._assemble_common(
+            model=group_model, # TODO: we don't need model here
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            use_predictions=use_predictions
+        )
         obj.group_model = group_model
-        obj._set_devices(group_model)
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = checkpoints_load_func
+
         obj.base_dataset = obj._process_dataset(
             base_dataset, transform=None, dataset_split=dataset_split
         )
         obj.class_to_group = class_to_group
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
 
         obj.grouped_dataset = LabelGroupingDataset(

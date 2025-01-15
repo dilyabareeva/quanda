@@ -163,20 +163,23 @@ class ShortcutDetection(Benchmark):
 
         """
         obj = cls()
-        obj._set_devices(model)
-        # this sets the function to the default value
-        obj.checkpoints_load_func = None
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=[
+                os.path.join(cache_dir, "model_shortcut_detection.pth")
+            ],  # TODO: save checkpoints,
+            checkpoints_load_func=None,
+            use_predictions=use_predictions
+        )
 
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
             dataset_split=dataset_split,
         )
-        obj.eval_dataset = eval_dataset
         obj.filter_by_prediction = filter_by_prediction
         obj.filter_by_class = filter_by_class
-        obj.use_predictions = use_predictions
-
         obj._generate(
             model=model,
             cache_dir=cache_dir,
@@ -331,9 +334,6 @@ class ShortcutDetection(Benchmark):
             self.model.state_dict(),
             os.path.join(cache_dir, "model_shortcut_detection.pth"),
         )
-        self.checkpoints = [
-            os.path.join(cache_dir, "model_shortcut_detection.pth")
-        ]  # TODO: save checkpoints
         self.model.to(self.device)
         self.model.eval()
 
@@ -414,17 +414,20 @@ class ShortcutDetection(Benchmark):
 
         """
         obj = cls()
-        obj.model = model
-        obj.checkpoints = checkpoints
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            use_predictions=use_predictions
+        )
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
             dataset_split=dataset_split,
         )
-        obj.eval_dataset = eval_dataset
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
-        obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
         obj.filter_by_class = filter_by_class
         obj.shortcut_dataset = SampleTransformationDataset(
@@ -441,8 +444,6 @@ class ShortcutDetection(Benchmark):
         obj.shortcut_indices = obj.shortcut_dataset.transform_indices
         obj.sample_fn = sample_fn
         obj._checkpoint_paths = checkpoint_paths
-        obj._set_devices(model)
-        obj.checkpoints_load_func = checkpoints_load_func
 
         return obj
 

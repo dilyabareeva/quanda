@@ -57,79 +57,6 @@ class ClassDetection(Benchmark):
         self.use_predictions: bool
 
     @classmethod
-    def generate(
-        cls,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        model: torch.nn.Module,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        dataset_transform: Optional[Callable] = None,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        *args,
-        **kwargs,
-    ):
-        """Generate the benchmark by specifying parameters.
-
-        The evaluation can then be run using the `evaluate` method.
-
-        Parameters
-        ----------
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed,
-            it should be a HuggingFace dataset name.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        model : torch.nn.Module
-            The model used to generate attributions.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        dataset_transform : Optional[Callable], optional
-            The transform to be applied to the dataset, by default None.
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation. Original
-            paper uses the model's predictions.
-            Therefore, by default True.
-        dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default
-            "train".
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        ClassDetection
-            The benchmark instance.
-
-        """
-        logger.info(
-            f"Generating {ClassDetection.name} benchmark components based on "
-            f"passed arguments..."
-        )
-        obj = cls()
-
-        obj.model = model
-        obj._set_devices(model)
-
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = checkpoints_load_func
-        obj.eval_dataset = eval_dataset
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
-        )
-        obj.use_predictions = use_predictions
-
-        return obj
-
-    @classmethod
     def assemble(
         cls,
         model: torch.nn.Module,
@@ -183,19 +110,22 @@ class ClassDetection(Benchmark):
 
         """
         obj = cls()
-        obj.model = model
-        obj._set_devices(model)
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = checkpoints_load_func
-        obj.eval_dataset = eval_dataset
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            use_predictions=use_predictions
+        )
         obj.train_dataset = obj._process_dataset(
             train_dataset,
             transform=dataset_transform,
             dataset_split=dataset_split,
         )
-        obj.use_predictions = use_predictions
 
         return obj
+
+    generate = assemble
 
     def evaluate(
         self,

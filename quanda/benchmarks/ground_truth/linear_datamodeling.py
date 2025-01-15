@@ -1,6 +1,7 @@
 """Benchmark for the Linear Datamodeling Score metric."""
 
 import logging
+import os
 from typing import Callable, Optional, Union, List, Any
 
 import lightning as L
@@ -158,29 +159,30 @@ class LinearDatamodeling(Benchmark):
         )
 
         obj = cls()
-        obj._set_devices(model)
-        # this sets the function to the default value
-        obj.checkpoints_load_func = None
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints, # TODO: why are the checkpoints already known at this point?
+            checkpoints_load_func=None,
+            use_predictions=use_predictions
+        )
 
         obj.train_dataset = obj._process_dataset(
             train_dataset,
             transform=dataset_transform,
             dataset_split=dataset_split,
         )
-        obj.eval_dataset = eval_dataset
+
         obj.correlation_fn = correlation_fn
         obj.seed = seed
-        obj.use_predictions = use_predictions
         obj.subset_ids = subset_ids
         obj.pretrained_models = pretrained_models
-        obj.model = model
         obj.trainer = trainer
         obj.m = m
         obj.alpha = alpha
         obj.trainer_fit_kwargs = trainer_fit_kwargs
         obj.cache_dir = cache_dir
         obj.model_id = model_id
-        obj.checkpoints = checkpoints
 
         return obj
 
@@ -320,12 +322,13 @@ class LinearDatamodeling(Benchmark):
 
         """
         obj = cls()
-        obj.model = model
-        obj._set_devices(model)
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = checkpoints_load_func
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            use_predictions=use_predictions
+        )
         obj.subset_ids = subset_ids
         obj.pretrained_models = pretrained_models
         obj.correlation_fn = correlation_fn

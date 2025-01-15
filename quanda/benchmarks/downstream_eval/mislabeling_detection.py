@@ -191,16 +191,21 @@ class MislabelingDetection(Benchmark):
             )
 
         obj = cls()
-        obj._set_devices(model)
-        # this sets the function to the default value
-        obj.checkpoints_load_func = None
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=[
+                os.path.join(cache_dir, "model_mislabeling_detection.pth")
+            ],  # TODO: save checkpoints,
+            checkpoints_load_func=None,
+            use_predictions=use_predictions
+        )
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
             dataset_split=dataset_split,
         )
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
+
         obj._generate(
             model=model,
             cache_dir=cache_dir,
@@ -366,9 +371,6 @@ class MislabelingDetection(Benchmark):
             self.model.state_dict(),
             os.path.join(cache_dir, "model_mislabeling_detection.pth"),
         )
-        self.checkpoints = [
-            os.path.join(cache_dir, "model_mislabeling_detection.pth")
-        ]  # TODO: save checkpoints
         self.model.to(self.device)
         self.model.eval()
 
@@ -452,8 +454,13 @@ class MislabelingDetection(Benchmark):
             )
 
         obj = cls()
-        obj.model = model
-        obj.checkpoints = checkpoints
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            use_predictions=use_predictions
+        )
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
@@ -462,8 +469,6 @@ class MislabelingDetection(Benchmark):
         obj.dataset_transform = dataset_transform
         obj.global_method = global_method
         obj.n_classes = n_classes
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
         mislabeling_indices = (
             list(mislabeling_labels.keys())
             if mislabeling_labels is not None
@@ -490,8 +495,6 @@ class MislabelingDetection(Benchmark):
             obj.base_dataset, batch_size=batch_size
         )
         obj._checkpoint_paths = checkpoint_paths
-        obj._set_devices(model)
-        obj.checkpoints_load_func = checkpoints_load_func
 
         return obj
 

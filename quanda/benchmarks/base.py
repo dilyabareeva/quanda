@@ -130,6 +130,42 @@ class Benchmark(ABC):
         """
         raise NotImplementedError
 
+    def _assemble_common(
+        self,
+        model: torch.nn.Module,
+        eval_dataset: torch.utils.data.Dataset,
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        use_predictions: bool = True,
+    ):
+        """Assembles the benchmark from existing components.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model used to generate attributions.
+        eval_dataset : torch.utils.data.Dataset
+            The evaluation dataset to be used for the benchmark.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation, by
+            default True.
+
+        Returns
+        -------
+        None
+        """
+        self.model = model
+        self._set_devices(model)
+        self.eval_dataset = eval_dataset
+        self.checkpoints = checkpoints
+        self.checkpoints_load_func = checkpoints_load_func
+        self.use_predictions = use_predictions
+
     @abstractmethod
     def evaluate(
         self,

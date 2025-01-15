@@ -62,93 +62,6 @@ class ModelRandomization(Benchmark):
         self.seed: int
 
     @classmethod
-    def generate(
-        cls,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        model: torch.nn.Module,
-        cache_dir: str,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        model_id: str = "0",
-        dataset_transform: Optional[Callable] = None,
-        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-        seed: int = 42,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        *args,
-        **kwargs,
-    ):
-        """Generate the benchmark components and creates an instance.
-
-        Parameters
-        ----------
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed,
-            it should be a HuggingFace dataset name.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        model : torch.nn.Module
-            The model used to generate attributions.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        model_id : str, optional
-            Identifier for the model, by default "0".
-        dataset_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None.
-        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation.
-            Can be "spearman" or "kendall", or a callable.
-            Defaults to "spearman".
-        seed : int, optional
-            Seed to be used for the evaluation, by default 42.
-        use_predictions: bool
-            Whether to use the model's predictions for generating attributions.
-            Defaults to True.
-        dataset_split : str, optional
-            The dataset split to use, by default "train". Only used if
-            `train_dataset` is a string.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        ModelRandomization
-            The benchmark instance.
-
-        """
-        logger.info(
-            f"Generating {ModelRandomization.name} benchmark components based "
-            f"on passed arguments..."
-        )
-
-        obj = cls()
-        obj._set_devices(model)
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
-        )
-        obj.eval_dataset = eval_dataset
-        obj.correlation_fn = correlation_fn
-        obj.seed = seed
-        obj.use_predictions = use_predictions
-        obj.model = model
-        obj.model_id = model_id
-        obj.cache_dir = cache_dir
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = None
-
-        return obj
-
-    @classmethod
     def assemble(
         cls,
         model: torch.nn.Module,
@@ -234,6 +147,8 @@ class ModelRandomization(Benchmark):
         )
 
         return obj
+
+    generate = assemble
 
     def evaluate(
         self,
