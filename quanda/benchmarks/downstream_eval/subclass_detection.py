@@ -1,17 +1,15 @@
 """Benchmark for subclass detection task."""
 
-import copy
 import logging
 import os
 from typing import Callable, Dict, List, Optional, Union, Any
 
 import lightning as L
 import torch
-from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
-from quanda.utils.common import ds_len, load_last_checkpoint
+from quanda.utils.common import ds_len
 from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
@@ -53,8 +51,6 @@ class SubclassDetection(Benchmark):
         Alternatively, `download` can be used to load a precomputed benchmark.
         """
         super().__init__()
-
-        self.model: Union[torch.nn.Module, L.LightningModule]
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.base_dataset: torch.utils.data.Dataset
@@ -161,7 +157,7 @@ class SubclassDetection(Benchmark):
                 os.path.join(cache_dir, "model_subclass_detection.pth")
             ],  # TODO: save checkpoints,
             checkpoints_load_func=None,
-            use_predictions=use_predictions
+            use_predictions=use_predictions,
         )
 
         obj.base_dataset = obj._process_dataset(
@@ -270,7 +266,6 @@ class SubclassDetection(Benchmark):
             batch_size=batch_size,
         )
 
-
     @classmethod
     def assemble(
         cls,
@@ -326,6 +321,10 @@ class SubclassDetection(Benchmark):
         checkpoint_paths : Optional[List[str]], optional
             List of paths to the checkpoints. This parameter is only used for
             downloaded benchmarks, by default None.
+        args: Any
+            Additional arguments.
+        kwargs: Any
+            Additional keyword arguments.
 
         Returns
         -------
@@ -335,11 +334,11 @@ class SubclassDetection(Benchmark):
         """
         obj = cls()
         obj._assemble_common(
-            model=model, # TODO: we don't need model here
+            model=model,  # TODO: we don't need model here
             eval_dataset=eval_dataset,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions
+            use_predictions=use_predictions,
         )
         obj.model = model
 

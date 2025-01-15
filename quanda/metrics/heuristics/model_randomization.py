@@ -131,9 +131,7 @@ class ModelRandomizationMetric(Metric):
         explanations = explanations.to(self.device)
         test_data = test_data.to(self.device)
         test_targets = (
-            test_targets.to(self.device)
-            if test_targets is not None
-            else None
+            test_targets.to(self.device) if test_targets is not None else None
         )
 
         rand_explanations = self.rand_explainer.explain(

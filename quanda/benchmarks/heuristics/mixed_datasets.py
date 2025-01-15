@@ -1,6 +1,5 @@
 """Mixed Datasets benchmark module."""
 
-import copy
 import logging
 import os
 import zipfile
@@ -9,7 +8,6 @@ from typing import Callable, List, Optional, Union, Any
 import lightning as L
 import requests
 import torch
-from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.resources import (
@@ -18,7 +16,7 @@ from quanda.benchmarks.resources import (
 )
 from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
-from quanda.utils.common import ds_len, load_last_checkpoint
+from quanda.utils.common import ds_len
 from quanda.utils.datasets import SingleClassImageDataset
 from quanda.utils.training.trainer import BaseTrainer
 
@@ -57,7 +55,7 @@ class MixedDatasets(Benchmark):
     """
 
     name: str = "Mixed Datasets"
-    eval_args: dict = ["explanations", "test_data", "test_labels"]
+    eval_args: list = ["explanations", "test_data", "test_labels"]
 
     def __init__(
         self,
@@ -192,7 +190,7 @@ class MixedDatasets(Benchmark):
                 os.path.join(cache_dir, "model_mixed_datasets.pth")
             ],  # TODO: save checkpoints,
             checkpoints_load_func=None,
-            use_predictions=use_predictions
+            use_predictions=use_predictions,
         )
         obj.cache_dir = cache_dir
 
@@ -225,7 +223,7 @@ class MixedDatasets(Benchmark):
             model=model,
             trainer=trainer,
             train_dataset=obj.mixed_dataset,
-            val_dataset=val_dataset, # TODO: validate, why just val_dataset?
+            val_dataset=val_dataset,  # TODO: validate, why just val_dataset?
             save_dir=save_dir,
             trainer_fit_kwargs=trainer_fit_kwargs,
             batch_size=batch_size,
@@ -434,7 +432,7 @@ class MixedDatasets(Benchmark):
             eval_dataset=eval_dataset,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions
+            use_predictions=use_predictions,
         )
         obj.base_dataset = obj._process_dataset(
             base_dataset,
@@ -508,4 +506,3 @@ class MixedDatasets(Benchmark):
             metric=metric,
             batch_size=batch_size,
         )
-

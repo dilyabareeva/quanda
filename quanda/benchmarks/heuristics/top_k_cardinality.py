@@ -5,11 +5,9 @@ from typing import Callable, List, Optional, Union, Any
 
 import torch
 import torch.utils
-from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics import TopKCardinalityMetric
-from quanda.utils.common import load_last_checkpoint
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +31,7 @@ class TopKCardinality(Benchmark):
     """
 
     name: str = "Top-K Cardinality"
-    eval_args: dict = ["explanations"]
+    eval_args: list = ["explanations"]
 
     def __init__(
         self,
@@ -116,7 +114,7 @@ class TopKCardinality(Benchmark):
             eval_dataset=eval_dataset,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions
+            use_predictions=use_predictions,
         )
 
         obj.train_dataset = obj._process_dataset(

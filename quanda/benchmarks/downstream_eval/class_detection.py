@@ -4,11 +4,9 @@ import logging
 from typing import Callable, List, Optional, Union, Any
 
 import torch
-from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import ClassDetectionMetric
-from quanda.utils.common import load_last_checkpoint
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +114,7 @@ class ClassDetection(Benchmark):
             eval_dataset=eval_dataset,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions
+            use_predictions=use_predictions,
         )
         obj.train_dataset = obj._process_dataset(
             train_dataset,
@@ -152,7 +150,6 @@ class ClassDetection(Benchmark):
             Dictionary containing the metric score.
 
         """
-
         explainer = self._prepare_explainer(
             dataset=self.train_dataset,
             explainer_cls=explainer_cls,

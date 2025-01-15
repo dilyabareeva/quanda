@@ -61,9 +61,7 @@ def test_trak(
         **method_kwargs,
     )
 
-    explanations = explainer.explain(
-        test_data=test_data, targets=test_labels
-    )
+    explanations = explainer.explain(test_data=test_data, targets=test_labels)
 
     batch_size = method_kwargs["batch_size"]
     ld = torch.utils.data.DataLoader(dataset, batch_size=batch_size)
@@ -170,9 +168,7 @@ def test_trak_cache(
         **method_kwargs,
     )
 
-    explanations = explainer.explain(
-        test_data=test_data, targets=test_labels
-    )
+    explanations = explainer.explain(test_data=test_data, targets=test_labels)
     test_data = torch.ones_like(test_data)[:2]
     explanations_2 = explainer.explain(
         test_data=test_data, targets=test_labels[:2]

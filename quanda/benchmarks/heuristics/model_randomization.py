@@ -4,13 +4,11 @@ import logging
 from typing import Callable, List, Optional, Union, Any
 
 import torch
-from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
-from quanda.utils.common import load_last_checkpoint
 from quanda.utils.functions import CorrelationFnLiterals
 
 logger = logging.getLogger(__name__)
@@ -37,7 +35,7 @@ class ModelRandomization(Benchmark):
     """
 
     name: str = "Model Randomization"
-    eval_args: dict = ["explanations", "test_data", "test_targets"]
+    eval_args: list = ["explanations", "test_data", "test_targets"]
 
     def __init__(
         self,

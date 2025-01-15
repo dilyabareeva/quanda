@@ -49,9 +49,7 @@ def test_representer_points_explain(
         **method_kwargs,
     )
 
-    explanations = explainer.explain(
-        test_data=test_data, targets=test_labels
-    )
+    explanations = explainer.explain(test_data=test_data, targets=test_labels)
 
     assert explanations.shape[0] == len(
         test_labels

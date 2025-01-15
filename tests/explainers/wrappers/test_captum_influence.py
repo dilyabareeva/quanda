@@ -446,9 +446,7 @@ def test_captum_tracincp(
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         **method_kwargs,
     )
-    explanations = explainer_captum.influence(
-        inputs=(test_data, test_lables)
-    )
+    explanations = explainer_captum.influence(inputs=(test_data, test_lables))
 
     explainer = CaptumTracInCP(
         model=model,

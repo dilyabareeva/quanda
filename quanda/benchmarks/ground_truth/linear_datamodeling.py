@@ -1,12 +1,10 @@
 """Benchmark for the Linear Datamodeling Score metric."""
 
 import logging
-import os
 from typing import Callable, Optional, Union, List, Any
 
 import lightning as L
 import torch
-from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.resources import (
@@ -17,7 +15,6 @@ from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
-from quanda.utils.common import load_last_checkpoint
 from quanda.utils.functions import CorrelationFnLiterals
 from quanda.utils.training import BaseTrainer
 
@@ -45,7 +42,7 @@ class LinearDatamodeling(Benchmark):
     """
 
     name: str = "Linear Datamodeling Score"
-    eval_args: dict = ["explanations", "test_data", "test_targets"]
+    eval_args: list = ["explanations", "test_data", "test_targets"]
 
     def __init__(
         self,
@@ -219,7 +216,7 @@ class LinearDatamodeling(Benchmark):
             eval_dataset=eval_dataset,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions
+            use_predictions=use_predictions,
         )
         obj.subset_ids = subset_ids
         obj.pretrained_models = pretrained_models
@@ -294,4 +291,3 @@ class LinearDatamodeling(Benchmark):
             metric=metric,
             batch_size=batch_size,
         )
-

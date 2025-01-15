@@ -140,7 +140,7 @@ class Benchmark(ABC):
     def _assemble_common(
         self,
         model: torch.nn.Module,
-        eval_dataset: torch.utils.data.Dataset,
+        eval_dataset: Optional[torch.utils.data.Dataset] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         use_predictions: bool = True,
@@ -165,6 +165,7 @@ class Benchmark(ABC):
         Returns
         -------
         None
+
         """
         self.model = model
         self._set_devices(model)
@@ -274,9 +275,14 @@ class Benchmark(ABC):
             The evaluation dataset.
 
         """
-        cache_dir = os.getenv("HF_HOME", os.path.expanduser("~/.cache/huggingface"))
+        cache_dir = os.getenv(
+            "HF_HOME", os.path.expanduser("~/.cache/huggingface")
+        )
         test_dataset = HFtoTV(
-            load_dataset(dataset_str, split=dataset_split, cache_dir=cache_dir), transform=transform
+            load_dataset(
+                dataset_str, split=dataset_split, cache_dir=cache_dir
+            ),
+            transform=transform,
         )
         return torch.utils.data.Subset(test_dataset, eval_indices)
 
@@ -322,12 +328,11 @@ class Benchmark(ABC):
     def _parse_bench_state(
         self,
         bench_state: dict,
-        cache_dir: Optional[str] = None,
+        cache_dir: str,
         model_id: Optional[str] = None,
         device: str = "cpu",
     ):
         """Parse the benchmark state dictionary."""
-
         checkpoint_paths = []
 
         assemble_dict = {}
@@ -399,7 +404,6 @@ class Benchmark(ABC):
         metric: Metric,
         batch_size: int,
     ):
-
         expl_dl = torch.utils.data.DataLoader(
             eval_dataset, batch_size=batch_size
         )
@@ -432,7 +436,7 @@ class Benchmark(ABC):
                 "explanations": explanations,
             }
 
-            if self.name == "Subclass Detection":
+            if hasattr(self, "class_to_group"):
                 data_unit["grouped_labels"] = torch.tensor(
                     [self.class_to_group[i.item()] for i in labels],
                     device=labels.device,
@@ -446,10 +450,10 @@ class Benchmark(ABC):
         return metric.compute()
 
     def _prepare_explainer(
-            self,
-            dataset: torch.utils.data.Dataset,
-            explainer_cls: type,
-            expl_kwargs: Optional[dict] = None
+        self,
+        dataset: torch.utils.data.Dataset,
+        explainer_cls: type,
+        expl_kwargs: Optional[dict] = None,
     ):
         load_last_checkpoint(
             model=self.model,
@@ -474,7 +478,7 @@ class Benchmark(ABC):
         trainer: Union[L.Trainer, BaseTrainer],
         train_dataset: torch.utils.data.Dataset,
         save_dir: str,
-        val_dataset: Optional[torch.utils.data.Dataset]=None,
+        val_dataset: Optional[torch.utils.data.Dataset] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         batch_size: int = 8,
     ):
