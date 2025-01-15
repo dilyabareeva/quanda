@@ -274,11 +274,8 @@ class ShortcutDetection(Benchmark):
         self.shortcut_train_dl = torch.utils.data.DataLoader(
             self.shortcut_dataset, batch_size=batch_size
         )
-        self.original_train_dl = torch.utils.data.DataLoader(
-            self.base_dataset, batch_size=batch_size
-        )
         if val_dataset:
-            shortcut_val_dataset = SampleTransformationDataset(
+            val_dataset = SampleTransformationDataset(
                 dataset=val_dataset,
                 dataset_transform=self.dataset_transform,
                 p=self.p,
@@ -286,57 +283,17 @@ class ShortcutDetection(Benchmark):
                 sample_fn=sample_fn,
                 n_classes=self.n_classes,
             )
-            self.shortcut_val_dl = torch.utils.data.DataLoader(
-                shortcut_val_dataset, batch_size=batch_size
-            )
-        else:
-            self.shortcut_val_dl = None
+        save_dir = os.path.join(cache_dir, "model_shortcut_detection.pth")
 
-        self.model = copy.deepcopy(model).train()
-
-        trainer_fit_kwargs = trainer_fit_kwargs or {}
-
-        if isinstance(trainer, L.Trainer):
-            if not isinstance(self.model, L.LightningModule):
-                raise ValueError(
-                    "Model should be a LightningModule if Trainer is a "
-                    "Lightning Trainer"
-                )
-
-            trainer.fit(
-                model=self.model,
-                train_dataloaders=self.shortcut_train_dl,
-                val_dataloaders=self.shortcut_val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        elif isinstance(trainer, BaseTrainer):
-            if not isinstance(self.model, torch.nn.Module):
-                raise ValueError(
-                    "Model should be a torch.nn.Module if Trainer is a "
-                    "BaseTrainer"
-                )
-
-            trainer.fit(
-                model=self.model,
-                train_dataloaders=self.shortcut_train_dl,
-                val_dataloaders=self.shortcut_val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        else:
-            raise ValueError(
-                "Trainer should be a Lightning Trainer or a BaseTrainer"
-            )
-
-        # save check point to cache_dir
-        # TODO: add model id
-        torch.save(
-            self.model.state_dict(),
-            os.path.join(cache_dir, "model_shortcut_detection.pth"),
+        self.model = self._train_model(
+            model=model,
+            trainer=trainer,
+            train_dataset=self.shortcut_dataset,
+            val_dataset=val_dataset,
+            save_dir=save_dir,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            batch_size=batch_size,
         )
-        self.model.to(self.device)
-        self.model.eval()
 
     @classmethod
     def assemble(

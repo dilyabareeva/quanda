@@ -19,6 +19,9 @@ from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
 from quanda.utils.datasets.image_datasets import HFtoTV
+import lightning as L
+
+from quanda.utils.training import BaseTrainer
 
 
 class Benchmark(ABC):
@@ -464,3 +467,72 @@ class Benchmark(ABC):
             **expl_kwargs,
         )
         return explainer
+
+    def _train_model(
+        self,
+        model: torch.nn.Module,
+        trainer: Union[L.Trainer, BaseTrainer],
+        train_dataset: torch.utils.data.Dataset,
+        save_dir: str,
+        val_dataset: Optional[torch.utils.data.Dataset]=None,
+        trainer_fit_kwargs: Optional[dict] = None,
+        batch_size: int = 8,
+    ):
+        train_dl = torch.utils.data.DataLoader(
+            train_dataset, batch_size=batch_size
+        )
+        if val_dataset:
+            val_dl = torch.utils.data.DataLoader(
+                val_dataset, batch_size=batch_size
+            )
+        else:
+            val_dl = None
+
+        model.train()
+
+        trainer_fit_kwargs = trainer_fit_kwargs or {}
+
+        if isinstance(trainer, L.Trainer):
+            if not isinstance(model, L.LightningModule):
+                raise ValueError(
+                    "Model should be a LightningModule if Trainer is a "
+                    "Lightning Trainer"
+                )
+
+            trainer.fit(
+                model=model,
+                train_dataloaders=train_dl,
+                val_dataloaders=val_dl,
+                **trainer_fit_kwargs,
+            )
+
+        elif isinstance(trainer, BaseTrainer):
+            if not isinstance(model, torch.nn.Module):
+                raise ValueError(
+                    "Model should be a torch.nn.Module if Trainer is a "
+                    "BaseTrainer"
+                )
+
+            trainer.fit(
+                model=model,
+                train_dataloaders=train_dl,
+                val_dataloaders=val_dl,
+                **trainer_fit_kwargs,
+            )
+
+        else:
+            raise ValueError(
+                "Trainer should be a Lightning Trainer or a BaseTrainer"
+            )
+
+        # save check point to cache_dir
+        # TODO: add model id
+        torch.save(
+            model.state_dict(),
+            save_dir,
+        )
+
+        model.to(self.device)
+        model.eval()
+
+        return model

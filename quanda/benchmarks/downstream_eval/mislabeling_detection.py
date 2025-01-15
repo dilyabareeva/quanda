@@ -85,7 +85,6 @@ class MislabelingDetection(Benchmark):
         self.mislabeling_labels: Dict[int, int]
         self.mislabeling_train_dl: torch.utils.data.DataLoader
         self.mislabeling_val_dl: Optional[torch.utils.data.DataLoader]
-        self.original_train_dl: torch.utils.data.DataLoader
         self.p: float
         self.global_method: Union[str, type] = "self-influence"
         self.n_classes: int
@@ -310,70 +309,26 @@ class MislabelingDetection(Benchmark):
 
         self.mislabeling_indices = self.mislabeling_dataset.transform_indices
         self.mislabeling_labels = self.mislabeling_dataset.mislabeling_labels
-        self.mislabeling_train_dl = torch.utils.data.DataLoader(
-            self.mislabeling_dataset, batch_size=batch_size
-        )
-        self.original_train_dl = torch.utils.data.DataLoader(
-            self.base_dataset, batch_size=batch_size
-        )
+
         if val_dataset:
-            mislabeling_val_dataset = LabelFlippingDataset(
+            val_dataset = LabelFlippingDataset(
                 dataset=val_dataset,
                 dataset_transform=self.dataset_transform,
                 p=self.p,
                 n_classes=self.n_classes,
             )
-            self.mislabeling_val_dl = torch.utils.data.DataLoader(
-                mislabeling_val_dataset, batch_size=batch_size
-            )
-        else:
-            self.mislabeling_val_dl = None
 
-        self.model = copy.deepcopy(model).train()
+        save_dir = self.checkpoints[0] # TODO: rethink this
 
-        trainer_fit_kwargs = trainer_fit_kwargs or {}
-
-        if isinstance(trainer, L.Trainer):
-            if not isinstance(self.model, L.LightningModule):
-                raise ValueError(
-                    "Model should be a LightningModule if Trainer is a "
-                    "Lightning Trainer"
-                )
-
-            trainer.fit(
-                model=self.model,
-                train_dataloaders=self.mislabeling_train_dl,
-                val_dataloaders=self.mislabeling_val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        elif isinstance(trainer, BaseTrainer):
-            if not isinstance(self.model, torch.nn.Module):
-                raise ValueError(
-                    "Model should be a torch.nn.Module if Trainer is a "
-                    "BaseTrainer"
-                )
-
-            trainer.fit(
-                model=self.model,
-                train_dataloaders=self.mislabeling_train_dl,
-                val_dataloaders=self.mislabeling_val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        else:
-            raise ValueError(
-                "Trainer should be a Lightning Trainer or a BaseTrainer"
-            )
-
-        # save check point to cache_dir
-        # TODO: add model id
-        torch.save(
-            self.model.state_dict(),
-            os.path.join(cache_dir, "model_mislabeling_detection.pth"),
+        self.model = self._train_model(
+            model=model,
+            trainer=trainer,
+            train_dataset=self.mislabeling_dataset,
+            val_dataset=val_dataset,
+            save_dir=save_dir,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            batch_size=batch_size,
         )
-        self.model.to(self.device)
-        self.model.eval()
 
     @classmethod
     def assemble(
@@ -489,12 +444,6 @@ class MislabelingDetection(Benchmark):
         obj.mislabeling_indices = obj.mislabeling_dataset.transform_indices
         obj.mislabeling_labels = obj.mislabeling_dataset.mislabeling_labels
 
-        obj.mislabeling_train_dl = torch.utils.data.DataLoader(
-            obj.mislabeling_dataset, batch_size=batch_size
-        )
-        obj.original_train_dl = torch.utils.data.DataLoader(
-            obj.base_dataset, batch_size=batch_size
-        )
         obj._checkpoint_paths = checkpoint_paths
 
         return obj
@@ -568,4 +517,4 @@ class MislabelingDetection(Benchmark):
                 expl_kwargs=expl_kwargs,
             )
 
-        return metric.compute()
+            return metric.compute()

@@ -219,60 +219,17 @@ class MixedDatasets(Benchmark):
             0
         ] * ds_len(pr_base_dataset)
 
-        mixed_train_dl = torch.utils.data.DataLoader(
-            obj.mixed_dataset, batch_size=batch_size
+        save_dir = os.path.join(cache_dir, "model_mixed_datasets.pth")
+
+        obj.model = obj._train_model(
+            model=model,
+            trainer=trainer,
+            train_dataset=obj.mixed_dataset,
+            val_dataset=val_dataset, # TODO: validate, why just val_dataset?
+            save_dir=save_dir,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            batch_size=batch_size,
         )
-
-        if val_dataset is not None:
-            val_dl = torch.utils.data.DataLoader(
-                val_dataset, batch_size=batch_size
-            )
-        else:
-            val_dl = None
-
-        obj.model = copy.deepcopy(model).train()
-
-        trainer_fit_kwargs = trainer_fit_kwargs or {}
-
-        if isinstance(trainer, L.Trainer):
-            if not isinstance(obj.model, L.LightningModule):
-                raise ValueError(
-                    "Model should be a LightningModule if Trainer is a "
-                    "Lightning Trainer"
-                )
-
-            trainer.fit(
-                model=obj.model,
-                train_dataloaders=mixed_train_dl,
-                val_dataloaders=val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        elif isinstance(trainer, BaseTrainer):
-            if not isinstance(obj.model, torch.nn.Module):
-                raise ValueError(
-                    "Model should be a torch.nn.Module if Trainer is a "
-                    "BaseTrainer"
-                )
-
-            trainer.fit(
-                model=obj.model,
-                train_dataloaders=mixed_train_dl,
-                val_dataloaders=val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        else:
-            raise ValueError(
-                "Trainer should be a Lightning Trainer or a BaseTrainer"
-            )
-
-        torch.save(
-            obj.model.state_dict(),
-            os.path.join(cache_dir, "model_mixed_datasets.pth"),
-        )
-        obj.model.to(obj.device)
-        obj.model.eval()
         return obj
 
     @classmethod

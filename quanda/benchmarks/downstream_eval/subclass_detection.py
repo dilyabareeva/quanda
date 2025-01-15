@@ -252,71 +252,24 @@ class SubclassDetection(Benchmark):
         self.n_groups = n_groups
         self.dataset_transform = dataset_transform
 
-        self.grouped_train_dl = torch.utils.data.DataLoader(
-            self.grouped_dataset, batch_size=batch_size
-        )
-        self.original_train_dl = torch.utils.data.DataLoader(
-            self.base_dataset, batch_size=batch_size
-        )
-
         if val_dataset:
-            grouped_val_dataset = LabelGroupingDataset(
-                dataset=self.base_dataset,
+            val_dataset = LabelGroupingDataset(
+                dataset=val_dataset,
                 dataset_transform=dataset_transform,
                 n_classes=n_classes,
                 class_to_group=self.class_to_group,
             )
-            self.grouped_val_dl = torch.utils.data.DataLoader(
-                grouped_val_dataset, batch_size=batch_size
-            )
-        else:
-            self.grouped_val_dl = None
-
-        self.model.train()
-
-        trainer_fit_kwargs = trainer_fit_kwargs or {}
-
-        if isinstance(trainer, L.Trainer):
-            if not isinstance(self.model, L.LightningModule):
-                raise ValueError(
-                    "Model should be a LightningModule if Trainer is a "
-                    "Lightning Trainer"
-                )
-
-            trainer.fit(
-                model=self.model,
-                train_dataloaders=self.grouped_train_dl,
-                val_dataloaders=self.grouped_val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        elif isinstance(trainer, BaseTrainer):
-            if not isinstance(self.model, torch.nn.Module):
-                raise ValueError(
-                    "Model should be a torch.nn.Module if Trainer is a "
-                    "BaseTrainer"
-                )
-
-            trainer.fit(
-                model=self.model,
-                train_dataloaders=self.grouped_train_dl,
-                val_dataloaders=self.grouped_val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        else:
-            raise ValueError(
-                "Trainer should be a Lightning Trainer or a BaseTrainer"
-            )
-
-        # save check point to cache_dir
-        # TODO: add model id
-        torch.save(
-            self.model.state_dict(),
-            os.path.join(cache_dir, "model_subclass_detection.pth"),
+        save_dir = os.path.join(cache_dir, "model_subclass_detection.pth")
+        self.model = self._train_model(
+            model=self.model,
+            trainer=trainer,
+            train_dataset=self.grouped_dataset,
+            val_dataset=val_dataset,
+            save_dir=save_dir,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            batch_size=batch_size,
         )
-        self.model.to(self.device)
-        self.model.eval()
+
 
     @classmethod
     def assemble(

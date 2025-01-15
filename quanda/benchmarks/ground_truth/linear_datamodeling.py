@@ -79,115 +79,6 @@ class LinearDatamodeling(Benchmark):
         self.pretrained_models: Optional[List[torch.nn.Module]]
 
     @classmethod
-    def generate(
-        cls,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        model: torch.nn.Module,
-        trainer: Union[L.Trainer, BaseTrainer],
-        cache_dir: str,
-        model_id: str,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        dataset_transform: Optional[Callable] = None,
-        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-        m: int = 100,
-        alpha: float = 0.5,
-        trainer_fit_kwargs: Optional[dict] = None,
-        seed: int = 42,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        subset_ids: Optional[List[List[int]]] = None,
-        pretrained_models: Optional[List[torch.nn.Module]] = None,
-        *args,
-        **kwargs,
-    ):
-        """Generate the benchmark components and creates an instance.
-
-        Parameters
-        ----------
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed,
-            it should be a HuggingFace dataset name.
-        model : torch.nn.Module
-            The model used to generate attributions.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        trainer : Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the models on different subsets.
-            Can be a Lightning Trainer or a `BaseTrainer`.
-        cache_dir : str
-            Directory to be used for caching. This directory will be used to
-            save checkpoints of models
-            trained on different subsets of the training data.
-        model_id : str
-            Identifier for the model, to be used in naming cached checkpoints.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        dataset_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None.
-        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation.
-        m : int, optional
-            Number of subsets to be used for training the models, by default
-            100.
-        alpha : float, optional
-            Percentage of datapoints to be used for training the models, by
-            default 0.5.
-        trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments to be passed to the `fit` method of
-            the trainer, by default None.
-        seed : int, optional
-            Seed to be used for the evaluation, by default 42.
-        use_predictions : bool, optional
-            Whether to use model predictions or the true test labels for the
-            evaluation, defaults to False.
-        dataset_split : str, optional
-            The dataset split to use, by default "train". Only used if
-            `train_dataset` is a string.
-        subset_ids : Optional[List[List[int]]], optional
-            A list of pre-defined subset indices, by default None.
-        pretrained_models : Optional[List[torch.nn.Module]], optional
-            A list of pre-trained models for each subset, by default None.
-        args : Any
-            Variable length argument list.
-        kwargs : Any
-            Arbitrary keyword arguments.
-
-        """
-        logger.info(
-            f"Generating {LinearDatamodeling.name} benchmark components based "
-            f"on passed arguments..."
-        )
-
-        obj = cls()
-        obj._assemble_common(
-            model=model,
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints, # TODO: why are the checkpoints already known at this point?
-            checkpoints_load_func=None,
-            use_predictions=use_predictions
-        )
-
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
-        )
-
-        obj.correlation_fn = correlation_fn
-        obj.seed = seed
-        obj.subset_ids = subset_ids
-        obj.pretrained_models = pretrained_models
-        obj.trainer = trainer
-        obj.m = m
-        obj.alpha = alpha
-        obj.trainer_fit_kwargs = trainer_fit_kwargs
-        obj.cache_dir = cache_dir
-        obj.model_id = model_id
-
-        return obj
-
-    @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """Download a precomputed benchmark.
 
@@ -349,6 +240,8 @@ class LinearDatamodeling(Benchmark):
         obj.checkpoints_load_func = None
 
         return obj
+
+    generate = assemble
 
     def evaluate(
         self,
