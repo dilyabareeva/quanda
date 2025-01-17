@@ -7,6 +7,7 @@ import pytest
 import torch
 import torchvision
 from torch.utils.data import TensorDataset
+from torchvision.models import vit_b_16
 
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
@@ -433,3 +434,8 @@ def get_lds_score():
     with open("tests/assets/lds_score.json", "r") as f:
         score_data = json.load(f)
     return score_data["lds_score"]
+
+
+@pytest.fixture
+def load_vit():
+    return vit_b_16()
