@@ -228,6 +228,77 @@ def test_randomization_metric_randomization_vit(
 @pytest.mark.heuristic_metrics
 @pytest.mark.parametrize(
     "test_id, model, checkpoint, dataset, test_data, batch_size, "
+    "explainer_cls, test_labels",
+    [
+        (
+            "randomization_resnet",
+            "load_resnet",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            8,
+            CaptumTracInCP,
+            "load_mnist_test_labels_1",
+        )
+    ],
+)
+def test_randomization_metric_randomization_resnet(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_data,
+    batch_size,
+    explainer_cls,
+    test_labels,
+    tmp_path,
+    request,
+):
+    model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
+    test_data = request.getfixturevalue(test_data)
+    dataset = request.getfixturevalue(dataset)
+    test_labels = request.getfixturevalue(test_labels)
+
+    def _load_flexible_state_dict(model: torch.nn.Module, path: str):
+        return model
+
+    metric = ModelRandomizationMetric(
+        model=model,
+        model_id=0,
+        checkpoints=checkpoint,
+        checkpoints_load_func=_load_flexible_state_dict,
+        train_dataset=dataset,
+        explainer_cls=explainer_cls,
+        cache_dir=str(tmp_path),
+        seed=42,
+    )
+
+    # Generate a random batch of data
+    batch_size = 2
+    random_tensor = torch.randn((batch_size, 3, 224, 224), device="cpu")
+
+    # Randomize model
+    rand_model = metric._randomize_model()[0]
+    rand_model.eval()
+    model.eval()
+
+    # Check if the outputs differ after randomization
+    with torch.no_grad():
+        original_out = model(random_tensor)
+        randomized_out = rand_model(random_tensor)
+
+    assert not torch.allclose(
+        original_out, randomized_out
+    ), "Outputs do not differ after randomization."
+    assert not torch.isnan(
+        randomized_out
+    ).any(), "Randomized model output contains NaNs."
+
+
+@pytest.mark.heuristic_metrics
+@pytest.mark.parametrize(
+    "test_id, model, checkpoint, dataset, test_data, batch_size, "
     "explainer_cls, expl_kwargs, explanations, test_labels",
     [
         (

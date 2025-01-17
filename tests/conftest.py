@@ -7,7 +7,7 @@ import pytest
 import torch
 import torchvision
 from torch.utils.data import TensorDataset
-from torchvision.models import vit_b_16
+from torchvision.models import vit_b_16, resnet18
 
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
@@ -439,3 +439,8 @@ def get_lds_score():
 @pytest.fixture
 def load_vit():
     return vit_b_16()
+
+
+@pytest.fixture
+def load_resnet():
+    return resnet18()
