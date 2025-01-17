@@ -137,6 +137,7 @@ def load_mnist_model_with_custom_param():
     model.custom_param = torch.nn.Parameter(torch.randn(4))
     return model
 
+
 @pytest.fixture
 def load_mnist_last_checkpoint():
     """Load the path to the last checkpoint of a pre-trained LeNet classification model."""
