@@ -125,6 +125,19 @@ def load_mnist_model():
 
 
 @pytest.fixture
+def load_mnist_model_with_custom_param():
+    """Load a pre-trained LeNet classification model with a custom parameter
+    (architecture at quantus/helpers/models)."""
+    model = LeNet()
+    model.load_state_dict(
+        torch.load(
+            "tests/assets/mnist", map_location="cpu", pickle_module=pickle
+        )
+    )
+    model.custom_param = torch.nn.Parameter(torch.randn(4))
+    return model
+
+@pytest.fixture
 def load_mnist_last_checkpoint():
     """Load the path to the last checkpoint of a pre-trained LeNet classification model."""
     return "tests/assets/mnist"
