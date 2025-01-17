@@ -437,6 +437,28 @@ def get_lds_score():
 
 
 @pytest.fixture
+def load_subset_indices_lds():
+    indices_path = "tests/assets/lds_checkpoints/subset_indices.pt"
+    return torch.load(indices_path)
+
+
+@pytest.fixture
+def load_pretrained_models_lds():
+    model_paths = [
+        "tests/assets/lds_checkpoints/model_subset_0.pt",
+        "tests/assets/lds_checkpoints/model_subset_1.pt",
+        "tests/assets/lds_checkpoints/model_subset_2.pt",
+        "tests/assets/lds_checkpoints/model_subset_3.pt",
+    ]
+    models = []
+    for path in model_paths:
+        model = LeNet()
+        model.load_state_dict(torch.load(path, map_location="cpu"))
+        models.append(model)
+    return models
+
+
+@pytest.fixture
 def load_vit():
     return vit_b_16()
 
