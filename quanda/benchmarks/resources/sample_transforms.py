@@ -25,14 +25,14 @@ def add_yellow_square(img):
 
 
 sample_transforms = {
-    "mnist_transforms": transforms.Compose(
+    "mnist_transform": transforms.Compose(
         [
             transforms.Resize((28, 28)),
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,)),
         ]
     ),
-    "adversarial_transforms": transforms.Compose(
+    "mnist_adversarial_transform": transforms.Compose(
         [
             transforms.Grayscale(),
             transforms.Resize((28, 28)),
@@ -44,19 +44,19 @@ sample_transforms = {
         [transforms.Normalize(mean=[0], std=[1 / 0.5])]
         + [transforms.Normalize(mean=[0.5], std=[1])]
     ),
-    "add_white_square_mnist": add_white_square_mnist,
+    "mnist_shortcut_transform": add_white_square_mnist,
     "tiny_imagenet_transforms": transforms.Compose(
         [
             transforms.ToTensor(),
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
         ]
     ),
-    "tiny_imagener_adversarial_transforms": transforms.Compose(
+    "tiny_imagenet_adversarial_transform": transforms.Compose(
         [
             transforms.Resize(size=(64, 64)),
             transforms.ToTensor(),
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
         ]
     ),
-    "add_yellow_square": add_yellow_square,
+    "tiny_imagenet_shortcut_transform": add_yellow_square,
 }

@@ -226,6 +226,7 @@ class Benchmark(ABC):
         dataset: Union[str, torch.utils.data.Dataset],
         transform: Optional[Callable] = None,
         dataset_split: str = "train",
+        cache_dir: Optional[str] = None,
     ) -> torch.utils.data.Dataset:
         """Return the dataset using the given parameters.
 
@@ -238,6 +239,8 @@ class Benchmark(ABC):
         dataset_split : str, optional
             The dataset split, by default "train", only used for HuggingFace
             datasets.
+        cache_dir : Optional[str], optional
+            The cache directory, by default "~/.cache/huggingface/datasets".
 
         Returns
         -------
@@ -245,16 +248,17 @@ class Benchmark(ABC):
             The dataset.
 
         """
-        cache_dir = os.getenv(
-            "HF_HOME", os.path.expanduser("~/.cache/huggingface/datasets")
-        )
+        if cache_dir is None:
+            cache_dir = os.getenv(
+                "HF_HOME", os.path.expanduser("~/.cache/huggingface/datasets")
+            )
 
         if isinstance(dataset, str):
             cls.dataset_str = dataset
             return HFtoTV(
                 load_dataset(
                     dataset,
-                    name="mnist",
+                    name=dataset,
                     split=dataset_split,
                     cache_dir=cache_dir,
                 ),

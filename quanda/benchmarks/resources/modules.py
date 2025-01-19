@@ -1,5 +1,6 @@
 """Lightning modules for the benchmarks."""
 
+
 import lightning as L
 import torch
 from torch.nn import CrossEntropyLoss
@@ -20,6 +21,16 @@ def load_module_from_bench_state(bench_state: dict, device: str):
     )
     module.to(device)
     module.eval()
+    return module
+
+
+def load_module_with_name(
+    module_name: str, num_outputs: int, device: str, **kwargs
+):
+    """Load a module from `pl_modules` with a given key."""
+    kwargs = kwargs or {}
+    module_type = pl_modules[module_name]
+    module = module_type(num_labels=num_outputs, device=device, **kwargs)
     return module
 
 
@@ -67,25 +78,29 @@ class TinyImagenetModel(L.LightningModule):
     def __init__(
         self,
         lr=1e-1,
-        epochs=75,
-        weight_decay=0.0,
+        weight_decay: float = 0.0,
         num_labels=200,
+        pretrained: bool = False,
         device="cuda:0",
     ):
         """Initialize Lighning module."""
+        self.model: torch.nn.Module
         super(TinyImagenetModel, self).__init__()
         self._init_model(num_labels)
         self.model.to(device)
         self.lr = lr
-        self.epochs = epochs
-        self.weight_decay = weight_decay
         self.criterion = CrossEntropyLoss()
         self.num_labels = num_labels
+        self.pretrained = pretrained
+        self.weight_decay = weight_decay
         self.save_hyperparameters()
 
     def _init_model(self, num_labels):
         """Initialize resnet18 model."""
-        model = resnet18(weights=ResNet18_Weights.DEFAULT)
+        if self.pretrained:
+            model = resnet18(weights=ResNet18_Weights.DEFAULT)
+        else:
+            model = resnet18(pretrained=False)
         model.avgpool = torch.nn.AdaptiveAvgPool2d(1)
         num_ftrs = model.fc.in_features
         model.fc = torch.nn.Linear(num_ftrs, num_labels)
@@ -160,10 +175,10 @@ class MnistModel(L.LightningModule):
 
     def __init__(
         self,
+        epochs=100,
         lr=1e-4,
-        epochs=24,
-        weight_decay=0.01,
-        num_labels=64,
+        weight_decay: float = 0.01,
+        num_labels: int = 64,
         device="cuda:0",
     ):
         """Initialize the model."""

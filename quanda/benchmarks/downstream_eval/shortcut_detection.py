@@ -18,8 +18,6 @@ from quanda.utils.training.trainer import BaseTrainer
 
 
 class ShortcutDetection(Benchmark):
-    # TODO: Add citation to the original paper formulating ShortcutDetection
-    #  after acceptance
     """Benchmark for shortcut detection evaluation task.
 
     A class is selected, and a subset of its images is modified by overlaying a
