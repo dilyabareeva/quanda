@@ -6,19 +6,13 @@ import torch.utils
 
 sys.path.append(os.getcwd())
 
-import glob
-import subprocess
 from argparse import ArgumentParser
 
 import torch
-import torchvision.transforms as transforms
-from PIL import Image
-from torch.nn import (
-    BCEWithLogitsLoss,
-    CrossEntropyLoss,
-    MultiMarginLoss,
+from scripts.train_model import (
+    load_datasets,
+    datasets_metadata,
 )
-from scripts.train_model import load_datasets, load_augmentation, load_pl_module, datasets_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +34,6 @@ def make_benchmark(
     seed = 4242
     torch.manual_seed(seed)
 
-
     if output_path is None:
         output_path = os.path.join(metadata_root, dataset_name)
     os.makedirs(metadata_root, exist_ok=True)
@@ -55,12 +48,14 @@ def make_benchmark(
         seed=seed,
         adversarial_dir=adversarial_dir,
     )
-    validation_indices = ds_dict["validation_indices"]
-    test_indices = ds_dict["test_indices"]
 
-    num_outputs = datasets_metadata[dataset_name]["num_groups" if dataset_type=="subclass" else "num_classes"]
+    num_outputs = datasets_metadata[dataset_name][
+        "num_groups" if dataset_type == "subclass" else "num_classes"
+    ]
 
-    bench_state = {"test_split_name": datasets_metadata[dataset_name]["test_split_name"]}
+    bench_state = {
+        "test_split_name": datasets_metadata[dataset_name]["test_split_name"]
+    }
 
     ckpt_names = []
     ckpt_binary = []
@@ -68,7 +63,9 @@ def make_benchmark(
     file_list = sorted(file_list)
     for file in file_list:
         ckpt_names.append(file)
-        epoch = int(file.replace("epoch=","").replace(".ckpt", "").split("_")[-1])
+        # epoch = int(
+        #     file.replace("epoch=", "").replace(".ckpt", "").split("_")[-1]
+        # )
         model_state_dict = torch.load(
             os.path.join(checkpoints_dir, file), map_location=device
         )
@@ -92,7 +89,9 @@ def make_benchmark(
         bench_state["sample_fn"] = f"{dataset_name}_shortcut_transform"
     elif benchmark_name == "mixed_detection":
         bench_state["adversarial_label"] = ds_dict["adversarial_label"]
-        bench_state["adversarial_transform"] = f"{dataset_name}_adversarial_transform"
+        bench_state["adversarial_transform"] = (
+            f"{dataset_name}_adversarial_transform"
+        )
         bench_state["adversarial_dir_url"] = ds_dict["adversarial_dir_url"]
     torch.save(
         bench_state,
@@ -154,7 +153,7 @@ if __name__ == "__main__":
         help="Device to run the model on",
         choices=["cpu", "cuda"],
         default=None,
-    )    
+    )
     parser.add_argument(
         "--module_name",
         required=True,
@@ -169,7 +168,7 @@ if __name__ == "__main__":
         type=str,
         help="Directory used to load checkpoint binaries",
     )
-    args=parser.parse_args()
+    args = parser.parse_args()
 
     # Call the function with parsed arguments
     make_benchmark(

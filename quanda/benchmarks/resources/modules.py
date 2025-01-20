@@ -1,6 +1,5 @@
 """Lightning modules for the benchmarks."""
 
-
 import lightning as L
 import torch
 from torch.nn import CrossEntropyLoss

@@ -40,33 +40,33 @@ from quanda.benchmarks.resources.modules import (
 
 logger = logging.getLogger(__name__)
 
-datasets_metadata={
-
+datasets_metadata = {
     "mnist": {
-        "hf_tag":"mnist",
-        "validation_size":3000,
-        "test_split_name":"test",
-        "num_classes":10,
+        "hf_tag": "mnist",
+        "validation_size": 3000,
+        "test_split_name": "test",
+        "num_classes": 10,
         "shortcut_cls": 5,
         "num_groups": 2,
         "shortcut_probability": 0.3,
         "mislabeling_probability": 0.2,
         "adversarial_cls": 0,
-        "adversarial_dir_url": "https://datacloud.hhi.fraunhofer.de/s/LAzkbk9mm6L3Lz7/download/fasion_mnist_150.zip"
-        },
+        "adversarial_dir_url": "https://datacloud.hhi.fraunhofer.de/s/LAzkbk9mm6L3Lz7/download/fasion_mnist_150.zip",
+    },
     "tiny_imagenet": {
         "hf_tag": "zh-plus/tiny-imagenet-200",
-        "validation_size":3000,
-        "test_split_name":"val",
-        "num_classes":200,
+        "validation_size": 3000,
+        "test_split_name": "val",
+        "num_classes": 200,
         "shortcut_cls": 100,
         "num_groups": 2,
         "shortcut_probability": 0.3,
         "mislabeling_probability": 0.2,
         "adversarial_cls": 0,
-        "adversarial_dir_url": None
-    }
+        "adversarial_dir_url": None,
+    },
 }
+
 
 def load_augmentation(name, dataset_name):
     if name is None or name == "null":
@@ -93,6 +93,7 @@ def load_augmentation(name, dataset_name):
             trans_arr.append(trans_dict[trans])
     return Compose(trans_arr)
 
+
 def load_datasets(
     dataset_name,
     dataset_cache_dir,
@@ -104,12 +105,16 @@ def load_datasets(
     adversarial_dir=None,
 ):
     regular_transforms = sample_transforms[f"{dataset_name}_transform"]
-    adversarial_cls=datasets_metadata[dataset_name]["adversarial_cls"]
-    shortcut_cls=datasets_metadata[dataset_name]["shortcut_cls"]
-    num_classes=datasets_metadata[dataset_name]["num_classes"]
-    num_groups=datasets_metadata[dataset_name]["num_groups"]
-    shortcut_probability=datasets_metadata[dataset_name]["shortcut_probability"]
-    mislabeling_probability=datasets_metadata[dataset_name]["mislabeling_probability"]
+    adversarial_cls = datasets_metadata[dataset_name]["adversarial_cls"]
+    shortcut_cls = datasets_metadata[dataset_name]["shortcut_cls"]
+    num_classes = datasets_metadata[dataset_name]["num_classes"]
+    num_groups = datasets_metadata[dataset_name]["num_groups"]
+    shortcut_probability = datasets_metadata[dataset_name][
+        "shortcut_probability"
+    ]
+    mislabeling_probability = datasets_metadata[dataset_name][
+        "mislabeling_probability"
+    ]
 
     if augmentation == "":
         augmentation = None
@@ -145,21 +150,25 @@ def load_datasets(
         test_indices = torch.load(os.path.join(metadata_path, "test_indices"))
     else:
         all_indices = torch.randperm(len(holdout_set))
-        val_indices = all_indices[: datasets_metadata[dataset_name]["validation_size"]]
+        val_indices = all_indices[
+            : datasets_metadata[dataset_name]["validation_size"]
+        ]
         torch.save(
             val_indices, os.path.join(output_path, "validation_indices")
         )
-        test_indices = all_indices[datasets_metadata[dataset_name]["validation_size"]:]
+        test_indices = all_indices[
+            datasets_metadata[dataset_name]["validation_size"] :
+        ]
         torch.save(test_indices, os.path.join(output_path, "test_indices"))
 
     val_set = Subset(holdout_set, val_indices)
     test_set = Subset(holdout_set, test_indices)
-    shortcut_indices=None
-    mislabeling_indices=None
-    mislabeling_labels=None
-    adversarial_train_indices=None
-    adversarial_test_indices=None
-    class_to_group=None
+    shortcut_indices = None
+    mislabeling_indices = None
+    mislabeling_labels = None
+    adversarial_train_indices = None
+    adversarial_test_indices = None
+    class_to_group = None
     if dataset_type == "shortcut":
         if not os.path.exists(os.path.join(metadata_path, "shortcut_indices")):
             assert shortcut_probability is not None, (
@@ -243,11 +252,15 @@ def load_datasets(
         assert adversarial_dir is not None, (
             "adversarial_dir must be given to create mixed dataset"
         )
-        temp_benchmark=MixedDatasets()
-        if not os.path.exists(os.path.join(adversarial_dir,"adversarial_dataset.zip")):
+        temp_benchmark = MixedDatasets()
+        if not os.path.exists(
+            os.path.join(adversarial_dir, "adversarial_dataset.zip")
+        ):
             temp_benchmark._download_adversarial_dataset(
-                adversarial_dir_url=datasets_metadata[dataset_name]["adversarial_dir_url"],
-                cache_dir=adversarial_dir
+                adversarial_dir_url=datasets_metadata[dataset_name][
+                    "adversarial_dir_url"
+                ],
+                cache_dir=adversarial_dir,
             )
         if not os.path.exists(
             os.path.join(metadata_path, "adversarial_train_indices")
@@ -326,7 +339,7 @@ def load_datasets(
         )
     # elif dataset_type not in ["vanilla"]:
     #     raise ValueError(f"Unknown dataset type: {dataset_type}")
-    return_dict={
+    return_dict = {
         "validation_indices": val_indices,
         "test_indices": test_indices,
         "shortcut_cls": shortcut_cls,
@@ -384,8 +397,8 @@ def train_model(
         save_each = validate_each
 
     if output_path is None:
-        output_path = os.path.join(metadata_root,dataset_name)
-    os.makedirs(os.path.join(metadata_root,dataset_name), exist_ok=True)
+        output_path = os.path.join(metadata_root, dataset_name)
+    os.makedirs(os.path.join(metadata_root, dataset_name), exist_ok=True)
     os.makedirs(output_path, exist_ok=True)
 
     # Load train and validation datasets
@@ -402,7 +415,9 @@ def train_model(
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    num_outputs = datasets_metadata[dataset_name]["num_groups" if dataset_type=="subclass" else "num_classes"]
+    num_outputs = datasets_metadata[dataset_name][
+        "num_groups" if dataset_type == "subclass" else "num_classes"
+    ]
     pl_module = load_pl_module(
         module_name=module_name,
         epochs=epochs,
