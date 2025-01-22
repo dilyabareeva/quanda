@@ -27,70 +27,37 @@ Next, we demonstrate how to evaluate explanations using the **Model Randomizatio
 
 **1. Import dependencies and library components**
 
-.. code-block:: python
-
-   from torch.utils.data import DataLoader
-   from tqdm import tqdm
-
-   from quanda.explainers.wrappers import CaptumSimilarity
-   from quanda.metrics.heuristics import ModelRandomizationMetric
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START1
+   :end-before: # END1
 
 **2. Create the explainer object**
 
 We now create our explainer. The device to be used by the explainer and metrics is inherited from the model, thus we set the model device explicitly.
 
-.. code-block:: python
-
-   DEVICE = "cpu"
-   model.to(DEVICE)
-   explainer_kwargs = {
-      "layers": "avgpool",
-      "model_id": "default_model_id",
-      "cache_dir": "./cache"
-   }
-   explainer = CaptumSimilarity(
-      model=model,
-      train_dataset=train_set,
-      **explainer_kwargs
-   )
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START2
+   :end-before: # END2
 
 **3. Initialize the metric**
 
 The ``ModelRandomizationMetric`` needs to instantiate a new explainer to generate explanations for a randomized model. These will be compared with the explanations of the original model. Therefore, ``explainer_cls`` is passed directly to the metric along with initialization parameters of the explainer for the randomized model.
 
-.. code-block:: python
-
-   explainer_kwargs = {
-      "layers": "avgpool",
-      "model_id": "randomized_model_id",
-      "cache_dir": "./cache"
-   }
-   model_rand = ModelRandomizationMetric(
-         model=model,
-         train_dataset=train_set,
-         explainer_cls=CaptumSimilarity,
-         expl_kwargs=explainer_kwargs,
-         correlation_fn="spearman",
-         seed=42,
-   )
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START3
+   :end-before: # END3
 
 **4. Iterate over test set to generate explanations and update the metric**
 
 We now start producing explanations with our TDA method. We go through the test set batch-by-batch. For each batch, we first generate the attributions using the predicted labels, and we then update the metric with the produced explanations to showcase how to concurrently handle the explanation and evaluation processes.
 
-.. code-block:: python
-
-   test_loader = DataLoader(eval_dataset, batch_size=32, shuffle=False)
-   for test_tensor, _ in tqdm(test_loader):
-      test_tensor = test_tensor.to(DEVICE)
-      target = model(test_tensor).argmax(dim=-1)
-      tda = explainer.explain(
-         test_tensor=test_tensor,
-         targets=target
-      )
-      model_rand.update(test_data=test_tensor, explanations=tda, explanation_targets=target)
-
-   print("Randomization metric output:", model_rand.compute())
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START4
+   :end-before: # END4
 
 Using Benchmarks
 ----------------
@@ -101,39 +68,24 @@ The pre-assembled benchmarks allow us to streamline the evaluation process by do
 
 **1. Import dependencies and library components**
 
-.. code-block:: python
-
-   from quanda.explainers.wrappers import CaptumSimilarity
-   from quanda.benchmarks.downstream_eval import SubclassDetection
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START5
+   :end-before: # END5
 
 **2. Prepare arguments for the explainer object**
 
-.. code-block:: python
-
-   DEVICE = "cpu"
-   model.to(DEVICE)
-
-   explainer_kwargs = {
-      "layers": "avgpool",
-      "model_id": "default_model_id",
-      "cache_dir": "./cache"
-   }
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START6
+   :end-before: # END6
 
 **3. Load a pre-assembled benchmark and score an explainer**
 
-.. code:: python
-
-   subclass_detect = SubclassDetection.download(
-      name="mnist_subclass_detection",
-      cache_dir=cache_dir,
-      device="cpu",
-   )
-   score = subclass_detect.evaluate(
-      explainer_cls=CaptumSimilarity,
-      expl_kwargs=explain_fn_kwargs,
-      batch_size=batch_size,
-   )["score"]
-   print(f"Subclass Detection Score: {score}")
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START7
+   :end-before: # END7
 
 Assembling a benchmark from existing components
 +++++++++++++++++++++++++++++++++++++++++++++++
@@ -142,42 +94,26 @@ Next, we demonstrate assembling a benchmark with assets that the user has prepar
 
 **1. Import dependencies and library components**
 
- .. code-block:: python
-
-   from quanda.explainers.wrappers import CaptumSimilarity
-   from quanda.benchmarks.ground_truth import TopKCardinality
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START8
+   :end-before: # END8
 
 **2. Prepare arguments for the explainer object**
 
-.. code-block:: python
-
-   DEVICE = "cpu"
-   model.to(DEVICE)
-
-   explainer_kwargs = {
-      "layers": "avgpool",
-      "model_id": "default_model_id",
-      "cache_dir": "./cache"
-   }
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START9
+   :end-before: # END9
 
 **3. Assemble the benchmark object and run the evaluation**
 
 We now have everything we need, we can just assemble the benchmark and run it. This will encapsulate the process of instantiating the explainer, generating explanations and using the :doc:`TopKCardinalityMetric <docs_api/quanda.metrics.heuristics.topk_cardinality.TopKCardinalityMetric>` to evaluate them.
 
-.. code-block:: python
-
-   topk_cardinality = TopKCardinality.assemble(
-      model=model,
-      train_dataset=train_set,
-      eval_dataset=eval_set,
-   )
-   score = topk_cardinality.evaluate(
-      explainer_cls=CaptumSimilarity,
-      expl_kwargs=explain_fn_kwargs,
-      batch_size=batch_size,
-   )["score"]
-   print(f"Top K Cardinality Score: {score}")
-
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START10
+   :end-before: # END10
 
 Generating the benchmark object from scratch
 ++++++++++++++++++++++++++++++++++++++++++++
@@ -188,56 +124,35 @@ As in previous examples, we assume that ``train_set`` refers to  a vanilla train
 
 **1. Import dependencies and library components**
 
-.. code-block:: python
-
-   import torch
-
-   from quanda.explainers.wrappers import CaptumSimilarity
-   from quanda.benchmarks.downstream_eval import MislabelingDetection
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START11
+   :end-before: # END11
 
 **2. Prepare arguments for the explainer object**
 
-.. code-block:: python
-
-   DEVICE = "cpu"
-   model.to(DEVICE)
-
-   explainer_kwargs = {
-      "layers": "avgpool",
-      "model_id": "default_model_id",
-      "cache_dir": "./cache"
-   }
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START12
+   :end-before: # END12
 
 **3. Prepare the trainer**
 
 For mislabeling detection, we will train a model from scratch. |quanda| allows to use Lightning ``Trainer`` objects. If you want to use Lightning trainers, ``model`` needs to be an instance of a Lightning ``LightningModule``. Alternatively, you can use an instance of :doc:`quanda.utils.training.BaseTrainer <docs_api/quanda.utils.training.trainer>`. In this example, we use a very simple training setup via the :doc:`quanda.utils.training.Trainer <quanda.utils.training.trainer>` class.
 
-.. code-block:: python
-   trainer = Trainer(
-      max_epochs=100,
-      optimizer=torch.optim.SGD,
-      lr=0.01,
-      criterion=torch.nn.CrossEntropyLoss(),
-   )
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START13
+   :end-before: # END13
 
-4. Generate the benchmark object and run the evaluation</big></b></summary>
+**4. Generate the benchmark object and run the evaluation**
 
 We can now call the ``generate`` method to instantiate our :doc:`MislabelingDetection <docs_api/quanda.benchmarks.downstream_eval.mislabeling_detection>` object and directly start the evaluation process with it. The ``generate`` method takes care of model training using ``trainer``, generation of explanations and their evaluation.
 
-.. code-block:: python
-
-   mislabeling_detection = MislabelingDetection.generate(
-      model=model,
-      base_dataset=train_set,
-      n_classes=n_classes,
-      trainer=trainer,
-   )
-   score = mislabeling_detection.evaluate(
-      explainer_cls=CaptumSimilarity,
-      expl_kwargs=explain_fn_kwargs,
-      batch_size=batch_size,
-   )["score"]
-   print(f"Mislabeling Detection Score: {score}")
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START14
+   :end-before: # END14
 
 More detailed examples can be found in the :doc:`tutorials <./tutorials>` page.
 
@@ -250,14 +165,10 @@ In addition to the built-in explainers, |quanda| supports the evaluation of cust
 
 Your custom explainer should inherit from the base :doc:`Explainer <docs_api/quanda.explainers.base>` class provided by |quanda|. The first step is to initialize your custom explainer within the ``__init__`` method.
 
-.. code:: python
-
-   from quanda.explainers.base import Explainer
-
-   class CustomExplainer(Explainer):
-       def __init__(self, model, train_dataset, **kwargs):
-           super().__init__(model, train_dataset, **kwargs)
-           # Initialize your explainer here
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START15
+   :end-before: # END15
 
 **Step 2. Implement the explain method**
 
@@ -270,26 +181,19 @@ return a 2D tensor containing the influence scores.
 
 You must ensure that the output tensor has the shape ``(test_samples, train_samples)``, where the entries in the train samples dimension are ordered in the same order as in the ``train_dataset`` that is being attributed.
 
-.. code:: python
-
-   def explain(
-     self,
-     test_tensor: torch.Tensor,
-     targets: Union[List[int], torch.Tensor]
-   ) -> torch.Tensor:
-       # Compute your influence scores here
-       return influence_scores
-
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START16
+   :end-before: # END16
 
 **Step 3. Implement the self_influence method (Optional)**
 
 By default, |quanda| includes a built-in method for calculating self-influence scores. This base implementation computes all attributions over the training dataset, and collects the diagonal values in the attribution matrix. However, you can override this method to provide a more efficient implementation. This method should calculate how much each training sample influences itself and return a tensor of the computed self-influence scores.
 
-.. code:: python
-
-   def self_influence(self, batch_size: int = 1) -> torch.Tensor:
-       # Compute your self-influence scores here
-       return self_influence_scores
+.. literalinclude:: quickstart.txt
+   :language: python
+   :start-after: # START17
+   :end-before: # END17
 
 For detailed examples, we refer to the :doc:`existing explainer wrappers <docs_api/quanda.explainers.wrappers>` in |quanda|.
 

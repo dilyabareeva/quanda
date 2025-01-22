@@ -255,14 +255,10 @@ attributions. Therefore it takes also the test data which was used to
 generate the supplied attributions, as well as the target labels used
 for explaining these samples:
 
-::
-
-       def update(
-           self,
-           test_data: torch.Tensor,
-           explanations: torch.Tensor,
-           explanation_targets: Optional[torch.Tensor] = None,
-       ):
+.. literalinclude:: contributing.txt
+   :language: python
+   :start-after: # START1
+   :end-before: # END1
 
 The ``reset`` method resets the internal state of the metric, to a state
 before seeing any explanations.
@@ -295,23 +291,27 @@ downloadable benchmark using a HuggingFace dataset, which we take from
 the user as a string. Another input, ``dataset_split : str = "train"``
 is also needed, to use when a HuggingFace dataset is downloaded. When
 you are implementing the ``generate`` function, you should additionally:
+
 - Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
 
-::
-
-   obj = cls()
+.. literalinclude:: contributing.txt
+   :language: python
+   :start-after: # START2
+   :end-before: # END2
 
 -  Infer device from the passed model using the base method:
 
-::
-
-   obj._set_devices(model)
+.. literalinclude:: contributing.txt
+   :language: python
+   :start-after: # START3
+   :end-before: # END3
 
 -  Populate ``train_dataset`` field of ``obj``:
 
-::
-
-   obj.train_dataset = obj._process_dataset(train_dataset, dataset_split)
+.. literalinclude:: contributing.txt
+   :language: python
+   :start-after: # START4
+   :end-before: # END4
 
 -  Populate the rest of the required fields of the ``obj`` object from
    the parameters of the method.
@@ -324,21 +324,24 @@ from existing components, generated beforehand with the ``generate``
 method. Again, it should take a ``train_dataset`` and ``model``. You
 should again: - Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
 
-::
-
-   obj = cls()
+.. literalinclude:: contributing.txt
+   :language: python
+   :start-after: # START5
+   :end-before: # END5
 
 -  Infer device from the passed model using the base method:
 
-::
-
-   obj._set_devices(model)
+.. literalinclude:: contributing.txt
+   :language: python
+   :start-after: # START6
+   :end-before: # END6
 
 -  Populate ``train_dataset`` field of ``obj``:
 
-::
-
-   obj.train_dataset = obj._process_dataset(train_dataset, dataset_split)
+.. literalinclude:: contributing.txt
+   :language: python
+   :start-after: # START7
+   :end-before: # END7
 
 -  Populate the rest of the required fields of the ``obj`` object from
    the parameters of the method.
