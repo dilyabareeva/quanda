@@ -1,5 +1,6 @@
 """Lightning modules for the benchmarks."""
 
+from typing import Union
 import lightning as L
 import torch
 from torch.nn import CrossEntropyLoss
@@ -16,7 +17,7 @@ def load_module_from_bench_state(bench_state: dict, device: str):
     module = module_type(num_labels=num_labels, device=device)
 
     module.model.load_state_dict(
-        bench_state["checkpoints_binary"][-1]["model_state_dict"]
+        bench_state["checkpoints_binary"][-1]["state_dict"]
     )
     module.to(device)
     module.eval()
@@ -33,9 +34,12 @@ def load_module_with_name(
     return module
 
 
-def bench_load_state_dict(module: torch.nn.Module, checkpoint: dict):
+def bench_load_state_dict(module: torch.nn.Module, checkpoint: Union[str, dict], device:str):
     """Load the state of the module from the checkpoint."""
-    module.model.load_state_dict(checkpoint["model_state_dict"])
+    if isinstance(checkpoint,str):
+        checkpoint=torch.load(checkpoint, map_location=device)
+
+    module.model.load_state_dict(checkpoint["state_dict"])
     return module
 
 
@@ -247,11 +251,11 @@ class MnistModel(L.LightningModule):
 
     def on_save_checkpoint(self, checkpoint):
         """Save the state of the model attribute manually."""
-        checkpoint["model_state_dict"] = self.model.state_dict()
+        checkpoint["state_dict"] = self.model.state_dict()
 
     def on_load_checkpoint(self, checkpoint):
         """Load the state of the model attribute manually."""
-        self.model.load_state_dict(checkpoint["model_state_dict"])
+        self.model.load_state_dict(checkpoint["state_dict"])
 
 
 pl_modules = {

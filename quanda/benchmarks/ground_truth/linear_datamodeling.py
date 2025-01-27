@@ -94,11 +94,11 @@ class LinearDatamodeling(Benchmark):
         module = load_module_from_bench_state(bench_state, device)
 
         pretrained_ckpts = bench_state["pretrained_model_checkpoints"]
-        pretrained_models=[]
+        pretrained_models = []
         for ckpt in pretrained_ckpts:
-            new_model=bench_load_state_dict(deepcopy(self.model), ckpt)
+            new_model = bench_load_state_dict(deepcopy(self.model), ckpt)
             pretrained_models.append[new_model.model]
-        
+
         return self.assemble(
             model=module,
             checkpoints=bench_state["checkpoints_binary"],
