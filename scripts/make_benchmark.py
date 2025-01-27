@@ -8,11 +8,17 @@ sys.path.append(os.getcwd())
 
 from argparse import ArgumentParser
 
+from quanda.metrics.ground_truth import LinearDatamodelingMetric
+
 import torch
+import lightning as L
 from scripts.train_model import (
     load_datasets,
     datasets_metadata,
+    load_pl_module,
 )
+
+from quanda.benchmarks.resources.modules import bench_load_state_dict
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +44,7 @@ def make_benchmark(
         output_path = os.path.join(metadata_root, dataset_name)
     os.makedirs(metadata_root, exist_ok=True)
     os.makedirs(output_path, exist_ok=True)
-    _, _, test_set, ds_dict = load_datasets(
+    train_set, val_set, test_set, ds_dict = load_datasets(
         dataset_name=dataset_name,
         dataset_cache_dir=dataset_cache_dir,
         augmentation=None,
@@ -93,6 +99,42 @@ def make_benchmark(
             f"{dataset_name}_adversarial_transform"
         )
         bench_state["adversarial_dir_url"] = ds_dict["adversarial_dir_url"]
+    elif benchmark_name == "linear_datamodeling":
+        bench_state["m"] = 100
+        bench_state["alpha"] = 0.5
+        bench_state["trainer_fit_kwargs"] = {"max_epochs": 20}
+        bench_state["correlation_fn"] = "spearman"
+        bench_state["model_id"]=f"{dataset_name}_{module_name}_0"
+        bench_state["seed"] = seed
+        module = load_pl_module(
+            module_name=bench_state["pl_module"], num_outputs=num_outputs
+        )
+        metric = LinearDatamodelingMetric(
+            model=module,
+            train_dataset=train_set,
+            trainer=L.Trainer(),
+            alpha=bench_state["alpha"],
+            m=bench_state["m"],
+            correlation_fn=bench_state["correlation_fn"],
+            trainer_fit_kwargs=bench_state["trainer_fit_kwargs"],
+            seed=bench_state["seed"],
+            checkpoints=bench_state["checkpoints_binary"],
+            checkpoints_load_func=bench_load_state_dict,
+            cache_dir=output_path,
+        )
+        bench_state["subset_ids"]=metric.subset_ids
+        assert len(bench_state["subset_ids"]==bench_state["m"])
+
+        pretrained_ckpts=[]        
+
+        for i in range(bench_state["m"]):
+            model_ckpt_path = os.path.join(
+                output_path, f"{bench_state["model_id"]}_model_{i}.ckpt"
+            )
+            ckpt=torch.load(model_ckpt_path,map_location=device)
+            pretrained_ckpts.append(ckpt)
+        bench_state["pretrained_model_checkpoints"]=pretrained_ckpts
+
     torch.save(
         bench_state,
         os.path.join(output_path, f"{dataset_name}_{benchmark_name}.pth"),

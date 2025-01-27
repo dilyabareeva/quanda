@@ -48,8 +48,8 @@ def main(benchmarks_path, cache_dir):
             benchmark = ModelRandomization()
         elif "linear_datamodeling" in f:
             benchmark = LinearDatamodeling()
-        benchmark._parse_bench_state(bench_state, cache_dir, device=device)
-
+        benchmark=benchmark._parse_bench_state(bench_state, cache_dir, device=device)
+        benchmark.evaluate()
 
 if __name__ == "__main__":
     parser = ArgumentParser()
