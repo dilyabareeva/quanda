@@ -3,6 +3,7 @@
 import logging
 from typing import Callable, Optional, Union, List, Any
 
+from copy import deepcopy
 import lightning as L
 import torch
 
@@ -75,33 +76,15 @@ class LinearDatamodeling(Benchmark):
         self.subset_ids: Optional[List[List[int]]]
         self.pretrained_models: Optional[List[torch.nn.Module]]
 
-    @classmethod
-    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """Download a precomputed benchmark.
-
-        Load precomputed benchmark components from a file and creates an
-        instance from the state dictionary.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        device : str
-            Device to load the model on.
-        args : Any
-            Variable length argument list.
-        kwargs : Any
-            Arbitrary keyword arguments.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        eval_dataset = obj._build_eval_dataset(
+    def _parse_bench_state(
+        self,
+        bench_state: dict,
+        cache_dir: str,
+        model_id: Optional[str] = None,
+        device: str = "cpu",
+    ):
+        """Parse the benchmark state dictionary."""
+        eval_dataset = self._build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=sample_transforms[bench_state["dataset_transform"]],
@@ -110,7 +93,13 @@ class LinearDatamodeling(Benchmark):
         dataset_transform = sample_transforms[bench_state["dataset_transform"]]
         module = load_module_from_bench_state(bench_state, device)
 
-        return obj.assemble(
+        pretrained_ckpts = bench_state["pretrained_model_checkpoints"]
+        pretrained_models=[]
+        for ckpt in pretrained_ckpts:
+            new_model=bench_load_state_dict(deepcopy(self.model), ckpt)
+            pretrained_models.append[new_model.model]
+        
+        return self.assemble(
             model=module,
             checkpoints=bench_state["checkpoints_binary"],
             checkpoints_load_func=bench_load_state_dict,
@@ -120,13 +109,13 @@ class LinearDatamodeling(Benchmark):
             cache_dir=bench_state["cache_dir"],
             model_id=bench_state["model_id"],
             alpha=bench_state["alpha"],
-            trainer=bench_state["trainer"],
+            trainer=L.Trainer(),
             trainer_fit_kwargs=bench_state["trainer_fit_kwargs"],
             correlation_fn=bench_state["correlation_fn"],
             seed=bench_state["seed"],
             use_predictions=bench_state["use_predictions"],
             subset_ids=bench_state["subset_ids"],
-            pretrained_models=bench_state["pretrained_models"],
+            pretrained_models=pretrained_models,
             dataset_transform=dataset_transform,
         )
 
