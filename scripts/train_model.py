@@ -94,6 +94,238 @@ def load_augmentation(name, dataset_name):
     return Compose(trans_arr)
 
 
+def handle_mislabeled_dataset(
+    train_set,
+    val_set,
+    test_set,
+    metadata_path,
+    dataset_name,
+    output_path,
+    num_classes,
+    seed,
+    regular_transforms,
+    mislabeling_probability,
+):
+    if not os.path.exists(os.path.join(metadata_path, "mislabeling_indices")):
+        assert mislabeling_probability is not None, (
+            "mislabeling_probability must be given to create mislabeled dataset from scratch"
+        )
+        train_set = LabelFlippingDataset(
+            dataset=train_set,
+            n_classes=num_classes,
+            dataset_transform=regular_transforms,
+            p=mislabeling_probability,
+            seed=seed,
+        )
+        mislabeling_indices = train_set.transform_indices
+        torch.save(
+            mislabeling_indices,
+            os.path.join(output_path, "mislabeling_indices"),
+        )
+        mislabeling_labels = torch.tensor(
+            [train_set.mislabeling_labels[i] for i in mislabeling_indices]
+        )
+        torch.save(
+            mislabeling_labels,
+            os.path.join(output_path, "mislabeling_labels"),
+        )
+    else:
+        mislabeling_indices = torch.load(
+            os.path.join(metadata_path, "mislabeling_indices")
+        )
+        mislabeling_labels = torch.load(
+            os.path.join(metadata_path, "mislabeling_labels")
+        )
+        mislabeling_labels = {
+            mislabeling_indices[i]: int(mislabeling_labels[i])
+            for i in range(mislabeling_labels.shape[0])
+        }
+        train_set = LabelFlippingDataset(
+            dataset=train_set,
+            n_classes=num_classes,
+            dataset_transform=regular_transforms,
+            transform_indices=mislabeling_indices,
+            mislabeling_labels=mislabeling_labels,
+            seed=seed,
+        )
+        return_dict = {
+            "mislabeling_indices": mislabeling_indices,
+            "mislabeling_labels": mislabeling_labels,
+        }
+        return train_set, val_set, test_set, return_dict
+
+
+def handle_mixed_dataset(
+    train_set,
+    val_set,
+    test_set,
+    metadata_path,
+    dataset_name,
+    output_path,
+    num_classes,
+    seed,
+    regular_transforms,
+    adversarial_cls,
+    adversarial_dir,
+):
+    assert adversarial_dir is not None, (
+        "adversarial_dir must be given to create mixed dataset"
+    )
+    temp_benchmark = MixedDatasets()
+    if not os.path.exists(
+        os.path.join(adversarial_dir, "adversarial_dataset.zip")
+    ):
+        temp_benchmark._download_adversarial_dataset(
+            adversarial_dir_url=datasets_metadata[dataset_name][
+                "adversarial_dir_url"
+            ],
+            cache_dir=adversarial_dir,
+        )
+    if not os.path.exists(
+        os.path.join(metadata_path, "adversarial_train_indices")
+    ):
+        temp_dataset = SingleClassImageDataset(
+            root=adversarial_dir,
+            label=adversarial_cls,
+            transform=None,
+        )
+        adversarial_size = int(
+            len(temp_dataset) * 0.5
+        )  # TODO: make this a parameter
+        all_indices = torch.randperm(adversarial_size)
+        adversarial_train_indices = all_indices[:adversarial_size]
+        torch.save(
+            adversarial_train_indices,
+            os.path.join(output_path, "adversarial_train_indices"),
+        )
+        adversarial_test_indices = all_indices[adversarial_size:]
+        torch.save(
+            adversarial_test_indices,
+            os.path.join(output_path, "adversarial_test_indices"),
+        )
+    else:
+        adversarial_train_indices = torch.load(
+            os.path.join(metadata_path, "adversarial_train_indices")
+        )
+        adversarial_test_indices = torch.load(
+            os.path.join(metadata_path, "adversarial_test_indices")
+        )
+    adversarial_dataset = SingleClassImageDataset(
+        root=adversarial_dir,
+        label=adversarial_cls,
+        transform=sample_transforms[f"{dataset_name}_adversarial_transform"],
+        indices=adversarial_train_indices,
+    )
+    # adversarial_indices = [1] * len(adversarial_dataset) + [0] * len(
+    #    train_set
+    # )
+    train_set = torch.utils.data.ConcatDataset(
+        [adversarial_dataset, train_set]
+    )
+    return_dict = {
+        "adversarial_train_indices": adversarial_train_indices,
+        "adversarial_test_indices": adversarial_test_indices,
+    }
+    return train_set, val_set, test_set, return_dict
+
+
+def handle_shortcut_dataset(
+    train_set,
+    val_set,
+    test_set,
+    metadata_path,
+    dataset_name,
+    output_path,
+    num_classes,
+    seed,
+    regular_transforms,
+    shortcut_probability,
+    shortcut_cls,
+):
+    if not os.path.exists(os.path.join(metadata_path, "shortcut_indices")):
+        assert shortcut_probability is not None, (
+            "shortcut_probability must be given to create shortcut dataset from scratch"
+        )
+        train_set = SampleTransformationDataset(
+            dataset=train_set,
+            n_classes=num_classes,
+            sample_fn=sample_transforms[f"{dataset_name}_shortcut_transform"],
+            dataset_transform=regular_transforms,
+            cls_idx=shortcut_cls,
+            p=shortcut_probability,
+            seed=seed,
+        )
+        torch.save(
+            train_set.transform_indices,
+            os.path.join(output_path, "shortcut_indices"),
+        )
+    else:
+        shortcut_indices = torch.load(
+            os.path.join(metadata_path, "shortcut_indices")
+        )
+        train_set = SampleTransformationDataset(
+            dataset=train_set,
+            n_classes=num_classes,
+            sample_fn=sample_transforms[f"{dataset_name}_shortcut_transform"],
+            dataset_transform=regular_transforms,
+            transform_indices=shortcut_indices,
+            seed=seed,
+        )
+    return_dict = {
+        "shortcut_cls": shortcut_cls,
+        "shortcut_indices": shortcut_indices,
+    }
+    return train_set, val_set, test_set, return_dict
+
+
+def handle_subclass_dataset(
+    train_set,
+    val_set,
+    test_set,
+    metadata_path,
+    dataset_name,
+    output_path,
+    num_classes,
+    seed,
+    regular_transforms,
+    num_groups,
+):
+    if not os.path.exists(os.path.join(metadata_path, "class_to_group")):
+        train_set = LabelGroupingDataset(
+            dataset=train_set,
+            n_classes=num_classes,
+            dataset_transform=None,
+            seed=seed,
+            n_groups=num_groups,
+            class_to_group="random",
+        )
+        torch.save(
+            train_set.class_to_group,
+            os.path.join(output_path, "class_to_group"),
+        )
+    else:
+        class_to_group = torch.load(
+            os.path.join(metadata_path, "class_to_group")
+        )
+        train_set = LabelGroupingDataset(
+            dataset=train_set,
+            n_classes=num_classes,
+            dataset_transform=None,
+            seed=seed,
+            class_to_group=class_to_group,
+        )
+    val_set = LabelGroupingDataset(
+        dataset=val_set,
+        n_classes=num_classes,
+        dataset_transform=None,
+        seed=seed,
+        class_to_group=train_set.class_to_group,
+    )
+    return_dict = {"class_to_group": class_to_group}
+
+    return train_set, val_set, test_set, return_dict
+
+
 def load_datasets(
     dataset_name,
     dataset_cache_dir,
@@ -116,12 +348,10 @@ def load_datasets(
         "mislabeling_probability"
     ]
 
-    if augmentation == "":
-        augmentation = None
-    if augmentation is not None:
+    if augmentation is not None and augmentation != "":
         augmentation = load_augmentation(augmentation, dataset_name)
 
-    normalized_transform = (
+    augmented_transform = (
         transforms.Compose([augmentation, regular_transforms])
         if augmentation is not None
         else regular_transforms
@@ -132,7 +362,7 @@ def load_datasets(
         dataset_split="train",
         transform=augmentation
         if dataset_type in ["mislabeled", "shortcut"]
-        else normalized_transform,
+        else augmented_transform,
         cache_dir=dataset_cache_dir,
     )
     # TODO: Currently, holdout sets are vanilla except when dataset_type=="subclass"
@@ -163,194 +393,305 @@ def load_datasets(
 
     val_set = Subset(holdout_set, val_indices)
     test_set = Subset(holdout_set, test_indices)
-    shortcut_indices = None
-    mislabeling_indices = None
-    mislabeling_labels = None
-    adversarial_train_indices = None
-    adversarial_test_indices = None
-    class_to_group = None
-    if dataset_type == "shortcut":
-        if not os.path.exists(os.path.join(metadata_path, "shortcut_indices")):
-            assert shortcut_probability is not None, (
-                "shortcut_probability must be given to create shortcut dataset from scratch"
-            )
-            train_set = SampleTransformationDataset(
-                dataset=train_set,
-                n_classes=num_classes,
-                sample_fn=sample_transforms[
-                    f"{dataset_name}_shortcut_transform"
-                ],
-                dataset_transform=regular_transforms,
-                cls_idx=shortcut_cls,
-                p=shortcut_probability,
-                seed=seed,
-            )
-            torch.save(
-                train_set.transform_indices,
-                os.path.join(output_path, "shortcut_indices"),
-            )
-        else:
-            shortcut_indices = torch.load(
-                os.path.join(metadata_path, "shortcut_indices")
-            )
-            train_set = SampleTransformationDataset(
-                dataset=train_set,
-                n_classes=num_classes,
-                sample_fn=sample_transforms[
-                    f"{dataset_name}_shortcut_transform"
-                ],
-                dataset_transform=regular_transforms,
-                transform_indices=shortcut_indices,
-                seed=seed,
-            )
-    elif dataset_type == "mislabeled":
-        if not os.path.exists(
-            os.path.join(metadata_path, "mislabeling_indices")
-        ):
-            assert mislabeling_probability is not None, (
-                "mislabeling_probability must be given to create mislabeled dataset from scratch"
-            )
-            train_set = LabelFlippingDataset(
-                dataset=train_set,
-                n_classes=num_classes,
-                dataset_transform=regular_transforms,
-                p=mislabeling_probability,
-                seed=seed,
-            )
-            mislabeling_indices = train_set.transform_indices
-            torch.save(
-                mislabeling_indices,
-                os.path.join(output_path, "mislabeling_indices"),
-            )
-            mislabeling_labels = torch.tensor(
-                [train_set.mislabeling_labels[i] for i in mislabeling_indices]
-            )
-            torch.save(
-                mislabeling_labels,
-                os.path.join(output_path, "mislabeling_labels"),
-            )
-        else:
-            mislabeling_indices = torch.load(
-                os.path.join(metadata_path, "mislabeling_indices")
-            )
-            mislabeling_labels = torch.load(
-                os.path.join(metadata_path, "mislabeling_labels")
-            )
-            mislabeling_labels = {
-                mislabeling_indices[i]: int(mislabeling_labels[i])
-                for i in range(mislabeling_labels.shape[0])
-            }
-            train_set = LabelFlippingDataset(
-                dataset=train_set,
-                n_classes=num_classes,
-                dataset_transform=regular_transforms,
-                transform_indices=mislabeling_indices,
-                mislabeling_labels=mislabeling_labels,
-                seed=seed,
-            )
-    elif dataset_type == "mixed":
-        assert adversarial_dir is not None, (
-            "adversarial_dir must be given to create mixed dataset"
-        )
-        temp_benchmark = MixedDatasets()
-        if not os.path.exists(
-            os.path.join(adversarial_dir, "adversarial_dataset.zip")
-        ):
-            temp_benchmark._download_adversarial_dataset(
-                adversarial_dir_url=datasets_metadata[dataset_name][
-                    "adversarial_dir_url"
-                ],
-                cache_dir=adversarial_dir,
-            )
-        if not os.path.exists(
-            os.path.join(metadata_path, "adversarial_train_indices")
-        ):
-            temp_dataset = SingleClassImageDataset(
-                root=adversarial_dir,
-                label=adversarial_cls,
-                transform=None,
-            )
-            adversarial_size = int(
-                len(temp_dataset) * 0.5
-            )  # TODO: make this a parameter
-            all_indices = torch.randperm(adversarial_size)
-            adversarial_train_indices = all_indices[:adversarial_size]
-            torch.save(
-                adversarial_train_indices,
-                os.path.join(output_path, "adversarial_train_indices"),
-            )
-            adversarial_test_indices = all_indices[adversarial_size:]
-            torch.save(
-                adversarial_test_indices,
-                os.path.join(output_path, "adversarial_test_indices"),
-            )
-        else:
-            adversarial_train_indices = torch.load(
-                os.path.join(metadata_path, "adversarial_train_indices")
-            )
-            adversarial_test_indices = torch.load(
-                os.path.join(metadata_path, "adversarial_test_indices")
-            )
-        adversarial_dataset = SingleClassImageDataset(
-            root=adversarial_dir,
-            label=adversarial_cls,
-            transform=sample_transforms[
-                f"{dataset_name}_adversarial_transform"
-            ],
-            indices=adversarial_train_indices,
-        )
-        # adversarial_indices = [1] * len(adversarial_dataset) + [0] * len(
-        #    train_set
-        # )
-        train_set = torch.utils.data.ConcatDataset(
-            [adversarial_dataset, train_set]
-        )
-    elif dataset_type == "subclass":
-        if not os.path.exists(os.path.join(metadata_path, "class_to_group")):
-            train_set = LabelGroupingDataset(
-                dataset=train_set,
-                n_classes=num_classes,
-                dataset_transform=None,
-                seed=seed,
-                n_groups=num_groups,
-                class_to_group="random",
-            )
-            torch.save(
-                train_set.class_to_group,
-                os.path.join(output_path, "class_to_group"),
-            )
-        else:
-            class_to_group = torch.load(
-                os.path.join(metadata_path, "class_to_group")
-            )
-            train_set = LabelGroupingDataset(
-                dataset=train_set,
-                n_classes=num_classes,
-                dataset_transform=None,
-                seed=seed,
-                class_to_group=class_to_group,
-            )
-        val_set = LabelGroupingDataset(
-            dataset=val_set,
-            n_classes=num_classes,
-            dataset_transform=None,
-            seed=seed,
-            class_to_group=train_set.class_to_group,
-        )
-    # elif dataset_type not in ["vanilla"]:
-    #     raise ValueError(f"Unknown dataset type: {dataset_type}")
+
+    dataset_handler_functions = {
+        "mixed": (
+            handle_mixed_dataset,
+            {
+                "adversarial_cls": adversarial_cls,
+                "adversarial_dir": adversarial_dir,
+            },
+        ),
+        "subclass": (handle_subclass_dataset, {"num_groups": num_groups}),
+        "mislabeled": (
+            handle_mislabeled_dataset,
+            {"mislabeling_probability": mislabeling_probability},
+        ),
+        "shortcut": (
+            handle_shortcut_dataset,
+            {
+                "shortcut_cls": shortcut_cls,
+                "shortcut_probability": shortcut_probability,
+            },
+        ),
+    }
+    fn, kwargs = dataset_handler_functions[dataset_type]
+    train_set, val_set, test_set, extra_info = fn(
+        train_set=train_set,
+        val_set=val_set,
+        test_set=test_set,
+        metadata_path=metadata_path,
+        dataset_name=dataset_name,
+        output_path=output_path,
+        num_classes=num_classes,
+        regular_transforms=regular_transforms,
+        seed=seed,
+        **kwargs,
+    )
+
     return_dict = {
         "validation_indices": val_indices,
         "test_indices": test_indices,
-        "shortcut_cls": shortcut_cls,
-        "shortcut_indices": shortcut_indices,
-        "mislabeling_indices": mislabeling_indices,
-        "mislabeling_labels": mislabeling_labels,
-        "adversarial_train_indices": adversarial_train_indices,
-        "adversarial_test_indices": adversarial_test_indices,
-        "class_to_group": class_to_group,
+        **extra_info,
     }
     return train_set, val_set, test_set, return_dict
+
+
+# def load_datasets_backup(
+#     dataset_name,
+#     dataset_cache_dir,
+#     augmentation,
+#     dataset_type,
+#     metadata_path,
+#     output_path,
+#     seed,
+#     adversarial_dir=None,
+# ):
+#     regular_transforms = sample_transforms[f"{dataset_name}_transform"]
+#     adversarial_cls = datasets_metadata[dataset_name]["adversarial_cls"]
+#     shortcut_cls = datasets_metadata[dataset_name]["shortcut_cls"]
+#     num_classes = datasets_metadata[dataset_name]["num_classes"]
+#     num_groups = datasets_metadata[dataset_name]["num_groups"]
+#     shortcut_probability = datasets_metadata[dataset_name][
+#         "shortcut_probability"
+#     ]
+#     mislabeling_probability = datasets_metadata[dataset_name][
+#         "mislabeling_probability"
+#     ]
+
+#     if augmentation is not None and augmentation != "":
+#         augmentation = load_augmentation(augmentation, dataset_name)
+
+#     normalized_transform = (
+#         transforms.Compose([augmentation, regular_transforms])
+#         if augmentation is not None
+#         else regular_transforms
+#     )
+#     train_set = Benchmark._process_dataset(
+#         Benchmark,
+#         dataset=datasets_metadata[dataset_name]["hf_tag"],
+#         dataset_split="train",
+#         transform=augmentation
+#         if dataset_type in ["mislabeled", "shortcut"]
+#         else normalized_transform,
+#         cache_dir=dataset_cache_dir,
+#     )
+#     # TODO: Currently, holdout sets are vanilla except when dataset_type=="subclass"
+#     holdout_set = Benchmark._process_dataset(
+#         Benchmark,
+#         dataset=datasets_metadata[dataset_name]["hf_tag"],
+#         dataset_split=datasets_metadata[dataset_name]["test_split_name"],
+#         transform=regular_transforms,
+#         cache_dir=dataset_cache_dir,
+#     )
+#     if os.path.exists(os.path.join(metadata_path, "validation_indices")):
+#         val_indices = torch.load(
+#             os.path.join(metadata_path, "validation_indices")
+#         )
+#         test_indices = torch.load(os.path.join(metadata_path, "test_indices"))
+#     else:
+#         all_indices = torch.randperm(len(holdout_set))
+#         val_indices = all_indices[
+#             : datasets_metadata[dataset_name]["validation_size"]
+#         ]
+#         torch.save(
+#             val_indices, os.path.join(output_path, "validation_indices")
+#         )
+#         test_indices = all_indices[
+#             datasets_metadata[dataset_name]["validation_size"] :
+#         ]
+#         torch.save(test_indices, os.path.join(output_path, "test_indices"))
+
+#     val_set = Subset(holdout_set, val_indices)
+#     test_set = Subset(holdout_set, test_indices)
+#     shortcut_indices = None
+#     mislabeling_indices = None
+#     mislabeling_labels = None
+#     adversarial_train_indices = None
+#     adversarial_test_indices = None
+#     class_to_group = None
+#     if dataset_type == "shortcut":
+#         if not os.path.exists(os.path.join(metadata_path, "shortcut_indices")):
+#             assert shortcut_probability is not None, (
+#                 "shortcut_probability must be given to create shortcut dataset from scratch"
+#             )
+#             train_set = SampleTransformationDataset(
+#                 dataset=train_set,
+#                 n_classes=num_classes,
+#                 sample_fn=sample_transforms[
+#                     f"{dataset_name}_shortcut_transform"
+#                 ],
+#                 dataset_transform=regular_transforms,
+#                 cls_idx=shortcut_cls,
+#                 p=shortcut_probability,
+#                 seed=seed,
+#             )
+#             torch.save(
+#                 train_set.transform_indices,
+#                 os.path.join(output_path, "shortcut_indices"),
+#             )
+#         else:
+#             shortcut_indices = torch.load(
+#                 os.path.join(metadata_path, "shortcut_indices")
+#             )
+#             train_set = SampleTransformationDataset(
+#                 dataset=train_set,
+#                 n_classes=num_classes,
+#                 sample_fn=sample_transforms[
+#                     f"{dataset_name}_shortcut_transform"
+#                 ],
+#                 dataset_transform=regular_transforms,
+#                 transform_indices=shortcut_indices,
+#                 seed=seed,
+#             )
+#     elif dataset_type == "mislabeled":
+#         if not os.path.exists(
+#             os.path.join(metadata_path, "mislabeling_indices")
+#         ):
+#             assert mislabeling_probability is not None, (
+#                 "mislabeling_probability must be given to create mislabeled dataset from scratch"
+#             )
+#             train_set = LabelFlippingDataset(
+#                 dataset=train_set,
+#                 n_classes=num_classes,
+#                 dataset_transform=regular_transforms,
+#                 p=mislabeling_probability,
+#                 seed=seed,
+#             )
+#             mislabeling_indices = train_set.transform_indices
+#             torch.save(
+#                 mislabeling_indices,
+#                 os.path.join(output_path, "mislabeling_indices"),
+#             )
+#             mislabeling_labels = torch.tensor(
+#                 [train_set.mislabeling_labels[i] for i in mislabeling_indices]
+#             )
+#             torch.save(
+#                 mislabeling_labels,
+#                 os.path.join(output_path, "mislabeling_labels"),
+#             )
+#         else:
+#             mislabeling_indices = torch.load(
+#                 os.path.join(metadata_path, "mislabeling_indices")
+#             )
+#             mislabeling_labels = torch.load(
+#                 os.path.join(metadata_path, "mislabeling_labels")
+#             )
+#             mislabeling_labels = {
+#                 mislabeling_indices[i]: int(mislabeling_labels[i])
+#                 for i in range(mislabeling_labels.shape[0])
+#             }
+#             train_set = LabelFlippingDataset(
+#                 dataset=train_set,
+#                 n_classes=num_classes,
+#                 dataset_transform=regular_transforms,
+#                 transform_indices=mislabeling_indices,
+#                 mislabeling_labels=mislabeling_labels,
+#                 seed=seed,
+#             )
+#     elif dataset_type == "mixed":
+#         assert adversarial_dir is not None, (
+#             "adversarial_dir must be given to create mixed dataset"
+#         )
+#         temp_benchmark = MixedDatasets()
+#         if not os.path.exists(
+#             os.path.join(adversarial_dir, "adversarial_dataset.zip")
+#         ):
+#             temp_benchmark._download_adversarial_dataset(
+#                 adversarial_dir_url=datasets_metadata[dataset_name][
+#                     "adversarial_dir_url"
+#                 ],
+#                 cache_dir=adversarial_dir,
+#             )
+#         if not os.path.exists(
+#             os.path.join(metadata_path, "adversarial_train_indices")
+#         ):
+#             temp_dataset = SingleClassImageDataset(
+#                 root=adversarial_dir,
+#                 label=adversarial_cls,
+#                 transform=None,
+#             )
+#             adversarial_size = int(
+#                 len(temp_dataset) * 0.5
+#             )  # TODO: make this a parameter
+#             all_indices = torch.randperm(adversarial_size)
+#             adversarial_train_indices = all_indices[:adversarial_size]
+#             torch.save(
+#                 adversarial_train_indices,
+#                 os.path.join(output_path, "adversarial_train_indices"),
+#             )
+#             adversarial_test_indices = all_indices[adversarial_size:]
+#             torch.save(
+#                 adversarial_test_indices,
+#                 os.path.join(output_path, "adversarial_test_indices"),
+#             )
+#         else:
+#             adversarial_train_indices = torch.load(
+#                 os.path.join(metadata_path, "adversarial_train_indices")
+#             )
+#             adversarial_test_indices = torch.load(
+#                 os.path.join(metadata_path, "adversarial_test_indices")
+#             )
+#         adversarial_dataset = SingleClassImageDataset(
+#             root=adversarial_dir,
+#             label=adversarial_cls,
+#             transform=sample_transforms[
+#                 f"{dataset_name}_adversarial_transform"
+#             ],
+#             indices=adversarial_train_indices,
+#         )
+#         # adversarial_indices = [1] * len(adversarial_dataset) + [0] * len(
+#         #    train_set
+#         # )
+#         train_set = torch.utils.data.ConcatDataset(
+#             [adversarial_dataset, train_set]
+#         )
+#     elif dataset_type == "subclass":
+#         if not os.path.exists(os.path.join(metadata_path, "class_to_group")):
+#             train_set = LabelGroupingDataset(
+#                 dataset=train_set,
+#                 n_classes=num_classes,
+#                 dataset_transform=None,
+#                 seed=seed,
+#                 n_groups=num_groups,
+#                 class_to_group="random",
+#             )
+#             torch.save(
+#                 train_set.class_to_group,
+#                 os.path.join(output_path, "class_to_group"),
+#             )
+#         else:
+#             class_to_group = torch.load(
+#                 os.path.join(metadata_path, "class_to_group")
+#             )
+#             train_set = LabelGroupingDataset(
+#                 dataset=train_set,
+#                 n_classes=num_classes,
+#                 dataset_transform=None,
+#                 seed=seed,
+#                 class_to_group=class_to_group,
+#             )
+#         val_set = LabelGroupingDataset(
+#             dataset=val_set,
+#             n_classes=num_classes,
+#             dataset_transform=None,
+#             seed=seed,
+#             class_to_group=train_set.class_to_group,
+#         )
+#     # elif dataset_type not in ["vanilla"]:
+#     #     raise ValueError(f"Unknown dataset type: {dataset_type}")
+#     return_dict = {
+#         "validation_indices": val_indices,
+#         "test_indices": test_indices,
+#         "shortcut_cls": shortcut_cls,
+#         "shortcut_indices": shortcut_indices,
+#         "mislabeling_indices": mislabeling_indices,
+#         "mislabeling_labels": mislabeling_labels,
+#         "adversarial_train_indices": adversarial_train_indices,
+#         "adversarial_test_indices": adversarial_test_indices,
+#         "class_to_group": class_to_group,
+#     }
+#     return train_set, val_set, test_set, return_dict
 
 
 def load_pl_module(module_name, pretrained, epochs, num_outputs, device):

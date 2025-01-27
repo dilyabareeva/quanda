@@ -1,6 +1,5 @@
 """Lightning modules for the benchmarks."""
 
-from typing import Union
 import lightning as L
 import torch
 from torch.nn import CrossEntropyLoss
@@ -34,11 +33,10 @@ def load_module_with_name(
     return module
 
 
-def bench_load_state_dict(module: torch.nn.Module, checkpoint: Union[str, dict], device:str):
+def bench_load_state_dict(
+    module: torch.nn.Module, checkpoint: dict, device: str
+):
     """Load the state of the module from the checkpoint."""
-    if isinstance(checkpoint,str):
-        checkpoint=torch.load(checkpoint, map_location=device)
-
     module.model.load_state_dict(checkpoint["state_dict"])
     return module
 
@@ -80,11 +78,11 @@ class TinyImagenetModel(L.LightningModule):
 
     def __init__(
         self,
-        lr=1e-1,
+        num_labels: int = 200,
+        lr: float = 1e-1,
         weight_decay: float = 0.0,
-        num_labels=200,
         pretrained: bool = False,
-        device="cuda:0",
+        device: str = "cuda:0",
     ):
         """Initialize Lighning module."""
         self.model: torch.nn.Module
@@ -178,11 +176,11 @@ class MnistModel(L.LightningModule):
 
     def __init__(
         self,
-        epochs=100,
-        lr=1e-4,
-        weight_decay: float = 0.01,
         num_labels: int = 64,
-        device="cuda:0",
+        epochs: int = 100,
+        lr: float = 1e-4,
+        weight_decay: float = 0.01,
+        device: str = "cuda:0",
     ):
         """Initialize the model."""
         super(MnistModel, self).__init__()

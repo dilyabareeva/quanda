@@ -104,7 +104,7 @@ def make_benchmark(
         bench_state["alpha"] = 0.5
         bench_state["trainer_fit_kwargs"] = {"max_epochs": 20}
         bench_state["correlation_fn"] = "spearman"
-        bench_state["model_id"]=f"{dataset_name}_{module_name}_0"
+        bench_state["model_id"] = f"{dataset_name}_{module_name}_0"
         bench_state["seed"] = seed
         module = load_pl_module(
             module_name=bench_state["pl_module"], num_outputs=num_outputs
@@ -122,18 +122,18 @@ def make_benchmark(
             checkpoints_load_func=bench_load_state_dict,
             cache_dir=output_path,
         )
-        bench_state["subset_ids"]=metric.subset_ids
-        assert len(bench_state["subset_ids"]==bench_state["m"])
+        bench_state["subset_ids"] = metric.subset_ids
+        assert len(bench_state["subset_ids"] == bench_state["m"])
 
-        pretrained_ckpts=[]        
+        pretrained_ckpts = []
 
         for i in range(bench_state["m"]):
             model_ckpt_path = os.path.join(
-                output_path, f"{bench_state["model_id"]}_model_{i}.ckpt"
+                output_path, f"{bench_state['model_id']}_model_{i}.ckpt"
             )
-            ckpt=torch.load(model_ckpt_path,map_location=device)
+            ckpt = torch.load(model_ckpt_path, map_location=device)
             pretrained_ckpts.append(ckpt)
-        bench_state["pretrained_model_checkpoints"]=pretrained_ckpts
+        bench_state["pretrained_model_checkpoints"] = pretrained_ckpts
 
     torch.save(
         bench_state,

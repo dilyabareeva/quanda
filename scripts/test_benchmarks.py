@@ -27,29 +27,29 @@ def main(benchmarks_path, cache_dir):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     files = os.listdir(benchmarks_path)
     for f in files:
+        split_array = f.replace(".pth", "").split("_")
+        benchmark_name = "_".join(split_array[1:])
         if not f.endswith(".pth"):
             break
         bench_state = torch.load(
             os.path.join(benchmarks_path, f), map_location=device
         )
-        if "class_detection" in f:
-            benchmark = ClassDetection()
-        elif "subclass" in f:
-            benchmark = SubclassDetection()
-        elif "shortcut" in f:
-            benchmark = ShortcutDetection()
-        elif "mislabeling" in f:
-            benchmark = MislabelingDetection()
-        elif "mixed" in f:
-            benchmark = MixedDatasets()
-        elif "topk" in f:
-            benchmark = TopKCardinality()
-        elif "model_randomization" in f:
-            benchmark = ModelRandomization()
-        elif "linear_datamodeling" in f:
-            benchmark = LinearDatamodeling()
-        benchmark=benchmark._parse_bench_state(bench_state, cache_dir, device=device)
+        benchmark_cls_dict = {
+            "class_detection": ClassDetection,
+            "subclass_detection": SubclassDetection,
+            "shortcut_detection": ShortcutDetection,
+            "mislabeling_detection": MislabelingDetection,
+            "mixed_datasets": MixedDatasets,
+            "model_randomization": ModelRandomization,
+            "topk_cardinality": TopKCardinality,
+            "linear_datamodeling": LinearDatamodeling,
+        }
+        benchmark = benchmark_cls_dict[benchmark_name]()
+        benchmark = benchmark._parse_bench_state(
+            bench_state, cache_dir, device=device
+        )
         benchmark.evaluate()
+
 
 if __name__ == "__main__":
     parser = ArgumentParser()
