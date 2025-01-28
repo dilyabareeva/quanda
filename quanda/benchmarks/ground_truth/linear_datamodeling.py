@@ -96,8 +96,8 @@ class LinearDatamodeling(Benchmark):
         pretrained_ckpts = bench_state["pretrained_model_checkpoints"]
         pretrained_models: List[torch.nn.Module] = []
         for ckpt in pretrained_ckpts:
-            new_model = bench_load_state_dict(
-                deepcopy(self.model), ckpt, device
+            new_model = bench_load_state_dict(deepcopy(self.model), ckpt).to(
+                device
             )
             pretrained_models.append(new_model.model)
 

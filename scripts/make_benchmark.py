@@ -24,20 +24,20 @@ logger = logging.getLogger(__name__)
 
 
 def make_benchmark(
-    benchmark_name,
-    dataset_name,
-    dataset_cache_dir,
-    dataset_type,
-    metadata_root,
-    output_path,
-    seed,
-    adversarial_dir,
-    device,
-    module_name,
-    checkpoints_dir,
+    benchmark_name: str,
+    dataset_name: str,
+    dataset_cache_dir: str,
+    dataset_type: str,
+    metadata_root: str,
+    output_path: str,
+    seed: int,
+    adversarial_dir: str,
+    device: str,
+    module_name: str,
+    checkpoints_dir: str,
 ):
     torch.set_float32_matmul_precision("medium")
-    seed = 4242
+    EVAL_SET_SIZE = 128
     torch.manual_seed(seed)
 
     if output_path is None:
@@ -85,22 +85,31 @@ def make_benchmark(
     bench_state["dataset_str"] = datasets_metadata[dataset_name]["hf_tag"]
     bench_state["use_predictions"] = True
     bench_state["n_classes"] = num_outputs
-    bench_state["eval_test_indices"] = torch.randperm(len(test_set))[:128]
+    bench_state["eval_test_indices"] = torch.randperm(len(test_set))[
+        :EVAL_SET_SIZE
+    ]
     bench_state["dataset_transform"] = f"{dataset_name}_transform"
     bench_state["pl_module"] = module_name
 
-    if benchmark_name == "mislabeling_detection":
+    if benchmark_name == "subclass_detection":
+        bench_state["class_to_group"] = ds_dict["class_to_group"]
+    elif benchmark_name == "mislabeling_detection":
         bench_state["mislabeling_labels"] = ds_dict["mislabeling_labels"]
     elif benchmark_name == "shortcut_detection":
         bench_state["shortcut_cls"] = ds_dict["shortcut_cls"]
         bench_state["shortcut_indices"] = ds_dict["shortcut_indices"]
         bench_state["sample_fn"] = f"{dataset_name}_shortcut_transform"
-    elif benchmark_name == "mixed_detection":
-        bench_state["adversarial_label"] = ds_dict["adversarial_label"]
+    elif benchmark_name == "mixed_datasets":
+        bench_state["adversarial_label"] = ds_dict["adversarial_cls"]
         bench_state["adversarial_transform"] = (
             f"{dataset_name}_adversarial_transform"
         )
+        bench_state["adv_train_indices"] = ds_dict["adversarial_train_indices"]
+        bench_state["adv_test_indices"] = ds_dict["adversarial_test_indices"]
         bench_state["adversarial_dir_url"] = ds_dict["adversarial_dir_url"]
+        bench_state["eval_test_indices"] = torch.randperm(
+            len(bench_state["adv_test_indices"])
+        )[:EVAL_SET_SIZE]
     elif benchmark_name == "linear_datamodeling":
         bench_state["m"] = 100
         bench_state["alpha"] = 0.5

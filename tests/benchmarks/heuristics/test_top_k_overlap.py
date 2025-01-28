@@ -121,7 +121,7 @@ def test_topk_cardinality(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            0.5625,
+            0.4375,
         ),
     ],
 )

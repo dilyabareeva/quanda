@@ -398,7 +398,7 @@ class Benchmark(ABC):
             adversarial_transform = sample_transforms[
                 bench_state["adversarial_transform"]
             ]
-            adv_test_indices = bench_state["adv_indices_test"]
+            adv_test_indices = bench_state["adv_test_indices"]
             eval_from_test_indices = bench_state["eval_test_indices"]
             eval_indices = [
                 adv_test_indices[i] for i in eval_from_test_indices
@@ -411,7 +411,7 @@ class Benchmark(ABC):
                 indices=eval_indices,
             )
 
-            adv_train_indices = bench_state["adv_indices_train"]
+            adv_train_indices = bench_state["adv_train_indices"]
             assemble_dict["adversarial_dir"] = adversarial_dir
             assemble_dict["adv_train_indices"] = adv_train_indices
             assemble_dict["adversarial_transform"] = adversarial_transform

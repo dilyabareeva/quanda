@@ -33,9 +33,7 @@ def load_module_with_name(
     return module
 
 
-def bench_load_state_dict(
-    module: torch.nn.Module, checkpoint: dict, device: str
-):
+def bench_load_state_dict(module: torch.nn.Module, checkpoint: dict):
     """Load the state of the module from the checkpoint."""
     module.model.load_state_dict(checkpoint["state_dict"])
     return module
