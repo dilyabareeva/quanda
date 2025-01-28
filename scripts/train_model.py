@@ -148,11 +148,11 @@ def handle_mislabeled_dataset(
             mislabeling_labels=mislabeling_labels,
             seed=seed,
         )
-        return_dict = {
-            "mislabeling_indices": mislabeling_indices,
-            "mislabeling_labels": mislabeling_labels,
-        }
-        return train_set, val_set, test_set, return_dict
+    return_dict = {
+        "mislabeling_indices": mislabeling_indices,
+        "mislabeling_labels": mislabeling_labels,
+    }
+    return train_set, val_set, test_set, return_dict
 
 
 def handle_mixed_dataset(
@@ -259,6 +259,7 @@ def handle_shortcut_dataset(
             train_set.transform_indices,
             os.path.join(output_path, "shortcut_indices"),
         )
+        shortcut_indices = train_set.transform_indices
     else:
         shortcut_indices = torch.load(
             os.path.join(metadata_path, "shortcut_indices")
@@ -321,7 +322,7 @@ def handle_subclass_dataset(
         seed=seed,
         class_to_group=train_set.class_to_group,
     )
-    return_dict = {"class_to_group": class_to_group}
+    return_dict = {"class_to_group": train_set.class_to_group}
 
     return train_set, val_set, test_set, return_dict
 
@@ -365,6 +366,7 @@ def load_datasets(
         else augmented_transform,
         cache_dir=dataset_cache_dir,
     )
+
     # TODO: Currently, holdout sets are vanilla except when dataset_type=="subclass"
     holdout_set = Benchmark._process_dataset(
         Benchmark,
@@ -415,19 +417,22 @@ def load_datasets(
             },
         ),
     }
-    fn, kwargs = dataset_handler_functions[dataset_type]
-    train_set, val_set, test_set, extra_info = fn(
-        train_set=train_set,
-        val_set=val_set,
-        test_set=test_set,
-        metadata_path=metadata_path,
-        dataset_name=dataset_name,
-        output_path=output_path,
-        num_classes=num_classes,
-        regular_transforms=regular_transforms,
-        seed=seed,
-        **kwargs,
-    )
+    if dataset_type != "vanilla":
+        fn, kwargs = dataset_handler_functions[dataset_type]
+        train_set, val_set, test_set, extra_info = fn(
+            train_set=train_set,
+            val_set=val_set,
+            test_set=test_set,
+            metadata_path=metadata_path,
+            dataset_name=dataset_name,
+            output_path=output_path,
+            num_classes=num_classes,
+            regular_transforms=regular_transforms,
+            seed=seed,
+            **kwargs,
+        )
+    else:
+        extra_info = {}
 
     return_dict = {
         "validation_indices": val_indices,
@@ -753,6 +758,7 @@ def train_model(
         seed=seed,
         adversarial_dir=adversarial_dir,
     )
+
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 

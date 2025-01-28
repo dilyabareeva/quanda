@@ -66,7 +66,9 @@ def make_benchmark(
     ckpt_names = []
     ckpt_binary = []
     file_list = [f for f in os.listdir(checkpoints_dir) if f.endswith(".ckpt")]
-    file_list = sorted(file_list)
+    file_list = sorted(
+        file_list, key=lambda x: int(x.split("=")[1].split(".")[0])
+    )
     for file in file_list:
         ckpt_names.append(file)
         # epoch = int(

@@ -45,7 +45,7 @@ sample_transforms = {
         + [transforms.Normalize(mean=[0.5], std=[1])]
     ),
     "mnist_shortcut_transform": add_white_square_mnist,
-    "tiny_imagenet_transforms": transforms.Compose(
+    "tiny_imagenet_transform": transforms.Compose(
         [
             transforms.ToTensor(),
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
