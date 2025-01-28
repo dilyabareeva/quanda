@@ -7,6 +7,7 @@ import pytest
 import torch
 import torchvision
 from torch.utils.data import TensorDataset
+from torchvision.models import vit_b_16, resnet18
 
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
@@ -120,6 +121,20 @@ def load_mnist_model():
             "tests/assets/mnist", map_location="cpu", pickle_module=pickle
         )
     )
+    return model
+
+
+@pytest.fixture
+def load_mnist_model_with_custom_param():
+    """Load a pre-trained LeNet classification model with a custom parameter
+    (architecture at quantus/helpers/models)."""
+    model = LeNet()
+    model.load_state_dict(
+        torch.load(
+            "tests/assets/mnist", map_location="cpu", pickle_module=pickle
+        )
+    )
+    model.custom_param = torch.nn.Parameter(torch.randn(4))
     return model
 
 
@@ -455,3 +470,13 @@ def load_pretrained_models_lds():
         model.load_state_dict(torch.load(path, map_location="cpu"))
         models.append(model)
     return models
+
+
+@pytest.fixture
+def load_vit():
+    return vit_b_16()
+
+
+@pytest.fixture
+def load_resnet():
+    return resnet18()

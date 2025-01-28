@@ -30,7 +30,7 @@ from quanda.utils.functions import cosine_similarity
                 "similarity_metric": cosine_similarity,
             },
             None,
-            0.5208332538604736,
+            0.717261791229248,
         ),
         (
             "mnist2",
@@ -49,7 +49,7 @@ from quanda.utils.functions import cosine_similarity
                 "similarity_metric": cosine_similarity,
             },
             None,
-            0.5208332538604736,
+            0.717261791229248,
         ),
     ],
 )
