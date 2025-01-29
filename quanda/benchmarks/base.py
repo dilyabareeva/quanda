@@ -9,6 +9,7 @@ import requests
 import torch
 from datasets import load_dataset  # type: ignore
 from tqdm import tqdm
+import lightning as L
 
 from quanda.benchmarks.resources import (
     benchmark_urls,
@@ -23,7 +24,6 @@ from quanda.utils.datasets.image_datasets import (
     HFtoTV,
     SingleClassImageDataset,
 )
-import lightning as L
 
 from quanda.utils.training import BaseTrainer
 
@@ -368,16 +368,9 @@ class Benchmark(ABC):
             checkpoint_paths.append(save_path)
 
         dataset_transform_str = bench_state.get("dataset_transform", None)
-        if dataset_transform_str:
-            dataset_transform = sample_transforms[dataset_transform_str]
-        else:
-            dataset_transform = None
-
+        dataset_transform = sample_transforms.get(dataset_transform_str, None)
         sample_fn_str = bench_state.get("sample_fn", None)
-        if sample_fn_str:
-            sample_fn = sample_transforms[sample_fn_str]
-        else:
-            sample_fn = None
+        sample_fn = sample_transforms.get(sample_fn_str, None)
 
         eval_dataset = self._build_eval_dataset(
             dataset_str=bench_state["dataset_str"],
@@ -385,7 +378,7 @@ class Benchmark(ABC):
             transform=dataset_transform
             if self.name != "Shortcut Detection"
             else None,  # TODO: better way to handle this
-            dataset_split=bench_state["test_split_name"],
+            dataset_split=bench_state.get("test_split_name", "test"),
         )
 
         if self.name == "Mixed Datasets":

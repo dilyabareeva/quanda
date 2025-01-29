@@ -86,7 +86,7 @@ We now start producing explanations with our TDA method. We go through the test 
       target = model(test_data).argmax(dim=-1)
       tda = explainer.explain(
          test_data=test_data,
-         test_targets=target
+         targets=target
       )
       model_rand.update(test_data=test_data, explanations=tda, explanation_targets=target)
 
