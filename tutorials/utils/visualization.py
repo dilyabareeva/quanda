@@ -24,7 +24,7 @@ rcParams["font.weight"] = "normal"  # or 'bold' if you want bold text
 
 def save_influential_samples(
     train_dataset,
-    test_tensor,
+    test_data,
     influence_scores,
     denormalize,
     test_names,
@@ -155,20 +155,20 @@ def save_influential_samples(
     plt.show()  # Show the plot
 
     # save test image with torch
-    test_image = denormalize(test_tensor[0])
+    test_image = denormalize(test_data[0])
     save_image(test_image, f"{save_path}/test_image.png")
 
 
 def visualize_top_3_bottom_3_influential(
     train_dataset,
-    test_tensor,
+    test_data,
     test_targets,
     predicted,
     influence_scores,
     label_dict,
     save_path=None,
 ):
-    num_samples = len(test_tensor)
+    num_samples = len(test_data)
     plt.figure(figsize=(24, 5 * num_samples))
     gs = GridSpec(num_samples, 17, height_ratios=[1] * num_samples)
 
@@ -198,7 +198,7 @@ def visualize_top_3_bottom_3_influential(
     ]
 
     for test_idx in range(num_samples):
-        test_image = test_tensor[test_idx]
+        test_image = test_data[test_idx]
         test_image = (test_image - test_image.min()) / (
             test_image.max() - test_image.min()
         )

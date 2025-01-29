@@ -61,23 +61,23 @@ class ClassDetectionMetric(Metric):
 
         self.scores: List[torch.Tensor] = []
 
-    def update(self, explanations: torch.Tensor, test_labels: torch.Tensor):
+    def update(self, explanations: torch.Tensor, test_targets: torch.Tensor):
         """Update the metric state with the provided explanations.
 
         Parameters
         ----------
         explanations : torch.Tensor
             Explanations of the test samples.
-        test_labels : torch.Tensor
-            Labels of the test samples.
+        test_targets : torch.Tensor
+            Ground truth labels of the test samples.
 
         """
-        assert test_labels.shape[0] == explanations.shape[0], (
+        assert test_targets.shape[0] == explanations.shape[0], (
             f"Number of explanations ({explanations.shape[0]}) does not match "
-            f"the number of labels ({test_labels.shape[0]})."
+            f"the number of labels ({test_targets.shape[0]})."
         )
 
-        test_labels = test_labels.to(self.device)
+        test_targets = test_targets.to(self.device)
         explanations = explanations.to(self.device)
 
         _, top_one_xpl_indices = explanations.topk(k=1, dim=1)
@@ -87,7 +87,7 @@ class ClassDetectionMetric(Metric):
                 for i in top_one_xpl_indices.squeeze()
             ]
         ).to(self.device)
-        scores = (test_labels == top_one_xpl_targets) * 1.0
+        scores = (test_targets == top_one_xpl_targets) * 1.0
         self.scores.append(scores)
 
     def compute(self):

@@ -230,14 +230,14 @@ We now start producing explanations with our TDA method. We go through the test 
 
 ```python
 test_loader = DataLoader(eval_set, batch_size=32, shuffle=False)
-for test_tensor, _ in tqdm(test_loader):
-    test_tensor = test_tensor.to(DEVICE)
-    target = model(test_tensor).argmax(dim=-1)
+for test_data, _ in tqdm(test_loader):
+    test_data = test_data.to(DEVICE)
+    target = model(test_data).argmax(dim=-1)
     tda = explainer.explain(
-        test_tensor=test_tensor,
+        test_data=test_data,
         targets=target
     )
-    model_rand.update(test_data=test_tensor, explanations=tda, explanation_targets=target)
+    model_rand.update(test_data=test_data, explanations=tda, explanation_targets=target)
 
 print("Randomization metric output:", model_rand.compute())
 ```
@@ -442,7 +442,7 @@ Ensure that the output tensor has the shape `(test_samples, train_samples)`, whe
 ```python
 def explain(
   self,
-  test_tensor: torch.Tensor,
+  test_data: torch.Tensor,
   targets: Union[List[int], torch.Tensor]
 ) -> torch.Tensor:
     # Compute your influence scores here

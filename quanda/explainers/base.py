@@ -77,14 +77,14 @@ class Explainer(ABC):
     @abstractmethod
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         targets: Union[List[int], torch.Tensor],
     ) -> torch.Tensor:
         """Abstract method for computing influence scores for the test samples.
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples.
@@ -126,7 +126,7 @@ class Explainer(ABC):
             range(0, ds_len(self.train_dataset), batch_size), ldr
         ):
             explanations = self.explain(
-                test_tensor=x.to(self.device), targets=y.to(self.device)
+                test_data=x.to(self.device), targets=y.to(self.device)
             )
             influences[i : i + batch_size] = explanations.diag(diagonal=i)
 

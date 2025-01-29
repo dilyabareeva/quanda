@@ -13,7 +13,7 @@ from quanda.utils.training import Trainer
 
 @pytest.mark.ground_truth_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, test_tensor, test_labels, optimizer, criterion, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, method_kwargs",
     [
         (
             "mnist",
@@ -33,7 +33,7 @@ def test_linear_datamodeling(
     model,
     checkpoint,
     dataset,
-    test_tensor,
+    test_data,
     test_labels,
     optimizer,
     criterion,
@@ -45,7 +45,7 @@ def test_linear_datamodeling(
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
-    test_data = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_labels = request.getfixturevalue(test_labels)
     optimizer_cls = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
@@ -84,9 +84,9 @@ def test_linear_datamodeling(
     )
 
     metric.update(
-        test_tensor=test_data,
+        test_data=test_data,
         explanations=explanations,
-        explanation_targets=explanation_targets,
+        test_targets=explanation_targets,
     )
 
     score = metric.compute()["score"]
@@ -98,7 +98,7 @@ def test_linear_datamodeling(
 
 @pytest.mark.ground_truth_metrics
 @pytest.mark.parametrize(
-    "test_id, model, dataset, test_tensor, test_labels, subset_indices, pretrained_models, optimizer, criterion, method_kwargs",
+    "test_id, model, dataset, test_data, test_labels, subset_indices, pretrained_models, optimizer, criterion, method_kwargs",
     [
         (
             "mnist",
@@ -118,7 +118,7 @@ def test_linear_datamodeling_extended(
     test_id,
     model,
     dataset,
-    test_tensor,
+    test_data,
     test_labels,
     optimizer,
     criterion,
@@ -130,7 +130,7 @@ def test_linear_datamodeling_extended(
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
-    test_data = request.getfixturevalue(test_tensor)
+    test_data = request.getfixturevalue(test_data)
     test_labels = request.getfixturevalue(test_labels)
     optimizer_cls = request.getfixturevalue(optimizer)
     criterion = request.getfixturevalue(criterion)
@@ -171,9 +171,9 @@ def test_linear_datamodeling_extended(
     )
 
     metric.update(
-        test_tensor=test_data,
+        test_data=test_data,
         explanations=explanations,
-        explanation_targets=explanation_targets,
+        test_targets=explanation_targets,
     )
     score = metric.compute()["score"]
 
