@@ -491,8 +491,11 @@ pip install quanda[tutorials]
 We welcome contributions to **quanda**! You could contribute by:
 - Opening an issue to report a bug or request a feature.
 - Submitting a pull request to fix a bug, add a new explainer wrapper, a new metric, or another feature.
-
+- 
 A detailed guide on how to contribute to **quanda** can be found [here](CONTRIBUTING.md).
+
+## ✉️ Contact
+If you have any questions regarding the codebase, please open an issue or contact us via email at [dilyabareeva@gmail.com](mailto:dilyabareeva@gmail.com) or [galip.uemit.yolcu@hhi.fraunhofer.de](mailto:galip.uemit.yolcu@hhi.fraunhofer.de).
 
 ## 🔗Citation
 
