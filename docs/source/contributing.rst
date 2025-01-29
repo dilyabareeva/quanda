@@ -1,5 +1,5 @@
 Contribution Guide for |quanda|
-=============================
+===============================
 
 |quanda| is an open source library that you can contribute to! We
 encourage you to contribute new metrics and explainers, optimizations or
@@ -255,10 +255,14 @@ attributions. Therefore it takes also the test data which was used to
 generate the supplied attributions, as well as the target labels used
 for explaining these samples:
 
-.. literalinclude:: contributing.txt
-   :language: python
-   :start-after: # START1
-   :end-before: # END1
+.. code:: python
+
+   def update(
+      self,
+      test_data: torch.Tensor,
+      explanations: torch.Tensor,
+      explanation_targets: Optional[torch.Tensor] = None,
+   ):
 
 The ``reset`` method resets the internal state of the metric, to a state
 before seeing any explanations.
@@ -294,24 +298,21 @@ you are implementing the ``generate`` function, you should additionally:
 
 - Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
 
-.. literalinclude:: contributing.txt
-   :language: python
-   :start-after: # START2
-   :end-before: # END2
+.. code:: python
+
+   obj = cls()
 
 -  Infer device from the passed model using the base method:
 
-.. literalinclude:: contributing.txt
-   :language: python
-   :start-after: # START3
-   :end-before: # END3
+.. code:: python
+
+   obj._set_devices(model)
 
 -  Populate ``train_dataset`` field of ``obj``:
 
-.. literalinclude:: contributing.txt
-   :language: python
-   :start-after: # START4
-   :end-before: # END4
+.. code:: python
+
+   obj.train_dataset = obj._process_dataset(train_dataset, dataset_split)
 
 -  Populate the rest of the required fields of the ``obj`` object from
    the parameters of the method.
@@ -322,26 +323,25 @@ you are implementing the ``generate`` function, you should additionally:
 The class method ``assemble`` should generate the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` object
 from existing components, generated beforehand with the ``generate``
 method. Again, it should take a ``train_dataset`` and ``model``. You
-should again: - Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
+should again: 
 
-.. literalinclude:: contributing.txt
-   :language: python
-   :start-after: # START5
-   :end-before: # END5
+- Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
+
+.. code:: python
+
+   obj = cls()
 
 -  Infer device from the passed model using the base method:
 
-.. literalinclude:: contributing.txt
-   :language: python
-   :start-after: # START6
-   :end-before: # END6
+.. code:: python
+
+   obj._set_devices(model)
 
 -  Populate ``train_dataset`` field of ``obj``:
 
-.. literalinclude:: contributing.txt
-   :language: python
-   :start-after: # START7
-   :end-before: # END7
+.. code:: python
+
+   obj.train_dataset = obj._process_dataset(train_dataset, dataset_split)
 
 -  Populate the rest of the required fields of the ``obj`` object from
    the parameters of the method.

@@ -15,17 +15,19 @@ To install the library with tutorial dependencies, run:
 
 Throughout this tutorial, we will be using a LeNet model trained on the MNIST dataset. Let's start the tutorial by importing the necessary libraries and components:
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START1
    :end-before: # END1
+   :dedent:
 
 Next, we need to prepare for the following computations.
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START2
    :end-before: # END2
+   :dedent:
 
 Downloading Precomputed Benchmarks
 ----------------------------------
@@ -35,17 +37,19 @@ We will use the benchmark corresponding to this metric to evaluate all data attr
 
 We will download the precomputed MNIST benchmark. This includes an MNIST dataset which has shortcut features (an 8-by-8 white box on a specific location) on a subset of its samples from the class 0, and a model trained on this dataset. This model has learned to classify images with these features as class 0, and we will measure the extent to which this is reflected in the attributions of different methods.
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START3
    :end-before: # END3
+   :dedent:
 
 The benchmark object contains all information about the controlled evaluation setup. Run the following to get some samples with the shortcut features, using benchmark.feature_dataset and benchmark.shortcut_indices.
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START4
    :end-before: # END4
+   :dedent:
 
 Prepare initialization parameters for TDA methods
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -53,44 +57,48 @@ We now prepare the initialization parameters of attributors: hyperparameters, an
 
 - **Similarity Influence**:
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START5
    :end-before: # END5
+   :dedent:
 
 - **Arnoldi Influence Functions**: Notice that the trained checkpoints have been saved to the ``cache_dir`` while downloading the benchmark. We can reach the paths of these checkpoints with ``benchmark.get_checkpoint_paths()``.
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START6
    :end-before: # END6
 
 - **TracInCP**:
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START7
    :end-before: # END7
+   :dedent:
 
 - **TRAK**:
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START8
    :end-before: # END8
+   :dedent:
 
 - **Representer Point Selection**:
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START9
    :end-before: # END9
+   :dedent:
 
 Run the benchmark evaluation on the attributors
 +++++++++++++++++++++++++++++++++++++++++++++++
 Note that some attributors take a long time to initialize or compute attributions. For a proof of concept, we recommend using :doc:`CaptumSimilarity <../docs_api/quanda.explainers.wrappers.captum_influence>` or :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>`, or lowering the parameter values given above (i.e. using low ``proj_dim`` for TRAK or a low Hessian dataset size for :doc:`ArnoldiInfluence <../docs_api/quanda.explainers.wrappers.captum_influence>`)
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START10
    :end-before: # END10
@@ -107,10 +115,11 @@ This ranking is then used to go through the dataset to check mislabelings. Quand
 
 Instead of creating the components from scratch, we will again download the benchmark and use collect the prepared components. We will then use the ``assemble`` method to create the benchmark. Note that this is exactly what is happening when we are creating a benchmark using the ``download`` method.
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START11
    :end-before: # END11
+   :dedent:
 
 Required Components
 +++++++++++++++++++
@@ -123,19 +132,21 @@ In order to assemble a :doc:`MislabelingDetection <../docs_api/quanda.benchmarks
 
 Let's collect these components from the downloaded benchmark. We then assemble the benchmark and evaluate the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor with it. Note that the implementation depends on computing the self-influences of the whole training dataset. This procedure is fastest for the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor. Therefore, we use this explainer here.
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START12
    :end-before: # END12
+   :dedent:
 
 Assembling the benchmark and running the evaluation
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 We are now ready to assemble and run the benchmark. After running the below code, the ``results`` dictionary will contain the score of the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor on the benchmark.
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START13
    :end-before: # END13
+   :dedent:
 
 Generating a Benchmark from Scratch
 -----------------------------------
@@ -158,14 +169,22 @@ Additionally, we can provide a dictionary which embodies a specific class groupi
 
     Please note that calling ``SubclassDetection.generate`` will initiate model training, therefore it will potentially take a long time.
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
-   :start-after: # START14
-   :end-before: # END14
+   :start-after: # START14_1
+   :end-before: # END14_1
+   :dedent:
+
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START14_2
+   :end-before: # END14_2
+   :dedent:
 
 Now that we have trained the model on the MNIST dataset with randomly grouped classes, we finalize this tutorial by evaluating the :doc:`CaptumSimilarity <../docs_api/quanda.explainers.wrappers.captum_influence>` attributor. The ``results`` dictionary will contain the score of the attributor on the benchmark after running the following:
 
-.. literalinclude:: benchmarks.txt
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
    :language: python
    :start-after: # START15
    :end-before: # END15
+   :dedent:
