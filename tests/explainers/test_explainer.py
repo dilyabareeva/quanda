@@ -54,9 +54,9 @@ def test_base_explainer_self_influence(
     mocker.patch.object(explainer, "explain", wraps=mock_explain)
 
     self_influence = explainer.self_influence()
-    assert self_influence.shape[0] == dataset.__len__(), (
-        "Self-influence shape does not match the dataset."
-    )
+    assert (
+        self_influence.shape[0] == dataset.__len__()
+    ), "Self-influence shape does not match the dataset."
 
 
 @pytest.mark.explainers

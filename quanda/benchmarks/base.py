@@ -365,7 +365,9 @@ class Benchmark(ABC):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
-        dataset_str = bench_state["dataset_str"].replace("mnist", "ylecun/mnist")
+        dataset_str = bench_state["dataset_str"].replace(
+            "mnist", "ylecun/mnist"
+        )
         dataset_transform_str = bench_state.get("dataset_transform", None)
         dataset_transform = sample_transforms.get(dataset_transform_str, None)
         sample_fn_str = bench_state.get("sample_fn", None)

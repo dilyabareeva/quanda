@@ -91,9 +91,9 @@ def test_linear_datamodeling(
 
     score = metric.compute()["score"]
 
-    assert abs(score - get_lds_score) < 0.01, (
-        "LDS scores differ significantly."
-    )
+    assert (
+        abs(score - get_lds_score) < 0.01
+    ), "LDS scores differ significantly."
 
 
 @pytest.mark.ground_truth_metrics
