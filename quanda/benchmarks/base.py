@@ -374,7 +374,7 @@ class Benchmark(ABC):
             transform=dataset_transform
             if self.name != "Shortcut Detection"
             else None,  # TODO: better way to handle this
-            dataset_split=bench_state["test_split_name"],
+            dataset_split=bench_state.get("test_split_name", "test"),
         )
 
         if self.name == "Mixed Datasets":
