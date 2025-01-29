@@ -14,7 +14,7 @@ from quanda.utils.functions import cosine_similarity
     "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "generate",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
@@ -111,7 +111,7 @@ def test_model_randomization(
     "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_model_randomization_benchmark",
             8,
             CaptumSimilarity,

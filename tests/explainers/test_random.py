@@ -8,7 +8,7 @@ from quanda.explainers import RandomExplainer
     "test_id, model, checkpoint,dataset, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -41,7 +41,7 @@ def test_random_explainer_self_influence(
     "test_id, model, checkpoint,dataset, test_batch, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",

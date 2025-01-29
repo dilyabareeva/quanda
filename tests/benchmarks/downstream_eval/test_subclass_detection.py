@@ -19,7 +19,7 @@ from quanda.utils.training.trainer import Trainer
     "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "generate",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
@@ -43,7 +43,7 @@ from quanda.utils.training.trainer import Trainer
             1.0,
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "assemble",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
@@ -148,7 +148,7 @@ def test_subclass_detection(
     "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_pl_module",
             3,
             "load_mnist_dataset",
@@ -220,7 +220,7 @@ def test_subclass_detection_generate_lightning_model(
     "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_subclass_detection_benchmark",
             8,
             CaptumSimilarity,
@@ -304,7 +304,7 @@ def test_subclass_detection_download(
     "test_id, benchmark, batch_size",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_subclass_detection_benchmark",
             8,
         ),

@@ -12,7 +12,7 @@ from quanda.utils.training.trainer import Trainer
     max_epochs, val_dataloaders, early_stopping, early_stopping_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_init_mnist_model",
             "load_mnist_dataloader",
             "torch_sgd_optimizer",

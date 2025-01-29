@@ -272,7 +272,7 @@ def test_randomization_metric_randomization(
     "test_id, model, checkpoint,dataset, top_k, batch_size, explanations, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",

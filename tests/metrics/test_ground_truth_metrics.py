@@ -16,7 +16,7 @@ from quanda.utils.training import Trainer
     "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -101,7 +101,7 @@ def test_linear_datamodeling(
     "test_id, model, dataset, test_data, test_labels, subset_indices, pretrained_models, optimizer, criterion, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
@@ -185,7 +185,7 @@ def test_linear_datamodeling_extended(
     "test_id, model, checkpoint, dataset",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",

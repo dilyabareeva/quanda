@@ -23,7 +23,7 @@ from quanda.utils.training.trainer import Trainer
     "global_method, mislabeling_labels, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "generate",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
@@ -45,7 +45,7 @@ from quanda.utils.training.trainer import Trainer
             0.4921875,
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "assemble",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
@@ -67,7 +67,7 @@ from quanda.utils.training.trainer import Trainer
             0.0,
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "assemble",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
@@ -179,7 +179,7 @@ def test_mislabeling_detection(
     "global_method, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_pl_module",
             3,
             "load_mnist_dataset",
@@ -254,7 +254,7 @@ def test_mislabeling_detection_generate_from_pl_module(
     "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_mislabeling_detection_benchmark",
             8,
             CaptumSimilarity,
@@ -337,7 +337,7 @@ def test_mislabeling_detection_download(
     "test_id, benchmark",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_mislabeling_detection_benchmark",
         ),
     ],

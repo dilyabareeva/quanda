@@ -30,7 +30,7 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
     "test_id, model, checkpoint,dataset,  explanations, test_data, batch_size, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -40,7 +40,7 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
             {"layers": "relu_4", "similarity_metric": cosine_similarity},
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -50,7 +50,7 @@ from quanda.utils.functions import cosine_similarity, dot_product_similarity
             {"layers": "relu_4", "similarity_metric": cosine_similarity},
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -101,7 +101,7 @@ def test_captum_similarity_explain(
     "test_id, model, checkpoint,dataset,  explanations, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -145,7 +145,7 @@ def test_captum_similarity_self_influence(
     "test_id, model, checkpoint,dataset, test_data, method_kwargs, explanations",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -191,7 +191,7 @@ def test_captum_similarity_explain_functional(
     "test_id, model, checkpoint,dataset, test_data, test_labels, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -200,7 +200,7 @@ def test_captum_similarity_explain_functional(
             {"batch_size": 1, "projection_dim": 10, "arnoldi_dim": 10},
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -266,7 +266,7 @@ def test_captum_arnoldi(
     "test_id, model, checkpoint,dataset, test_data, test_labels, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -283,7 +283,7 @@ def test_captum_arnoldi(
             },
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -356,7 +356,7 @@ def test_captum_arnoldi_explain_functional(
     "test_id, model, checkpoint,dataset, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -409,7 +409,7 @@ def test_captum_arnoldi_self_influence(
     "test_id, model, dataset, test_data, test_lables, checkpoints, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_test_samples_1",
@@ -468,7 +468,7 @@ def test_captum_tracincp(
     "test_id, model, dataset, checkpoints, test_data, test_labels, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_checkpoints",
@@ -530,7 +530,7 @@ def test_captum_tracincp_explain_functional(
     "test_id, model, checkpoint,dataset, checkpoints, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -581,7 +581,7 @@ def test_captum_tracincp_self_influence(
     "test_id, model, checkpoint,dataset, test_data, test_labels, checkpoints, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -647,7 +647,7 @@ def test_captum_tracincp_fast(
     "test_id, model, dataset, checkpoints, test_data, test_labels, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_checkpoints",
@@ -739,7 +739,7 @@ def test_captum_tracincp_fast_explain_functional(
     "test_id, model, dataset, checkpoints, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_dataset",
             "load_mnist_checkpoints",
@@ -790,7 +790,7 @@ def test_captum_tracincp_fast_self_influence(
     "test_id, model, checkpoint,dataset, test_data, test_labels, checkpoints, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -858,7 +858,7 @@ def test_captum_tracincp_fast_rand_proj(
     "test_id, model, checkpoint,dataset, checkpoints, test_data, test_labels, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -954,7 +954,7 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
     "test_id, model, checkpoint,dataset, checkpoints, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
