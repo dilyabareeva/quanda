@@ -43,7 +43,7 @@ from quanda.benchmarks.resources.modules import (
 logger = logging.getLogger(__name__)
 
 datasets_metadata = {
-    "ylecun/mnist": {
+    "mnist": {
         "hf_tag": "ylecun/mnist",
         "validation_size": 3000,
         "test_split_name": "test",
