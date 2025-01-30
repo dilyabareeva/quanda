@@ -31,9 +31,9 @@ def test_random_explainer_self_influence(
     )
 
     self_influence = explainer.self_influence()
-    assert (
-        self_influence.shape[0] == dataset.__len__()
-    ), "Self-influence shape does not match the dataset."
+    assert self_influence.shape[0] == dataset.__len__(), (
+        "Self-influence shape does not match the dataset."
+    )
 
 
 @pytest.mark.explainers
@@ -73,6 +73,6 @@ def test_random_explainer_explain(
     )
 
     tda = explainer.explain(test_batch)
-    assert (
-        tda.shape[0] == test_batch.shape[0]
-    ), "Self-influence shape does not match the dataset."
+    assert tda.shape[0] == test_batch.shape[0], (
+        "Self-influence shape does not match the dataset."
+    )
