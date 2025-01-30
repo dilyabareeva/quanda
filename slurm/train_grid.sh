@@ -6,7 +6,8 @@ do
   do
     for lr in 0.1 0.001 1e-4;
     do
-      sbatch train_job.sh --dataset_name $1 \
+      sbatch train_job.sh $1-$dataset_type-$augmentation-$lr \
+                          --dataset_name $1 \
                           --augmentation $augmentation \
                           --dataset_type $dataset_type \
                           --lr $lr \
