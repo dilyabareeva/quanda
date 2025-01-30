@@ -123,11 +123,33 @@ class Benchmark(ABC):
             with open(os.path.join(cache_dir, name + ".pth"), "wb") as f:
                 f.write(response.content)
 
-        return torch.load(
+        bench_state = torch.load(
             os.path.join(cache_dir, name + ".pth"),
             map_location=device,
             weights_only=True,
         )
+
+        ckpt_dir = os.path.join(cache_dir, "quanda_benchmark_checkpoints")
+        os.makedirs(
+            os.path.join(cache_dir, "quanda_benchmark_checkpoints"),
+            exist_ok=True,
+        )
+        bench_state["checkpoints_binary"] = []
+        for fname, url in zip(
+            bench_state["checkpoints"], bench_state["checkpoints_url"]
+        ):
+            fpath = os.path.join(ckpt_dir, fname)
+            if not os.path.exists(fpath):
+                # download to cache_dir
+                response = requests.get(url)
+
+                with open(fpath, "wb") as f:
+                    f.write(response.content)
+            bench_state["checkpoints_binary"].append(
+                torch.load(fpath, map_location=device)
+            )
+        del bench_state["checkpoints_url"]
+        return bench_state
 
     @classmethod
     @abstractmethod
@@ -365,16 +387,13 @@ class Benchmark(ABC):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
-        dataset_str = bench_state["dataset_str"].replace(
-            "mnist", "ylecun/mnist"
-        )
         dataset_transform_str = bench_state.get("dataset_transform", None)
         dataset_transform = sample_transforms.get(dataset_transform_str, None)
         sample_fn_str = bench_state.get("sample_fn", None)
         sample_fn = sample_transforms.get(sample_fn_str, None)
 
         eval_dataset = self._build_eval_dataset(
-            dataset_str=dataset_str,
+            dataset_str=bench_state["dataset_str"],
             eval_indices=bench_state["eval_test_indices"],
             transform=dataset_transform
             if self.name != "Shortcut Detection"
@@ -417,8 +436,8 @@ class Benchmark(ABC):
         assemble_dict["model"] = module
         assemble_dict["checkpoints"] = bench_state["checkpoints_binary"]
         assemble_dict["checkpoints_load_func"] = bench_load_state_dict
-        assemble_dict["train_dataset"] = dataset_str
-        assemble_dict["base_dataset"] = dataset_str
+        assemble_dict["train_dataset"] = bench_state["dataset_str"]
+        assemble_dict["base_dataset"] = bench_state["dataset_str"]
         assemble_dict["eval_dataset"] = eval_dataset
         assemble_dict["use_predictions"] = bench_state["use_predictions"]
         assemble_dict["checkpoint_paths"] = checkpoint_paths
@@ -617,9 +636,10 @@ class Benchmark(ABC):
         adversarial_dir_zip = os.path.join(
             adversarial_dir, "adversarial_dataset.zip"
         )
-        with open(adversarial_dir_zip, "wb") as f:
-            response = requests.get(adversarial_dir_url)
-            f.write(response.content)
+        if not os.path.exists(adversarial_dir_zip):
+            with open(adversarial_dir_zip, "wb") as f:
+                response = requests.get(adversarial_dir_url)
+                f.write(response.content)
 
         # extract
         with zipfile.ZipFile(adversarial_dir_zip, "r") as zip_ref:

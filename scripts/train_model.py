@@ -73,7 +73,7 @@ datasets_metadata = {
 def load_augmentation(name: str, dataset_name: str) -> Callable:
     if name is None or name == "null":
         return lambda x: x
-    shapes = {"tiny_imagenet": (64, 64), "ylecun/mnist": (28, 28)}
+    shapes = {"tiny_imagenet": (64, 64), "mnist": (28, 28)}
     trans_arr = []
     trans_dict = {
         "crop": RandomApply(
@@ -563,7 +563,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dataset_name",
         required=True,
-        default="ylecun/mnist",
+        default="mnist",
         type=str,
         help="Name of the dataset",
     )

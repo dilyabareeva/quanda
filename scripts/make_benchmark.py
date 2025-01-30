@@ -23,11 +23,76 @@ from quanda.benchmarks.resources.modules import bench_load_state_dict
 logger = logging.getLogger(__name__)
 
 
+def get_dataset_type(benchmark_name):
+    if benchmark_name == "mislabeling_detection":
+        return "mislabeled"
+    if benchmark_name == "subclass_detection":
+        return "subclass"
+    if benchmark_name == "shortcut_detection":
+        return "shortcut"
+    if benchmark_name == "mixed_datasets":
+        return "mixed"
+    return "vanilla"
+
+
+checkpoint_urls = {
+    "vanilla": [
+        (
+            "vanilla_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/C88q3JriWPBkRnr/download/vanilla_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+        ),
+        (
+            "vanilla_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/QiBY4d9JqXE64aF/download/vanilla_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
+        ),
+    ],
+    "mislabeled": [
+        (
+            "mislabeled_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/TN7moBGN7Leb3m8/download/mislabeled_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+        ),
+        (
+            "mislabeled_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/rF27Gz4ribpbJoc/download/mislabeled_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
+        ),
+    ],
+    "shortcut": [
+        (
+            "shortcut_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/e7tpTxo7Tw5KSFp/download/shortcut_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+        ),
+        (
+            "shortcut_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/x8gzMGWDTiDdPBW/download/shortcut_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
+        ),
+    ],
+    "mixed": [
+        (
+            "mixed_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/7wjr7jjnzBJBJjL/download/mixed_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+        ),
+        (
+            "mixed_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/XmiYg5eCzyNs9xq/download/mixed_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+        ),
+    ],
+    "subclass": [
+        (
+            "subclass_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/gBT9Pcqz7RGg3RJ/download/subclass_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+        ),
+        (
+            "subclass_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/CP3nwfcWQnTFw7P/download/subclass_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
+        ),
+    ],
+}
+
+
 def make_benchmark(
     benchmark_name: str,
     dataset_name: str,
     dataset_cache_dir: str,
-    dataset_type: str,
     metadata_root: str,
     output_path: str,
     seed: int,
@@ -39,7 +104,8 @@ def make_benchmark(
     torch.set_float32_matmul_precision("medium")
     EVAL_SET_SIZE = 128
     torch.manual_seed(seed)
-
+    dataset_type = get_dataset_type(benchmark_name)
+    checkpoints_dir = os.path.join(checkpoints_dir, dataset_type)
     if output_path is None:
         output_path = os.path.join(metadata_root, dataset_name)
     os.makedirs(metadata_root, exist_ok=True)
@@ -59,10 +125,6 @@ def make_benchmark(
         "num_groups" if dataset_type == "subclass" else "num_classes"
     ]
 
-    bench_state = {
-        "test_split_name": datasets_metadata[dataset_name]["test_split_name"]
-    }
-
     ckpt_names = []
     ckpt_binary = []
     file_list = [f for f in os.listdir(checkpoints_dir) if f.endswith(".ckpt")]
@@ -80,16 +142,19 @@ def make_benchmark(
         # EDIT HERE TO CHANGE THE CONTENTS OF CHECKPOINT BINARY
         ckpt_binary.append(model_state_dict)
 
-    bench_state["checkpoints"] = ckpt_names
-    bench_state["checkpoints_binary"] = ckpt_binary
-    bench_state["dataset_str"] = datasets_metadata[dataset_name]["hf_tag"]
-    bench_state["use_predictions"] = True
-    bench_state["n_classes"] = num_outputs
-    bench_state["eval_test_indices"] = torch.randperm(len(test_set))[
-        :EVAL_SET_SIZE
-    ]
-    bench_state["dataset_transform"] = f"{dataset_name}_transform"
-    bench_state["pl_module"] = module_name
+    ckpt_names, ckpt_urls = list(zip(*checkpoint_urls[dataset_type]))
+
+    bench_state = {
+        "test_split_name": datasets_metadata[dataset_name]["test_split_name"],
+        "dataset_str": datasets_metadata[dataset_name]["hf_tag"],
+        "checkpoints": ckpt_names,
+        "checkpoints_url": ckpt_urls,
+        "use_predictions": True,
+        "n_classes": num_outputs,
+        "eval_test_indices": torch.randperm(len(test_set))[:EVAL_SET_SIZE],
+        "dataset_transform": f"{dataset_name}_transform",
+        "pl_module": module_name,
+    }
 
     if benchmark_name == "subclass_detection":
         bench_state["class_to_group"] = ds_dict["class_to_group"]
@@ -113,28 +178,32 @@ def make_benchmark(
     elif benchmark_name == "linear_datamodeling":
         bench_state["m"] = 100
         bench_state["alpha"] = 0.5
-        bench_state["trainer_fit_kwargs"] = {"max_epochs": 20}
+        bench_state["trainer_fit_kwargs"] = {}
         bench_state["correlation_fn"] = "spearman"
         bench_state["model_id"] = f"{dataset_name}_{module_name}_0"
         bench_state["seed"] = seed
         module = load_pl_module(
-            module_name=bench_state["pl_module"], num_outputs=num_outputs
+            module_name=bench_state["pl_module"],
+            num_outputs=num_outputs,
+            epochs=2,
+            pretrained=True,
+            device=device,
         )
         metric = LinearDatamodelingMetric(
             model=module,
             train_dataset=train_set,
-            trainer=L.Trainer(),
+            trainer=L.Trainer(max_epochs=20),
             alpha=bench_state["alpha"],
             m=bench_state["m"],
             correlation_fn=bench_state["correlation_fn"],
             trainer_fit_kwargs=bench_state["trainer_fit_kwargs"],
             seed=bench_state["seed"],
-            checkpoints=bench_state["checkpoints_binary"],
+            checkpoints=ckpt_binary,
             checkpoints_load_func=bench_load_state_dict,
             cache_dir=output_path,
         )
-        bench_state["subset_ids"] = metric.subset_ids
-        assert len(bench_state["subset_ids"] == bench_state["m"])
+        bench_state["subset_ids"] = metric.subsets
+        assert len(bench_state["subset_ids"]) == len(bench_state["m"])
 
         pretrained_ckpts = []
 
@@ -165,7 +234,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dataset_name",
         required=True,
-        default="ylecun/mnist",
+        default="mnist",
         type=str,
         help="Name of the dataset",
     )
@@ -175,12 +244,6 @@ if __name__ == "__main__":
         default=None,
         type=str,
         help="Directory to cache HF datasets",
-    )
-    parser.add_argument(
-        "--dataset_type",
-        required=False,
-        default="vanilla",
-        choices=["vanilla", "mislabeled", "shortcut", "mixed", "subclass"],
     )
     parser.add_argument(
         "--metadata_root",
@@ -228,7 +291,6 @@ if __name__ == "__main__":
         args.benchmark_name,
         args.dataset_name,
         args.dataset_cache_dir,
-        args.dataset_type,
         args.metadata_root,
         args.output_path,
         args.seed,

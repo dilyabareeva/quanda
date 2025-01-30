@@ -132,7 +132,7 @@ class LinearDatamodelingMetric(Metric):
             self.generator = torch.Generator()
             self.generator.manual_seed(self.seed)
 
-        self.subsets = self.sample_subsets(train_dataset)
+        self.subsets, self.subset_ids = self.sample_subsets(train_dataset)
 
         self.create_counterfactual_models()
 
@@ -160,13 +160,15 @@ class LinearDatamodelingMetric(Metric):
         subset_size = int(self.alpha * N)
 
         subsets = []
+        subset_indices = []
         for _ in range(self.m):
             indices = torch.randperm(N, generator=self.generator)[
                 :subset_size
             ].tolist()
+            subset_indices.append(indices)
             subsets.append(torch.utils.data.Subset(dataset, indices))
 
-        return subsets
+        return subsets, subset_indices
 
     def create_counterfactual_models(self):
         """Train counterfactual model on a subset.
@@ -311,7 +313,10 @@ class LinearDatamodelingMetric(Metric):
     def reset(self, *args, **kwargs):
         """Reset the LDS score and resample subsets of the training data."""
         self.results = {"scores": []}
-        self.subsets = self.sample_subsets(dataset=self.train_dataset)
+        self.subset_ids = None
+        self.subsets, self.subset_ids = self.sample_subsets(
+            dataset=self.train_dataset
+        )
 
     def load_state_dict(self, state_dict: dict):
         """Load the state of the metric.
