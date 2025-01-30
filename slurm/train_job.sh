@@ -17,12 +17,7 @@ mkdir -p ${LOCAL_JOB_DIR}/outputs
 apptainer run --nv \
             --bind /data/datapool3/datasets/quanda_metadata:/mnt/quanda_metadata \
             --bind ${LOCAL_JOB_DIR}/outputs:/mnt/outputs \
-            ../singularity/train.sif \
-            --metadata_root /mnt/quanda_metadata \
-            --dataset_cache_dir /mnt/quanda_metadata/hf_cache \
-            --output_path /mnt/outputs \
-
-            "$@"
+            ../singularity/train.sif --metadata_root /mnt/quanda_metadata --dataset_cache_dir /mnt/quanda_metadata/hf_cache --output_path /mnt/outputs "$@"
 
 tar -czf quanda_train_${SLURM_JOB_ID}.tgz outputs
 cp quanda_train_${SLURM_JOB_ID}.tgz ${SLURM_SUBMIT_DIR}
