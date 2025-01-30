@@ -1,0 +1,33 @@
+Bootstrap: docker
+From: pytorch/pytorch:2.3.0-cuda11.8-cudnn8-devel
+
+%files
+  ../quanda /opt
+  ../scripts /opt
+  ../tutorials /opt
+
+%post
+  export "PATH=/opt/conda/bin:$PATH"
+  apt-get -y update
+  apt install -y git
+
+  pip install \
+    numpy \
+    torchvision \
+    captum@git+https://github.com/pytorch/captum \
+    lightning>=1.4.0 \
+    torchmetrics>=1.4.0 \
+    tqdm>=4.0.0 \
+    traker>=0.3.2 \
+    annoy>=1.17.0 \
+    datasets>=2.0.0 \
+    torcheval>=0.0.6 \
+    matplotlib>=3.4.0 \
+    pillow>=8.3.0 \
+    python-dotenv>=1.0.0 \
+
+  pip install tensorboard
+
+%runscript
+  cd /opt
+  python scripts/train_model.py "$@"
