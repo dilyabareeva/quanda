@@ -43,8 +43,8 @@ from quanda.benchmarks.resources.modules import (
 logger = logging.getLogger(__name__)
 
 datasets_metadata = {
-    "mnist": {
-        "hf_tag": "mnist",
+    "ylecun/mnist": {
+        "hf_tag": "ylecun/mnist",
         "validation_size": 3000,
         "test_split_name": "test",
         "num_classes": 10,
@@ -73,7 +73,7 @@ datasets_metadata = {
 def load_augmentation(name: str, dataset_name: str) -> Callable:
     if name is None or name == "null":
         return lambda x: x
-    shapes = {"tiny_imagenet": (64, 64), "mnist": (28, 28)}
+    shapes = {"tiny_imagenet": (64, 64), "ylecun/mnist": (28, 28)}
     trans_arr = []
     trans_dict = {
         "crop": RandomApply(
@@ -109,9 +109,9 @@ def handle_mislabeled_dataset(
     mislabeling_probability: float,
 ):
     if not os.path.exists(os.path.join(metadata_path, "mislabeling_indices")):
-        assert mislabeling_probability is not None, (
-            "mislabeling_probability must be given to create mislabeled dataset from scratch"
-        )
+        assert (
+            mislabeling_probability is not None
+        ), "mislabeling_probability must be given to create mislabeled dataset from scratch"
         train_set = LabelFlippingDataset(
             dataset=train_set,
             n_classes=num_classes,
@@ -170,9 +170,9 @@ def handle_mixed_dataset(
     adversarial_cls: int,
     adversarial_dir: str,
 ):
-    assert adversarial_dir is not None, (
-        "adversarial_dir must be given to create mixed dataset"
-    )
+    assert (
+        adversarial_dir is not None
+    ), "adversarial_dir must be given to create mixed dataset"
     temp_benchmark = MixedDatasets()
     adversarial_dataset_path = os.path.join(
         adversarial_dir, "mixed_datasets_adversarial_dataset"
@@ -254,9 +254,9 @@ def handle_shortcut_dataset(
     shortcut_cls: int,
 ):
     if not os.path.exists(os.path.join(metadata_path, "shortcut_indices")):
-        assert shortcut_probability is not None, (
-            "shortcut_probability must be given to create shortcut dataset from scratch"
-        )
+        assert (
+            shortcut_probability is not None
+        ), "shortcut_probability must be given to create shortcut dataset from scratch"
         train_set = SampleTransformationDataset(
             dataset=train_set,
             n_classes=num_classes,
@@ -563,7 +563,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dataset_name",
         required=True,
-        default="mnist",
+        default="ylecun/mnist",
         type=str,
         help="Name of the dataset",
     )

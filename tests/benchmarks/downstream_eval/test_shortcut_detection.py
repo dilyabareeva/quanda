@@ -155,7 +155,7 @@ def test_shortcut_detection(
     "shortcut_indices, p, seed, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_pl_module",
             "torch_sgd_optimizer",
             0.01,
@@ -235,7 +235,7 @@ def test_shortcut_detection_generate_from_pl_module(
     "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, filter_by_class, filter_by_prediction, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_shortcut_detection_benchmark",
             8,
             CaptumSimilarity,
@@ -249,7 +249,7 @@ def test_shortcut_detection_generate_from_pl_module(
             "compute",
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_shortcut_detection_benchmark",
             8,
             CaptumSimilarity,
@@ -263,7 +263,7 @@ def test_shortcut_detection_generate_from_pl_module(
             "compute",
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_shortcut_detection_benchmark",
             8,
             CaptumSimilarity,
@@ -277,7 +277,7 @@ def test_shortcut_detection_generate_from_pl_module(
             "compute",
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_shortcut_detection_benchmark",
             8,
             CaptumSimilarity,
@@ -390,7 +390,7 @@ def test_shortcut_detection_download(
     "test_id, benchmark",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_shortcut_detection_benchmark",
         ),
     ],

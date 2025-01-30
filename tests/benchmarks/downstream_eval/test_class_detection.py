@@ -16,7 +16,7 @@ from quanda.utils.functions import cosine_similarity
     "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "generate",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
@@ -35,7 +35,7 @@ from quanda.utils.functions import cosine_similarity
             1.0,
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "assemble",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
@@ -113,11 +113,11 @@ def test_class_detection(
     "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "generate",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
-            "mnist",
+            "ylecun/mnist",
             "train[:1%]",
             10,
             2,
@@ -133,11 +133,11 @@ def test_class_detection(
             1.0,
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "assemble",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
-            "mnist",
+            "ylecun/mnist",
             "train[:1%]",
             10,
             2,
@@ -207,7 +207,7 @@ def test_class_detection_hugging_face(
     "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, use_predictions, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_class_detection_benchmark",
             8,
             CaptumSimilarity,
@@ -220,7 +220,7 @@ def test_class_detection_hugging_face(
             "compute",
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_class_detection_benchmark",
             8,
             CaptumSimilarity,

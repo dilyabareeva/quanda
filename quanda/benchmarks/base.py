@@ -9,6 +9,7 @@ import requests
 import torch
 from datasets import load_dataset  # type: ignore
 from tqdm import tqdm
+import lightning as L
 
 from quanda.benchmarks.resources import (
     benchmark_urls,
@@ -23,7 +24,6 @@ from quanda.utils.datasets.image_datasets import (
     HFtoTV,
     SingleClassImageDataset,
 )
-import lightning as L
 
 from quanda.utils.training import BaseTrainer
 
@@ -258,12 +258,11 @@ class Benchmark(ABC):
             return HFtoTV(
                 load_dataset(
                     dataset,
-                    name=dataset,
                     split=dataset_split,
                     cache_dir=cache_dir,
                 ),
                 transform=transform,
-            )  # TODO: remove name="mnist"
+            )
         else:
             return dataset
 
@@ -299,10 +298,9 @@ class Benchmark(ABC):
         test_dataset = HFtoTV(
             load_dataset(
                 dataset_str,
-                name="mnist",
                 split=dataset_split,
                 cache_dir=cache_dir,
-            ),  # TODO: remove name="mnist"
+            ),
             transform=transform,
         )
         return torch.utils.data.Subset(test_dataset, eval_indices)
@@ -367,25 +365,21 @@ class Benchmark(ABC):
             torch.save(ckpt, save_path)
             checkpoint_paths.append(save_path)
 
+        dataset_str = bench_state["dataset_str"].replace(
+            "mnist", "ylecun/mnist"
+        )
         dataset_transform_str = bench_state.get("dataset_transform", None)
-        if dataset_transform_str:
-            dataset_transform = sample_transforms[dataset_transform_str]
-        else:
-            dataset_transform = None
-
+        dataset_transform = sample_transforms.get(dataset_transform_str, None)
         sample_fn_str = bench_state.get("sample_fn", None)
-        if sample_fn_str:
-            sample_fn = sample_transforms[sample_fn_str]
-        else:
-            sample_fn = None
+        sample_fn = sample_transforms.get(sample_fn_str, None)
 
         eval_dataset = self._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
+            dataset_str=dataset_str,
             eval_indices=bench_state["eval_test_indices"],
             transform=dataset_transform
             if self.name != "Shortcut Detection"
             else None,  # TODO: better way to handle this
-            dataset_split=bench_state["test_split_name"],
+            dataset_split=bench_state.get("test_split_name", "test"),
         )
 
         if self.name == "Mixed Datasets":
@@ -423,10 +417,8 @@ class Benchmark(ABC):
         assemble_dict["model"] = module
         assemble_dict["checkpoints"] = bench_state["checkpoints_binary"]
         assemble_dict["checkpoints_load_func"] = bench_load_state_dict
-        assemble_dict["train_dataset"] = bench_state["dataset_str"]
-        assemble_dict["base_dataset"] = bench_state[
-            "dataset_str"
-        ]  # TODO: rename dataset_str to base/train_dataset_str
+        assemble_dict["train_dataset"] = dataset_str
+        assemble_dict["base_dataset"] = dataset_str
         assemble_dict["eval_dataset"] = eval_dataset
         assemble_dict["use_predictions"] = bench_state["use_predictions"]
         assemble_dict["checkpoint_paths"] = checkpoint_paths

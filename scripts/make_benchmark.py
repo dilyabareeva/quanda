@@ -165,7 +165,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--dataset_name",
         required=True,
-        default="mnist",
+        default="ylecun/mnist",
         type=str,
         help="Name of the dataset",
     )

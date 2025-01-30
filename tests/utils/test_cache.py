@@ -13,7 +13,7 @@ from quanda.utils.functions import cosine_similarity
     "test_id, model, checkpoint,dataset, explanations, test_batches, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -84,7 +84,7 @@ def test_batched_cached_explanations(
     "test_id, model, checkpoint,dataset, explanations, test_batches, method_kwargs",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",

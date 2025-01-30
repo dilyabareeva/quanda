@@ -20,7 +20,7 @@ from quanda.utils.functions import cosine_similarity
     "test_id,model,checkpoint,dataset,test_labels,batch_size,explanations,expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -62,7 +62,7 @@ def test_identical_class_metrics(
     "test_id, model, checkpoint,dataset, subclass_labels, test_labels, batch_size, explanations, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_grouped_mnist_dataset",
@@ -108,7 +108,7 @@ def test_identical_subclass_metrics(
     "test_id, model, checkpoint,dataset, explanations, test_samples, test_labels, global_method, expl_kwargs, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mislabeling_mnist_dataset",
@@ -124,7 +124,7 @@ def test_identical_subclass_metrics(
             0.4921875,
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mislabeling_mnist_dataset",
@@ -136,7 +136,7 @@ def test_identical_subclass_metrics(
             0.4921875,
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mislabeling_mnist_dataset",
@@ -201,7 +201,7 @@ def test_mislabeling_detection_metric(
     "test_id, model, checkpoint,dataset, labels, poisoned_ids, poisoned_cls, explanations, assert_err",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
@@ -212,7 +212,7 @@ def test_mislabeling_detection_metric(
             False,
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",

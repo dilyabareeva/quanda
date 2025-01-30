@@ -112,7 +112,7 @@ def test_topk_cardinality(
     "test_id, benchmark_name, batch_size, explainer_cls, expl_kwargs, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_top_k_cardinality_benchmark",
             8,
             CaptumSimilarity,

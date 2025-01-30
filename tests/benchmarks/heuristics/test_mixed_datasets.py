@@ -38,7 +38,7 @@ from quanda.utils.training import Trainer
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
-                "model_id": "mnist",
+                "model_id": "ylecun/mnist",
             },
             0.7923794984817505,
         ),
@@ -62,7 +62,7 @@ from quanda.utils.training import Trainer
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
-                "model_id": "mnist",
+                "model_id": "ylecun/mnist",
             },
             0.8333333730697632,
         ),
@@ -154,7 +154,7 @@ def test_mixed_datasets(
     "test_id, benchmark, batch_size",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_mixed_datasets_benchmark",
             8,
         ),
@@ -195,7 +195,7 @@ def test_mixed_dataset_download_sanity_checks(
     "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, filter_by_prediction, expected_score",
     [
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_mixed_datasets_benchmark",
             8,
             CaptumSimilarity,
@@ -208,7 +208,7 @@ def test_mixed_dataset_download_sanity_checks(
             "compute",
         ),
         (
-            "mnist",
+            "ylecun/mnist",
             "mnist_mixed_datasets_benchmark",
             8,
             CaptumSimilarity,
