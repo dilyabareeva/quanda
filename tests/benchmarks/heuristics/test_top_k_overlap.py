@@ -1,4 +1,5 @@
 import math
+from functools import reduce
 
 import pytest
 import torch
@@ -121,7 +122,7 @@ def test_topk_cardinality(
                 "similarity_metric": cosine_similarity,
                 "load_from_disk": True,
             },
-            0.4375,
+            "compute",  # 0.4375,
         ),
     ],
 )
@@ -149,5 +150,36 @@ def test_top_k_cardinality_download(
         expl_kwargs=expl_kwargs,
         batch_size=batch_size,
     )["score"]
+    if expected_score == "compute":
+        activation = []
 
+        def hook(model, input, output):
+            activation.append(output.detach())
+
+        exp_layer = reduce(
+            getattr, expl_kwargs["layers"].split("."), dst_eval.model
+        )
+        exp_layer.register_forward_hook(hook)
+        train_ld = torch.utils.data.DataLoader(
+            dst_eval.train_dataset, batch_size=16, shuffle=False
+        )
+        test_ld = torch.utils.data.DataLoader(
+            dst_eval.eval_dataset, batch_size=16, shuffle=False
+        )
+        for x, _ in iter(train_ld):
+            x = x.to(dst_eval.device)
+            dst_eval.model(x)
+        act_train = activation[0]
+        activation = []
+        for x, _ in iter(test_ld):
+            x = x.to(dst_eval.device)
+            dst_eval.model(x)
+        act_test = activation[0]
+        act_test = torch.nn.functional.normalize(act_test, dim=-1)
+        act_train = torch.nn.functional.normalize(act_train, dim=-1)
+        IP = torch.matmul(act_test, act_train.T)
+        max_attr_indices = IP.argmax(dim=-1)
+        expected_score = len(torch.unique(max_attr_indices)) / torch.numel(
+            max_attr_indices
+        )
     assert math.isclose(score, expected_score, abs_tol=0.00001)

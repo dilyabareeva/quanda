@@ -255,6 +255,7 @@ def test_subclass_detection_download(
     dst_eval.eval_dataset = torch.utils.data.Subset(
         dst_eval.eval_dataset, list(range(16))
     )
+    dst_eval.filter_by_prediction = False
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,

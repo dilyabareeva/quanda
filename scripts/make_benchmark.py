@@ -49,11 +49,11 @@ checkpoint_urls = {
     "mislabeled": [
         (
             "mislabeled_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/TN7moBGN7Leb3m8/download/mislabeled_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/JppnZcccq7BKxEj/download/mislabeled_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
         ),
         (
             "mislabeled_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/rF27Gz4ribpbJoc/download/mislabeled_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
+            "https://datacloud.hhi.fraunhofer.de/s/saY5s7Nt7zkxK4W/download/mislabeled_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
         ),
     ],
     "shortcut": [
