@@ -12,7 +12,7 @@ source "/etc/slurm/local_job_dir.sh"
 
 mkdir -p ${LOCAL_JOB_DIR}/outputs
 
-jobname= $5
+jobname= $6
 
 apptainer run --nv \
             --bind /data/datapool3/datasets/quanda_metadata:/mnt/quanda_metadata \
@@ -23,8 +23,8 @@ apptainer run --nv \
             --output_path /mnt/outputs \
             --dataset_name $1 \
             --module_name $2 \
-            --augmentation $3 \
-            --dataset_type $4 \
+            --dataset_type $3 \
+            --augmentation $4 \
             --lr $5 \
             --adversarial_dir /mnt/quantus_metadata/$1/adversarial_dataset \
             --seed 4242 \
