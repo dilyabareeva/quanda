@@ -21,8 +21,8 @@ apptainer run --nv \
             ../singularity/train.sif \
             --metadata_root /mnt/quanda_metadata \
             --dataset_cache_    dir /mnt/quanda_metadata/hf_cache \
-            --output_path \
-            /mnt/outputs "$@"
+            --output_path /mnt/outputs \
+            "$@"
 
 tar -czf quanda_train_${SLURM_JOB_ID}.tgz outputs
 cp train_$jobname_${SLURM_JOB_ID}.tgz ${SLURM_SUBMIT_DIR}
