@@ -6,21 +6,7 @@ do
   do
     for lr in 0.1 0.001 1e-4;
     do
-      sbatch train_job.sh $1-$dataset_type-$augmentation-$lr \
-                          --dataset_name $1 \
-                          --augmentation $augmentation \
-                          --dataset_type $dataset_type \
-                          --lr $lr \
-                          --dataset_name $1 \
-                          --adversarial_dir /mnt/quantus_metadata/$1/adversarial_dataset \
-                          --seed 4242 \
-                          --device "cuda" \
-                          --module_name $2 \
-                          --pretrained \
-                          --batch_size 64 \
-                          --save_each 10 \
-                          --validate_each 5 \
-                          --epochs 100
+      sbatch train_job.sh $1 $2 $augmentation $dataset_type $lr {$1}_{$dataset_type}_{$augmentation}_{$lr}
     done
   done
 done
