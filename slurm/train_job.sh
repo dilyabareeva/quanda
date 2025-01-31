@@ -12,10 +12,12 @@ source "/etc/slurm/local_job_dir.sh"
 
 mkdir -p ${LOCAL_JOB_DIR}/outputs
 
-jobname= $6
+jobname="$1_$2_$3_$4_$5"
+echo ${jobname}_${SLURM_JOB_ID}
 
 apptainer run --nv \
             --bind /data/datapool3/datasets/quanda_metadata:/mnt/quanda_metadata \
+            --bind /data/datapool3/datasets/quanda_metadata/hf_cache:/mnt/quanda_metadata/hf_cache \
             --bind ${LOCAL_JOB_DIR}/outputs:/mnt/outputs \
             ../singularity/train.sif \
             --metadata_root /mnt/quanda_metadata \
@@ -31,9 +33,11 @@ apptainer run --nv \
             --device "cuda" \
             --pretrained \
             --batch_size 64 \
-            --save_each 10 \
-            --validate_each 5 \
-            --epochs 100
+            --save_each 2 \
+            --validate_each 2 \
+            --epochs 5
 
-tar -czf quanda_train_${SLURM_JOB_ID}.tgz outputs
-cp train_$jobname_${SLURM_JOB_ID}.tgz ${SLURM_SUBMIT_DIR}
+
+cd ${LOCAL_JOB_DIR}
+tar -czf ${jobname}_${SLURM_JOB_ID}.tgz outputs
+cp ${jobname}_${SLURM_JOB_ID}.tgz ${SLURM_SUBMIT_DIR}
