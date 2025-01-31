@@ -551,6 +551,7 @@ def train_model(
         max_epochs=base_epoch + epochs,
         check_val_every_n_epoch=validate_each,
         default_root_dir=output_path,
+        progress_bar_refresh_rate=0,
         logger=logger,
     )
     trainer.fit(pl_module, train_loader, val_loader)
