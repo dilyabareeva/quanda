@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from typing import Optional, Callable
+from typing import Optional, Callable, List
 
 sys.path.append(os.getcwd())
 
@@ -10,6 +10,7 @@ from argparse import ArgumentParser
 
 import torch
 import torchvision.transforms as transforms
+from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import Subset
 from torchvision.transforms import (
     AutoAugment,
@@ -22,6 +23,7 @@ from torchvision.transforms import (
     RandomRotation,
 )
 from lightning import Trainer
+from lightning import LightningModule
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
 
@@ -37,6 +39,15 @@ from quanda.benchmarks.heuristics import MixedDatasets
 from quanda.benchmarks.resources.sample_transforms import sample_transforms
 from quanda.benchmarks.resources.modules import (
     load_module_with_name,
+)
+from quanda.benchmarks.resources.modules import bench_load_state_dict
+
+from scripts.model_sanity_tests import (
+    mislabeled_memorization_score,
+    shortcut_classification_score,
+    shortcut_memorization_score,
+    adversarial_memorization_score,
+    adversarial_classification_score,
 )
 
 
@@ -223,6 +234,12 @@ def handle_mixed_dataset(
         transform=sample_transforms[f"{dataset_name}_adversarial_transform"],
         indices=adversarial_train_indices,
     )
+    adversarial_test_dataset = adversarial_dataset = SingleClassImageDataset(
+        root=adversarial_dataset_path,
+        label=adversarial_cls,
+        transform=sample_transforms[f"{dataset_name}_adversarial_transform"],
+        indices=adversarial_test_indices,
+    )
     # adversarial_indices = [1] * len(adversarial_dataset) + [0] * len(
     #    train_set
     # )
@@ -236,6 +253,7 @@ def handle_mixed_dataset(
         "adversarial_dir_url": datasets_metadata[dataset_name][
             "adversarial_dir_url"
         ],
+        "adversarial_test_dataset": adversarial_test_dataset,
     }
     return train_set, val_set, test_set, return_dict
 
@@ -253,6 +271,30 @@ def handle_shortcut_dataset(
     shortcut_probability: float,
     shortcut_cls: int,
 ):
+    shortcut_val_set = SampleTransformationDataset(
+        dataset=val_set,
+        n_classes=num_classes,
+        sample_fn=sample_transforms[f"{dataset_name}_shortcut_transform"],
+        dataset_transform=regular_transforms,
+        p=1.0,
+        seed=seed,
+    )
+    val_set = SampleTransformationDataset(
+        dataset=val_set,
+        n_classes=num_classes,
+        sample_fn=lambda x: x,
+        dataset_transform=regular_transforms,
+        p=1.0,
+        seed=seed,
+    )
+    test_set = SampleTransformationDataset(
+        dataset=test_set,
+        n_classes=num_classes,
+        sample_fn=lambda x: x,
+        dataset_transform=regular_transforms,
+        p=1.0,
+        seed=seed,
+    )
     if not os.path.exists(os.path.join(metadata_path, "shortcut_indices")):
         assert shortcut_probability is not None, (
             "shortcut_probability must be given to create shortcut dataset from scratch"
@@ -286,6 +328,7 @@ def handle_shortcut_dataset(
     return_dict = {
         "shortcut_cls": shortcut_cls,
         "shortcut_indices": shortcut_indices,
+        "shortcut_val_dataset": shortcut_val_set,
     }
     return train_set, val_set, test_set, return_dict
 
@@ -383,7 +426,9 @@ def load_datasets(
         Benchmark,
         dataset=datasets_metadata[dataset_name]["hf_tag"],
         dataset_split=datasets_metadata[dataset_name]["test_split_name"],
-        transform=regular_transforms,
+        transform=regular_transforms
+        if dataset_type != "shortcut"
+        else augmentation,
         cache_dir=dataset_cache_dir,
     )
     if os.path.exists(os.path.join(metadata_path, "validation_indices")):
@@ -473,6 +518,77 @@ def load_pl_module(
     return module
 
 
+def run_model_sanity_checks(
+    ckpt_path: str,
+    ckpt_names: List[str],
+    pl_module: LightningModule,
+    dataset_type: str,
+    train_set: torch.utils.data.Dataset,
+    val_set: torch.utils.data.Dataset,
+    ds_dict: dict,
+    device: str,
+):
+    sanity_checks = {
+        "vanilla": [],
+        "subclass": [],
+        "mislabeled": [
+            ("mislabeled_memorization", mislabeled_memorization_score)
+        ],
+        "mixed": [
+            ("adversarial_memorization", adversarial_memorization_score),
+            ("adversarial_classification", adversarial_classification_score),
+        ],
+        "shortcut": [
+            ("shortcut_memorization", shortcut_memorization_score),
+            ("shortcut_classification", shortcut_classification_score),
+        ],
+    }
+    func_params = {
+        "mislabeled_memorization": {
+            "train_set": train_set,
+            "mislabeling_indices": ds_dict.get("mislabeling_indices", None),
+        },
+        "adversarial_memorization": {
+            "train_set": train_set,
+            "adversarial_cls": ds_dict.get("adversarial_cls", None),
+        },
+        "adversarial_classification": {
+            "score_set": ds_dict.get("adversarial_test_dataset", None),
+            "adversarial_cls": ds_dict.get("adversarial_cls", None),
+        },
+        "shortcut_memorization": {
+            "train_set": train_set,
+            "shortcut_indices": ds_dict.get("shortcut_indices", None),
+            "shortcut_cls": ds_dict.get("shortcut_cls", None),
+        },
+        "shortcut_classification": {
+            "score_set": ds_dict.get("shortcut_val_dataset", None),
+            "shortcut_cls": ds_dict.get("shortcut_cls", None),
+        },
+    }
+
+    ckpt_names = sorted(
+        ckpt_names, key=lambda x: int(x.split("=")[1].split(".")[0])
+    )
+
+    funcs = sanity_checks[dataset_type]
+    ret_dict = {name: {"epochs": [], "values": []} for name, _ in funcs}
+
+    for ckpt in ckpt_names:
+        state_dict = torch.load(
+            os.path.join(ckpt_path, ckpt), map_location=device
+        )
+        pl_module = bench_load_state_dict(pl_module, state_dict)
+        epoch = int(ckpt.split("=")[1].split(".")[0])
+        for name, f in funcs:
+            ret_dict[name]["epochs"].append(epoch)
+            kwargs = func_params[name]
+            kwargs["model"] = pl_module.model
+            kwargs["device"] = device
+            ret_dict[name]["values"].append(f(**kwargs))
+    return ret_dict
+
+
 def train_model(
     dataset_name: str,
     dataset_cache_dir: str,
@@ -493,6 +609,7 @@ def train_model(
     weight_decay: float,
     model_path: str,
     base_epoch: int,
+    skip_sanity_checks: bool,
 ):
     torch.set_float32_matmul_precision("medium")
     torch.manual_seed(seed)
@@ -508,7 +625,7 @@ def train_model(
     os.makedirs(output_path, exist_ok=True)
 
     # Load train and validation datasets
-    train_set, val_set, _, _ = load_datasets(
+    train_set, val_set, _, ds_dict = load_datasets(
         dataset_name=dataset_name,
         dataset_cache_dir=dataset_cache_dir,
         augmentation=augmentation,
@@ -549,12 +666,37 @@ def train_model(
     trainer = Trainer(
         callbacks=[checkpoint_callback],
         max_epochs=base_epoch + epochs,
+        enable_progress_bar=False,
+        enable_model_summary=False,
         check_val_every_n_epoch=validate_each,
+        log_every_n_steps=validate_each,
         default_root_dir=output_path,
-        progress_bar_refresh_rate=0,
         logger=logger,
     )
     trainer.fit(pl_module, train_loader, val_loader)
+    if not skip_sanity_checks:
+        ckpt_names = []
+        for f in os.listdir(output_path):
+            if f.endswith(".ckpt"):
+                ckpt_names.append(f)
+        sanity_scores = run_model_sanity_checks(
+            output_path,
+            ckpt_names,
+            pl_module,
+            dataset_type,
+            train_set,
+            val_set,
+            ds_dict,
+            device,
+        )
+        writer = SummaryWriter(os.path.join(output_path, save_id_base))
+        for key, values in sanity_scores.items():
+            for i in range(len(values["values"])):
+                writer.add_scalar(
+                    key, values["values"][i], values["epochs"][i]
+                )
+            writer.flush()
+        writer.close()
 
 
 if __name__ == "__main__":
@@ -617,6 +759,7 @@ if __name__ == "__main__":
         "--module_name", required=True, type=str, default="MnistModel"
     )
     parser.add_argument("--pretrained", action="store_true")
+    parser.add_argument("--skip_sanity_checks", action="store_true")
     parser.add_argument("--epochs", required=True, type=int, default=100)
     parser.add_argument("--lr", required=True, type=float, default=0.1)
     parser.add_argument("--batch_size", required=True, type=int, default=64)
@@ -657,4 +800,5 @@ if __name__ == "__main__":
         weight_decay=args.weight_decay,
         model_path=args.model_path,
         base_epoch=args.base_epoch,
+        skip_sanity_checks=args.skip_sanity_checks,
     )

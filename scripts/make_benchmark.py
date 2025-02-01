@@ -102,7 +102,7 @@ def make_benchmark(
     checkpoints_dir: str,
 ):
     torch.set_float32_matmul_precision("medium")
-    EVAL_SET_SIZE = 128
+    # EVAL_SET_SIZE = 128
     torch.manual_seed(seed)
     dataset_type = get_dataset_type(benchmark_name)
     checkpoints_dir = os.path.join(checkpoints_dir, dataset_type)
@@ -151,7 +151,7 @@ def make_benchmark(
         "checkpoints_url": ckpt_urls,
         "use_predictions": True,
         "n_classes": num_outputs,
-        "eval_test_indices": torch.randperm(len(test_set))[:EVAL_SET_SIZE],
+        "eval_test_indices": ds_dict["test_indices"],
         "dataset_transform": f"{dataset_name}_transform",
         "pl_module": module_name,
     }
@@ -172,9 +172,9 @@ def make_benchmark(
         bench_state["adv_train_indices"] = ds_dict["adversarial_train_indices"]
         bench_state["adv_test_indices"] = ds_dict["adversarial_test_indices"]
         bench_state["adversarial_dir_url"] = ds_dict["adversarial_dir_url"]
-        bench_state["eval_test_indices"] = torch.randperm(
-            len(bench_state["adv_test_indices"])
-        )[:EVAL_SET_SIZE]
+        bench_state["eval_test_indices"] = list(
+            range(len(ds_dict["adversarial_test_indices"]))
+        )  # see base benchmark's _parse_bench_state
     elif benchmark_name == "linear_datamodeling":
         bench_state["m"] = 100
         bench_state["alpha"] = 0.5
