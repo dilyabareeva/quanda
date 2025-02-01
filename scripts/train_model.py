@@ -610,6 +610,7 @@ def train_model(
     model_path: str,
     base_epoch: int,
     skip_sanity_checks: bool,
+    progress_bar: bool,
 ):
     torch.set_float32_matmul_precision("medium")
     torch.manual_seed(seed)
@@ -666,7 +667,7 @@ def train_model(
     trainer = Trainer(
         callbacks=[checkpoint_callback],
         max_epochs=base_epoch + epochs,
-        enable_progress_bar=False,
+        enable_progress_bar=progress_bar,
         enable_model_summary=False,
         check_val_every_n_epoch=validate_each,
         log_every_n_steps=validate_each,
@@ -689,7 +690,9 @@ def train_model(
             ds_dict,
             device,
         )
-        writer = SummaryWriter(os.path.join(output_path, save_id_base))
+        writer = SummaryWriter(
+            os.path.join(output_path, save_id_base, "version_0")
+        )
         for key, values in sanity_scores.items():
             for i in range(len(values["values"])):
                 writer.add_scalar(
@@ -760,6 +763,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--pretrained", action="store_true")
     parser.add_argument("--skip_sanity_checks", action="store_true")
+    parser.add_argument("--progress_bar", action="store_true")
     parser.add_argument("--epochs", required=True, type=int, default=100)
     parser.add_argument("--lr", required=True, type=float, default=0.1)
     parser.add_argument("--batch_size", required=True, type=int, default=64)
@@ -801,4 +805,5 @@ if __name__ == "__main__":
         model_path=args.model_path,
         base_epoch=args.base_epoch,
         skip_sanity_checks=args.skip_sanity_checks,
+        progress_bar=args.progress_bar,
     )
