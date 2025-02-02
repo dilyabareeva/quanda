@@ -116,7 +116,7 @@ class MixedDatasetsMetric(Metric):
     def update(
         self,
         explanations: torch.Tensor,
-        test_tensor: Optional[torch.Tensor] = None,
+        test_data: Optional[torch.Tensor] = None,
         test_labels: Optional[torch.Tensor] = None,
         **kwargs,
     ):
@@ -126,7 +126,7 @@ class MixedDatasetsMetric(Metric):
         ----------
         explanations : torch.Tensor
             Explanations to be evaluated.
-        test_tensor : Optional[torch.Tensor], optional
+        test_data : Optional[torch.Tensor], optional
             The test tensor for which the explanations were computed. Required
             if `filter_by_prediction` is True.
         test_labels : Optional[torch.Tensor], optional
@@ -139,20 +139,20 @@ class MixedDatasetsMetric(Metric):
         explanations = explanations.to(self.device)
 
         if (
-            test_tensor is None or test_labels is None
+            test_data is None or test_labels is None
         ) and self.filter_by_prediction:
             raise ValueError(
-                "test_tensor must be provided if filter_by_prediction is True"
+                "test_data must be provided if filter_by_prediction is True"
             )
 
-        if test_tensor is not None:
-            test_tensor = test_tensor.to(self.device)
+        if test_data is not None:
+            test_data = test_data.to(self.device)
         if test_labels is not None:
             test_labels = test_labels.to(self.device)
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
 
         if self.filter_by_prediction:
-            pred_cls = self.model(test_tensor).argmax(dim=1)
+            pred_cls = self.model(test_data).argmax(dim=1)
             select_idx *= pred_cls == self.adversarial_label
 
         explanations = explanations[select_idx]

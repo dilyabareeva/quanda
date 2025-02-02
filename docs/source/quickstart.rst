@@ -216,7 +216,7 @@ You must ensure that the output tensor has the shape ``(test_samples, train_samp
 
    def explain(
      self,
-     test_tensor: torch.Tensor,
+     test_data: torch.Tensor,
      targets: Union[List[int], torch.Tensor]
    ) -> torch.Tensor:
        # Compute your influence scores here

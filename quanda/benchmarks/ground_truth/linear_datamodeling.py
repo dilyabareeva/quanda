@@ -5,7 +5,6 @@ from typing import Callable, Optional, Union, List, Any
 
 import lightning as L
 import torch
-from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.resources import (
@@ -16,7 +15,6 @@ from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
-from quanda.utils.common import load_last_checkpoint
 from quanda.utils.functions import CorrelationFnLiterals
 from quanda.utils.training import BaseTrainer
 
@@ -44,6 +42,7 @@ class LinearDatamodeling(Benchmark):
     """
 
     name: str = "Linear Datamodeling Score"
+    eval_args: list = ["explanations", "test_data", "test_targets"]
 
     def __init__(
         self,
@@ -75,114 +74,6 @@ class LinearDatamodeling(Benchmark):
         self.seed: int
         self.subset_ids: Optional[List[List[int]]]
         self.pretrained_models: Optional[List[torch.nn.Module]]
-
-    @classmethod
-    def generate(
-        cls,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        model: torch.nn.Module,
-        trainer: Union[L.Trainer, BaseTrainer],
-        cache_dir: str,
-        model_id: str,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        data_transform: Optional[Callable] = None,
-        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-        m: int = 100,
-        alpha: float = 0.5,
-        trainer_fit_kwargs: Optional[dict] = None,
-        seed: int = 42,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        subset_ids: Optional[List[List[int]]] = None,
-        pretrained_models: Optional[List[torch.nn.Module]] = None,
-        *args,
-        **kwargs,
-    ):
-        """Generate the benchmark components and creates an instance.
-
-        Parameters
-        ----------
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed,
-            it should be a HuggingFace dataset name.
-        model : torch.nn.Module
-            The model used to generate attributions.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        trainer : Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the models on different subsets.
-            Can be a Lightning Trainer or a `BaseTrainer`.
-        cache_dir : str
-            Directory to be used for caching. This directory will be used to
-            save checkpoints of models
-            trained on different subsets of the training data.
-        model_id : str
-            Identifier for the model, to be used in naming cached checkpoints.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        data_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None.
-        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation.
-        m : int, optional
-            Number of subsets to be used for training the models, by default
-            100.
-        alpha : float, optional
-            Percentage of datapoints to be used for training the models, by
-            default 0.5.
-        trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments to be passed to the `fit` method of
-            the trainer, by default None.
-        seed : int, optional
-            Seed to be used for the evaluation, by default 42.
-        use_predictions : bool, optional
-            Whether to use model predictions or the true test labels for the
-            evaluation, defaults to False.
-        dataset_split : str, optional
-            The dataset split to use, by default "train". Only used if
-            `train_dataset` is a string.
-        subset_ids : Optional[List[List[int]]], optional
-            A list of pre-defined subset indices, by default None.
-        pretrained_models : Optional[List[torch.nn.Module]], optional
-            A list of pre-trained models for each subset, by default None.
-        args : Any
-            Variable length argument list.
-        kwargs : Any
-            Arbitrary keyword arguments.
-
-        """
-        logger.info(
-            f"Generating {LinearDatamodeling.name} benchmark components based "
-            f"on passed arguments..."
-        )
-
-        obj = cls()
-        obj._set_devices(model)
-        # this sets the function to the default value
-        obj.checkpoints_load_func = None
-
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=data_transform,
-            dataset_split=dataset_split,
-        )
-        obj.eval_dataset = eval_dataset
-        obj.correlation_fn = correlation_fn
-        obj.seed = seed
-        obj.use_predictions = use_predictions
-        obj.subset_ids = subset_ids
-        obj.pretrained_models = pretrained_models
-        obj.model = model
-        obj.trainer = trainer
-        obj.m = m
-        obj.alpha = alpha
-        obj.trainer_fit_kwargs = trainer_fit_kwargs
-        obj.cache_dir = cache_dir
-        obj.model_id = model_id
-        obj.checkpoints = checkpoints
-
-        return obj
 
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
@@ -236,7 +127,7 @@ class LinearDatamodeling(Benchmark):
             use_predictions=bench_state["use_predictions"],
             subset_ids=bench_state["subset_ids"],
             pretrained_models=bench_state["pretrained_models"],
-            data_transform=dataset_transform,
+            dataset_transform=dataset_transform,
         )
 
     @classmethod
@@ -253,7 +144,7 @@ class LinearDatamodeling(Benchmark):
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         trainer_fit_kwargs: Optional[dict] = None,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
         use_predictions: bool = True,
@@ -297,7 +188,7 @@ class LinearDatamodeling(Benchmark):
         trainer_fit_kwargs : Optional[dict], optional
             Additional keyword arguments to be passed to the `fit` method of
             the trainer, by default None.
-        data_transform : Optional[Callable], optional
+        dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
         correlation_fn : Union[Callable, CorrelationFnLiterals], optional
             Correlation function to be used for the evaluation.
@@ -320,12 +211,13 @@ class LinearDatamodeling(Benchmark):
 
         """
         obj = cls()
-        obj.model = model
-        obj._set_devices(model)
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = checkpoints_load_func
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            use_predictions=use_predictions,
+        )
         obj.subset_ids = subset_ids
         obj.pretrained_models = pretrained_models
         obj.correlation_fn = correlation_fn
@@ -338,13 +230,15 @@ class LinearDatamodeling(Benchmark):
         obj.model_id = model_id
         obj.train_dataset = obj._process_dataset(
             train_dataset,
-            transform=data_transform,
+            transform=dataset_transform,
             dataset_split=dataset_split,
         )
         # this sets the function to the default value
         obj.checkpoints_load_func = None
 
         return obj
+
+    generate = assemble
 
     def evaluate(
         self,
@@ -369,22 +263,10 @@ class LinearDatamodeling(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-        load_last_checkpoint(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            checkpoints_load_func=self.checkpoints_load_func,
-        )
-        self.model.eval()
-
-        expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            train_dataset=self.train_dataset,
-            **expl_kwargs,
-        )
-        expl_dl = torch.utils.data.DataLoader(
-            self.eval_dataset, batch_size=batch_size
+        explainer = self._prepare_explainer(
+            dataset=self.train_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
         )
 
         metric = LinearDatamodelingMetric(
@@ -403,32 +285,9 @@ class LinearDatamodeling(Benchmark):
             subset_ids=self.subset_ids,
             pretrained_models=self.pretrained_models,
         )
-        pbar = tqdm(expl_dl)
-        n_batches = len(expl_dl)
-
-        for i, (input, labels) in enumerate(pbar):
-            pbar.set_description(
-                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
-            )
-
-            input, labels = input.to(self.device), labels.to(self.device)
-
-            if self.use_predictions:
-                with torch.no_grad():
-                    output = self.model(input)
-                    targets = output.argmax(dim=-1)
-            else:
-                targets = labels
-
-            explanations = explainer.explain(
-                test_tensor=input,
-                targets=targets,
-            )
-
-            metric.update(
-                explanations=explanations,
-                test_tensor=input,
-                explanation_targets=targets,
-            )
-
-        return metric.compute()
+        return self._evaluate_dataset(
+            eval_dataset=self.eval_dataset,
+            explainer=explainer,
+            metric=metric,
+            batch_size=batch_size,
+        )

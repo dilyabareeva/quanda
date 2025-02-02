@@ -53,7 +53,7 @@ class RandomExplainer(Explainer):
 
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         targets: Optional[Union[List[int], torch.Tensor]] = None,
     ):
         """Return random explanations.
@@ -62,7 +62,7 @@ class RandomExplainer(Explainer):
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             Test points for the model decisions to be explained. Is not used
             or the `RandomExplainer`.
         targets : Optional[Union[List[int], torch.Tensor]] = None
@@ -77,7 +77,7 @@ class RandomExplainer(Explainer):
 
         """
         return torch.rand(
-            test_tensor.size(0),
+            test_data.size(0),
             ds_len(self.train_dataset),
             generator=self.generator,
             device=self.device,

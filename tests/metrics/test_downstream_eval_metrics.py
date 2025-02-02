@@ -44,7 +44,7 @@ def test_identical_class_metrics(
 ):
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
-    test_labels = request.getfixturevalue(test_labels)
+    test_targets = request.getfixturevalue(test_labels)
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
     metric = ClassDetectionMetric(
@@ -52,7 +52,7 @@ def test_identical_class_metrics(
         checkpoints=checkpoint,
         train_dataset=dataset,
     )
-    metric.update(test_labels=test_labels, explanations=tda)
+    metric.update(test_targets=test_targets, explanations=tda)
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
@@ -98,7 +98,7 @@ def test_identical_subclass_metrics(
         train_dataset=dataset,
         train_subclass_labels=subclass_labels,
     )
-    metric.update(test_subclasses=test_labels, explanations=tda)
+    metric.update(test_labels=test_labels, explanations=tda)
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 

@@ -1,24 +1,15 @@
 """Mixed Datasets benchmark module."""
 
-import copy
 import logging
 import os
-import zipfile
 from typing import Callable, List, Optional, Union, Any
 
 import lightning as L
-import requests
 import torch
-from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import (
-    load_module_from_bench_state,
-    sample_transforms,
-)
-from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
-from quanda.utils.common import ds_len, load_last_checkpoint
+from quanda.utils.common import ds_len
 from quanda.utils.datasets import SingleClassImageDataset
 from quanda.utils.training.trainer import BaseTrainer
 
@@ -57,6 +48,7 @@ class MixedDatasets(Benchmark):
     """
 
     name: str = "Mixed Datasets"
+    eval_args: list = ["explanations", "test_data", "test_labels"]
 
     def __init__(
         self,
@@ -93,7 +85,7 @@ class MixedDatasets(Benchmark):
         adv_train_indices: List[int],
         trainer: Union[L.Trainer, BaseTrainer],
         cache_dir: str,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
         dataset_split: str = "train",
@@ -135,7 +127,7 @@ class MixedDatasets(Benchmark):
             Trainer or a `BaseTrainer`.
         cache_dir: str
             Directory to store the generated benchmark.
-        data_transform: Optional[Callable], optional
+        dataset_transform: Optional[Callable], optional
             Transform to be applied to the clean dataset, by default None.
         use_predictions: bool, optional
             Whether to use the model's predictions for generating attributions.
@@ -183,235 +175,52 @@ class MixedDatasets(Benchmark):
             f"passed arguments..."
         )
 
+        save_dir = os.path.join(cache_dir, "model_mixed_datasets.pth")
+
         obj = cls()
-        obj.cache_dir = cache_dir
-        obj._set_devices(model)
-        # this sets the function to the default value
-        obj.checkpoints_load_func = None
-
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
-        obj.adversarial_label = adversarial_label
-        obj.filter_by_prediction = filter_by_prediction
-
-        pr_base_dataset = obj._process_dataset(
-            base_dataset, transform=data_transform, dataset_split=dataset_split
-        )
-
-        adversarial_dataset = SingleClassImageDataset(
-            root=adversarial_dir,
-            label=adversarial_label,
-            transform=adversarial_transform,
-            indices=adv_train_indices,
-        )
-
-        obj.mixed_dataset = torch.utils.data.ConcatDataset(
-            [adversarial_dataset, pr_base_dataset]
-        )
-        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [
-            0
-        ] * ds_len(pr_base_dataset)
-
-        mixed_train_dl = torch.utils.data.DataLoader(
-            obj.mixed_dataset, batch_size=batch_size
-        )
-
-        if val_dataset is not None:
-            val_dl = torch.utils.data.DataLoader(
-                val_dataset, batch_size=batch_size
-            )
-        else:
-            val_dl = None
-
-        obj.model = copy.deepcopy(model).train()
-
-        trainer_fit_kwargs = trainer_fit_kwargs or {}
-
-        if isinstance(trainer, L.Trainer):
-            if not isinstance(obj.model, L.LightningModule):
-                raise ValueError(
-                    "Model should be a LightningModule if Trainer is a "
-                    "Lightning Trainer"
-                )
-
-            trainer.fit(
-                model=obj.model,
-                train_dataloaders=mixed_train_dl,
-                val_dataloaders=val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        elif isinstance(trainer, BaseTrainer):
-            if not isinstance(obj.model, torch.nn.Module):
-                raise ValueError(
-                    "Model should be a torch.nn.Module if Trainer is a "
-                    "BaseTrainer"
-                )
-
-            trainer.fit(
-                model=obj.model,
-                train_dataloaders=mixed_train_dl,
-                val_dataloaders=val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        else:
-            raise ValueError(
-                "Trainer should be a Lightning Trainer or a BaseTrainer"
-            )
-
-        torch.save(
-            obj.model.state_dict(),
-            os.path.join(cache_dir, "model_mixed_datasets.pth"),
-        )
-        obj.checkpoints = [
-            os.path.join(cache_dir, "model_mixed_datasets.pth")
-        ]  # TODO: save checkpoints
-        obj.model.to(obj.device)
-        obj.model.eval()
-        return obj
-
-    @classmethod
-    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """Download a precomputed benchmark.
-
-        Load precomputed benchmark components from a file and creates an
-        instance from the state dictionary.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        device : str
-            Device to load the model on.
-        args : Any
-            Additional positional arguments.
-        kwargs : Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        MixedDatasets
-            The benchmark instance.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        checkpoint_paths = []
-        for ckpt_name, ckpt in zip(
-            bench_state["checkpoints"], bench_state["checkpoints_binary"]
-        ):
-            save_path = os.path.join(cache_dir, ckpt_name)
-            torch.save(ckpt, save_path)
-            checkpoint_paths.append(save_path)
-
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        adversarial_dir_url = bench_state["adversarial_dir_url"]
-        adversarial_dir = obj._download_adversarial_dataset(
-            name=name,
-            adversarial_dir_url=adversarial_dir_url,
-            cache_dir=cache_dir,
-        )
-
-        adversarial_transform = sample_transforms[
-            bench_state["adversarial_transform"]
-        ]
-        adv_test_indices = bench_state["adv_indices_test"]
-        eval_from_test_indices = bench_state["eval_test_indices"]
-        eval_indices = [adv_test_indices[i] for i in eval_from_test_indices]
-
-        eval_dataset = SingleClassImageDataset(
-            root=adversarial_dir,
-            label=bench_state["adversarial_label"],
-            transform=adversarial_transform,
-            indices=eval_indices,
-        )
-
-        adv_train_indices = bench_state["adv_indices_train"]
-
-        return obj.assemble(
-            model=module,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            base_dataset=bench_state["dataset_str"],
+        obj = obj.assemble(
+            model=model,
             eval_dataset=eval_dataset,
-            use_predictions=bench_state["use_predictions"],
+            base_dataset=base_dataset,
             adversarial_dir=adversarial_dir,
-            adversarial_label=bench_state["adversarial_label"],
-            adversarial_transform=adversarial_transform,
+            adversarial_label=adversarial_label,
             adv_train_indices=adv_train_indices,
-            data_transform=dataset_transform,
-            checkpoint_paths=checkpoint_paths,
+            checkpoints=[save_dir],
+            checkpoints_load_func=None,
+            dataset_transform=dataset_transform,
+            use_predictions=use_predictions,
+            filter_by_prediction=filter_by_prediction,
+            adversarial_transform=adversarial_transform,
+            dataset_split=dataset_split,
         )
 
-    @staticmethod
-    def _download_adversarial_dataset(
-        name: str, adversarial_dir_url: str, cache_dir: str
-    ):
-        """Download the adversarial dataset.
-
-        Download the adversarial dataset from the given URL and returns the
-        path to the downloaded directory.
-
-        Parameters
-        ----------
-        name: str
-            Name of the benchmark.
-        adversarial_dir_url: str
-            URL to the adversarial dataset.
-        cache_dir: str
-            Path to the cache directory.
-
-        Returns
-        -------
-        str
-            Path to the downloaded adversarial dataset directory.
-
-        """
-        # Download the zip file and extract into cache dir
-        adversarial_dir = os.path.join(
-            cache_dir, name + "_adversarial_dataset"
+        obj.model = obj._train_model(
+            model=model,
+            trainer=trainer,
+            train_dataset=obj.mixed_dataset,
+            val_dataset=val_dataset,  # TODO: validate, why just val_dataset?
+            save_dir=save_dir,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            batch_size=batch_size,
         )
-        os.makedirs(adversarial_dir, exist_ok=True)
-
-        # download
-        adversarial_dir_zip = os.path.join(
-            adversarial_dir, "adversarial_dataset.zip"
-        )
-        with open(adversarial_dir_zip, "wb") as f:
-            response = requests.get(adversarial_dir_url)
-            f.write(response.content)
-
-        # extract
-        with zipfile.ZipFile(adversarial_dir_zip, "r") as zip_ref:
-            zip_ref.extractall(adversarial_dir)
-
-        return adversarial_dir
+        return obj
 
     @classmethod
     def assemble(
         cls,
         model: Union[torch.nn.Module, L.LightningModule],
         eval_dataset: torch.utils.data.Dataset,
-        base_dataset: torch.utils.data.Dataset,
+        base_dataset: Union[str, torch.utils.data.Dataset],
         adversarial_dir: str,
         adversarial_label: int,
         adv_train_indices: List[int],
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        data_transform: Optional[Callable] = None,
+        dataset_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         filter_by_prediction: bool = True,
         adversarial_transform: Optional[Callable] = None,
         dataset_split: str = "train",
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -439,7 +248,7 @@ class MixedDatasets(Benchmark):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
-        data_transform: Optional[Callable], optional
+        dataset_transform: Optional[Callable], optional
             Transform to be applied to the clean dataset, by default None.
         use_predictions: bool, optional
             Whether to use the model's predictions for generating attributions.
@@ -453,9 +262,6 @@ class MixedDatasets(Benchmark):
         dataset_split: str, optional
             The dataset split, only used for HuggingFace datasets, by default
             "train".
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -468,15 +274,18 @@ class MixedDatasets(Benchmark):
 
         """
         obj = cls()
-        obj.model = model
-        obj._set_devices(model)
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = checkpoints_load_func
-        obj.base_dataset = obj._process_dataset(
-            base_dataset, transform=data_transform, dataset_split=dataset_split
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            use_predictions=use_predictions,
         )
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
+        obj.base_dataset = obj._process_dataset(
+            base_dataset,
+            transform=dataset_transform,
+            dataset_split=dataset_split,
+        )
         obj.filter_by_prediction = filter_by_prediction
         obj.adversarial_label = adversarial_label
 
@@ -493,8 +302,6 @@ class MixedDatasets(Benchmark):
         obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [
             0
         ] * ds_len(obj.base_dataset)
-
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 
@@ -522,24 +329,10 @@ class MixedDatasets(Benchmark):
             Dictionary containing the metric score.
 
         """
-        load_last_checkpoint(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            checkpoints_load_func=self.checkpoints_load_func,
-        )
-        self.model.eval()
-
-        expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            train_dataset=self.mixed_dataset,
-            checkpoints_load_func=self.checkpoints_load_func,
-            **expl_kwargs,
-        )
-
-        adversarial_expl_dl = torch.utils.data.DataLoader(
-            self.eval_dataset, batch_size=batch_size
+        explainer = self._prepare_explainer(
+            dataset=self.mixed_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
         )
 
         metric = MixedDatasetsMetric(
@@ -552,27 +345,9 @@ class MixedDatasets(Benchmark):
             adversarial_label=self.adversarial_label,
         )
 
-        pbar = tqdm(adversarial_expl_dl)
-        n_batches = len(adversarial_expl_dl)
-
-        for i, (inputs, labels) in enumerate(pbar):
-            pbar.set_description(
-                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
-            )
-
-            inputs, labels = inputs.to(self.device), labels.to(self.device)
-            if self.use_predictions:
-                with torch.no_grad():
-                    targets = self.model(inputs).argmax(dim=-1)
-            else:
-                targets = labels
-            explanations = explainer.explain(
-                test_tensor=inputs, targets=targets
-            )
-            metric.update(
-                explanations=explanations,
-                test_tensor=inputs,
-                test_labels=labels,
-            )
-
-        return metric.compute()
+        return self._evaluate_dataset(
+            eval_dataset=self.eval_dataset,
+            explainer=explainer,
+            metric=metric,
+            batch_size=batch_size,
+        )

@@ -107,7 +107,7 @@ class ShortcutDetectionMetric(Metric):
     def update(
         self,
         explanations: torch.Tensor,
-        test_tensor: Optional[torch.Tensor] = None,
+        test_data: Optional[torch.Tensor] = None,
         test_labels: Optional[torch.Tensor] = None,
     ):
         """Update the metric state with the provided explanations.
@@ -116,7 +116,7 @@ class ShortcutDetectionMetric(Metric):
         ----------
         explanations : torch.Tensor
             Explanations to be evaluated.
-        test_tensor : Union[List, torch.Tensor], optional
+        test_data : Union[List, torch.Tensor], optional
             Test samples for which the explanations were computed. Not optional
             if `filter_by_prediction` is True.
         test_labels : torch.Tensor, optional
@@ -126,9 +126,9 @@ class ShortcutDetectionMetric(Metric):
         """
         explanations = explanations.to(self.device)
 
-        if test_tensor is None and self.filter_by_prediction:
+        if test_data is None and self.filter_by_prediction:
             raise ValueError(
-                "test_tensor must be provided if filter_by_prediction is True"
+                "test_data must be provided if filter_by_prediction is True"
             )
         if test_labels is None and (
             self.filter_by_prediction or self.filter_by_class
@@ -138,15 +138,15 @@ class ShortcutDetectionMetric(Metric):
                 "filter_by_class is True"
             )
 
-        if test_tensor is not None:
-            test_tensor = test_tensor.to(self.device)
+        if test_data is not None:
+            test_data = test_data.to(self.device)
         if test_labels is not None:
             test_labels = test_labels.to(self.device)
 
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
 
         if self.filter_by_prediction:
-            pred_cls = self.model(test_tensor).argmax(dim=1)
+            pred_cls = self.model(test_data).argmax(dim=1)
             select_idx *= pred_cls == self.shortcut_cls
         if self.filter_by_class:
             select_idx *= test_labels != self.shortcut_cls

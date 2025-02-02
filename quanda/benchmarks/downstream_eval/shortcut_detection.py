@@ -1,23 +1,16 @@
 """Shortcut Detection Benchmark."""
 
-import copy
 import os
+import warnings
 from typing import Callable, List, Optional, Union, Any
 
 import lightning as L
 import torch
-from tqdm import tqdm
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import (
-    load_module_from_bench_state,
-    sample_transforms,
-)
-from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
-from quanda.utils.common import load_last_checkpoint
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
 )
@@ -51,6 +44,9 @@ class ShortcutDetection(Benchmark):
     learning. PMLR.
 
     """
+
+    name: str = "Shortcut Detection"
+    eval_args = ["test_data", "test_labels", "explanations"]
 
     def __init__(
         self,
@@ -166,100 +162,13 @@ class ShortcutDetection(Benchmark):
 
         """
         obj = cls()
-        obj._set_devices(model)
-        # this sets the function to the default value
-        obj.checkpoints_load_func = None
 
-        obj.base_dataset = obj._process_dataset(
-            base_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
+        save_dir = os.path.join(cache_dir, "model_shortcut_detection.pth")
+        base_dataset = obj._process_dataset(
+            base_dataset, transform=None, dataset_split=dataset_split
         )
-        obj.eval_dataset = eval_dataset
-        obj.filter_by_prediction = filter_by_prediction
-        obj.filter_by_class = filter_by_class
-        obj.use_predictions = use_predictions
-
-        obj._generate(
-            model=model,
-            cache_dir=cache_dir,
-            val_dataset=val_dataset,
-            p=p,
-            shortcut_cls=shortcut_cls,
-            sample_fn=sample_fn,
-            dataset_transform=dataset_transform,
-            n_classes=n_classes,
-            trainer=trainer,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-            seed=seed,
-            batch_size=batch_size,
-        )
-        return obj
-
-    def _generate(
-        self,
-        model: Union[torch.nn.Module, L.LightningModule],
-        cache_dir: str,
-        n_classes: int,
-        shortcut_cls: int,
-        sample_fn: Callable,
-        trainer: Union[L.Trainer, BaseTrainer],
-        dataset_transform: Optional[Callable],
-        val_dataset: Optional[torch.utils.data.Dataset] = None,
-        p: float = 0.3,
-        trainer_fit_kwargs: Optional[dict] = None,
-        seed: int = 27,
-        batch_size: int = 8,
-    ):
-        """Generate the benchmark from scratch, with the specified parameters.
-
-        Used internally, through the `generate` method.
-
-        Parameters
-        ----------
-        model : Union[torch.nn.Module, L.LightningModule]
-            Model to be evaluated.
-        cache_dir : str
-            Directory to store the generated benchmark components.
-        n_classes : int
-            Number of classes in the dataset.
-        shortcut_cls : int
-            The class to add triggers to.
-        sample_fn : Callable
-            Function to add triggers to samples of the dataset.
-        trainer : Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the model.
-        dataset_transform : Optional[Callable], optional
-            Default transform of the dataset, by default None.
-        val_dataset : Optional[torch.utils.data.Dataset], optional
-            Validation dataset to use during training, by default None.
-        p : float, optional
-            The probability of poisoning with the trigger per sample, by
-            default 0.3.
-        trainer_fit_kwargs : Optional[dict], optional
-            Keyword arguments to supply the trainer, by default None.
-        seed : int, optional
-            seed for reproducibility, by default 27.
-        batch_size : int, optional
-            Batch size to use during training, by default 8.
-
-        Raises
-        ------
-        ValueError
-            If the model is not a LightningModule when the trainer is a
-            Lightning Trainer.
-        ValueError
-            If the model is not a torch.nn.Module when the trainer is a
-            BaseTrainer.
-        ValueError
-            If the trainer is neither a Lightning Trainer nor a BaseTrainer.
-
-        """
-        self.p = p
-        self.n_classes = n_classes
-        self.dataset_transform = dataset_transform
-        self.shortcut_dataset = SampleTransformationDataset(
-            dataset=self.base_dataset,
+        shortcut_dataset = SampleTransformationDataset(
+            dataset=base_dataset,
             p=p,
             dataset_transform=dataset_transform,
             cls_idx=shortcut_cls,
@@ -267,137 +176,48 @@ class ShortcutDetection(Benchmark):
             sample_fn=sample_fn,
             seed=seed,
         )
-        self.shortcut_indices = self.shortcut_dataset.transform_indices
-        self.shortcut_cls = shortcut_cls
-        self.sample_fn = sample_fn
-        self.shortcut_train_dl = torch.utils.data.DataLoader(
-            self.shortcut_dataset, batch_size=batch_size
+        shortcut_indices = shortcut_dataset.transform_indices
+
+        obj = obj.assemble(
+            model=model,
+            base_dataset=base_dataset,
+            n_classes=n_classes,
+            eval_dataset=eval_dataset,
+            sample_fn=sample_fn,
+            shortcut_cls=shortcut_cls,
+            shortcut_indices=shortcut_indices,
+            shortcut_dataset=shortcut_dataset,
+            checkpoints=[save_dir],
+            checkpoints_load_func=None,
+            filter_by_prediction=filter_by_prediction,
+            filter_by_class=filter_by_class,
+            use_predictions=use_predictions,
+            dataset_split=dataset_split,
+            dataset_transform=dataset_transform,
+            checkpoint_paths=None,
         )
-        self.original_train_dl = torch.utils.data.DataLoader(
-            self.base_dataset, batch_size=batch_size
-        )
+
         if val_dataset:
-            shortcut_val_dataset = SampleTransformationDataset(
+            val_dataset = SampleTransformationDataset(
                 dataset=val_dataset,
-                dataset_transform=self.dataset_transform,
-                p=self.p,
+                dataset_transform=obj.dataset_transform,
+                p=obj.p,
                 cls_idx=shortcut_cls,
                 sample_fn=sample_fn,
-                n_classes=self.n_classes,
-            )
-            self.shortcut_val_dl = torch.utils.data.DataLoader(
-                shortcut_val_dataset, batch_size=batch_size
-            )
-        else:
-            self.shortcut_val_dl = None
-
-        self.model = copy.deepcopy(model).train()
-
-        trainer_fit_kwargs = trainer_fit_kwargs or {}
-
-        if isinstance(trainer, L.Trainer):
-            if not isinstance(self.model, L.LightningModule):
-                raise ValueError(
-                    "Model should be a LightningModule if Trainer is a "
-                    "Lightning Trainer"
-                )
-
-            trainer.fit(
-                model=self.model,
-                train_dataloaders=self.shortcut_train_dl,
-                val_dataloaders=self.shortcut_val_dl,
-                **trainer_fit_kwargs,
+                n_classes=obj.n_classes,
             )
 
-        elif isinstance(trainer, BaseTrainer):
-            if not isinstance(self.model, torch.nn.Module):
-                raise ValueError(
-                    "Model should be a torch.nn.Module if Trainer is a "
-                    "BaseTrainer"
-                )
-
-            trainer.fit(
-                model=self.model,
-                train_dataloaders=self.shortcut_train_dl,
-                val_dataloaders=self.shortcut_val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        else:
-            raise ValueError(
-                "Trainer should be a Lightning Trainer or a BaseTrainer"
-            )
-
-        # save check point to cache_dir
-        # TODO: add model id
-        torch.save(
-            self.model.state_dict(),
-            os.path.join(cache_dir, "model_shortcut_detection.pth"),
-        )
-        self.checkpoints = [
-            os.path.join(cache_dir, "model_shortcut_detection.pth")
-        ]  # TODO: save checkpoints
-        self.model.to(self.device)
-        self.model.eval()
-
-    @classmethod
-    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """Download a precomputed benchmark.
-
-        Load precomputed benchmark components from a file and creates an
-        instance from the state dictionary.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        device : str
-            Device to load the model on.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
+        obj.model = obj._train_model(
+            model=model,
+            trainer=trainer,
+            train_dataset=obj.shortcut_dataset,
+            val_dataset=val_dataset,
+            save_dir=save_dir,
+            trainer_fit_kwargs=trainer_fit_kwargs,
+            batch_size=batch_size,
         )
 
-        checkpoint_paths = []
-        for ckpt_name, ckpt in zip(
-            bench_state["checkpoints"], bench_state["checkpoints_binary"]
-        ):
-            save_path = os.path.join(cache_dir, ckpt_name)
-            torch.save(ckpt, save_path)
-            checkpoint_paths.append(save_path)
-
-        eval_dataset = obj._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=None,
-            dataset_split=bench_state["test_split_name"],
-        )
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        sample_fn = sample_transforms[bench_state["sample_fn"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        return obj.assemble(
-            model=module,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            base_dataset=bench_state["dataset_str"],
-            n_classes=bench_state["n_classes"],
-            eval_dataset=eval_dataset,
-            use_predictions=bench_state["use_predictions"],
-            shortcut_indices=bench_state["shortcut_indices"],
-            shortcut_cls=bench_state["shortcut_cls"],
-            sample_fn=sample_fn,
-            dataset_transform=dataset_transform,
-            checkpoint_paths=checkpoint_paths,
-        )
+        return obj
 
     @classmethod
     def assemble(
@@ -409,6 +229,7 @@ class ShortcutDetection(Benchmark):
         sample_fn: Callable,
         shortcut_cls: int,
         shortcut_indices: List[int],
+        shortcut_dataset: Optional[SampleTransformationDataset] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = True,
@@ -440,6 +261,8 @@ class ShortcutDetection(Benchmark):
             The class to use.
         shortcut_indices : List[int]
             Binary list of indices to poison.
+        shortcut_dataset : Optional[SampleTransformationDataset], optional
+            Dataset with the shortcut, by default None.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
@@ -476,35 +299,44 @@ class ShortcutDetection(Benchmark):
 
         """
         obj = cls()
-        obj.model = model
-        obj.checkpoints = checkpoints
+        obj._assemble_common(
+            model=model,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            use_predictions=use_predictions,
+        )
         obj.base_dataset = obj._process_dataset(
             base_dataset,
             transform=dataset_transform,
             dataset_split=dataset_split,
         )
-        obj.eval_dataset = eval_dataset
         obj.dataset_transform = dataset_transform
         obj.n_classes = n_classes
-        obj.use_predictions = use_predictions
         obj.filter_by_prediction = filter_by_prediction
         obj.filter_by_class = filter_by_class
-        obj.shortcut_dataset = SampleTransformationDataset(
-            dataset=obj._process_dataset(
-                base_dataset, transform=None, dataset_split=dataset_split
-            ),
-            cls_idx=shortcut_cls,
-            dataset_transform=dataset_transform,
-            sample_fn=sample_fn,
-            n_classes=n_classes,
-            transform_indices=shortcut_indices,
-        )
+
+        if shortcut_dataset is not None:
+            warnings.warn(
+                "shortcut_dataset is not None. Ignoring other shortcut "
+                "parameters."
+            )
+            obj.shortcut_dataset = shortcut_dataset
+        else:
+            obj.shortcut_dataset = SampleTransformationDataset(
+                dataset=obj._process_dataset(
+                    base_dataset, transform=None, dataset_split=dataset_split
+                ),
+                cls_idx=shortcut_cls,
+                dataset_transform=dataset_transform,
+                sample_fn=sample_fn,
+                n_classes=n_classes,
+                transform_indices=shortcut_indices,
+            )
         obj.shortcut_cls = shortcut_cls
         obj.shortcut_indices = obj.shortcut_dataset.transform_indices
         obj.sample_fn = sample_fn
         obj._checkpoint_paths = checkpoint_paths
-        obj._set_devices(model)
-        obj.checkpoints_load_func = checkpoints_load_func
 
         return obj
 
@@ -531,27 +363,10 @@ class ShortcutDetection(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-        load_last_checkpoint(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            checkpoints_load_func=self.checkpoints_load_func,
-        )
-        self.model.eval()
-
-        self.shortcut_train_dl = torch.utils.data.DataLoader(
-            self.shortcut_dataset, batch_size=batch_size
-        )
-        self.original_train_dl = torch.utils.data.DataLoader(
-            self.base_dataset, batch_size=batch_size
-        )
-
-        expl_kwargs = expl_kwargs or {}
-        explainer = explainer_cls(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            train_dataset=self.shortcut_dataset,
-            checkpoints_load_func=self.checkpoints_load_func,
-            **expl_kwargs,
+        explainer = self._prepare_explainer(
+            dataset=self.shortcut_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
         )
 
         shortcut_expl_ds = SampleTransformationDataset(
@@ -561,9 +376,7 @@ class ShortcutDetection(Benchmark):
             sample_fn=self.sample_fn,
             p=1.0,
         )
-        expl_dl = torch.utils.data.DataLoader(
-            shortcut_expl_ds, batch_size=batch_size
-        )
+
         metric = ShortcutDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
@@ -574,31 +387,9 @@ class ShortcutDetection(Benchmark):
             filter_by_prediction=self.filter_by_prediction,
             filter_by_class=self.filter_by_class,
         )
-        pbar = tqdm(expl_dl)
-        n_batches = len(expl_dl)
-
-        for i, (input, labels) in enumerate(pbar):
-            pbar.set_description(
-                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
-            )
-
-            input, labels = input.to(self.device), labels.to(self.device)
-
-            if self.use_predictions:
-                with torch.no_grad():
-                    output = self.model(input)
-                    targets = output.argmax(dim=-1)
-            else:
-                targets = labels
-
-            explanations = explainer.explain(
-                test_tensor=input,
-                targets=targets,
-            )
-            metric.update(
-                explanations=explanations,
-                test_tensor=input,
-                test_labels=labels,
-            )
-
-        return metric.compute()
+        return self._evaluate_dataset(
+            eval_dataset=shortcut_expl_ds,
+            explainer=explainer,
+            metric=metric,
+            batch_size=batch_size,
+        )
