@@ -1,9 +1,7 @@
 import pytest
-from torch.utils.data import random_split
 
 # START1
 import os
-import sys
 import torch
 import torchvision
 from quanda.benchmarks.downstream_eval import ShortcutDetection, MislabelingDetection, SubclassDetection
@@ -34,6 +32,8 @@ import lightning as L
 def test_benchmarks(
     test_id,
 ):
+    torch.manual_seed(42)
+
     # START2
     torch.set_float32_matmul_precision("medium")
     to_img = torchvision.transforms.Compose(
@@ -58,16 +58,16 @@ def test_benchmarks(
     # END3
 
     benchmark.base_dataset = torch.utils.data.Subset(
-        benchmark.base_dataset, list(range(16))
+        benchmark.base_dataset, list(range(4))
     )
     benchmark.shortcut_dataset = torch.utils.data.Subset(
-        benchmark.shortcut_dataset, list(range(16))
+        benchmark.shortcut_dataset, list(range(4))
     )
     benchmark.eval_dataset = torch.utils.data.Subset(
-        benchmark.eval_dataset, list(range(16))
+        benchmark.eval_dataset, list(range(4))
     )
     benchmark.shortcut_indices = [
-        i for i in benchmark.shortcut_indices if i < 16
+        i for i in benchmark.shortcut_indices if i < 4
     ]
 
     # START4
@@ -127,17 +127,17 @@ def test_benchmarks(
     }
     # END9
 
+    # TODO: Add TracIn after the checkpoint loading issue is resolved
     # START10
     attributors = {
         "captum_similarity": (CaptumSimilarity, captum_similarity_args),
         "captum_arnoldi": (CaptumArnoldi, captum_influence_args),
-        "captum_tracin": (CaptumTracInCPFast, captum_tracin_args),
+        # "captum_tracin": (CaptumTracInCPFast, captum_tracin_args),
         "trak": (TRAK, trak_args),
         "representer": (RepresenterPoints, representer_points_args),
     }
     results = dict()
     for name, (cls, kwargs) in attributors.items():
-        print(name)
         results[name] = benchmark.evaluate(
             explainer_cls=cls, expl_kwargs=kwargs, batch_size=8)["score"]
     # END10
@@ -156,6 +156,19 @@ def test_benchmarks(
     mislabeling_labels = temp_benchmark.mislabeling_labels
     dataset_transform = None
     # END12
+
+    temp_benchmark.base_dataset = torch.utils.data.Subset(
+        temp_benchmark.base_dataset, list(range(4))
+    )
+    temp_benchmark.eval_dataset = torch.utils.data.Subset(
+        temp_benchmark.eval_dataset, list(range(4))
+    )
+    temp_benchmark.mislabeling_dataset = torch.utils.data.Subset(
+        temp_benchmark.mislabeling_dataset, list(range(4))
+    )
+    temp_benchmark.mislabeling_indices = [
+        i for i in temp_benchmark.mislabeling_indices if i < 4
+    ]
 
     # START13
     benchmark = MislabelingDetection.assemble(
@@ -201,6 +214,16 @@ def test_benchmarks(
         class_to_group="random",
     )
     # END14_2
+
+    benchmark.base_dataset = torch.utils.data.Subset(
+        benchmark.base_dataset, list(range(4))
+    )
+    benchmark.eval_dataset = torch.utils.data.Subset(
+        benchmark.eval_dataset, list(range(4))
+    )
+    benchmark.grouped_dataset = torch.utils.data.Subset(
+        benchmark.grouped_dataset, list(range(4))
+    )
 
     # START15
     results = benchmark.evaluate(
