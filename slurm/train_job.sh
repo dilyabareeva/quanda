@@ -33,9 +33,9 @@ apptainer run --nv \
             --device "cuda" \
             --pretrained \
             --batch_size 64 \
-            --save_each 2 \
-            --validate_each 2 \
-            --epochs 5
+            --save_each 5 \
+            --validate_each 5 \
+            --epochs 100
 
 
 cd ${LOCAL_JOB_DIR}

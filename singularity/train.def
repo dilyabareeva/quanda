@@ -15,7 +15,7 @@ From: pytorch/pytorch:2.3.0-cuda11.8-cudnn8-devel
     numpy \
     torchvision \
     captum@git+https://github.com/pytorch/captum \
-    lightning>=1.4.0 \
+    lightning>=2.5.0 \
     torchmetrics>=1.4.0 \
     tqdm>=4.0.0 \
     traker>=0.3.2 \
