@@ -189,7 +189,7 @@ def handle_mixed_dataset(
         adversarial_dir, "mixed_datasets_adversarial_dataset"
     )
     if not os.path.exists(
-        os.path.join(adversarial_dir, "adversarial_dataset.zip")
+        os.path.join(adversarial_dataset_path, "adversarial_dataset.zip")
     ):
         adversarial_dataset_path = (
             temp_benchmark._download_adversarial_dataset(
