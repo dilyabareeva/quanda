@@ -13,7 +13,7 @@ def accuracy(
     model.to(device)
     if targets is not None:
         assert len(targets) == len(dataset)
-    targets = targets.to(device)
+        targets = targets.to(device)
     ld = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE)
     success_arr = torch.empty((0,), device=device)
     for i, (x, y) in enumerate(ld):
