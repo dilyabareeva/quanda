@@ -190,15 +190,12 @@ def handle_mixed_dataset(
         adversarial_dir, "mixed_datasets_adversarial_dataset"
     )
 
-    print("CHECKING : ", adversarial_dataset_path)
     for f in os.listdir(adversarial_dataset_path):
         print(f)
-    print("=================\n\n\n")
 
     if not os.path.exists(
         os.path.join(adversarial_dataset_path, "adversarial_dataset.zip")
     ):
-        print("COULD NOT FIND FILE!")
         adversarial_dataset_path = (
             temp_benchmark._download_adversarial_dataset(
                 adversarial_dir_url=datasets_metadata[dataset_name][
