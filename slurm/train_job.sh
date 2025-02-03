@@ -28,8 +28,8 @@ apptainer run --nv \
             --dataset_type $3 \
             --augmentation $4 \
             --lr $5 \
-            --adversarial_dir /mnt/quantus_metadata/$1/adversarial_dataset \
-            --seed 4242 \
+            --adversarial_dir /mnt/quanda_metadata/$1/adversarial_dataset \
+            --seed 42 \
             --device "cuda" \
             --pretrained \
             --batch_size 64 \
