@@ -17,7 +17,7 @@ Below we go through each one individually:
 ## Step 1: Additions to the codebase
 
 - <details><summary>Decide on a keyword as a name for your Lightning module:</summary>
-  
+
    This module will include all details about the model architecture and the training process. It is also possible to use one of the already existing modules, but the current modules are named after the datasets they were designed for. In the rest of the document, this keyword will be referred to as `module_name` </details>
 - <details><summary>Implement Lightning module:</summary>
 
@@ -68,11 +68,15 @@ Below we go through each one individually:
   The final 6 items are optional and can be set to None if the corresponding benchmarks are not of interest.
   </details>
 - <details><summary>
-  
-  Add `module_name` to the `module_kwargs` dictionary in the `load_pl_module` function in train_model.py: </summary> 
-  
+
+  Add `module_name` to the `module_kwargs` dictionary in the `load_pl_module` function in train_model.py: </summary>
+
 
   The value associated to the key `module_name` should be a dictionary containing the training hyperparameters that you want to control during the training phase. This dictionary will be used to initialize the Lightning module that was coded in step 1. If you are adding new hyperparameters to be passed here, you should get the value using argparse and change the script accordingly.</details>
+
+- <details><summary>(Optional) Add additional checks:</summary>
+
+  After training, some checks are run on the models depending on the type of dataset the model was trained on. You can add functions in model_sanity_checks.py and populate the `sanity_checks` and `func_params` in the `run_model_sanity_checks` function. Depending on the complexity of your checks, you may need to make additions to the scripts to pass relevant information to the `run_model_sanity_checks` function. </details>. If you don't want to run any checks, you can ignore this step. You can run the script with the --ignore_sanity_checks option to skip this step altogether.
 
 ## Step 3: Training
 
@@ -83,16 +87,16 @@ Augmentations are controlled through a string of predefined augmentation keys, s
 The script requires you to decide on some paths for caching:
 - `dataset_cache_dir`: Path to use for caching HF dataset.
 - `metadata_root`: A path to cache details relating to the benchmarks (i.e. validation/test indices, mislabeled indices, mislabeling labels etc.) This should be static and populated with job outputs as you train more models with different datasets. Then, when you run the job again, the same datasplits and data manipulations will be done. This folder will also include files needed to create the benchmark so will be needed in step 4.
-- `output_path`: Directory to save the job outputs. If not given, `metadata_root` is used. Otherwise, you should copy the outputs to the `metadata_root`. 
+- `output_path`: Directory to save the job outputs. If not given, `metadata_root` is used. Otherwise, you should copy the outputs to the `metadata_root`.
 
 Different kinds of datasets are associated with keywords. The `dataset_type` input takes these keywords as values: vanilla, subclass, mislabeled, mixed.
 
 Run the train_model.py script to train models:
 
 ```
-python scripts/train.py
+python scripts/train_model.py
         --dataset_name <ds_name>
-        --dataset_type vanilla | mislabeled | subclass | mixed
+        --dataset_type vanilla | mislabeled | subclass | mixed | shortcut
         --dataset_cache_dir, <ds_cache_path>,
         --augmentation <augmentation_string>
         --weight_decay 0.0
@@ -120,7 +124,7 @@ python scripts/make_benchmark.py
         --dataset_cache_dir <ds_cache_dir>,
         --dataset_type <ds_type>
         --metadata_root <metadata_root>
-        --output_path <output_path>   
+        --output_path <output_path>
         --seed <seed>
         --device cpu
         --module_name <module_name>
