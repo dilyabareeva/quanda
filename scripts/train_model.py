@@ -239,7 +239,13 @@ def handle_mixed_dataset(
         transform=sample_transforms[f"{dataset_name}_adversarial_transform"],
         indices=adversarial_train_indices,
     )
-    adversarial_test_dataset = adversarial_dataset = SingleClassImageDataset(
+    adversarial_dataset = SingleClassImageDataset(
+        root=adversarial_dataset_path,
+        label=adversarial_cls,
+        transform=sample_transforms[f"{dataset_name}_adversarial_transform"],
+        indices=adversarial_train_indices,
+    )
+    adversarial_test_dataset = SingleClassImageDataset(
         root=adversarial_dataset_path,
         label=adversarial_cls,
         transform=sample_transforms[f"{dataset_name}_adversarial_transform"],
