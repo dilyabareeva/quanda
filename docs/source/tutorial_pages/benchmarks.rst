@@ -69,6 +69,7 @@ We now prepare the initialization parameters of attributors: hyperparameters, an
    :language: python
    :start-after: # START6
    :end-before: # END6
+   :dedent:
 
 - **TracInCP**:
 
@@ -102,6 +103,7 @@ Note that some attributors take a long time to initialize or compute attribution
    :language: python
    :start-after: # START10
    :end-before: # END10
+   :dedent:
 
 At this point, the dictionary ``results`` contains the scores of the attributors on the benchmark.
 
