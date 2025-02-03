@@ -59,6 +59,7 @@ def test_quickstart(
     # START2
     DEVICE = "cpu"
     model.to(DEVICE)
+
     explainer_kwargs = {
         "layers": "fc_2",
         "model_id": "default_model_id",
@@ -195,7 +196,6 @@ def test_quickstart(
         n_classes=n_classes,
         trainer=trainer,
     )
-
     score = mislabeling_detection.evaluate(
         explainer_cls=CaptumSimilarity,
         expl_kwargs=explainer_kwargs,
