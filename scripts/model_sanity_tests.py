@@ -1,6 +1,80 @@
 import torch
-from typing import Optional
+from typing import Optional, List
 from lightning import LightningModule
+
+import os
+from quanda.benchmarks.resources.modules import bench_load_state_dict
+
+
+def run_model_sanity_checks(
+    ckpt_path: str,
+    ckpt_names: List[str],
+    pl_module: LightningModule,
+    dataset_type: str,
+    train_set: torch.utils.data.Dataset,
+    val_set: torch.utils.data.Dataset,
+    ds_dict: dict,
+    device: str,
+):
+    sanity_checks = {
+        "vanilla": [],
+        "subclass": [],
+        "mislabeled": [
+            ("mislabeled_memorization", mislabeled_memorization_score)
+        ],
+        "mixed": [
+            ("adversarial_memorization", adversarial_memorization_score),
+            ("adversarial_classification", adversarial_classification_score),
+        ],
+        "shortcut": [
+            ("shortcut_memorization", shortcut_memorization_score),
+            ("shortcut_classification", shortcut_classification_score),
+        ],
+    }
+    func_params = {
+        "mislabeled_memorization": {
+            "train_set": train_set,
+            "mislabeling_indices": ds_dict.get("mislabeling_indices", None),
+        },
+        "adversarial_memorization": {
+            "train_set": train_set,
+            "adversarial_cls": ds_dict.get("adversarial_cls", None),
+        },
+        "adversarial_classification": {
+            "score_set": ds_dict.get("adversarial_test_dataset", None),
+            "adversarial_cls": ds_dict.get("adversarial_cls", None),
+        },
+        "shortcut_memorization": {
+            "train_set": train_set,
+            "shortcut_indices": ds_dict.get("shortcut_indices", None),
+            "shortcut_cls": ds_dict.get("shortcut_cls", None),
+        },
+        "shortcut_classification": {
+            "score_set": ds_dict.get("shortcut_val_dataset", None),
+            "shortcut_cls": ds_dict.get("shortcut_cls", None),
+        },
+    }
+
+    ckpt_names = sorted(
+        ckpt_names, key=lambda x: int(x.split("=")[1].split(".")[0])
+    )
+
+    funcs = sanity_checks[dataset_type]
+    ret_dict = {name: {"epochs": [], "values": []} for name, _ in funcs}
+
+    for ckpt in ckpt_names:
+        state_dict = torch.load(
+            os.path.join(ckpt_path, ckpt), map_location=device
+        )
+        pl_module = bench_load_state_dict(pl_module, state_dict)
+        epoch = int(ckpt.split("=")[1].split(".")[0])
+        for name, f in funcs:
+            ret_dict[name]["epochs"].append(epoch)
+            kwargs = func_params[name]
+            kwargs["model"] = pl_module.model
+            kwargs["device"] = device
+            ret_dict[name]["values"].append(f(**kwargs))
+    return ret_dict
 
 
 def accuracy(
