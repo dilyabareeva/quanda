@@ -157,19 +157,6 @@ def test_benchmarks(
     dataset_transform = None
     # END12
 
-    temp_benchmark.base_dataset = torch.utils.data.Subset(
-        temp_benchmark.base_dataset, list(range(4))
-    )
-    temp_benchmark.eval_dataset = torch.utils.data.Subset(
-        temp_benchmark.eval_dataset, list(range(4))
-    )
-    temp_benchmark.mislabeling_dataset = torch.utils.data.Subset(
-        temp_benchmark.mislabeling_dataset, list(range(4))
-    )
-    temp_benchmark.mislabeling_indices = [
-        i for i in temp_benchmark.mislabeling_indices if i < 4
-    ]
-
     # START13
     benchmark = MislabelingDetection.assemble(
         model=model,
@@ -191,6 +178,13 @@ def test_benchmarks(
         expl_kwargs=representer_points_args,
     )
     # END13
+
+    temp_benchmark.base_dataset = torch.utils.data.Subset(
+        temp_benchmark.base_dataset, list(range(4))
+    )
+    temp_benchmark.eval_dataset = torch.utils.data.Subset(
+        temp_benchmark.eval_dataset, list(range(4))
+    )
 
     # START14_2
     num_groups = 2
@@ -214,16 +208,6 @@ def test_benchmarks(
         class_to_group="random",
     )
     # END14_2
-
-    benchmark.base_dataset = torch.utils.data.Subset(
-        benchmark.base_dataset, list(range(4))
-    )
-    benchmark.eval_dataset = torch.utils.data.Subset(
-        benchmark.eval_dataset, list(range(4))
-    )
-    benchmark.grouped_dataset = torch.utils.data.Subset(
-        benchmark.grouped_dataset, list(range(4))
-    )
 
     # START15
     results = benchmark.evaluate(
