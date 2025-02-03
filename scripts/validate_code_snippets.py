@@ -14,8 +14,8 @@ def extract_snippet_from_readme(text: str, snippet_id: str) -> str:
     """
     # Create a regex pattern
     pattern = re.compile(
-        rf'<!--\s*START{re.escape(snippet_id)}\s*-->(.*?)<!--\s*END{re.escape(snippet_id)}\s*-->',
-        re.DOTALL
+        rf"<!--\s*START{re.escape(snippet_id)}\s*-->(.*?)<!--\s*END{re.escape(snippet_id)}\s*-->",
+        re.DOTALL,
     )
 
     # Find the snippet
@@ -26,8 +26,8 @@ def extract_snippet_from_readme(text: str, snippet_id: str) -> str:
     snippet = match.group(1)
 
     # Remove code fences:
-    snippet = re.sub(r'```python', '', snippet)
-    snippet = re.sub(r'```', '', snippet)
+    snippet = re.sub(r"```python", "", snippet)
+    snippet = re.sub(r"```", "", snippet)
 
     # Remove indentation
     snippet = textwrap.dedent(snippet)
@@ -46,15 +46,14 @@ def extract_snippet_from_test(text: str, snippet_id: str) -> str:
     """
     # Create a regex pattern
     pattern = re.compile(
-        rf'#\s*START{re.escape(snippet_id)}\s*\n(.*?)\n\s*#\s*END{re.escape(snippet_id)}',
-        re.DOTALL
+        rf"#\s*START{re.escape(snippet_id)}\s*\n(.*?)\n\s*#\s*END{re.escape(snippet_id)}",
+        re.DOTALL,
     )
 
     # Find the snippet
     match = pattern.search(text)
     if not match:
-        print(
-            f"Could not find snippet {snippet_id} in test file.")
+        print(f"Could not find snippet {snippet_id} in test file.")
         sys.exit(1)
     snippet = match.group(1)
 
@@ -66,8 +65,21 @@ def extract_snippet_from_test(text: str, snippet_id: str) -> str:
 
 def main():
     snippet_ids = [
-        "1", "2", "3", "4", "5", "6", "7_1", "7_2",
-        "8", "9", "10", "11", "12", "13_2", "14"
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7_1",
+        "7_2",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13_2",
+        "14",
     ]
 
     # Load the README file
@@ -80,7 +92,9 @@ def main():
 
     # Load the test file
     try:
-        with open("tests/integration/test_quickstart.py", "r", encoding="utf-8") as f:
+        with open(
+            "tests/integration/test_quickstart.py", "r", encoding="utf-8"
+        ) as f:
             test_text = f.read()
     except FileNotFoundError:
         print("tests/integration/test_quickstart.py not found!")

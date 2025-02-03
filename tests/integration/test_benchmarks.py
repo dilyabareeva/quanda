@@ -20,7 +20,7 @@ import lightning as L
 # END14_1
 
 
-@pytest.mark.explainers
+@pytest.mark.integration
 @pytest.mark.parametrize(
     "test_id",
     [

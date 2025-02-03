@@ -80,6 +80,8 @@ exclude = [
     "build",
     "dist",
     "wandb",
+    "tests/integration/test_quickstart.py",
+    "tests/integration/test_benchmarks.py",
 ]
 
 [tool.ruff.lint]
@@ -89,6 +91,8 @@ exclude = [
     "build/",
     "dist/",
     ".tox/",
+    "tests/integration/test_quickstart.py",
+    "tests/integration/test_benchmarks.py",
 ]
 
 # Black formatting

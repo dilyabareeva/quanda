@@ -31,7 +31,7 @@ from quanda.utils.training.trainer import Trainer
 # END13_1
 
 
-@pytest.mark.explainers
+@pytest.mark.integration
 @pytest.mark.parametrize(
     "test_id, model, dataset, batch_size",
     [
