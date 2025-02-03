@@ -20,7 +20,7 @@ def run_model_sanity_checks(
         "vanilla": [],
         "subclass": [],
         "mislabeled": [
-            ("mislabeled_memorization", mislabeled_memorization_score)
+            ("mislabeled_memorization", mislabeled_memorization_score),
         ],
         "mixed": [
             ("adversarial_memorization", adversarial_memorization_score),
@@ -52,6 +52,9 @@ def run_model_sanity_checks(
         "shortcut_classification": {
             "score_set": ds_dict.get("shortcut_val_dataset", None),
             "shortcut_cls": ds_dict.get("shortcut_cls", None),
+        },
+        "train_accuracy": {
+            "train_set": train_set,
         },
     }
 
@@ -99,6 +102,10 @@ def accuracy(
         pred = model(x).argmax(dim=-1)
         success_arr = torch.concat((success_arr, pred == target))
     return torch.mean(success_arr * 1.0)
+
+
+def train_accuracy_score(model, train_set, device):
+    return accuracy(model, device, train_set)
 
 
 def mislabeled_memorization_score(
