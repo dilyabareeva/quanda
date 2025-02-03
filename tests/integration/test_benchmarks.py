@@ -122,6 +122,7 @@ def test_benchmarks(
         "model_id": "mnist_shortcut_detection",
         "cache_dir": os.path.join(cache_dir, "representer_points"),
         "batch_size": 8,
+        "epoch": 100,
         "features_layer": "model.relu_4",
         "classifier_layer": "model.fc_3",
     }
@@ -177,6 +178,7 @@ def test_benchmarks(
         "model_id": "mnist_mislabeling_detection",
         "cache_dir": os.path.join(cache_dir, "representer_points"),
         "batch_size": 8,
+        "epoch": 100,
         "features_layer": "model.relu_4",
         "classifier_layer": "model.fc_3",
     }
@@ -198,7 +200,7 @@ def test_benchmarks(
 
     benchmark = SubclassDetection.generate(
         model=model,
-        cache_dir="./cache",
+        cache_dir=cache_dir,
         trainer=trainer,
         base_dataset=base_dataset,
         eval_dataset=eval_dataset,
