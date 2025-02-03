@@ -150,6 +150,13 @@ def test_benchmarks(
     )
     # END11
 
+    temp_benchmark.base_dataset = torch.utils.data.Subset(
+        temp_benchmark.base_dataset, list(range(4))
+    )
+    temp_benchmark.eval_dataset = torch.utils.data.Subset(
+        temp_benchmark.eval_dataset, list(range(4))
+    )
+
     # START12
     model = temp_benchmark.model
     base_dataset = temp_benchmark.base_dataset
@@ -178,13 +185,6 @@ def test_benchmarks(
         expl_kwargs=representer_points_args,
     )
     # END13
-
-    temp_benchmark.base_dataset = torch.utils.data.Subset(
-        temp_benchmark.base_dataset, list(range(4))
-    )
-    temp_benchmark.eval_dataset = torch.utils.data.Subset(
-        temp_benchmark.eval_dataset, list(range(4))
-    )
 
     # START14_2
     num_groups = 2
