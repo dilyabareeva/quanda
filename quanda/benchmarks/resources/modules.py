@@ -206,9 +206,13 @@ class MnistModel(L.LightningModule):
         labs = labs.to(self.device)
         out = self.model(ims)
         loss = self.criterion(out, labs)
+        acc = accuracy(
+            out, labs, task="multiclass", num_classes=self.num_labels
+        )
         self.log(
             "train_loss", loss, on_step=True, on_epoch=True, prog_bar=True
         )
+        self.log("train_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
