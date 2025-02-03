@@ -630,7 +630,8 @@ class Benchmark(ABC):
         adversarial_dir = os.path.join(
             cache_dir, name + "_adversarial_dataset"
         )
-        os.makedirs(adversarial_dir, exist_ok=True)
+        if not os.path.isdir(adversarial_dir):
+            os.makedirs(adversarial_dir, exist_ok=True)
 
         # download
         adversarial_dir_zip = os.path.join(
