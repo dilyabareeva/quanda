@@ -583,6 +583,7 @@ def train_model(
         epochs=epochs,
         pretrained=pretrained,
         num_outputs=num_outputs,
+        lr=lr,
         device=device,
     )
     if model_path is not None:
