@@ -505,18 +505,21 @@ def load_pl_module(
     module_name: str,
     pretrained: bool,
     epochs: int,
+    lr: float,
     num_outputs: int,
     device: str,
 ):
+    kwargs = {"epochs": epochs, "lr": lr}
     module_kwargs = {
-        "MnistModel": {"epochs": epochs},
+        "MnistModel": {},
         "TinyImagenetModel": {"pretrained": pretrained},
     }
+    kwargs.update(module_kwargs[module_name])
     module = load_module_with_name(
         module_name=module_name,
         num_outputs=num_outputs,
         device=device,
-        **module_kwargs[module_name],
+        **kwargs,
     )
     return module
 
