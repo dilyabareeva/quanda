@@ -161,7 +161,6 @@ class RepresenterPoints(Explainer):
 
     """
 
-
     accepted_tasks: List[TaskLiterals] = ["image_classification"]
 
     def __init__(

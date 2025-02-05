@@ -92,16 +92,16 @@ class Explainer(ABC):
     @abstractmethod
     def explain(
         self,
-        test_data: torch.Tensor,
-        targets: Union[List[int], torch.Tensor],
+        test_data: Any,
+        targets: Any,
     ) -> torch.Tensor:
         """Abstract method for computing influence scores for the test samples.
 
         Parameters
         ----------
-        test_data : torch.Tensor
+        test_data : Any
             Test samples for which influence scores are computed.
-        targets : Union[List[int], torch.Tensor]
+        targets : Any
             Labels for the test samples.
 
         Returns
