@@ -35,57 +35,12 @@ def get_dataset_type(benchmark_name):
     return "vanilla"
 
 
-checkpoint_urls = {
-    "vanilla": [
-        (
-            "vanilla_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/C88q3JriWPBkRnr/download/vanilla_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-        ),
-        (
-            "vanilla_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/QiBY4d9JqXE64aF/download/vanilla_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
-        ),
-    ],
-    "mislabeled": [
-        (
-            "mislabeled_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/JppnZcccq7BKxEj/download/mislabeled_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-        ),
-        (
-            "mislabeled_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/saY5s7Nt7zkxK4W/download/mislabeled_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
-        ),
-    ],
-    "shortcut": [
-        (
-            "shortcut_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/e7tpTxo7Tw5KSFp/download/shortcut_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-        ),
-        (
-            "shortcut_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/x8gzMGWDTiDdPBW/download/shortcut_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
-        ),
-    ],
-    "mixed": [
-        (
-            "mixed_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/7wjr7jjnzBJBJjL/download/mixed_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-        ),
-        (
-            "mixed_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/XmiYg5eCzyNs9xq/download/mixed_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-        ),
-    ],
-    "subclass": [
-        (
-            "subclass_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/gBT9Pcqz7RGg3RJ/download/subclass_0.01_0.0_flip_rotate_pre_epoch=1.ckpt",
-        ),
-        (
-            "subclass_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
-            "https://datacloud.hhi.fraunhofer.de/s/CP3nwfcWQnTFw7P/download/subclass_0.01_0.0_flip_rotate_pre_epoch=3.ckpt",
-        ),
-    ],
+checkpoints_urls = {
+    "vanilla": "https://datacloud.hhi.fraunhofer.de/s/B6rYHesR43E4Hyz/download",
+    "mislabeled": "https://datacloud.hhi.fraunhofer.de/s/6tXPimRgSNQ44dt/download",
+    "shortcut": "https://datacloud.hhi.fraunhofer.de/s/ky993WCebZGBYBr/download",
+    "mixed": "https://datacloud.hhi.fraunhofer.de/s/cFXLdeod2LompCe/download",
+    "subclass": "https://datacloud.hhi.fraunhofer.de/s/cadFmeSQ3xLbWFB/download",
 }
 
 
@@ -142,17 +97,18 @@ def make_benchmark(
         # EDIT HERE TO CHANGE THE CONTENTS OF CHECKPOINT BINARY
         ckpt_binary.append(model_state_dict)
 
-    ckpt_names, ckpt_urls = list(zip(*checkpoint_urls[dataset_type]))
+    ckpts_url = checkpoints_urls[dataset_type]
 
     bench_state = {
         "test_split_name": datasets_metadata[dataset_name]["test_split_name"],
         "dataset_str": datasets_metadata[dataset_name]["hf_tag"],
         "checkpoints": ckpt_names,
-        "checkpoints_url": ckpt_urls,
+        "checkpoints_url": ckpts_url,
         "use_predictions": True,
         "n_classes": num_outputs,
         "eval_test_indices": ds_dict["test_indices"],
         "dataset_transform": f"{dataset_name}_transform",
+        "checkpoints_dir_name": f"{dataset_name}_{module_name}_{benchmark_name}_benchmark_checkpoints",
         "pl_module": module_name,
     }
 
@@ -185,7 +141,8 @@ def make_benchmark(
         module = load_pl_module(
             module_name=bench_state["pl_module"],
             num_outputs=num_outputs,
-            epochs=2,
+            epochs=100,
+            lr=0.001,
             pretrained=True,
             device=device,
         )

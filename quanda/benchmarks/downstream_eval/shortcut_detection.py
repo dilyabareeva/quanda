@@ -192,7 +192,6 @@ class ShortcutDetection(Benchmark):
             use_predictions=use_predictions,
             dataset_split=dataset_split,
             dataset_transform=dataset_transform,
-            checkpoint_paths=None,
         )
 
         if val_dataset:
@@ -235,7 +234,6 @@ class ShortcutDetection(Benchmark):
         use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -282,9 +280,6 @@ class ShortcutDetection(Benchmark):
             "train".
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -334,7 +329,6 @@ class ShortcutDetection(Benchmark):
         obj.shortcut_cls = shortcut_cls
         obj.shortcut_indices = obj.shortcut_dataset.transform_indices
         obj.sample_fn = sample_fn
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 

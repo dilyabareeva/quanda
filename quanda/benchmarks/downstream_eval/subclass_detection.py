@@ -218,7 +218,6 @@ class SubclassDetection(Benchmark):
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -257,9 +256,6 @@ class SubclassDetection(Benchmark):
             The original dataset transform, by default None.
         batch_size : int, optional
             Batch size for the dataloaders, by default 8.
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -308,8 +304,6 @@ class SubclassDetection(Benchmark):
         obj.original_train_dl = torch.utils.data.DataLoader(
             obj.base_dataset, batch_size=batch_size
         )
-
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 

@@ -38,7 +38,6 @@ class Benchmark(ABC):
         """Initialize the base `Benchmark` class."""
         self.device: Union[str, torch.device]
         self.bench_state: dict
-        self._checkpoint_paths: Optional[List[str]] = None
         self._checkpoints_load_func: Optional[Callable[..., Any]] = None
         self._checkpoints: Optional[Union[str, List[str]]] = None
 
@@ -122,29 +121,41 @@ class Benchmark(ABC):
 
             with open(os.path.join(cache_dir, name + ".pth"), "wb") as f:
                 f.write(response.content)
+        #         adversarial_dir_zip = os.path.join(
+        #             adversarial_dir, "adversarial_dataset.zip"
+        #         )
+        #         if not os.path.exists(adversarial_dir_zip):
+        #             with open(adversarial_dir_zip, "wb") as f:
+        #                 response = requests.get(adversarial_dir_url)
+        #                 f.write(response.content)
 
+        #         # extract
+        #         with zipfile.ZipFile(adversarial_dir_zip, "r") as zip_ref:
+        #             zip_ref.extractall(adversarial_dir)
         bench_state = torch.load(
             os.path.join(cache_dir, name + ".pth"),
             map_location=device,
             weights_only=True,
         )
 
-        ckpt_dir = os.path.join(cache_dir, "quanda_benchmark_checkpoints")
-        os.makedirs(
-            os.path.join(cache_dir, "quanda_benchmark_checkpoints"),
-            exist_ok=True,
-        )
-        bench_state["checkpoints_binary"] = []
-        for fname, url in zip(
-            bench_state["checkpoints"], bench_state["checkpoints_url"]
-        ):
-            fpath = os.path.join(ckpt_dir, fname)
-            if not os.path.exists(fpath):
-                # download to cache_dir
-                response = requests.get(url)
+        ckpt_dir = os.path.join(cache_dir, bench_state["checkpoints_dir_name"])
+        os.makedirs(ckpt_dir, exist_ok=True)
 
-                with open(fpath, "wb") as f:
-                    f.write(response.content)
+        zipname = os.path.join(ckpt_dir, "checkpoints.zip")
+        url = bench_state["checkpoints_url"]
+        if not os.path.exists(zipname):
+            # download to cache_dir
+            response = requests.get(url)
+
+            with open(zipname, "wb") as f:
+                f.write(response.content)
+
+        with zipfile.ZipFile(zipname, "r") as zip_ref:
+            zip_ref.extractall(ckpt_dir)
+
+        bench_state["checkpoints_binary"] = []
+        for fname in bench_state["checkpoints"]:
+            fpath = os.path.join(ckpt_dir, fname)
             bench_state["checkpoints_binary"].append(
                 torch.load(fpath, map_location=device)
             )
@@ -327,14 +338,6 @@ class Benchmark(ABC):
         )
         return torch.utils.data.Subset(test_dataset, eval_indices)
 
-    def get_checkpoint_paths(self) -> List[str]:
-        """Return the paths to the checkpoints."""
-        assert self._checkpoint_paths is not None, (
-            "get_checkpoint_paths can only be called after instantiating a "
-            "benchmark using the download method."
-        )
-        return self._checkpoint_paths
-
     @property
     def checkpoints_load_func(self):
         """Return the function to load the checkpoints."""
@@ -376,16 +379,8 @@ class Benchmark(ABC):
         """Parse the benchmark state dictionary."""
         # TODO: this should be further refactored after the pipeline is done.
         # TODO: fix this mess.
-        checkpoint_paths = []
 
         assemble_dict = {}
-
-        for ckpt_name, ckpt in zip(
-            bench_state["checkpoints"], bench_state["checkpoints_binary"]
-        ):
-            save_path = os.path.join(cache_dir, ckpt_name)
-            torch.save(ckpt, save_path)
-            checkpoint_paths.append(save_path)
 
         dataset_transform_str = bench_state.get("dataset_transform", None)
         dataset_transform = sample_transforms.get(dataset_transform_str, None)
@@ -440,7 +435,6 @@ class Benchmark(ABC):
         assemble_dict["base_dataset"] = bench_state["dataset_str"]
         assemble_dict["eval_dataset"] = eval_dataset
         assemble_dict["use_predictions"] = bench_state["use_predictions"]
-        assemble_dict["checkpoint_paths"] = checkpoint_paths
         assemble_dict["dataset_transform"] = dataset_transform
         assemble_dict["sample_fn"] = sample_fn
         assemble_dict["cache_dir"] = cache_dir

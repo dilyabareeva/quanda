@@ -248,7 +248,6 @@ class MislabelingDetection(Benchmark):
         dataset_transform: Optional[Callable] = None,
         global_method: Union[str, type] = "self-influence",
         batch_size: int = 8,
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -293,9 +292,6 @@ class MislabelingDetection(Benchmark):
             Defaults to "self-influence".
         batch_size : int, optional
             Batch size that is used for training, by default 8.
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -355,8 +351,6 @@ class MislabelingDetection(Benchmark):
 
         obj.mislabeling_indices = obj.mislabeling_dataset.transform_indices
         obj.mislabeling_labels = obj.mislabeling_dataset.mislabeling_labels
-
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 
