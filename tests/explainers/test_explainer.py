@@ -37,10 +37,13 @@ def test_base_explainer_self_influence(
     dataset_xpl = request.getfixturevalue(dataset_xpl)
 
     Explainer.__abstractmethods__ = set()
+    Explainer.accepted_tasks = ["image_classification"]
+
     explainer = Explainer(
         model=model,
-        checkpoints=checkpoint,
         train_dataset=dataset,
+        task="image_classification",
+        checkpoints=checkpoint,
         **method_kwargs,
     )
 
@@ -54,6 +57,9 @@ def test_base_explainer_self_influence(
     mocker.patch.object(explainer, "explain", wraps=mock_explain)
 
     self_influence = explainer.self_influence()
+
+    Explainer.accepted_tasks = []
+
     assert (
         self_influence.shape[0] == dataset.__len__()
     ), "Self-influence shape does not match the dataset."
@@ -106,15 +112,19 @@ def test_base_explainer_checkpoint_loading(
         expected_state_dict = model.state_dict()
 
     Explainer.__abstractmethods__ = set()
+    Explainer.accepted_tasks = ["image_classification"]
+
     explainer = Explainer(
         model=model,
-        checkpoints=checkpoint,
         train_dataset=dataset,
+        task="image_classification",
+        checkpoints=checkpoint,
         **method_kwargs,
     )
 
     loaded_state_dict = explainer.model.state_dict()
 
+    Explainer.accepted_tasks = []
     assert torch.allclose(
         list(loaded_state_dict.values())[0],
         list(expected_state_dict.values())[0],
