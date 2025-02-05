@@ -48,7 +48,10 @@ class Kronfluence(Explainer):
 
     """
 
-    accepted_tasks: TaskLiterals = ["image_classification", "text_classification"]
+    accepted_tasks: List[TaskLiterals] = [
+        "image_classification",
+        "text_classification",
+    ]
 
     def __init__(
         self,
@@ -159,7 +162,7 @@ class Kronfluence(Explainer):
 
     def explain(
         self,
-        test_tensor: Union[torch.Tensor, DatasetDict],
+        test_data: Union[torch.Tensor, DatasetDict],
         targets: Union[List[int], torch.Tensor],
         scores_name: Optional[str] = None,
         score_args: ScoreArguments = None,
@@ -169,7 +172,7 @@ class Kronfluence(Explainer):
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
@@ -190,7 +193,7 @@ class Kronfluence(Explainer):
 
         """
         targets = process_targets(targets, self.device)
-        test_dataset = torch.utils.data.TensorDataset(test_tensor, targets)
+        test_dataset = torch.utils.data.TensorDataset(test_data, targets)
 
         scores_name = scores_name or self.scores_name
         score_args = score_args or self.score_args
@@ -259,7 +262,7 @@ class Kronfluence(Explainer):
 
 def kronfluence_explain(
     model: nn.Module,
-    task: Task,
+    task_module: Task,
     test_tensor: Union[torch.Tensor, DatasetDict],
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: Dataset,
@@ -273,7 +276,7 @@ def kronfluence_explain(
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
         The model to be used for the influence computation.
-    task : kronfluence.task.Task
+    task_module : kronfluence.task.Task
         The task associated with the model.
     test_tensor : torch.Tensor
         Test samples for which influence scores are computed.
@@ -299,8 +302,8 @@ def kronfluence_explain(
     return explain_fn_from_explainer(
         explainer_cls=Kronfluence,
         model=model,
-        task=task,
-        test_tensor=test_tensor,
+        task_module=task_module,
+        test_data=test_tensor,
         targets=explanation_targets,
         train_dataset=train_dataset,
         checkpoints=checkpoints,
@@ -344,7 +347,7 @@ def kronfluence_self_influence(
     return self_influence_fn_from_explainer(
         explainer_cls=Kronfluence,
         model=model,
-        task=task,
+        task_module=task,
         train_dataset=train_dataset,
         checkpoints=checkpoints,
         checkpoints_load_func=checkpoints_load_func,

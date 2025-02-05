@@ -50,7 +50,7 @@ def test_kronfluence_explain(
         device="cpu",
     )
     explanations = explainer.explain(
-        test_tensor=test_tensor, targets=test_labels
+        test_data=test_tensor, targets=test_labels
     )
 
     assert explanations.shape == (
@@ -127,7 +127,7 @@ def test_kronfluence_explain_functional(
 
     explanations = kronfluence_explain(
         model=model,
-        task=task,
+        task_module=task,
         test_tensor=test_tensor,
         explanation_targets=test_labels,
         train_dataset=train_dataset,
@@ -224,7 +224,7 @@ def test_kronfluence_explain_with_optional_args(
     )
 
     explanations = explainer.explain(
-        test_tensor=test_tensor,
+        test_data=test_tensor,
         targets=test_labels,
         score_args=score_args,
         overwrite_output_dir=True,
@@ -320,7 +320,7 @@ def test_kronfluence_explain_functional_with_optional_args(
 
     explanations = kronfluence_explain(
         model=model,
-        task=task,
+        task_module=task,
         test_tensor=test_tensor,
         explanation_targets=test_labels,
         train_dataset=train_dataset,
