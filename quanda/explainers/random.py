@@ -6,6 +6,7 @@ import torch
 
 from quanda.explainers import Explainer
 from quanda.utils.common import cache_result, ds_len
+from quanda.utils.tasks import TaskLiterals
 
 
 class RandomExplainer(Explainer):
@@ -14,6 +15,8 @@ class RandomExplainer(Explainer):
     The explanations are generated with independent values sampled from a
     uniform distribution in [0,1].
     """
+
+    accepted_tasks: List[TaskLiterals] = ["image_classification"]
 
     def __init__(
         self,
@@ -42,8 +45,8 @@ class RandomExplainer(Explainer):
         """
         super().__init__(
             model=model,
-            checkpoints=checkpoints,
             train_dataset=train_dataset,
+            checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
         )
 

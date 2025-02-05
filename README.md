@@ -452,6 +452,7 @@ In addition to the built-in explainers, **quanda** supports the evaluation of cu
 <summary><b>Step 1. Create an explainer class</b></summary>
 
 Your custom explainer should inherit from the base [Explainer](quanda/explainers/base.py) class provided by **quanda**. The first step is to initialize your custom explainer within the `__init__` method.
+
 ```python
 from quanda.explainers.base import Explainer
 

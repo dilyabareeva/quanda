@@ -13,6 +13,7 @@ from quanda.utils.common import (
     load_last_checkpoint,
 )
 from quanda.utils.datasets import OnDeviceDataset
+from quanda.utils.tasks import TaskLiterals
 
 
 class Explainer(ABC):
@@ -22,10 +23,13 @@ class Explainer(ABC):
 
     """
 
+    accepted_tasks: List[TaskLiterals] = []
+
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
+        task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         **kwargs,
@@ -34,10 +38,15 @@ class Explainer(ABC):
 
         Parameters
         ----------
+        task
         model : Union[torch.nn.Module, pl.LightningModule]
             The model to be used for the influence computation.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options: "image_classification", "text_classification",
+            "causal_lm".
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
@@ -47,6 +56,12 @@ class Explainer(ABC):
             Additional keyword arguments passed to the explainer.
 
         """
+        if task not in self.accepted_tasks:
+            raise ValueError(
+                f"Task {task} not supported by this explainer. "
+                f"Supported tasks: {self.accepted_tasks}"
+            )
+
         self.device: Union[str, torch.device]
         self.model = model
 
@@ -77,16 +92,16 @@ class Explainer(ABC):
     @abstractmethod
     def explain(
         self,
-        test_data: torch.Tensor,
-        targets: Union[List[int], torch.Tensor],
+        test_data: Any,
+        targets: Any,
     ) -> torch.Tensor:
         """Abstract method for computing influence scores for the test samples.
 
         Parameters
         ----------
-        test_data : torch.Tensor
+        test_data : Any
             Test samples for which influence scores are computed.
-        targets : Union[List[int], torch.Tensor]
+        targets : Any
             Labels for the test samples.
 
         Returns

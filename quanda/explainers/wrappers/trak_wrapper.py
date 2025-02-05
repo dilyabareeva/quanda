@@ -16,7 +16,6 @@ from typing import (
 import lightning as L
 import torch
 from trak import TRAKer
-from trak.modelout_functions import AbstractModelOutput
 from trak.projectors import BasicProjector, CudaProjector, NoOpProjector
 from trak.utils import get_matrix_mult
 
@@ -26,6 +25,7 @@ from quanda.explainers.utils import (
     self_influence_fn_from_explainer,
 )
 from quanda.utils.common import ds_len, process_targets
+from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
 
@@ -59,15 +59,17 @@ class TRAK(Explainer):
 
     """
 
+    accepted_tasks: List[TaskLiterals] = ["image_classification"]
+
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
+        task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
-        task: Union[AbstractModelOutput, str] = "image_classification",
         projector: TRAKProjectorLiteral = "basic",
         proj_dim: int = 2048,
         proj_type: TRAKProjectionTypeLiteral = "normal",
@@ -94,8 +96,9 @@ class TRAK(Explainer):
             (model, checkpoint path) as two arguments, by default None.
         cache_dir : str
             The directory to save the TRAK cache.
-        task : Union[AbstractModelOutput, str], optional
-            The task of the model, by default "image_classification".
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options for TRAK: "image_classification".
         projector : TRAKProjectorLiteral, optional
             The projector to be used, by default "basic".
         proj_dim : int, optional
@@ -120,8 +123,9 @@ class TRAK(Explainer):
 
         super(TRAK, self).__init__(
             model=model,
-            checkpoints=checkpoints,
             train_dataset=train_dataset,
+            task=task,
+            checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
         )
         self.model_id = model_id
