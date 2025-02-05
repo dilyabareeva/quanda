@@ -20,6 +20,7 @@ from quanda.explainers.utils import (
     self_influence_fn_from_explainer,
 )
 from quanda.utils.common import process_targets
+from quanda.utils.tasks import TaskLiterals
 
 
 class Kronfluence(Explainer):
@@ -47,11 +48,14 @@ class Kronfluence(Explainer):
 
     """
 
+    accepted_tasks: TaskLiterals = ["image_classification", "text_classification"]
+
     def __init__(
         self,
         model: nn.Module,
-        task: Task,
+        task_module: Task,
         train_dataset: Dataset,
+        task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         batch_size: int = 1,
@@ -70,10 +74,14 @@ class Kronfluence(Explainer):
         ----------
         model : nn.Module
             The trained model for which influence scores will be computed.
-        task : kronfluence.task.Task
+        task_module : kronfluence.task.Task
             The task associated with the model.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options: "image_classification", "text_classification",
+            "causal_lm".
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
@@ -103,13 +111,14 @@ class Kronfluence(Explainer):
         super().__init__(
             model=model,
             train_dataset=train_dataset,
+            task=task,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
         )
         self.batch_size = batch_size
         self.device = device
 
-        self.task = task
+        self.task = task_module
         self.model = self._prepare_model()
 
         self.analysis_name = analysis_name

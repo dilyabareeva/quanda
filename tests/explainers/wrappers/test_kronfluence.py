@@ -44,7 +44,7 @@ def test_kronfluence_explain(
 
     explainer = Kronfluence(
         model=model,
-        task=task,
+        task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
         device="cpu",
@@ -84,7 +84,7 @@ def test_kronfluence_self_influence(
 
     explainer = Kronfluence(
         model=model,
-        task=task,
+        task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
         device="cpu",
@@ -214,7 +214,7 @@ def test_kronfluence_explain_with_optional_args(
 
     explainer = Kronfluence(
         model=model,
-        task=task,
+        task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
         device="cpu",
@@ -267,7 +267,7 @@ def test_kronfluence_self_influence_with_optional_args(
 
     explainer = Kronfluence(
         model=model,
-        task=task,
+        task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
         device="cpu",
@@ -406,7 +406,7 @@ def test_kronfluence_self_influence_qnli(
 
     explainer = Kronfluence(
         model=model,
-        task=text_classification_task,
+        task_module=text_classification_task,
         train_dataset=train_dataset,
         batch_size=1,
         device="cpu",
