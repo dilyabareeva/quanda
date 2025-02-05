@@ -50,7 +50,7 @@ def _init_explainer(
 def explain_fn_from_explainer(
     explainer_cls: type,
     model: torch.nn.Module,
-    test_tensor: Union[torch.Tensor, dict],
+    test_data: Any,
     train_dataset: torch.utils.data.Dataset,
     checkpoints: Optional[Union[str, List[str]]] = None,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -65,7 +65,7 @@ def explain_fn_from_explainer(
         The explainer class to use for computing explanations.
     model : torch.nn.Module
         The model to be used for the influence computation.
-    test_tensor : torch.Tensor
+    test_data : Any
         The test samples for which influence scores are computed.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
@@ -95,7 +95,7 @@ def explain_fn_from_explainer(
         **kwargs,
     )
 
-    return explainer.explain(test_tensor=test_tensor, targets=targets)
+    return explainer.explain(test_data=test_data, targets=targets)
 
 
 def self_influence_fn_from_explainer(

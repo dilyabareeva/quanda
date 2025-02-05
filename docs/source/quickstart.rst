@@ -25,8 +25,6 @@ To begin using |quanda| metrics, you need the following components:
 - **Test Dataset (** ``eval_set`` **)**: The dataset to be used as test inputs for generating explanations. Explanations are generated with respect to an output neuron corresponding to a certain class. This class can be selected to be the ground truth label of the test points, or the classes predicted by the model. In the following we will use the predicted labels to generate explanations.
 Next, we demonstrate how to evaluate explanations using the **Model Randomization** metric.
 
-Next, we demonstrate how to evaluate explanations using the **Model Randomization** metric.
-
 **1. Import dependencies and library components**
 
 .. code-block:: python
@@ -83,14 +81,14 @@ We now start producing explanations with our TDA method. We go through the test 
 .. code-block:: python
 
    test_loader = DataLoader(eval_dataset, batch_size=32, shuffle=False)
-   for test_tensor, _ in tqdm(test_loader):
-      test_tensor = test_tensor.to(DEVICE)
-      target = model(test_tensor).argmax(dim=-1)
+   for test_data, _ in tqdm(test_loader):
+      test_data = test_data.to(DEVICE)
+      target = model(test_data).argmax(dim=-1)
       tda = explainer.explain(
-         test_tensor=test_tensor,
+         test_data=test_data,
          targets=target
       )
-      model_rand.update(test_data=test_tensor, explanations=tda, explanation_targets=target)
+      model_rand.update(test_data=test_data, explanations=tda, explanation_targets=target)
 
    print("Randomization metric output:", model_rand.compute())
 
@@ -121,7 +119,7 @@ The pre-assembled benchmarks allow us to streamline the evaluation process by do
       "cache_dir": "./cache"
    }
 
-**Step 3. Load a pre-assembled benchmark and score an explainer**
+**3. Load a pre-assembled benchmark and score an explainer**
 
 .. code:: python
 
@@ -162,7 +160,7 @@ Next, we demonstrate assembling a benchmark with assets that the user has prepar
       "cache_dir": "./cache"
    }
 
-**3.Assemble the benchmark object and run the evaluation**
+**3. Assemble the benchmark object and run the evaluation**
 
 We now have everything we need, we can just assemble the benchmark and run it. This will encapsulate the process of instantiating the explainer, generating explanations and using the :doc:`TopKCardinalityMetric <docs_api/quanda.metrics.heuristics.topk_cardinality.TopKCardinalityMetric>` to evaluate them.
 
@@ -276,7 +274,7 @@ You must ensure that the output tensor has the shape ``(test_samples, train_samp
 
    def explain(
      self,
-     test_tensor: torch.Tensor,
+     test_data: torch.Tensor,
      targets: Union[List[int], torch.Tensor]
    ) -> torch.Tensor:
        # Compute your influence scores here

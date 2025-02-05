@@ -37,23 +37,29 @@ def test_base_explainer_self_influence(
     dataset_xpl = request.getfixturevalue(dataset_xpl)
 
     Explainer.__abstractmethods__ = set()
+    Explainer.accepted_tasks = ["image_classification"]
+
     explainer = Explainer(
         model=model,
-        checkpoints=checkpoint,
         train_dataset=dataset,
+        task="image_classification",
+        checkpoints=checkpoint,
         **method_kwargs,
     )
 
     # Patch the method, because BaseExplainer has an abstract explain method.
     def mock_explain(
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         targets: Optional[Union[List[int], torch.Tensor]] = None,
     ):
-        return dataset_xpl[: test_tensor.shape[0], : test_tensor.shape[0]]
+        return dataset_xpl[: test_data.shape[0], : test_data.shape[0]]
 
     mocker.patch.object(explainer, "explain", wraps=mock_explain)
 
     self_influence = explainer.self_influence()
+
+    Explainer.accepted_tasks = []
+
     assert (
         self_influence.shape[0] == dataset.__len__()
     ), "Self-influence shape does not match the dataset."
@@ -106,15 +112,19 @@ def test_base_explainer_checkpoint_loading(
         expected_state_dict = model.state_dict()
 
     Explainer.__abstractmethods__ = set()
+    Explainer.accepted_tasks = ["image_classification"]
+
     explainer = Explainer(
         model=model,
-        checkpoints=checkpoint,
         train_dataset=dataset,
+        task="image_classification",
+        checkpoints=checkpoint,
         **method_kwargs,
     )
 
     loaded_state_dict = explainer.model.state_dict()
 
+    Explainer.accepted_tasks = []
     assert torch.allclose(
         list(loaded_state_dict.values())[0],
         list(expected_state_dict.values())[0],

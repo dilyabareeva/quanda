@@ -46,6 +46,8 @@ class LinearDatamodelingMetric(Metric):
         checkpoints_load_func: Optional[Callable] = None,
         seed: int = 42,
         batch_size: int = 32,
+        subset_ids: Optional[List[List[int]]] = None,
+        pretrained_models: Optional[List[torch.nn.Module]] = None,
         model_id: Optional[str] = "0",
         cache_dir: str = "./cache",
     ):
@@ -78,6 +80,10 @@ class LinearDatamodelingMetric(Metric):
             Random seed for reproducibility, by default 42.
         batch_size : int, optional
             Batch size for training, by default 32.
+        subset_ids : Optional[List[List[int]]], optional
+            A list of pre-defined subset indices, by default None.
+        pretrained_models : Optional[List[torch.nn.Module]], optional
+            A list of pre-trained models for each subset, by default None.
         model_id : str
             An identifier for the model, by default "0".
         cache_dir : str
@@ -118,6 +124,8 @@ class LinearDatamodelingMetric(Metric):
         self.trainer_fit_kwargs = trainer_fit_kwargs
         self.seed = seed
         self.batch_size = batch_size
+        self.subset_ids = subset_ids
+        self.pretrained_models = pretrained_models
 
         self.generator = None
         if self.seed is not None:
@@ -142,6 +150,12 @@ class LinearDatamodelingMetric(Metric):
             A list of m subsets of the training data.
 
         """
+        if self.subset_ids:
+            return [
+                torch.utils.data.Subset(dataset, indices)
+                for indices in self.subset_ids
+            ]
+
         N = len(dataset)
         subset_size = int(self.alpha * N)
 
@@ -167,41 +181,48 @@ class LinearDatamodelingMetric(Metric):
             BaseTrainer.
 
         """
-        for i, subset in enumerate(self.subsets):
-            counterfactual_model = deepcopy(self.model)
-            subset_loader = DataLoader(
-                subset, batch_size=self.batch_size, shuffle=False
-            )
-            self.trainer_fit_kwargs = self.trainer_fit_kwargs or {}
-            if isinstance(self.trainer, L.Trainer):
-                if not isinstance(self.model, L.LightningModule):
-                    raise ValueError(
-                        "Model should be a LightningModule if Trainer is a "
-                        "Lightning Trainer"
+        if self.pretrained_models:
+            for i, model in enumerate(self.pretrained_models):
+                model_ckpt_path = os.path.join(
+                    self.cache_dir, f"{self.model_id}_model_{i}.ckpt"
+                )
+                torch.save(model.state_dict(), model_ckpt_path)
+        else:
+            for i, subset in enumerate(self.subsets):
+                counterfactual_model = deepcopy(self.model)
+                subset_loader = DataLoader(
+                    subset, batch_size=self.batch_size, shuffle=False
+                )
+                self.trainer_fit_kwargs = self.trainer_fit_kwargs or {}
+                if isinstance(self.trainer, L.Trainer):
+                    if not isinstance(self.model, L.LightningModule):
+                        raise ValueError(
+                            "Model should be a LightningModule if Trainer is "
+                            "a Lightning Trainer"
+                        )
+
+                    self.trainer.fit(
+                        model=self.model,
+                        train_dataloaders=subset_loader,
+                        **self.trainer_fit_kwargs,
                     )
 
-                self.trainer.fit(
-                    model=self.model,
-                    train_dataloaders=subset_loader,
-                    **self.trainer_fit_kwargs,
-                )
-
-            elif isinstance(self.trainer, BaseTrainer):
-                if not isinstance(self.model, torch.nn.Module):
-                    raise ValueError(
-                        "Model should be a torch.nn.Module if Trainer is a "
-                        "BaseTrainer"
+                elif isinstance(self.trainer, BaseTrainer):
+                    if not isinstance(self.model, torch.nn.Module):
+                        raise ValueError(
+                            "Model should be a torch.nn.Module if Trainer is "
+                            "a BaseTrainer"
+                        )
+                    self.trainer.fit(
+                        model=counterfactual_model,
+                        train_dataloaders=subset_loader,
+                        **self.trainer_fit_kwargs,
                     )
-                self.trainer.fit(
-                    model=counterfactual_model,
-                    train_dataloaders=subset_loader,
-                    **self.trainer_fit_kwargs,
-                )
 
-            model_ckpt_path = os.path.join(
-                self.cache_dir, f"{self.model_id}_model_{i}.ckpt"
-            )
-            torch.save(counterfactual_model.state_dict(), model_ckpt_path)
+                model_ckpt_path = os.path.join(
+                    self.cache_dir, f"{self.model_id}_model_{i}.ckpt"
+                )
+                torch.save(counterfactual_model.state_dict(), model_ckpt_path)
 
     def load_counterfactual_model(self, model_idx: int):
         """Load a model checkpoint.
@@ -228,22 +249,22 @@ class LinearDatamodelingMetric(Metric):
 
     def update(
         self,
-        test_tensor: torch.Tensor,
         explanations: torch.Tensor,
-        explanation_targets: torch.Tensor,
+        test_targets: torch.Tensor,
+        test_data: torch.Tensor,
         **kwargs,
     ):
         """Update the evaluation scores based on new data.
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
-            The test data used for evaluation.
         explanations : torch.Tensor
             The explanation scores for the test data with shape (test_samples,
             dataset_size).
-        explanation_targets : torch.Tensor
+        test_targets : torch.Tensor
             The target values for the explanations.
+        test_data : torch.Tensor
+            The test data used for evaluation.
         kwargs: Any
             Additional keyword arguments
 
@@ -266,7 +287,7 @@ class LinearDatamodelingMetric(Metric):
             predicted_output_list.append(g_tau)
 
             counterfactual_model = self.load_counterfactual_model(s)
-            counterfactual_output = counterfactual_model(test_tensor).detach()
+            counterfactual_output = counterfactual_model(test_data).detach()
 
             if (
                 counterfactual_output.ndim == 1
@@ -275,7 +296,7 @@ class LinearDatamodelingMetric(Metric):
                 counterfactual_output = counterfactual_output.squeeze()
             else:
                 counterfactual_output = counterfactual_output.gather(
-                    1, explanation_targets.unsqueeze(1)
+                    1, test_targets.unsqueeze(1)
                 ).squeeze(1)
 
             model_output_list.append(counterfactual_output)

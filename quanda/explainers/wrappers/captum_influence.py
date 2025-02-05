@@ -36,6 +36,7 @@ from quanda.utils.common import (
 )
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity
+from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
 
@@ -43,12 +44,15 @@ logger = logging.getLogger(__name__)
 class CaptumInfluence(Explainer, ABC):
     """Base class for the Captum explainers."""
 
+    accepted_tasks: List[TaskLiterals] = ["image_classification"]
+
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         explainer_cls: type,
         explain_kwargs: Any,
+        task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
     ):
@@ -64,6 +68,10 @@ class CaptumInfluence(Explainer, ABC):
             The class of the explainer from Captum.
         explain_kwargs : Any
             Additional keyword arguments for the explainer.
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options: "image_classification", "text_classification",
+            "causal_lm".
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
@@ -73,8 +81,9 @@ class CaptumInfluence(Explainer, ABC):
         """
         super().__init__(
             model=model,
-            checkpoints=checkpoints,
             train_dataset=train_dataset,
+            task=task,
+            checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
         )
         self.explainer_cls = explainer_cls
@@ -94,14 +103,14 @@ class CaptumInfluence(Explainer, ABC):
     @abstractmethod
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         targets: Union[List[int], torch.Tensor],
     ) -> torch.Tensor:
         """Abstract method for computing influence scores for the test samples.
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples.
@@ -140,6 +149,7 @@ class CaptumSimilarity(CaptumInfluence):
         train_dataset: torch.utils.data.Dataset,
         model_id: str,
         layers: Union[str, List[str]],
+        task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
@@ -169,6 +179,9 @@ class CaptumSimilarity(CaptumInfluence):
             Training dataset to be used for the influence computation.
         layers : Union[str, List[str]]
             Layers of the model for which the activations are computed.
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options: "image_classification".
         checkpoints_load_func : Optional[Callable], optional
             Function to load checkpoints. If None, a default function is used.
             Defaults to None.
@@ -204,6 +217,7 @@ class CaptumSimilarity(CaptumInfluence):
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
             train_dataset=train_dataset,
+            task=task,
             explainer_cls=SimilarityInfluence,
             explain_kwargs=explainer_kwargs,
         )
@@ -316,14 +330,14 @@ class CaptumSimilarity(CaptumInfluence):
 
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         targets: Union[List[int], torch.Tensor] = torch.tensor(0),
     ):
         """Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor], optional
             Labels for the test samples. This argument is ignored.
@@ -335,19 +349,19 @@ class CaptumSimilarity(CaptumInfluence):
             the influence scores.
 
         """
-        test_tensor = test_tensor.to(self.device)
+        test_data = test_data.to(self.device)
 
         with (
             map_location_context(self.device),
             default_tensor_type(self.device),
         ):
             topk_idx_1, topk_val_1 = self.captum_explainer_1.influence(
-                inputs=test_tensor,
+                inputs=test_data,
                 top_k=ds_len(self.train_dataset) - self.modulo_batch_size,
             )[self.layer]
             if self.modulo_batch_size > 0:
                 topk_idx_2, topk_val_2 = self.captum_explainer_2.influence(
-                    inputs=test_tensor, top_k=self.modulo_batch_size
+                    inputs=test_data, top_k=self.modulo_batch_size
                 )[self.layer]
                 _, inverted_idx_1 = topk_idx_1.sort()
                 _, inverted_idx_2 = topk_idx_2.sort()
@@ -366,7 +380,7 @@ class CaptumSimilarity(CaptumInfluence):
 def captum_similarity_explain(
     model: Union[torch.nn.Module, L.LightningModule],
     model_id: str,
-    test_tensor: torch.Tensor,
+    test_data: torch.Tensor,
     train_dataset: torch.utils.data.Dataset,
     cache_dir: str = "./cache",
     checkpoints: Optional[Union[str, List[str]]] = None,
@@ -383,7 +397,7 @@ def captum_similarity_explain(
         Checkpoints for the model.
     model_id : str
         Identifier for the model.
-    test_tensor : torch.Tensor
+    test_data : torch.Tensor
         Test samples for which influence scores are computed.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
@@ -408,7 +422,7 @@ def captum_similarity_explain(
         checkpoints=checkpoints,
         model_id=model_id,
         cache_dir=cache_dir,
-        test_tensor=test_tensor,
+        test_data=test_data,
         train_dataset=train_dataset,
         checkpoints_load_func=checkpoints_load_func,
         **kwargs,
@@ -460,8 +474,8 @@ def captum_similarity_self_influence(
 class CaptumArnoldi(CaptumInfluence):
     """Class for Arnoldi Influence Function wrapper.
 
-    This implements the ArnoldiInfluence method of Schioppa et. al. (2022) to
-    compute influence function explanations [2].
+    This implements the ArnoldiInfluence method of Schioppa et al. (2022) to
+    compute influence function explanations as described by Koh et al. (2017).
 
     Notes
     -----
@@ -488,6 +502,7 @@ class CaptumArnoldi(CaptumInfluence):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str]],
+        task: TaskLiterals = "image_classification",
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(
             reduction="none"
         ),
@@ -516,6 +531,9 @@ class CaptumArnoldi(CaptumInfluence):
             The model to be used for the influence computation.
         checkpoints : Union[str, List[str]]
             Checkpoints for the model.
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options: "image_classification".
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         loss_fn : Union[torch.nn.Module, Callable], optional
@@ -607,6 +625,7 @@ class CaptumArnoldi(CaptumInfluence):
             model=model,
             checkpoints=checkpoints,
             train_dataset=train_dataset,
+            task=task,
             explainer_cls=ArnoldiInfluenceFunction,
             explain_kwargs=explainer_kwargs,
             checkpoints_load_func=checkpoints_load_func,
@@ -644,14 +663,14 @@ class CaptumArnoldi(CaptumInfluence):
 
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         targets: Union[List[int], torch.Tensor],
     ):
         """Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
@@ -663,7 +682,7 @@ class CaptumArnoldi(CaptumInfluence):
             the influence scores.
 
         """
-        test_tensor = test_tensor.to(self.device)
+        test_data = test_data.to(self.device)
         targets = process_targets(targets, self.device)
 
         if isinstance(targets, list):
@@ -672,7 +691,7 @@ class CaptumArnoldi(CaptumInfluence):
             targets = targets.to(self.device)
 
         influence_scores = self.captum_explainer.influence(
-            inputs=(test_tensor, targets)
+            inputs=(test_data, targets)
         )
         return influence_scores
 
@@ -700,7 +719,7 @@ class CaptumArnoldi(CaptumInfluence):
 def captum_arnoldi_explain(
     model: Union[torch.nn.Module, L.LightningModule],
     checkpoints: Union[str, List[str]],
-    test_tensor: torch.Tensor,
+    test_data: torch.Tensor,
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -714,7 +733,7 @@ def captum_arnoldi_explain(
         The model to be used for the influence computation.
     checkpoints : Union[str, List[str]]
         Checkpoints for the model.
-    test_tensor : torch.Tensor
+    test_data : torch.Tensor
         Test samples for which influence scores are computed.
     explanation_targets : Union[List[int], torch.Tensor]
         Labels for the test samples.
@@ -737,7 +756,7 @@ def captum_arnoldi_explain(
         explainer_cls=CaptumArnoldi,
         model=model,
         checkpoints=checkpoints,
-        test_tensor=test_tensor,
+        test_data=test_data,
         targets=explanation_targets,
         train_dataset=train_dataset,
         checkpoints_load_func=checkpoints_load_func,
@@ -808,6 +827,7 @@ class CaptumTracInCP(CaptumInfluence):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str]],
+        task: TaskLiterals = "image_classification",
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         layers: Optional[List[str]] = None,
         loss_fn: Optional[
@@ -829,6 +849,10 @@ class CaptumTracInCP(CaptumInfluence):
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str]]
             Checkpoints for the model.
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options: "image_classification", "text_classification",
+            "causal_lm".
         checkpoints_load_func : Optional[Callable], optional
             Function to load checkpoints. If None, a default function is used.
             Defaults to None.
@@ -873,6 +897,7 @@ class CaptumTracInCP(CaptumInfluence):
             model=model,
             checkpoints=checkpoints,
             train_dataset=train_dataset,
+            task=task,
             explainer_cls=TracInCP,
             explain_kwargs=explainer_kwargs,
             checkpoints_load_func=checkpoints_load_func,
@@ -898,14 +923,14 @@ class CaptumTracInCP(CaptumInfluence):
 
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         targets: Union[List[int], torch.Tensor],
     ):
         """Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
@@ -917,7 +942,7 @@ class CaptumTracInCP(CaptumInfluence):
             the influence scores.
 
         """
-        test_tensor = test_tensor.to(self.device)
+        test_data = test_data.to(self.device)
         targets = process_targets(targets, self.device)
 
         if isinstance(targets, list):
@@ -926,7 +951,7 @@ class CaptumTracInCP(CaptumInfluence):
             targets = targets.to(self.device)
 
         influence_scores = self.captum_explainer.influence(
-            inputs=(test_tensor, targets)
+            inputs=(test_data, targets)
         )
         return influence_scores
 
@@ -955,7 +980,7 @@ class CaptumTracInCP(CaptumInfluence):
 def captum_tracincp_explain(
     model: Union[torch.nn.Module, L.LightningModule],
     checkpoints: Union[str, List[str]],
-    test_tensor: torch.Tensor,
+    test_data: torch.Tensor,
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -969,7 +994,7 @@ def captum_tracincp_explain(
         The model to be used for the influence computation.
     checkpoints : Union[str, List[str]]
         Checkpoints for the model.
-    test_tensor : torch.Tensor
+    test_data : torch.Tensor
         Test samples for which influence scores are computed.
     explanation_targets : Union[List[int], torch.Tensor]
         Labels for the test samples.
@@ -992,7 +1017,7 @@ def captum_tracincp_explain(
         explainer_cls=CaptumTracInCP,
         model=model,
         checkpoints=checkpoints,
-        test_tensor=test_tensor,
+        test_data=test_data,
         targets=explanation_targets,
         train_dataset=train_dataset,
         checkpoints_load_func=checkpoints_load_func,
@@ -1067,6 +1092,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str]],
+        task: TaskLiterals = "image_classification",
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         loss_fn: Optional[
             Union[torch.nn.Module, Callable]
@@ -1089,6 +1115,9 @@ class CaptumTracInCPFast(CaptumInfluence):
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str]]
             Checkpoints for the model.
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options: "image_classification".
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load checkpoints. If None, a default function is used.
         loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
@@ -1127,6 +1156,7 @@ class CaptumTracInCPFast(CaptumInfluence):
             model=model,
             checkpoints=checkpoints,
             train_dataset=train_dataset,
+            task=task,
             explainer_cls=TracInCPFast,
             explain_kwargs=explainer_kwargs,
             checkpoints_load_func=checkpoints_load_func,
@@ -1150,14 +1180,14 @@ class CaptumTracInCPFast(CaptumInfluence):
 
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         targets: Union[List[int], torch.Tensor],
     ):
         """Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
@@ -1169,7 +1199,7 @@ class CaptumTracInCPFast(CaptumInfluence):
             the influence scores.
 
         """
-        test_tensor = test_tensor.to(self.device)
+        test_data = test_data.to(self.device)
         targets = process_targets(targets, self.device)
 
         if isinstance(targets, list):
@@ -1178,7 +1208,7 @@ class CaptumTracInCPFast(CaptumInfluence):
             targets = targets.to(self.device)
 
         influence_scores = self.captum_explainer.influence(
-            inputs=(test_tensor, targets), k=None
+            inputs=(test_data, targets), k=None
         )
         return influence_scores
 
@@ -1206,7 +1236,7 @@ class CaptumTracInCPFast(CaptumInfluence):
 
 def captum_tracincp_fast_explain(
     model: torch.nn.Module,
-    test_tensor: torch.Tensor,
+    test_data: torch.Tensor,
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
     **kwargs: Any,
@@ -1217,7 +1247,7 @@ def captum_tracincp_fast_explain(
     ----------
     model : torch.nn.Module
         The model to be used for the influence computation.
-    test_tensor : torch.Tensor
+    test_data : torch.Tensor
         Test samples for which influence scores are computed.
     explanation_targets : Union[List[int], torch.Tensor]
         Labels for the test samples.
@@ -1236,7 +1266,7 @@ def captum_tracincp_fast_explain(
     return explain_fn_from_explainer(
         explainer_cls=CaptumTracInCPFast,
         model=model,
-        test_tensor=test_tensor,
+        test_data=test_data,
         targets=explanation_targets,
         train_dataset=train_dataset,
         **kwargs,
@@ -1315,6 +1345,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         final_fc_layer: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str]],
+        task: TaskLiterals = "image_classification",
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(
             reduction="sum"
@@ -1340,6 +1371,9 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str]]
             Checkpoints for the model.
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options: "image_classification".
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load checkpoints. If None, a default function is used.
         loss_fn : Union[torch.nn.Module, Callable], optional
@@ -1403,6 +1437,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             model=model,
             checkpoints=checkpoints,
             train_dataset=train_dataset,
+            task=task,
             explainer_cls=TracInCPFastRandProj,
             explain_kwargs=explainer_kwargs,
             checkpoints_load_func=checkpoints_load_func,
@@ -1430,14 +1465,14 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         targets: Union[List[int], torch.Tensor],
     ):
         """Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
@@ -1449,7 +1484,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             the influence scores.
 
         """
-        test_tensor = test_tensor.to(self.device)
+        test_data = test_data.to(self.device)
         targets = process_targets(targets, self.device)
 
         if isinstance(targets, list):
@@ -1458,7 +1493,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             targets = targets.to(self.device)
 
         influence_scores = self.captum_explainer.influence(
-            inputs=(test_tensor, targets), k=None
+            inputs=(test_data, targets), k=None
         )
         return influence_scores
 
@@ -1466,7 +1501,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
 def captum_tracincp_fast_rand_proj_explain(
     model: Union[torch.nn.Module, L.LightningModule],
     checkpoints: Union[str, List[str]],
-    test_tensor: torch.Tensor,
+    test_data: torch.Tensor,
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -1480,7 +1515,7 @@ def captum_tracincp_fast_rand_proj_explain(
         The model to be used for the influence computation.
     checkpoints : Union[str, List[str]]
         Checkpoints for the model.
-    test_tensor : torch.Tensor
+    test_data : torch.Tensor
         Test samples for which influence scores are computed.
     explanation_targets : Union[List[int], torch.Tensor]
         Labels for the test samples.
@@ -1503,7 +1538,7 @@ def captum_tracincp_fast_rand_proj_explain(
         explainer_cls=CaptumTracInCPFastRandProj,
         model=model,
         checkpoints=checkpoints,
-        test_tensor=test_tensor,
+        test_data=test_data,
         targets=explanation_targets,
         train_dataset=train_dataset,
         checkpoints_load_func=checkpoints_load_func,

@@ -39,6 +39,7 @@ from quanda.utils.common import (
     map_location_context,
     process_targets,
 )
+from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
 
@@ -160,6 +161,8 @@ class RepresenterPoints(Explainer):
 
     """
 
+    accepted_tasks: List[TaskLiterals] = ["image_classification"]
+
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
@@ -167,6 +170,7 @@ class RepresenterPoints(Explainer):
         model_id: str,
         features_layer: str,
         classifier_layer: str,
+        task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
@@ -195,6 +199,10 @@ class RepresenterPoints(Explainer):
             The name of the penuultimate layer of the model.
         classifier_layer : str
             The name of the final classifier layer of the model.
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options: "image_classification", "text_classification",
+            "causal_lm".
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
@@ -228,8 +236,9 @@ class RepresenterPoints(Explainer):
         logger.info("Initializing Representer Point Selection explainer...")
         super(RepresenterPoints, self).__init__(
             model=model,
-            checkpoints=checkpoints,
             train_dataset=train_dataset,
+            task=task,
+            checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
         )
 
@@ -354,14 +363,14 @@ class RepresenterPoints(Explainer):
 
     def explain(
         self,
-        test_tensor: torch.Tensor,
+        test_data: torch.Tensor,
         targets: Union[List[int], torch.Tensor],
     ) -> torch.Tensor:
         """Explain the predictions of the model for a given test batch.
 
         Parameters
         ----------
-        test_tensor : torch.Tensor
+        test_data : torch.Tensor
             The test batch for which explanations are generated.
         targets : Union[List[int], torch.Tensor]
             The target values for the explanations.
@@ -372,10 +381,10 @@ class RepresenterPoints(Explainer):
             The explanations for the test batch.
 
         """
-        test_tensor = test_tensor.to(self.device)
+        test_data = test_data.to(self.device)
         targets = process_targets(targets, self.device)
 
-        f = self._get_activations(test_tensor, self.features_layer)
+        f = self._get_activations(test_data, self.features_layer)
 
         if self.features_postprocess is not None:
             f = self.features_postprocess(f)
