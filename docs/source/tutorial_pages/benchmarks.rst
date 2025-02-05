@@ -15,34 +15,19 @@ To install the library with tutorial dependencies, run:
 
 Throughout this tutorial, we will be using a LeNet model trained on the MNIST dataset. Let's start the tutorial by importing the necessary libraries and components:
 
-.. code-block:: python
-
-    import os
-    import sys
-    import torch
-    import torchvision
-    from quanda.benchmarks.downstream_eval import ShortcutDetection, MislabelingDetection, SubclassDetection
-    from quanda.explainers.wrappers import (
-        TRAK,
-        CaptumArnoldi,
-        CaptumSimilarity,
-        CaptumTracInCPFast,
-        RepresenterPoints,
-    )
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START1
+   :end-before: # END1
+   :dedent:
 
 Next, we need to prepare for the following computations.
 
-.. code-block:: python
-
-    torch.set_float32_matmul_precision("medium")
-    to_img = torchvision.transforms.Compose(
-        [
-            torchvision.transforms.Normalize(mean=0.0, std=2.0),
-            torchvision.transforms.Normalize(mean=-0.5, std=1.0),
-            torchvision.transforms.ToPILImage(),
-            torchvision.transforms.Resize((224, 224)),
-        ]
-    )
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START2
+   :end-before: # END2
+   :dedent:
 
 Downloading Precomputed Benchmarks
 ----------------------------------
@@ -52,23 +37,19 @@ We will use the benchmark corresponding to this metric to evaluate all data attr
 
 We will download the precomputed MNIST benchmark. This includes an MNIST dataset which has shortcut features (an 8-by-8 white box on a specific location) on a subset of its samples from the class 0, and a model trained on this dataset. This model has learned to classify images with these features as class 0, and we will measure the extent to which this is reflected in the attributions of different methods.
 
-.. code-block:: python
-
-    cache_dir = str(os.path.join(os.getcwd(), "quanda_benchmark_tutorial_cache"))
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    benchmark = ShortcutDetection.download(
-        name="mnist_shortcut_detection",
-        cache_dir=cache_dir,
-        device=device,
-    )
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START3
+   :end-before: # END3
+   :dedent:
 
 The benchmark object contains all information about the controlled evaluation setup. Run the following to get some samples with the shortcut features, using benchmark.feature_dataset and benchmark.shortcut_indices.
 
-.. code-block:: python
-
-    shortcut_img = benchmark.shortcut_dataset[benchmark.shortcut_indices[15]][0]
-    tensor_img = torch.concat([shortcut_img, shortcut_img, shortcut_img], dim=0)
-    img = to_img(tensor_img)
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START4
+   :end-before: # END4
+   :dedent:
 
 Prepare initialization parameters for TDA methods
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -76,80 +57,53 @@ We now prepare the initialization parameters of attributors: hyperparameters, an
 
 - **Similarity Influence**:
 
-.. code-block:: python
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START5
+   :end-before: # END5
+   :dedent:
 
-    captum_similarity_args = {
-        "model_id": "mnist_shortcut_detection_tutorial",
-        "layers": "model.fc_2",
-        "cache_dir": os.path.join(cache_dir, "captum_similarity"),
-    }
 - **Arnoldi Influence Functions**: Notice that the trained checkpoints have been saved to the ``cache_dir`` while downloading the benchmark. We can reach the paths of these checkpoints with ``benchmark.get_checkpoint_paths()``.
 
-.. code-block:: python
-
-    hessian_num_samples = 500  # number of samples to use for hessian estimation
-    hessian_ds = torch.utils.data.Subset(
-        benchmark.shortcut_dataset, torch.randint(0, len(benchmark.shortcut_dataset), (hessian_num_samples,))
-    )
-
-    captum_influence_args = {
-        "checkpoint": benchmark.get_checkpoint_paths()[-1],
-        "layers": ["model.fc_3"],
-        "batch_size": 8,
-        "hessian_dataset": hessian_ds,
-        "projection_dim": 5,
-    }
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START6
+   :end-before: # END6
+   :dedent:
 
 - **TracInCP**:
 
-.. code-block:: python
-
-    captum_tracin_args = {
-        "final_fc_layer": "model.fc_3",
-        "loss_fn": torch.nn.CrossEntropyLoss(reduction="mean"),
-        "checkpoints": benchmark.get_checkpoint_paths(),
-        "batch_size": 8,
-    }
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START7
+   :end-before: # END7
+   :dedent:
 
 - **TRAK**:
 
-.. code-block:: python
-
-    trak_args = {
-        "model_id": "mnist_shortcut_detection",
-        "cache_dir": os.path.join(cache_dir, "trak"),
-        "batch_size": 8,
-        "proj_dim": 2048,
-    }
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START8
+   :end-before: # END8
+   :dedent:
 
 - **Representer Point Selection**:
 
-.. code-block:: python
-
-    representer_points_args = {
-        "model_id": "mnist_shortcut_detection",
-        "cache_dir": os.path.join(cache_dir, "representer_points"),
-        "batch_size": 8,
-        "features_layer": "model.relu_4",
-        "classifier_layer": "model.fc_3",
-    }
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START9
+   :end-before: # END9
+   :dedent:
 
 Run the benchmark evaluation on the attributors
 +++++++++++++++++++++++++++++++++++++++++++++++
 Note that some attributors take a long time to initialize or compute attributions. For a proof of concept, we recommend using :doc:`CaptumSimilarity <../docs_api/quanda.explainers.wrappers.captum_influence>` or :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>`, or lowering the parameter values given above (i.e. using low ``proj_dim`` for TRAK or a low Hessian dataset size for :doc:`ArnoldiInfluence <../docs_api/quanda.explainers.wrappers.captum_influence>`)
 
-.. code-block:: python
-
-    attributors = {
-        "captum_similarity": (CaptumSimilarity, captum_similarity_args),
-        "captum_arnoldi" : (CaptumArnoldi, captum_influence_args),
-        "captum_tracin" : (CaptumTracInCPFast, captum_tracin_args),
-        "trak" : (TRAK, trak_args),
-        "representer": (RepresenterPoints, representer_points_args),
-    }
-    results = dict()
-    for name, (cls, kwargs) in attributors.items():
-        results[name] = benchmark.evaluate(explainer_cls=cls, expl_kwargs=kwargs, batch_size=8)["score"]
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START10
+   :end-before: # END10
+   :dedent:
 
 At this point, the dictionary ``results`` contains the scores of the attributors on the benchmark.
 
@@ -163,13 +117,11 @@ This ranking is then used to go through the dataset to check mislabelings. Quand
 
 Instead of creating the components from scratch, we will again download the benchmark and use collect the prepared components. We will then use the ``assemble`` method to create the benchmark. Note that this is exactly what is happening when we are creating a benchmark using the ``download`` method.
 
-.. code-block:: python
-
-    temp_benchmark = MislabelingDetection.download(
-        name="mnist_mislabeling_detection",
-        cache_dir=cache_dir,
-        device=device,
-    )
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START11
+   :end-before: # END11
+   :dedent:
 
 Required Components
 +++++++++++++++++++
@@ -182,38 +134,21 @@ In order to assemble a :doc:`MislabelingDetection <../docs_api/quanda.benchmarks
 
 Let's collect these components from the downloaded benchmark. We then assemble the benchmark and evaluate the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor with it. Note that the implementation depends on computing the self-influences of the whole training dataset. This procedure is fastest for the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor. Therefore, we use this explainer here.
 
-.. code-block:: python
-
-    model = temp_benchmark.model
-    base_dataset = temp_benchmark.base_dataset
-    mislabeling_labels = temp_benchmark.mislabeling_labels
-    dataset_transform = None
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START12
+   :end-before: # END12
+   :dedent:
 
 Assembling the benchmark and running the evaluation
 ++++++++++++++++++++++++++++++++++++++++++++++++++++
 We are now ready to assemble and run the benchmark. After running the below code, the ``results`` dictionary will contain the score of the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor on the benchmark.
 
-.. code-block:: python
-
-    benchmark = MislabelingDetection.assemble(
-        model=model,
-        base_dataset=base_dataset,
-        n_classes=10,
-        mislabeling_labels=mislabeling_labels,
-        dataset_transform=dataset_transform,
-        device=device,
-    )
-    representer_points_args = {
-        "model_id": "mnist_mislabeling_detection",
-        "cache_dir": os.path.join(cache_dir, "representer_points"),
-        "batch_size": 8,
-        "features_layer": "model.relu_4",
-        "classifier_layer": "model.fc_3",
-    }
-    results = benchmark.evaluate(
-        explainer_cls=RepresenterPoints,
-        expl_kwargs=representer_points_args,
-    )
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START13
+   :end-before: # END13
+   :dedent:
 
 Generating a Benchmark from Scratch
 -----------------------------------
@@ -236,41 +171,22 @@ Additionally, we can provide a dictionary which embodies a specific class groupi
 
     Please note that calling ``SubclassDetection.generate`` will initiate model training, therefore it will potentially take a long time.
 
-.. code-block:: python
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START14_1
+   :end-before: # END14_1
+   :dedent:
 
-    from quanda.benchmarks.resources import pl_modules
-    import lightning as L
-
-    num_groups = 2
-    model = pl_modules["MnistModel"](num_labels=num_groups, device=device)
-    trainer = L.Trainer(max_epochs=10)
-    dataset_transform = None
-
-    # Collect base and evaluation datasets from a precomputed benchmark for simplicity, instead of creating the dataset objects from scratch
-    base_dataset = temp_benchmark.base_dataset
-    eval_dataset = temp_benchmark.eval_dataset
-
-
-    benchmark = SubclassDetection.generate(
-        model=model,
-        trainer=trainer,
-        base_dataset=base_dataset,
-        eval_dataset=eval_dataset,
-        dataset_transform=dataset_transform,
-        n_classes=10,
-        n_groups=num_groups,
-        class_to_group="random",
-    )
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START14_2
+   :end-before: # END14_2
+   :dedent:
 
 Now that we have trained the model on the MNIST dataset with randomly grouped classes, we finalize this tutorial by evaluating the :doc:`CaptumSimilarity <../docs_api/quanda.explainers.wrappers.captum_influence>` attributor. The ``results`` dictionary will contain the score of the attributor on the benchmark after running the following:
 
-.. code-block:: python
-
-    results = benchmark.evaluate(
-        explainer_cls=CaptumSimilarity,
-        expl_kwargs={
-            "model_id": "mnist_subclass_detection_tutorial",
-            "layers": "model.fc_2",
-            "cache_dir": os.path.join(cache_dir, "captum_similarity"),
-        },
-    )
+.. literalinclude:: ../../../tests/integration/test_benchmarks.py
+   :language: python
+   :start-after: # START15
+   :end-before: # END15
+   :dedent:
