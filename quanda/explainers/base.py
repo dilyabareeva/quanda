@@ -5,6 +5,7 @@ from typing import List, Union, Optional, Callable, Any
 
 import lightning as L
 import torch
+from datasets import Dataset, DatasetDict  # type: ignore
 
 from quanda.utils.common import (
     cache_result,
@@ -38,7 +39,6 @@ class Explainer(ABC):
 
         Parameters
         ----------
-        task
         model : Union[torch.nn.Module, pl.LightningModule]
             The model to be used for the influence computation.
         train_dataset : torch.utils.data.Dataset
@@ -84,7 +84,10 @@ class Explainer(ABC):
             )
 
         # if dataset return samples not on device, move them to device
-        if train_dataset[0][0].device != self.device:
+        # TODO: fix this
+        if isinstance(train_dataset, (Dataset, DatasetDict)):
+            pass
+        elif train_dataset[0][0].device != self.device:
             train_dataset = OnDeviceDataset(train_dataset, self.device)
 
         self.train_dataset = train_dataset

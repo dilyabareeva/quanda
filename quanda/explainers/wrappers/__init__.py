@@ -18,6 +18,11 @@ from quanda.explainers.wrappers.captum_influence import (
     captum_tracincp_fast_self_influence,
     captum_tracincp_self_influence,
 )
+from quanda.explainers.wrappers.kronfluence import (
+    Kronfluence,
+    kronfluence_explain,
+    kronfluence_self_influence,
+)
 from quanda.explainers.wrappers.representer_points import RepresenterPoints
 from quanda.explainers.wrappers.trak_wrapper import (
     TRAK,
@@ -46,4 +51,7 @@ __all__ = [
     "captum_tracincp_fast_rand_proj_explain",
     "captum_tracincp_fast_rand_proj_self_influence",
     "RepresenterPoints",
+    "Kronfluence",
+    "kronfluence_explain",
+    "kronfluence_self_influence",
 ]

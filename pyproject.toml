@@ -27,6 +27,8 @@ dependencies = [
     "datasets>=2.0.0",
     "torcheval>=0.0.6",
     "torchvision>=0.10.0",
+    "kronfluence>=1.0.1",
+    "transformers>=4.44.0",
 ]
 
 

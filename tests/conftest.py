@@ -1,12 +1,22 @@
 import json
 import os
 import pickle
+from typing import Dict, List, Tuple
 
+import datasets
 import numpy as np
 import pytest
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import torchvision
-from torch.utils.data import TensorDataset
+from kronfluence.task import Task  # type: ignore
+from torch.utils.data import Dataset, TensorDataset
+from transformers import (
+    AutoConfig,
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+)
 from torchvision.models import vit_b_16, resnet18
 
 from quanda.benchmarks.downstream_eval import (
@@ -29,6 +39,21 @@ from quanda.utils.datasets.transformed.label_grouping import (
 from quanda.utils.training.base_pl_module import BasicLightningModule
 from tests.models import LeNet
 
+# Copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
+GLUE_TASK_TO_KEYS = {
+    "cola": ("sentence", None),
+    "mnli": ("premise", "hypothesis"),
+    "mrpc": ("sentence1", "sentence2"),
+    "qnli": ("question", "sentence"),
+    "qqp": ("question1", "question2"),
+    "rte": ("sentence1", "sentence2"),
+    "sst2": ("sentence", None),
+    "stsb": ("sentence1", "sentence2"),
+    "wnli": ("sentence1", "sentence2"),
+}
+
+QNLI_TRAIN_SET_SIZE = 4
+QNLI_VAL_SET_SIZE = 4
 MNIST_IMAGE_SIZE = 28
 BATCH_SIZE = 124
 MINI_BATCH_SIZE = 8
@@ -480,3 +505,269 @@ def load_vit():
 @pytest.fixture
 def load_resnet():
     return resnet18()
+
+
+class ClassificationTask(Task):
+    # Copied from: https://github.com/pomonam/kronfluence/blob/main/examples/cifar/analyze.py
+    def compute_train_loss(
+        self,
+        batch: Tuple[torch.Tensor, torch.Tensor],
+        model: nn.Module,
+        sample: bool = False,
+    ) -> torch.Tensor:
+        inputs, labels = batch
+        logits = model(inputs)
+        if not sample:
+            return F.cross_entropy(logits, labels, reduction="sum")
+        with torch.no_grad():
+            probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
+            sampled_labels = torch.multinomial(
+                probs,
+                num_samples=1,
+            ).flatten()
+        return F.cross_entropy(logits, sampled_labels, reduction="sum")
+
+    def compute_measurement(
+        self,
+        batch: Tuple[torch.Tensor, torch.Tensor],
+        model: nn.Module,
+    ) -> torch.Tensor:
+        # Copied from: https://github.com/MadryLab/trak/blob/main/trak/modelout_functions.py.
+        inputs, labels = batch
+        logits = model(inputs)
+
+        bindex = torch.arange(logits.shape[0]).to(
+            device=logits.device, non_blocking=False
+        )
+        logits_correct = logits[bindex, labels]
+
+        cloned_logits = logits.clone()
+        cloned_logits[bindex, labels] = torch.tensor(
+            -torch.inf, device=logits.device, dtype=logits.dtype
+        )
+
+        margins = logits_correct - cloned_logits.logsumexp(dim=-1)
+        return -margins.sum()
+
+
+@pytest.fixture
+def classification_task():
+    return ClassificationTask()
+
+
+# Partially copied from https://github.com/pomonam/kronfluence/tree/main/examples/glue.
+class TextClassificationTask(Task):
+    def compute_train_loss(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+        sample: bool = False,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+            token_type_ids=batch["token_type_ids"],
+        ).logits
+
+        if not sample:
+            return F.cross_entropy(logits, batch["labels"], reduction="sum")
+        with torch.no_grad():
+            probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
+            sampled_labels = torch.multinomial(
+                probs,
+                num_samples=1,
+            ).flatten()
+        return F.cross_entropy(logits, sampled_labels, reduction="sum")
+
+    def compute_measurement(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+    ) -> torch.Tensor:
+        # Copied from: https://github.com/MadryLab/trak/blob/main/trak/modelout_functions.py.
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+            token_type_ids=batch["token_type_ids"],
+        ).logits
+
+        labels = batch["labels"]
+        bindex = torch.arange(logits.shape[0]).to(
+            device=logits.device, non_blocking=False
+        )
+        logits_correct = logits[bindex, labels]
+
+        cloned_logits = logits.clone()
+        cloned_logits[bindex, labels] = torch.tensor(
+            -torch.inf, device=logits.device, dtype=logits.dtype
+        )
+
+        margins = logits_correct - cloned_logits.logsumexp(dim=-1)
+        return -margins.sum()
+
+    def get_attention_mask(
+        self, batch: Dict[str, torch.Tensor]
+    ) -> torch.Tensor:
+        return batch["attention_mask"]
+
+
+@pytest.fixture
+def text_classification_task():
+    return TextClassificationTask()
+
+
+def get_glue_dataset(
+    data_name: str,
+    split: str,
+    indices: List[int] = None,
+) -> Dataset:
+    assert split in ["train", "eval_train", "valid"]
+
+    raw_datasets = datasets.load_dataset(
+        path="glue",
+        name=data_name,
+    )
+    label_list = raw_datasets["train"].features["label"].names
+    num_labels = len(label_list)
+    assert num_labels == 2
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "bert-base-cased", use_fast=True, trust_remote_code=True
+    )
+
+    sentence1_key, sentence2_key = GLUE_TASK_TO_KEYS[data_name]
+    padding = "max_length"
+    max_seq_length = 128
+
+    def preprocess_function(examples):
+        texts = (
+            (examples[sentence1_key],)
+            if sentence2_key is None
+            else (examples[sentence1_key], examples[sentence2_key])
+        )
+        result = tokenizer(
+            *texts, padding=padding, max_length=max_seq_length, truncation=True
+        )
+        if "label" in examples:
+            result["labels"] = examples["label"]
+        return result
+
+    raw_datasets = raw_datasets.map(
+        preprocess_function,
+        batched=True,
+        load_from_cache_file=True,
+    )
+
+    if split in ["train", "eval_train"]:
+        train_dataset = raw_datasets["train"]
+        ds = train_dataset
+        if data_name == "rte":
+            ds = ds.select(range(2432))
+    else:
+        eval_dataset = raw_datasets["validation"]
+        ds = eval_dataset
+
+    if indices is not None:
+        ds = ds.select(indices)
+
+    return ds
+
+
+class SequenceClassificationModel(nn.Module):
+    """
+    Wrapper for HuggingFace sequence classification models.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.config = AutoConfig.from_pretrained(
+            "gchhablani/bert-base-cased-finetuned-qnli",
+            num_labels=2,
+            finetuning_task="qnli",
+            cache_dir=None,
+            revision="main",
+            token=None,
+        )
+
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            "gchhablani/bert-base-cased-finetuned-qnli",
+            config=self.config,
+            cache_dir=None,
+            revision="main",
+            token=None,
+            ignore_mismatched_sizes=False,
+        )
+
+        self.model.eval()
+
+    def forward(self, input_ids, token_type_ids, attention_mask):
+        return self.model(
+            input_ids=input_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+        )
+
+
+def get_dataset(split, inds=None):
+    raw_datasets = datasets.load_dataset(
+        "glue",
+        "qnli",
+        cache_dir=None,
+        use_auth_token=None,
+    )
+    sentence1_key, sentence2_key = GLUE_TASK_TO_KEYS["qnli"]
+
+    tokenizer = AutoTokenizer.from_pretrained(
+        "gchhablani/bert-base-cased-finetuned-qnli",
+        cache_dir=None,
+        use_fast=True,
+        revision="main",
+        token=None,
+    )
+
+    padding = "max_length"
+    max_seq_length = 128
+
+    def preprocess_function(examples):
+        args = (
+            (examples[sentence1_key],)
+            if sentence2_key is None
+            else (examples[sentence1_key], examples[sentence2_key])
+        )
+        result = tokenizer(
+            *args, padding=padding, max_length=max_seq_length, truncation=True
+        )
+
+        result["labels"] = examples["label"]
+
+        return result
+
+    raw_datasets = raw_datasets.map(
+        preprocess_function,
+        batched=True,
+        load_from_cache_file=(not False),
+        desc="Running tokenizer on dataset",
+    )
+
+    if split == "train":
+        train_dataset = raw_datasets["train"]
+        ds = train_dataset
+    else:
+        eval_dataset = raw_datasets["validation"]
+        ds = eval_dataset
+    return ds
+
+
+@pytest.fixture
+def qnli_model():
+    model = SequenceClassificationModel()
+    return model
+
+
+@pytest.fixture
+def qnli_dataset():
+    ds_train = get_dataset("train")
+    ds_train = ds_train.select(range(QNLI_TRAIN_SET_SIZE))
+    ds_val = get_dataset("validation")
+    ds_val = ds_val.select(range(QNLI_VAL_SET_SIZE))
+    return ds_train, ds_val
