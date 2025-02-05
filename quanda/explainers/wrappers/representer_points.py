@@ -39,6 +39,7 @@ from quanda.utils.common import (
     map_location_context,
     process_targets,
 )
+from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
 
@@ -160,6 +161,9 @@ class RepresenterPoints(Explainer):
 
     """
 
+
+    accepted_tasks: List[TaskLiterals] = ["image_classification"]
+
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
@@ -167,6 +171,7 @@ class RepresenterPoints(Explainer):
         model_id: str,
         features_layer: str,
         classifier_layer: str,
+        task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         cache_dir: str = "./cache",
@@ -195,6 +200,10 @@ class RepresenterPoints(Explainer):
             The name of the penuultimate layer of the model.
         classifier_layer : str
             The name of the final classifier layer of the model.
+        task: TaskLiterals, optional
+            Task type of the model. Defaults to "image_classification".
+            Possible options: "image_classification", "text_classification",
+            "causal_lm".
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
@@ -228,8 +237,9 @@ class RepresenterPoints(Explainer):
         logger.info("Initializing Representer Point Selection explainer...")
         super(RepresenterPoints, self).__init__(
             model=model,
-            checkpoints=checkpoints,
             train_dataset=train_dataset,
+            task=task,
+            checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
         )
 
