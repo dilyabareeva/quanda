@@ -36,11 +36,11 @@ def get_dataset_type(benchmark_name):
 
 
 checkpoints_urls = {
-    "vanilla": "https://datacloud.hhi.fraunhofer.de/s/B6rYHesR43E4Hyz/download",
-    "mislabeled": "https://datacloud.hhi.fraunhofer.de/s/6tXPimRgSNQ44dt/download",
-    "shortcut": "https://datacloud.hhi.fraunhofer.de/s/ky993WCebZGBYBr/download",
-    "mixed": "https://datacloud.hhi.fraunhofer.de/s/cFXLdeod2LompCe/download",
-    "subclass": "https://datacloud.hhi.fraunhofer.de/s/cadFmeSQ3xLbWFB/download",
+    "vanilla": "https://datacloud.hhi.fraunhofer.de/s/NKLynmg3dSrnS4A/download",
+    "mislabeled": "https://datacloud.hhi.fraunhofer.de/s/6tXPimRgSNQ44dt/download",  # old
+    "shortcut": "https://datacloud.hhi.fraunhofer.de/s/ky993WCebZGBYBr/download",  # OLD
+    "mixed": "https://datacloud.hhi.fraunhofer.de/s/QAwjQBLNY8Mt3Zj/download",
+    "subclass": "https://datacloud.hhi.fraunhofer.de/s/ckysrWWQq3J4WET/download",
 }
 
 
