@@ -104,7 +104,7 @@ class MixedDatasetsMetric(Metric):
         """Validate the adversarial labels in the training dataset."""
         adversarial_labels = set(
             [
-                self.train_dataset[i][1]
+                self.train_dataset[int(i)][1]
                 for i in torch.where(self.adversarial_indices == 1)[0]
             ]
         )

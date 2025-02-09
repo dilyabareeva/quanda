@@ -33,6 +33,8 @@ def test_subclass_detection(
         use_predictions, filter_by_predictions, expected_score, tmp_path, request
 ):
     config = request.getfixturevalue(config)
+    config["use_predictions"] = use_predictions
+    config["filter_by_predictions"] = filter_by_predictions
 
     expl_kwargs = {
         **expl_kwargs,

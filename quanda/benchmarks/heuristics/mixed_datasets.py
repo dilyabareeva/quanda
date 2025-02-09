@@ -65,114 +65,49 @@ class MixedDatasets(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
 
-        self.base_dataset: torch.utils.data.Dataset
+        self.mixed_dataset: torch.utils.data.ConcatDataset
         self.eval_dataset: torch.utils.data.Dataset
-        self.mixed_dataset: torch.utils.data.Dataset
-        self.adversarial_indices: List[int]
-        self.use_predictions: bool
         self.adversarial_label: int
+
         self.filter_by_prediction: bool
         self.cache_dir: str
-
+        self.checkpoints: Optional[List[str]]
+        self.checkpoints_load_func: Optional[Callable[..., Any]]
+        self.use_predictions: bool = False
 
     @classmethod
-    def assemble(
-        cls,
-        model: Union[torch.nn.Module, L.LightningModule],
-        eval_dataset: torch.utils.data.Dataset,
-        base_dataset: Union[str, torch.utils.data.Dataset],
-        adversarial_dir: str,
-        adversarial_label: int,
-        adv_train_indices: List[int],
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        dataset_transform: Optional[Callable] = None,
-        use_predictions: bool = True,
-        filter_by_prediction: bool = True,
-        adversarial_transform: Optional[Callable] = None,
-        dataset_split: str = "train",
-        *args,
-        **kwargs,
-    ):
-        """Assembles the benchmark from the given components.
+    def from_config(cls, config: dict, cache_dir: str, device: str = "cpu"):
+        """Initialize the benchmark from a dictionary.
 
         Parameters
         ----------
-        model: Union[torch.nn.Module, L.LightningModule]
-            Model to be used for the benchmark.
-        eval_dataset: torch.utils.data.Dataset
-            The dataset containing the adversarial examples used for
-            evaluation. They should belong to the same dataset and the same
-            class as the samples in the adversarial dataset.
-        base_dataset: Union[str, torch.utils.data.Dataset]
-            Clean dataset to be used for the benchmark. If a string is passed,
-            it should be a HuggingFace dataset.
-        adversarial_dir: str
-            Path to the adversarial dataset of a single class.
-        adversarial_label: int
-            The label to be used for the adversarial dataset.
-        adv_train_indices: List[int]
-            List of indices of the adversarial dataset used for training.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        dataset_transform: Optional[Callable], optional
-            Transform to be applied to the clean dataset, by default None.
-        use_predictions: bool, optional
-            Whether to use the model's predictions for generating attributions.
-            Defaults to True.
-        filter_by_prediction: bool, optional
-            Whether to filter the adversarial examples to only use correctly
-            predicted test samples. Defaults to True.
-        adversarial_transform: Optional[Callable], optional
-            Transform to be applied to the adversarial dataset, by default
-            None.
-        dataset_split: str, optional
-            The dataset split, only used for HuggingFace datasets, by default
-            "train".
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        MixedDatasets
-            The benchmark instance.
-
+        config : dict
+            Dictionary containing the configuration.
+        cache_dir : str
+            Directory where the benchmark is stored.
+        device: str, optional
+            Device to use for the evaluation, by default "cpu".
         """
         obj = cls()
-        obj._assemble_common(
-            model=model,
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions,
+        obj.device = device
+        train_base_dataset = obj.dataset_from_cfg(
+            config=config["train_dataset"], cache_dir=cache_dir
         )
-        obj.base_dataset = obj._process_dataset(
-            base_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
+        adv_dataset = obj.dataset_from_cfg(
+            config=config["adv_dataset"], cache_dir=cache_dir
         )
-        obj.filter_by_prediction = filter_by_prediction
-        obj.adversarial_label = adversarial_label
+        adv_base_dataset, _, obj.eval_dataset = obj.split_dataset_from_cfg(
+            dataset=adv_dataset,
+            split_path=config["adv_split_path"],
+        )
+        obj.mixed_dataset = torch.utils.data.ConcatDataset([adv_base_dataset, train_base_dataset])
+        obj.adversarial_label = config["adversarial_label"]
+        obj.adversarial_indices = [1] * len(adv_base_dataset) + [0] * len(train_base_dataset)
 
-        adversarial_dataset = SingleClassImageDataset(
-            root=adversarial_dir,
-            label=adversarial_label,
-            transform=adversarial_transform,
-            indices=adv_train_indices,
-        )
+        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"], cache_dir=cache_dir)
+        obj.filter_by_prediction = config.get("filter_by_prediction", False)
 
-        obj.mixed_dataset = torch.utils.data.ConcatDataset(
-            [adversarial_dataset, obj.base_dataset]
-        )
-        obj.adversarial_indices = [1] * ds_len(adversarial_dataset) + [
-            0
-        ] * ds_len(obj.base_dataset)
-
+        obj.checkpoints_load_func = None # TODO: be more flexible
         return obj
 
     def evaluate(
@@ -199,6 +134,10 @@ class MixedDatasets(Benchmark):
             Dictionary containing the metric score.
 
         """
+
+        if not isinstance(self.mixed_dataset, torch.utils.data.ConcatDataset):
+            raise ValueError("Training dataset must be a ConcatDataset.")
+
         explainer = self._prepare_explainer(
             dataset=self.mixed_dataset,
             explainer_cls=explainer_cls,

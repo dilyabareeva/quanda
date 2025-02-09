@@ -1,0 +1,4 @@
+zip_url: ""
+dataset_dir: "tests/assets/fashion_mnist_examples"
+label: 0
+transforms: "adversarial_transforms"

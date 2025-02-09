@@ -809,3 +809,11 @@ def load_mnist_shortcut_config():
     with open("tests/assets/mnist_test_suite_2/mnist_unit_test_shortcut.yaml", "r") as f:
         config = yaml.safe_load(f)
     return config
+
+
+@pytest.fixture
+def load_mnist_mixed_config():
+    # load yaml file
+    with open("tests/assets/mnist_test_suite_2/mnist_unit_test_mixed.yaml", "r") as f:
+        config = yaml.safe_load(f)
+    return config

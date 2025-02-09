@@ -1,6 +1,7 @@
 """Base class for all benchmarks."""
 
 import os
+import warnings
 import zipfile
 from abc import ABC, abstractmethod
 from typing import Callable, List, Optional, Union, Any, Dict
@@ -20,12 +21,13 @@ from quanda.benchmarks.resources.modules import bench_load_state_dict, \
     load_module_from_cfg
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
-from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
+from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint, \
+    TrainValTest
 from quanda.utils.datasets.image_datasets import (
     HFtoTV,
     SingleClassImageDataset,
 )
-from quanda.utils.datasets.transformed import dataset_wrappers
+from quanda.utils.datasets.transformed import transform_wrappers
 
 from quanda.utils.training import BaseTrainer
 
@@ -391,7 +393,7 @@ class Benchmark(ABC):
             adversarial_dir_url = bench_state["adversarial_dir_url"]
             adversarial_dir = self.download_zip_file(
                 url=adversarial_dir_url,
-                cache_dir=cache_dir,
+                download_dir=cache_dir,
             )
 
             adversarial_transform = sample_transforms[
@@ -592,14 +594,14 @@ class Benchmark(ABC):
 
         return model
 
-    def download_zip_file(self, url: str, cache_dir: str) -> str:
+    def download_zip_file(self, url: str, download_dir: str) -> str:
         """Download a zip file from the given URL and extract it.
 
         Parameters
         ----------
         url: str
             URL to the zip file.
-        cache_dir: str
+        download_dir: str
             Path to the cache directory.
 
         Returns
@@ -608,8 +610,14 @@ class Benchmark(ABC):
             Path to the extracted directory.
 
         """
-        name = self.name.replace(" ", "_").lower()
-        download_dir = os.path.join(cache_dir, f"{name}_downloaded_zip")
+
+        # if directory exists, return
+        if os.path.exists(download_dir):
+            warnings.warn(
+                f"Directory {download_dir} already exists. Skipping download."
+            )
+            return download_dir
+
         os.makedirs(download_dir, exist_ok=True)
 
         zip_path = os.path.join(download_dir, "downloaded_file.zip")
@@ -650,30 +658,45 @@ class Benchmark(ABC):
         """
 
         transform = sample_transforms.get(config.get("transforms", None), None)
-        base_dataset = process_dataset(
-            dataset=config["dataset_str"],
-            transform=transform,
-            dataset_split=config.get("dataset_split", "train"),
-        )
+        if "dataset_str" in config:
+            base_dataset = process_dataset(
+                dataset=config["dataset_str"],
+                transform=transform,
+                dataset_split=config.get("dataset_split", "train"),
+            )
 
-        wrapper = config.get("wrapper", None)
+            wrapper = config.get("wrapper", None)
 
-        if wrapper is not None:
-            wrapper_cls = dataset_wrappers.get(wrapper.pop("type"))
-            kwargs = wrapper
-            if "metadata" in kwargs:
-                metadata_args = kwargs.pop("metadata", {})
-                kwargs["metadata"] = wrapper_cls.metadata_cls(**metadata_args)
-            if "sample_fn" in kwargs:
-                kwargs["sample_fn"] = sample_transforms.get(kwargs["sample_fn"])
-            if "dataset_transform" in kwargs:
-                kwargs["dataset_transform"] = sample_transforms.get(
-                    kwargs["dataset_transform"]
-                )
-            dataset = wrapper_cls(base_dataset, **kwargs)
-            return dataset
-        else:
-            return base_dataset
+            if wrapper is not None:
+                wrapper_cls = transform_wrappers.get(wrapper.pop("type"))
+                kwargs = wrapper
+                if "metadata" in kwargs:
+                    metadata_args = kwargs.pop("metadata", {})
+                    kwargs["metadata"] = wrapper_cls.metadata_cls(
+                        **metadata_args)
+                if "sample_fn" in kwargs:
+                    kwargs["sample_fn"] = sample_transforms.get(
+                        kwargs["sample_fn"])
+                if "dataset_transform" in kwargs:
+                    kwargs["dataset_transform"] = sample_transforms.get(
+                        kwargs["dataset_transform"]
+                    )
+                dataset = wrapper_cls(base_dataset, **kwargs)
+                return dataset
+            else:
+                return base_dataset
+
+        elif "zip_url" in config:
+            # TODO: make it jore
+            download_dir = Benchmark().download_zip_file(
+                url=config["zip_url"], download_dir=config["dataset_dir"]
+            )
+            return SingleClassImageDataset(
+                root=download_dir,
+                label=config["label"],
+                transform=transform,
+                indices=config.get("indices", None),
+            )
 
     def model_from_cfg(self, config: dict, cache_dir: str):
         """Return the model using the given parameters.
@@ -692,3 +715,36 @@ class Benchmark(ABC):
 
         """
         return load_module_from_cfg(config, self.device)
+
+    def split_dataset_from_cfg(self, dataset: torch.utils.data.Dataset, split_path: str):
+        """
+        Split the dataset using the given parameters.
+
+        Parameters
+        ----------
+        dataset: torch.utils.data.Dataset
+            The dataset to be split.
+        split: str
+            Path to file where config in TrainValTest format is stored.
+
+        Returns
+        -------
+        Tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, torch.utils.data.Dataset]
+            The train, val, test datasets.
+        """
+        # split split_path to folder and file name
+        folder, file = os.path.split(split_path)
+        split = TrainValTest.load(folder, file)
+
+
+        train_dataset = torch.utils.data.Subset(dataset, split.train)
+        test_dataset = torch.utils.data.Subset(dataset, split.test)
+
+        if split.val:
+            val_dataset = torch.utils.data.Subset(dataset, split.val)
+        else:
+            val_dataset = None
+
+        return train_dataset, val_dataset, test_dataset
+
+
