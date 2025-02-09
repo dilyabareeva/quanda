@@ -487,7 +487,7 @@ class Benchmark(ABC):
                 "explanations": explanations,
             }
 
-            if hasattr(self, "class_to_group"):
+            if self.name == "Subclass Detection":
                 data_unit["grouped_labels"] = torch.tensor(
                     [self.class_to_group[i.item()] for i in labels],
                     device=labels.device,
@@ -659,10 +659,18 @@ class Benchmark(ABC):
         wrapper = config.get("wrapper", None)
 
         if wrapper is not None:
-            wrapper_cls = dataset_wrappers.get(wrapper["type"])
-            metadata_args = wrapper.get("metadata", {})
-            metadata = wrapper_cls.metadata_cls(**metadata_args)
-            dataset = wrapper_cls(base_dataset, metadata=metadata)
+            wrapper_cls = dataset_wrappers.get(wrapper.pop("type"))
+            kwargs = wrapper
+            if "metadata" in kwargs:
+                metadata_args = kwargs.pop("metadata", {})
+                kwargs["metadata"] = wrapper_cls.metadata_cls(**metadata_args)
+            if "sample_fn" in kwargs:
+                kwargs["sample_fn"] = sample_transforms.get(kwargs["sample_fn"])
+            if "dataset_transform" in kwargs:
+                kwargs["dataset_transform"] = sample_transforms.get(
+                    kwargs["dataset_transform"]
+                )
+            dataset = wrapper_cls(base_dataset, **kwargs)
             return dataset
         else:
             return base_dataset

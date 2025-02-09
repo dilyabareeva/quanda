@@ -794,3 +794,18 @@ def load_mnist_mislabeling_config():
     with open("tests/assets/mnist_test_suite_2/mnist_unit_test_mislabeling.yaml", "r") as f:
         config = yaml.safe_load(f)
     return config
+
+@pytest.fixture
+def load_mnist_subclass_config():
+    # load yaml file
+    with open("tests/assets/mnist_test_suite_2/mnist_unit_test_subclass.yaml", "r") as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_shortcut_config():
+    # load yaml file
+    with open("tests/assets/mnist_test_suite_2/mnist_unit_test_shortcut.yaml", "r") as f:
+        config = yaml.safe_load(f)
+    return config

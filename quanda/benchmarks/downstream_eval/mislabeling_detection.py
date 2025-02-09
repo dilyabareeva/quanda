@@ -94,6 +94,8 @@ class MislabelingDetection(Benchmark):
             Dictionary containing the configuration.
         cache_dir : str
             Directory where the benchmark is stored.
+        device: str, optional
+            Device to use for the evaluation, by default "cpu".
 
         """
         obj = cls()

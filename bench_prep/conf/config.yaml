@@ -1,7 +1,7 @@
 defaults:
   - model: mnist_lenet_base
-  - train_dataset: mnist_train_unit
-  - eval_dataset: mnist_test_unit
+  - train_dataset: mnist_train_unit_shortcut
+  - eval_dataset: mnist_test_unit_shortcut
   - _self_
 
 experiment_name: default_experiment

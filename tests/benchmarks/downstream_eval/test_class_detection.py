@@ -19,7 +19,7 @@ from quanda.utils.functions import cosine_similarity
             "load_mnist_unit_test_config",
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.9100000262260437,
+            0.9800000190734863,
         ),
     ],
 )

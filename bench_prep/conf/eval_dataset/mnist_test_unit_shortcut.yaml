@@ -1,0 +1,11 @@
+dataset_str: ylecun/mnist
+dataset_split: test[:1%]
+transforms: none
+wrapper:
+  type: "SampleTransformationDataset"
+  metadata:
+      p: 0.3
+      cls_idx: 0
+      seed: 42
+  sample_fn: "add_white_square_mnist"
+  dataset_transform: "mnist_transforms"

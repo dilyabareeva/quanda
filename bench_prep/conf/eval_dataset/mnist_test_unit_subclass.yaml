@@ -1,0 +1,10 @@
+dataset_str: ylecun/mnist
+dataset_split: test[:1%]
+transforms: "mnist_transforms"
+wrapper:
+  type: "LabelGroupingDataset"
+  metadata:
+      p: 1.0
+      n_groups: 2
+      class_to_group: "random"
+      seed: 42

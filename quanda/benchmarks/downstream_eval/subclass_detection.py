@@ -22,8 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class SubclassDetection(Benchmark):
-    # TODO: remove USES PREDICTED LABELS, FILTERS BY CORRECT PREDICTIONS
-    #  https://arxiv.org/pdf/2006.04528
+
     """Benchmark for subclass detection task.
 
     A model is trained on a dataset where labels are grouped into superclasses.
@@ -55,128 +54,45 @@ class SubclassDetection(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-        self.base_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
         self.grouped_dataset: LabelGroupingDataset
-        self.dataset_transform: Optional[Callable]
-        self.grouped_train_dl: torch.utils.data.DataLoader
-        self.grouped_val_dl: Optional[torch.utils.data.DataLoader]
-        self.original_train_dl: torch.utils.data.DataLoader
+        self.eval_dataset: LabelGroupingDataset
         self.class_to_group: Dict[int, int]
-        self.n_classes: int
-        self.n_groups: int
+        self.device: str
+
         self.use_predictions: bool
         self.filter_by_prediction: bool
-
+        self.checkpoints: Optional[List[str]]
+        self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
-    def assemble(
-        cls,
-        model: Union[torch.nn.Module, L.LightningModule],
-        base_dataset: Union[str, torch.utils.data.Dataset],
-        n_classes: int,
-        class_to_group: Dict[int, int],  # TODO: type specification
-        eval_dataset: torch.utils.data.Dataset,
-        grouped_dataset: Optional[LabelGroupingDataset] = None,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        use_predictions: bool = True,
-        filter_by_prediction: bool = True,
-        dataset_split: str = "train",
-        dataset_transform: Optional[Callable] = None,
-        batch_size: int = 8,
-        *args,
-        **kwargs,
-    ):
-        """Assembles the benchmark from existing components.
+    def from_config(cls, config: dict, cache_dir: str, device: str = "cpu"):
+        """Initialize the benchmark from a dictionary.
 
         Parameters
         ----------
-        model : Union[torch.nn.Module, L.LightningModule]
-            The model used to generate attributions.
-        base_dataset : Union[str, torch.utils.data.Dataset]
-            Original dataset to use in training.
-        n_classes : int
-            Number of classes in `base_dataset`.
-        class_to_group : Dict[int, int]
-            Mapping of classes to groups.
-        eval_dataset : torch.utils.data.Dataset
-            Evaluation dataset to be used for the benchmark.
-        grouped_dataset : Optional[LabelGroupingDataset], optional
-            The grouped dataset, by default None.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by
-            default True.
-        filter_by_prediction : bool, optional
-            Whether to filter the evaluation dataset by the model's
-            predictions, using only correctly classified datapoints, by default
-            True.
-        dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default
-            "train".
-        dataset_transform : Optional[Callable], optional
-            The original dataset transform, by default None.
-        batch_size : int, optional
-            Batch size for the dataloaders, by default 8.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        SubclassDetection
-            The benchmark instance
+        config : dict
+            Dictionary containing the configuration.
+        cache_dir : str
+            Directory where the benchmark is stored.
+        device: str, optional
+            Device to use for the evaluation, by default "cpu".
 
         """
         obj = cls()
-        obj._assemble_common(
-            model=model,  # TODO: we don't need model here
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions,
+        obj.device = device
+        obj.grouped_dataset = obj.dataset_from_cfg(
+            config=config["train_dataset"], cache_dir=cache_dir
         )
-        obj.model = model
+        obj.class_to_group = obj.grouped_dataset.class_to_group
 
-        obj.base_dataset = obj._process_dataset(
-            base_dataset, transform=None, dataset_split=dataset_split
+        obj.eval_dataset = obj.dataset_from_cfg(
+            config=config["eval_dataset"], cache_dir=cache_dir
         )
-        obj.class_to_group = class_to_group
-        obj.dataset_transform = dataset_transform
-        obj.n_classes = n_classes
-        obj.filter_by_prediction = filter_by_prediction
+        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"], cache_dir=cache_dir)
 
-        if grouped_dataset is not None:
-            warnings.warn(
-                "Using the provided grouped dataset. The class_to_group "
-                "parameter will be ignored."
-            )
-            obj.grouped_dataset = grouped_dataset
-        else:
-            metadata = LabelGroupingMetadata(
-                n_groups=len(set(class_to_group.values())),
-                class_to_group=class_to_group,
-                p=1.0,
-            )
-            obj.grouped_dataset = LabelGroupingDataset(
-                dataset=obj.base_dataset,
-                dataset_transform=dataset_transform,
-                n_classes=obj.n_classes,
-                metadata=copy.deepcopy(metadata),
-            )
-        obj.grouped_train_dl = torch.utils.data.DataLoader(
-            obj.grouped_dataset, batch_size=batch_size
-        )
-        obj.original_train_dl = torch.utils.data.DataLoader(
-            obj.base_dataset, batch_size=batch_size
-        )
-
+        obj.filter_by_prediction = config.get("filter_by_prediction", False)
+        obj.use_predictions = config.get("use_predictions", True)
+        obj.checkpoints_load_func = None # TODO: be more flexible
         return obj
 
     def evaluate(
@@ -209,6 +125,13 @@ class SubclassDetection(Benchmark):
             Dictionary containing the metric score.
 
         """
+
+        if not isinstance(self.grouped_dataset, LabelGroupingDataset):
+            raise ValueError("The train dataset must be a LabelGroupingDataset.")
+
+        if not isinstance(self.eval_dataset, LabelGroupingDataset):
+            raise ValueError("The eval dataset must be a LabelGroupingDataset.")
+
         explainer = self._prepare_explainer(
             dataset=self.grouped_dataset,
             explainer_cls=explainer_cls,
@@ -222,8 +145,8 @@ class SubclassDetection(Benchmark):
             checkpoints_load_func=self.checkpoints_load_func,
             train_subclass_labels=torch.tensor(
                 [
-                    self.base_dataset[s][1]
-                    for s in range(ds_len(self.base_dataset))
+                    self.grouped_dataset.dataset[s][1]
+                    for s in range(ds_len(self.grouped_dataset.dataset))
                 ]
             ),
             filter_by_prediction=self.filter_by_prediction,

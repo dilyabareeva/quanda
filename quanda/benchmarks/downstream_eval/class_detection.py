@@ -50,10 +50,12 @@ class ClassDetection(Benchmark):
         super().__init__()
 
         self.model: torch.nn.Module
-
+        self.device: str
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
+        self.checkpoints: Optional[List[str]]
+        self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
     def from_config(cls, config: dict, cache_dir: str, device: str = "cpu"):
@@ -65,7 +67,8 @@ class ClassDetection(Benchmark):
             Dictionary containing the configuration.
         cache_dir : str
             Directory where the benchmark is stored.
-
+        device: str, optional
+            Device to use for the evaluation, by default "cpu".
         """
         obj = cls()
         obj.device = device
