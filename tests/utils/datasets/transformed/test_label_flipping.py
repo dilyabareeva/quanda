@@ -56,14 +56,12 @@ def test_label_flipping_dataset(
         with pytest.raises(err):
             flipped_dataset = LabelFlippingDataset(
                 dataset=dataset,
-                n_classes=n_classes,
                 metadata=metadata,
             )
         return
     else:
         flipped_dataset = LabelFlippingDataset(
             dataset=dataset,
-            n_classes=n_classes,
             metadata=metadata,
         )
         assertions = []

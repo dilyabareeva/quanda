@@ -38,7 +38,6 @@ def test_sample_transformation_dataset(
     )
     sample_dataset = SampleTransformationDataset(
         dataset=dataset,
-        n_classes=n_classes,
         sample_fn=transformation,
         metadata=metadata,
     )

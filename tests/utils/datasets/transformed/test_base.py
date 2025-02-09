@@ -38,14 +38,14 @@ def test_transformed_dataset_len(
         dataset = TensorDataset(
             torch.ones((length, 100)), torch.ones((length,))
         )
-        dataset = TransformedDataset(dataset=dataset, n_classes=2, metadata=metadata)
+        dataset = TransformedDataset(dataset=dataset, metadata=metadata)
         assert len(dataset) == length
     else:
         dataset = UnsizedTensorDataset(
             torch.ones((length, 100)), torch.ones((length,))
         )
         with pytest.raises(err):
-            dataset = TransformedDataset(dataset=dataset, n_classes=2, metadata=metadata)
+            dataset = TransformedDataset(dataset=dataset, metadata=metadata)
 
 
 @pytest.mark.utils
@@ -61,7 +61,6 @@ def test_transformed_dataset(dataset, n_classes, sample_fn, label_fn, request):
     metadata.generate_indices(dataset)
     trans_ds = TransformedDataset(
         dataset=dataset,
-        n_classes=n_classes,
         sample_fn=sample_fn,
         label_fn=label_fn,
         metadata=metadata,

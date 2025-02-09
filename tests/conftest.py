@@ -255,7 +255,6 @@ def load_grouped_mnist_dataset():
     )
     return LabelGroupingDataset(
         dataset,
-        n_classes=10,
         metadata=metadata,
     )
 
@@ -277,7 +276,6 @@ def load_mislabeling_mnist_dataset():
     )
     return LabelFlippingDataset(
         dataset,
-        n_classes=10,
         metadata=metadata,
     )
 

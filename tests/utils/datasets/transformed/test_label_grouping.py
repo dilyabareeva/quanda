@@ -34,7 +34,6 @@ def test_label_grouping_dataset(
     )
     grouped_dataset = LabelGroupingDataset(
         dataset=dataset,
-        n_classes=n_classes,
         metadata=metadata,
     )
 
