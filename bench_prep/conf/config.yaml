@@ -1,10 +1,11 @@
 defaults:
   - model: mnist_lenet_base
   - train_dataset: mnist_train_unit
-  - adv_dataset: fashion_mnist_unit
+  - eval_dataset: mnist_test_unit
   - _self_
 
-adversarial_label: 0
-adv_split_path: tests/assets/fashion_mnist_split.pth
+top_k: 5
+model_id: "0"
+correlation_fn: "kendall"
 experiment_name: default_experiment
 seed: 42 

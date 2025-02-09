@@ -47,80 +47,41 @@ class TopKCardinality(Benchmark):
         super().__init__()
 
         self.model: torch.nn.Module
-
+        self.device: str
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
+        self.checkpoints: Optional[List[str]]
+        self.checkpoints_load_func: Optional[Callable[..., Any]]
         self.top_k: int
 
     @classmethod
-    def assemble(
-        cls,
-        model: torch.nn.Module,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        dataset_transform: Optional[Callable] = None,
-        top_k: int = 1,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        *args,
-        **kwargs,
-    ):
-        """Assembles the benchmark from existing components.
+    def from_config(cls, config: dict, cache_dir: str, device: str = "cpu"):
+        """Initialize the benchmark from a dictionary.
 
         Parameters
         ----------
-        model : torch.nn.Module
-            The model to be evaluated.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train the model.
-        eval_dataset : torch.utils.data.Dataset
-            The dataset to be used for the evaluation.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        dataset_transform : Optional[Callable], optional
-            The transform to be applied to the dataset, by default None.
-        top_k : int, optional
-            The number of top-k samples to consider, by default 1.
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by
-            default True.
-        dataset_split : str, optional
-            The dataset split, by default "train", only used for HuggingFace
-            datasets.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        TopKCardinality
-            The benchmark instance.
-
+        config : dict
+            Dictionary containing the configuration.
+        cache_dir : str
+            Directory where the benchmark is stored.
+        device: str, optional
+            Device to use for the evaluation, by default "cpu".
         """
         obj = cls()
-        obj._assemble_common(
-            model=model,
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions,
+        obj.device = device
+        obj.train_dataset = obj.dataset_from_cfg(
+            config=config["train_dataset"], cache_dir=cache_dir
         )
-
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
+        obj.eval_dataset = obj.dataset_from_cfg(
+            config=config["eval_dataset"], cache_dir=cache_dir
         )
-        obj.top_k = top_k
-
+        obj.top_k = config["top_k"]
+        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"], cache_dir=cache_dir)
+        obj.use_predictions = config.get("use_predictions", True)
+        obj.checkpoints_load_func = None # TODO: be more flexible
         return obj
+
 
 
     def evaluate(

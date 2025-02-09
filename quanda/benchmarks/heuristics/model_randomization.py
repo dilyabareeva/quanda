@@ -9,14 +9,13 @@ from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics.model_randomization import (
     ModelRandomizationMetric,
 )
-from quanda.utils.functions import CorrelationFnLiterals
+from quanda.utils.functions import correlation_functions
 
 logger = logging.getLogger(__name__)
 
 
 class ModelRandomization(Benchmark):
-    # TODO: remove UNKNOWN IF PREDICTED LABELS ARE USED
-    #  https://arxiv.org/pdf/2006.04528
+
     """Benchmark for the model randomization heuristic.
 
     This benchmark is used to evaluate the dependence of the attributions on
@@ -57,91 +56,43 @@ class ModelRandomization(Benchmark):
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
-        self.correlation_fn: Union[Callable, CorrelationFnLiterals]
+        self.correlation_fn: Callable
         self.seed: int
+        self.device: str
+
+        self.checkpoints: Optional[List[str]]
+        self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
-    def assemble(
-        cls,
-        model: torch.nn.Module,
-        cache_dir: str,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        dataset_transform: Optional[Callable] = None,
-        model_id: str = "0",
-        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-        seed: int = 42,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        *args,
-        **kwargs,
-    ):
-        """Assembles the benchmark from existing components.
+    def from_config(cls, config: dict, cache_dir: str, device: str = "cpu"):
+        """Initialize the benchmark from a dictionary.
 
         Parameters
         ----------
-        model : Union[torch.nn.Module, L.LightningModule]
-            Model to be used for the benchmark. This model should be trained on
-            the mislabeled dataset.
+        config : dict
+            Dictionary containing the configuration.
         cache_dir : str
-            Directory to store the downloaded benchmark components.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            Training dataset to be used for the benchmark. If a string is
-            passed, it should be a HuggingFace dataset.
-        eval_dataset : torch.utils.data.Dataset
-            Evaluation dataset to be used for the benchmark.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        dataset_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None.
-        model_id : str, optional
-            Identifier for the model, by default "0".
-        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation.
-            Can be "spearman" or "kendall", or a callable.
-            Defaults to "spearman".
-        seed : int, optional
-            Seed to be used for the evaluation, by default 42.
-        use_predictions: bool
-            Whether to use the model's predictions for generating attributions.
-            Defaults to True.
-        dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default
-            "train".
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        ModelRandomization
-            The benchmark instance.
-
+            Directory where the benchmark is stored.
+        device: str, optional
+            Device to use for the evaluation, by default "cpu".
         """
         obj = cls()
-        obj.model = model
-        obj._set_devices(model)
-        obj.model_id = model_id
-        obj.cache_dir = cache_dir
-        obj.checkpoints = checkpoints
-        obj.checkpoints_load_func = checkpoints_load_func
-        obj.eval_dataset = eval_dataset
-        obj.use_predictions = use_predictions
-        obj.correlation_fn = correlation_fn
-        obj.seed = seed
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
+        obj.device = device
+        obj.train_dataset = obj.dataset_from_cfg(
+            config=config["train_dataset"], cache_dir=cache_dir
         )
-
+        obj.eval_dataset = obj.dataset_from_cfg(
+            config=config["eval_dataset"], cache_dir=cache_dir
+        )
+        obj.correlation_fn = correlation_functions[config["correlation_fn"]]
+        obj.model_id = config.get("model_id", "0")
+        obj.cache_dir = cache_dir
+        obj.seed = config["seed"]
+        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"], cache_dir=cache_dir)
+        obj.use_predictions = config.get("use_predictions", True)
+        obj.checkpoints_load_func = None # TODO: be more flexible
         return obj
+
 
 
     def evaluate(
