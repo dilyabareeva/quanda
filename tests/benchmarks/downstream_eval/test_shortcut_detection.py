@@ -22,28 +22,6 @@ from quanda.utils.training.trainer import Trainer
     "shortcut_indices, p, seed, batch_size, explainer_cls, expl_kwargs, filter_by_class, expected_score",
     [
         (
-            "mnist_generate",
-            "generate",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            0,
-            "load_mnist_dataset",
-            "mnist_white_square_transformation",
-            10,
-            1,
-            None,
-            1.0,
-            27,
-            8,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            True,
-            0.0,
-        ),
-        (
             "mnist_assemble",
             "assemble",
             "load_mnist_model",
@@ -143,87 +121,6 @@ def test_shortcut_detection(
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
-
-    results = dst_eval.evaluate(
-        explainer_cls=explainer_cls,
-        expl_kwargs=expl_kwargs,
-        batch_size=batch_size,
-    )
-    assert math.isclose(results["score"], expected_score, abs_tol=0.00001)
-
-
-@pytest.mark.benchmarks
-@pytest.mark.parametrize(
-    "test_id, pl_module, optimizer, lr, criterion, max_epochs, dataset, sample_fn, n_classes, shortcut_cls,"
-    "shortcut_indices, p, seed, batch_size, explainer_cls, expl_kwargs, expected_score",
-    [
-        (
-            "mnist",
-            "load_mnist_pl_module",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            0,
-            "load_mnist_dataset",
-            "mnist_white_square_transformation",
-            10,
-            1,
-            None,
-            1.0,
-            27,
-            8,
-            CaptumSimilarity,
-            {"layers": "model.fc_2", "similarity_metric": cosine_similarity},
-            0.32718,
-        ),
-    ],
-)
-def test_shortcut_detection_generate_from_pl_module(
-    test_id,
-    pl_module,
-    optimizer,
-    lr,
-    criterion,
-    max_epochs,
-    dataset,
-    sample_fn,
-    n_classes,
-    shortcut_cls,
-    shortcut_indices,
-    p,
-    seed,
-    batch_size,
-    explainer_cls,
-    expl_kwargs,
-    expected_score,
-    tmp_path,
-    request,
-):
-    pl_module = request.getfixturevalue(pl_module)
-    dataset = request.getfixturevalue(dataset)
-    expl_kwargs = {
-        **expl_kwargs,
-        "model_id": "test",
-        "cache_dir": str(tmp_path),
-    }
-    trainer = L.Trainer(max_epochs=max_epochs)
-    sample_fn = request.getfixturevalue(sample_fn)
-    dst_eval = ShortcutDetection.generate(
-        model=pl_module,
-        trainer=trainer,
-        base_dataset=dataset,
-        n_classes=n_classes,
-        eval_dataset=dataset,
-        filter_by_class=True,
-        filter_by_prediction=False,
-        shortcut_cls=shortcut_cls,
-        p=p,
-        sample_fn=sample_fn,
-        trainer_fit_kwargs={},
-        seed=seed,
-        cache_dir=str(tmp_path),
-        batch_size=batch_size,
-    )
 
     results = dst_eval.evaluate(
         explainer_cls=explainer_cls,
@@ -345,7 +242,7 @@ def test_shortcut_detection_download(
             dataset_transform=dst_eval.dataset_transform,
             n_classes=dst_eval.n_classes,
             sample_fn=dst_eval.sample_fn,
-            p=1.0,
+            metadata=copy.deepcopy(dst_eval.metadata),
         )
         train_ld = torch.utils.data.DataLoader(
             dst_eval.shortcut_dataset, batch_size=16, shuffle=False

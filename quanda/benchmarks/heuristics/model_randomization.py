@@ -143,7 +143,6 @@ class ModelRandomization(Benchmark):
 
         return obj
 
-    generate = assemble
 
     def evaluate(
         self,

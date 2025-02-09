@@ -14,25 +14,6 @@ from quanda.utils.functions import cosine_similarity
     "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
-            "mnist",
-            "generate",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            None,
-            0.717261791229248,
-        ),
-        (
             "mnist2",
             "assemble",
             "load_mnist_model",

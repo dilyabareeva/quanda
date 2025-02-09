@@ -24,28 +24,6 @@ from quanda.utils.training.trainer import Trainer
     [
         (
             "mnist",
-            "generate",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            1.0,
-            27,
-            "self-influence",
-            "mnist_seed_27_mislabeling_labels",
-            8,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            False,
-            None,
-            0.4921875,
-        ),
-        (
-            "mnist",
             "assemble",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
@@ -164,82 +142,6 @@ def test_mislabeling_detection(
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
 
-    score = dst_eval.evaluate(
-        explainer_cls=explainer_cls,
-        expl_kwargs=expl_kwargs,
-        batch_size=batch_size,
-    )["score"]
-
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
-
-
-@pytest.mark.benchmarks
-@pytest.mark.parametrize(
-    "test_id, pl_module, max_epochs, dataset, n_classes, p, seed, "
-    "global_method, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
-    [
-        (
-            "mnist",
-            "load_mnist_pl_module",
-            3,
-            "load_mnist_dataset",
-            10,
-            1.0,
-            27,
-            "self-influence",
-            8,
-            CaptumSimilarity,
-            {"layers": "model.fc_2", "similarity_metric": cosine_similarity},
-            False,
-            None,
-            0.4921875,
-        ),
-    ],
-)
-def test_mislabeling_detection_generate_from_pl_module(
-    test_id,
-    pl_module,
-    max_epochs,
-    dataset,
-    n_classes,
-    p,
-    seed,
-    batch_size,
-    global_method,
-    explainer_cls,
-    expl_kwargs,
-    use_pred,
-    load_path,
-    expected_score,
-    tmp_path,
-    request,
-):
-    pl_module = request.getfixturevalue(pl_module)
-    dataset = request.getfixturevalue(dataset)
-    expl_kwargs = {
-        **expl_kwargs,
-        "model_id": "test",
-        "cache_dir": str(tmp_path),
-    }
-    trainer = L.Trainer(max_epochs=max_epochs)
-
-    dst_eval = MislabelingDetection.generate(
-        model=pl_module,
-        trainer=trainer,
-        base_dataset=dataset,
-        n_classes=n_classes,
-        eval_dataset=dataset,
-        p=p,
-        global_method=global_method,
-        class_to_group="random",
-        trainer_fit_kwargs={},
-        seed=seed,
-        batch_size=batch_size,
-        cache_dir=str(tmp_path),
-        device="cpu",
-    )
-
-    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,

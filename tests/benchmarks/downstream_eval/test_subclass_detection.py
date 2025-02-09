@@ -20,30 +20,6 @@ from quanda.utils.training.trainer import Trainer
     [
         (
             "mnist",
-            "generate",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            {i: i % 2 for i in range(10)},
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            False,
-            None,
-            1.0,
-        ),
-        (
-            "mnist",
             "assemble",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
@@ -131,79 +107,6 @@ def test_subclass_detection(
         )
     else:
         raise ValueError(f"Invalid init_method: {init_method}")
-
-    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    score = dst_eval.evaluate(
-        explainer_cls=explainer_cls,
-        expl_kwargs=expl_kwargs,
-        batch_size=batch_size,
-    )["score"]
-
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
-
-
-@pytest.mark.benchmarks
-@pytest.mark.parametrize(
-    "test_id, pl_module, max_epochs, dataset, n_classes, n_groups, seed, "
-    "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
-    [
-        (
-            "mnist",
-            "load_mnist_pl_module",
-            3,
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            {i: i % 2 for i in range(10)},
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "model.fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            False,
-            None,
-            1.0,
-        ),
-    ],
-)
-def test_subclass_detection_generate_lightning_model(
-    test_id,
-    pl_module,
-    max_epochs,
-    dataset,
-    n_classes,
-    n_groups,
-    seed,
-    class_to_group,
-    batch_size,
-    explainer_cls,
-    expl_kwargs,
-    use_pred,
-    load_path,
-    expected_score,
-    tmp_path,
-    request,
-):
-    pl_module = request.getfixturevalue(pl_module)
-    dataset = request.getfixturevalue(dataset)
-
-    trainer = L.Trainer(max_epochs=max_epochs)
-
-    dst_eval = SubclassDetection.generate(
-        model=pl_module,
-        trainer=trainer,
-        base_dataset=dataset,
-        eval_dataset=dataset,
-        n_classes=n_classes,
-        n_groups=n_groups,
-        class_to_group=class_to_group,
-        trainer_fit_kwargs={},
-        seed=seed,
-        cache_dir=str(tmp_path),
-        batch_size=batch_size,
-    )
 
     expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     score = dst_eval.evaluate(

@@ -15,26 +15,6 @@ from quanda.utils.functions import cosine_similarity
     "batch_size, use_predictions, explainer_cls, expl_kwargs, load_path, expected_score",
     [
         (
-            "mnist1",
-            "generate",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            False,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            None,
-            1.0,
-        ),
-        (
             "mnist2",
             "assemble",
             "load_mnist_model",
@@ -79,16 +59,7 @@ def test_topk_cardinality(
     checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
 
-    if init_method == "generate":
-        dst_eval = TopKCardinality.generate(
-            model=model,
-            checkpoints=checkpoint,
-            train_dataset=dataset,
-            eval_dataset=dataset,
-            device="cpu",
-        )
-
-    elif init_method == "assemble":
+    if init_method == "assemble":
         dst_eval = TopKCardinality.assemble(
             model=model,
             checkpoints=checkpoint,

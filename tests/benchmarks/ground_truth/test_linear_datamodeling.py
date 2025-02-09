@@ -18,22 +18,6 @@ from quanda.utils.training.trainer import Trainer
     "batch_size, explainer_cls, expl_kwargs, use_pred",
     [
         (
-            "mnist0",
-            "generate",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            "load_mnist_dataset",
-            10,
-            27,
-            8,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            False,
-        ),
-        (
             "mnist1",
             "assemble",
             "load_mnist_model",
@@ -102,26 +86,8 @@ def test_linear_datamodeling(
         lr=lr,
         criterion=criterion,
     )
-    if init_method == "generate":
-        benchmark = LinearDatamodeling.generate(
-            model=model,
-            checkpoints=checkpoint,
-            trainer=trainer,
-            train_dataset=dataset,
-            eval_dataset=dataset,
-            n_classes=n_classes,
-            seed=seed,
-            batch_size=batch_size,
-            use_predictions=use_pred,
-            cache_dir=str(tmp_path),
-            model_id=test_id,
-            m=5,
-            alpha=0.5,
-            correlation_fn="spearman",
-            device="cpu",
-        )
 
-    elif init_method == "assemble":
+    if init_method == "assemble":
         benchmark = LinearDatamodeling.assemble(
             model=model,
             checkpoints=checkpoint,

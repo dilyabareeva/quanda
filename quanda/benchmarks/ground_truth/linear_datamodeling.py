@@ -229,7 +229,6 @@ class LinearDatamodeling(Benchmark):
 
         return obj
 
-    generate = assemble
 
     def evaluate(
         self,

@@ -120,7 +120,6 @@ class ClassDetection(Benchmark):
 
         return obj
 
-    generate = assemble
 
     def evaluate(
         self,

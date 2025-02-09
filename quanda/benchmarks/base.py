@@ -87,20 +87,6 @@ class Benchmark(ABC):
         self._checkpoints: Optional[Union[str, List[str]]] = None
 
     @classmethod
-    @abstractmethod
-    def generate(cls, *args, **kwargs):
-        """Generate the benchmark by specifying parameters.
-
-        The evaluation can then be run using the `evaluate` method.
-
-        Raises
-        ------
-        NotImplementedError
-
-        """
-        raise NotImplementedError
-
-    @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
         """Download a precomputed benchmark.
 
