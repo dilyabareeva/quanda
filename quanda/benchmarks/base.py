@@ -3,7 +3,7 @@
 import os
 import zipfile
 from abc import ABC, abstractmethod
-from typing import Callable, List, Optional, Union, Any
+from typing import Callable, List, Optional, Union, Any, Dict
 
 import requests
 import torch
@@ -28,6 +28,51 @@ from quanda.utils.datasets.image_datasets import (
 from quanda.utils.training import BaseTrainer
 
 
+def process_dataset(
+    dataset: Union[str, torch.utils.data.Dataset],
+    transform: Optional[Callable] = None,
+    dataset_split: str = "train",
+    cache_dir: Optional[str] = None,
+) -> torch.utils.data.Dataset:
+    """Return the dataset using the given parameters.
+
+    Parameters
+    ----------
+    dataset : Union[str, torch.utils.data.Dataset]
+        The dataset to be processed.
+    transform : Optional[Callable], optional
+        The transform to be applied to the dataset, by default None.
+    dataset_split : str, optional
+        The dataset split, by default "train", only used for HuggingFace
+        datasets.
+    cache_dir : Optional[str], optional
+        The cache directory, by default "~/.cache/huggingface/datasets".
+
+    Returns
+    -------
+    torch,utils.data.Dataset
+        The dataset.
+
+    """
+    if isinstance(dataset, str):
+
+        if cache_dir is None:
+            cache_dir = os.getenv(
+                "HF_HOME",
+                os.path.expanduser("~/.cache/huggingface/datasets"),
+            )
+
+        hf_dataset = load_dataset(
+            "ylecun/mnist" if dataset == "mnist" else dataset,
+            split=dataset_split,
+            cache_dir=cache_dir,
+        )
+        return HFtoTV(hf_dataset, transform=transform)
+    else:
+
+        return dataset
+
+
 class Benchmark(ABC):
     """Base class for all benchmarks."""
 
@@ -38,7 +83,6 @@ class Benchmark(ABC):
         """Initialize the base `Benchmark` class."""
         self.device: Union[str, torch.device]
         self.bench_state: dict
-        self._checkpoint_paths: Optional[List[str]] = None
         self._checkpoints_load_func: Optional[Callable[..., Any]] = None
         self._checkpoints: Optional[Union[str, List[str]]] = None
 
@@ -222,10 +266,11 @@ class Benchmark(ABC):
             self.device = torch.device("cpu")
 
     def _process_dataset(
-        cls,
+        self,
         dataset: Union[str, torch.utils.data.Dataset],
         transform: Optional[Callable] = None,
         dataset_split: str = "train",
+        cache_dir: Optional[str] = None,
     ) -> torch.utils.data.Dataset:
         """Return the dataset using the given parameters.
 
@@ -238,6 +283,8 @@ class Benchmark(ABC):
         dataset_split : str, optional
             The dataset split, by default "train", only used for HuggingFace
             datasets.
+        cache_dir : Optional[str], optional
+            The cache directory, by default "~/.cache/huggingface/datasets".
 
         Returns
         -------
@@ -245,23 +292,9 @@ class Benchmark(ABC):
             The dataset.
 
         """
-        cache_dir = os.getenv(
-            "HF_HOME", os.path.expanduser("~/.cache/huggingface/datasets")
-        )
-
         if isinstance(dataset, str):
-            cls.dataset_str = dataset
-            return HFtoTV(
-                load_dataset(
-                    dataset,
-                    name="mnist",
-                    split=dataset_split,
-                    cache_dir=cache_dir,
-                ),
-                transform=transform,
-            )  # TODO: remove name="mnist"
-        else:
-            return dataset
+            self.dataset_str = dataset
+        return process_dataset(dataset, transform, dataset_split, cache_dir)
 
     def _build_eval_dataset(
         self,
@@ -269,6 +302,7 @@ class Benchmark(ABC):
         eval_indices: List[int],
         transform: Optional[Callable] = None,
         dataset_split: str = "test",
+        cache_dir: Optional[str] = None,
     ):
         """Download the HuggingFace evaluation dataset from given name.
 
@@ -282,6 +316,8 @@ class Benchmark(ABC):
             The transform to be applied to the dataset, by default None.
         dataset_split : str, optional
             The dataset split, by default "test".
+        cache_dir : Optional[str], optional
+            The HF dataset cache directory, by default None.
 
         Returns
         -------
@@ -289,27 +325,13 @@ class Benchmark(ABC):
             The evaluation dataset.
 
         """
-        cache_dir = os.getenv(
-            "HF_HOME", os.path.expanduser("~/.cache/huggingface/datasets")
-        )
-        test_dataset = HFtoTV(
-            load_dataset(
-                dataset_str,
-                name="mnist",
-                split=dataset_split,
-                cache_dir=cache_dir,
-            ),  # TODO: remove name="mnist"
+        test_dataset = process_dataset(
+            dataset=dataset_str,
             transform=transform,
+            dataset_split=dataset_split,
+            cache_dir=cache_dir,
         )
         return torch.utils.data.Subset(test_dataset, eval_indices)
-
-    def get_checkpoint_paths(self) -> List[str]:
-        """Return the paths to the checkpoints."""
-        assert self._checkpoint_paths is not None, (
-            "get_checkpoint_paths can only be called after instantiating a "
-            "benchmark using the download method."
-        )
-        return self._checkpoint_paths
 
     @property
     def checkpoints_load_func(self):
@@ -379,8 +401,8 @@ class Benchmark(ABC):
 
         if self.name == "Mixed Datasets":
             adversarial_dir_url = bench_state["adversarial_dir_url"]
-            adversarial_dir = self._download_adversarial_dataset(
-                adversarial_dir_url=adversarial_dir_url,
+            adversarial_dir = self.download_zip_file(
+                url=adversarial_dir_url,
                 cache_dir=cache_dir,
             )
 
@@ -582,44 +604,41 @@ class Benchmark(ABC):
 
         return model
 
-    def _download_adversarial_dataset(
-        self, adversarial_dir_url: str, cache_dir: str
-    ):
-        """Download the adversarial dataset.
-
-        Download the adversarial dataset from the given URL and returns the
-        path to the downloaded directory.
+    def download_zip_file(self, url: str, cache_dir: str) -> str:
+        """Download a zip file from the given URL and extract it.
 
         Parameters
         ----------
-        adversarial_dir_url: str
-            URL to the adversarial dataset.
+        url: str
+            URL to the zip file.
         cache_dir: str
             Path to the cache directory.
 
         Returns
         -------
         str
-            Path to the downloaded adversarial dataset directory.
+            Path to the extracted directory.
 
         """
         name = self.name.replace(" ", "_").lower()
-        # Download the zip file and extract into cache dir
-        adversarial_dir = os.path.join(
-            cache_dir, name + "_adversarial_dataset"
-        )
-        os.makedirs(adversarial_dir, exist_ok=True)
+        download_dir = os.path.join(cache_dir, f"{name}_downloaded_zip")
+        os.makedirs(download_dir, exist_ok=True)
 
-        # download
-        adversarial_dir_zip = os.path.join(
-            adversarial_dir, "adversarial_dataset.zip"
-        )
-        with open(adversarial_dir_zip, "wb") as f:
-            response = requests.get(adversarial_dir_url)
-            f.write(response.content)
+        zip_path = os.path.join(download_dir, "downloaded_file.zip")
+        if not os.path.exists(zip_path):
+            try:
+                response = requests.get(url, stream=True)
+                response.raise_for_status()
+                with open(zip_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+            except requests.RequestException as e:
+                raise RuntimeError(f"Failed to download the zip file: {e}")
 
-        # extract
-        with zipfile.ZipFile(adversarial_dir_zip, "r") as zip_ref:
-            zip_ref.extractall(adversarial_dir)
+        try:
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                zip_ref.extractall(download_dir)
+        except zipfile.BadZipFile as e:
+            raise RuntimeError(f"Failed to extract the zip file: {e}")
 
-        return adversarial_dir
+        return download_dir

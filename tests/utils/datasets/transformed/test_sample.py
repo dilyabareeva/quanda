@@ -32,12 +32,15 @@ def test_sample_transformation_dataset(
     dataset = request.getfixturevalue(dataset)
     transformation = request.getfixturevalue(transformation)
 
+    metadata = SampleTransformationDataset.metadata_cls(
+        cls_idx=0,
+        p=0.5,
+    )
     sample_dataset = SampleTransformationDataset(
         dataset=dataset,
         n_classes=n_classes,
-        seed=seed,
-        transform_indices=transform_indices,
         sample_fn=transformation,
+        metadata=metadata,
     )
 
     if transform_indices is not None:

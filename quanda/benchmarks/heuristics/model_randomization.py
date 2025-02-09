@@ -75,7 +75,6 @@ class ModelRandomization(Benchmark):
         seed: int = 42,
         use_predictions: bool = True,
         dataset_split: str = "train",
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -114,9 +113,6 @@ class ModelRandomization(Benchmark):
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default
             "train".
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any

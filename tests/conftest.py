@@ -247,12 +247,15 @@ def load_grouped_mnist_dataset():
     dataset = TestTensorDataset(
         torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
     )
+    metadata = LabelGroupingDataset.metadata_cls(
+        seed=27,
+        n_groups=2,
+        class_to_group="random",
+    )
     return LabelGroupingDataset(
         dataset,
         n_classes=10,
-        n_groups=2,
-        class_to_group="random",
-        seed=27,
+        metadata=metadata,
     )
 
 
@@ -267,11 +270,14 @@ def load_mislabeling_mnist_dataset():
     dataset = TestTensorDataset(
         torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
     )
+    metadata = LabelFlippingDataset.metadata_cls(
+        p=1.0,
+        seed=27,
+    )
     return LabelFlippingDataset(
         dataset,
         n_classes=10,
-        p=1.0,
-        seed=27,
+        metadata=metadata,
     )
 
 

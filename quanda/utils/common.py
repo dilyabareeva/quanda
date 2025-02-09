@@ -1,10 +1,14 @@
 """Common utility functions for the Quanda package."""
 
 import functools
+import os
+from abc import ABC
 from contextlib import contextmanager
+from dataclasses import dataclass
 from functools import reduce
-from typing import Any, Callable, List, Mapping, Optional, Sized, Union
+from typing import Any, Callable, List, Mapping, Optional, Sized, Union, Dict
 
+import torch
 import torch.utils
 import torch.utils.data
 
@@ -329,3 +333,44 @@ def load_last_checkpoint(
     if len(checkpoints) == 0:
         return
     checkpoints_load_func(model, checkpoints[-1])
+
+
+@dataclass
+class TrainValTest(ABC):
+    train: torch.Tensor
+    val: torch.Tensor
+    test: torch.Tensor
+
+    @classmethod
+    def split(cls, n_indices: int, seed:int, val_size: float, test_size: float) -> "TrainValTestSplit":
+        torch.manual_seed(seed)
+        indices = torch.randperm(n_indices)
+        val_indices = indices[:int(val_size * len(indices))]
+        test_indices = indices[int(val_size * len(indices)):]
+        train_indices = indices[test_indices]
+        return cls(
+            train=train_indices,
+            val=val_indices,
+            test=test_indices,
+        )
+
+    @classmethod
+    def load(cls, path: str, name: str) -> "TrainValTest":
+        data = torch.load(os.path.join(path, name))
+        return cls(**data)
+
+    def save(self, path: str, name: str) -> None:
+        os.makedirs(path, exist_ok=True)
+        torch.save(self.to_dict(), os.path.join(path, name))
+
+    def to_dict(self) -> Dict:
+        return {
+            "train": self.train,
+            "val": self.val,
+            "test": self.test,
+        }
+
+    @staticmethod
+    def exists(path: str, name: str) -> bool:
+        metadata_path = os.path.join(path, name)
+        return os.path.exists(metadata_path)

@@ -1,5 +1,5 @@
 """Benchmark for noisy label detection."""
-
+import copy
 import logging
 import os
 import warnings
@@ -14,6 +14,7 @@ from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
+from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
 from quanda.utils.training.trainer import BaseTrainer
 
 logger = logging.getLogger(__name__)
@@ -194,12 +195,14 @@ class MislabelingDetection(Benchmark):
         base_dataset = obj._process_dataset(
             base_dataset, transform=None, dataset_split=dataset_split
         )
+        metadata = LabelFlippingMetadata(
+            p=p, seed=seed,
+        )
         mislabeling_dataset = LabelFlippingDataset(
             dataset=base_dataset,
-            p=p,
             dataset_transform=dataset_transform,
             n_classes=n_classes,
-            seed=seed,
+            metadata=metadata,
         )
 
         mislabeling_labels = mislabeling_dataset.mislabeling_labels
@@ -248,7 +251,6 @@ class MislabelingDetection(Benchmark):
         dataset_transform: Optional[Callable] = None,
         global_method: Union[str, type] = "self-influence",
         batch_size: int = 8,
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -293,9 +295,6 @@ class MislabelingDetection(Benchmark):
             Defaults to "self-influence".
         batch_size : int, optional
             Batch size that is used for training, by default 8.
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -342,21 +341,22 @@ class MislabelingDetection(Benchmark):
                 "will be ignored."
             )
             obj.mislabeling_dataset = mislabeling_dataset
+            obj.metadata = mislabeling_dataset.metadata
         else:
+            obj.metadata = LabelFlippingMetadata(
+                transform_indices=mislabeling_indices,
+            )
             obj.mislabeling_dataset = LabelFlippingDataset(
                 dataset=obj._process_dataset(
                     base_dataset, transform=None, dataset_split=dataset_split
                 ),
                 dataset_transform=dataset_transform,
-                transform_indices=mislabeling_indices,
                 n_classes=n_classes,
-                mislabeling_labels=mislabeling_labels,
+                metadata=copy.deepcopy(obj.metadata),
             )
 
         obj.mislabeling_indices = obj.mislabeling_dataset.transform_indices
         obj.mislabeling_labels = obj.mislabeling_dataset.mislabeling_labels
-
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 
@@ -400,7 +400,7 @@ class MislabelingDetection(Benchmark):
                 dataset=self.eval_dataset,
                 dataset_transform=self.dataset_transform,
                 n_classes=self.n_classes,
-                p=0.0,
+                metadata=copy.deepcopy(self.metadata),
             )
 
             metric = MislabelingDetectionMetric.aggr_based(

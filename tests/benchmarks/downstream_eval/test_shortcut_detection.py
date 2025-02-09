@@ -1,3 +1,4 @@
+import copy
 import math
 from functools import reduce
 
@@ -9,6 +10,8 @@ from torcheval.metrics.functional import binary_auprc
 from quanda.benchmarks.downstream_eval import ShortcutDetection
 from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
 from quanda.utils.datasets.transformed import SampleTransformationDataset
+from quanda.utils.datasets.transformed.metadata import \
+    SampleTransformationMetadata
 from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
 

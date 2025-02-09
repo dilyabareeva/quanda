@@ -1,5 +1,5 @@
 """Shortcut Detection Benchmark."""
-
+import copy
 import os
 import warnings
 from typing import Callable, List, Optional, Union, Any
@@ -11,6 +11,8 @@ from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
+from quanda.utils.datasets.transformed.metadata import \
+    SampleTransformationMetadata
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
 )
@@ -167,14 +169,17 @@ class ShortcutDetection(Benchmark):
         base_dataset = obj._process_dataset(
             base_dataset, transform=None, dataset_split=dataset_split
         )
+        metadata = SampleTransformationMetadata(
+            cls_idx=shortcut_cls,
+            p=p,
+            seed=seed,
+        )
         shortcut_dataset = SampleTransformationDataset(
             dataset=base_dataset,
-            p=p,
             dataset_transform=dataset_transform,
-            cls_idx=shortcut_cls,
             n_classes=n_classes,
+            metadata=copy.deepcopy(metadata),
             sample_fn=sample_fn,
-            seed=seed,
         )
         shortcut_indices = shortcut_dataset.transform_indices
 
@@ -185,6 +190,7 @@ class ShortcutDetection(Benchmark):
             eval_dataset=eval_dataset,
             sample_fn=sample_fn,
             shortcut_cls=shortcut_cls,
+            p=p,
             shortcut_indices=shortcut_indices,
             shortcut_dataset=shortcut_dataset,
             checkpoints=[save_dir],
@@ -194,17 +200,15 @@ class ShortcutDetection(Benchmark):
             use_predictions=use_predictions,
             dataset_split=dataset_split,
             dataset_transform=dataset_transform,
-            checkpoint_paths=None,
         )
 
         if val_dataset:
             val_dataset = SampleTransformationDataset(
                 dataset=val_dataset,
                 dataset_transform=obj.dataset_transform,
-                p=obj.p,
-                cls_idx=shortcut_cls,
                 sample_fn=sample_fn,
                 n_classes=obj.n_classes,
+                metadata=copy.deepcopy(metadata),
             )
 
         obj.model = obj._train_model(
@@ -229,6 +233,7 @@ class ShortcutDetection(Benchmark):
         sample_fn: Callable,
         shortcut_cls: int,
         shortcut_indices: List[int],
+        p: float = 0.3,
         shortcut_dataset: Optional[SampleTransformationDataset] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -237,7 +242,6 @@ class ShortcutDetection(Benchmark):
         use_predictions: bool = True,
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -261,6 +265,9 @@ class ShortcutDetection(Benchmark):
             The class to use.
         shortcut_indices : List[int]
             Binary list of indices to poison.
+        p : float, optional
+            Probability of poisoning with the trigger per sample, by default
+            0.3.
         shortcut_dataset : Optional[SampleTransformationDataset], optional
             Dataset with the shortcut, by default None.
         checkpoints : Optional[Union[str, List[str]]], optional
@@ -284,9 +291,6 @@ class ShortcutDetection(Benchmark):
             "train".
         dataset_transform : Optional[Callable], optional
             Transform to be applied to the dataset, by default None.
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -322,21 +326,30 @@ class ShortcutDetection(Benchmark):
                 "parameters."
             )
             obj.shortcut_dataset = shortcut_dataset
+            obj.metadata = SampleTransformationMetadata(
+                cls_idx=obj.shortcut_dataset.metadata.cls_idx,
+                p=obj.shortcut_dataset.metadata.p,
+                seed=obj.shortcut_dataset.metadata.seed,
+            )
         else:
+            metadata = SampleTransformationMetadata(
+                cls_idx=shortcut_cls,
+                #p=p,
+            )
+            obj.metadata = copy.deepcopy(metadata)
+            metadata.transform_indices = shortcut_indices
             obj.shortcut_dataset = SampleTransformationDataset(
                 dataset=obj._process_dataset(
                     base_dataset, transform=None, dataset_split=dataset_split
                 ),
-                cls_idx=shortcut_cls,
                 dataset_transform=dataset_transform,
                 sample_fn=sample_fn,
                 n_classes=n_classes,
-                transform_indices=shortcut_indices,
+                metadata=metadata,
             )
         obj.shortcut_cls = shortcut_cls
         obj.shortcut_indices = obj.shortcut_dataset.transform_indices
         obj.sample_fn = sample_fn
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 
@@ -369,12 +382,15 @@ class ShortcutDetection(Benchmark):
             expl_kwargs=expl_kwargs,
         )
 
+        eval_metadata = copy.deepcopy(self.metadata)
+        eval_metadata.p = 1.0
+
         shortcut_expl_ds = SampleTransformationDataset(
             dataset=self.eval_dataset,
             dataset_transform=self.dataset_transform,
             n_classes=self.n_classes,
             sample_fn=self.sample_fn,
-            p=1.0,
+            metadata=eval_metadata,
         )
 
         metric = ShortcutDetectionMetric(

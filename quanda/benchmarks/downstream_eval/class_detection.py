@@ -66,7 +66,6 @@ class ClassDetection(Benchmark):
         dataset_transform: Optional[Callable] = None,
         use_predictions: bool = True,
         dataset_split: str = "train",
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -94,9 +93,6 @@ class ClassDetection(Benchmark):
         dataset_split : str, optional
             The dataset split, only used for HuggingFace datasets, by default
             "train".
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any

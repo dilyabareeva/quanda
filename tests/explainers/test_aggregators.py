@@ -56,8 +56,16 @@ def test_aggregator_update(
 @pytest.mark.parametrize(
     "test_id, explanations, aggregator",
     [
-        ("mnist", "load_mnist_explanations_similarity_1", AbsSumAggregator),
-        ("mnist", "load_mnist_explanations_similarity_1", SumAggregator),
+        (
+            "mnist",
+            "load_mnist_explanations_similarity_1",
+            AbsSumAggregator,
+        ),
+        (
+            "mnist",
+            "load_mnist_explanations_similarity_1",
+            SumAggregator,
+        ),
     ],
 )
 def test_aggregator_reset(test_id, explanations, aggregator, request):
@@ -72,8 +80,16 @@ def test_aggregator_reset(test_id, explanations, aggregator, request):
 @pytest.mark.parametrize(
     "test_id, explanations, aggregator",
     [
-        ("mnist", "load_mnist_explanations_similarity_1", AbsSumAggregator),
-        ("mnist", "load_mnist_explanations_similarity_1", SumAggregator),
+        (
+            "mnist",
+            "load_mnist_explanations_similarity_1",
+            AbsSumAggregator,
+        ),
+        (
+            "mnist",
+            "load_mnist_explanations_similarity_1",
+            SumAggregator,
+        ),
     ],
 )
 def test_aggregator_save(test_id, explanations, aggregator, request):
@@ -88,8 +104,16 @@ def test_aggregator_save(test_id, explanations, aggregator, request):
 @pytest.mark.parametrize(
     "test_id, explanations, aggregator",
     [
-        ("mnist", "load_mnist_explanations_similarity_1", AbsSumAggregator),
-        ("mnist", "load_mnist_explanations_similarity_1", SumAggregator),
+        (
+            "mnist",
+            "load_mnist_explanations_similarity_1",
+            AbsSumAggregator,
+        ),
+        (
+            "mnist",
+            "load_mnist_explanations_similarity_1",
+            SumAggregator,
+        ),
     ],
 )
 def test_aggregator_load(test_id, explanations, aggregator, request):

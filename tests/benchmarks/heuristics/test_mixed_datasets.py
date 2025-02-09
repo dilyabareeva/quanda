@@ -296,5 +296,7 @@ def test_mixed_dataset_download(
             .mean()
             .item()
         )
-
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
+    if math.isnan(expected_score):
+        assert math.isnan(score)
+    else:
+        assert math.isclose(score, expected_score, abs_tol=0.00001)

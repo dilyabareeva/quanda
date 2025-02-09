@@ -65,7 +65,6 @@ class TopKCardinality(Benchmark):
         top_k: int = 1,
         use_predictions: bool = True,
         dataset_split: str = "train",
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -94,9 +93,6 @@ class TopKCardinality(Benchmark):
         dataset_split : str, optional
             The dataset split, by default "train", only used for HuggingFace
             datasets.
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -123,7 +119,6 @@ class TopKCardinality(Benchmark):
             dataset_split=dataset_split,
         )
         obj.top_k = top_k
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 

@@ -1,5 +1,5 @@
 """Benchmark for subclass detection task."""
-
+import copy
 import logging
 import os
 import warnings
@@ -15,6 +15,7 @@ from quanda.utils.datasets.transformed.label_grouping import (
     ClassToGroupLiterals,
     LabelGroupingDataset,
 )
+from quanda.utils.datasets.transformed.metadata import LabelGroupingMetadata
 from quanda.utils.training.trainer import BaseTrainer
 
 logger = logging.getLogger(__name__)
@@ -158,13 +159,18 @@ class SubclassDetection(Benchmark):
         base_dataset = obj._process_dataset(
             base_dataset, transform=None, dataset_split=dataset_split
         )
+        metadata = LabelGroupingMetadata(
+            n_classes=n_classes,
+            n_groups=n_groups,
+            class_to_group=class_to_group,
+            p=1.0,
+            seed=seed,
+        )
         grouped_dataset = LabelGroupingDataset(
             dataset=base_dataset,
             dataset_transform=dataset_transform,
             n_classes=n_classes,
-            n_groups=n_groups,
-            class_to_group=class_to_group,
-            seed=seed,
+            metadata=copy.deepcopy(metadata),
         )
 
         obj = obj.assemble(
@@ -188,7 +194,7 @@ class SubclassDetection(Benchmark):
                 dataset=val_dataset,
                 dataset_transform=dataset_transform,
                 n_classes=n_classes,
-                class_to_group=obj.class_to_group,
+                metadata=copy.deepcopy(metadata),
             )
         obj.model = obj._train_model(
             model=obj.model,
@@ -218,7 +224,6 @@ class SubclassDetection(Benchmark):
         dataset_split: str = "train",
         dataset_transform: Optional[Callable] = None,
         batch_size: int = 8,
-        checkpoint_paths: Optional[List[str]] = None,
         *args,
         **kwargs,
     ):
@@ -257,9 +262,6 @@ class SubclassDetection(Benchmark):
             The original dataset transform, by default None.
         batch_size : int, optional
             Batch size for the dataloaders, by default 8.
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -296,11 +298,16 @@ class SubclassDetection(Benchmark):
             )
             obj.grouped_dataset = grouped_dataset
         else:
+            metadata = LabelGroupingMetadata(
+                n_groups=len(set(class_to_group.values())),
+                class_to_group=class_to_group,
+                p=1.0,
+            )
             obj.grouped_dataset = LabelGroupingDataset(
                 dataset=obj.base_dataset,
                 dataset_transform=dataset_transform,
                 n_classes=obj.n_classes,
-                class_to_group=class_to_group,
+                metadata=copy.deepcopy(metadata),
             )
         obj.grouped_train_dl = torch.utils.data.DataLoader(
             obj.grouped_dataset, batch_size=batch_size
@@ -308,8 +315,6 @@ class SubclassDetection(Benchmark):
         obj.original_train_dl = torch.utils.data.DataLoader(
             obj.base_dataset, batch_size=batch_size
         )
-
-        obj._checkpoint_paths = checkpoint_paths
 
         return obj
 
