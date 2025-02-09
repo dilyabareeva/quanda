@@ -33,7 +33,7 @@ class Metric(ABC):
             (model, checkpoint path) as two arguments, by default None.
 
         """
-        self.device: Union[str, torch.device]
+        self.device: str
         self.model: torch.nn.Module = model
 
         # if model has device attribute, use it, otherwise the

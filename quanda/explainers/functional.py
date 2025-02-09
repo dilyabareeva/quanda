@@ -14,7 +14,7 @@ class ExplainFunc(Protocol):
         model_id: str,
         test_data: torch.Tensor,
         train_dataset: torch.utils.data.Dataset,
-        device: Union[str, torch.device],
+        device: str,
         cache_dir: str = "./cache",
         explanation_targets: Optional[Union[List[int], torch.Tensor]] = None,
         **kwargs: Any,

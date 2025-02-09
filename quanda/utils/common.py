@@ -98,7 +98,7 @@ def cache_result(method):
 def class_accuracy(
     net: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
-    device: Union[str, torch.device] = "cpu",
+    device: str = "cpu",
 ):
     """Return accuracy on a dataset given by the data loader.
 
@@ -108,7 +108,7 @@ def class_accuracy(
         The model to evaluate.
     loader : torch.utils.data.DataLoader
         The data loader to evaluate the model on.
-    device : Union[str, torch.device], optional
+    device : str, optional
         The device to evaluate the model on, by default "cpu".
 
     Returns
@@ -129,7 +129,7 @@ def class_accuracy(
 
 # Taken directly from Captum with minor changes
 def _load_flexible_state_dict(
-    model: torch.nn.Module, path: str, device: Union[str, torch.device]
+    model: torch.nn.Module, path: str, device: str
 ) -> float:
     """Load pytorch models.
 
@@ -146,7 +146,7 @@ def _load_flexible_state_dict(
         The model for which to load a checkpoint
     path : str
         The filepath to the checkpoint
-    device : Union[str, torch.device]
+    device : str
         The device to use.
 
     Returns
@@ -184,12 +184,12 @@ def _load_flexible_state_dict(
     return learning_rate
 
 
-def get_load_state_dict_func(device: Union[str, torch.device]):
+def get_load_state_dict_func(device: str):
     """Get a load_state_dict function that loads a model state dict.
 
     Parameters
     ----------
-    device : Union[str, torch.device]
+    device : str
         The device to load the model on.
 
     """
@@ -201,12 +201,12 @@ def get_load_state_dict_func(device: Union[str, torch.device]):
 
 
 @contextmanager
-def default_tensor_type(device: Union[str, torch.device]):
+def default_tensor_type(device: str):
     """Context manager to temporarily change the default tensor type.
 
     Parameters
     ----------
-    device : Union[str, torch.device]
+    device : str
         The device to which the default tensor type should be set.
 
     Returns
@@ -238,12 +238,12 @@ def default_tensor_type(device: Union[str, torch.device]):
 
 
 @contextmanager
-def map_location_context(device: Union[str, torch.device]):
+def map_location_context(device: str):
     """Context manager to temporarily change the map_location of torch.load.
 
     Parameters
     ----------
-    device: Union[str, torch.device]
+    device: str
         The device to which the tensors should be loaded.
 
     Returns
@@ -288,7 +288,7 @@ def ds_len(dataset: torch.utils.data.Dataset) -> int:
 
 
 def process_targets(
-    targets: Union[List[int], torch.Tensor], device: Union[str, torch.device]
+    targets: Union[List[int], torch.Tensor], device: str
 ) -> torch.Tensor:
     """Convert target labels to torch.Tensor and move them to the device.
 
@@ -296,7 +296,7 @@ def process_targets(
     ----------
     targets : Optional[Union[List[int], torch.Tensor]], optional
         The target labels, either as a list or tensor.
-    device: Union[str, torch.device]
+    device: str
         The device to use.
 
     Returns

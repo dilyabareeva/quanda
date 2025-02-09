@@ -18,7 +18,6 @@ class TransformedDataset(Dataset, ABC):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
-        n_classes: int,
         metadata: DatasetMetadata,
         dataset_transform: Optional[Callable] = None,
         sample_fn: Optional[Callable] = None,
@@ -30,8 +29,6 @@ class TransformedDataset(Dataset, ABC):
         ----------
         dataset : torch.utils.data.Dataset
             Base dataset to transform.
-        n_classes : int
-            Number of classes in the dataset.
         metadata : Optional[DatasetMetadata], optional
             Pre-configured metadata instance, defaults to None.
         dataset_transform : Optional[Callable], optional
@@ -48,7 +45,6 @@ class TransformedDataset(Dataset, ABC):
 
         super().__init__()
         self.dataset = dataset
-        self.n_classes = n_classes
         self.dataset_transform = dataset_transform or (lambda x: x)
         self.sample_fn = sample_fn or (lambda x: x)
         self.label_fn = label_fn or (lambda x: x)

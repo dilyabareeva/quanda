@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
+import yaml
 from kronfluence.task import Task  # type: ignore
 from torch.utils.data import Dataset, TensorDataset
 from transformers import (
@@ -777,3 +778,19 @@ def qnli_dataset():
     ds_val = get_dataset("validation")
     ds_val = ds_val.select(range(QNLI_VAL_SET_SIZE))
     return ds_train, ds_val
+
+
+@pytest.fixture
+def load_mnist_unit_test_config():
+    # load yaml file
+    with open("tests/assets/mnist_test_suite_2/mnist_unit_test_base.yaml", "r") as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_mislabeling_config():
+    # load yaml file
+    with open("tests/assets/mnist_test_suite_2/mnist_unit_test_mislabeling.yaml", "r") as f:
+        config = yaml.safe_load(f)
+    return config

@@ -62,7 +62,7 @@ class Kronfluence(Explainer):
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         batch_size: int = 1,
-        device: Union[str, torch.device] = "cpu",
+        device: str = "cpu",
         analysis_name: str = "kronfluence_analysis",
         factors_name: str = "initial_factor",
         factor_args: FactorArguments = None,
@@ -93,7 +93,7 @@ class Kronfluence(Explainer):
             (model, checkpoint path) as two arguments, by default None.
         batch_size : int, optional
             Batch size used for iterating over the dataset. Defaults to 1.
-        device : Union[str, torch.device], optional
+        device : str, optional
             Device to run the computation on. Defaults to "cpu".
         analysis_name : str, optional
             Unique identifier for the analysis. Defaults to

@@ -62,7 +62,7 @@ class Explainer(ABC):
                 f"Supported tasks: {self.accepted_tasks}"
             )
 
-        self.device: Union[str, torch.device]
+        self.device: str
         self.model = model
 
         # if model has device attribute, use it, otherwise use the default

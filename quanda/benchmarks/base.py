@@ -16,7 +16,8 @@ from quanda.benchmarks.resources import (
     sample_transforms,
     load_module_from_bench_state,
 )
-from quanda.benchmarks.resources.modules import bench_load_state_dict
+from quanda.benchmarks.resources.modules import bench_load_state_dict, \
+    load_module_from_cfg
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
@@ -24,6 +25,7 @@ from quanda.utils.datasets.image_datasets import (
     HFtoTV,
     SingleClassImageDataset,
 )
+from quanda.utils.datasets.transformed import dataset_wrappers
 
 from quanda.utils.training import BaseTrainer
 
@@ -81,7 +83,7 @@ class Benchmark(ABC):
 
     def __init__(self, *args, **kwargs):
         """Initialize the base `Benchmark` class."""
-        self.device: Union[str, torch.device]
+        self.device: str
         self.bench_state: dict
         self._checkpoints_load_func: Optional[Callable[..., Any]] = None
         self._checkpoints: Optional[Union[str, List[str]]] = None
@@ -160,7 +162,7 @@ class Benchmark(ABC):
         )
 
     @classmethod
-    @abstractmethod
+    
     def assemble(cls, *args, **kwargs):
         """Assembles the benchmark from existing components.
 
@@ -169,7 +171,7 @@ class Benchmark(ABC):
         NotImplementedError
 
         """
-        raise NotImplementedError
+        pass
 
     def _assemble_common(
         self,
@@ -208,7 +210,7 @@ class Benchmark(ABC):
         self.checkpoints_load_func = checkpoints_load_func
         self.use_predictions = use_predictions
 
-    @abstractmethod
+    
     def evaluate(
         self,
         explainer_cls: type,
@@ -232,7 +234,7 @@ class Benchmark(ABC):
         NotImplementedError
 
         """
-        raise NotImplementedError
+        pass
 
     def _set_devices(
         self,
@@ -628,3 +630,57 @@ class Benchmark(ABC):
             raise RuntimeError(f"Failed to extract the zip file: {e}")
 
         return download_dir
+
+    @staticmethod
+    def dataset_from_cfg(config: dict, cache_dir: str):
+        """Return the dataset using the given parameters.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing the dataset configuration.
+        cache_dir : str
+            The cache directory.
+
+        Returns
+        -------
+        torch.utils.data.Dataset
+            The dataset.
+
+        """
+
+        transform = sample_transforms.get(config.get("transforms", None), None)
+        base_dataset = process_dataset(
+            dataset=config["dataset_str"],
+            transform=transform,
+            dataset_split=config.get("dataset_split", "train"),
+        )
+
+        wrapper = config.get("wrapper", None)
+
+        if wrapper is not None:
+            wrapper_cls = dataset_wrappers.get(wrapper["type"])
+            metadata_args = wrapper.get("metadata", {})
+            metadata = wrapper_cls.metadata_cls(**metadata_args)
+            dataset = wrapper_cls(base_dataset, metadata=metadata)
+            return dataset
+        else:
+            return base_dataset
+
+    def model_from_cfg(self, config: dict, cache_dir: str):
+        """Return the model using the given parameters.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing the model configuration.
+        cache_dir : str
+            The cache directory.
+
+        Returns
+        -------
+        torch.nn.Module
+            The model.
+
+        """
+        return load_module_from_cfg(config, self.device)

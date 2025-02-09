@@ -1,0 +1,3 @@
+dataset_str: ylecun/mnist
+dataset_split: test[:1%]
+transforms: "mnist_transforms"

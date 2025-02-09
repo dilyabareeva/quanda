@@ -1,0 +1,8 @@
+defaults:
+  - model: mnist_lenet
+  - train_dataset: mnist_train_unit
+  - eval_dataset: mnist_test_unit
+  - _self_
+
+experiment_name: default_experiment
+seed: 42 

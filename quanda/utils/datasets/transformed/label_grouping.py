@@ -17,7 +17,6 @@ class LabelGroupingDataset(TransformedDataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
-        n_classes: int,
         dataset_transform: Optional[Callable] = None,
         metadata: Optional[LabelGroupingMetadata] = None,
     ):
@@ -27,8 +26,6 @@ class LabelGroupingDataset(TransformedDataset):
         ----------
         dataset : torch.utils.data.Dataset
             Dataset to group classes.
-        n_classes : int
-            Number of classes in the (original, ungrouped) dataset.
         dataset_transform : Optional[Callable], optional
             Default transform of the dataset, defaults to None.
         metadata : Optional[LabelGroupingMetadata], optional
@@ -37,7 +34,6 @@ class LabelGroupingDataset(TransformedDataset):
 
         super().__init__(
             dataset=dataset,
-            n_classes=n_classes,
             dataset_transform=dataset_transform,
             metadata=metadata,
         )

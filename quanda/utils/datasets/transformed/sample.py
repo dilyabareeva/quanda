@@ -16,7 +16,6 @@ class SampleTransformationDataset(TransformedDataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
-        n_classes: int,
         sample_fn: Callable,
         dataset_transform: Optional[Callable] = None,
         metadata: Optional[SampleTransformationMetadata] = None,
@@ -27,8 +26,6 @@ class SampleTransformationDataset(TransformedDataset):
         ----------
         dataset : torch.utils.data.Dataset
             The base dataset to transform.
-        n_classes : int
-            Number of classes in the dataset.
         sample_fn : Callable
             Transform function to apply to samples.
         dataset_transform : Optional[Callable], optional
@@ -39,7 +36,6 @@ class SampleTransformationDataset(TransformedDataset):
 
         super().__init__(
             dataset=dataset,
-            n_classes=n_classes,
             dataset_transform=dataset_transform,
             metadata=metadata,
         )
