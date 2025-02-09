@@ -1,5 +1,5 @@
 defaults:
-  - model: mnist_lenet
+  - model: mnist_lenet_base
   - train_dataset: mnist_train_unit
   - eval_dataset: mnist_test_unit
   - _self_
