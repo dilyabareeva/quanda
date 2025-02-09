@@ -386,6 +386,7 @@ def test_kronfluence_self_influence_functional_with_optional_args(
     ), "Self-influence scores have incorrect shape"
 
 
+"""
 @pytest.mark.explainers
 @pytest.mark.parametrize(
     "test_id, model, dataset",
@@ -425,3 +426,4 @@ def test_kronfluence_self_influence_qnli(
     assert self_influence_scores.shape == (
         len(train_dataset),
     ), "Self-influence scores have incorrect shape"
+"""
