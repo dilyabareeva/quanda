@@ -30,7 +30,7 @@ from quanda.utils.datasets.image_datasets import (
 )
 from quanda.utils.datasets.transformed import transform_wrappers
 
-from quanda.utils.training import BaseTrainer
+from quanda.utils.training import BaseTrainer, Trainer
 
 
 def process_dataset(
@@ -86,10 +86,12 @@ class Benchmark(ABC):
 
     def __init__(self, *args, **kwargs):
         """Initialize the base `Benchmark` class."""
+        self.model: torch.nn.Module
         self.device: str
-        self.bench_state: dict
-        self._checkpoints_load_func: Optional[Callable[..., Any]] = None
-        self._checkpoints: Optional[Union[str, List[str]]] = None
+        self.train_dataset: torch.utils.data.Dataset
+        self.eval_dataset: torch.utils.data.Dataset
+        self.checkpoints: Optional[List[str]]
+        self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
@@ -526,16 +528,18 @@ class Benchmark(ABC):
         )
         return explainer
 
-    def _train_model(
-        self,
-        model: torch.nn.Module,
-        trainer: Union[L.Trainer, BaseTrainer],
-        train_dataset: torch.utils.data.Dataset,
-        save_dir: str,
-        val_dataset: Optional[torch.utils.data.Dataset] = None,
-        trainer_fit_kwargs: Optional[dict] = None,
+    @classmethod
+    def train(
+        cls,
+        config: dict, load_meta_from_disk: bool = True,
+        device: str = "cpu",
         batch_size: int = 8,
     ):
+        obj = cls.from_config(config, load_meta_from_disk, device)
+        train_dataset, val_dataset, test_dataset = obj.split_dataset(
+            obj.train_dataset, config["split_path"]
+        )
+
         train_dl = torch.utils.data.DataLoader(
             train_dataset, batch_size=batch_size
         )
@@ -546,54 +550,27 @@ class Benchmark(ABC):
         else:
             val_dl = None
 
-        model.train()
+        obj.model.train()
 
-        trainer_fit_kwargs = trainer_fit_kwargs or {}
+        trainer_kwargs = config["trainer"]
+        trainer_fit_kwargs = trainer_kwargs.get("fit", {})
+        trainer = Trainer(**trainer_kwargs)
 
-        if isinstance(trainer, L.Trainer):
-            if not isinstance(model, L.LightningModule):
-                raise ValueError(
-                    "Model should be a LightningModule if Trainer is a "
-                    "Lightning Trainer"
-                )
-
-            trainer.fit(
-                model=model,
-                train_dataloaders=train_dl,
-                val_dataloaders=val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        elif isinstance(trainer, BaseTrainer):
-            if not isinstance(model, torch.nn.Module):
-                raise ValueError(
-                    "Model should be a torch.nn.Module if Trainer is a "
-                    "BaseTrainer"
-                )
-
-            trainer.fit(
-                model=model,
-                train_dataloaders=train_dl,
-                val_dataloaders=val_dl,
-                **trainer_fit_kwargs,
-            )
-
-        else:
-            raise ValueError(
-                "Trainer should be a Lightning Trainer or a BaseTrainer"
-            )
-
-        # save check point to cache_dir
-        # TODO: add model id
-        torch.save(
-            model.state_dict(),
-            save_dir,
+        trainer.fit(
+            model=obj.model,
+            train_dataloaders=train_dl,
+            val_dataloaders=val_dl,
+            **trainer_fit_kwargs,
         )
 
-        model.to(self.device)
-        model.eval()
+        ckpt_dir = config["model"]["ckpt_dir"]
+        torch.save(
+            obj.model.state_dict(),
+            ckpt_dir,
+        )
 
-        return model
+        obj.model.to(obj.device)
+        obj.model.eval()
 
     def download_zip_file(self, url: str, download_dir: str) -> str:
         """Download a zip file from the given URL and extract it.

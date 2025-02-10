@@ -2,7 +2,11 @@
 
 # Define the parameter dictionaries
 param_dicts=(
-    "train_dataset=mnist_train_unit"
+    "bench=ClassDetection train_dataset=mnist_train_unit eval_dataset=mnist_test_unit"
+    "bench=MislabelingDetection model=mnist_lenet_mislabeling train_dataset=mnist_train_unit_mislabeling"
+    "bench=SubclassDetection model=mnist_lenet_subclass train_dataset=mnist_train_unit_subclass eval_dataset=mnist_test_unit_subclass"
+    "bench=ShortcutDetection train_dataset=mnist_train_unit_shortcut eval_dataset=mnist_test_unit_shortcut"
+    "bench=MixedDatasets train_dataset=mnist_train_unit eval_dataset=mnist_test_unit +adv_dataset=fashion_mnist_unit"
 )
 
 # Define the output directory
@@ -17,7 +21,7 @@ for params in "${param_dicts[@]}"; do
     params_underscored=$(echo $params | tr ' ' '_' | tr '=' '--')
 
     # Construct the output file name
-    cfg_file_name="${commit_tag}-default-${params_underscored}.yaml"
+    cfg_file_name="${commit_tag}-default"
 
     # Construct and execute the command with Hydra overrides
     echo "Running with parameters: $params"
