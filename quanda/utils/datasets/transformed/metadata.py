@@ -143,7 +143,7 @@ class LabelFlippingMetadata(DatasetMetadata):
     """Metadata for flipping labels."""
 
     n_classes: int = 10
-    mislabeling_labels: Dict[str, int] = field(default_factory=dict)
+    mislabeling_labels: Optional[Dict[str, int]] = None
 
     def generate_indices(self, dataset: torch.utils.data.Dataset) -> List[int]:
         """Generate indices for transformation."""
@@ -153,7 +153,10 @@ class LabelFlippingMetadata(DatasetMetadata):
         """Generate mislabeling labels."""
         if self.mislabeling_labels is not None:
             return self.mislabeling_labels
-
+        if self.transform_indices is None:
+            raise ValueError(
+                "transform_indices must be set to generate mislabeling labels"
+            )
         return {
             str(i): self._poison(dataset[i][1])
             for i in range(len(dataset))
