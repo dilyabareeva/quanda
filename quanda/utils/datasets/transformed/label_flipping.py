@@ -63,5 +63,5 @@ class LabelFlippingDataset(TransformedDataset):
         """
         sample, label = super().__getitem__(idx)
         if idx in self.transform_indices:
-            label = self.mislabeling_labels[str(idx)]
+            label = self.mislabeling_labels[idx]
         return sample, label

@@ -145,22 +145,31 @@ class LabelFlippingMetadata(DatasetMetadata):
     """Metadata for flipping labels."""
 
     n_classes: int = 10
-    mislabeling_labels: Optional[Dict[str, int]] = None
+    mislabeling_labels: Optional[Dict[int, int]] = None
 
     def generate_indices(self, dataset: torch.utils.data.Dataset) -> List[int]:
         """Generate indices for transformation."""
-        return super().generate_indices(dataset)
+        if self.mislabeling_labels is None:
+            self.mislabeling_labels = self.generate_mislabeling_labels(dataset)
+        self.transform_indices = list(self.mislabeling_labels.keys())
+        return self.transform_indices
 
-    def generate_mislabeling_labels(self, dataset) -> Dict[str, int]:
+    def generate_mislabeling_labels(self, dataset) -> Dict[int, int]:
         """Generate mislabeling labels."""
+        if self.mislabeling_labels is not None and not isinstance(
+            self.mislabeling_labels, dict
+        ):
+            raise ValueError(
+                f"mislabeling_labels should be a dictionary, received "
+                f"{type(self.mislabeling_labels)}"
+            )
         if self.mislabeling_labels is not None:
+            self.transform_indices = list(self.mislabeling_labels.keys())
             return self.mislabeling_labels
         if self.transform_indices is None:
-            raise ValueError(
-                "transform_indices must be set to generate mislabeling labels"
-            )
+            self.transform_indices = super().generate_indices(dataset)
         self.mislabeling_labels = {
-            str(i): self._poison(dataset[i][1])
+            i: self._poison(dataset[i][1])
             for i in range(len(dataset))
             if i in self.transform_indices
         }
@@ -175,13 +184,7 @@ class LabelFlippingMetadata(DatasetMetadata):
     def validate(self, dataset: torch.utils.data.Dataset):
         """Validate the metadata."""
         super().validate(dataset)
-        if self.mislabeling_labels is not None and not isinstance(
-            self.mislabeling_labels, dict
-        ):
-            raise ValueError(
-                f"mislabeling_labels should be a dictionary, received "
-                f"{type(self.mislabeling_labels)}"
-            )
+
         if self.mislabeling_labels is not None and not all(
             0 <= new_label < self.n_classes
             for new_label in self.mislabeling_labels.values()

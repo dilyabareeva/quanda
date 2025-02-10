@@ -24,6 +24,7 @@ from quanda.utils.datasets.transformed import LabelFlippingDataset
             None,
         ),
         ("load_mnist_dataset", 10, 27, [], None, ValueError),
+        ("load_mnist_dataset", 10, 27, {10022: 32, 892: 33}, None, ValueError),
     ],
 )
 def test_label_flipping_dataset(
@@ -68,5 +69,5 @@ def test_label_flipping_dataset(
         labels = flipped_dataset.mislabeling_labels
         assertions.append(len(labels.keys()) == len(expected.keys()))
         for i in labels.keys():
-            assertions.append(labels[i] == expected[i])
+            assertions.append(labels[i] == expected[str(i)])
         assert all(assertions)
