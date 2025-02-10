@@ -9,7 +9,13 @@ model:
 train_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train[:1%]
-  transforms: null
+  indices:
+    split_filename: mnist_train_unit_shortcut_split.yaml
+    split_name: train
+    val: 0.1
+    test: 0.1
+    seed: 42
+  transforms: none
   wrapper:
     type: SampleTransformationDataset
     metadata:
@@ -23,6 +29,7 @@ eval_dataset:
   dataset_str: ylecun/mnist
   dataset_split: test[:1%]
   transforms: none
+  indices: all
   wrapper:
     type: SampleTransformationDataset
     metadata:
@@ -33,13 +40,12 @@ eval_dataset:
     sample_fn: add_white_square_mnist
     dataset_transform: mnist_transforms
 bench: ShortcutDetection
-adv_split_path: tests/assets/fashion_mnist_split.pth
 adversarial_label: 0
-metadata_dir: tests/assets/mnist_test_suite_2
+metadata_dir: tests/assets/mnist_test_suite_2/metadata
 cache_dir: ./tmp
 top_k: 5
 model_id: '0'
 correlation_fn: kendall
 seed: 42
-cfg_file_name: 7620f1d-default_ShortcutDetection.yaml
+cfg_file_name: 94286bb-default_ShortcutDetection.yaml
 cfg_output_dir: tests/assets/mnist_test_suite_2

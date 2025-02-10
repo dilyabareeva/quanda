@@ -2,13 +2,12 @@ defaults:
   - model: mnist_lenet_base
   - train_dataset: mnist_train_unit
   - eval_dataset: mnist_test_unit
+  - val_dataset: null
   - _self_
 
 bench: MixedDatasets
-split_path: "tests/assets/mnist_split.pth"
-adv_split_path: "tests/assets/fashion_mnist_split.pth"
 adversarial_label: 0
-metadata_dir: "tests/assets/mnist_test_suite_2"
+metadata_dir: "tests/assets/mnist_test_suite_2/metadata"
 cache_dir: "./tmp"
 top_k: 5
 model_id: "0"

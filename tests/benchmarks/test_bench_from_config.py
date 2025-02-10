@@ -40,7 +40,7 @@ from quanda.utils.functions import cosine_similarity
             MixedDatasets,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.00918253418058157,
+            0.013039356097579002,
         ),
         (
             "mnist",
@@ -67,7 +67,7 @@ from quanda.utils.functions import cosine_similarity
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.1492285281419754,
+            0.14713577926158905,
         ),
         (
             "mnist",
@@ -76,7 +76,7 @@ from quanda.utils.functions import cosine_similarity
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.1492285281419754,
+            0.14713577926158905,
         ),
         (
             "mnist",

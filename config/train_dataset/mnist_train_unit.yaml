@@ -1,3 +1,4 @@
 dataset_str: ylecun/mnist
 dataset_split: train[:1%]
 transforms: "mnist_transforms"
+indices: "all"

@@ -95,14 +95,21 @@ class MixedDatasets(Benchmark):
         train_base_dataset = obj.dataset_from_cfg(
             config=config["train_dataset"], metadata_dir=config.get("metadata_dir"),
             load_meta_from_disk=load_meta_from_disk)
+        val_base_dataset = obj.dataset_from_cfg(
+            config=config.get("val_dataset", None), metadata_dir=config.get("metadata_dir"),
+            load_meta_from_disk=load_meta_from_disk)
         adv_dataset = obj.dataset_from_cfg(config=config["adv_dataset"],
                                            metadata_dir=config.get("metadata_dir"),
                                            load_meta_from_disk=load_meta_from_disk)
-        adv_base_dataset, _, obj.eval_dataset = obj.split_dataset(
+        adv_base_dataset, adv_val_dataset, obj.eval_dataset = obj.split_dataset(
             dataset=adv_dataset,
-            split_path=config["adv_split_path"],
+            metadata_dir=config.get("metadata_dir"),
+            split_filename=config["adv_dataset"]["split_filename"],
+            load_meta_from_disk=load_meta_from_disk,
         )
         obj.train_dataset = torch.utils.data.ConcatDataset([adv_base_dataset, train_base_dataset])
+        datasets_to_concat = [d for d in [adv_val_dataset, val_base_dataset] if d is not None]
+        obj.val_dataset = None if not datasets_to_concat else torch.utils.data.ConcatDataset(datasets_to_concat)
         obj.adversarial_label = config["adversarial_label"]
         obj.adversarial_indices = [1] * len(adv_base_dataset) + [0] * len(train_base_dataset)
 

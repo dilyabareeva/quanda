@@ -1,7 +1,7 @@
 model:
   ckpt_dir: tests/assets/mnist_test_suite_2
   checkpoints:
-  - mnist.pth
+  - mnist_mislabeling_detection_state_dict.pth
   module:
     name: MnistTorch
     args:
@@ -10,18 +10,24 @@ train_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train[:1%]
   transforms: mnist_transforms
+  indices: all
+  wrapper:
+    type: LabelFlippingDataset
+    metadata:
+      metadata_filename: mnist_train_unit_mislabeling.yaml
+      p: 0.1
 eval_dataset:
   dataset_str: ylecun/mnist
   dataset_split: test[:1%]
   transforms: mnist_transforms
-bench: ClassDetection
-adv_split_path: tests/assets/fashion_mnist_split.pth
+  indices: all
+bench: MislabelingDetection
 adversarial_label: 0
-metadata_dir: tests/assets/mnist_test_suite_2
+metadata_dir: tests/assets/mnist_test_suite_2/metadata
 cache_dir: ./tmp
 top_k: 5
 model_id: '0'
 correlation_fn: kendall
 seed: 42
-cfg_file_name: 7620f1d-default_ClassDetection.yaml
+cfg_file_name: 94286bb-default_MislabelingDetection.yaml
 cfg_output_dir: tests/assets/mnist_test_suite_2

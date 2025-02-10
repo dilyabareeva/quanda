@@ -685,6 +685,8 @@ class Benchmark(ABC):
             The dataset.
 
         """
+        if config is None:
+            return None
 
         transform = sample_transforms.get(config.get("transforms", None), None)
         if "dataset_str" in config:
@@ -693,6 +695,20 @@ class Benchmark(ABC):
                 transform=transform,
                 dataset_split=config.get("dataset_split", "train"),
             )
+            indices = copy.deepcopy(config.get("indices", "all"))
+            if indices != "all":
+                split_name = indices.pop("split_name", "train")
+                split_filename = indices.pop("split_filename",
+                                                 "DOESNT_EXIST")
+                # check if file exists
+                if TrainValTest.exists(metadata_dir, split_filename) and load_meta_from_disk:
+                    split = TrainValTest.load(metadata_dir, split_filename)
+                else:
+                    split = TrainValTest.split(len(base_dataset), indices["seed"], indices["val"], indices["test"])
+                    split.save(metadata_dir, split_filename)
+                base_dataset = torch.utils.data.Subset(
+                    base_dataset, split[split_name]
+                )
 
             wrapper = copy.deepcopy(config.get("wrapper", None))
 
@@ -753,7 +769,13 @@ class Benchmark(ABC):
         """
         return load_module_from_cfg(config, self.device)
 
-    def split_dataset(self, dataset: torch.utils.data.Dataset, split_path: str):
+    def split_dataset(
+            self,
+            dataset: torch.utils.data.Dataset,
+            metadata_dir: str,
+            split_filename: str,
+            load_meta_from_disk: bool = True,
+    ):
         """
         Split the dataset using the given parameters.
 
@@ -769,15 +791,18 @@ class Benchmark(ABC):
         Tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, torch.utils.data.Dataset]
             The train, val, test datasets.
         """
-        # split split_path to folder and file name
-        folder, file = os.path.split(split_path)
-        split = TrainValTest.load(folder, file)
+
+        if TrainValTest.exists(metadata_dir, split_filename) and load_meta_from_disk:
+            split = TrainValTest.load(metadata_dir, split_filename)
+        else:
+            split = TrainValTest.split(len(dataset), 42, 0.1, 0.1)
+            split.save(metadata_dir, split_filename)
 
 
         train_dataset = torch.utils.data.Subset(dataset, split.train)
         test_dataset = torch.utils.data.Subset(dataset, split.test)
 
-        if split.val:
+        if len(split.val) > 0:
             val_dataset = torch.utils.data.Subset(dataset, split.val)
         else:
             val_dataset = None
@@ -803,6 +828,9 @@ class Benchmark(ABC):
         obj.device = device
         obj.train_dataset = obj.dataset_from_cfg(
             config=config.get("train_dataset"), metadata_dir=config.get("metadata_dir"),
+            load_meta_from_disk=load_meta_from_disk)
+        obj.val_dataset = obj.dataset_from_cfg(
+            config=config.get("val_dataset", None), metadata_dir=config.get("metadata_dir"),
             load_meta_from_disk=load_meta_from_disk)
         obj.eval_dataset = obj.dataset_from_cfg(
             config=config.get("eval_dataset"), metadata_dir=config.get("metadata_dir"),
