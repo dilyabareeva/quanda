@@ -59,7 +59,7 @@ class ModelRandomization(Benchmark):
         self.seed: int
         self.device: str
 
-        self.checkpoints: Optional[List[str]]
+        self.checkpoints: List[str]
         self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
@@ -80,6 +80,7 @@ class ModelRandomization(Benchmark):
             default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
+
         """
         obj = super().from_config(config, load_meta_from_disk, device)
         obj.correlation_fn = correlation_functions[config["correlation_fn"]]

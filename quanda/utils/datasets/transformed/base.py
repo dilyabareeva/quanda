@@ -37,8 +37,8 @@ class TransformedDataset(Dataset, ABC):
             The sample transformation function, defaults to None.
         label_fn : Optional[Callable], optional
             The label transformation function, defaults to None.
-        """
 
+        """
         # check if dataset has length attribute
         if not hasattr(dataset, "__len__"):
             raise ValueError(

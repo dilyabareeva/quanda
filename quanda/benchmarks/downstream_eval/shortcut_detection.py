@@ -68,7 +68,7 @@ class ShortcutDetection(Benchmark):
         self.use_predictions: bool
         self.filter_by_prediction: bool
         self.filter_by_class: bool
-        self.checkpoints: Optional[List[str]]
+        self.checkpoints: List[str]
         self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
@@ -89,6 +89,7 @@ class ShortcutDetection(Benchmark):
             default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
+
         """
         obj = super().from_config(config, load_meta_from_disk, device)
         obj.shortcut_cls = obj.train_dataset.metadata.cls_idx
@@ -120,16 +121,15 @@ class ShortcutDetection(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-
         if not isinstance(self.eval_dataset, SampleTransformationDataset):
             raise ValueError(
-                "Shortcut detection evaluation requires a SampleTransformationDataset"
-                " as the evaluation dataset."
+                "Shortcut detection evaluation requires a "
+                "SampleTransformationDataset as the evaluation dataset."
             )
         if not isinstance(self.train_dataset, SampleTransformationDataset):
             raise ValueError(
-                "Shortcut detection evaluation requires a SampleTransformationDataset"
-                " as the training dataset."
+                "Shortcut detection evaluation requires a "
+                "SampleTransformationDataset as the training dataset."
             )
 
         explainer = self._prepare_explainer(

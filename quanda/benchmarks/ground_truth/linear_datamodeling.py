@@ -3,16 +3,10 @@
 import logging
 from typing import Callable, Optional, Union, List, Any
 
-from copy import deepcopy
 import lightning as L
 import torch
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import (
-    load_module_from_bench_state,
-    sample_transforms,
-)
-from quanda.benchmarks.resources.modules import bench_load_state_dict
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
@@ -75,7 +69,6 @@ class LinearDatamodeling(Benchmark):
         self.seed: int
         self.subset_ids: Optional[List[List[int]]]
         self.pretrained_models: Optional[List[torch.nn.Module]]
-
 
     @classmethod
     def assemble(
@@ -188,7 +181,7 @@ class LinearDatamodeling(Benchmark):
     def _assemble_common(
         self,
         model: torch.nn.Module,
-        eval_dataset: Optional[torch.utils.data.Dataset] = None,
+        eval_dataset: torch.utils.data.Dataset,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         use_predictions: bool = True,

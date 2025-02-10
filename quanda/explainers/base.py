@@ -67,9 +67,9 @@ class Explainer(ABC):
 
         # if model has device attribute, use it, otherwise use the default
         if next(model.parameters(), None) is not None:
-            self.device = next(model.parameters()).device
+            self.device = str(next(model.parameters()).device)
         else:
-            self.device = torch.device("cpu")
+            self.device = "cpu"
 
         if checkpoints_load_func is None:
             self.checkpoints_load_func = get_load_state_dict_func(self.device)

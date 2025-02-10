@@ -39,7 +39,7 @@ def load_module_from_cfg(cfg: dict, device: str):
     module.load_state_dict(
         torch.load(last_ckpts_path, map_location=device, weights_only=True)
     )
-    # torch.save(torch.load(last_ckpts_path, map_location=device, weights_only=True)["model"].state_dict(), last_ckpts_path)
+
     module.to(device)
     module.eval()
     return module, checkpoints
@@ -53,10 +53,12 @@ def bench_load_state_dict(module: torch.nn.Module, checkpoint: dict):
 
 class LeNet(torch.nn.Module):
     """A torch implementation of LeNet architecture.
+
     Adapted from: https://github.com/ChawDoe/LeNet5-MNIST-PyTorch.
     """
 
     def __init__(self, num_outputs=10):
+        """Initialize the LeNet model."""
         super().__init__()
         self.conv_1 = torch.nn.Conv2d(1, 6, 5)
         self.pool_1 = torch.nn.MaxPool2d(2, 2)
@@ -71,6 +73,7 @@ class LeNet(torch.nn.Module):
         self.fc_3 = torch.nn.Linear(84, num_outputs)
 
     def forward(self, x):
+        """Forward pass."""
         x = self.pool_1(self.relu_1(self.conv_1(x)))
         x = self.pool_2(self.relu_2(self.conv_2(x)))
         x = x.view(x.shape[0], -1)

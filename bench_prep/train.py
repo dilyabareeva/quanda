@@ -15,6 +15,7 @@ def main(cfg: DictConfig) -> None:
     cfg.id = f"{cfg.id}_{cfg.bench}"
     bench_cls = bench_dict[cfg.bench]
     bench = bench_cls.train(cfg)
+    print(bench.name)
     # Save config to the specified output directory
     output_file = os.path.join(cfg.cfg_output_dir, cfg.cfg_file_name)
     with open(output_file, "w") as file:

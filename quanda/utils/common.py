@@ -99,7 +99,7 @@ def cache_result(method):
 def class_accuracy(
     net: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
-    device: str = "cpu",
+    device: Union[str, torch.device] = "cpu",
 ):
     """Return accuracy on a dataset given by the data loader.
 
@@ -109,7 +109,7 @@ def class_accuracy(
         The model to evaluate.
     loader : torch.utils.data.DataLoader
         The data loader to evaluate the model on.
-    device : str, optional
+    device : Union[str, torch.device], optional
         The device to evaluate the model on, by default "cpu".
 
     Returns
@@ -130,7 +130,7 @@ def class_accuracy(
 
 # Taken directly from Captum with minor changes
 def _load_flexible_state_dict(
-    model: torch.nn.Module, path: str, device: str
+    model: torch.nn.Module, path: str, device: Union[str, torch.device]
 ) -> float:
     """Load pytorch models.
 
@@ -147,7 +147,7 @@ def _load_flexible_state_dict(
         The model for which to load a checkpoint
     path : str
         The filepath to the checkpoint
-    device : str
+    device : Union[str, torch.device]
         The device to use.
 
     Returns
@@ -185,12 +185,12 @@ def _load_flexible_state_dict(
     return learning_rate
 
 
-def get_load_state_dict_func(device: str):
+def get_load_state_dict_func(device: Union[str, torch.device]):
     """Get a load_state_dict function that loads a model state dict.
 
     Parameters
     ----------
-    device : str
+    device : Union[str, torch.device]
         The device to load the model on.
 
     """
@@ -202,12 +202,12 @@ def get_load_state_dict_func(device: str):
 
 
 @contextmanager
-def default_tensor_type(device: str):
+def default_tensor_type(device: Union[str, torch.device]):
     """Context manager to temporarily change the default tensor type.
 
     Parameters
     ----------
-    device : str
+    device : Union[str, torch.device]
         The device to which the default tensor type should be set.
 
     Returns
@@ -239,12 +239,12 @@ def default_tensor_type(device: str):
 
 
 @contextmanager
-def map_location_context(device: str):
+def map_location_context(device: Union[str, torch.device]):
     """Context manager to temporarily change the map_location of torch.load.
 
     Parameters
     ----------
-    device: str
+    device: Union[str, torch.device]
         The device to which the tensors should be loaded.
 
     Returns
@@ -289,7 +289,7 @@ def ds_len(dataset: torch.utils.data.Dataset) -> int:
 
 
 def process_targets(
-    targets: Union[List[int], torch.Tensor], device: str
+    targets: Union[List[int], torch.Tensor], device: Union[str, torch.device]
 ) -> torch.Tensor:
     """Convert target labels to torch.Tensor and move them to the device.
 
@@ -297,7 +297,7 @@ def process_targets(
     ----------
     targets : Optional[Union[List[int], torch.Tensor]], optional
         The target labels, either as a list or tensor.
-    device: str
+    device: Union[str, torch.device]
         The device to use.
 
     Returns
@@ -338,11 +338,14 @@ def load_last_checkpoint(
 
 @dataclass
 class TrainValTest(ABC):
+    """Class to store train, validation, and test indices."""
+
     train: torch.Tensor
     val: torch.Tensor
     test: torch.Tensor
 
     def __getitem__(self, key):
+        """Get the indices for the specified key."""
         if key == "train":
             return self.train
         elif key == "val":
@@ -356,6 +359,7 @@ class TrainValTest(ABC):
     def split(
         cls, n_indices: int, seed: int, val_size: float, test_size: float
     ) -> "TrainValTest":
+        """Split the indices into train, validation, and test sets."""
         if val_size + test_size >= 1:
             raise ValueError("val_size + test_size must be less than 1.")
 
@@ -376,6 +380,7 @@ class TrainValTest(ABC):
 
     @classmethod
     def load(cls, path: str, name: str) -> "TrainValTest":
+        """Load the TrainValTest instance from disk."""
         with open(os.path.join(path, name), "r") as f:
             data = yaml.safe_load(f)
             # Convert lists to tensors
@@ -386,6 +391,7 @@ class TrainValTest(ABC):
             )
 
     def save(self, path: str, name: str) -> None:
+        """Save the TrainValTest instance to disk."""
         os.makedirs(path, exist_ok=True)
         # Convert tensors to lists for YAML serialization
         data = {
@@ -397,6 +403,7 @@ class TrainValTest(ABC):
             yaml.safe_dump(data, f)
 
     def to_dict(self) -> Dict:
+        """Convert the TrainValTest instance to a dictionary."""
         return {
             "train": self.train,
             "val": self.val,
@@ -405,5 +412,6 @@ class TrainValTest(ABC):
 
     @staticmethod
     def exists(path: str, name: str) -> bool:
+        """Check if metadata exists on disk."""
         metadata_path = os.path.join(path, name)
         return os.path.exists(metadata_path)

@@ -18,8 +18,8 @@ class LabelGroupingDataset(TransformedDataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
+        metadata: LabelGroupingMetadata,
         dataset_transform: Optional[Callable] = None,
-        metadata: Optional[LabelGroupingMetadata] = None,
     ):
         """Construct the LabelGroupingDataset class.
 
@@ -31,8 +31,8 @@ class LabelGroupingDataset(TransformedDataset):
             Default transform of the dataset, defaults to None.
         metadata : Optional[LabelGroupingMetadata], optional
             Pre-configured metadata instance, defaults to None.
-        """
 
+        """
         super().__init__(
             dataset=dataset,
             dataset_transform=dataset_transform,
@@ -63,6 +63,7 @@ class LabelGroupingDataset(TransformedDataset):
         tuple
             Tuple of (sample, group_label) where group_label is the superclass
             label for the original class.
+
         """
         sample, label = super().__getitem__(idx)
         return sample, self.class_to_group[label]
@@ -79,6 +80,7 @@ class LabelGroupingDataset(TransformedDataset):
         -------
         int
             The superclass label for the original class.
+
         """
         sample, label = super().__getitem__(idx)
         return label

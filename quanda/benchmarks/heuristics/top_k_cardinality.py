@@ -51,7 +51,7 @@ class TopKCardinality(Benchmark):
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
-        self.checkpoints: Optional[List[str]]
+        self.checkpoints: List[str]
         self.checkpoints_load_func: Optional[Callable[..., Any]]
         self.top_k: int
 
@@ -73,6 +73,7 @@ class TopKCardinality(Benchmark):
             default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
+
         """
         obj = super().from_config(config, load_meta_from_disk, device)
         obj.top_k = config["top_k"]

@@ -110,6 +110,8 @@ class Kronfluence(Explainer):
             DataLoader arguments. Defaults to None.
         overwrite_output_dir : bool, optional
             Whether to overwrite stored results. Defaults to True.
+        cache_dir : str, optional
+            Directory to store the cached results. Defaults to "./cache".
 
         """
         super().__init__(

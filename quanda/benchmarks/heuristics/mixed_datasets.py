@@ -63,11 +63,13 @@ class MixedDatasets(Benchmark):
 
         self.train_dataset: torch.utils.data.ConcatDataset
         self.eval_dataset: torch.utils.data.Dataset
+        self.val_dataset: Optional[torch.utils.data.Dataset] = None
         self.adversarial_label: int
+        self.adversarial_indices: List[int]
 
         self.filter_by_prediction: bool
         self.cache_dir: str
-        self.checkpoints: Optional[List[str]]
+        self.checkpoints: List[str]
         self.checkpoints_load_func: Optional[Callable[..., Any]]
         self.use_predictions: bool = False
 
@@ -89,28 +91,29 @@ class MixedDatasets(Benchmark):
             default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
+
         """
         obj = cls()
         obj.device = device
         train_base_dataset = obj.dataset_from_cfg(
             config=config["train_dataset"],
-            metadata_dir=config.get("metadata_dir"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         val_base_dataset = obj.dataset_from_cfg(
             config=config.get("val_dataset", None),
-            metadata_dir=config.get("metadata_dir"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         adv_dataset = obj.dataset_from_cfg(
             config=config["adv_dataset"],
-            metadata_dir=config.get("metadata_dir"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         adv_base_dataset, adv_val_dataset, obj.eval_dataset = (
             obj.split_dataset(
                 dataset=adv_dataset,
-                metadata_dir=config.get("metadata_dir"),
+                metadata_dir=config.get("metadata_dir", "./tmp"),
                 split_filename=config["adv_dataset"]["split_filename"],
                 load_meta_from_disk=load_meta_from_disk,
             )
@@ -161,7 +164,6 @@ class MixedDatasets(Benchmark):
             Dictionary containing the metric score.
 
         """
-
         if not isinstance(self.train_dataset, torch.utils.data.ConcatDataset):
             raise ValueError("Training dataset must be a ConcatDataset.")
 

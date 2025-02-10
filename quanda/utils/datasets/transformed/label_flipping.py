@@ -16,8 +16,8 @@ class LabelFlippingDataset(TransformedDataset):
     def __init__(
         self,
         dataset: Dataset,
+        metadata: LabelFlippingMetadata,
         dataset_transform: Optional[Callable] = None,
-        metadata: Optional[LabelFlippingMetadata] = None,
     ):
         """Construct the LabelFlippingDataset class.
 
@@ -29,8 +29,8 @@ class LabelFlippingDataset(TransformedDataset):
             Default transform of the dataset, defaults to None.
         metadata : Optional[LabelFlippingMetadata], optional
             Pre-configured metadata instance, defaults to None.
-        """
 
+        """
         super().__init__(
             dataset=dataset,
             dataset_transform=dataset_transform,
@@ -59,6 +59,7 @@ class LabelFlippingDataset(TransformedDataset):
         tuple
             Tuple of (sample, label) where label may be flipped if idx is in
             transform_indices.
+
         """
         sample, label = super().__getitem__(idx)
         if idx in self.transform_indices:

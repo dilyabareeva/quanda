@@ -5,7 +5,7 @@ import copy
 import warnings
 import zipfile
 from abc import ABC
-from typing import Callable, List, Optional, Union, Any
+from typing import Callable, List, Optional, Union, Any, Tuple
 
 import requests
 import torch
@@ -29,7 +29,10 @@ from quanda.utils.datasets.image_datasets import (
     HFtoTV,
     SingleClassImageDataset,
 )
-from quanda.utils.datasets.transformed import transform_wrappers
+from quanda.utils.datasets.transformed import (
+    transform_wrappers,
+    TransformedDataset,
+)
 
 from quanda.utils.training import Trainer
 from quanda.utils.training.options import optimizers, criteria, schedulers
@@ -89,9 +92,11 @@ class Benchmark(ABC):
         self.model: torch.nn.Module
         self.device: str
         self.train_dataset: torch.utils.data.Dataset
+        self.val_dataset: Optional[torch.utils.data.Dataset] = None
         self.eval_dataset: torch.utils.data.Dataset
-        self.checkpoints: Optional[List[str]]
+        self.checkpoints: List[str]
         self.checkpoints_load_func: Optional[Callable[..., Any]]
+        self.use_predictions: bool = False
 
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
@@ -159,9 +164,9 @@ class Benchmark(ABC):
 
         """
         if next(model.parameters(), None) is not None:
-            self.device = next(model.parameters()).device
+            self.device = str(next(model.parameters()).device)
         else:
-            self.device = torch.device("cpu")
+            self.device = "cpu"
 
     def _process_dataset(
         self,
@@ -251,7 +256,7 @@ class Benchmark(ABC):
                 "explanations": explanations,
             }
 
-            if self.name == "Subclass Detection":
+            if hasattr(self, "class_to_group"):
                 data_unit["grouped_labels"] = torch.tensor(
                     [self.class_to_group[i.item()] for i in labels],
                     device=labels.device,
@@ -311,6 +316,7 @@ class Benchmark(ABC):
         Returns
         -------
         None
+
         """
         obj = cls.from_config(config, load_meta_from_disk=False, device=device)
 
@@ -378,9 +384,10 @@ class Benchmark(ABC):
         obj.model.to(obj.device)
         obj.model.eval()
 
-        #obj.save_metadata() TODO: implement this
+        # obj.save_metadata() TODO: implement this
 
     def save_metadata(self):
+        """Save metadata to disk."""
         raise NotImplementedError
 
     def download_zip_file(self, url: str, download_dir: str) -> str:
@@ -402,6 +409,7 @@ class Benchmark(ABC):
         ------
         RuntimeError
             If downloading or extracting the zip file fails.
+
         """
         if os.path.exists(download_dir):
             warnings.warn(
@@ -432,6 +440,7 @@ class Benchmark(ABC):
         ------
         RuntimeError
             If downloading fails.
+
         """
         try:
             response = requests.get(url, stream=True)
@@ -456,6 +465,7 @@ class Benchmark(ABC):
         ------
         RuntimeError
             If extraction fails.
+
         """
         try:
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
@@ -471,7 +481,8 @@ class Benchmark(ABC):
             return self.load_hf_dataset(config, load_meta_from_disk)
         elif "zip_url" in config:
             return self.load_zip_dataset(config)
-        return None
+        else:
+            raise ValueError("Dataset configuration not recognized.")
 
     def load_hf_dataset(
         self, config: dict, load_meta_from_disk: bool = True
@@ -522,7 +533,7 @@ class Benchmark(ABC):
 
     def dataset_from_cfg(
         self,
-        config: dict,
+        config: Optional[dict],
         metadata_dir: str = ".tmp",
         load_meta_from_disk: bool = True,
     ):
@@ -547,7 +558,13 @@ class Benchmark(ABC):
         load_meta_from_disk: bool,
     ) -> torch.utils.data.Dataset:
         """Apply a wrapper to the dataset based on configuration."""
-        wrapper_cls = transform_wrappers.get(wrapper.pop("type"))
+        wrapper_cls = transform_wrappers[wrapper.pop("type")]
+        # check if wrapper_cls is a subclass of TransformedDataset
+        if not hasattr(wrapper_cls, "metadata_cls"):
+            raise ValueError(
+                "The wrapper class must be a subclass of TransformedDataset."
+            )
+
         kwargs = wrapper
         if "metadata" in kwargs:
             metadata_args = kwargs.pop("metadata", {})
@@ -570,11 +587,11 @@ class Benchmark(ABC):
             kwargs["dataset_transform"] = sample_transforms.get(
                 kwargs["dataset_transform"]
             )
-        dataset = wrapper_cls(dataset, **kwargs)
-        dataset.metadata.save(
+        wrapped_dataset: TransformedDataset = wrapper_cls(dataset, **kwargs)
+        wrapped_dataset.metadata.save(
             metadata_dir, meta_filename
         )  # TODO: when to save metadata
-        return dataset
+        return wrapped_dataset
 
     def split_dataset(
         self,
@@ -583,22 +600,26 @@ class Benchmark(ABC):
         split_filename: str,
         load_meta_from_disk: bool = True,
     ):
-        """
-        Split the dataset using the given parameters.
+        """Split the dataset using the given parameters.
 
         Parameters
         ----------
         dataset: torch.utils.data.Dataset
             The dataset to be split.
-        split: str
-            Path to file where config in TrainValTest format is stored.
+        metadata_dir: str
+            Directory to store the metadata.
+        split_filename: str
+            Name of the file to store the split.
+        load_meta_from_disk: bool
+            Whether to load metadata from disk.
 
         Returns
         -------
-        Tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, torch.utils.data.Dataset]
+        Tuple[torch.utils.data.Dataset, torch.utils.data.Dataset,
+        torch.utils.data.Dataset]
             The train, val, test datasets.
-        """
 
+        """
         split = self.load_split_if_exists_or_generate(
             dataset, load_meta_from_disk, metadata_dir, split_filename
         )
@@ -616,6 +637,7 @@ class Benchmark(ABC):
     def load_split_if_exists_or_generate(
         self, dataset, load_meta_from_disk, metadata_dir, split_filename
     ):
+        """Load the split if it exists, otherwise generate it."""
         if (
             TrainValTest.exists(metadata_dir, split_filename)
             and load_meta_from_disk
@@ -638,17 +660,17 @@ class Benchmark(ABC):
         obj.device = device
         obj.train_dataset = obj.dataset_from_cfg(
             config=config.get("train_dataset"),
-            metadata_dir=config.get("metadata_dir"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.val_dataset = obj.dataset_from_cfg(
             config=config.get("val_dataset", None),
-            metadata_dir=config.get("metadata_dir"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.eval_dataset = obj.dataset_from_cfg(
             config=config.get("eval_dataset"),
-            metadata_dir=config.get("metadata_dir"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
 
@@ -656,7 +678,9 @@ class Benchmark(ABC):
         obj.checkpoints_load_func = None  # TODO: be more flexible
         return obj
 
-    def model_from_cfg(self, config: dict) -> torch.nn.Module:
+    def model_from_cfg(
+        self, config: dict
+    ) -> Tuple[torch.nn.Module, List[str]]:
         """Return the model using the given parameters.
 
         Parameters

@@ -55,7 +55,7 @@ class SubclassDetection(Benchmark):
 
         self.use_predictions: bool
         self.filter_by_prediction: bool
-        self.checkpoints: Optional[List[str]]
+        self.checkpoints: List[str]
         self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
@@ -114,7 +114,6 @@ class SubclassDetection(Benchmark):
             Dictionary containing the metric score.
 
         """
-
         if not isinstance(self.train_dataset, LabelGroupingDataset):
             raise ValueError(
                 "The train dataset must be a LabelGroupingDataset."

@@ -71,13 +71,13 @@ class MislabelingDetection(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-        self.eval_dataset: torch.nn.utils.Dataset
+        self.eval_dataset: torch.utils.data.Dataset
         self.train_dataset: LabelFlippingDataset
         self.device: str
 
         self.global_method: Union[str, type] = "self-influence"
         self.use_predictions: bool = True
-        self.checkpoints: Optional[List[str]]
+        self.checkpoints: List[str]
         self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
@@ -156,7 +156,7 @@ class MislabelingDetection(Benchmark):
             metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
                 train_dataset=self.train_dataset,
-                mislabeling_indices=self.train_dataset.metadata.transform_indices,
+                mislabeling_indices=self.train_dataset.transform_indices,
                 aggregator_cls=self.global_method,
             )
 
@@ -173,7 +173,7 @@ class MislabelingDetection(Benchmark):
                 checkpoints=self.checkpoints,
                 checkpoints_load_func=self.checkpoints_load_func,
                 train_dataset=self.train_dataset,
-                mislabeling_indices=self.train_dataset.metadata.transform_indices,
+                mislabeling_indices=self.train_dataset.transform_indices,
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
             )

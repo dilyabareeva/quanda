@@ -97,7 +97,7 @@ class LinearDatamodelingMetric(Metric):
             checkpoints_load_func=checkpoints_load_func,
         )
 
-        self.device = torch.device("cpu")  # TODO: why is this CPU?
+        self.device = "cpu"  # TODO: why is this CPU?
 
         self.cache_dir = cache_dir
         self.model_id = model_id

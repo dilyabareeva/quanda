@@ -19,8 +19,8 @@ class SampleTransformationDataset(TransformedDataset):
         self,
         dataset: torch.utils.data.Dataset,
         sample_fn: Callable,
+        metadata: SampleTransformationMetadata,
         dataset_transform: Optional[Callable] = None,
-        metadata: Optional[SampleTransformationMetadata] = None,
     ):
         """Construct the SampleTransformationDataset class.
 
@@ -34,8 +34,8 @@ class SampleTransformationDataset(TransformedDataset):
             The default transform of the dataset, defaults to None.
         metadata : Optional[SampleTransformationMetadata], optional
             Pre-configured metadata instance, defaults to None.
-        """
 
+        """
         super().__init__(
             dataset=dataset,
             dataset_transform=dataset_transform,
@@ -43,6 +43,6 @@ class SampleTransformationDataset(TransformedDataset):
         )
 
         self.metadata = metadata
-        self.metadata.generate_indices(dataset)
+        self.transform_indices = self.metadata.generate_indices(dataset)
         self.sample_fn = sample_fn
         self.metadata.validate(dataset)
