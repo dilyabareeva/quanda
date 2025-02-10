@@ -60,6 +60,15 @@ from quanda.utils.functions import cosine_similarity
         (
             "mnist",
             "load_mnist_mislabeling_config",
+            False,
+            MislabelingDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.510341465473175,
+        ),
+        (
+            "mnist",
+            "load_mnist_mislabeling_config",
             True,
             MislabelingDetection,
             CaptumSimilarity,
