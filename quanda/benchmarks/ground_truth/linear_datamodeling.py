@@ -76,50 +76,6 @@ class LinearDatamodeling(Benchmark):
         self.subset_ids: Optional[List[List[int]]]
         self.pretrained_models: Optional[List[torch.nn.Module]]
 
-    def _parse_bench_state(
-        self,
-        bench_state: dict,
-        cache_dir: str,
-        model_id: Optional[str] = None,
-        device: str = "cpu",
-    ):
-        """Parse the benchmark state dictionary."""
-        eval_dataset = self._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split=bench_state["test_split_name"],
-        )
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        pretrained_ckpts = bench_state["pretrained_model_checkpoints"]
-        pretrained_models: List[torch.nn.Module] = []
-        for ckpt in pretrained_ckpts:
-            new_model = bench_load_state_dict(deepcopy(self.model), ckpt).to(
-                device
-            )
-            pretrained_models.append(new_model.model)
-
-        return self.assemble(
-            model=module,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            train_dataset=bench_state["dataset_str"],
-            eval_dataset=eval_dataset,
-            m=bench_state["m"],
-            cache_dir=bench_state["cache_dir"],
-            model_id=bench_state["model_id"],
-            alpha=bench_state["alpha"],
-            trainer=L.Trainer(),
-            trainer_fit_kwargs=bench_state["trainer_fit_kwargs"],
-            correlation_fn=bench_state["correlation_fn"],
-            seed=bench_state["seed"],
-            use_predictions=bench_state["use_predictions"],
-            subset_ids=bench_state["subset_ids"],
-            pretrained_models=pretrained_models,
-            dataset_transform=dataset_transform,
-        )
 
     @classmethod
     def assemble(
@@ -228,6 +184,56 @@ class LinearDatamodeling(Benchmark):
         obj.checkpoints_load_func = None
 
         return obj
+
+    def _assemble_common(
+        self,
+        model: torch.nn.Module,
+        eval_dataset: Optional[torch.utils.data.Dataset] = None,
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        use_predictions: bool = True,
+    ):
+        """Assembles the benchmark from existing components.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model used to generate attributions.
+        eval_dataset : torch.utils.data.Dataset
+            The evaluation dataset to be used for the benchmark.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation, by
+            default True.
+
+        Returns
+        -------
+        None
+
+        """
+        self.model = model
+        self._set_devices(model)
+        self.eval_dataset = eval_dataset
+        self.checkpoints = checkpoints
+        self.checkpoints_load_func = checkpoints_load_func
+        self.use_predictions = use_predictions
+
+    @property
+    def checkpoints(self):
+        """Return the checkpoint paths."""
+        return self._checkpoints
+
+    @checkpoints.setter
+    def checkpoints(self, value):
+        """Set the checkpoint paths."""
+        if value is None:
+            self._checkpoints = []
+        else:
+            self._checkpoints = value if isinstance(value, List) else [value]
 
     def evaluate(
         self,
