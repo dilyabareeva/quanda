@@ -781,7 +781,10 @@ def qnli_dataset():
 @pytest.fixture
 def load_mnist_unit_test_config():
     # load yaml file
-    with open("tests/assets/mnist_test_suite_2/94286bb-default_ClassDetection.yaml", "r") as f:
+    with open(
+        "tests/assets/mnist_test_suite_2/94286bb-default_ClassDetection.yaml",
+        "r",
+    ) as f:
         config = yaml.safe_load(f)
     return config
 
@@ -789,14 +792,21 @@ def load_mnist_unit_test_config():
 @pytest.fixture
 def load_mnist_mislabeling_config():
     # load yaml file
-    with open("tests/assets/mnist_test_suite_2/94286bb-default_MislabelingDetection.yaml", "r") as f:
+    with open(
+        "tests/assets/mnist_test_suite_2/94286bb-default_MislabelingDetection.yaml",
+        "r",
+    ) as f:
         config = yaml.safe_load(f)
     return config
+
 
 @pytest.fixture
 def load_mnist_subclass_config():
     # load yaml file
-    with open("tests/assets/mnist_test_suite_2/94286bb-default_SubclassDetection.yaml", "r") as f:
+    with open(
+        "tests/assets/mnist_test_suite_2/94286bb-default_SubclassDetection.yaml",
+        "r",
+    ) as f:
         config = yaml.safe_load(f)
     return config
 
@@ -804,7 +814,10 @@ def load_mnist_subclass_config():
 @pytest.fixture
 def load_mnist_shortcut_config():
     # load yaml file
-    with open("tests/assets/mnist_test_suite_2/94286bb-default_ShortcutDetection.yaml", "r") as f:
+    with open(
+        "tests/assets/mnist_test_suite_2/94286bb-default_ShortcutDetection.yaml",
+        "r",
+    ) as f:
         config = yaml.safe_load(f)
     return config
 
@@ -812,6 +825,9 @@ def load_mnist_shortcut_config():
 @pytest.fixture
 def load_mnist_mixed_config():
     # load yaml file
-    with open("tests/assets/mnist_test_suite_2/94286bb-default_MixedDatasets.yaml", "r") as f:
+    with open(
+        "tests/assets/mnist_test_suite_2/94286bb-default_MixedDatasets.yaml",
+        "r",
+    ) as f:
         config = yaml.safe_load(f)
     return config

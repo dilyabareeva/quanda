@@ -1,7 +1,7 @@
 """Model Randomization benchmark module."""
 
 import logging
-from typing import Callable, List, Optional, Union, Any
+from typing import Callable, List, Optional, Any
 
 import torch
 
@@ -15,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 
 class ModelRandomization(Benchmark):
-
     """Benchmark for the model randomization heuristic.
 
     This benchmark is used to evaluate the dependence of the attributions on
@@ -64,8 +63,12 @@ class ModelRandomization(Benchmark):
         self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
-    def from_config(cls, config: dict, load_meta_from_disk: bool = True,
-                    device: str = "cpu"):
+    def from_config(
+        cls,
+        config: dict,
+        load_meta_from_disk: bool = True,
+        device: str = "cpu",
+    ):
         """Initialize the benchmark from a dictionary.
 
         Parameters
@@ -73,7 +76,7 @@ class ModelRandomization(Benchmark):
         config : dict
             Dictionary containing the configuration.
         load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it, 
+            Loads dataset metadata from disk if True, otherwise generates it,
             default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
@@ -85,8 +88,6 @@ class ModelRandomization(Benchmark):
         obj.seed = config["seed"]
         obj.use_predictions = config.get("use_predictions", True)
         return obj
-
-
 
     def evaluate(
         self,

@@ -229,7 +229,6 @@ class LinearDatamodeling(Benchmark):
 
         return obj
 
-
     def evaluate(
         self,
         explainer_cls: type,

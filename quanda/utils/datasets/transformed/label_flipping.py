@@ -1,6 +1,6 @@
 """Dataset wrapper for label flipping transformation."""
 
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Optional
 
 from torch.utils.data import Dataset
 
@@ -12,6 +12,7 @@ class LabelFlippingDataset(TransformedDataset):
     """Dataset wrapper that flips labels for a subset of data."""
 
     metadata_cls: type = LabelFlippingMetadata
+
     def __init__(
         self,
         dataset: Dataset,
@@ -35,11 +36,13 @@ class LabelFlippingDataset(TransformedDataset):
             dataset_transform=dataset_transform,
             metadata=metadata,
         )
-        metadata.transform_indices = metadata.transform_indices or metadata.generate_indices(
-            dataset)
+        metadata.transform_indices = (
+            metadata.transform_indices or metadata.generate_indices(dataset)
+        )
         self.transform_indices = metadata.transform_indices
         self.mislabeling_labels = (
-            metadata.mislabeling_labels or metadata.generate_mislabeling_labels(dataset)
+            metadata.mislabeling_labels
+            or metadata.generate_mislabeling_labels(dataset)
         )
         self.metadata.validate(dataset)
 

@@ -1,7 +1,7 @@
 """Top-K Cardinality benchmark module."""
 
 import logging
-from typing import Callable, List, Optional, Union, Any
+from typing import Callable, List, Optional, Any
 
 import torch
 import torch.utils
@@ -56,8 +56,12 @@ class TopKCardinality(Benchmark):
         self.top_k: int
 
     @classmethod
-    def from_config(cls, config: dict, load_meta_from_disk: bool = True,
-                    device: str = "cpu"):
+    def from_config(
+        cls,
+        config: dict,
+        load_meta_from_disk: bool = True,
+        device: str = "cpu",
+    ):
         """Initialize the benchmark from a dictionary.
 
         Parameters
@@ -65,7 +69,7 @@ class TopKCardinality(Benchmark):
         config : dict
             Dictionary containing the configuration.
         load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it, 
+            Loads dataset metadata from disk if True, otherwise generates it,
             default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
@@ -74,8 +78,6 @@ class TopKCardinality(Benchmark):
         obj.top_k = config["top_k"]
         obj.use_predictions = config.get("use_predictions", True)
         return obj
-
-
 
     def evaluate(
         self,

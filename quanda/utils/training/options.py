@@ -36,4 +36,4 @@ schedulers = {
     "reduce_on_plateau": ReduceLROnPlateau,
     "one_cycle": OneCycleLR,
     "constant": ConstantLR,
-} 
+}

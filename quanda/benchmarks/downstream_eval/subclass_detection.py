@@ -1,8 +1,6 @@
 """Benchmark for subclass detection task."""
-import copy
+
 import logging
-import os
-import warnings
 from typing import Callable, Dict, List, Optional, Union, Any
 
 import lightning as L
@@ -12,17 +10,13 @@ from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
 from quanda.utils.common import ds_len
 from quanda.utils.datasets.transformed.label_grouping import (
-    ClassToGroupLiterals,
     LabelGroupingDataset,
 )
-from quanda.utils.datasets.transformed.metadata import LabelGroupingMetadata
-from quanda.utils.training.trainer import BaseTrainer
 
 logger = logging.getLogger(__name__)
 
 
 class SubclassDetection(Benchmark):
-
     """Benchmark for subclass detection task.
 
     A model is trained on a dataset where labels are grouped into superclasses.
@@ -65,8 +59,12 @@ class SubclassDetection(Benchmark):
         self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
-    def from_config(cls, config: dict, load_meta_from_disk: bool = True,
-                    device: str = "cpu"):
+    def from_config(
+        cls,
+        config: dict,
+        load_meta_from_disk: bool = True,
+        device: str = "cpu",
+    ):
         """Initialize the benchmark from a dictionary.
 
         Parameters
@@ -74,7 +72,7 @@ class SubclassDetection(Benchmark):
         config : dict
             Dictionary containing the configuration.
         load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it, 
+            Loads dataset metadata from disk if True, otherwise generates it,
             default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
@@ -118,10 +116,14 @@ class SubclassDetection(Benchmark):
         """
 
         if not isinstance(self.train_dataset, LabelGroupingDataset):
-            raise ValueError("The train dataset must be a LabelGroupingDataset.")
+            raise ValueError(
+                "The train dataset must be a LabelGroupingDataset."
+            )
 
         if not isinstance(self.eval_dataset, LabelGroupingDataset):
-            raise ValueError("The eval dataset must be a LabelGroupingDataset.")
+            raise ValueError(
+                "The eval dataset must be a LabelGroupingDataset."
+            )
 
         explainer = self._prepare_explainer(
             dataset=self.train_dataset,

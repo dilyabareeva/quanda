@@ -1,6 +1,6 @@
 """Dataset wrapper that groups the classes of a dataset into superclasses."""
 
-from typing import Callable, Dict, List, Optional, Union, Literal
+from typing import Callable, Optional, Literal
 
 import torch
 
@@ -14,6 +14,7 @@ class LabelGroupingDataset(TransformedDataset):
     """Dataset wrapper that groups the classes into superclasses."""
 
     metadata_cls: type = LabelGroupingMetadata
+
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
@@ -38,8 +39,14 @@ class LabelGroupingDataset(TransformedDataset):
             metadata=metadata,
         )
 
-        self.class_to_group = metadata.generate_class_mapping() if metadata.class_to_group == "random" else metadata.class_to_group
-        metadata.transform_indices = metadata.transform_indices or metadata.generate_indices(dataset)
+        self.class_to_group = (
+            metadata.generate_class_mapping()
+            if metadata.class_to_group == "random"
+            else metadata.class_to_group
+        )
+        metadata.transform_indices = (
+            metadata.transform_indices or metadata.generate_indices(dataset)
+        )
         self.transform_indices = metadata.transform_indices
         self.metadata.validate(dataset)
 
@@ -75,4 +82,3 @@ class LabelGroupingDataset(TransformedDataset):
         """
         sample, label = super().__getitem__(idx)
         return label
-

@@ -1,7 +1,6 @@
 """Mixed Datasets benchmark module."""
 
 import logging
-import os
 from typing import Callable, List, Optional, Union, Any
 
 import lightning as L
@@ -9,9 +8,6 @@ import torch
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
-from quanda.utils.common import ds_len
-from quanda.utils.datasets import SingleClassImageDataset
-from quanda.utils.training.trainer import BaseTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -76,8 +72,12 @@ class MixedDatasets(Benchmark):
         self.use_predictions: bool = False
 
     @classmethod
-    def from_config(cls, config: dict, load_meta_from_disk: bool = True,
-                    device: str = "cpu"):
+    def from_config(
+        cls,
+        config: dict,
+        load_meta_from_disk: bool = True,
+        device: str = "cpu",
+    ):
         """Initialize the benchmark from a dictionary.
 
         Parameters
@@ -85,7 +85,7 @@ class MixedDatasets(Benchmark):
         config : dict
             Dictionary containing the configuration.
         load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it, 
+            Loads dataset metadata from disk if True, otherwise generates it,
             default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
@@ -93,30 +93,48 @@ class MixedDatasets(Benchmark):
         obj = cls()
         obj.device = device
         train_base_dataset = obj.dataset_from_cfg(
-            config=config["train_dataset"], metadata_dir=config.get("metadata_dir"),
-            load_meta_from_disk=load_meta_from_disk)
-        val_base_dataset = obj.dataset_from_cfg(
-            config=config.get("val_dataset", None), metadata_dir=config.get("metadata_dir"),
-            load_meta_from_disk=load_meta_from_disk)
-        adv_dataset = obj.dataset_from_cfg(config=config["adv_dataset"],
-                                           metadata_dir=config.get("metadata_dir"),
-                                           load_meta_from_disk=load_meta_from_disk)
-        adv_base_dataset, adv_val_dataset, obj.eval_dataset = obj.split_dataset(
-            dataset=adv_dataset,
+            config=config["train_dataset"],
             metadata_dir=config.get("metadata_dir"),
-            split_filename=config["adv_dataset"]["split_filename"],
             load_meta_from_disk=load_meta_from_disk,
         )
-        obj.train_dataset = torch.utils.data.ConcatDataset([adv_base_dataset, train_base_dataset])
-        datasets_to_concat = [d for d in [adv_val_dataset, val_base_dataset] if d is not None]
-        obj.val_dataset = None if not datasets_to_concat else torch.utils.data.ConcatDataset(datasets_to_concat)
+        val_base_dataset = obj.dataset_from_cfg(
+            config=config.get("val_dataset", None),
+            metadata_dir=config.get("metadata_dir"),
+            load_meta_from_disk=load_meta_from_disk,
+        )
+        adv_dataset = obj.dataset_from_cfg(
+            config=config["adv_dataset"],
+            metadata_dir=config.get("metadata_dir"),
+            load_meta_from_disk=load_meta_from_disk,
+        )
+        adv_base_dataset, adv_val_dataset, obj.eval_dataset = (
+            obj.split_dataset(
+                dataset=adv_dataset,
+                metadata_dir=config.get("metadata_dir"),
+                split_filename=config["adv_dataset"]["split_filename"],
+                load_meta_from_disk=load_meta_from_disk,
+            )
+        )
+        obj.train_dataset = torch.utils.data.ConcatDataset(
+            [adv_base_dataset, train_base_dataset]
+        )
+        datasets_to_concat = [
+            d for d in [adv_val_dataset, val_base_dataset] if d is not None
+        ]
+        obj.val_dataset = (
+            None
+            if not datasets_to_concat
+            else torch.utils.data.ConcatDataset(datasets_to_concat)
+        )
         obj.adversarial_label = config["adversarial_label"]
-        obj.adversarial_indices = [1] * len(adv_base_dataset) + [0] * len(train_base_dataset)
+        obj.adversarial_indices = [1] * len(adv_base_dataset) + [0] * len(
+            train_base_dataset
+        )
 
         obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"])
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
 
-        obj.checkpoints_load_func = None # TODO: be more flexible
+        obj.checkpoints_load_func = None  # TODO: be more flexible
         return obj
 
     def evaluate(

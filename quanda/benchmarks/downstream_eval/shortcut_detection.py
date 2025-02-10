@@ -1,7 +1,5 @@
 """Shortcut Detection Benchmark."""
-import copy
-import os
-import warnings
+
 from typing import Callable, List, Optional, Union, Any
 
 import lightning as L
@@ -11,12 +9,9 @@ from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
-from quanda.utils.datasets.transformed.metadata import \
-    SampleTransformationMetadata
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
 )
-from quanda.utils.training.trainer import BaseTrainer
 
 
 class ShortcutDetection(Benchmark):
@@ -77,8 +72,12 @@ class ShortcutDetection(Benchmark):
         self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
-    def from_config(cls, config: dict, load_meta_from_disk: bool = True,
-                    device: str = "cpu"):
+    def from_config(
+        cls,
+        config: dict,
+        load_meta_from_disk: bool = True,
+        device: str = "cpu",
+    ):
         """Initialize the benchmark from a dictionary.
 
         Parameters
@@ -86,7 +85,7 @@ class ShortcutDetection(Benchmark):
         config : dict
             Dictionary containing the configuration.
         load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it, 
+            Loads dataset metadata from disk if True, otherwise generates it,
             default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
@@ -97,7 +96,6 @@ class ShortcutDetection(Benchmark):
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
         obj.filter_by_class = config.get("filter_by_class", False)
         return obj
-
 
     def evaluate(
         self,
@@ -133,7 +131,6 @@ class ShortcutDetection(Benchmark):
                 "Shortcut detection evaluation requires a SampleTransformationDataset"
                 " as the training dataset."
             )
-
 
         explainer = self._prepare_explainer(
             dataset=self.train_dataset,

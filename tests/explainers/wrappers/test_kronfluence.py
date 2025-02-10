@@ -34,7 +34,8 @@ def test_kronfluence_explain(
     test_tensor,
     test_labels,
     task,
-    request, tmp_path,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     train_dataset = request.getfixturevalue(dataset)
@@ -77,7 +78,8 @@ def test_kronfluence_self_influence(
     model,
     dataset,
     task,
-    request, tmp_path,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     train_dataset = request.getfixturevalue(dataset)
@@ -93,9 +95,9 @@ def test_kronfluence_self_influence(
     )
     self_influence_scores = explainer.self_influence()
 
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.explainers
@@ -119,7 +121,8 @@ def test_kronfluence_explain_functional(
     test_tensor,
     test_labels,
     task,
-    request, tmp_path,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     train_dataset = request.getfixturevalue(dataset)
@@ -161,7 +164,8 @@ def test_kronfluence_self_influence_functional(
     model,
     dataset,
     task,
-    request, tmp_path,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     train_dataset = request.getfixturevalue(dataset)
@@ -176,9 +180,9 @@ def test_kronfluence_self_influence_functional(
         device="cpu",
     )
 
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.explainers
@@ -208,7 +212,8 @@ def test_kronfluence_explain_with_optional_args(
     factor_args,
     score_args,
     dataloader_kwargs,
-    request, tmp_path,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     train_dataset = request.getfixturevalue(dataset)
@@ -264,7 +269,8 @@ def test_kronfluence_self_influence_with_optional_args(
     factor_args,
     score_args,
     dataloader_kwargs,
-    request, tmp_path,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     train_dataset = request.getfixturevalue(dataset)
@@ -286,9 +292,9 @@ def test_kronfluence_self_influence_with_optional_args(
         score_args=score_args, overwrite_output_dir=True
     )
 
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.explainers
@@ -316,7 +322,8 @@ def test_kronfluence_explain_functional_with_optional_args(
     task,
     factor_args,
     score_args,
-    request, tmp_path,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     train_dataset = request.getfixturevalue(dataset)
@@ -364,7 +371,8 @@ def test_kronfluence_self_influence_functional_with_optional_args(
     task,
     factor_args,
     score_args,
-    request, tmp_path,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     train_dataset = request.getfixturevalue(dataset)
@@ -381,9 +389,9 @@ def test_kronfluence_self_influence_functional_with_optional_args(
         cache_dir=str(tmp_path),
     )
 
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 """

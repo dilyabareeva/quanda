@@ -1,9 +1,7 @@
 """Benchmark for noisy label detection."""
-import copy
+
 import logging
-import os
-import warnings
-from typing import Callable, Dict, List, Optional, Union, Any
+from typing import Callable, List, Optional, Union, Any
 
 import lightning as L
 import torch
@@ -14,8 +12,6 @@ from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
-from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
-from quanda.utils.training.trainer import BaseTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -85,8 +81,12 @@ class MislabelingDetection(Benchmark):
         self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
-    def from_config(cls, config: dict, load_meta_from_disk: bool = True,
-                    device: str = "cpu"):
+    def from_config(
+        cls,
+        config: dict,
+        load_meta_from_disk: bool = True,
+        device: str = "cpu",
+    ):
         """Initialize the benchmark from a dictionary.
 
         Parameters
@@ -94,7 +94,7 @@ class MislabelingDetection(Benchmark):
         config : dict
             Dictionary containing the configuration.
         load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it, 
+            Loads dataset metadata from disk if True, otherwise generates it,
             default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
@@ -104,7 +104,6 @@ class MislabelingDetection(Benchmark):
         obj.global_method = config.get("global_method", "self-influence")
         obj.use_predictions = config.get("use_predictions", True)
         return obj
-
 
     def evaluate(
         self,
@@ -134,7 +133,7 @@ class MislabelingDetection(Benchmark):
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
         )
-        
+
         if isinstance(self.eval_dataset, LabelFlippingDataset):
             raise ValueError(
                 "Evaluation dataset in Mislabeling Metric should not have "

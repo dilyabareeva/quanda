@@ -1,6 +1,6 @@
 """Module to move a dataset to a device."""
 
-from typing import Sized, Union
+from typing import Sized
 
 import torch
 

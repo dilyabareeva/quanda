@@ -1,7 +1,7 @@
 """Base class for transformed datasets."""
 
 from abc import ABC
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Optional
 
 import torch
 from torch.utils.data.dataset import Dataset
@@ -41,7 +41,9 @@ class TransformedDataset(Dataset, ABC):
 
         # check if dataset has length attribute
         if not hasattr(dataset, "__len__"):
-            raise ValueError("Transformed dataset must have a length attribute")
+            raise ValueError(
+                "Transformed dataset must have a length attribute"
+            )
 
         super().__init__()
         self.dataset = dataset
@@ -49,7 +51,9 @@ class TransformedDataset(Dataset, ABC):
         self.sample_fn = sample_fn or (lambda x: x)
         self.label_fn = label_fn or (lambda x: x)
         self.metadata = metadata
-        self.transform_indices = metadata.transform_indices or metadata.generate_indices(dataset)
+        self.transform_indices = (
+            metadata.transform_indices or metadata.generate_indices(dataset)
+        )
 
     def __len__(self) -> int:
         """Get dataset length."""

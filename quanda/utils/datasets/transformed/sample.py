@@ -1,10 +1,12 @@
 """Module for the SampleTransformationDataset class."""
 
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 import torch
 
-from quanda.utils.datasets.transformed.metadata import SampleTransformationMetadata
+from quanda.utils.datasets.transformed.metadata import (
+    SampleTransformationMetadata,
+)
 from .base import TransformedDataset
 
 

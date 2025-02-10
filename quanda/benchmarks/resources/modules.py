@@ -39,7 +39,7 @@ def load_module_from_cfg(cfg: dict, device: str):
     module.load_state_dict(
         torch.load(last_ckpts_path, map_location=device, weights_only=True)
     )
-    #torch.save(torch.load(last_ckpts_path, map_location=device, weights_only=True)["model"].state_dict(), last_ckpts_path)
+    # torch.save(torch.load(last_ckpts_path, map_location=device, weights_only=True)["model"].state_dict(), last_ckpts_path)
     module.to(device)
     module.eval()
     return module, checkpoints

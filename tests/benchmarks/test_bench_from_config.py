@@ -1,12 +1,18 @@
 import math
 
 import pytest
-import torch
 
-from quanda.benchmarks.downstream_eval import ClassDetection, \
-    MislabelingDetection, ShortcutDetection, SubclassDetection
-from quanda.benchmarks.heuristics import ModelRandomization, TopKCardinality, \
-    MixedDatasets
+from quanda.benchmarks.downstream_eval import (
+    ClassDetection,
+    MislabelingDetection,
+    ShortcutDetection,
+    SubclassDetection,
+)
+from quanda.benchmarks.heuristics import (
+    ModelRandomization,
+    TopKCardinality,
+    MixedDatasets,
+)
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
@@ -90,7 +96,15 @@ from quanda.utils.functions import cosine_similarity
     ],
 )
 def test_bench_from_config(
-    test_id, config, load_from_disk, bench_cls, explainer_cls, expl_kwargs, expected_score, tmp_path, request
+    test_id,
+    config,
+    load_from_disk,
+    bench_cls,
+    explainer_cls,
+    expl_kwargs,
+    expected_score,
+    tmp_path,
+    request,
 ):
     config = request.getfixturevalue(config)
 
@@ -113,4 +127,3 @@ def test_bench_from_config(
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
-

@@ -1,4 +1,5 @@
 """Dataset metadata classes."""
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 import random
@@ -11,12 +12,13 @@ import yaml
 from quanda.utils.common import ds_len
 
 # Define a type variable bound to DatasetMetadata
-T = TypeVar('T', bound='DatasetMetadata')
+T = TypeVar("T", bound="DatasetMetadata")
 
 
 @dataclass
 class DatasetMetadata(ABC):
     """Base class for dataset metadata."""
+
     p: float = 1.0
     seed: int = 42
     cls_idx: Optional[int] = None
@@ -60,7 +62,7 @@ class DatasetMetadata(ABC):
         data_dict.pop("rng")
         data_dict.pop("rang")
 
-        with open(metadata_path, 'w') as f:
+        with open(metadata_path, "w") as f:
             yaml.dump(data_dict, f)
 
     @classmethod
@@ -86,7 +88,7 @@ class DatasetMetadata(ABC):
         if not os.path.exists(metadata_path):
             raise FileNotFoundError(f"No metadata found at {metadata_path}")
 
-        with open(metadata_path, 'r') as f:
+        with open(metadata_path, "r") as f:
             data_dict = yaml.safe_load(f)
         return cls(**data_dict)
 
@@ -98,7 +100,8 @@ class DatasetMetadata(ABC):
             raise ValueError("Invalid class index for transformation")
         if self.transform_indices is not None:
             if not all(
-                    0 <= int(idx) < len(dataset) for idx in self.transform_indices):
+                0 <= int(idx) < len(dataset) for idx in self.transform_indices
+            ):
                 raise ValueError("Invalid transform indices")
 
     @abstractmethod
@@ -112,7 +115,7 @@ class DatasetMetadata(ABC):
         if self.cls_idx is not None:
             trans_idx *= torch.tensor(
                 [dataset[i][1] == self.cls_idx for i in range(dataset_length)],
-                dtype=torch.bool
+                dtype=torch.bool,
             )
 
         return torch.where(trans_idx)[0].tolist()
@@ -150,10 +153,10 @@ class LabelFlippingMetadata(DatasetMetadata):
             return self.mislabeling_labels
 
         return {
-                str(i): self._poison(dataset[i][1])
-                for i in range(len(dataset))
-                if i in self.transform_indices
-            }
+            str(i): self._poison(dataset[i][1])
+            for i in range(len(dataset))
+            if i in self.transform_indices
+        }
 
     def _poison(self, original_label):
         """Poisons labels."""
@@ -164,13 +167,15 @@ class LabelFlippingMetadata(DatasetMetadata):
     def validate(self, dataset: torch.utils.data.Dataset):
         super().validate(dataset)
         if self.mislabeling_labels is not None and not isinstance(
-                self.mislabeling_labels, dict):
+            self.mislabeling_labels, dict
+        ):
             raise ValueError(
                 f"mislabeling_labels should be a dictionary, received {type(self.mislabeling_labels)}"
             )
         if self.mislabeling_labels is not None and not all(
-                0 <= new_label < self.n_classes
-                for new_label in self.mislabeling_labels.values()):
+            0 <= new_label < self.n_classes
+            for new_label in self.mislabeling_labels.values()
+        ):
             raise ValueError("Invalid mislabeling labels")
 
 
@@ -195,7 +200,10 @@ class LabelGroupingMetadata(DatasetMetadata):
 
     def validate(self, dataset: torch.utils.data.Dataset):
         super().validate(dataset)
-        if isinstance(self.class_to_group, dict) and len(self.class_to_group) != self.n_classes:
+        if (
+            isinstance(self.class_to_group, dict)
+            and len(self.class_to_group) != self.n_classes
+        ):
             raise ValueError(
                 f"Length of class_to_group dictionary ({len(self.class_to_group)}) does not match number of classes ({self.n_classes})"
             )
