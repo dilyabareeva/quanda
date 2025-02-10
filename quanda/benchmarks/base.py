@@ -313,16 +313,13 @@ class Benchmark(ABC):
         None
         """
         obj = cls.from_config(config, load_meta_from_disk=False, device=device)
-        train_dataset, val_dataset, test_dataset = obj.split_dataset(
-            obj.train_dataset, config["split_path"]
-        )
 
         train_dl = torch.utils.data.DataLoader(
-            train_dataset, batch_size=batch_size
+            obj.train_dataset, batch_size=batch_size
         )
-        if val_dataset:
+        if obj.val_dataset is not None:
             val_dl = torch.utils.data.DataLoader(
-                val_dataset, batch_size=batch_size
+                obj.val_dataset, batch_size=batch_size
             )
         else:
             val_dl = None
@@ -364,15 +361,24 @@ class Benchmark(ABC):
         )
 
         ckpt_dir = config["model"]["ckpt_dir"]
+
+        if not os.path.exists(ckpt_dir):
+            os.makedirs(ckpt_dir, exist_ok=True)
+        # if not empty, then warn
+        if os.listdir(ckpt_dir):
+            warnings.warn(
+                f"Directory {ckpt_dir} already exists and is not empty. "
+                "Checkpoints will be overwritten."
+            )
         torch.save(
             obj.model.state_dict(),
-            ckpt_dir,
+            os.path.join(ckpt_dir, f"{config['id']}.pth"),
         )
 
         obj.model.to(obj.device)
         obj.model.eval()
 
-        obj.save_metadata()
+        #obj.save_metadata() TODO: implement this
 
     def save_metadata(self):
         raise NotImplementedError

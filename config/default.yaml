@@ -3,8 +3,10 @@ defaults:
   - train_dataset: mnist_train_unit
   - eval_dataset: mnist_test_unit
   - val_dataset: null
+  - trainer: default
   - _self_
 
+id: "default"
 bench: MixedDatasets
 adversarial_label: 0
 metadata_dir: "tests/assets/mnist_test_suite_2/metadata"

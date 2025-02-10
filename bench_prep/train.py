@@ -12,6 +12,7 @@ from quanda.benchmarks.ground_truth import *
 
 @hydra.main(version_base=None, config_path="../config", config_name="default")
 def main(cfg: DictConfig) -> None:
+    cfg.id = f"{cfg.id}_{cfg.bench}"
     bench_cls = bench_dict[cfg.bench]
     bench = bench_cls.train(cfg)
     # Save config to the specified output directory
