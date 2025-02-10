@@ -65,7 +65,7 @@ class ShortcutDetection(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
 
-        self.shortcut_dataset: SampleTransformationDataset
+        self.train_dataset: SampleTransformationDataset
         self.eval_dataset: SampleTransformationDataset
         self.shortcut_cls: int
         self.device: str
@@ -90,10 +90,7 @@ class ShortcutDetection(Benchmark):
             Device to use for the evaluation, by default "cpu".
         """
         obj = super().from_config(config, cache_dir, device)
-        obj.shortcut_dataset = obj.dataset_from_cfg(
-            config=config["train_dataset"], cache_dir=cache_dir
-        )
-        obj.shortcut_cls = obj.shortcut_dataset.metadata.cls_idx
+        obj.shortcut_cls = obj.train_dataset.metadata.cls_idx
         obj.use_predictions = config.get("use_predictions", True)
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
         obj.filter_by_class = config.get("filter_by_class", False)
@@ -123,8 +120,21 @@ class ShortcutDetection(Benchmark):
             Dictionary containing the evaluation results.
 
         """
+
+        if not isinstance(self.eval_dataset, SampleTransformationDataset):
+            raise ValueError(
+                "Shortcut detection evaluation requires a SampleTransformationDataset"
+                " as the evaluation dataset."
+            )
+        if not isinstance(self.train_dataset, SampleTransformationDataset):
+            raise ValueError(
+                "Shortcut detection evaluation requires a SampleTransformationDataset"
+                " as the training dataset."
+            )
+
+
         explainer = self._prepare_explainer(
-            dataset=self.shortcut_dataset,
+            dataset=self.train_dataset,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
         )
@@ -133,8 +143,8 @@ class ShortcutDetection(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             checkpoints_load_func=self.checkpoints_load_func,
-            train_dataset=self.shortcut_dataset,
-            shortcut_indices=self.shortcut_dataset.transform_indices,
+            train_dataset=self.train_dataset,
+            shortcut_indices=self.train_dataset.transform_indices,
             shortcut_cls=self.shortcut_cls,
             filter_by_prediction=self.filter_by_prediction,
             filter_by_class=self.filter_by_class,

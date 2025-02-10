@@ -76,7 +76,7 @@ class MislabelingDetection(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
         self.eval_dataset: torch.nn.utils.Dataset
-        self.mislabeled_dataset: LabelFlippingDataset
+        self.train_dataset: LabelFlippingDataset
         self.device: str
 
         self.global_method: Union[str, type] = "self-influence"
@@ -99,7 +99,7 @@ class MislabelingDetection(Benchmark):
 
         """
         obj = super().from_config(config, cache_dir, device)
-        obj.mislabeled_dataset = obj.dataset_from_cfg(
+        obj.train_dataset = obj.dataset_from_cfg(
             config=config["train_dataset"], cache_dir=cache_dir
         )
         obj.global_method = config.get("global_method", "self-influence")
@@ -131,7 +131,7 @@ class MislabelingDetection(Benchmark):
 
         """
         explainer = self._prepare_explainer(
-            dataset=self.mislabeled_dataset,
+            dataset=self.train_dataset,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
         )
@@ -142,7 +142,7 @@ class MislabelingDetection(Benchmark):
                 "flipped labels."
             )
 
-        if not isinstance(self.mislabeled_dataset, LabelFlippingDataset):
+        if not isinstance(self.train_dataset, LabelFlippingDataset):
             raise ValueError(
                 "Training dataset in Mislabeling Metric should have flipped "
                 "labels."
@@ -157,8 +157,8 @@ class MislabelingDetection(Benchmark):
 
             metric = MislabelingDetectionMetric.aggr_based(
                 model=self.model,
-                train_dataset=self.mislabeled_dataset,
-                mislabeling_indices=self.mislabeled_dataset.metadata.transform_indices,
+                train_dataset=self.train_dataset,
+                mislabeling_indices=self.train_dataset.metadata.transform_indices,
                 aggregator_cls=self.global_method,
             )
 
@@ -174,8 +174,8 @@ class MislabelingDetection(Benchmark):
                 model=self.model,
                 checkpoints=self.checkpoints,
                 checkpoints_load_func=self.checkpoints_load_func,
-                train_dataset=self.mislabeled_dataset,
-                mislabeling_indices=self.mislabeled_dataset.metadata.transform_indices,
+                train_dataset=self.train_dataset,
+                mislabeling_indices=self.train_dataset.metadata.transform_indices,
                 explainer_cls=explainer_cls,
                 expl_kwargs=expl_kwargs,
             )

@@ -54,7 +54,7 @@ class SubclassDetection(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-        self.grouped_dataset: LabelGroupingDataset
+        self.train_dataset: LabelGroupingDataset
         self.eval_dataset: LabelGroupingDataset
         self.class_to_group: Dict[int, int]
         self.device: str
@@ -79,10 +79,7 @@ class SubclassDetection(Benchmark):
 
         """
         obj = super().from_config(config, cache_dir, device)
-        obj.grouped_dataset = obj.dataset_from_cfg(
-            config=config["train_dataset"], cache_dir=cache_dir
-        )
-        obj.class_to_group = obj.grouped_dataset.class_to_group
+        obj.class_to_group = obj.train_dataset.class_to_group
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
         obj.use_predictions = config.get("use_predictions", True)
         return obj
@@ -118,14 +115,14 @@ class SubclassDetection(Benchmark):
 
         """
 
-        if not isinstance(self.grouped_dataset, LabelGroupingDataset):
+        if not isinstance(self.train_dataset, LabelGroupingDataset):
             raise ValueError("The train dataset must be a LabelGroupingDataset.")
 
         if not isinstance(self.eval_dataset, LabelGroupingDataset):
             raise ValueError("The eval dataset must be a LabelGroupingDataset.")
 
         explainer = self._prepare_explainer(
-            dataset=self.grouped_dataset,
+            dataset=self.train_dataset,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
         )
@@ -133,12 +130,12 @@ class SubclassDetection(Benchmark):
         metric = SubclassDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
-            train_dataset=self.grouped_dataset,
+            train_dataset=self.train_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
             train_subclass_labels=torch.tensor(
                 [
-                    self.grouped_dataset.dataset[s][1]
-                    for s in range(ds_len(self.grouped_dataset.dataset))
+                    self.train_dataset.dataset[s][1]
+                    for s in range(ds_len(self.train_dataset.dataset))
                 ]
             ),
             filter_by_prediction=self.filter_by_prediction,

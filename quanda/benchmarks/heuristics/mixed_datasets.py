@@ -65,7 +65,7 @@ class MixedDatasets(Benchmark):
 
         self.model: Union[torch.nn.Module, L.LightningModule]
 
-        self.mixed_dataset: torch.utils.data.ConcatDataset
+        self.train_dataset: torch.utils.data.ConcatDataset
         self.eval_dataset: torch.utils.data.Dataset
         self.adversarial_label: int
 
@@ -100,7 +100,7 @@ class MixedDatasets(Benchmark):
             dataset=adv_dataset,
             split_path=config["adv_split_path"],
         )
-        obj.mixed_dataset = torch.utils.data.ConcatDataset([adv_base_dataset, train_base_dataset])
+        obj.train_dataset = torch.utils.data.ConcatDataset([adv_base_dataset, train_base_dataset])
         obj.adversarial_label = config["adversarial_label"]
         obj.adversarial_indices = [1] * len(adv_base_dataset) + [0] * len(train_base_dataset)
 
@@ -135,11 +135,11 @@ class MixedDatasets(Benchmark):
 
         """
 
-        if not isinstance(self.mixed_dataset, torch.utils.data.ConcatDataset):
+        if not isinstance(self.train_dataset, torch.utils.data.ConcatDataset):
             raise ValueError("Training dataset must be a ConcatDataset.")
 
         explainer = self._prepare_explainer(
-            dataset=self.mixed_dataset,
+            dataset=self.train_dataset,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
         )
@@ -147,7 +147,7 @@ class MixedDatasets(Benchmark):
         metric = MixedDatasetsMetric(
             model=self.model,
             checkpoints=self.checkpoints,
-            train_dataset=self.mixed_dataset,
+            train_dataset=self.train_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
             adversarial_indices=self.adversarial_indices,
             filter_by_prediction=self.filter_by_prediction,
