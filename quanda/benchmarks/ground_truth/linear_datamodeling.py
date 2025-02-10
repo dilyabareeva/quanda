@@ -3,6 +3,7 @@
 import logging
 from typing import Callable, Optional, Union, List, Any
 
+from copy import deepcopy
 import lightning as L
 import torch
 
@@ -75,60 +76,6 @@ class LinearDatamodeling(Benchmark):
         self.subset_ids: Optional[List[List[int]]]
         self.pretrained_models: Optional[List[torch.nn.Module]]
 
-    @classmethod
-    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """Download a precomputed benchmark.
-
-        Load precomputed benchmark components from a file and creates an
-        instance from the state dictionary.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        device : str
-            Device to load the model on.
-        args : Any
-            Variable length argument list.
-        kwargs : Any
-            Arbitrary keyword arguments.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        eval_dataset = obj._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split=bench_state["test_split_name"],
-        )
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        return obj.assemble(
-            model=module,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            train_dataset=bench_state["dataset_str"],
-            eval_dataset=eval_dataset,
-            m=bench_state["m"],
-            cache_dir=bench_state["cache_dir"],
-            model_id=bench_state["model_id"],
-            alpha=bench_state["alpha"],
-            trainer=bench_state["trainer"],
-            trainer_fit_kwargs=bench_state["trainer_fit_kwargs"],
-            correlation_fn=bench_state["correlation_fn"],
-            seed=bench_state["seed"],
-            use_predictions=bench_state["use_predictions"],
-            subset_ids=bench_state["subset_ids"],
-            pretrained_models=bench_state["pretrained_models"],
-            dataset_transform=dataset_transform,
-        )
 
     @classmethod
     def assemble(
@@ -238,7 +185,55 @@ class LinearDatamodeling(Benchmark):
 
         return obj
 
-    generate = assemble
+    def _assemble_common(
+        self,
+        model: torch.nn.Module,
+        eval_dataset: Optional[torch.utils.data.Dataset] = None,
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        use_predictions: bool = True,
+    ):
+        """Assembles the benchmark from existing components.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model used to generate attributions.
+        eval_dataset : torch.utils.data.Dataset
+            The evaluation dataset to be used for the benchmark.
+        checkpoints : Optional[Union[str, List[str]]], optional
+            Path to the model checkpoint file(s), defaults to None.
+        checkpoints_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the checkpoint file, takes
+            (model, checkpoint path) as two arguments, by default None.
+        use_predictions : bool, optional
+            Whether to use the model's predictions for the evaluation, by
+            default True.
+
+        Returns
+        -------
+        None
+
+        """
+        self.model = model
+        self._set_devices(model)
+        self.eval_dataset = eval_dataset
+        self.checkpoints = checkpoints
+        self.checkpoints_load_func = checkpoints_load_func
+        self.use_predictions = use_predictions
+
+    @property
+    def checkpoints(self):
+        """Return the checkpoint paths."""
+        return self._checkpoints
+
+    @checkpoints.setter
+    def checkpoints(self, value):
+        """Set the checkpoint paths."""
+        if value is None:
+            self._checkpoints = []
+        else:
+            self._checkpoints = value if isinstance(value, List) else [value]
 
     def evaluate(
         self,

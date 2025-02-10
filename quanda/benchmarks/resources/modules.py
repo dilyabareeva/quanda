@@ -1,5 +1,6 @@
 """Lightning modules for the benchmarks."""
 
+import os
 import lightning as L
 import torch
 from torch.nn import CrossEntropyLoss
@@ -23,20 +24,39 @@ def load_module_from_bench_state(bench_state: dict, device: str):
     return module
 
 
+def load_module_from_cfg(cfg: dict, device: str):
+    """Load a module from the benchmark state."""
+    module_cfg = cfg.get("module", {})
+    module = pl_modules[module_cfg["name"]](**module_cfg["args"])
+
+    checkpoint_path = cfg["ckpt_dir"]
+    checkpoints = cfg["checkpoints"]
+
+    # combine checkpoints with dir
+    checkpoints = [os.path.join(checkpoint_path, ckpt) for ckpt in checkpoints]
+    last_ckpts_path = checkpoints[-1]
+
+    module.load_state_dict(
+        torch.load(last_ckpts_path, map_location=device, weights_only=True)
+    )
+    # torch.save(torch.load(last_ckpts_path, map_location=device, weights_only=True)["model"].state_dict(), last_ckpts_path)
+    module.to(device)
+    module.eval()
+    return module, checkpoints
+
+
 def bench_load_state_dict(module: torch.nn.Module, checkpoint: dict):
     """Load the state of the module from the checkpoint."""
     module.model.load_state_dict(checkpoint["model_state_dict"])
     return module
 
 
-class LeNet5(torch.nn.Module):
+class LeNet(torch.nn.Module):
     """A torch implementation of LeNet architecture.
-
     Adapted from: https://github.com/ChawDoe/LeNet5-MNIST-PyTorch.
     """
 
     def __init__(self, num_outputs=10):
-        """Initialize the model."""
         super().__init__()
         self.conv_1 = torch.nn.Conv2d(1, 6, 5)
         self.pool_1 = torch.nn.MaxPool2d(2, 2)
@@ -51,7 +71,6 @@ class LeNet5(torch.nn.Module):
         self.fc_3 = torch.nn.Linear(84, num_outputs)
 
     def forward(self, x):
-        """Forward the input."""
         x = self.pool_1(self.relu_1(self.conv_1(x)))
         x = self.pool_2(self.relu_2(self.conv_2(x)))
         x = x.view(x.shape[0], -1)
@@ -179,7 +198,7 @@ class MnistModel(L.LightningModule):
 
     def _init_model(self, num_labels):
         """Initialize the model."""
-        self.model = LeNet5(num_outputs=num_labels)
+        self.model = LeNet(num_outputs=num_labels)
 
     def forward(self, x):
         """Forward the input."""
@@ -241,6 +260,7 @@ class MnistModel(L.LightningModule):
 
 
 pl_modules = {
+    "MnistTorch": LeNet,
     "MnistModel": MnistModel,
     "TinyImagenetModel": TinyImagenetModel,
 }

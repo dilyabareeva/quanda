@@ -1,0 +1,64 @@
+model:
+  ckpt_dir: tests/assets/mnist_test_suite_2
+  checkpoints:
+  - mnist.pth
+  module:
+    name: MnistTorch
+    args:
+      num_outputs: 10
+train_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: train[:1%]
+  indices:
+    split_filename: mnist_train_unit_shortcut_split.yaml
+    split_name: train
+    val: 0.1
+    test: 0.1
+    seed: 42
+  transforms: none
+  wrapper:
+    type: SampleTransformationDataset
+    metadata:
+      metadata_filename: mnist_train_unit_shortcut.yaml
+      p: 1.0
+      cls_idx: 0
+      seed: 42
+    sample_fn: add_white_square_mnist
+    dataset_transform: mnist_transforms
+eval_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: test[:1%]
+  transforms: none
+  indices: all
+  wrapper:
+    type: SampleTransformationDataset
+    metadata:
+      metadata_filename: mnist_test_unit_shortcut.yaml
+      p: 0.3
+      cls_idx: 0
+      seed: 42
+    sample_fn: add_white_square_mnist
+    dataset_transform: mnist_transforms
+trainer:
+  optimizer: adam
+  optimizer_kwargs:
+    weight_decay: 0.0
+    momentum: 0.9
+  criterion: cross_entropy
+  criterion_kwargs: {}
+  scheduler: constant
+  scheduler_kwargs:
+    last_epoch: -1
+  lr: 0.001
+  max_epochs: 100
+  seed: 42
+bench: ShortcutDetection
+adversarial_label: 0
+metadata_dir: tests/assets/mnist_test_suite_2/metadata
+cache_dir: ./tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
+seed: 42
+cfg_file_name: 17dd15c-default_ShortcutDetection.yaml
+cfg_output_dir: tests/assets/mnist_test_suite_2

@@ -3,6 +3,7 @@ import torch
 from torch.utils.data import Dataset, TensorDataset
 
 from quanda.utils.datasets.transformed import TransformedDataset
+from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
 
 
 class UnsizedTensorDataset(Dataset):
@@ -28,18 +29,23 @@ def test_transformed_dataset_len(
     err,
     request,
 ):
+    metadata = LabelFlippingMetadata(
+        cls_idx=0,
+        p=0.5,
+    )
+
     if sized:
         dataset = TensorDataset(
             torch.ones((length, 100)), torch.ones((length,))
         )
-        dataset = TransformedDataset(dataset=dataset, n_classes=2)
+        dataset = TransformedDataset(dataset=dataset, metadata=metadata)
         assert len(dataset) == length
     else:
         dataset = UnsizedTensorDataset(
             torch.ones((length, 100)), torch.ones((length,))
         )
         with pytest.raises(err):
-            dataset = TransformedDataset(dataset=dataset, n_classes=2)
+            dataset = TransformedDataset(dataset=dataset, metadata=metadata)
 
 
 @pytest.mark.utils
@@ -51,11 +57,13 @@ def test_transformed_dataset_len(
 )
 def test_transformed_dataset(dataset, n_classes, sample_fn, label_fn, request):
     dataset = request.getfixturevalue(dataset)
+    metadata = LabelFlippingMetadata()
+    metadata.generate_indices(dataset)
     trans_ds = TransformedDataset(
         dataset=dataset,
-        n_classes=n_classes,
         sample_fn=sample_fn,
         label_fn=label_fn,
+        metadata=metadata,
     )
     cond1 = torch.all(trans_ds[0][0] == 0.0)
     cond2 = trans_ds[0][1] == 0.0

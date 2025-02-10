@@ -28,19 +28,20 @@ def test_label_grouping_dataset(
 ):
     dataset = request.getfixturevalue(dataset)
 
+    metadata = LabelGroupingDataset.metadata_cls(
+        cls_idx=0,
+        p=0.5,
+    )
     grouped_dataset = LabelGroupingDataset(
         dataset=dataset,
-        n_classes=n_classes,
-        n_groups=n_groups,
-        class_to_group=class_to_group,
-        seed=seed,
+        metadata=metadata,
     )
 
     assertions = []
 
     for i in range(len(grouped_dataset)):
         x, g = grouped_dataset[i]
-        y = grouped_dataset._get_original_label(i)
+        y = grouped_dataset.get_original_label(i)
         assertions.append(
             (i not in grouped_dataset.transform_indices)
             or (g == grouped_dataset.class_to_group[y])

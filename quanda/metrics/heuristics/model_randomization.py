@@ -77,6 +77,9 @@ class ModelRandomizationMetric(Metric):
         self.expl_kwargs = expl_kwargs or {}
         self.model_id = model_id
         self.cache_dir = cache_dir
+        # create cache directory if it does not exist
+        os.makedirs(self.cache_dir, exist_ok=True)
+
         self.seed = seed
 
         self.generator = torch.Generator(device=self.device)

@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
+import yaml
 from kronfluence.task import Task  # type: ignore
 from torch.utils.data import Dataset, TensorDataset
 from transformers import (
@@ -247,12 +248,14 @@ def load_grouped_mnist_dataset():
     dataset = TestTensorDataset(
         torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
     )
-    return LabelGroupingDataset(
-        dataset,
-        n_classes=10,
+    metadata = LabelGroupingDataset.metadata_cls(
+        seed=27,
         n_groups=2,
         class_to_group="random",
-        seed=27,
+    )
+    return LabelGroupingDataset(
+        dataset,
+        metadata=metadata,
     )
 
 
@@ -267,11 +270,13 @@ def load_mislabeling_mnist_dataset():
     dataset = TestTensorDataset(
         torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
     )
-    return LabelFlippingDataset(
-        dataset,
-        n_classes=10,
+    metadata = LabelFlippingDataset.metadata_cls(
         p=1.0,
         seed=27,
+    )
+    return LabelFlippingDataset(
+        dataset,
+        metadata=metadata,
     )
 
 
@@ -771,3 +776,58 @@ def qnli_dataset():
     ds_val = get_dataset("validation")
     ds_val = ds_val.select(range(QNLI_VAL_SET_SIZE))
     return ds_train, ds_val
+
+
+@pytest.fixture
+def load_mnist_unit_test_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_test_suite_2/17dd15c-default_ClassDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_mislabeling_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_test_suite_2/17dd15c-default_MislabelingDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_subclass_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_test_suite_2/17dd15c-default_SubclassDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_shortcut_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_test_suite_2/17dd15c-default_ShortcutDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_mixed_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_test_suite_2/17dd15c-default_MixedDatasets.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config

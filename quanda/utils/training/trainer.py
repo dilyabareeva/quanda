@@ -81,7 +81,6 @@ class Trainer(BaseTrainer):
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
         seed: int = 27,
-        accelerator: str = "cpu",
     ):
         """Construct the Trainer class.
 

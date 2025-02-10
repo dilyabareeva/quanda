@@ -1,0 +1,9 @@
+dataset_str: ylecun/mnist
+dataset_split: train[:1%]
+transforms: "mnist_transforms"
+indices: "all"
+wrapper:
+  type: "LabelFlippingDataset"
+  metadata:
+      metadata_filename: "mnist_train_unit_mislabeling.yaml"
+      p: 0.1

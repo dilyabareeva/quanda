@@ -132,7 +132,7 @@ class LinearDatamodelingMetric(Metric):
             self.generator = torch.Generator()
             self.generator.manual_seed(self.seed)
 
-        self.subsets = self.sample_subsets(train_dataset)
+        self.subsets, self.subset_ids = self.sample_subsets(train_dataset)
 
         self.create_counterfactual_models()
 
@@ -146,27 +146,30 @@ class LinearDatamodelingMetric(Metric):
 
         Returns
         -------
-        List[torch.utils.data.Subset]
-            A list of m subsets of the training data.
+        Tuple[List[torch.utils.data.Subset], List[List[int]]]
+            A list of subsets and a list of subset indices.
 
         """
         if self.subset_ids:
-            return [
+            subsets = [
                 torch.utils.data.Subset(dataset, indices)
                 for indices in self.subset_ids
             ]
+            return subsets, self.subset_ids
 
         N = len(dataset)
         subset_size = int(self.alpha * N)
 
         subsets = []
+        subset_indices = []
         for _ in range(self.m):
             indices = torch.randperm(N, generator=self.generator)[
                 :subset_size
             ].tolist()
+            subset_indices.append(indices)
             subsets.append(torch.utils.data.Subset(dataset, indices))
 
-        return subsets
+        return subsets, subset_indices
 
     def create_counterfactual_models(self):
         """Train counterfactual model on a subset.

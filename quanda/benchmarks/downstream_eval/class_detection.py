@@ -1,7 +1,7 @@
 """Class Detection benchmark."""
 
 import logging
-from typing import Callable, List, Optional, Union, Any
+from typing import Callable, List, Optional, Any
 
 import torch
 
@@ -50,81 +50,35 @@ class ClassDetection(Benchmark):
         super().__init__()
 
         self.model: torch.nn.Module
-
+        self.device: str
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
+        self.checkpoints: Optional[List[str]]
+        self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
-    def assemble(
+    def from_config(
         cls,
-        model: torch.nn.Module,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        dataset_transform: Optional[Callable] = None,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        checkpoint_paths: Optional[List[str]] = None,
-        *args,
-        **kwargs,
+        config: dict,
+        load_meta_from_disk: bool = True,
+        device: str = "cpu",
     ):
-        """Assembles the benchmark from existing components.
+        """Initialize the benchmark from a dictionary.
 
         Parameters
         ----------
-        model : torch.nn.Module
-            The model used to generate attributions.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed,
-            it should be a HuggingFace dataset name.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        dataset_transform : Optional[Callable], optional
-            The transform to be applied to the dataset, by default None.
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by
+        config : dict
+            Dictionary containing the configuration.
+        load_meta_from_disk : str
+            Loads dataset metadata from disk if True, otherwise generates it,
             default True.
-        dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default
-            "train".
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        ClassDetection
-            The benchmark instance.
-
+        device: str, optional
+            Device to use for the evaluation, by default "cpu".
         """
-        obj = cls()
-        obj._assemble_common(
-            model=model,
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions,
-        )
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
-        )
-
+        obj = super().from_config(config, load_meta_from_disk, device)
+        obj.use_predictions = config.get("use_predictions", True)
         return obj
-
-    generate = assemble
 
     def evaluate(
         self,

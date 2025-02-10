@@ -1,0 +1,46 @@
+model:
+  ckpt_dir: tests/assets/mnist_test_suite_2
+  checkpoints:
+  - mnist_mislabeling_detection_state_dict.pth
+  module:
+    name: MnistTorch
+    args:
+      num_outputs: 10
+train_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: train[:1%]
+  transforms: mnist_transforms
+  indices: all
+  wrapper:
+    type: LabelFlippingDataset
+    metadata:
+      metadata_filename: mnist_train_unit_mislabeling.yaml
+      p: 0.1
+eval_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: test[:1%]
+  transforms: mnist_transforms
+  indices: all
+trainer:
+  optimizer: adam
+  optimizer_kwargs:
+    weight_decay: 0.0
+    momentum: 0.9
+  criterion: cross_entropy
+  criterion_kwargs: {}
+  scheduler: constant
+  scheduler_kwargs:
+    last_epoch: -1
+  lr: 0.001
+  max_epochs: 100
+  seed: 42
+bench: MislabelingDetection
+adversarial_label: 0
+metadata_dir: tests/assets/mnist_test_suite_2/metadata
+cache_dir: ./tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
+seed: 42
+cfg_file_name: 17dd15c-default_MislabelingDetection.yaml
+cfg_output_dir: tests/assets/mnist_test_suite_2

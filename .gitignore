@@ -57,6 +57,8 @@ cover/
 # Lightning
 lightning_logs/
 checkpoints/
+hydra_logs/
+outputs/
 
 # quanda
 cache/

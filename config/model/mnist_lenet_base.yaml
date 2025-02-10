@@ -1,0 +1,7 @@
+ckpt_dir: tests/assets/mnist_test_suite_2
+checkpoints:
+  - mnist.pth
+module:
+  name: MnistTorch
+  args:
+    num_outputs: 10

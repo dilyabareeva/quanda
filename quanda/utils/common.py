@@ -1,10 +1,15 @@
 """Common utility functions for the Quanda package."""
 
 import functools
+import os
+import yaml
+from abc import ABC
 from contextlib import contextmanager
+from dataclasses import dataclass
 from functools import reduce
-from typing import Any, Callable, List, Mapping, Optional, Sized, Union
+from typing import Any, Callable, List, Mapping, Optional, Sized, Union, Dict
 
+import torch
 import torch.utils
 import torch.utils.data
 
@@ -94,7 +99,7 @@ def cache_result(method):
 def class_accuracy(
     net: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
-    device: Union[str, torch.device] = "cpu",
+    device: str = "cpu",
 ):
     """Return accuracy on a dataset given by the data loader.
 
@@ -104,7 +109,7 @@ def class_accuracy(
         The model to evaluate.
     loader : torch.utils.data.DataLoader
         The data loader to evaluate the model on.
-    device : Union[str, torch.device], optional
+    device : str, optional
         The device to evaluate the model on, by default "cpu".
 
     Returns
@@ -125,7 +130,7 @@ def class_accuracy(
 
 # Taken directly from Captum with minor changes
 def _load_flexible_state_dict(
-    model: torch.nn.Module, path: str, device: Union[str, torch.device]
+    model: torch.nn.Module, path: str, device: str
 ) -> float:
     """Load pytorch models.
 
@@ -142,7 +147,7 @@ def _load_flexible_state_dict(
         The model for which to load a checkpoint
     path : str
         The filepath to the checkpoint
-    device : Union[str, torch.device]
+    device : str
         The device to use.
 
     Returns
@@ -180,12 +185,12 @@ def _load_flexible_state_dict(
     return learning_rate
 
 
-def get_load_state_dict_func(device: Union[str, torch.device]):
+def get_load_state_dict_func(device: str):
     """Get a load_state_dict function that loads a model state dict.
 
     Parameters
     ----------
-    device : Union[str, torch.device]
+    device : str
         The device to load the model on.
 
     """
@@ -197,12 +202,12 @@ def get_load_state_dict_func(device: Union[str, torch.device]):
 
 
 @contextmanager
-def default_tensor_type(device: Union[str, torch.device]):
+def default_tensor_type(device: str):
     """Context manager to temporarily change the default tensor type.
 
     Parameters
     ----------
-    device : Union[str, torch.device]
+    device : str
         The device to which the default tensor type should be set.
 
     Returns
@@ -234,12 +239,12 @@ def default_tensor_type(device: Union[str, torch.device]):
 
 
 @contextmanager
-def map_location_context(device: Union[str, torch.device]):
+def map_location_context(device: str):
     """Context manager to temporarily change the map_location of torch.load.
 
     Parameters
     ----------
-    device: Union[str, torch.device]
+    device: str
         The device to which the tensors should be loaded.
 
     Returns
@@ -284,7 +289,7 @@ def ds_len(dataset: torch.utils.data.Dataset) -> int:
 
 
 def process_targets(
-    targets: Union[List[int], torch.Tensor], device: Union[str, torch.device]
+    targets: Union[List[int], torch.Tensor], device: str
 ) -> torch.Tensor:
     """Convert target labels to torch.Tensor and move them to the device.
 
@@ -292,7 +297,7 @@ def process_targets(
     ----------
     targets : Optional[Union[List[int], torch.Tensor]], optional
         The target labels, either as a list or tensor.
-    device: Union[str, torch.device]
+    device: str
         The device to use.
 
     Returns
@@ -329,3 +334,76 @@ def load_last_checkpoint(
     if len(checkpoints) == 0:
         return
     checkpoints_load_func(model, checkpoints[-1])
+
+
+@dataclass
+class TrainValTest(ABC):
+    train: torch.Tensor
+    val: torch.Tensor
+    test: torch.Tensor
+
+    def __getitem__(self, key):
+        if key == "train":
+            return self.train
+        elif key == "val":
+            return self.val
+        elif key == "test":
+            return self.test
+        else:
+            raise KeyError(f"Key '{key}' not found.")
+
+    @classmethod
+    def split(
+        cls, n_indices: int, seed: int, val_size: float, test_size: float
+    ) -> "TrainValTest":
+        if val_size + test_size >= 1:
+            raise ValueError("val_size + test_size must be less than 1.")
+
+        torch.manual_seed(seed)
+        indices = torch.randperm(n_indices)
+        val_indices = indices[: int(val_size * len(indices))]
+        test_indices = indices[
+            int(val_size * len(indices)) : int(
+                (val_size + test_size) * len(indices)
+            )
+        ]
+        train_indices = indices[int((val_size + test_size) * len(indices)) :]
+        return cls(
+            train=train_indices,
+            val=val_indices,
+            test=test_indices,
+        )
+
+    @classmethod
+    def load(cls, path: str, name: str) -> "TrainValTest":
+        with open(os.path.join(path, name), "r") as f:
+            data = yaml.safe_load(f)
+            # Convert lists to tensors
+            return cls(
+                train=torch.tensor(data["train"]),
+                val=torch.tensor(data["val"]),
+                test=torch.tensor(data["test"]),
+            )
+
+    def save(self, path: str, name: str) -> None:
+        os.makedirs(path, exist_ok=True)
+        # Convert tensors to lists for YAML serialization
+        data = {
+            "train": self.train.tolist(),
+            "val": self.val.tolist(),
+            "test": self.test.tolist(),
+        }
+        with open(os.path.join(path, name), "w") as f:
+            yaml.safe_dump(data, f)
+
+    def to_dict(self) -> Dict:
+        return {
+            "train": self.train,
+            "val": self.val,
+            "test": self.test,
+        }
+
+    @staticmethod
+    def exists(path: str, name: str) -> bool:
+        metadata_path = os.path.join(path, name)
+        return os.path.exists(metadata_path)

@@ -62,7 +62,7 @@ class Kronfluence(Explainer):
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         batch_size: int = 1,
-        device: Union[str, torch.device] = "cpu",
+        device: str = "cpu",
         analysis_name: str = "kronfluence_analysis",
         factors_name: str = "initial_factor",
         factor_args: FactorArguments = None,
@@ -70,6 +70,7 @@ class Kronfluence(Explainer):
         score_args: ScoreArguments = None,
         dataloader_kwargs: DataLoaderKwargs = None,
         overwrite_output_dir: bool = True,
+        cache_dir: str = "./cache",
     ):
         """Initialize the `Kronfluence` explainer.
 
@@ -92,7 +93,7 @@ class Kronfluence(Explainer):
             (model, checkpoint path) as two arguments, by default None.
         batch_size : int, optional
             Batch size used for iterating over the dataset. Defaults to 1.
-        device : Union[str, torch.device], optional
+        device : str, optional
             Device to run the computation on. Defaults to "cpu".
         analysis_name : str, optional
             Unique identifier for the analysis. Defaults to
@@ -130,11 +131,13 @@ class Kronfluence(Explainer):
         self.scores_name = scores_name
         self.score_args = score_args
         self.overwrite_output_dir = overwrite_output_dir
+        self.cache_dir = cache_dir
 
         self.analyzer = Analyzer(
             analysis_name=self.analysis_name,
             model=self.model,
             task=self.task,
+            output_dir=self.cache_dir,
         )
 
         if dataloader_kwargs:
