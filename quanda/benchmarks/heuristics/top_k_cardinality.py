@@ -68,18 +68,9 @@ class TopKCardinality(Benchmark):
         device: str, optional
             Device to use for the evaluation, by default "cpu".
         """
-        obj = cls()
-        obj.device = device
-        obj.train_dataset = obj.dataset_from_cfg(
-            config=config["train_dataset"], cache_dir=cache_dir
-        )
-        obj.eval_dataset = obj.dataset_from_cfg(
-            config=config["eval_dataset"], cache_dir=cache_dir
-        )
+        obj = super().from_config(config, cache_dir, device)
         obj.top_k = config["top_k"]
-        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"], cache_dir=cache_dir)
         obj.use_predictions = config.get("use_predictions", True)
-        obj.checkpoints_load_func = None # TODO: be more flexible
         return obj
 
 

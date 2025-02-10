@@ -1,6 +1,7 @@
 """Base class for all benchmarks."""
 
 import os
+import copy
 import warnings
 import zipfile
 from abc import ABC, abstractmethod
@@ -665,7 +666,7 @@ class Benchmark(ABC):
                 dataset_split=config.get("dataset_split", "train"),
             )
 
-            wrapper = config.get("wrapper", None)
+            wrapper = copy.deepcopy(config.get("wrapper", None))
 
             if wrapper is not None:
                 wrapper_cls = transform_wrappers.get(wrapper.pop("type"))
@@ -716,7 +717,7 @@ class Benchmark(ABC):
         """
         return load_module_from_cfg(config, self.device)
 
-    def split_dataset_from_cfg(self, dataset: torch.utils.data.Dataset, split_path: str):
+    def split_dataset(self, dataset: torch.utils.data.Dataset, split_path: str):
         """
         Split the dataset using the given parameters.
 
@@ -746,5 +747,32 @@ class Benchmark(ABC):
             val_dataset = None
 
         return train_dataset, val_dataset, test_dataset
+
+    @classmethod
+    def from_config(cls, config: dict, cache_dir: str, device: str = "cpu"):
+        """Initialize the benchmark from a dictionary.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing the configuration.
+        cache_dir : str
+            Directory where the benchmark is stored.
+        device: str, optional
+            Device to use for the evaluation, by default "cpu".
+        """
+        obj = cls()
+        obj.device = device
+        obj.train_dataset = obj.dataset_from_cfg(
+            config=config.get("train_dataset"), cache_dir=cache_dir
+        )
+        obj.eval_dataset = obj.dataset_from_cfg(
+            config=config.get("eval_dataset"), cache_dir=cache_dir
+        )
+
+        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"],
+                                                        cache_dir=cache_dir)
+        obj.checkpoints_load_func = None  # TODO: be more flexible
+        return obj
 
 

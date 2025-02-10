@@ -96,7 +96,7 @@ class MixedDatasets(Benchmark):
         adv_dataset = obj.dataset_from_cfg(
             config=config["adv_dataset"], cache_dir=cache_dir
         )
-        adv_base_dataset, _, obj.eval_dataset = obj.split_dataset_from_cfg(
+        adv_base_dataset, _, obj.eval_dataset = obj.split_dataset(
             dataset=adv_dataset,
             split_path=config["adv_split_path"],
         )

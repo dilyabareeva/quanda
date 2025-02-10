@@ -98,18 +98,12 @@ class MislabelingDetection(Benchmark):
             Device to use for the evaluation, by default "cpu".
 
         """
-        obj = cls()
-        obj.device = device
+        obj = super().from_config(config, cache_dir, device)
         obj.mislabeled_dataset = obj.dataset_from_cfg(
             config=config["train_dataset"], cache_dir=cache_dir
         )
-        obj.eval_dataset = obj.dataset_from_cfg(
-            config=config["eval_dataset"], cache_dir=cache_dir
-        )
-        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"], cache_dir=cache_dir)
         obj.global_method = config.get("global_method", "self-influence")
         obj.use_predictions = config.get("use_predictions", True)
-        obj.checkpoints_load_func = None # TODO: be more flexible
         return obj
 
 
