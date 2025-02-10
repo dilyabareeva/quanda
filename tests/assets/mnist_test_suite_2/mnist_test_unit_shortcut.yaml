@@ -1,0 +1,5 @@
+cls_idx: 0
+n_classes: 10
+p: 0.3
+seed: 42
+transform_indices: null

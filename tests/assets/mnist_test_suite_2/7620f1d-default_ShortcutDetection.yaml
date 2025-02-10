@@ -13,6 +13,7 @@ train_dataset:
   wrapper:
     type: SampleTransformationDataset
     metadata:
+      metadata_filename: mnist_train_unit_shortcut.yaml
       p: 1.0
       cls_idx: 0
       seed: 42
@@ -25,10 +26,20 @@ eval_dataset:
   wrapper:
     type: SampleTransformationDataset
     metadata:
+      metadata_filename: mnist_test_unit_shortcut.yaml
       p: 0.3
       cls_idx: 0
       seed: 42
     sample_fn: add_white_square_mnist
     dataset_transform: mnist_transforms
-experiment_name: default_experiment
+bench: ShortcutDetection
+adv_split_path: tests/assets/fashion_mnist_split.pth
+adversarial_label: 0
+metadata_dir: tests/assets/mnist_test_suite_2
+cache_dir: ./tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
 seed: 42
+cfg_file_name: 7620f1d-default_ShortcutDetection.yaml
+cfg_output_dir: tests/assets/mnist_test_suite_2

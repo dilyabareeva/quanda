@@ -14,8 +14,19 @@ eval_dataset:
   dataset_str: ylecun/mnist
   dataset_split: test[:1%]
   transforms: mnist_transforms
+bench: MixedDatasets
+adv_split_path: tests/assets/fashion_mnist_split.pth
+adversarial_label: 0
+metadata_dir: tests/assets/mnist_test_suite_2
+cache_dir: ./tmp
 top_k: 5
 model_id: '0'
 correlation_fn: kendall
-experiment_name: default_experiment
 seed: 42
+adv_dataset:
+  zip_url: ''
+  dataset_dir: tests/assets/fashion_mnist_examples
+  label: 0
+  transforms: adversarial_transforms
+cfg_file_name: 7620f1d-default_MixedDatasets.yaml
+cfg_output_dir: tests/assets/mnist_test_suite_2

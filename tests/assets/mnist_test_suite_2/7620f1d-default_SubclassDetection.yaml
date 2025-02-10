@@ -1,11 +1,11 @@
 model:
   ckpt_dir: tests/assets/mnist_test_suite_2
   checkpoints:
-  - mnist.pth
+  - mnist_grouped_model.pth
   module:
     name: MnistTorch
     args:
-      num_outputs: 10
+      num_outputs: 2
 train_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train[:1%]
@@ -13,6 +13,7 @@ train_dataset:
   wrapper:
     type: LabelGroupingDataset
     metadata:
+      metadata_filename: mnist_train_unit_subclass.yaml
       p: 1.0
       n_groups: 2
       class_to_group: random
@@ -24,9 +25,19 @@ eval_dataset:
   wrapper:
     type: LabelGroupingDataset
     metadata:
+      metadata_filename: mnist_test_unit_subclass.yaml
       p: 1.0
       n_groups: 2
       class_to_group: random
       seed: 42
-experiment_name: default_experiment
+bench: SubclassDetection
+adv_split_path: tests/assets/fashion_mnist_split.pth
+adversarial_label: 0
+metadata_dir: tests/assets/mnist_test_suite_2
+cache_dir: ./tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
 seed: 42
+cfg_file_name: 7620f1d-default_SubclassDetection.yaml
+cfg_output_dir: tests/assets/mnist_test_suite_2
