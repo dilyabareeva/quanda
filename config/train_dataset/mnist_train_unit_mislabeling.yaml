@@ -7,3 +7,4 @@ wrapper:
   metadata:
       metadata_filename: "mnist_train_unit_mislabeling.yaml"
       p: 0.1
+      seed: 43

@@ -120,7 +120,9 @@ class DatasetMetadata(ABC):
                 dtype=torch.bool,
             )
 
-        return torch.where(trans_idx)[0].tolist()
+        self.transform_indices = torch.where(trans_idx)[0].tolist()
+
+        return self.transform_indices
 
 
 @dataclass
@@ -157,11 +159,12 @@ class LabelFlippingMetadata(DatasetMetadata):
             raise ValueError(
                 "transform_indices must be set to generate mislabeling labels"
             )
-        return {
+        self.mislabeling_labels = {
             str(i): self._poison(dataset[i][1])
             for i in range(len(dataset))
             if i in self.transform_indices
         }
+        return self.mislabeling_labels
 
     def _poison(self, original_label):
         """Poisons labels."""
@@ -200,12 +203,13 @@ class LabelGroupingMetadata(DatasetMetadata):
 
     def generate_class_mapping(self) -> Dict[int, int]:
         """Generate a mapping from class to group."""
-        return {
+        self.class_to_group = {
             i: int(
                 torch.randint(self.n_groups, (1,), generator=self.rng).item()
             )
             for i in range(self.n_classes)
         }
+        return self.class_to_group
 
     def validate(self, dataset: torch.utils.data.Dataset):
         """Validate the metadata."""

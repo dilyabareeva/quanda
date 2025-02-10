@@ -43,15 +43,15 @@ trainer:
   optimizer: adam
   optimizer_kwargs:
     weight_decay: 0.0
-    momentum: 0.9
   criterion: cross_entropy
   criterion_kwargs: {}
   scheduler: constant
   scheduler_kwargs:
     last_epoch: -1
   lr: 0.001
-  max_epochs: 100
+  max_epochs: 5
   seed: 42
+id: default
 bench: ShortcutDetection
 adversarial_label: 0
 metadata_dir: tests/assets/mnist_test_suite_2/metadata
@@ -60,5 +60,5 @@ top_k: 5
 model_id: '0'
 correlation_fn: kendall
 seed: 42
-cfg_file_name: 17dd15c-default_ShortcutDetection.yaml
+cfg_file_name: 5a6dec7-default_ShortcutDetection.yaml
 cfg_output_dir: tests/assets/mnist_test_suite_2
