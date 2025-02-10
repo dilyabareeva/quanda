@@ -3,5 +3,6 @@ dataset_split: train[:1%]
 transforms: "mnist_transforms"
 wrapper:
   type: "LabelFlippingDataset"
+  metadata_filename: "mnist_train_unit_mislabeling.yaml"
   metadata:
       p: 0.1

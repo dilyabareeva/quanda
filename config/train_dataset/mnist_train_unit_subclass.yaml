@@ -3,6 +3,7 @@ dataset_split: train[:1%]
 transforms: "mnist_transforms"
 wrapper:
   type: "LabelGroupingDataset"
+  metadata_filename: "mnist_train_unit_subclass.yaml"
   metadata:
       p: 1.0
       n_groups: 2

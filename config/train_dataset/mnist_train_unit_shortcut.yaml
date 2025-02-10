@@ -3,6 +3,7 @@ dataset_split: train[:1%]
 transforms:
 wrapper:
   type: "SampleTransformationDataset"
+  metadata_filename: "mnist_train_unit_shortcut.yaml"
   metadata:
       p: 1.0
       cls_idx: 0
