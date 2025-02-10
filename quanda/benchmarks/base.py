@@ -4,33 +4,34 @@ import os
 import copy
 import warnings
 import zipfile
-from abc import ABC, abstractmethod
-from typing import Callable, List, Optional, Union, Any, Dict
+from abc import ABC
+from typing import Callable, List, Optional, Union, Any
 
 import requests
 import torch
 from datasets import load_dataset  # type: ignore
 from tqdm import tqdm
-import lightning as L
 
 from quanda.benchmarks.resources import (
-    benchmark_urls,
     sample_transforms,
-    load_module_from_bench_state,
 )
-from quanda.benchmarks.resources.modules import bench_load_state_dict, \
-    load_module_from_cfg
+from quanda.benchmarks.resources.modules import (
+    load_module_from_cfg,
+)
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
-from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint, \
-    TrainValTest
+from quanda.utils.common import (
+    get_load_state_dict_func,
+    load_last_checkpoint,
+    TrainValTest,
+)
 from quanda.utils.datasets.image_datasets import (
     HFtoTV,
     SingleClassImageDataset,
 )
 from quanda.utils.datasets.transformed import transform_wrappers
 
-from quanda.utils.training import BaseTrainer, Trainer
+from quanda.utils.training import Trainer
 from quanda.utils.training.options import optimizers, criteria, schedulers
 
 
@@ -61,7 +62,6 @@ def process_dataset(
 
     """
     if isinstance(dataset, str):
-
         if cache_dir is None:
             cache_dir = os.getenv(
                 "HF_HOME",
@@ -75,7 +75,6 @@ def process_dataset(
         )
         return HFtoTV(hf_dataset, transform=transform)
     else:
-
         return dataset
 
 
@@ -120,103 +119,8 @@ class Benchmark(ABC):
             The benchmark instance.
 
         """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        return obj._parse_bench_state(bench_state, cache_dir, device=device)
-
-    def _get_bench_state(
-        self,
-        name: str,
-        cache_dir: str,
-        device: str,
-    ):
-        """Download a benchmark state dictionary of a benchmark and returns.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components
-        device : str
-            Device to use with the benchmark components.
-
-        Returns
-        -------
-        dict
-            Benchmark state dictionary.
-
-        """
-        os.makedirs(cache_dir, exist_ok=True)
-        # check if file exists
-        if not os.path.exists(os.path.join(cache_dir, name + ".pth")):
-            url = benchmark_urls[name]
-
-            # download to cache_dir
-            response = requests.get(url)
-
-            with open(os.path.join(cache_dir, name + ".pth"), "wb") as f:
-                f.write(response.content)
-
-        return torch.load(
-            os.path.join(cache_dir, name + ".pth"),
-            map_location=device,
-            weights_only=True,
-        )
-
-    @classmethod
-    
-    def assemble(cls, *args, **kwargs):
-        """Assembles the benchmark from existing components.
-
-        Raises
-        ------
-        NotImplementedError
-
-        """
         pass
 
-    def _assemble_common(
-        self,
-        model: torch.nn.Module,
-        eval_dataset: Optional[torch.utils.data.Dataset] = None,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        use_predictions: bool = True,
-    ):
-        """Assembles the benchmark from existing components.
-
-        Parameters
-        ----------
-        model : torch.nn.Module
-            The model used to generate attributions.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by
-            default True.
-
-        Returns
-        -------
-        None
-
-        """
-        self.model = model
-        self._set_devices(model)
-        self.eval_dataset = eval_dataset
-        self.checkpoints = checkpoints
-        self.checkpoints_load_func = checkpoints_load_func
-        self.use_predictions = use_predictions
-
-    
     def evaluate(
         self,
         explainer_cls: type,
@@ -290,43 +194,6 @@ class Benchmark(ABC):
             self.dataset_str = dataset
         return process_dataset(dataset, transform, dataset_split, cache_dir)
 
-    def _build_eval_dataset(
-        self,
-        dataset_str: str,
-        eval_indices: List[int],
-        transform: Optional[Callable] = None,
-        dataset_split: str = "test",
-        cache_dir: Optional[str] = None,
-    ):
-        """Download the HuggingFace evaluation dataset from given name.
-
-        Parameters
-        ----------
-        dataset_str : str
-            The name of the HuggingFace dataset.
-        eval_indices : List[int]
-            The indices to be used for evaluation.
-        transform : Optional[Callable], optional
-            The transform to be applied to the dataset, by default None.
-        dataset_split : str, optional
-            The dataset split, by default "test".
-        cache_dir : Optional[str], optional
-            The HF dataset cache directory, by default None.
-
-        Returns
-        -------
-        torch.utils.data.Dataset
-            The evaluation dataset.
-
-        """
-        test_dataset = process_dataset(
-            dataset=dataset_str,
-            transform=transform,
-            dataset_split=dataset_split,
-            cache_dir=cache_dir,
-        )
-        return torch.utils.data.Subset(test_dataset, eval_indices)
-
     @property
     def checkpoints_load_func(self):
         """Return the function to load the checkpoints."""
@@ -344,115 +211,6 @@ class Benchmark(ABC):
             self._checkpoints_load_func = get_load_state_dict_func(self.device)
         else:
             self._checkpoints_load_func = value
-
-    @property
-    def checkpoints(self):
-        """Return the checkpoint paths."""
-        return self._checkpoints
-
-    @checkpoints.setter
-    def checkpoints(self, value):
-        """Set the checkpoint paths."""
-        if value is None:
-            self._checkpoints = []
-        else:
-            self._checkpoints = value if isinstance(value, List) else [value]
-
-    def _parse_bench_state(
-        self,
-        bench_state: dict,
-        cache_dir: str,
-        model_id: Optional[str] = None,
-        device: str = "cpu",
-    ):
-        """Parse the benchmark state dictionary."""
-        # TODO: this should be further refactored after the pipeline is done.
-        # TODO: fix this mess.
-        checkpoint_paths = []
-
-        assemble_dict = {}
-
-        for ckpt_name, ckpt in zip(
-            bench_state["checkpoints"], bench_state["checkpoints_binary"]
-        ):
-            save_path = os.path.join(cache_dir, ckpt_name)
-            torch.save(ckpt, save_path)
-            checkpoint_paths.append(save_path)
-
-        dataset_transform_str = bench_state.get("dataset_transform", None)
-        dataset_transform = sample_transforms.get(dataset_transform_str, None)
-        sample_fn_str = bench_state.get("sample_fn", None)
-        sample_fn = sample_transforms.get(sample_fn_str, None)
-
-        eval_dataset = self._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=dataset_transform
-            if self.name != "Shortcut Detection"
-            else None,  # TODO: better way to handle this
-            dataset_split=bench_state.get("test_split_name", "test"),
-        )
-
-        if self.name == "Mixed Datasets":
-            adversarial_dir_url = bench_state["adversarial_dir_url"]
-            adversarial_dir = self.download_zip_file(
-                url=adversarial_dir_url,
-                download_dir=cache_dir,
-            )
-
-            adversarial_transform = sample_transforms[
-                bench_state["adversarial_transform"]
-            ]
-            adv_test_indices = bench_state["adv_indices_test"]
-            eval_from_test_indices = bench_state["eval_test_indices"]
-            eval_indices = [
-                adv_test_indices[i] for i in eval_from_test_indices
-            ]
-
-            eval_dataset = SingleClassImageDataset(
-                root=adversarial_dir,
-                label=bench_state["adversarial_label"],
-                transform=adversarial_transform,
-                indices=eval_indices,
-            )
-
-            adv_train_indices = bench_state["adv_indices_train"]
-            assemble_dict["adversarial_dir"] = adversarial_dir
-            assemble_dict["adv_train_indices"] = adv_train_indices
-            assemble_dict["adversarial_transform"] = adversarial_transform
-
-        module = load_module_from_bench_state(bench_state, device)
-
-        # check the type of the instance self
-
-        assemble_dict["model"] = module
-        assemble_dict["checkpoints"] = bench_state["checkpoints_binary"]
-        assemble_dict["checkpoints_load_func"] = bench_load_state_dict
-        assemble_dict["train_dataset"] = bench_state["dataset_str"]
-        assemble_dict["base_dataset"] = bench_state[
-            "dataset_str"
-        ]  # TODO: rename dataset_str to base/train_dataset_str
-        assemble_dict["eval_dataset"] = eval_dataset
-        assemble_dict["use_predictions"] = bench_state["use_predictions"]
-        assemble_dict["checkpoint_paths"] = checkpoint_paths
-        assemble_dict["dataset_transform"] = dataset_transform
-        assemble_dict["sample_fn"] = sample_fn
-        assemble_dict["cache_dir"] = cache_dir
-        assemble_dict["model_id"] = model_id
-
-        for el in [
-            "n_classes",
-            "mislabeling_labels",
-            "adversarial_label",
-            "global_method",
-            "shortcut_indices",
-            "shortcut_cls",
-            "class_to_group",
-        ]:
-            if el in bench_state:
-                assemble_dict[el] = bench_state[el]
-
-        return self.assemble(**assemble_dict)
 
     def _evaluate_dataset(
         self,
@@ -573,18 +331,18 @@ class Benchmark(ABC):
 
         # Parse trainer configuration
         trainer_cfg = config["trainer"]
-        
+
         # Get optimizer
         optimizer = optimizers[trainer_cfg["optimizer"]]
-        
+
         # Get criterion
         criterion = criteria[trainer_cfg["criterion"]]()
-        
+
         # Get scheduler if specified
         scheduler = None
         if trainer_cfg.get("scheduler"):
             scheduler = schedulers[trainer_cfg["scheduler"]]
-        
+
         # Extract other parameters
         trainer_kwargs = {
             "optimizer": optimizer,
@@ -634,9 +392,11 @@ class Benchmark(ABC):
         str
             Path to the extracted directory.
 
+        Raises
+        ------
+        RuntimeError
+            If downloading or extracting the zip file fails.
         """
-
-        # if directory exists, return
         if os.path.exists(download_dir):
             warnings.warn(
                 f"Directory {download_dir} already exists. Skipping download."
@@ -644,137 +404,178 @@ class Benchmark(ABC):
             return download_dir
 
         os.makedirs(download_dir, exist_ok=True)
-
         zip_path = os.path.join(download_dir, "downloaded_file.zip")
-        if not os.path.exists(zip_path):
-            try:
-                response = requests.get(url, stream=True)
-                response.raise_for_status()
-                with open(zip_path, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-            except requests.RequestException as e:
-                raise RuntimeError(f"Failed to download the zip file: {e}")
 
+        if not os.path.exists(zip_path):
+            self._download_file(url, zip_path)
+
+        self._extract_zip(zip_path, download_dir)
+        return download_dir
+
+    def _download_file(self, url: str, save_path: str):
+        """Download file from URL with progress tracking.
+
+        Parameters
+        ----------
+        url: str
+            URL to download from.
+        save_path: str
+            Path to save the downloaded file.
+
+        Raises
+        ------
+        RuntimeError
+            If downloading fails.
+        """
+        try:
+            response = requests.get(url, stream=True)
+            response.raise_for_status()
+            with open(save_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+        except requests.RequestException as e:
+            raise RuntimeError(f"Failed to download the zip file: {e}")
+
+    def _extract_zip(self, zip_path: str, extract_dir: str):
+        """Extract zip file to specified directory.
+
+        Parameters
+        ----------
+        zip_path: str
+            Path to the zip file.
+        extract_dir: str
+            Directory to extract to.
+
+        Raises
+        ------
+        RuntimeError
+            If extraction fails.
+        """
         try:
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                zip_ref.extractall(download_dir)
+                zip_ref.extractall(extract_dir)
         except zipfile.BadZipFile as e:
             raise RuntimeError(f"Failed to extract the zip file: {e}")
 
-        return download_dir
+    def load_dataset_from_config(
+        self, config: dict, load_meta_from_disk: bool = True
+    ) -> torch.utils.data.Dataset:
+        """Load dataset based on configuration."""
+        if "dataset_str" in config:
+            return self.load_hf_dataset(config, load_meta_from_disk)
+        elif "zip_url" in config:
+            return self.load_zip_dataset(config)
+        return None
 
-    @staticmethod
-    def dataset_from_cfg(config: dict, metadata_dir: str = ".tmp",
-                         load_meta_from_disk: bool = True):
-        """Return the dataset using the given parameters.
+    def load_hf_dataset(
+        self, config: dict, load_meta_from_disk: bool = True
+    ) -> torch.utils.data.Dataset:
+        """Load a HuggingFace dataset based on configuration."""
+        transform = self.get_transform(config)
+        base_dataset = self._process_dataset(
+            dataset=config["dataset_str"],
+            transform=transform,
+            dataset_split=config.get("dataset_split", "train"),
+        )
+        return self.apply_indices(base_dataset, config, load_meta_from_disk)
 
-        Parameters
-        ----------
-        metadata_dir
-        config : dict
-            Dictionary containing the dataset configuration.
-        metadata_dir : str
-            The directory to store the metadata.
-        load_meta_from_disk : str
-            The cache directory.
+    def load_zip_dataset(self, config: dict) -> torch.utils.data.Dataset:
+        """Load a dataset from a zip file based on configuration."""
+        transform = self.get_transform(config)
+        download_dir = self.download_zip_file(
+            url=config["zip_url"], download_dir=config["dataset_dir"]
+        )
+        return SingleClassImageDataset(
+            root=download_dir,
+            label=config["label"],
+            transform=transform,
+        )
 
-        Returns
-        -------
-        torch.utils.data.Dataset
-            The dataset.
+    def get_transform(self, config: dict) -> Optional[Callable]:
+        """Get the transform function from configuration."""
+        return sample_transforms.get(config.get("transforms", None), None)
 
-        """
+    def apply_indices(
+        self,
+        base_dataset: torch.utils.data.Dataset,
+        config: dict,
+        load_meta_from_disk: bool = True,
+    ) -> torch.utils.data.Dataset:
+        """Apply indices to the dataset based on configuration."""
+        indices = copy.deepcopy(config.get("indices", "all"))
+        if indices == "all":
+            return base_dataset
+
+        split_name = indices.pop("split_name", "train")
+        split_filename = indices.pop("split_filename", "DOESNT_EXIST")
+        metadata_dir = config.get("metadata_dir", ".tmp")
+        split = self.load_split_if_exists_or_generate(
+            base_dataset, load_meta_from_disk, metadata_dir, split_filename
+        )
+        return torch.utils.data.Subset(base_dataset, split[split_name])
+
+    def dataset_from_cfg(
+        self,
+        config: dict,
+        metadata_dir: str = ".tmp",
+        load_meta_from_disk: bool = True,
+    ):
+        """Return the dataset using the given parameters."""
         if config is None:
             return None
 
-        transform = sample_transforms.get(config.get("transforms", None), None)
-        if "dataset_str" in config:
-            base_dataset = process_dataset(
-                dataset=config["dataset_str"],
-                transform=transform,
-                dataset_split=config.get("dataset_split", "train"),
+        dataset = self.load_dataset_from_config(config)
+
+        wrapper = copy.deepcopy(config.get("wrapper", None))
+        if wrapper is not None:
+            return self.apply_wrapper(
+                dataset, wrapper, metadata_dir, load_meta_from_disk
             )
-            indices = copy.deepcopy(config.get("indices", "all"))
-            if indices != "all":
-                split_name = indices.pop("split_name", "train")
-                split_filename = indices.pop("split_filename",
-                                                 "DOESNT_EXIST")
-                # check if file exists
-                if TrainValTest.exists(metadata_dir, split_filename) and load_meta_from_disk:
-                    split = TrainValTest.load(metadata_dir, split_filename)
-                else:
-                    split = TrainValTest.split(len(base_dataset), indices["seed"], indices["val"], indices["test"])
-                    split.save(metadata_dir, split_filename)
-                base_dataset = torch.utils.data.Subset(
-                    base_dataset, split[split_name]
+        return dataset
+
+    def apply_wrapper(
+        self,
+        dataset: torch.utils.data.Dataset,
+        wrapper: dict,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> torch.utils.data.Dataset:
+        """Apply a wrapper to the dataset based on configuration."""
+        wrapper_cls = transform_wrappers.get(wrapper.pop("type"))
+        kwargs = wrapper
+        if "metadata" in kwargs:
+            metadata_args = kwargs.pop("metadata", {})
+            meta_filename = metadata_args.pop(
+                "metadata_filename", "DOESNT_EXIST"
+            )
+            if (
+                wrapper_cls.metadata_cls.exists(metadata_dir, meta_filename)
+                and load_meta_from_disk
+            ):
+                kwargs["metadata"] = wrapper_cls.metadata_cls.load(
+                    metadata_dir, meta_filename
                 )
-
-            wrapper = copy.deepcopy(config.get("wrapper", None))
-
-            if wrapper is not None:
-                wrapper_cls = transform_wrappers.get(wrapper.pop("type"))
-                kwargs = wrapper
-                if "metadata" in kwargs:
-                    metadata_args = kwargs.pop("metadata", {})
-                    meta_filename = metadata_args.pop("metadata_filename", "DOESNT_EXIST")
-                    if wrapper_cls.metadata_cls.exists(metadata_dir, meta_filename) and load_meta_from_disk:
-                        kwargs["metadata"] = wrapper_cls.metadata_cls.load(
-                            metadata_dir, meta_filename
-                        )
-                    else:
-                        kwargs["metadata"] = wrapper_cls.metadata_cls(
-                            **metadata_args)
-
-                if "sample_fn" in kwargs:
-                    kwargs["sample_fn"] = sample_transforms.get(
-                        kwargs["sample_fn"])
-                if "dataset_transform" in kwargs:
-                    kwargs["dataset_transform"] = sample_transforms.get(
-                        kwargs["dataset_transform"]
-                    )
-                dataset = wrapper_cls(base_dataset, **kwargs)
-                dataset.metadata.save(metadata_dir, meta_filename) # TODO: when to save metadata
-                return dataset
             else:
-                return base_dataset
+                kwargs["metadata"] = wrapper_cls.metadata_cls(**metadata_args)
 
-        elif "zip_url" in config:
-            # TODO: make it jore
-            download_dir = Benchmark().download_zip_file(
-                url=config["zip_url"], download_dir=config["dataset_dir"]
+        if "sample_fn" in kwargs:
+            kwargs["sample_fn"] = sample_transforms.get(kwargs["sample_fn"])
+        if "dataset_transform" in kwargs:
+            kwargs["dataset_transform"] = sample_transforms.get(
+                kwargs["dataset_transform"]
             )
-            return SingleClassImageDataset(
-                root=download_dir,
-                label=config["label"],
-                transform=transform,
-                indices=config.get("indices", None),
-            )
-
-    def model_from_cfg(self, config: dict):
-        """Return the model using the given parameters.
-
-        Parameters
-        ----------
-        config : dict
-            Dictionary containing the model configuration.
-        cache_dir : str
-            The cache directory.
-
-        Returns
-        -------
-        torch.nn.Module
-            The model.
-
-        """
-        return load_module_from_cfg(config, self.device)
+        dataset = wrapper_cls(dataset, **kwargs)
+        dataset.metadata.save(
+            metadata_dir, meta_filename
+        )  # TODO: when to save metadata
+        return dataset
 
     def split_dataset(
-            self,
-            dataset: torch.utils.data.Dataset,
-            metadata_dir: str,
-            split_filename: str,
-            load_meta_from_disk: bool = True,
+        self,
+        dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        split_filename: str,
+        load_meta_from_disk: bool = True,
     ):
         """
         Split the dataset using the given parameters.
@@ -792,12 +593,9 @@ class Benchmark(ABC):
             The train, val, test datasets.
         """
 
-        if TrainValTest.exists(metadata_dir, split_filename) and load_meta_from_disk:
-            split = TrainValTest.load(metadata_dir, split_filename)
-        else:
-            split = TrainValTest.split(len(dataset), 42, 0.1, 0.1)
-            split.save(metadata_dir, split_filename)
-
+        split = self.load_split_if_exists_or_generate(
+            dataset, load_meta_from_disk, metadata_dir, split_filename
+        )
 
         train_dataset = torch.utils.data.Subset(dataset, split.train)
         test_dataset = torch.utils.data.Subset(dataset, split.test)
@@ -809,35 +607,61 @@ class Benchmark(ABC):
 
         return train_dataset, val_dataset, test_dataset
 
-    @classmethod
-    def from_config(cls, config: dict, load_meta_from_disk: bool = True,
-                    device: str = "cpu"):
-        """Initialize the benchmark from a dictionary.
+    def load_split_if_exists_or_generate(
+        self, dataset, load_meta_from_disk, metadata_dir, split_filename
+    ):
+        if (
+            TrainValTest.exists(metadata_dir, split_filename)
+            and load_meta_from_disk
+        ):
+            split = TrainValTest.load(metadata_dir, split_filename)
+        else:
+            split = TrainValTest.split(len(dataset), 42, 0.1, 0.1)
+            split.save(metadata_dir, split_filename)
+        return split
 
-        Parameters
-        ----------
-        config : dict
-            Dictionary containing the configuration.
-        load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it, 
-            default True.
-        device: str, optional
-            Device to use for the evaluation, by default "cpu".
-        """
+    @classmethod
+    def from_config(
+        cls,
+        config: dict,
+        load_meta_from_disk: bool = True,
+        device: str = "cpu",
+    ):
+        """Initialize the benchmark from a dictionary."""
         obj = cls()
         obj.device = device
         obj.train_dataset = obj.dataset_from_cfg(
-            config=config.get("train_dataset"), metadata_dir=config.get("metadata_dir"),
-            load_meta_from_disk=load_meta_from_disk)
+            config=config.get("train_dataset"),
+            metadata_dir=config.get("metadata_dir"),
+            load_meta_from_disk=load_meta_from_disk,
+        )
         obj.val_dataset = obj.dataset_from_cfg(
-            config=config.get("val_dataset", None), metadata_dir=config.get("metadata_dir"),
-            load_meta_from_disk=load_meta_from_disk)
+            config=config.get("val_dataset", None),
+            metadata_dir=config.get("metadata_dir"),
+            load_meta_from_disk=load_meta_from_disk,
+        )
         obj.eval_dataset = obj.dataset_from_cfg(
-            config=config.get("eval_dataset"), metadata_dir=config.get("metadata_dir"),
-            load_meta_from_disk=load_meta_from_disk)
+            config=config.get("eval_dataset"),
+            metadata_dir=config.get("metadata_dir"),
+            load_meta_from_disk=load_meta_from_disk,
+        )
 
         obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"])
         obj.checkpoints_load_func = None  # TODO: be more flexible
         return obj
 
+    def model_from_cfg(self, config: dict) -> torch.nn.Module:
+        """Return the model using the given parameters.
 
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing the model configuration.
+
+        Returns
+        -------
+        torch.nn.Module
+            The model.
+
+        """
+        return load_module_from_cfg(config, self.device)
