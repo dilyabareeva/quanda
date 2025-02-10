@@ -31,6 +31,7 @@ from quanda.utils.datasets.image_datasets import (
 from quanda.utils.datasets.transformed import transform_wrappers
 
 from quanda.utils.training import BaseTrainer, Trainer
+from quanda.utils.training.options import optimizers, criteria, schedulers
 
 
 def process_dataset(
@@ -531,11 +532,29 @@ class Benchmark(ABC):
     @classmethod
     def train(
         cls,
-        config: dict, load_meta_from_disk: bool = True,
+        config: dict,
+        load_meta_from_disk: bool = True,
         device: str = "cpu",
         batch_size: int = 8,
     ):
-        obj = cls.from_config(config, load_meta_from_disk, device)
+        """Train a model using the provided configuration.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing the configuration.
+        load_meta_from_disk : bool, optional
+            Whether to load metadata from disk, by default True
+        device : str, optional
+            Device to use for training, by default "cpu"
+        batch_size : int, optional
+            Batch size for training, by default 8
+
+        Returns
+        -------
+        None
+        """
+        obj = cls.from_config(config, load_meta_from_disk=False, device=device)
         train_dataset, val_dataset, test_dataset = obj.split_dataset(
             obj.train_dataset, config["split_path"]
         )
@@ -552,15 +571,38 @@ class Benchmark(ABC):
 
         obj.model.train()
 
-        trainer_kwargs = config["trainer"]
-        trainer_fit_kwargs = trainer_kwargs.get("fit", {})
+        # Parse trainer configuration
+        trainer_cfg = config["trainer"]
+        
+        # Get optimizer
+        optimizer = optimizers[trainer_cfg["optimizer"]]
+        
+        # Get criterion
+        criterion = criteria[trainer_cfg["criterion"]]()
+        
+        # Get scheduler if specified
+        scheduler = None
+        if trainer_cfg.get("scheduler"):
+            scheduler = schedulers[trainer_cfg["scheduler"]]
+        
+        # Extract other parameters
+        trainer_kwargs = {
+            "optimizer": optimizer,
+            "lr": trainer_cfg["lr"],
+            "max_epochs": trainer_cfg["max_epochs"],
+            "criterion": criterion,
+            "scheduler": scheduler,
+            "optimizer_kwargs": trainer_cfg.get("optimizer_kwargs", {}),
+            "scheduler_kwargs": trainer_cfg.get("scheduler_kwargs", {}),
+            "seed": trainer_cfg.get("seed", 42),
+        }
+
         trainer = Trainer(**trainer_kwargs)
 
         trainer.fit(
             model=obj.model,
             train_dataloaders=train_dl,
             val_dataloaders=val_dl,
-            **trainer_fit_kwargs,
         )
 
         ckpt_dir = config["model"]["ckpt_dir"]
@@ -571,6 +613,11 @@ class Benchmark(ABC):
 
         obj.model.to(obj.device)
         obj.model.eval()
+
+        obj.save_metadata()
+
+    def save_metadata(self):
+        raise NotImplementedError
 
     def download_zip_file(self, url: str, download_dir: str) -> str:
         """Download a zip file from the given URL and extract it.

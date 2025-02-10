@@ -1,0 +1,17 @@
+# Default trainer configuration
+optimizer: "adam"  # Options: sgd, adam, adamw, rmsprop
+optimizer_kwargs:
+  weight_decay: 0.0
+  momentum: 0.9  # Only used for SGD
+
+criterion: "cross_entropy"  # Options: mse, cross_entropy, bce, bce_with_logits, l1, smooth_l1, nll
+criterion_kwargs: {}
+
+scheduler: "constant"  # Options: step, cosine, reduce_on_plateau, one_cycle, constant
+scheduler_kwargs:
+  last_epoch: -1
+
+# Training parameters
+lr: 1.0e-3
+max_epochs: 100
+seed: 42
