@@ -76,26 +76,28 @@ class MixedDatasets(Benchmark):
         self.use_predictions: bool = False
 
     @classmethod
-    def from_config(cls, config: dict, cache_dir: str, device: str = "cpu"):
+    def from_config(cls, config: dict, load_meta_from_disk: bool = True,
+                    device: str = "cpu"):
         """Initialize the benchmark from a dictionary.
 
         Parameters
         ----------
         config : dict
             Dictionary containing the configuration.
-        cache_dir : str
-            Directory where the benchmark is stored.
+        load_meta_from_disk : str
+            Loads dataset metadata from disk if True, otherwise generates it, 
+            default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
         """
         obj = cls()
         obj.device = device
         train_base_dataset = obj.dataset_from_cfg(
-            config=config["train_dataset"], cache_dir=cache_dir
-        )
-        adv_dataset = obj.dataset_from_cfg(
-            config=config["adv_dataset"], cache_dir=cache_dir
-        )
+            config=config["train_dataset"], metadata_dir=config.get("metadata_dir"),
+            load_meta_from_disk=load_meta_from_disk)
+        adv_dataset = obj.dataset_from_cfg(config=config["adv_dataset"],
+                                           metadata_dir=config.get("metadata_dir"),
+                                           load_meta_from_disk=load_meta_from_disk)
         adv_base_dataset, _, obj.eval_dataset = obj.split_dataset(
             dataset=adv_dataset,
             split_path=config["adv_split_path"],
@@ -104,7 +106,7 @@ class MixedDatasets(Benchmark):
         obj.adversarial_label = config["adversarial_label"]
         obj.adversarial_indices = [1] * len(adv_base_dataset) + [0] * len(train_base_dataset)
 
-        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"], cache_dir=cache_dir)
+        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"])
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
 
         obj.checkpoints_load_func = None # TODO: be more flexible

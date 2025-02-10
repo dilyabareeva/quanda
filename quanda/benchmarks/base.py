@@ -641,14 +641,18 @@ class Benchmark(ABC):
         return download_dir
 
     @staticmethod
-    def dataset_from_cfg(config: dict, cache_dir: str):
+    def dataset_from_cfg(config: dict, metadata_dir: str = ".tmp",
+                         load_meta_from_disk: bool = True):
         """Return the dataset using the given parameters.
 
         Parameters
         ----------
+        metadata_dir
         config : dict
             Dictionary containing the dataset configuration.
-        cache_dir : str
+        metadata_dir : str
+            The directory to store the metadata.
+        load_meta_from_disk : str
             The cache directory.
 
         Returns
@@ -673,8 +677,15 @@ class Benchmark(ABC):
                 kwargs = wrapper
                 if "metadata" in kwargs:
                     metadata_args = kwargs.pop("metadata", {})
-                    kwargs["metadata"] = wrapper_cls.metadata_cls(
-                        **metadata_args)
+                    meta_filename = metadata_args.pop("metadata_filename", "DOESNT_EXIST")
+                    if wrapper_cls.metadata_cls.exists(metadata_dir, meta_filename) and load_meta_from_disk:
+                        kwargs["metadata"] = wrapper_cls.metadata_cls.load(
+                            metadata_dir, meta_filename
+                        )
+                    else:
+                        kwargs["metadata"] = wrapper_cls.metadata_cls(
+                            **metadata_args)
+
                 if "sample_fn" in kwargs:
                     kwargs["sample_fn"] = sample_transforms.get(
                         kwargs["sample_fn"])
@@ -683,6 +694,7 @@ class Benchmark(ABC):
                         kwargs["dataset_transform"]
                     )
                 dataset = wrapper_cls(base_dataset, **kwargs)
+                dataset.metadata.save(metadata_dir, meta_filename) # TODO: when to save metadata
                 return dataset
             else:
                 return base_dataset
@@ -699,7 +711,7 @@ class Benchmark(ABC):
                 indices=config.get("indices", None),
             )
 
-    def model_from_cfg(self, config: dict, cache_dir: str):
+    def model_from_cfg(self, config: dict):
         """Return the model using the given parameters.
 
         Parameters
@@ -749,29 +761,30 @@ class Benchmark(ABC):
         return train_dataset, val_dataset, test_dataset
 
     @classmethod
-    def from_config(cls, config: dict, cache_dir: str, device: str = "cpu"):
+    def from_config(cls, config: dict, load_meta_from_disk: bool = True,
+                    device: str = "cpu"):
         """Initialize the benchmark from a dictionary.
 
         Parameters
         ----------
         config : dict
             Dictionary containing the configuration.
-        cache_dir : str
-            Directory where the benchmark is stored.
+        load_meta_from_disk : str
+            Loads dataset metadata from disk if True, otherwise generates it, 
+            default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
         """
         obj = cls()
         obj.device = device
         obj.train_dataset = obj.dataset_from_cfg(
-            config=config.get("train_dataset"), cache_dir=cache_dir
-        )
+            config=config.get("train_dataset"), metadata_dir=config.get("metadata_dir"),
+            load_meta_from_disk=load_meta_from_disk)
         obj.eval_dataset = obj.dataset_from_cfg(
-            config=config.get("eval_dataset"), cache_dir=cache_dir
-        )
+            config=config.get("eval_dataset"), metadata_dir=config.get("metadata_dir"),
+            load_meta_from_disk=load_meta_from_disk)
 
-        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"],
-                                                        cache_dir=cache_dir)
+        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"])
         obj.checkpoints_load_func = None  # TODO: be more flexible
         return obj
 

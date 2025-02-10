@@ -4,7 +4,12 @@ defaults:
   - eval_dataset: mnist_test_unit
   - _self_
 
+bench: MixedDatasets
+adv_split_path: "tests/assets/fashion_mnist_split.pth"
+adversarial_label: 0
+metadata_dir: "tests/assets/mnist_test_suite_2"
+cache_dir: "./tmp"
 top_k: 5
 model_id: "0"
 correlation_fn: "kendall"
-seed: 42 
+seed: 42

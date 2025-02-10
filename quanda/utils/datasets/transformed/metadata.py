@@ -5,6 +5,8 @@ import random
 from typing import Dict, List, Optional, Union, Literal, Type, TypeVar
 import os
 import torch
+import yaml
+
 
 from quanda.utils.common import ds_len
 
@@ -57,7 +59,9 @@ class DatasetMetadata(ABC):
         data_dict = self.__dict__.copy()
         data_dict.pop("rng")
         data_dict.pop("rang")
-        torch.save(data_dict, metadata_path)
+
+        with open(metadata_path, 'w') as f:
+            yaml.dump(data_dict, f)
 
     @classmethod
     def load(cls: Type[T], path: str, name: str) -> T:
@@ -82,7 +86,8 @@ class DatasetMetadata(ABC):
         if not os.path.exists(metadata_path):
             raise FileNotFoundError(f"No metadata found at {metadata_path}")
 
-        data_dict = torch.load(metadata_path)
+        with open(metadata_path, 'r') as f:
+            data_dict = yaml.safe_load(f)
         return cls(**data_dict)
 
     @abstractmethod

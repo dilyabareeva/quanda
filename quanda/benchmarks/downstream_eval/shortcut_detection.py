@@ -77,19 +77,21 @@ class ShortcutDetection(Benchmark):
         self.checkpoints_load_func: Optional[Callable[..., Any]]
 
     @classmethod
-    def from_config(cls, config: dict, cache_dir: str, device: str = "cpu"):
+    def from_config(cls, config: dict, load_meta_from_disk: bool = True,
+                    device: str = "cpu"):
         """Initialize the benchmark from a dictionary.
 
         Parameters
         ----------
         config : dict
             Dictionary containing the configuration.
-        cache_dir : str
-            Directory where the benchmark is stored.
+        load_meta_from_disk : str
+            Loads dataset metadata from disk if True, otherwise generates it, 
+            default True.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
         """
-        obj = super().from_config(config, cache_dir, device)
+        obj = super().from_config(config, load_meta_from_disk, device)
         obj.shortcut_cls = obj.train_dataset.metadata.cls_idx
         obj.use_predictions = config.get("use_predictions", True)
         obj.filter_by_prediction = config.get("filter_by_prediction", False)

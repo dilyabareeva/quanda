@@ -13,68 +13,84 @@ from quanda.utils.functions import cosine_similarity
 
 @pytest.mark.tested
 @pytest.mark.parametrize(
-    "test_id, config, bench_cls, explainer_cls, expl_kwargs, expected_score",
+    "test_id, config, load_from_disk, bench_cls, explainer_cls, expl_kwargs, expected_score",
     [
         (
             "mnist",
             "load_mnist_unit_test_config",
+            True,
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             0.602,
         ),
         (
-                "mnist",
-                "load_mnist_unit_test_config",
-                ModelRandomization,
-                CaptumSimilarity,
-                {"layers": "fc_2", "similarity_metric": cosine_similarity},
-                0.24389608204364777,
+            "mnist",
+            "load_mnist_unit_test_config",
+            True,
+            ModelRandomization,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.24389608204364777,
         ),
         (
-                "mnist",
-                "load_mnist_mixed_config",
-                MixedDatasets,
-                CaptumSimilarity,
-                {"layers": "fc_2", "similarity_metric": cosine_similarity},
-                0.00918253418058157,
+            "mnist",
+            "load_mnist_mixed_config",
+            True,
+            MixedDatasets,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.00918253418058157,
         ),
         (
-                "mnist",
-                "load_mnist_unit_test_config",
-                ClassDetection,
-                CaptumSimilarity,
-                {"layers": "fc_2", "similarity_metric": cosine_similarity},
-                0.9800000190734863,
+            "mnist",
+            "load_mnist_unit_test_config",
+            True,
+            ClassDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.9800000190734863,
         ),
         (
-                "mnist",
-                "load_mnist_mislabeling_config",
-                MislabelingDetection,
-                CaptumSimilarity,
-                {"layers": "fc_2", "similarity_metric": cosine_similarity},
-                0.4806745946407318,
+            "mnist",
+            "load_mnist_mislabeling_config",
+            True,
+            MislabelingDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.4806745946407318,
         ),
         (
-                "mnist",
-                "load_mnist_shortcut_config",
-                ShortcutDetection,
-                CaptumSimilarity,
-                {"layers": "fc_2", "similarity_metric": cosine_similarity},
-                0.1492285281419754,
+            "mnist",
+            "load_mnist_shortcut_config",
+            True,
+            ShortcutDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.1492285281419754,
         ),
         (
-                "mnist",
-                "load_mnist_subclass_config",
-                SubclassDetection,
-                CaptumSimilarity,
-                {"layers": "fc_2", "similarity_metric": cosine_similarity},
-                0.2199999988079071,
+            "mnist",
+            "load_mnist_shortcut_config",
+            False,
+            ShortcutDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.1492285281419754,
+        ),
+        (
+            "mnist",
+            "load_mnist_subclass_config",
+            True,
+            SubclassDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.2199999988079071,
         ),
     ],
 )
 def test_bench_from_config(
-    test_id, config, bench_cls, explainer_cls, expl_kwargs, expected_score, tmp_path, request
+    test_id, config, load_from_disk, bench_cls, explainer_cls, expl_kwargs, expected_score, tmp_path, request
 ):
     config = request.getfixturevalue(config)
 
@@ -84,9 +100,10 @@ def test_bench_from_config(
         "cache_dir": str(tmp_path),
     }
 
+    config["cache_dir"] = str(tmp_path)
     dst_eval = bench_cls.from_config(
         config=config,
-        cache_dir=str(tmp_path),
+        load_meta_from_disk=load_from_disk,
     )
 
     score = dst_eval.evaluate(
