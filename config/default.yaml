@@ -7,5 +7,4 @@ defaults:
 top_k: 5
 model_id: "0"
 correlation_fn: "kendall"
-experiment_name: default_experiment
 seed: 42 
