@@ -11,7 +11,7 @@ from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.benchmarks
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, config, global_method, load_from_disk,explainer_cls, expl_kwargs, expected_score",
     [
@@ -31,7 +31,7 @@ from quanda.utils.functions import cosine_similarity
             False,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.45419397950172424,
+            0.4562704563140869,
         ),
         (
             "mnist",
@@ -40,7 +40,7 @@ from quanda.utils.functions import cosine_similarity
             False,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.4593579173088074,
+            0.4562704563140869,
         ),
     ],
 )

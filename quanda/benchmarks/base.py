@@ -277,6 +277,9 @@ class Benchmark(ABC):
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
     ):
+        if len(self.checkpoints) == 0:
+           raise ValueError("No model checkpoints found. Use `train` method "
+                            "to train the model.")
         load_last_checkpoint(
             model=self.model,
             checkpoints=self.checkpoints,
