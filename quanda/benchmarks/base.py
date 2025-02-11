@@ -79,10 +79,10 @@ def process_dataset(
         return dataset
 
 
-def ckpt_folder(model_cfg, checkpoint_path, id):
+def ckpt_folder(model_cfg, checkpoint_path, cfg_id):
     """Return the checkpoint folder using the given parameters."""
     ckpt_postfix = model_cfg.get("ckpt_postfix", "")
-    return os.path.join(checkpoint_path, f"{id}_{ckpt_postfix}")
+    return os.path.join(checkpoint_path, f"{cfg_id}_{ckpt_postfix}")
 
 
 class Benchmark(ABC):
@@ -492,60 +492,60 @@ class Benchmark(ABC):
             raise RuntimeError(f"Failed to extract the zip file: {e}")
 
     def load_dataset_from_config(
-        self, config: dict, dataset_dir: str, load_meta_from_disk: bool = True
+        self, ds_config: dict, dataset_dir: str, load_meta_from_disk: bool = True
     ) -> torch.utils.data.Dataset:
         """Load dataset based on configuration."""
-        if "dataset_str" in config:
-            return self.load_hf_dataset(config, load_meta_from_disk)
-        elif "zip_url" in config:
-            return self.load_zip_dataset(config, dataset_dir=dataset_dir)
+        if "dataset_str" in ds_config:
+            return self.load_hf_dataset(ds_config, load_meta_from_disk)
+        elif "zip_url" in ds_config:
+            return self.load_zip_dataset(ds_config, dataset_dir=dataset_dir)
         else:
             raise ValueError("Dataset configuration not recognized.")
 
     def load_hf_dataset(
-        self, config: dict, load_meta_from_disk: bool = True
+        self, ds_config: dict, load_meta_from_disk: bool = True
     ) -> torch.utils.data.Dataset:
         """Load a HuggingFace dataset based on configuration."""
-        transform = self.get_transform(config)
+        transform = self.get_transform(ds_config)
         base_dataset = self._process_dataset(
-            dataset=config["dataset_str"],
+            dataset=ds_config["dataset_str"],
             transform=transform,
-            dataset_split=config.get("dataset_split", "train"),
+            dataset_split=ds_config.get("dataset_split", "train"),
         )
-        return self.apply_indices(base_dataset, config, load_meta_from_disk)
+        return self.apply_indices(base_dataset, ds_config, load_meta_from_disk)
 
     def load_zip_dataset(
-        self, config: dict, dataset_dir: str
+        self, ds_config: dict, dataset_dir: str
     ) -> torch.utils.data.Dataset:
         """Load a dataset from a zip file based on configuration."""
-        transform = self.get_transform(config)
+        transform = self.get_transform(ds_config)
         download_dir = self.download_zip_file(
-            url=config["zip_url"], download_dir=dataset_dir
+            url=ds_config["zip_url"], download_dir=dataset_dir
         )
         return SingleClassImageDataset(
             root=download_dir,
-            label=config["label"],
+            label=ds_config["label"],
             transform=transform,
         )
 
-    def get_transform(self, config: dict) -> Optional[Callable]:
+    def get_transform(self, ds_config: dict) -> Optional[Callable]:
         """Get the transform function from configuration."""
-        return sample_transforms.get(config.get("transforms", None), None)
+        return sample_transforms.get(ds_config.get("transforms", None), None)
 
     def apply_indices(
         self,
         base_dataset: torch.utils.data.Dataset,
-        config: dict,
+        ds_config: dict,
         load_meta_from_disk: bool = True,
     ) -> torch.utils.data.Dataset:
         """Apply indices to the dataset based on configuration."""
-        indices = copy.deepcopy(config.get("indices", "all"))
+        indices = copy.deepcopy(ds_config.get("indices", "all"))
         if indices == "all":
             return base_dataset
 
-        split_name = indices.pop("split_name", "train")
-        split_filename = indices.pop("split_filename", "DOESNT_EXIST")
-        metadata_dir = config.get("metadata_dir", ".tmp")
+        split_name = indices.get("split_name", "train")
+        split_filename = indices.get("split_filename", "DOESNT_EXIST")
+        metadata_dir = ds_config.get("metadata_dir", ".tmp")
         split = self.load_split_if_exists_or_generate(
             base_dataset, load_meta_from_disk, metadata_dir, split_filename
         )
@@ -553,20 +553,20 @@ class Benchmark(ABC):
 
     def dataset_from_cfg(
         self,
-        config: Optional[dict],
+        ds_config: Optional[dict],
         metadata_dir: str = ".tmp",
         dataset_dir: str = ".tmp",
         load_meta_from_disk: bool = True,
     ):
         """Return the dataset using the given parameters."""
-        if config is None:
+        if ds_config is None:
             return None
 
         dataset = self.load_dataset_from_config(
-            config, dataset_dir, load_meta_from_disk
+            ds_config, dataset_dir, load_meta_from_disk
         )
 
-        wrapper = copy.deepcopy(config.get("wrapper", None))
+        wrapper = copy.deepcopy(ds_config.get("wrapper", None))
         if wrapper is not None:
             return self.apply_wrapper(
                 dataset, wrapper, metadata_dir, load_meta_from_disk
@@ -576,19 +576,19 @@ class Benchmark(ABC):
     def apply_wrapper(
         self,
         dataset: torch.utils.data.Dataset,
-        wrapper: dict,
+        wrapper_cfg: dict,
         metadata_dir: str,
         load_meta_from_disk: bool,
     ) -> torch.utils.data.Dataset:
         """Apply a wrapper to the dataset based on configuration."""
-        wrapper_cls = transform_wrappers[wrapper.pop("type")]
+        wrapper_cls = transform_wrappers[wrapper_cfg.pop("type")]
         # check if wrapper_cls is a subclass of TransformedDataset
         if not hasattr(wrapper_cls, "metadata_cls"):
             raise ValueError(
                 "The wrapper class must be a subclass of TransformedDataset."
             )
 
-        kwargs = wrapper
+        kwargs = wrapper_cfg
         if "metadata" in kwargs:
             metadata_args = kwargs.pop("metadata", {})
             meta_filename = metadata_args.pop(
@@ -682,19 +682,19 @@ class Benchmark(ABC):
         obj = cls()
         obj.device = device
         obj.train_dataset = obj.dataset_from_cfg(
-            config=config.get("train_dataset"),
+            ds_config=config.get("train_dataset"),
             metadata_dir=config.get("metadata_dir", "./tmp"),
             dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.val_dataset = obj.dataset_from_cfg(
-            config=config.get("val_dataset", None),
+            ds_config=config.get("val_dataset", None),
             metadata_dir=config.get("metadata_dir", "./tmp"),
             dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.eval_dataset = obj.dataset_from_cfg(
-            config=config.get("eval_dataset"),
+            ds_config=config.get("eval_dataset"),
             metadata_dir=config.get("metadata_dir", "./tmp"),
             dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,

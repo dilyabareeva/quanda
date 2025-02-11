@@ -96,19 +96,19 @@ class MixedDatasets(Benchmark):
         obj = cls()
         obj.device = device
         train_base_dataset = obj.dataset_from_cfg(
-            config=config["train_dataset"],
+            ds_config=config["train_dataset"],
             metadata_dir=config.get("metadata_dir", "./tmp"),
             dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         val_base_dataset = obj.dataset_from_cfg(
-            config=config.get("val_dataset", None),
+            ds_config=config.get("val_dataset", None),
             metadata_dir=config.get("metadata_dir", "./tmp"),
             dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         adv_dataset = obj.dataset_from_cfg(
-            config=config["adv_dataset"],
+            ds_config=config["adv_dataset"],
             metadata_dir=config.get("metadata_dir", "./tmp"),
             dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
