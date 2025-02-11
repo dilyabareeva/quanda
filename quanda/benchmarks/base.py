@@ -13,10 +13,7 @@ from datasets import load_dataset  # type: ignore
 from tqdm import tqdm
 
 from quanda.benchmarks.resources import (
-    sample_transforms,
-)
-from quanda.benchmarks.resources.modules import (
-    load_module_from_cfg,
+    sample_transforms, pl_modules,
 )
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
@@ -81,6 +78,11 @@ def process_dataset(
         return dataset
 
 
+def ckpt_folder(model_cfg, checkpoint_path, id):
+    ckpt_postfix = model_cfg.get("ckpt_postfix", "")
+    return os.path.join(checkpoint_path, f"{id}_{ckpt_postfix}")
+
+
 class Benchmark(ABC):
     """Base class for all benchmarks."""
 
@@ -94,7 +96,7 @@ class Benchmark(ABC):
         self.train_dataset: torch.utils.data.Dataset
         self.val_dataset: Optional[torch.utils.data.Dataset] = None
         self.eval_dataset: torch.utils.data.Dataset
-        self.checkpoints: List[str]
+        self.checkpoints: List[str] = []
         self.checkpoints_load_func: Optional[Callable[..., Any]]
         self.use_predictions: bool = False
 
@@ -321,11 +323,11 @@ class Benchmark(ABC):
         obj = cls.from_config(config, load_meta_from_disk=False, device=device)
 
         train_dl = torch.utils.data.DataLoader(
-            obj.train_dataset, batch_size=batch_size
+            obj.train_dataset, batch_size=batch_size, shuffle=False # TODO: true
         )
         if obj.val_dataset is not None:
             val_dl = torch.utils.data.DataLoader(
-                obj.val_dataset, batch_size=batch_size
+                obj.val_dataset, batch_size=batch_size, shuffle=False # TODO: true
             )
         else:
             val_dl = None
@@ -366,16 +368,16 @@ class Benchmark(ABC):
             val_dataloaders=val_dl,
         )
 
-        ckpt_dir = config["model"]["ckpt_dir"]
-
-        if not os.path.exists(ckpt_dir):
-            os.makedirs(ckpt_dir, exist_ok=True)
-        # if not empty, then warn
-        if os.listdir(ckpt_dir):
+        ckpt_dir = ckpt_folder(config["model"], config["ckpt_dir"], config["id"])
+        if len(os.listdir(ckpt_dir)) > 0:
             warnings.warn(
                 f"Directory {ckpt_dir} already exists and is not empty. "
                 "Checkpoints will be overwritten."
             )
+            # remove existing checkpoints
+            for file in os.listdir(ckpt_dir):
+                os.remove(os.path.join(ckpt_dir, file))
+
         torch.save(
             obj.model.state_dict(),
             os.path.join(ckpt_dir, f"{config['id']}.pth"),
@@ -383,8 +385,11 @@ class Benchmark(ABC):
 
         obj.model.to(obj.device)
         obj.model.eval()
+        obj.checkpoints = [os.path.join(ckpt_dir, f"{config['id']}.pth")]
 
         # obj.save_metadata() TODO: implement this
+
+        return obj
 
     def save_metadata(self):
         """Save metadata to disk."""
@@ -675,13 +680,13 @@ class Benchmark(ABC):
             load_meta_from_disk=load_meta_from_disk,
         )
 
-        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"], checkpoint_path=config["ckpt_dir"])
+        obj.model, obj.checkpoints = obj.model_from_cfg(model_cfg=config["model"], checkpoint_path=config["ckpt_dir"], cfg_id=config["id"])
         obj.checkpoints_load_func = None  # TODO: be more flexible
         return obj
 
     def model_from_cfg(
-        self, config: dict, checkpoint_path: str,
-    ) -> Tuple[torch.nn.Module, List[str]]:
+        self, model_cfg: dict, checkpoint_path: str, cfg_id: str
+    ) -> Tuple[torch.nn.Module, List[Any]]:
         """Return the model using the given parameters.
 
         Parameters
@@ -697,4 +702,14 @@ class Benchmark(ABC):
             The model.
 
         """
-        return load_module_from_cfg(config, checkpoint_path=checkpoint_path, device=self.device)
+
+        module_cfg = model_cfg["module"]
+        module = pl_modules[module_cfg["name"]](**module_cfg["args"])
+
+        ckpt_dir = ckpt_folder(model_cfg, checkpoint_path, cfg_id)
+        if not os.path.exists(ckpt_dir):
+            os.makedirs(ckpt_dir, exist_ok=True)
+
+        checkpoints = [os.path.join(ckpt_dir, f) for f in os.listdir(ckpt_dir)]
+
+        return module, checkpoints

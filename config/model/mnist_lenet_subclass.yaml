@@ -1,5 +1,4 @@
-checkpoints:
-  - mnist_grouped_model.pth
+ckpt_postfix: subclass
 module:
   name: MnistTorch
   args:

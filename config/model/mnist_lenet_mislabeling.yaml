@@ -1,5 +1,4 @@
-checkpoints:
-  - mnist_mislabeling_detection_state_dict.pth
+ckpt_postfix: mislabeling
 module:
   name: MnistTorch
   args:

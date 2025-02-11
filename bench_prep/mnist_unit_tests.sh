@@ -21,12 +21,13 @@ for params in "${param_dicts[@]}"; do
     params_underscored=$(echo $params | tr ' ' '_' | tr '=' '--')
 
     # Construct the output file name
-    cfg_file_name="${commit_tag}-default"
+    id="${commit_tag}-default"
+    cfg_file_name="${id}"
 
     # Construct and execute the command with Hydra overrides
     echo "Running with parameters: $params"
     echo "Saving output to: $cfg_output_dir/$cfg_file_name"
-    python bench_prep/run.py $params hydra.run.dir="hydra_logs" +cfg_file_name=$cfg_file_name +cfg_output_dir=$cfg_output_dir
+    python bench_prep/run.py $params hydra.run.dir="hydra_logs" id=$id +cfg_file_name=$cfg_file_name +cfg_output_dir=$cfg_output_dir
     echo "Finished running with parameters: $params"
     echo "--------------------------------------"
 done 

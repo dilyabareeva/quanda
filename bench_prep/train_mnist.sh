@@ -20,7 +20,7 @@ for params in "${param_dicts[@]}"; do
 
     # Construct the output file name
     id="${commit_tag}-default"
-    cfg_file_name="${id}.yaml"
+    cfg_file_name="${id}"
 
     # Construct and execute the command with Hydra overrides
     echo "Running with parameters: $params"

@@ -1,5 +1,4 @@
-checkpoints:
-  - mnist.pth
+ckpt_postfix: base
 module:
   name: MnistTorch
   args:

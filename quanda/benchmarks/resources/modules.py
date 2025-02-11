@@ -1,53 +1,11 @@
 """Lightning modules for the benchmarks."""
 
-import os
 import lightning as L
 import torch
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam, AdamW, lr_scheduler
 from torchmetrics.functional import accuracy
 from torchvision.models import ResNet18_Weights, resnet18  # type: ignore
-
-
-def load_module_from_bench_state(bench_state: dict, device: str):
-    """Load a module from the benchmark state."""
-    module_str = bench_state.get("pl_module", "MnistModel")
-    num_labels = bench_state.get("n_classes", 10)
-    module_type = pl_modules[module_str]
-    module = module_type(num_labels=num_labels, device=device)
-
-    module.model.load_state_dict(
-        bench_state["checkpoints_binary"][-1]["model_state_dict"]
-    )
-    module.to(device)
-    module.eval()
-    return module
-
-
-def load_module_from_cfg(cfg: dict, checkpoint_path: str, device: str):
-    """Load a module from the benchmark state."""
-    module_cfg = cfg.get("module", {})
-    module = pl_modules[module_cfg["name"]](**module_cfg["args"])
-
-    checkpoints = cfg["checkpoints"]
-
-    # combine checkpoints with dir
-    checkpoints = [os.path.join(checkpoint_path, ckpt) for ckpt in checkpoints]
-    last_ckpts_path = checkpoints[-1]
-
-    module.load_state_dict(
-        torch.load(last_ckpts_path, map_location=device, weights_only=True)
-    )
-
-    module.to(device)
-    module.eval()
-    return module, checkpoints
-
-
-def bench_load_state_dict(module: torch.nn.Module, checkpoint: dict):
-    """Load the state of the module from the checkpoint."""
-    module.model.load_state_dict(checkpoint["model_state_dict"])
-    return module
 
 
 class LeNet(torch.nn.Module):

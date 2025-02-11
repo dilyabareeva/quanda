@@ -23,6 +23,7 @@ class BaseTrainer(metaclass=abc.ABCMeta):
             torch.utils.data.dataloader.DataLoader
         ] = None,
         accelerator: str = "cpu",
+        seed: int = 42,
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
@@ -39,6 +40,8 @@ class BaseTrainer(metaclass=abc.ABCMeta):
             Dataloader for the validation data, defaults to None.
         accelerator: str
             The accelerator to use for training, by default "cpu".
+        seed: int
+            Random seed.
         trainer_fit_kwargs: Optional[dict]
             Additional keyword arguments to pass to the trainer's fit method,
             defaults to None.
@@ -126,6 +129,7 @@ class Trainer(BaseTrainer):
             torch.utils.data.dataloader.DataLoader
         ] = None,
         accelerator: str = "cpu",
+        seed: int = 42,
         *args,
         **kwargs,
     ):
@@ -141,12 +145,15 @@ class Trainer(BaseTrainer):
             Dataloader for the validation data, defaults to None.
         accelerator : str, optional
             The accelerator to use for training, by default "cpu".
+        seed: int
+            Random seed.
         args : Any
             Additional arguments to pass to the fit method.
         kwargs : Any
             Additional keyword arguments to pass to the fit method.
 
         """
+        seed_everything(seed, workers=True)
         module = BasicLightningModule(
             model=model,
             optimizer=self.optimizer,

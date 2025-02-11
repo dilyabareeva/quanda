@@ -134,7 +134,7 @@ class MixedDatasets(Benchmark):
             train_base_dataset
         )
 
-        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"], checkpoint_path=config["ckpt_dir"])
+        obj.model, obj.checkpoints = obj.model_from_cfg(model_cfg=config["model"], checkpoint_path=config["ckpt_dir"], cfg_id=config["id"])
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
 
         obj.checkpoints_load_func = None  # TODO: be more flexible
