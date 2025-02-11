@@ -1,4 +1,5 @@
 """Contains tests common to all benchmarks."""
+
 import os
 import math
 
@@ -253,3 +254,5 @@ def test_train_from_config(
         expl_kwargs=expl_kwargs,
         batch_size=8,
     )["score"]
+
+    assert score is not None

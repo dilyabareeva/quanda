@@ -1,4 +1,3 @@
-
 import pytest
 
 from quanda.benchmarks.base import process_dataset

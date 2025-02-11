@@ -97,17 +97,20 @@ class MixedDatasets(Benchmark):
         obj.device = device
         train_base_dataset = obj.dataset_from_cfg(
             config=config["train_dataset"],
-            metadata_dir=config.get("metadata_dir", "./tmp"), dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
+            dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         val_base_dataset = obj.dataset_from_cfg(
             config=config.get("val_dataset", None),
-            metadata_dir=config.get("metadata_dir", "./tmp"), dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
+            dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         adv_dataset = obj.dataset_from_cfg(
             config=config["adv_dataset"],
-            metadata_dir=config.get("metadata_dir", "./tmp"), dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
+            dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         adv_base_dataset, adv_val_dataset, obj.eval_dataset = (
@@ -134,7 +137,11 @@ class MixedDatasets(Benchmark):
             train_base_dataset
         )
 
-        obj.model, obj.checkpoints = obj.model_from_cfg(model_cfg=config["model"], checkpoint_path=config["ckpt_dir"], cfg_id=config["id"])
+        obj.model, obj.checkpoints = obj.model_from_cfg(
+            model_cfg=config["model"],
+            checkpoint_path=config["ckpt_dir"],
+            cfg_id=config["id"],
+        )
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
 
         obj.checkpoints_load_func = None  # TODO: be more flexible

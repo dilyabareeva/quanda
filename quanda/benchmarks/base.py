@@ -13,7 +13,8 @@ from datasets import load_dataset  # type: ignore
 from tqdm import tqdm
 
 from quanda.benchmarks.resources import (
-    sample_transforms, pl_modules,
+    sample_transforms,
+    pl_modules,
 )
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
@@ -79,6 +80,7 @@ def process_dataset(
 
 
 def ckpt_folder(model_cfg, checkpoint_path, id):
+    """Return the checkpoint folder using the given parameters."""
     ckpt_postfix = model_cfg.get("ckpt_postfix", "")
     return os.path.join(checkpoint_path, f"{id}_{ckpt_postfix}")
 
@@ -278,8 +280,10 @@ class Benchmark(ABC):
         expl_kwargs: Optional[dict] = None,
     ):
         if len(self.checkpoints) == 0:
-           raise ValueError("No model checkpoints found. Use `train` method "
-                            "to train the model.")
+            raise ValueError(
+                "No model checkpoints found. Use `train` method "
+                "to train the model."
+            )
         load_last_checkpoint(
             model=self.model,
             checkpoints=self.checkpoints,
@@ -326,11 +330,15 @@ class Benchmark(ABC):
         obj = cls.from_config(config, load_meta_from_disk=False, device=device)
 
         train_dl = torch.utils.data.DataLoader(
-            obj.train_dataset, batch_size=batch_size, shuffle=False # TODO: true
+            obj.train_dataset,
+            batch_size=batch_size,
+            shuffle=False,  # TODO: true
         )
         if obj.val_dataset is not None:
             val_dl = torch.utils.data.DataLoader(
-                obj.val_dataset, batch_size=batch_size, shuffle=False # TODO: true
+                obj.val_dataset,
+                batch_size=batch_size,
+                shuffle=False,  # TODO: true
             )
         else:
             val_dl = None
@@ -371,7 +379,9 @@ class Benchmark(ABC):
             val_dataloaders=val_dl,
         )
 
-        ckpt_dir = ckpt_folder(config["model"], config["ckpt_dir"], config["id"])
+        ckpt_dir = ckpt_folder(
+            config["model"], config["ckpt_dir"], config["id"]
+        )
         if len(os.listdir(ckpt_dir)) > 0:
             warnings.warn(
                 f"Directory {ckpt_dir} already exists and is not empty. "
@@ -504,7 +514,9 @@ class Benchmark(ABC):
         )
         return self.apply_indices(base_dataset, config, load_meta_from_disk)
 
-    def load_zip_dataset(self, config: dict, dataset_dir: str) -> torch.utils.data.Dataset:
+    def load_zip_dataset(
+        self, config: dict, dataset_dir: str
+    ) -> torch.utils.data.Dataset:
         """Load a dataset from a zip file based on configuration."""
         transform = self.get_transform(config)
         download_dir = self.download_zip_file(
@@ -550,7 +562,9 @@ class Benchmark(ABC):
         if config is None:
             return None
 
-        dataset = self.load_dataset_from_config(config, dataset_dir, load_meta_from_disk)
+        dataset = self.load_dataset_from_config(
+            config, dataset_dir, load_meta_from_disk
+        )
 
         wrapper = copy.deepcopy(config.get("wrapper", None))
         if wrapper is not None:
@@ -669,21 +683,28 @@ class Benchmark(ABC):
         obj.device = device
         obj.train_dataset = obj.dataset_from_cfg(
             config=config.get("train_dataset"),
-            metadata_dir=config.get("metadata_dir", "./tmp"), dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
+            dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.val_dataset = obj.dataset_from_cfg(
             config=config.get("val_dataset", None),
-            metadata_dir=config.get("metadata_dir", "./tmp"), dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
+            dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.eval_dataset = obj.dataset_from_cfg(
             config=config.get("eval_dataset"),
-            metadata_dir=config.get("metadata_dir", "./tmp"), dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=config.get("metadata_dir", "./tmp"),
+            dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
 
-        obj.model, obj.checkpoints = obj.model_from_cfg(model_cfg=config["model"], checkpoint_path=config["ckpt_dir"], cfg_id=config["id"])
+        obj.model, obj.checkpoints = obj.model_from_cfg(
+            model_cfg=config["model"],
+            checkpoint_path=config["ckpt_dir"],
+            cfg_id=config["id"],
+        )
         obj.checkpoints_load_func = None  # TODO: be more flexible
         return obj
 
@@ -694,10 +715,12 @@ class Benchmark(ABC):
 
         Parameters
         ----------
-        config : dict
+        model_cfg : dict
             Dictionary containing the model configuration.
         checkpoint_path : str
             Path to the model checkpoint.
+        cfg_id : str
+            Configuration ID.
 
         Returns
         -------
@@ -705,7 +728,6 @@ class Benchmark(ABC):
             The model.
 
         """
-
         module_cfg = model_cfg["module"]
         module = pl_modules[module_cfg["name"]](**module_cfg["args"])
 
