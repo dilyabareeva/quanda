@@ -1,4 +1,3 @@
-import math
 
 import pytest
 
@@ -40,13 +39,16 @@ def test_mislabeling_detection(
         ),
         metadata=train_metadata,
     )
-    train_metadata.mislabeling_labels = train_metadata.generate_mislabeling_labels(dataset)
+    train_metadata.mislabeling_labels = (
+        train_metadata.generate_mislabeling_labels(dataset)
+    )
     train_metadata_loaded = LabelFlippingMetadata.load(
         config["metadata_dir"],
         config["train_dataset"]["wrapper"]["metadata"]["metadata_filename"],
     )
     # assert metadata mislabeling_labels dicts are equal
-    assert all (
-        train_metadata.mislabeling_labels[key] == train_metadata_loaded.mislabeling_labels[key]
+    assert all(
+        train_metadata.mislabeling_labels[key]
+        == train_metadata_loaded.mislabeling_labels[key]
         for key in train_metadata.mislabeling_labels
     )

@@ -86,9 +86,11 @@ def test_mislabeling_detection(
     dst_eval = MislabelingDetection()
     dst_eval.train_dataset = train_dataset
     dst_eval.global_method = global_method
-    dst_eval.device="cpu"
+    dst_eval.device = "cpu"
     dst_eval.mislabeling_indices = train_dataset.metadata.transform_indices
-    dst_eval.model, dst_eval.checkpoints = dst_eval.model_from_cfg(config["model"])
+    dst_eval.model, dst_eval.checkpoints = dst_eval.model_from_cfg(
+        config["model"]
+    )
     dst_eval.checkpoints_load_func = None
     dst_eval.filter_by_prediction = config.get("filter_by_prediction", False)
     dst_eval.eval_dataset = eval_dataset
