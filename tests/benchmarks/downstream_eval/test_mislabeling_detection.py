@@ -11,7 +11,7 @@ from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, config, global_method, load_from_disk,explainer_cls, expl_kwargs, expected_score",
     [
@@ -89,7 +89,7 @@ def test_mislabeling_detection(
     dst_eval.device = "cpu"
     dst_eval.mislabeling_indices = train_dataset.metadata.transform_indices
     dst_eval.model, dst_eval.checkpoints = dst_eval.model_from_cfg(
-        config["model"]
+        config["model"], config["ckpt_dir"],
     )
     dst_eval.checkpoints_load_func = None
     dst_eval.filter_by_prediction = config.get("filter_by_prediction", False)

@@ -1,4 +1,3 @@
-ckpt_dir: tests/assets/mnist_test_suite_2
 checkpoints:
   - mnist_mislabeling_detection_state_dict.pth
 module:

@@ -24,12 +24,11 @@ def load_module_from_bench_state(bench_state: dict, device: str):
     return module
 
 
-def load_module_from_cfg(cfg: dict, device: str):
+def load_module_from_cfg(cfg: dict, checkpoint_path: str, device: str):
     """Load a module from the benchmark state."""
     module_cfg = cfg.get("module", {})
     module = pl_modules[module_cfg["name"]](**module_cfg["args"])
 
-    checkpoint_path = cfg["ckpt_dir"]
     checkpoints = cfg["checkpoints"]
 
     # combine checkpoints with dir

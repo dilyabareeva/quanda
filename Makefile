@@ -18,4 +18,6 @@ clean-format:
 	find . | grep -E ".htmlcov" | xargs rm -rf
 	find . | grep -E ".lightning_logs" | xargs rm -rf
 	find . | grep -E ".hydra_logs" | xargs rm -rf
+	find . | grep -E ".outputs" | xargs rm -rf
+	find . | grep -E "./tmp" | xargs rm -rf
 	find . -name '*~' -exec rm -f {} +

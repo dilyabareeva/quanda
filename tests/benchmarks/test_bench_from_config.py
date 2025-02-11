@@ -17,7 +17,7 @@ from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.benchmarks
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, bench_cls, explainer_cls, expl_kwargs, expected_score",
     [

@@ -474,13 +474,13 @@ class Benchmark(ABC):
             raise RuntimeError(f"Failed to extract the zip file: {e}")
 
     def load_dataset_from_config(
-        self, config: dict, load_meta_from_disk: bool = True
+        self, config: dict, dataset_dir: str, load_meta_from_disk: bool = True
     ) -> torch.utils.data.Dataset:
         """Load dataset based on configuration."""
         if "dataset_str" in config:
             return self.load_hf_dataset(config, load_meta_from_disk)
         elif "zip_url" in config:
-            return self.load_zip_dataset(config)
+            return self.load_zip_dataset(config, dataset_dir=dataset_dir)
         else:
             raise ValueError("Dataset configuration not recognized.")
 
@@ -496,11 +496,11 @@ class Benchmark(ABC):
         )
         return self.apply_indices(base_dataset, config, load_meta_from_disk)
 
-    def load_zip_dataset(self, config: dict) -> torch.utils.data.Dataset:
+    def load_zip_dataset(self, config: dict, dataset_dir: str) -> torch.utils.data.Dataset:
         """Load a dataset from a zip file based on configuration."""
         transform = self.get_transform(config)
         download_dir = self.download_zip_file(
-            url=config["zip_url"], download_dir=config["dataset_dir"]
+            url=config["zip_url"], download_dir=dataset_dir
         )
         return SingleClassImageDataset(
             root=download_dir,
@@ -535,13 +535,14 @@ class Benchmark(ABC):
         self,
         config: Optional[dict],
         metadata_dir: str = ".tmp",
+        dataset_dir: str = ".tmp",
         load_meta_from_disk: bool = True,
     ):
         """Return the dataset using the given parameters."""
         if config is None:
             return None
 
-        dataset = self.load_dataset_from_config(config)
+        dataset = self.load_dataset_from_config(config, dataset_dir, load_meta_from_disk)
 
         wrapper = copy.deepcopy(config.get("wrapper", None))
         if wrapper is not None:
@@ -660,26 +661,26 @@ class Benchmark(ABC):
         obj.device = device
         obj.train_dataset = obj.dataset_from_cfg(
             config=config.get("train_dataset"),
-            metadata_dir=config.get("metadata_dir", "./tmp"),
+            metadata_dir=config.get("metadata_dir", "./tmp"), dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.val_dataset = obj.dataset_from_cfg(
             config=config.get("val_dataset", None),
-            metadata_dir=config.get("metadata_dir", "./tmp"),
+            metadata_dir=config.get("metadata_dir", "./tmp"), dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.eval_dataset = obj.dataset_from_cfg(
             config=config.get("eval_dataset"),
-            metadata_dir=config.get("metadata_dir", "./tmp"),
+            metadata_dir=config.get("metadata_dir", "./tmp"), dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
 
-        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"])
+        obj.model, obj.checkpoints = obj.model_from_cfg(config=config["model"], checkpoint_path=config["ckpt_dir"])
         obj.checkpoints_load_func = None  # TODO: be more flexible
         return obj
 
     def model_from_cfg(
-        self, config: dict
+        self, config: dict, checkpoint_path: str,
     ) -> Tuple[torch.nn.Module, List[str]]:
         """Return the model using the given parameters.
 
@@ -687,6 +688,8 @@ class Benchmark(ABC):
         ----------
         config : dict
             Dictionary containing the model configuration.
+        checkpoint_path : str
+            Path to the model checkpoint.
 
         Returns
         -------
@@ -694,4 +697,4 @@ class Benchmark(ABC):
             The model.
 
         """
-        return load_module_from_cfg(config, self.device)
+        return load_module_from_cfg(config, checkpoint_path=checkpoint_path, device=self.device)
