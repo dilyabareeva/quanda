@@ -492,7 +492,10 @@ class Benchmark(ABC):
             raise RuntimeError(f"Failed to extract the zip file: {e}")
 
     def load_dataset_from_config(
-        self, ds_config: dict, dataset_dir: str, load_meta_from_disk: bool = True
+        self,
+        ds_config: dict,
+        dataset_dir: str,
+        load_meta_from_disk: bool = True,
     ) -> torch.utils.data.Dataset:
         """Load dataset based on configuration."""
         if "dataset_str" in ds_config:
