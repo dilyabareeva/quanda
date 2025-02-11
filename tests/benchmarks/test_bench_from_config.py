@@ -17,7 +17,7 @@ from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, bench_cls, explainer_cls, expl_kwargs, expected_score",
     [
@@ -64,7 +64,7 @@ from quanda.utils.functions import cosine_similarity
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.510341465473175,
+            0.44353821873664856,
         ),
         (
             "mnist",
@@ -73,7 +73,7 @@ from quanda.utils.functions import cosine_similarity
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.510341465473175,
+            0.44353821873664856,
         ),
         (
             "mnist",

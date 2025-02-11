@@ -65,7 +65,13 @@ class GlobalSelfInfluenceStrategy:
             A 1D tensor containing the global ranking.
 
         """
-        return self.get_self_influence().argsort()
+        self_influence = self.get_self_influence()
+        indices = torch.arange(self_influence.numel(), dtype=self_influence.dtype,
+                               device=self_influence.device)
+        self_influence += indices.to(self_influence.dtype) * 1e-4
+        # TODO: this is done because sorting is not stable
+        # TODO: find a better solution
+        return torch.argsort(self_influence, stable=True)
 
     @staticmethod
     def _si_warning(method_name: str):
