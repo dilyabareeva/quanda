@@ -6,6 +6,7 @@ from typing import Callable, List, Optional, Union, Any
 import lightning as L
 import torch
 
+from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 
@@ -95,26 +96,26 @@ class MixedDatasets(Benchmark):
         """
         obj = cls()
         obj.device = device
-        train_base_dataset = obj.dataset_from_cfg(
+        train_base_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config["train_dataset"],
             metadata_dir=config.get("metadata_dir", "./tmp"),
             dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
-        val_base_dataset = obj.dataset_from_cfg(
+        val_base_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset", None),
             metadata_dir=config.get("metadata_dir", "./tmp"),
             dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
-        adv_dataset = obj.dataset_from_cfg(
+        adv_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config["adv_dataset"],
             metadata_dir=config.get("metadata_dir", "./tmp"),
             dataset_dir=config.get("dataset_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         adv_base_dataset, adv_val_dataset, obj.eval_dataset = (
-            obj.split_dataset(
+            BenchConfigParser.split_dataset(
                 dataset=adv_dataset,
                 metadata_dir=config.get("metadata_dir", "./tmp"),
                 split_filename=config["adv_dataset"]["split_filename"],
@@ -137,7 +138,7 @@ class MixedDatasets(Benchmark):
             train_base_dataset
         )
 
-        obj.model, obj.checkpoints = obj.model_from_cfg(
+        obj.model, obj.checkpoints = BenchConfigParser.parse_model_cfg(
             model_cfg=config["model"],
             checkpoint_path=config["ckpt_dir"],
             cfg_id=config["id"],

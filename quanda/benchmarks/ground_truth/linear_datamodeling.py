@@ -6,6 +6,7 @@ from typing import Callable, Optional, Union, List, Any
 import lightning as L
 import torch
 
+from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
@@ -168,7 +169,7 @@ class LinearDatamodeling(Benchmark):
         obj.seed = seed
         obj.cache_dir = cache_dir
         obj.model_id = model_id
-        obj.train_dataset = obj._process_dataset(
+        obj.train_dataset = BenchConfigParser.process_dataset(
             train_dataset,
             transform=dataset_transform,
             dataset_split=dataset_split,
@@ -209,7 +210,6 @@ class LinearDatamodeling(Benchmark):
 
         """
         self.model = model
-        self._set_devices(model)
         self.eval_dataset = eval_dataset
         self.checkpoints = checkpoints
         self.checkpoints_load_func = checkpoints_load_func

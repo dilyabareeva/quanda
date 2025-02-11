@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from quanda.benchmarks.base import process_dataset
+from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.downstream_eval import MislabelingDetection
 from quanda.benchmarks.resources import sample_transforms
 from quanda.explainers.wrappers import CaptumSimilarity
@@ -70,7 +70,7 @@ def test_mislabeling_detection(
         seed=config["train_dataset"]["wrapper"]["metadata"]["seed"],
     )
     train_dataset = LabelFlippingDataset(
-        dataset=process_dataset(
+        dataset=BenchConfigParser.process_dataset(
             dataset=config["train_dataset"]["dataset_str"],
             transform=sample_transforms[config["train_dataset"]["transforms"]],
             dataset_split=config["train_dataset"]["dataset_split"],
@@ -78,7 +78,7 @@ def test_mislabeling_detection(
         metadata=train_metadata,
     )
 
-    eval_dataset = process_dataset(
+    eval_dataset = BenchConfigParser.process_dataset(
         dataset=config["eval_dataset"]["dataset_str"],
         transform=sample_transforms[config["eval_dataset"]["transforms"]],
         dataset_split=config["eval_dataset"]["dataset_split"],
@@ -88,7 +88,7 @@ def test_mislabeling_detection(
     dst_eval.global_method = global_method
     dst_eval.device = "cpu"
     dst_eval.mislabeling_indices = train_dataset.metadata.transform_indices
-    dst_eval.model, dst_eval.checkpoints = dst_eval.model_from_cfg(
+    dst_eval.model, dst_eval.checkpoints = BenchConfigParser.parse_model_cfg(
         config["model"],
         config["ckpt_dir"],
         config["id"],

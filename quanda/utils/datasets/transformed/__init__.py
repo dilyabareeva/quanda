@@ -19,6 +19,7 @@ transform_wrappers = {
     "TransformedDataset": TransformedDataset,
 }
 __all__ = [
+    "transform_wrappers",
     "TransformedDataset",
     "SampleTransformationDataset",
     "LabelFlippingDataset",

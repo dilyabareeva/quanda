@@ -1,6 +1,6 @@
 import pytest
 
-from quanda.benchmarks.base import process_dataset
+from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.utils.datasets.transformed import LabelFlippingDataset
 from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
 
@@ -31,7 +31,7 @@ def test_mislabeling_detection(
     )
 
     dataset = LabelFlippingDataset(
-        dataset=process_dataset(
+        dataset=BenchConfigParser.process_dataset(
             dataset=config["train_dataset"]["dataset_str"],
             transform=None,
             dataset_split=config["train_dataset"]["dataset_split"],
