@@ -252,14 +252,90 @@ def test_train_from_config(
         load_meta_from_disk=load_from_disk,
     )
 
-    sanity_results = dst_eval.sanity_check()
-
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         batch_size=8,
     )["score"]
 
-    assert "train_acc" in sanity_results.keys()
-    assert isinstance(sanity_results["train_acc"].item(), float)
     assert score is not None
+
+
+@pytest.mark.tested
+@pytest.mark.parametrize(
+    "test_id, config, load_from_disk, bench_cls, explainer_cls, expl_kwargs",
+    [
+        (
+            "mnist",
+            "load_mnist_unit_test_config",
+            True,
+            TopKCardinality,
+        ),
+        (
+            "mnist",
+            "load_mnist_unit_test_config",
+            True,
+            ModelRandomization,
+        ),
+        (
+            "mnist",
+            "load_mnist_mixed_config",
+            True,
+            MixedDatasets,
+        ),
+        (
+            "mnist",
+            "load_mnist_unit_test_config",
+            True,
+            ClassDetection,
+        ),
+        (
+            "mnist",
+            "load_mnist_mislabeling_config",
+            False,
+            MislabelingDetection,
+        ),
+        (
+            "mnist",
+            "load_mnist_mislabeling_config",
+            True,
+            MislabelingDetection,
+        ),
+        (
+            "mnist",
+            "load_mnist_shortcut_config",
+            True,
+            ShortcutDetection,
+        ),
+        (
+            "mnist",
+            "load_mnist_shortcut_config",
+            False,
+            ShortcutDetection,
+        ),
+        (
+            "mnist",
+            "load_mnist_subclass_config",
+            True,
+            SubclassDetection,
+        ),
+    ],
+)
+def test_sanity_from_config(
+    test_id,
+    config,
+    load_from_disk,
+    bench_cls,
+    tmp_path,
+    request,
+):
+    config = request.getfixturevalue(config)
+
+    config["cache_dir"] = str(tmp_path)
+    dst_eval = bench_cls.from_config(
+        config=config,
+        load_meta_from_disk=load_from_disk,
+    )
+    sanity_results = dst_eval.sanity_check()
+
+    assert isinstance(sanity_results["train_acc"].item(), float)
