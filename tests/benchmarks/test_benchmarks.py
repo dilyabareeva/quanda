@@ -263,7 +263,7 @@ def test_train_from_config(
 
 @pytest.mark.tested
 @pytest.mark.parametrize(
-    "test_id, config, load_from_disk, bench_cls, explainer_cls, expl_kwargs",
+    "test_id, config, load_from_disk, bench_cls",
     [
         (
             "mnist",
