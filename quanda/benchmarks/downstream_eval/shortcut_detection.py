@@ -4,8 +4,10 @@ from typing import Callable, List, Optional, Union, Any
 
 import lightning as L
 import torch
+from torch.utils.data import Subset
 
 from quanda.benchmarks.base import Benchmark
+from quanda.utils.common import class_accuracy
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
@@ -97,6 +99,46 @@ class ShortcutDetection(Benchmark):
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
         obj.filter_by_class = config.get("filter_by_class", False)
         return obj
+
+    def sanity_check(self, batch_size: int = 32) -> dict:
+        """Compute accuracy on shortcut datapoints as a sanity check.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            Batch size to be used for the evaluation, default to 32.
+
+        Returns
+        -------
+        dict
+            Dictionary containing the evaluation results.
+
+        """
+        results = super().sanity_check(batch_size)
+
+        self.model.eval()
+        self.model.to(self.device)
+
+        train_dl = torch.utils.data.DataLoader(
+            Subset(self.train_dataset, self.train_dataset.transform_indices),
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        eval_dl = torch.utils.data.DataLoader(
+            Subset(self.eval_dataset, self.eval_dataset.transform_indices),
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        results["shortcut_memorization"] = class_accuracy(
+            self.model, train_dl, self.device
+        )
+        results["eval_shortcut_classification"] = class_accuracy(
+            self.model, eval_dl, self.device
+        )
+
+        return results
 
     def evaluate(
         self,

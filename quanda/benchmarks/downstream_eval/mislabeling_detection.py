@@ -6,8 +6,10 @@ from typing import Callable, List, Optional, Union, Any
 import lightning as L
 import torch
 import torch.utils
+from torch.utils.data import Subset
 
 from quanda.benchmarks.base import Benchmark
+from quanda.utils.common import class_accuracy
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
@@ -104,6 +106,37 @@ class MislabelingDetection(Benchmark):
         obj.global_method = config.get("global_method", "self-influence")
         obj.use_predictions = config.get("use_predictions", True)
         return obj
+
+    def sanity_check(self, batch_size: int = 32) -> dict:
+        """Compute accuracy on  mislabeled datapoints as a sanity check.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            Batch size to be used for the evaluation, defaults to 32.
+
+        Returns
+        -------
+        dict
+            Dictionary containing the sanity check results.
+
+        """
+        results = super().sanity_check(batch_size)
+
+        train_dl = torch.utils.data.DataLoader(
+            Subset(self.train_dataset, self.train_dataset.transform_indices),
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        self.model.eval()
+        self.model.to(self.device)
+
+        results["mislabeling_memorization"] = class_accuracy(
+            self.model, train_dl, self.device
+        )
+
+        return results
 
     def evaluate(
         self,
