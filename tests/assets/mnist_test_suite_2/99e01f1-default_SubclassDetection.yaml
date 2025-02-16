@@ -42,6 +42,9 @@ trainer:
   lr: 0.001
   max_epochs: 5
   seed: 42
+  logger: tensorboard
+  logger_kwargs:
+    save_dir: logs
 id: 99e01f1-default
 bench: SubclassDetection
 adversarial_label: 0

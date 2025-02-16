@@ -239,6 +239,9 @@ def test_train_from_config(
 
     config["ckpt_dir"] = os.path.join(str(tmp_path), "ckpt")
     config["metadata_dir"] = os.path.join(str(tmp_path), "meta")
+    config["trainer"]["logger_kwargs"]["save_dir"] = os.path.join(
+        str(tmp_path), "logs"
+    )
 
     # create the dirs
     os.makedirs(config["ckpt_dir"], exist_ok=True)
@@ -249,10 +252,14 @@ def test_train_from_config(
         load_meta_from_disk=load_from_disk,
     )
 
+    sanity_results = dst_eval.sanity_check()
+
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         batch_size=8,
     )["score"]
 
+    assert "train_acc" in sanity_results.keys()
+    assert isinstance(sanity_results["train_acc"], float)
     assert score is not None
