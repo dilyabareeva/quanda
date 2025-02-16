@@ -120,7 +120,6 @@ def class_accuracy(
     """
     labels = torch.empty((0,)).to(device)
     predictions = torch.empty((0,)).to(device)
-
     for inputs, targets in loader:
         inputs, targets = inputs.to(device), targets.to(device)
         outputs = net(inputs)
@@ -131,7 +130,7 @@ def class_accuracy(
         predictions,
         labels,
         task="multiclass",
-        num_classes=torch.unique(predictions).shape[0],
+        num_classes=outputs.shape[1],
     )
 
 

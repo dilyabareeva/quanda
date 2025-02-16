@@ -261,5 +261,5 @@ def test_train_from_config(
     )["score"]
 
     assert "train_acc" in sanity_results.keys()
-    assert isinstance(sanity_results["train_acc"], float)
+    assert isinstance(sanity_results["train_acc"].item(), float)
     assert score is not None
