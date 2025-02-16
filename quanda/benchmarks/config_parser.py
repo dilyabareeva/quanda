@@ -23,7 +23,12 @@ from quanda.utils.datasets.transformed import (
     TransformedDataset,
 )
 from quanda.utils.training import Trainer
-from quanda.utils.training.options import optimizers, criteria, schedulers
+from quanda.utils.training.options import (
+    optimizers,
+    criteria,
+    schedulers,
+    loggers,
+)
 
 
 class BenchConfigParser:
@@ -105,6 +110,13 @@ class BenchConfigParser:
         # Get criterion
         criterion = criteria[trainer_cfg["criterion"]]()
 
+        # Get logger if specified
+        logger = trainer_cfg.get("logger", None)
+        if logger is not None:
+            logger = loggers[trainer_cfg["logger"]](
+                **trainer_cfg.get("logger_kwargs", {})
+            )
+
         # Get scheduler if specified
         scheduler = None
         if trainer_cfg.get("scheduler"):
@@ -120,6 +132,7 @@ class BenchConfigParser:
             "optimizer_kwargs": trainer_cfg.get("optimizer_kwargs", {}),
             "scheduler_kwargs": trainer_cfg.get("scheduler_kwargs", {}),
             "seed": trainer_cfg.get("seed", 42),
+            "logger": logger,
         }
 
         return Trainer(**trainer_kwargs)
