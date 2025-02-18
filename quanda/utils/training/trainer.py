@@ -9,7 +9,6 @@ import torch
 from lightning import seed_everything
 
 from quanda.utils.training import BasicLightningModule
-from lightning.pytorch.loggers import Logger
 
 
 class BaseTrainer(metaclass=abc.ABCMeta):
@@ -84,7 +83,7 @@ class Trainer(BaseTrainer):
         scheduler: Optional[Callable] = None,
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
-        logger: Optional[Logger] = None,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         seed: int = 27,
     ):
         """Construct the Trainer class.
@@ -105,10 +104,10 @@ class Trainer(BaseTrainer):
             Keyword arguments for the optimizer, defaults to None
         scheduler_kwargs : Optional[dict], optional
             Keyword arguments for the scheduler, defaults to None
+        logger : Optional[Callable], optional
+            Logger to use during training, defaults to None
         seed : int, optional
             The seed for the projector, by default 27.
-        logger : Optional[L.pytorch.loggers.Logger], optional
-            The logger to use for training, by default None.
         accelerator : str, optional
             The accelerator to use for training, by default "cpu".
 

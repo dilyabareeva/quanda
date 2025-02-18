@@ -1,0 +1,5 @@
+# https://wandb.ai
+
+_target_: lightning.pytorch.loggers.wandb.WandbLogger
+save_dir: "${log_dir}/wandb/"
+project: "quanda-bench"

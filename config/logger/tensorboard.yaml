@@ -1,0 +1,4 @@
+# https://www.tensorflow.org/tensorboard/
+
+_target_: lightning.pytorch.loggers.tensorboard.TensorBoardLogger
+save_dir: "${log_dir}/tensorboard/"

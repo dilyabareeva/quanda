@@ -12,7 +12,6 @@ from typing import Any, Callable, List, Mapping, Optional, Sized, Union, Dict
 import torch
 import torch.utils
 import torch.utils.data
-from torchmetrics.functional import accuracy
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
@@ -118,20 +117,15 @@ def class_accuracy(
     float
 
     """
-    labels = torch.empty((0,)).to(device)
-    predictions = torch.empty((0,)).to(device)
+    correct = 0
+    total = 0
     for inputs, targets in loader:
         inputs, targets = inputs.to(device), targets.to(device)
         outputs = net(inputs)
         _, predicted = outputs.max(1)
-        labels = torch.cat((labels, targets), 0)
-        predictions = torch.cat((predictions, predicted), 0)
-    return accuracy(
-        predictions,
-        labels,
-        task="multiclass",
-        num_classes=outputs.shape[1],
-    )
+        total += targets.size(0)
+        correct += predicted.eq(targets).sum().item()
+    return correct / total
 
 
 # Taken directly from Captum with minor changes

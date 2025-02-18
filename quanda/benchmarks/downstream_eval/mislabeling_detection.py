@@ -129,9 +129,6 @@ class MislabelingDetection(Benchmark):
             shuffle=False,
         )
 
-        self.model.eval()
-        self.model.to(self.device)
-
         results["mislabeling_memorization"] = class_accuracy(
             self.model, train_dl, self.device
         )

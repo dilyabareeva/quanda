@@ -9,7 +9,6 @@ from torch.optim.lr_scheduler import (
     OneCycleLR,
     ConstantLR,
 )
-from lightning.pytorch.loggers import WandbLogger, TensorBoardLogger
 
 # Optimizer mappings
 optimizers = {
@@ -37,9 +36,4 @@ schedulers = {
     "reduce_on_plateau": ReduceLROnPlateau,
     "one_cycle": OneCycleLR,
     "constant": ConstantLR,
-}
-
-loggers = {
-    "wandb": WandbLogger,
-    "tensorboard": TensorBoardLogger,
 }

@@ -116,9 +116,6 @@ class ShortcutDetection(Benchmark):
         """
         results = super().sanity_check(batch_size)
 
-        self.model.eval()
-        self.model.to(self.device)
-
         train_dl = torch.utils.data.DataLoader(
             Subset(self.train_dataset, self.train_dataset.transform_indices),
             batch_size=batch_size,

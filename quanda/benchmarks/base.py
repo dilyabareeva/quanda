@@ -5,6 +5,7 @@ import warnings
 from abc import ABC
 from typing import Callable, List, Optional, Any
 
+import lightning as L
 import torch
 from tqdm import tqdm
 
@@ -76,6 +77,7 @@ class Benchmark(ABC):
     def train(
         cls,
         config: dict,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         load_meta_from_disk: bool = True,
         device: str = "cpu",
         batch_size: int = 8,
@@ -86,6 +88,8 @@ class Benchmark(ABC):
         ----------
         config : dict
             Dictionary containing the configuration.
+        logger : Optional[Callable], optional
+            Logger to be used for logging, by default None.
         load_meta_from_disk : bool, optional
             Whether to load metadata from disk, by default True
         device : str, optional
@@ -102,6 +106,8 @@ class Benchmark(ABC):
 
         # Parse trainer configuration
         trainer = BenchConfigParser.parse_trainer_cfg(config["trainer"])
+        if logger is not None:
+            trainer.logger = logger
 
         train_dl = torch.utils.data.DataLoader(
             obj.train_dataset,
