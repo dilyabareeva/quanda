@@ -5,9 +5,11 @@ from typing import Callable, List, Optional, Union, Any
 
 import lightning as L
 import torch
+from torch.utils.data import Subset
 
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.base import Benchmark
+from quanda.utils.common import class_accuracy
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 
 logger = logging.getLogger(__name__)
@@ -147,6 +149,53 @@ class MixedDatasets(Benchmark):
 
         obj.checkpoints_load_func = None  # TODO: be more flexible
         return obj
+
+    def sanity_check(self, batch_size: int = 32) -> dict:
+        """Perform model sanity checks.
+
+        Compute the accuracy on adversarial samples along with general \
+        train and validation accuracy.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            Batch size for the evaluation, by default 32.
+
+        Returns
+        -------
+        dict
+            Dictionary containing the sanity check results.
+
+        """
+        results = super().sanity_check(batch_size)
+
+        train_dl = torch.utils.data.DataLoader(
+            Subset(
+                self.train_dataset,
+                [
+                    i
+                    for i in range(len(self.train_dataset))
+                    if self.adversarial_indices[i] != 0.0
+                ],
+            ),
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        eval_dl = torch.utils.data.DataLoader(
+            self.eval_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        results["adversarial_memorization"] = class_accuracy(
+            self.model, train_dl, self.device
+        )
+        results["eval_adversarial_classification"] = class_accuracy(
+            self.model, eval_dl, self.device
+        )
+
+        return results
 
     def evaluate(
         self,

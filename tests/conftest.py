@@ -1,4 +1,5 @@
 import json
+import yaml
 import os
 import pickle
 from typing import Dict, List, Tuple
@@ -10,7 +11,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
-import yaml
 from kronfluence.task import Task  # type: ignore
 from torch.utils.data import Dataset, TensorDataset
 from transformers import (
@@ -831,3 +831,24 @@ def load_mnist_mixed_config():
     ) as f:
         config = yaml.safe_load(f)
     return config
+
+
+def load_yaml(file_path):
+    """Helper function to load a YAML file as a Python dictionary."""
+    assert os.path.exists(file_path), f"Config file not found: {file_path}"
+    with open(file_path, "r") as f:
+        return yaml.safe_load(f)  # Load YAML as Python dict
+
+
+@pytest.fixture
+def load_wandb_config():
+    """Load WandB config from wandb.yaml as a Python dict."""
+    dict = load_yaml("config/logger/wandb.yaml")
+    dict["offline"] = True
+    return dict
+
+
+@pytest.fixture
+def load_tensorboard_config():
+    """Load TensorBoard config from tensorboard.yaml as a Python dict."""
+    return load_yaml("config/logger/tensorboard.yaml")

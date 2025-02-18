@@ -5,6 +5,7 @@ import warnings
 from abc import ABC
 from typing import Callable, List, Optional, Any
 
+import lightning as L
 import torch
 from tqdm import tqdm
 
@@ -14,6 +15,7 @@ from quanda.metrics import Metric
 from quanda.utils.common import (
     get_load_state_dict_func,
     load_last_checkpoint,
+    class_accuracy,
 )
 
 
@@ -75,6 +77,7 @@ class Benchmark(ABC):
     def train(
         cls,
         config: dict,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         load_meta_from_disk: bool = True,
         device: str = "cpu",
         batch_size: int = 8,
@@ -85,6 +88,8 @@ class Benchmark(ABC):
         ----------
         config : dict
             Dictionary containing the configuration.
+        logger : Optional[Callable], optional
+            Logger to be used for logging, by default None.
         load_meta_from_disk : bool, optional
             Whether to load metadata from disk, by default True
         device : str, optional
@@ -101,6 +106,8 @@ class Benchmark(ABC):
 
         # Parse trainer configuration
         trainer = BenchConfigParser.parse_trainer_cfg(config["trainer"])
+        if logger is not None:
+            trainer.logger = logger
 
         train_dl = torch.utils.data.DataLoader(
             obj.train_dataset,
@@ -149,6 +156,51 @@ class Benchmark(ABC):
         # obj.save_metadata() TODO: implement this
 
         return obj
+
+    def sanity_check(self, batch_size: int = 32) -> dict:
+        """Compute training and validation accuracy of the model.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            Batch size to be used for the evaluation, defaults to 32.
+
+        Returns
+        -------
+        dict
+            Computed accuracy results.
+
+        """
+        results = {}
+
+        train_dl = torch.utils.data.DataLoader(
+            self.train_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+        )
+        if self.val_dataset is not None:
+            val_dl = torch.utils.data.DataLoader(
+                self.val_dataset,
+                batch_size=batch_size,
+                shuffle=False,
+            )
+        else:
+            val_dl = None
+
+        self.model.eval()
+        self.model.to(self.device)
+
+        # By default we only run accuracy
+        results["train_acc"] = class_accuracy(
+            self.model, train_dl, self.device
+        )
+
+        if val_dl is not None:
+            results["val_acc"] = class_accuracy(
+                self.model, val_dl, self.device
+            )
+
+        return results
 
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):

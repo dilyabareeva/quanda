@@ -430,3 +430,33 @@ class BenchConfigParser:
             val_dataset = None
 
         return train_dataset, val_dataset, test_dataset
+
+    @classmethod
+    def parse_logger(cls, cfg):
+        """Parse the logger configuration from the main config.
+
+        Parameters
+        ----------
+        cfg: DictConfig
+            The main configuration dictionary.
+
+        Returns
+        -------
+        Any
+            The logger instance
+
+        """
+        # Import Hydra only when needed
+        try:
+            from hydra.utils import instantiate
+        except ImportError:
+            raise ImportError(
+                "Hydra is not installed, but `instantiate` was requested. "
+                "Either install Hydra (`pip install hydra-core`) or modify "
+                "the config parsing."
+            )
+
+        logger_cfg = cfg.get("logger", None)
+        logger = instantiate(logger_cfg)
+
+        return logger
