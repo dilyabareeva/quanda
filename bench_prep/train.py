@@ -1,6 +1,5 @@
 import hydra
-from omegaconf import DictConfig, OmegaConf
-import os
+from omegaconf import DictConfig
 
 from quanda.benchmarks import bench_dict
 from quanda.benchmarks.downstream_eval import *
