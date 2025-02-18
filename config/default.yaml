@@ -5,7 +5,26 @@ defaults:
   - val_dataset: null
   - trainer: default
   - logger: wandb
-  - _self_
+  - override hydra/sweeper: optuna
+  - override hydra/sweeper/sampler: tpe
+  #- _self_
+
+hydra:
+  sweep:
+    dir: "${cfg_output_dir}/${id}"
+    subdir: hydra_logs
+
+  sweeper:
+    sampler:
+      seed: 123
+    direction: maximize
+    study_name: "${cfg_file_name}_{bench}"
+    storage: null
+    n_trials: 2
+    n_jobs: 1
+    params:
+      trainer.lr: choice(0.01, 0.001)
+
 
 id: "default"
 bench: MixedDatasets
@@ -14,7 +33,7 @@ metadata_dir: "tests/assets/mnist_test_suite_2/metadata"
 ckpt_dir: "tests/assets/mnist_test_suite_2/ckpt"
 log_dir: "tests/assets/mnist_test_suite_2/logs"
 dataset_dir: "tests/assets/mnist_test_suite_2/fashion_mnist_examples"
-cache_dir: "./tmp"
+cache_dir: "tmp"
 top_k: 5
 model_id: "0"
 correlation_fn: "kendall"
