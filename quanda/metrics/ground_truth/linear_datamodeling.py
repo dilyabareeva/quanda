@@ -9,7 +9,6 @@ import torch
 from torch.utils.data import DataLoader
 
 from quanda.metrics.base import Metric
-from quanda.utils.common import get_load_state_dict_func
 from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
 from quanda.utils.training import BaseTrainer
 

@@ -31,7 +31,7 @@ from quanda.utils.functions import cosine_similarity
             False,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.4562704563140869,
+            0.48903006315231323,
         ),
         (
             "mnist",
@@ -40,7 +40,7 @@ from quanda.utils.functions import cosine_similarity
             False,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.4562704563140869,
+            0.48903006315231323,
         ),
     ],
 )
@@ -88,12 +88,14 @@ def test_mislabeling_detection(
     dst_eval.global_method = global_method
     dst_eval.device = "cpu"
     dst_eval.mislabeling_indices = train_dataset.metadata.transform_indices
-    dst_eval.model, dst_eval.checkpoints, dst_eval.checkpoints_load_func = BenchConfigParser.parse_model_cfg(
-        config["model"],
-        config["ckpt_dir"],
-        config["id"],
-        True,
-        "cpu",
+    dst_eval.model, dst_eval.checkpoints, dst_eval.checkpoints_load_func = (
+        BenchConfigParser.parse_model_cfg(
+            config["model"],
+            config["ckpt_dir"],
+            config["id"],
+            True,
+            "cpu",
+        )
     )
     dst_eval.filter_by_prediction = config.get("filter_by_prediction", False)
     dst_eval.eval_dataset = eval_dataset

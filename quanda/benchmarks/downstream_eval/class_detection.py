@@ -55,13 +55,14 @@ class ClassDetection(Benchmark):
         self.eval_dataset: torch.utils.data.Dataset
         self.use_predictions: bool
         self.checkpoints: List[str]
-        self.checkpoints_load_func: Optional[Callable[..., Any]]
+        self.checkpoints_load_func: Callable[..., Any]
 
     @classmethod
     def from_config(
         cls,
         config: dict,
         load_meta_from_disk: bool = True,
+        offline: bool = False,
         device: str = "cpu",
     ):
         """Initialize the benchmark from a dictionary.
@@ -73,11 +74,13 @@ class ClassDetection(Benchmark):
         load_meta_from_disk : str
             Loads dataset metadata from disk if True, otherwise generates it,
             default True.
+        offline : bool
+            If True, the model is not downloaded, default False.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
 
         """
-        obj = super().from_config(config, load_meta_from_disk, device)
+        obj = super().from_config(config, load_meta_from_disk, offline, device)
         obj.use_predictions = config.get("use_predictions", True)
         return obj
 

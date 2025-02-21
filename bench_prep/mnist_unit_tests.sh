@@ -3,7 +3,7 @@
 # Define the parameter dictionaries
 param_dicts=(
     "bench=ClassDetection train_dataset=mnist_train_unit eval_dataset=mnist_test_unit"
-    "bench=MislabelingDetection model=mnist_lenet_mislabeling train_dataset=mnist_train_unit_mislabeling"
+    "bench=MislabelingDetection train_dataset=mnist_train_unit_mislabeling"
     "bench=SubclassDetection model=mnist_lenet_subclass train_dataset=mnist_train_unit_subclass eval_dataset=mnist_test_unit_subclass"
     "bench=ShortcutDetection train_dataset=mnist_train_unit_shortcut eval_dataset=mnist_test_unit_shortcut"
     "bench=MixedDatasets train_dataset=mnist_train_unit eval_dataset=mnist_test_unit +adv_dataset=fashion_mnist_unit"

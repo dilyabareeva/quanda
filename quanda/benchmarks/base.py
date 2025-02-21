@@ -13,7 +13,6 @@ from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.common import (
-    get_load_state_dict_func,
     load_last_checkpoint,
     class_accuracy,
 )
@@ -33,7 +32,7 @@ class Benchmark(ABC):
         self.val_dataset: Optional[torch.utils.data.Dataset] = None
         self.eval_dataset: torch.utils.data.Dataset
         self.checkpoints: List[str] = []
-        self.checkpoints_load_func: Optional[Callable[..., Any]]
+        self.checkpoints_load_func: Callable[..., Any]
         self.use_predictions: bool = False
 
     @classmethod
@@ -66,11 +65,14 @@ class Benchmark(ABC):
             load_meta_from_disk=load_meta_from_disk,
         )
 
-        obj.model, obj.checkpoints, obj.checkpoints_load_func = BenchConfigParser.parse_model_cfg(
-            model_cfg=config["model"],
-            checkpoint_path=config["ckpt_dir"],
-            cfg_id=config["id"], offline=offline,
-            device=device,
+        obj.model, obj.checkpoints, obj.checkpoints_load_func = (
+            BenchConfigParser.parse_model_cfg(
+                model_cfg=config["model"],
+                checkpoint_path=config["ckpt_dir"],
+                cfg_id=config["id"],
+                offline=offline,
+                device=device,
+            )
         )
 
         return obj
@@ -107,7 +109,9 @@ class Benchmark(ABC):
         obj = cls.from_config(config, load_meta_from_disk=False, device=device)
 
         # Parse trainer configuration
-        trainer = BenchConfigParser.parse_trainer_cfg(config["model"]["trainer"])
+        trainer = BenchConfigParser.parse_trainer_cfg(
+            config["model"]["trainer"]
+        )
         if logger is not None:
             trainer.logger = logger
 
@@ -143,16 +147,19 @@ class Benchmark(ABC):
                 "Checkpoints will be overwritten."
             )
             # remove existing checkpoints
-            #for file in os.listdir(ckpt_dir):
-                #os.remove(os.path.join(ckpt_dir, file))
+            # for file in os.listdir(ckpt_dir):
+            # os.remove(os.path.join(ckpt_dir, file))
 
-        #torch.save(obj.model.state_dict(),os.path.join(ckpt_dir, f"{config['id']}.pth"),)
+        # torch.save(
+        # obj.model.state_dict(),os.path.join(ckpt_dir, f"{config['id']}.pth"),
+        # )
 
         obj.model.to(obj.device)
         obj.model.eval()
 
-        obj.model.save_pretrained(ckpt_dir, safe_serialization=True)
-        obj.checkpoints = [ckpt_dir]
+        hf_ckpt_dir = ckpt_dir
+        obj.model.save_pretrained(hf_ckpt_dir, safe_serialization=True)
+        obj.checkpoints = [hf_ckpt_dir]
 
         # obj.save_metadata() TODO: implement this
 

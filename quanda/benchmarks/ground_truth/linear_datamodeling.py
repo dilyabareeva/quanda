@@ -65,7 +65,7 @@ class LinearDatamodeling(Benchmark):
         self.trainer_fit_kwargs: Optional[dict]
         self.cache_dir: str
         self.model_id: str
-        self.checkpoints_load_func: Callable # TODO: fix
+        self.checkpoints_load_func: Callable  # TODO: fix
         self.use_predictions: bool
         self.correlation_fn: Union[Callable, CorrelationFnLiterals]
         self.seed: int
@@ -158,7 +158,7 @@ class LinearDatamodeling(Benchmark):
             model=model,
             eval_dataset=eval_dataset,
             checkpoints=checkpoints,
-            checkpoints_load_func=get_load_state_dict_func("cpu"), # TODO: fix
+            checkpoints_load_func=get_load_state_dict_func("cpu"),  # TODO: fix
             use_predictions=use_predictions,
         )
         obj.subset_ids = subset_ids
@@ -177,7 +177,6 @@ class LinearDatamodeling(Benchmark):
             dataset_split=dataset_split,
         )
         # this sets the function to the default value
-        
 
         return obj
 
@@ -185,8 +184,8 @@ class LinearDatamodeling(Benchmark):
         self,
         model: torch.nn.Module,
         eval_dataset: torch.utils.data.Dataset,
+        checkpoints_load_func: Callable[..., Any],
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         use_predictions: bool = True,
     ):
         """Assembles the benchmark from existing components.
@@ -214,7 +213,7 @@ class LinearDatamodeling(Benchmark):
         self.model = model
         self.eval_dataset = eval_dataset
         self.checkpoints = checkpoints
-        self.checkpoints_load_func = checkpoints_load_func # TODO: fix
+        self.checkpoints_load_func = checkpoints_load_func  # TODO: fix
         self.use_predictions = use_predictions
 
     @property

@@ -73,7 +73,7 @@ class MixedDatasets(Benchmark):
         self.filter_by_prediction: bool
         self.cache_dir: str
         self.checkpoints: List[str]
-        self.checkpoints_load_func: Optional[Callable[..., Any]]
+        self.checkpoints_load_func: Callable[..., Any]
         self.use_predictions: bool = False
 
     @classmethod
@@ -143,15 +143,17 @@ class MixedDatasets(Benchmark):
             train_base_dataset
         )
 
-        obj.model, obj.checkpoints, obj.checkpoints_load_func = BenchConfigParser.parse_model_cfg(
-            model_cfg=config["model"],
-            checkpoint_path=config["ckpt_dir"],
-            cfg_id=config["id"], offline=offline,
-            device=device,
+        obj.model, obj.checkpoints, obj.checkpoints_load_func = (
+            BenchConfigParser.parse_model_cfg(
+                model_cfg=config["model"],
+                checkpoint_path=config["ckpt_dir"],
+                cfg_id=config["id"],
+                offline=offline,
+                device=device,
+            )
         )
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
 
-          
         return obj
 
     def sanity_check(self, batch_size: int = 32) -> dict:

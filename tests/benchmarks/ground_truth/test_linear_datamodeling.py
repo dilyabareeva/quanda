@@ -12,7 +12,7 @@ from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, init_method, model, checkpoint, optimizer, lr, criterion, dataset, n_classes, seed, "
     "batch_size, explainer_cls, expl_kwargs, use_pred",

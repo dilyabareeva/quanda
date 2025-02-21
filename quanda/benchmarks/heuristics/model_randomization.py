@@ -60,13 +60,14 @@ class ModelRandomization(Benchmark):
         self.device: str
 
         self.checkpoints: List[str]
-        self.checkpoints_load_func: Optional[Callable[..., Any]]
+        self.checkpoints_load_func: Callable[..., Any]
 
     @classmethod
     def from_config(
         cls,
         config: dict,
         load_meta_from_disk: bool = True,
+        offline: bool = False,
         device: str = "cpu",
     ):
         """Initialize the benchmark from a dictionary.
@@ -78,11 +79,13 @@ class ModelRandomization(Benchmark):
         load_meta_from_disk : str
             Loads dataset metadata from disk if True, otherwise generates it,
             default True.
+        offline : bool
+            If True, the model is not downloaded, default False.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
 
         """
-        obj = super().from_config(config, load_meta_from_disk, device)
+        obj = super().from_config(config, load_meta_from_disk, offline, device)
         obj.correlation_fn = correlation_functions[config["correlation_fn"]]
         obj.model_id = config.get("model_id", "0")
         obj.cache_dir = config.get("cache_dir", "./tmp")

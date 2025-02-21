@@ -56,13 +56,14 @@ class SubclassDetection(Benchmark):
         self.use_predictions: bool
         self.filter_by_prediction: bool
         self.checkpoints: List[str]
-        self.checkpoints_load_func: Optional[Callable[..., Any]]
+        self.checkpoints_load_func: Callable[..., Any]
 
     @classmethod
     def from_config(
         cls,
         config: dict,
         load_meta_from_disk: bool = True,
+        offline: bool = False,
         device: str = "cpu",
     ):
         """Initialize the benchmark from a dictionary.
@@ -74,11 +75,13 @@ class SubclassDetection(Benchmark):
         load_meta_from_disk : str
             Loads dataset metadata from disk if True, otherwise generates it,
             default True.
+        offline : bool
+            If True, the model is not downloaded, default False.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
 
         """
-        obj = super().from_config(config, load_meta_from_disk, device)
+        obj = super().from_config(config, load_meta_from_disk, offline, device)
         obj.class_to_group = obj.train_dataset.class_to_group
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
         obj.use_predictions = config.get("use_predictions", True)

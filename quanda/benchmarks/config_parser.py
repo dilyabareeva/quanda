@@ -14,7 +14,7 @@ from quanda.benchmarks.resources import (
     sample_transforms,
     pl_modules,
 )
-from quanda.utils.common import TrainValTest, get_load_state_dict_func
+from quanda.utils.common import TrainValTest
 from quanda.utils.datasets.image_datasets import (
     SingleClassImageDataset,
 )
@@ -28,6 +28,8 @@ from quanda.utils.training.options import optimizers, criteria, schedulers
 
 class BenchConfigParser:
     """Parser for benchmark configurations."""
+
+    hf_repo: str = "quanda-bench-test"  # TODO: maybe do this more elegantly
 
     @classmethod
     def parse_dataset_cfg(
@@ -54,7 +56,12 @@ class BenchConfigParser:
 
     @classmethod
     def parse_model_cfg(
-        cls, model_cfg: dict, checkpoint_path: str, cfg_id: str, offline: bool, device: str
+        cls,
+        model_cfg: dict,
+        checkpoint_path: str,
+        cfg_id: str,
+        offline: bool,
+        device: str,
     ) -> Tuple[torch.nn.Module, List[str], Callable]:
         """Parse model configuration and return the model and checkpoints.
 
@@ -66,6 +73,10 @@ class BenchConfigParser:
             Path to checkpoint directory
         cfg_id : str
             Configuration ID
+        offline : bool
+            If True, the method tries to load the model from the local cache.
+        device : str
+            Device to use for the model.
 
         Returns
         -------
@@ -78,26 +89,26 @@ class BenchConfigParser:
         module = module_cls(**module_cfg["args"])
 
         ckpt_dir = cls.get_ckpt_folder(model_cfg, checkpoint_path, cfg_id)
+        ckpt_id = cls.get_hf_model_id(cfg_id)
+
         if not os.path.exists(ckpt_dir):
             os.makedirs(ckpt_dir, exist_ok=True)
 
         if not hasattr(module_cls, "from_pretrained"):
-            raise ValueError(
-                f"Model class {module_cls} is not HF compatible."
-            )
+            raise ValueError(f"Model class {module_cls} is not HF compatible.")
+
         def load_state_dict(model: torch.nn.Module, ckpt_str: str):
-            model = module_cls.from_pretrained(
+            pretrained_model = module_cls.from_pretrained(
                 ckpt_str,
                 cache_dir=ckpt_dir,
                 local_files_only=offline,
             )
+            model.load_state_dict(pretrained_model.state_dict())
             model.to(device)
             return model_cfg["trainer"]["lr"]
-        if offline:
-            checkpoints = [ckpt_dir]
-            return module, checkpoints, load_state_dict
-        else:
-            return module, model_cfg["ckpt_hf"], load_state_dict
+
+        # check if dir is empty
+        return module, [ckpt_id], load_state_dict
 
     @classmethod
     def parse_trainer_cfg(cls, trainer_cfg: dict) -> Trainer:
@@ -475,3 +486,9 @@ class BenchConfigParser:
         logger = instantiate(logger_cfg)
 
         return logger
+
+    @classmethod
+    def get_hf_model_id(cls, cfg_id: str) -> str:
+        """Get the checkpoint id for HuggingFace."""
+        # TODO: use to push model
+        return f"{cls.hf_repo}/{cfg_id}"

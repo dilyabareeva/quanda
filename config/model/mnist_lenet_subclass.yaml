@@ -1,6 +1,3 @@
-ckpt_postfix: subclass
-ckpt_hf:
-  - "quanda-bench-test/mnist_lenet_base"
 module:
   name: MnistTorch
   args:
