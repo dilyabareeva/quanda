@@ -11,6 +11,7 @@ from quanda.benchmarks.base import Benchmark
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
+from quanda.utils.common import get_load_state_dict_func
 from quanda.utils.functions import CorrelationFnLiterals
 from quanda.utils.training import BaseTrainer
 
@@ -64,7 +65,7 @@ class LinearDatamodeling(Benchmark):
         self.trainer_fit_kwargs: Optional[dict]
         self.cache_dir: str
         self.model_id: str
-
+        self.checkpoints_load_func: Callable # TODO: fix
         self.use_predictions: bool
         self.correlation_fn: Union[Callable, CorrelationFnLiterals]
         self.seed: int
@@ -152,11 +153,12 @@ class LinearDatamodeling(Benchmark):
 
         """
         obj = cls()
+
         obj._assemble_common(
             model=model,
             eval_dataset=eval_dataset,
             checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
+            checkpoints_load_func=get_load_state_dict_func("cpu"), # TODO: fix
             use_predictions=use_predictions,
         )
         obj.subset_ids = subset_ids
@@ -175,7 +177,7 @@ class LinearDatamodeling(Benchmark):
             dataset_split=dataset_split,
         )
         # this sets the function to the default value
-        obj.checkpoints_load_func = None
+        
 
         return obj
 
@@ -212,7 +214,7 @@ class LinearDatamodeling(Benchmark):
         self.model = model
         self.eval_dataset = eval_dataset
         self.checkpoints = checkpoints
-        self.checkpoints_load_func = checkpoints_load_func
+        self.checkpoints_load_func = checkpoints_load_func # TODO: fix
         self.use_predictions = use_predictions
 
     @property

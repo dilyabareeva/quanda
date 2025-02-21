@@ -3,7 +3,7 @@ defaults:
   - train_dataset: mnist_train_unit
   - eval_dataset: mnist_test_unit
   - val_dataset: null
-  - trainer: default
+  - model/trainer: default
   - logger: wandb
   - override hydra/sweeper: optuna
   - override hydra/sweeper/sampler: tpe
@@ -17,7 +17,9 @@ hydra:
   sweeper:
     sampler:
       seed: 123
-    direction: maximize
+    direction:
+      - maximize
+      - maximize
     study_name: "${cfg_file_name}_{bench}"
     storage: null
     n_trials: 2
@@ -27,7 +29,7 @@ hydra:
 
 
 id: "default"
-bench: MixedDatasets
+bench: ClassDetection
 adversarial_label: 0
 metadata_dir: "tests/assets/mnist_test_suite_2/metadata"
 ckpt_dir: "tests/assets/mnist_test_suite_2/ckpt"
@@ -37,4 +39,5 @@ cache_dir: "tmp"
 top_k: 5
 model_id: "0"
 correlation_fn: "kendall"
+offline: true
 seed: 42

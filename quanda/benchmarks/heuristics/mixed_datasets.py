@@ -81,6 +81,7 @@ class MixedDatasets(Benchmark):
         cls,
         config: dict,
         load_meta_from_disk: bool = True,
+        offline: bool = False,
         device: str = "cpu",
     ):
         """Initialize the benchmark from a dictionary.
@@ -92,6 +93,8 @@ class MixedDatasets(Benchmark):
         load_meta_from_disk : str
             Loads dataset metadata from disk if True, otherwise generates it,
             default True.
+        offline : bool, optional
+            Whether to load the model in offline mode, by default False.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
 
@@ -140,14 +143,15 @@ class MixedDatasets(Benchmark):
             train_base_dataset
         )
 
-        obj.model, obj.checkpoints = BenchConfigParser.parse_model_cfg(
+        obj.model, obj.checkpoints, obj.checkpoints_load_func = BenchConfigParser.parse_model_cfg(
             model_cfg=config["model"],
             checkpoint_path=config["ckpt_dir"],
-            cfg_id=config["id"],
+            cfg_id=config["id"], offline=offline,
+            device=device,
         )
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
 
-        obj.checkpoints_load_func = None  # TODO: be more flexible
+          
         return obj
 
     def sanity_check(self, batch_size: int = 32) -> dict:

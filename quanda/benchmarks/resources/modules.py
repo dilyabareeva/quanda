@@ -2,13 +2,14 @@
 
 import lightning as L
 import torch
+from huggingface_hub import PyTorchModelHubMixin
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam, AdamW, lr_scheduler
 from torchmetrics.functional import accuracy
 from torchvision.models import ResNet18_Weights, resnet18  # type: ignore
 
 
-class LeNet(torch.nn.Module):
+class LeNet(torch.nn.Module, PyTorchModelHubMixin):
     """A torch implementation of LeNet architecture.
 
     Adapted from: https://github.com/ChawDoe/LeNet5-MNIST-PyTorch.
@@ -40,7 +41,7 @@ class LeNet(torch.nn.Module):
         return x
 
 
-class TinyImagenetModel(L.LightningModule):
+class TinyImagenetModel(L.LightningModule, PyTorchModelHubMixin):
     """Model definition for downloadable Tiny Imagenet benchmarks."""
 
     def __init__(

@@ -14,7 +14,7 @@ from quanda.benchmarks.resources import (
     sample_transforms,
     pl_modules,
 )
-from quanda.utils.common import TrainValTest
+from quanda.utils.common import TrainValTest, get_load_state_dict_func
 from quanda.utils.datasets.image_datasets import (
     SingleClassImageDataset,
 )
@@ -54,8 +54,8 @@ class BenchConfigParser:
 
     @classmethod
     def parse_model_cfg(
-        cls, model_cfg: dict, checkpoint_path: str, cfg_id: str
-    ) -> Tuple[torch.nn.Module, List[str]]:
+        cls, model_cfg: dict, checkpoint_path: str, cfg_id: str, offline: bool, device: str
+    ) -> Tuple[torch.nn.Module, List[str], Callable]:
         """Parse model configuration and return the model and checkpoints.
 
         Parameters
@@ -74,15 +74,30 @@ class BenchConfigParser:
 
         """
         module_cfg = model_cfg["module"]
-        module = pl_modules[module_cfg["name"]](**module_cfg["args"])
+        module_cls = pl_modules[module_cfg["name"]]
+        module = module_cls(**module_cfg["args"])
 
         ckpt_dir = cls.get_ckpt_folder(model_cfg, checkpoint_path, cfg_id)
         if not os.path.exists(ckpt_dir):
             os.makedirs(ckpt_dir, exist_ok=True)
 
-        checkpoints = [os.path.join(ckpt_dir, f) for f in os.listdir(ckpt_dir)]
-
-        return module, checkpoints
+        if not hasattr(module_cls, "from_pretrained"):
+            raise ValueError(
+                f"Model class {module_cls} is not HF compatible."
+            )
+        def load_state_dict(model: torch.nn.Module, ckpt_str: str):
+            model = module_cls.from_pretrained(
+                ckpt_str,
+                cache_dir=ckpt_dir,
+                local_files_only=offline,
+            )
+            model.to(device)
+            return model_cfg["trainer"]["lr"]
+        if offline:
+            checkpoints = [ckpt_dir]
+            return module, checkpoints, load_state_dict
+        else:
+            return module, model_cfg["ckpt_hf"], load_state_dict
 
     @classmethod
     def parse_trainer_cfg(cls, trainer_cfg: dict) -> Trainer:

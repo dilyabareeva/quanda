@@ -41,6 +41,7 @@ class Benchmark(ABC):
         cls,
         config: dict,
         load_meta_from_disk: bool = True,
+        offline: bool = False,
         device: str = "cpu",
     ):
         """Initialize the benchmark from a dictionary."""
@@ -65,12 +66,13 @@ class Benchmark(ABC):
             load_meta_from_disk=load_meta_from_disk,
         )
 
-        obj.model, obj.checkpoints = BenchConfigParser.parse_model_cfg(
+        obj.model, obj.checkpoints, obj.checkpoints_load_func = BenchConfigParser.parse_model_cfg(
             model_cfg=config["model"],
             checkpoint_path=config["ckpt_dir"],
-            cfg_id=config["id"],
+            cfg_id=config["id"], offline=offline,
+            device=device,
         )
-        obj.checkpoints_load_func = None  # TODO: be more flexible
+
         return obj
 
     @classmethod
@@ -105,7 +107,7 @@ class Benchmark(ABC):
         obj = cls.from_config(config, load_meta_from_disk=False, device=device)
 
         # Parse trainer configuration
-        trainer = BenchConfigParser.parse_trainer_cfg(config["trainer"])
+        trainer = BenchConfigParser.parse_trainer_cfg(config["model"]["trainer"])
         if logger is not None:
             trainer.logger = logger
 
@@ -141,17 +143,16 @@ class Benchmark(ABC):
                 "Checkpoints will be overwritten."
             )
             # remove existing checkpoints
-            for file in os.listdir(ckpt_dir):
-                os.remove(os.path.join(ckpt_dir, file))
+            #for file in os.listdir(ckpt_dir):
+                #os.remove(os.path.join(ckpt_dir, file))
 
-        torch.save(
-            obj.model.state_dict(),
-            os.path.join(ckpt_dir, f"{config['id']}.pth"),
-        )
+        #torch.save(obj.model.state_dict(),os.path.join(ckpt_dir, f"{config['id']}.pth"),)
 
         obj.model.to(obj.device)
         obj.model.eval()
-        obj.checkpoints = [os.path.join(ckpt_dir, f"{config['id']}.pth")]
+
+        obj.model.save_pretrained(ckpt_dir, safe_serialization=True)
+        obj.checkpoints = [ckpt_dir]
 
         # obj.save_metadata() TODO: implement this
 
@@ -258,24 +259,6 @@ class Benchmark(ABC):
     def save_metadata(self):
         """Save metadata to disk."""
         raise NotImplementedError
-
-    @property
-    def checkpoints_load_func(self):
-        """Return the function to load the checkpoints."""
-        return self._checkpoints_load_func
-
-    @checkpoints_load_func.setter
-    def checkpoints_load_func(self, value):
-        """Set the function to load the checkpoints."""
-        if self.device is None:
-            raise ValueError(
-                "The device must be set before setting the "
-                "checkpoints_load_func."
-            )
-        if value is None:
-            self._checkpoints_load_func = get_load_state_dict_func(self.device)
-        else:
-            self._checkpoints_load_func = value
 
     def _prepare_explainer(
         self,
