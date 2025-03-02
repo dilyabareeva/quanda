@@ -1,25 +1,34 @@
-import json
 import os
+import json
 import pickle
 from typing import Dict, List, Tuple
 
-import datasets
-import numpy as np
-import pytest
+import yaml
 import torch
+import pytest
+import datasets
+import torchvision
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision
-import yaml
 from kronfluence.task import Task  # type: ignore
+from torchvision.models import vit_b_16, resnet18
 from torch.utils.data import Dataset, TensorDataset
+from transformers.modeling_outputs import SequenceClassifierOutput
 from transformers import (
     AutoConfig,
     AutoModelForSequenceClassification,
     AutoTokenizer,
 )
-from torchvision.models import vit_b_16, resnet18
 
+from tests.models import LeNet
+from quanda.utils.training.base_pl_module import BasicLightningModule
+from quanda.utils.datasets.transformed.label_flipping import (
+    LabelFlippingDataset,
+)
+from quanda.utils.datasets.transformed.label_grouping import (
+    LabelGroupingDataset,
+)
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
     MislabelingDetection,
@@ -31,14 +40,7 @@ from quanda.benchmarks.heuristics import (
     ModelRandomization,
     TopKCardinality,
 )
-from quanda.utils.datasets.transformed.label_flipping import (
-    LabelFlippingDataset,
-)
-from quanda.utils.datasets.transformed.label_grouping import (
-    LabelGroupingDataset,
-)
-from quanda.utils.training.base_pl_module import BasicLightningModule
-from tests.models import LeNet
+
 
 # Copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
 GLUE_TASK_TO_KEYS = {
@@ -764,13 +766,13 @@ def get_dataset(split, inds=None):
 
 
 @pytest.fixture
-def qnli_model():
+def load_qnli_model():
     model = SequenceClassificationModel()
     return model
 
 
 @pytest.fixture
-def qnli_dataset():
+def load_qnli_dataset():
     ds_train = get_dataset("train")
     ds_train = ds_train.select(range(QNLI_TRAIN_SET_SIZE))
     ds_val = get_dataset("validation")
@@ -831,3 +833,63 @@ def load_mnist_mixed_config():
     ) as f:
         config = yaml.safe_load(f)
     return config
+
+
+@pytest.fixture
+def load_simple_classifier():
+    torch.manual_seed(42)
+
+    class SimpleTextClassifier(nn.Module):
+        def __init__(self, vocab_size=100, hidden_size=32):
+            super().__init__()
+            self.embedding = nn.Embedding(vocab_size, hidden_size)
+            self.classifier = nn.Linear(hidden_size, 2)
+
+        def forward(self, input_ids, attention_mask=None, token_type_ids=None):
+            embeddings = self.embedding(input_ids)
+            if attention_mask is not None:
+                mask = attention_mask.unsqueeze(-1)
+                embeddings = embeddings * mask
+                pooled = embeddings.sum(1) / mask.sum(1)
+            else:
+                pooled = embeddings.mean(1)
+            logits = self.classifier(pooled)
+            return SequenceClassifierOutput(logits=logits)
+
+    return SimpleTextClassifier()
+
+
+@pytest.fixture
+def load_text_dataset():
+    np.random.seed(42)
+
+    def create_dummy_data(size):
+        seq_length = 10
+
+        input_ids = np.random.randint(0, 100, size=(size, seq_length))
+        attention_mask = np.ones((size, seq_length))
+        token_type_ids = np.zeros((size, seq_length))
+        labels = np.random.randint(0, 2, size=(size,))
+
+        data = {
+            "input_ids": input_ids.tolist(),
+            "attention_mask": attention_mask.tolist(),
+            "token_type_ids": token_type_ids.tolist(),
+            "labels": labels.tolist(),
+        }
+
+        return datasets.Dataset.from_dict(data)
+
+    ds_train = create_dummy_data(20)
+    ds_val = create_dummy_data(5)
+
+    return ds_train, ds_val
+
+
+@pytest.fixture
+def load_torch_dataset():
+    torch.manual_seed(42)
+    size = 4
+    data = torch.randn(size, 3)
+    labels = torch.randint(0, 2, (size,))
+    return torch.utils.data.TensorDataset(data, labels)
