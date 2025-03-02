@@ -3,7 +3,7 @@
 from typing import List, Optional, Union, Callable, Any
 
 import torch
-import datasets
+import datasets  # type: ignore
 
 from quanda.metrics.base import Metric
 

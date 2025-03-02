@@ -4,7 +4,7 @@ import logging
 from typing import Callable, List, Optional, Any, Union
 
 import torch
-import datasets
+import datasets  # type: ignore
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import ClassDetectionMetric

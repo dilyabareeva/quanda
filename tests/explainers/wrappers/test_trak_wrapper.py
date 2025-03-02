@@ -118,9 +118,9 @@ def test_trak(
         traker.finalize_scores(exp_name="test")
     ).T
 
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -225,9 +225,9 @@ def test_trak_explain_functional(
         explanation_targets=test_labels,
         **method_kwargs,
     )
-    assert explanations.shape[0] == len(
-        test_labels
-    ), "Training data attributions are not as expected"
+    assert explanations.shape[0] == len(test_labels), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -286,9 +286,9 @@ def test_trak_explain_functional_cache(
         explanation_targets=test_labels,
         **method_kwargs,
     )
-    assert not torch.allclose(
-        explanations_first, explanations_second
-    ), "Caching is problematic between different instantiations"
+    assert not torch.allclose(explanations_first, explanations_second), (
+        "Caching is problematic between different instantiations"
+    )
 
 
 @pytest.mark.explainers
@@ -335,6 +335,6 @@ def test_trak_self_influence_functional(
         **method_kwargs,
     )
 
-    assert explanations.shape[0] == len(
-        dataset
-    ), "Training data attributions shape not as expected"
+    assert explanations.shape[0] == len(dataset), (
+        "Training data attributions shape not as expected"
+    )

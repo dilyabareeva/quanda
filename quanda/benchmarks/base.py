@@ -6,7 +6,7 @@ from abc import ABC
 from typing import Callable, List, Optional, Any, Union
 
 import torch
-import datasets
+import datasets  # type: ignore
 from tqdm import tqdm
 
 

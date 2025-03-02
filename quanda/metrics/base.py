@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Union, List, Optional, Callable
 
 import torch
-import datasets
+import datasets  # type: ignore
 
 from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
 

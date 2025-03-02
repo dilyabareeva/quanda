@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List, Union, Optional, Callable, Any
 
 import torch
-import datasets
+import datasets  # type: ignore
 import lightning as L
 
 from quanda.utils.tasks import TaskLiterals

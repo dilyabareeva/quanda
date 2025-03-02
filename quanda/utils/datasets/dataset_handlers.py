@@ -4,8 +4,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Tuple, Union
 
 import torch
-import datasets
-from transformers import default_data_collator
+import datasets  # type: ignore
+from transformers import default_data_collator  # type: ignore
 from torch.utils.data import DataLoader
 
 

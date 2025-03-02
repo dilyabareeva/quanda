@@ -5,7 +5,7 @@ from typing import Any, Callable, List, Optional, Union, Dict
 import torch
 from torch import nn
 import datasets  # type: ignore
-from transformers import default_data_collator
+from transformers import default_data_collator  # type: ignore
 from kronfluence.task import Task  # type: ignore
 from kronfluence.utils.dataset import DataLoaderKwargs  # type: ignore
 from kronfluence.analyzer import Analyzer, prepare_model  # type: ignore
@@ -198,11 +198,11 @@ class Kronfluence(Explainer):
             test_data["labels"] = targets
             return datasets.Dataset.from_dict(test_data)
         elif isinstance(test_data, List):
-            test_data = {
+            data_dict = {
                 key: [d[key] for d in test_data] for key in test_data[0].keys()
             }
-            test_data["labels"] = targets
-            dataset = datasets.Dataset.from_dict(test_data)
+            data_dict["labels"] = targets.tolist()
+            dataset = datasets.Dataset.from_dict(data_dict)
             return dataset
         else:
             raise ValueError(

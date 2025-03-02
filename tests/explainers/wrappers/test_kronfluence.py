@@ -95,9 +95,9 @@ def test_kronfluence_self_influence(
     )
     self_influence_scores = explainer.self_influence()
 
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.explainers
@@ -180,9 +180,9 @@ def test_kronfluence_self_influence_functional(
         device="cpu",
     )
 
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.explainers
@@ -292,9 +292,9 @@ def test_kronfluence_self_influence_with_optional_args(
         score_args=score_args, overwrite_output_dir=True
     )
 
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.explainers
@@ -389,9 +389,9 @@ def test_kronfluence_self_influence_functional_with_optional_args(
         cache_dir=str(tmp_path),
     )
 
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.explainers
@@ -531,9 +531,9 @@ def test_kronfluence_language_self_influence(
     )
 
     self_influence_scores = explainer.self_influence()
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.slow
@@ -570,9 +570,9 @@ def test_kronfluence_qnli_self_influence(
     )
 
     self_influence_scores = explainer.self_influence()
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.slow
