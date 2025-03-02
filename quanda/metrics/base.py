@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Union, List, Optional, Callable
 
 import torch
+import datasets
 
 from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
 
@@ -14,7 +15,7 @@ class Metric(ABC):
     def __init__(
         self,
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
     ):
@@ -54,7 +55,9 @@ class Metric(ABC):
                 checkpoints if isinstance(checkpoints, List) else [checkpoints]
             )
             self.load_last_checkpoint()
-        self.train_dataset: torch.utils.data.Dataset = train_dataset
+        self.train_dataset: Union[
+            torch.utils.data.Dataset, datasets.Dataset
+        ] = train_dataset
 
     @abstractmethod
     def update(

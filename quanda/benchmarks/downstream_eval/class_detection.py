@@ -1,9 +1,10 @@
 """Class Detection benchmark."""
 
 import logging
-from typing import Callable, List, Optional, Any
+from typing import Callable, List, Optional, Any, Union
 
 import torch
+import datasets
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import ClassDetectionMetric
@@ -51,8 +52,8 @@ class ClassDetection(Benchmark):
 
         self.model: torch.nn.Module
         self.device: str
-        self.train_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
+        self.train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
+        self.eval_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
         self.use_predictions: bool
         self.checkpoints: List[str]
         self.checkpoints_load_func: Optional[Callable[..., Any]]
@@ -105,17 +106,17 @@ class ClassDetection(Benchmark):
             Dictionary containing the metric score.
 
         """
-        explainer = self._prepare_explainer(
-            dataset=self.train_dataset,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
-        )
-
         metric = ClassDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
+        )
+
+        explainer = self._prepare_explainer(
+            dataset=self.train_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
         )
 
         return self._evaluate_dataset(

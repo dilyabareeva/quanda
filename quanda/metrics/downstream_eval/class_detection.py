@@ -3,6 +3,7 @@
 from typing import List, Optional, Union, Callable, Any
 
 import torch
+import datasets
 
 from quanda.metrics.base import Metric
 
@@ -33,7 +34,7 @@ class ClassDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
     ):
@@ -61,6 +62,36 @@ class ClassDetectionMetric(Metric):
 
         self.scores: List[torch.Tensor] = []
 
+    def _get_targets(self, item: Union[tuple, dict]):
+        """Extract targets from dataset item.
+
+        Parameters
+        ----------
+        item : Union[tuple, dict]
+            Dataset item which can be either a tuple (data, target) or a dict
+            with 'labels' key.
+
+        Returns
+        -------
+        int
+            The target value.
+
+        """
+        if isinstance(item, tuple):
+            return item[1]
+        elif isinstance(item, dict):
+            if "labels" in item:
+                return item["labels"]
+            else:
+                raise ValueError(
+                    f"Dataset item missing required 'labels' key: {item}."
+                )
+        else:
+            raise ValueError(
+                f"Unsupported dataset item type: {type(item)}. "
+                "Expected tuple (data, target) or dict with 'labels' key."
+            )
+
     def update(self, explanations: torch.Tensor, test_targets: torch.Tensor):
         """Update the metric state with the provided explanations.
 
@@ -83,8 +114,8 @@ class ClassDetectionMetric(Metric):
         _, top_one_xpl_indices = explanations.topk(k=1, dim=1)
         top_one_xpl_targets = torch.tensor(
             [
-                self.train_dataset[int(i)][1]
-                for i in top_one_xpl_indices.squeeze()
+                self._get_targets(self.train_dataset[int(i)])
+                for i in top_one_xpl_indices
             ]
         ).to(self.device)
         scores = (test_targets == top_one_xpl_targets) * 1.0
