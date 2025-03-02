@@ -3,13 +3,13 @@ and is not part of the quanda library release. The code is not well-tested, well
 as a reference only.
 """
 
-import matplotlib.colors as mcolors
-import matplotlib.pyplot as plt
 import torch
-from matplotlib import font_manager, rcParams
-from matplotlib.gridspec import GridSpec
-from matplotlib.patches import Rectangle
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 from torchvision.utils import save_image
+from matplotlib.patches import Rectangle
+from matplotlib.gridspec import GridSpec
+from matplotlib import font_manager, rcParams
 
 fonts = ["../assets/demo/Helvetica.ttf", "../assets/demo/Helvetica-Bold.ttf"]
 [font_manager.fontManager.addfont(font) for font in fonts]

@@ -1,5 +1,5 @@
-import pytest
 import torch
+import pytest
 from torch.utils.data import Dataset, TensorDataset
 
 from quanda.utils.datasets.transformed import TransformedDataset

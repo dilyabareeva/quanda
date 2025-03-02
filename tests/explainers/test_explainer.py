@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
-import pytest
 import torch
+import pytest
 
 from quanda.explainers import Explainer
 from quanda.utils.functions import cosine_similarity
@@ -60,9 +60,9 @@ def test_base_explainer_self_influence(
 
     Explainer.accepted_tasks = []
 
-    assert self_influence.shape[0] == dataset.__len__(), (
-        "Self-influence shape does not match the dataset."
-    )
+    assert (
+        self_influence.shape[0] == dataset.__len__()
+    ), "Self-influence shape does not match the dataset."
 
 
 @pytest.mark.explainers

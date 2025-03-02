@@ -4,8 +4,9 @@ from typing import Callable, Optional, Literal
 
 import torch
 
+from quanda.utils.datasets.transformed.base import TransformedDataset
 from quanda.utils.datasets.transformed.metadata import LabelGroupingMetadata
-from .base import TransformedDataset
+
 
 ClassToGroupLiterals = Literal["random"]
 

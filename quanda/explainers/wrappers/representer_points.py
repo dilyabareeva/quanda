@@ -18,28 +18,28 @@ SOFTWARE.
 
 """
 
-import logging
 import os
+import logging
 import warnings
 from functools import reduce
 from typing import Any, Callable, List, Optional, Union
 
-import lightning as L
 import torch
+import lightning as L
+from tqdm import tqdm
 import torch.nn as nn
+from torch import Tensor
 import torch.optim as optim
 from captum._utils.av import AV  # type: ignore
-from torch import Tensor
-from tqdm import tqdm
 
 from quanda.explainers.base import Explainer
+from quanda.utils.tasks import TaskLiterals
 from quanda.utils.common import (
     default_tensor_type,
     ds_len,
     map_location_context,
     process_targets,
 )
-from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
 

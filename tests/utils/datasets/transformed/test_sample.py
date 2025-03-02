@@ -1,5 +1,5 @@
-import pytest
 import torch
+import pytest
 
 from quanda.utils.datasets.transformed import SampleTransformationDataset
 

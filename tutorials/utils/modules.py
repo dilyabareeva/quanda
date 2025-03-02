@@ -1,5 +1,5 @@
-import lightning as L
 import torch
+import lightning as L
 from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW, lr_scheduler
 from torchmetrics.functional import accuracy

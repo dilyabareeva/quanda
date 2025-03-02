@@ -1,7 +1,7 @@
 """Module containing classes for creating global rankings."""
 
-from abc import ABC, abstractmethod
 from typing import Optional
+from abc import ABC, abstractmethod
 
 import torch
 

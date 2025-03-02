@@ -1,10 +1,10 @@
 """Lightning modules for the benchmarks."""
 
-import lightning as L
 import torch
+import lightning as L
 from torch.nn import CrossEntropyLoss
-from torch.optim import Adam, AdamW, lr_scheduler
 from torchmetrics.functional import accuracy
+from torch.optim import Adam, AdamW, lr_scheduler
 from torchvision.models import ResNet18_Weights, resnet18  # type: ignore
 
 

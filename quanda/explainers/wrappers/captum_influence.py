@@ -5,8 +5,8 @@ import warnings
 from abc import ABC, abstractmethod
 from typing import Any, Callable, List, Optional, Union
 
-import lightning as L
 import torch
+import lightning as L
 from captum._utils.av import AV  # type: ignore
 from captum.influence import (  # type: ignore
     SimilarityInfluence,
@@ -23,6 +23,9 @@ from captum.influence._utils.nearest_neighbors import (  # type: ignore
     NearestNeighbors,
 )
 
+from quanda.utils.tasks import TaskLiterals
+from quanda.utils.datasets import OnDeviceDataset
+from quanda.utils.functions import cosine_similarity
 from quanda.explainers.base import Explainer
 from quanda.explainers.utils import (
     explain_fn_from_explainer,
@@ -34,9 +37,7 @@ from quanda.utils.common import (
     map_location_context,
     process_targets,
 )
-from quanda.utils.datasets import OnDeviceDataset
-from quanda.utils.functions import cosine_similarity
-from quanda.utils.tasks import TaskLiterals
+
 
 logger = logging.getLogger(__name__)
 

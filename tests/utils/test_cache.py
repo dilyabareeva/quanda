@@ -1,11 +1,11 @@
 import os
 
-import pytest
 import torch
+import pytest
 
+from quanda.utils.functions import cosine_similarity
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
-from quanda.utils.functions import cosine_similarity
 
 
 @pytest.mark.utils

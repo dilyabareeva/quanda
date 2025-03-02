@@ -1,10 +1,11 @@
 import math
 
-import pytest
 import torch
+import pytest
 from torcheval.metrics.functional import binary_auprc
 
 from quanda.explainers import SumAggregator
+from quanda.utils.functions import cosine_similarity
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.downstream_eval import (
     ClassDetectionMetric,
@@ -12,7 +13,6 @@ from quanda.metrics.downstream_eval import (
     ShortcutDetectionMetric,
     SubclassDetectionMetric,
 )
-from quanda.utils.functions import cosine_similarity
 
 
 @pytest.mark.downstream_eval_metrics

@@ -1,7 +1,7 @@
 """Torchvision transforms for benchmarks."""
 
-import torchvision.transforms as transforms  # type: ignore
 from PIL import Image
+import torchvision.transforms as transforms  # type: ignore
 
 
 def add_white_square_mnist(img):

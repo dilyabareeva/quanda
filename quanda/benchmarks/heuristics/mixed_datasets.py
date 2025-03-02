@@ -3,11 +3,11 @@
 import logging
 from typing import Callable, List, Optional, Union, Any
 
-import lightning as L
 import torch
+import lightning as L
 
-from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 
 logger = logging.getLogger(__name__)

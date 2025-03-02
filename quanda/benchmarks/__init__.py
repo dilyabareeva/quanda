@@ -1,7 +1,7 @@
 """Benchmarks."""
 
-from quanda.benchmarks import downstream_eval, ground_truth, heuristics
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks import downstream_eval, ground_truth, heuristics
 
 bench_dict = {
     "ClassDetection": downstream_eval.ClassDetection,

@@ -2,8 +2,8 @@
 
 from typing import Callable, Optional
 
-import lightning as L
 import torch
+import lightning as L
 
 
 class BasicLightningModule(L.LightningModule):

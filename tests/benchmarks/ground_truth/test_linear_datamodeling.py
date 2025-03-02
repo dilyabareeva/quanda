@@ -1,15 +1,15 @@
-from quanda.benchmarks.ground_truth.linear_datamodeling import (
-    LinearDatamodeling,
-)
 import math
 
 import pytest
 import torch
 
-from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
-from quanda.utils.functions.correlations import spearman_rank_corr
-from quanda.utils.functions.similarities import cosine_similarity
 from quanda.utils.training.trainer import Trainer
+from quanda.utils.functions.similarities import cosine_similarity
+from quanda.utils.functions.correlations import spearman_rank_corr
+from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
+from quanda.benchmarks.ground_truth.linear_datamodeling import (
+    LinearDatamodeling,
+)
 
 
 @pytest.mark.benchmarks

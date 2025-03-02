@@ -1,14 +1,13 @@
-import pytest
 import torch
+import pytest
 from lightning.pytorch import Trainer as LightningTrainer
 
-
+from quanda.utils.training import Trainer
+from quanda.utils.functions import cosine_similarity
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
-from quanda.utils.functions import cosine_similarity
-from quanda.utils.training import Trainer
 
 
 @pytest.mark.ground_truth_metrics
@@ -91,9 +90,9 @@ def test_linear_datamodeling(
 
     score = metric.compute()["score"]
 
-    assert abs(score - get_lds_score) < 0.01, (
-        "LDS scores differ significantly."
-    )
+    assert (
+        abs(score - get_lds_score) < 0.01
+    ), "LDS scores differ significantly."
 
 
 @pytest.mark.ground_truth_metrics

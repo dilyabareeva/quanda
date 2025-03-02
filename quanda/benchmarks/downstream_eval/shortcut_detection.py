@@ -2,15 +2,15 @@
 
 from typing import Callable, List, Optional, Union, Any
 
-import lightning as L
 import torch
+import lightning as L
 
 from quanda.benchmarks.base import Benchmark
-from quanda.metrics.downstream_eval.shortcut_detection import (
-    ShortcutDetectionMetric,
-)
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
+)
+from quanda.metrics.downstream_eval.shortcut_detection import (
+    ShortcutDetectionMetric,
 )
 
 

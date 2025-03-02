@@ -4,13 +4,13 @@ import os
 from copy import deepcopy
 from typing import Callable, Dict, List, Optional, Union
 
-import lightning as L
 import torch
+import lightning as L
 from torch.utils.data import DataLoader
 
 from quanda.metrics.base import Metric
-from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
 from quanda.utils.training import BaseTrainer
+from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
 
 
 class LinearDatamodelingMetric(Metric):

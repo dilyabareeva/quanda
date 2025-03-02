@@ -6,24 +6,20 @@ from typing import Optional, Tuple, Any, List, Union, Callable
 import requests
 import zipfile
 import warnings
+
 import torch
 from datasets import load_dataset  # type: ignore
-from quanda.utils.datasets.image_datasets import HFtoTV
 
-from quanda.benchmarks.resources import (
-    sample_transforms,
-    pl_modules,
-)
+from quanda.utils.training import Trainer
 from quanda.utils.common import TrainValTest
-from quanda.utils.datasets.image_datasets import (
-    SingleClassImageDataset,
-)
+from quanda.utils.datasets.image_datasets import HFtoTV
+from quanda.benchmarks.resources import sample_transforms, pl_modules
+from quanda.utils.datasets.image_datasets import SingleClassImageDataset
+from quanda.utils.training.options import optimizers, criteria, schedulers
 from quanda.utils.datasets.transformed import (
     transform_wrappers,
     TransformedDataset,
 )
-from quanda.utils.training import Trainer
-from quanda.utils.training.options import optimizers, criteria, schedulers
 
 
 class BenchConfigParser:

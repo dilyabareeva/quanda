@@ -4,8 +4,8 @@ from typing import List, Optional, Union, Callable, Any
 
 import torch
 
-from quanda.metrics.downstream_eval import ClassDetectionMetric
 from quanda.utils.common import ds_len
+from quanda.metrics.downstream_eval import ClassDetectionMetric
 
 
 class SubclassDetectionMetric(ClassDetectionMetric):

@@ -3,9 +3,9 @@
 import logging
 from typing import Callable, List, Optional, Union, Any
 
-import lightning as L
 import torch
 import torch.utils
+import lightning as L
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric

@@ -3,12 +3,12 @@
 import logging
 from typing import Callable, Dict, List, Optional, Union, Any
 
-import lightning as L
 import torch
+import lightning as L
 
+from quanda.utils.common import ds_len
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import SubclassDetectionMetric
-from quanda.utils.common import ds_len
 from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )

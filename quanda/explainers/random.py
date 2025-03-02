@@ -5,8 +5,8 @@ from typing import Any, List, Optional, Union, Callable
 import torch
 
 from quanda.explainers import Explainer
-from quanda.utils.common import cache_result, ds_len
 from quanda.utils.tasks import TaskLiterals
+from quanda.utils.common import cache_result, ds_len
 
 
 class RandomExplainer(Explainer):

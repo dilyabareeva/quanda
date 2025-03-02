@@ -5,6 +5,9 @@ import math
 
 import pytest
 
+
+from quanda.utils.functions import cosine_similarity
+from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
     MislabelingDetection,
@@ -16,8 +19,6 @@ from quanda.benchmarks.heuristics import (
     TopKCardinality,
     MixedDatasets,
 )
-from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.utils.functions import cosine_similarity
 
 
 @pytest.mark.tested

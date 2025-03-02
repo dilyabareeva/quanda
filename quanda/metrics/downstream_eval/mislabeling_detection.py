@@ -4,13 +4,13 @@ from typing import Any, List, Optional, Union, Callable
 
 import torch
 
+from quanda.metrics.base import Metric
+from quanda.utils.common import ds_len
 from quanda.explainers.global_ranking import (
     GlobalAggrStrategy,
     GlobalSelfInfluenceStrategy,
     aggr_types,
 )
-from quanda.metrics.base import Metric
-from quanda.utils.common import ds_len
 
 
 class MislabelingDetectionMetric(Metric):

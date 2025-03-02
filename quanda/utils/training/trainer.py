@@ -4,11 +4,11 @@ import abc
 from abc import abstractmethod
 from typing import Callable, Optional
 
-import lightning as L
 import torch
+import lightning as L
 from lightning import seed_everything
 
-from quanda.utils.training import BasicLightningModule
+from quanda.utils.training.base_pl_module import BasicLightningModule
 
 
 class BaseTrainer(metaclass=abc.ABCMeta):
