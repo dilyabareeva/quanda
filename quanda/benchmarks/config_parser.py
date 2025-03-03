@@ -34,17 +34,12 @@ class BenchConfigParser:
         load_meta_from_disk: bool = True,
     ):
         """Parse metadata configuration and return the metadata directory."""
-        # if load_meta_from_disk:
-        # return
-
-        # TODO: handle load_meta_from_disk=True
-
         base_metadata_dir = os.path.join(bench_save_dir, "metadata")
         # create metadata_dir if it doesn't exist
         os.makedirs(base_metadata_dir, exist_ok=True)
         metadata_id = metadata_str.split("/")[-1]
         metadata_dir = os.path.join(base_metadata_dir, metadata_id)
-        if os.path.exists(metadata_dir):
+        if os.path.exists(metadata_dir) or not load_meta_from_disk:
             return metadata_dir
         return snapshot_download(
             repo_id=metadata_str, local_dir=metadata_dir, repo_type="dataset"
@@ -262,6 +257,7 @@ class BenchConfigParser:
         load_meta_from_disk: bool,
     ) -> torch.utils.data.Dataset:
         """Apply a wrapper to the dataset based on configuration."""
+        wrapper_cfg = dict(wrapper_cfg)
         wrapper_cls = transform_wrappers[wrapper_cfg.pop("type")]
         # check if wrapper_cls is a subclass of TransformedDataset
         if not hasattr(wrapper_cls, "metadata_cls"):
@@ -271,7 +267,7 @@ class BenchConfigParser:
 
         kwargs = wrapper_cfg
         if "metadata" in kwargs:
-            metadata_args = kwargs.pop("metadata", {})
+            metadata_args = dict(kwargs.pop("metadata", {}))
             meta_filename = metadata_args.pop(
                 "metadata_filename", "DOESNT_EXIST"
             )

@@ -7,10 +7,8 @@ from omegaconf import DictConfig, OmegaConf
 
 @hydra.main(version_base=None, config_path="../config", config_name="default")
 def opt_results_to_cfg(cfg: DictConfig) -> Tuple[float]:
-
-    logs_dir = f"{cfg.log_dir}/{cfg.id}_{cfg.bench}"
-    cfg.id = f"{cfg.id}_{cfg.bench}"
-    cfg.cfg_file_name = f"{cfg.cfg_file_name}_{cfg.bench}.yaml"
+    logs_dir = f"{cfg.log_dir}/{cfg.id}"
+    cfg.cfg_file_name = f"{cfg.cfg_file_name}.yaml"
 
     results_file = os.path.join(logs_dir, "optimization_results.yaml")
 

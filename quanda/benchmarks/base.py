@@ -8,6 +8,7 @@ from typing import Callable, List, Optional, Any
 import lightning as L
 import torch
 from tqdm import tqdm
+from huggingface_hub import upload_folder, create_repo
 
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.explainers import Explainer
@@ -90,7 +91,7 @@ class Benchmark(ABC):
         load_meta_from_disk: bool = True,
         device: str = "cpu",
         batch_size: int = 8,
-    ):
+    ) -> "Benchmark":
         """Train a model using the provided configuration.
 
         Parameters
@@ -152,13 +153,6 @@ class Benchmark(ABC):
                 f"Directory {ckpt_dir} already exists and is not empty. "
                 "Checkpoints will be overwritten."
             )
-            # remove existing checkpoints
-            # for file in os.listdir(ckpt_dir):
-            # os.remove(os.path.join(ckpt_dir, file))
-
-        # torch.save(
-        # obj.model.state_dict(),os.path.join(ckpt_dir, f"{config['id']}.pth"),
-        # )
 
         obj.model.to(obj.device)
         obj.model.eval()
@@ -167,7 +161,38 @@ class Benchmark(ABC):
         obj.model.save_pretrained(hf_ckpt_dir, safe_serialization=True)
         obj.checkpoints = [hf_ckpt_dir]
 
-        # obj.save_metadata() TODO: implement this
+        return obj
+
+    @classmethod
+    def train_and_push_to_hub(
+        cls,
+        config: dict,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
+        load_meta_from_disk: bool = True,
+        device: str = "cpu",
+        batch_size: int = 8,
+    ):
+        """Train a model using the provided config and push to HF hub."""
+        obj = cls.train(
+            config,
+            logger=logger,
+            load_meta_from_disk=load_meta_from_disk,
+            device=device,
+            batch_size=batch_size,
+        )
+        obj.model.push_to_hub(f"quanda-bench-test/{config['id']}")
+
+        metadata_dir = BenchConfigParser.parse_metadata(
+            metadata_str=config["metadata_str"],
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            load_meta_from_disk=load_meta_from_disk,
+        )
+        create_repo(repo_id=config["metadata_str"], repo_type="dataset")
+        upload_folder(
+            folder_path=metadata_dir,
+            repo_id=config["metadata_str"],
+            repo_type="dataset",
+        )
 
         return obj
 
