@@ -12,6 +12,7 @@ from quanda.benchmarks.config_parser import BenchConfigParser
 
 @hydra.main(version_base=None, config_path="../config", config_name="default")
 def main(cfg: DictConfig) -> Tuple[float]:
+    cfg.id = f"{cfg.id}_{cfg.bench}"
     cfg.cfg_file_name = f"{cfg.cfg_file_name}_{cfg.bench}.yaml"
 
     bench_cls = bench_dict[cfg.bench]

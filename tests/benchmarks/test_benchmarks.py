@@ -22,7 +22,7 @@ from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.tested
+@pytest.mark.benchmark
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",
     [
@@ -154,7 +154,7 @@ def test_bench_from_config(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, logger",
     [
@@ -230,8 +230,7 @@ def test_train_from_config(
         "cache_dir": str(tmp_path),
     }
 
-    config["ckpt_dir"] = os.path.join(str(tmp_path), "ckpt")
-    config["metadata_dir"] = os.path.join(str(tmp_path), "meta")
+    config["bench_save_dir"] = str(tmp_path)
 
     if logger is not None:
         logger_cfg = request.getfixturevalue(logger)
@@ -239,10 +238,6 @@ def test_train_from_config(
         config["logger"] = logger_cfg
         config = OmegaConf.create(config)
         logger = BenchConfigParser.parse_logger(config)
-
-    # create the dirs
-    os.makedirs(config["ckpt_dir"], exist_ok=True)
-    os.makedirs(config["metadata_dir"], exist_ok=True)
 
     dst_eval = bench_cls.train(
         config=config,

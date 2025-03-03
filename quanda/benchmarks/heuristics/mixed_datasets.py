@@ -101,28 +101,34 @@ class MixedDatasets(Benchmark):
         """
         obj = cls()
         obj.device = device
+
+        metadata_dir = BenchConfigParser.parse_metadata(
+            metadata_str=config["metadata_str"],
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            load_meta_from_disk=load_meta_from_disk,
+        )
         train_base_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config["train_dataset"],
-            metadata_dir=config.get("metadata_dir", "./tmp"),
-            dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=metadata_dir,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         val_base_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset", None),
-            metadata_dir=config.get("metadata_dir", "./tmp"),
-            dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=metadata_dir,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         adv_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config["adv_dataset"],
-            metadata_dir=config.get("metadata_dir", "./tmp"),
-            dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=metadata_dir,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         adv_base_dataset, adv_val_dataset, obj.eval_dataset = (
             BenchConfigParser.split_dataset(
                 dataset=adv_dataset,
-                metadata_dir=config.get("metadata_dir", "./tmp"),
+                metadata_dir=metadata_dir,
                 split_filename=config["adv_dataset"]["split_filename"],
                 load_meta_from_disk=load_meta_from_disk,
             )
@@ -146,7 +152,7 @@ class MixedDatasets(Benchmark):
         obj.model, obj.checkpoints, obj.checkpoints_load_func = (
             BenchConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
-                checkpoint_path=config["ckpt_dir"],
+                bench_save_dir=config["bench_save_dir"],
                 cfg_id=config["id"],
                 offline=offline,
                 device=device,

@@ -1,5 +1,5 @@
 dataset_str: ylecun/mnist
-dataset_split: test[:1%]
+dataset_split: test
 transforms: none
 indices: all
 wrapper:

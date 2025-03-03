@@ -7,7 +7,7 @@ defaults:
   - logger: wandb
   - override hydra/sweeper: optuna
   - override hydra/sweeper/sampler: tpe
-  #- _self_
+  - _self_
 
 hydra:
   sweep:
@@ -25,16 +25,14 @@ hydra:
     n_trials: 2
     n_jobs: 1
     params:
-      trainer.lr: choice(0.01, 0.001)
+      model.trainer.lr: choice(0.01, 0.001)
 
 
 id: "default"
 bench: ClassDetection
 adversarial_label: 0
-metadata_dir: "tests/assets/mnist_test_suite_2/metadata"
-ckpt_dir: "tests/assets/mnist_test_suite_2/ckpt"
-log_dir: "tests/assets/mnist_test_suite_2/logs"
-dataset_dir: "tests/assets/mnist_test_suite_2/fashion_mnist_examples"
+bench_save_dir: "tests/assets/mnist_test_suite_2"
+metadata_str: "quanda-bench-test/7ed30b3_metadata"
 cache_dir: "tmp"
 top_k: 5
 model_id: "0"

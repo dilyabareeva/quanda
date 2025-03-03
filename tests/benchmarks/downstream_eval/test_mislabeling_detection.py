@@ -11,7 +11,7 @@ from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.benchmarks
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, config, global_method, load_from_disk,explainer_cls, expl_kwargs, expected_score",
     [
@@ -91,7 +91,7 @@ def test_mislabeling_detection(
     dst_eval.model, dst_eval.checkpoints, dst_eval.checkpoints_load_func = (
         BenchConfigParser.parse_model_cfg(
             config["model"],
-            config["ckpt_dir"],
+            config["bench_save_dir"],
             config["id"],
             True,
             "cpu",

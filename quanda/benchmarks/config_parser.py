@@ -3,9 +3,7 @@
 import os
 import copy
 from typing import Optional, Tuple, Any, List, Union, Callable
-import requests
-import zipfile
-import warnings
+from huggingface_hub import snapshot_download
 import torch
 from datasets import load_dataset  # type: ignore
 from quanda.utils.datasets.image_datasets import HFtoTV
@@ -15,9 +13,6 @@ from quanda.benchmarks.resources import (
     pl_modules,
 )
 from quanda.utils.common import TrainValTest
-from quanda.utils.datasets.image_datasets import (
-    SingleClassImageDataset,
-)
 from quanda.utils.datasets.transformed import (
     transform_wrappers,
     TransformedDataset,
@@ -32,11 +27,35 @@ class BenchConfigParser:
     hf_repo: str = "quanda-bench-test"  # TODO: maybe do this more elegantly
 
     @classmethod
+    def parse_metadata(
+        cls,
+        metadata_str: str,
+        bench_save_dir: str = ".tmp",
+        load_meta_from_disk: bool = True,
+    ):
+        """Parse metadata configuration and return the metadata directory."""
+        # if load_meta_from_disk:
+        # return
+
+        # TODO: handle load_meta_from_disk=True
+
+        base_metadata_dir = os.path.join(bench_save_dir, "metadata")
+        # create metadata_dir if it doesn't exist
+        os.makedirs(base_metadata_dir, exist_ok=True)
+        metadata_id = metadata_str.split("/")[-1]
+        metadata_dir = os.path.join(base_metadata_dir, metadata_id)
+        if os.path.exists(metadata_dir):
+            return metadata_dir
+        return snapshot_download(
+            repo_id=metadata_str, local_dir=metadata_dir, repo_type="dataset"
+        )
+
+    @classmethod
     def parse_dataset_cfg(
         cls,
         ds_config: Optional[dict],
-        metadata_dir: str = ".tmp",
-        dataset_dir: str = ".tmp",
+        metadata_dir: str = ".tmp/meta",
+        bench_save_dir: str = ".tmp",
         load_meta_from_disk: bool = True,
     ):
         """Return the dataset using the given parameters."""
@@ -44,7 +63,7 @@ class BenchConfigParser:
             return None
 
         dataset = cls._load_dataset_from_cfg(
-            ds_config, dataset_dir, load_meta_from_disk
+            ds_config, bench_save_dir, load_meta_from_disk
         )
 
         wrapper = copy.deepcopy(ds_config.get("wrapper", None))
@@ -58,7 +77,7 @@ class BenchConfigParser:
     def parse_model_cfg(
         cls,
         model_cfg: dict,
-        checkpoint_path: str,
+        bench_save_dir: str,
         cfg_id: str,
         offline: bool,
         device: str,
@@ -69,8 +88,8 @@ class BenchConfigParser:
         ----------
         model_cfg : dict
             Model configuration dictionary
-        checkpoint_path : str
-            Path to checkpoint directory
+        bench_save_dir : str
+            Path to checkpoint directory "ckpt":
         cfg_id : str
             Configuration ID
         offline : bool
@@ -88,6 +107,7 @@ class BenchConfigParser:
         module_cls = pl_modules[module_cfg["name"]]
         module = module_cls(**module_cfg["args"])
 
+        checkpoint_path = os.path.join(bench_save_dir, "ckpt")
         ckpt_dir = cls.get_ckpt_folder(model_cfg, checkpoint_path, cfg_id)
         ckpt_id = cls.get_hf_model_id(cfg_id)
 
@@ -154,14 +174,16 @@ class BenchConfigParser:
     def _load_dataset_from_cfg(
         cls,
         ds_config: dict,
-        dataset_dir: str,
+        bench_save_dir: str,
         load_meta_from_disk: bool = True,
     ) -> torch.utils.data.Dataset:
         """Load dataset based on configuration."""
-        if "dataset_str" in ds_config:
+        if "single_class_dataset" not in ds_config:
             return cls._load_hf_dataset(ds_config, load_meta_from_disk)
-        elif "zip_url" in ds_config:
-            return cls._load_zip_dataset(ds_config, dataset_dir=dataset_dir)
+        elif ds_config["single_class_dataset"]:
+            return cls._load_single_class_dataset(
+                ds_config, bench_save_dir=bench_save_dir
+            )
         else:
             raise ValueError("Dataset configuration not recognized.")
 
@@ -179,19 +201,31 @@ class BenchConfigParser:
         return cls._apply_indices(base_dataset, ds_config, load_meta_from_disk)
 
     @classmethod
-    def _load_zip_dataset(
-        cls, ds_config: dict, dataset_dir: str
+    def _load_single_class_dataset(
+        cls, ds_config: dict, bench_save_dir: str
     ) -> torch.utils.data.Dataset:
         """Load a dataset from a zip file based on configuration."""
+        dataset_dir = os.path.join(bench_save_dir, ds_config["save_dir"])
         transform = cls._get_transform(ds_config)
-        download_dir = cls._download_zip_file(
-            url=ds_config["zip_url"], download_dir=dataset_dir
+        transform = transform if transform is not None else lambda x: x
+        base_dataset = load_dataset(
+            ds_config["dataset_str"],
+            split=ds_config.get("dataset_split", "train"),
+            cache_dir=dataset_dir,
         )
-        return SingleClassImageDataset(
-            root=download_dir,
-            label=ds_config["label"],
-            transform=transform,
-        )
+
+        if "label" in ds_config:
+            return HFtoTV(
+                base_dataset.map(
+                    lambda x: {
+                        "label": ds_config["label"],
+                        "image": transform(x["image"]),
+                    }
+                ).with_format("torch"),
+                transform=None,
+            )
+        else:
+            return HFtoTV(base_dataset, transform=transform)
 
     @classmethod
     def _get_transform(cls, ds_config: dict) -> Optional[Any]:
@@ -212,7 +246,8 @@ class BenchConfigParser:
 
         split_name = indices.get("split_name", "train")
         split_filename = indices.get("split_filename", "DOESNT_EXIST")
-        metadata_dir = ds_config.get("metadata_dir", ".tmp")
+        bench_save_dir = ds_config.get("bench_save_dir", ".tmp")
+        metadata_dir = os.path.join(bench_save_dir, "metadata")
         split = cls._load_split_if_exists_or_generate(
             base_dataset, load_meta_from_disk, metadata_dir, split_filename
         )
@@ -328,92 +363,6 @@ class BenchConfigParser:
             return HFtoTV(hf_dataset, transform=transform)
         else:
             return dataset
-
-    @classmethod
-    def _download_zip_file(cls, url: str, download_dir: str) -> str:
-        """Download a zip file from the given URL and extract it.
-
-        Parameters
-        ----------
-        url: str
-            URL to the zip file.
-        download_dir: str
-            Path to the cache directory.
-
-        Returns
-        -------
-        str
-            Path to the extracted directory.
-
-        Raises
-        ------
-        RuntimeError
-            If downloading or extracting the zip file fails.
-
-        """
-        if os.path.exists(download_dir):
-            warnings.warn(
-                f"Directory {download_dir} already exists. Skipping download."
-            )
-            return download_dir
-
-        os.makedirs(download_dir, exist_ok=True)
-        zip_path = os.path.join(download_dir, "downloaded_file.zip")
-
-        if not os.path.exists(zip_path):
-            cls._download_file(url, zip_path)
-
-        cls._extract_zip(zip_path, download_dir)
-        return download_dir
-
-    @classmethod
-    def _download_file(cls, url: str, save_path: str):
-        """Download file from URL with progress tracking.
-
-        Parameters
-        ----------
-        url: str
-            URL to download from.
-        save_path: str
-            Path to save the downloaded file.
-
-        Raises
-        ------
-        RuntimeError
-            If downloading fails.
-
-        """
-        try:
-            response = requests.get(url, stream=True)
-            response.raise_for_status()
-            with open(save_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-        except requests.RequestException as e:
-            raise RuntimeError(f"Failed to download the zip file: {e}")
-
-    @classmethod
-    def _extract_zip(cls, zip_path: str, extract_dir: str):
-        """Extract zip file to specified directory.
-
-        Parameters
-        ----------
-        zip_path: str
-            Path to the zip file.
-        extract_dir: str
-            Directory to extract to.
-
-        Raises
-        ------
-        RuntimeError
-            If extraction fails.
-
-        """
-        try:
-            with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                zip_ref.extractall(extract_dir)
-        except zipfile.BadZipFile as e:
-            raise RuntimeError(f"Failed to extract the zip file: {e}")
 
     @classmethod
     def split_dataset(

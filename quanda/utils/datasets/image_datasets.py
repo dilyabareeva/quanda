@@ -68,4 +68,4 @@ class HFtoTV(torch.utils.data.Dataset):
         item = self.dataset[idx]
         if self.transform:
             item["image"] = self.transform(item["image"])
-        return item["image"], item["label"]
+        return item["image"], int(item["label"])
