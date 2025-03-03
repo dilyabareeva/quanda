@@ -27,7 +27,8 @@ for params in "${param_dicts[@]}"; do
     # Construct and execute the command with Hydra overrides
     echo "Running with parameters: $params"
     echo "Saving output to: $cfg_output_dir/$cfg_file_name"
-    python scripts/train.py $params id=$id +cfg_file_name=$cfg_file_name +cfg_output_dir=$cfg_output_dir
+    python scripts/train.py $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name --multirun
+    python scripts/opt_results_to_cfg.py $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name
     echo "Finished running with parameters: $params"
     echo "--------------------------------------"
 done 

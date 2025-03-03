@@ -11,14 +11,13 @@ defaults:
 
 hydra:
   sweep:
-    dir: "${cfg_output_dir}/${id}"
+    dir: "${log_dir}/${id}_${bench}"
     subdir: hydra_logs
 
   sweeper:
     sampler:
       seed: 123
     direction:
-      - maximize
       - maximize
     study_name: "${cfg_file_name}_{bench}"
     storage: null
@@ -32,6 +31,7 @@ id: "default"
 bench: ClassDetection
 adversarial_label: 0
 bench_save_dir: "tests/assets/mnist_test_suite_2"
+log_dir: hydra_logs
 metadata_str: "quanda-bench-test/7ed30b3_metadata"
 cache_dir: "tmp"
 top_k: 5

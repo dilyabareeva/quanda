@@ -20,8 +20,8 @@ def main(cfg: DictConfig) -> Tuple[float]:
     bench = bench_cls.train(cfg)
     scores = bench.sanity_check()
     logger.log_metrics(scores)
-
-    return tuple(list(scores.values())[:2])
+    scores_sum = list(scores.values())
+    return sum(scores_sum)
 
 
 if __name__ == "__main__":
