@@ -30,10 +30,11 @@ logger:
   save_dir: ${log_dir}/wandb/
   project: quanda-bench
 id: 7ed30b3-default_MixedDatasets
+meta_id: 7ed30b3_metadata
 bench: MixedDatasets
 adversarial_label: 0
 bench_save_dir: tests/assets/mnist_test_suite_2
-metadata_str: "quanda-bench-test/7ed30b3_metadata"
+repo_id: "quanda-bench-test"
 cache_dir: tmp
 top_k: 5
 model_id: '0'

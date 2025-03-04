@@ -24,25 +24,24 @@ from quanda.utils.training.options import optimizers, criteria, schedulers
 class BenchConfigParser:
     """Parser for benchmark configurations."""
 
-    hf_repo: str = "quanda-bench-test"  # TODO: maybe do this more elegantly
-
     @classmethod
-    def parse_metadata(
+    def load_metadata(
         cls,
-        metadata_str: str,
+        cfg: dict,
         bench_save_dir: str = ".tmp",
         load_meta_from_disk: bool = True,
     ):
         """Parse metadata configuration and return the metadata directory."""
+        meta_id = cfg.get("meta_id", f"{cfg['id']}_metadata")
+        repo_id = f"{cfg['repo_id']}/{meta_id}"
         base_metadata_dir = os.path.join(bench_save_dir, "metadata")
         # create metadata_dir if it doesn't exist
         os.makedirs(base_metadata_dir, exist_ok=True)
-        metadata_id = metadata_str.split("/")[-1]
-        metadata_dir = os.path.join(base_metadata_dir, metadata_id)
+        metadata_dir = os.path.join(base_metadata_dir, f"{cfg['id']}_metadata")
         if os.path.exists(metadata_dir) or not load_meta_from_disk:
             return metadata_dir
         return snapshot_download(
-            repo_id=metadata_str, local_dir=metadata_dir, repo_type="dataset"
+            repo_id=repo_id, local_dir=metadata_dir, repo_type="dataset"
         )
 
     @classmethod
@@ -73,6 +72,7 @@ class BenchConfigParser:
         cls,
         model_cfg: dict,
         bench_save_dir: str,
+        repo_id: str,
         cfg_id: str,
         offline: bool,
         device: str,
@@ -84,7 +84,9 @@ class BenchConfigParser:
         model_cfg : dict
             Model configuration dictionary
         bench_save_dir : str
-            Path to checkpoint directory "ckpt":
+            Path to checkpoint directory "ckpt".
+        repo_id : str
+            Repo ID Hugging Face
         cfg_id : str
             Configuration ID
         offline : bool
@@ -104,7 +106,7 @@ class BenchConfigParser:
 
         checkpoint_path = os.path.join(bench_save_dir, "ckpt")
         ckpt_dir = cls.get_ckpt_folder(model_cfg, checkpoint_path, cfg_id)
-        ckpt_id = cls.get_hf_model_id(cfg_id)
+        ckpt_id = f"{repo_id}/{cfg_id}"
 
         if not os.path.exists(ckpt_dir):
             os.makedirs(ckpt_dir, exist_ok=True)
@@ -432,8 +434,3 @@ class BenchConfigParser:
 
         return logger
 
-    @classmethod
-    def get_hf_model_id(cls, cfg_id: str) -> str:
-        """Get the checkpoint id for HuggingFace."""
-        # TODO: use to push model
-        return f"{cls.hf_repo}/{cfg_id}"

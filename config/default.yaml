@@ -32,7 +32,7 @@ bench: ClassDetection
 adversarial_label: 0
 bench_save_dir: "bench_out"
 log_dir: hydra_logs
-metadata_str: "quanda-bench-test/${id}_metadata"
+repo_id: "quanda-bench-test"
 cache_dir: "tmp"
 top_k: 5
 model_id: "0"

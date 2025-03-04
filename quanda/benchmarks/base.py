@@ -93,8 +93,8 @@ class Benchmark(ABC):
         """Initialize the benchmark from a dictionary."""
         obj = cls()
         obj.device = device
-        metadata_dir = BenchConfigParser.parse_metadata(
-            metadata_str=config["metadata_str"],
+        metadata_dir = BenchConfigParser.load_metadata(
+            cfg=config,
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
@@ -121,7 +121,7 @@ class Benchmark(ABC):
             BenchConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
-                cfg_id=config["id"],
+                repo_id=config["repo_id"], cfg_id=config["id"],
                 offline=offline,
                 device=device,
             )
@@ -223,8 +223,8 @@ class Benchmark(ABC):
         )
         obj.model.push_to_hub(f"quanda-bench-test/{config['id']}")
 
-        metadata_dir = BenchConfigParser.parse_metadata(
-            metadata_str=config["metadata_str"],
+        metadata_dir = BenchConfigParser.load_metadata(
+            cfg=config,
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=False,
         )
