@@ -11,7 +11,7 @@ from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, config, global_method, load_from_disk,explainer_cls, expl_kwargs, expected_score",
     [

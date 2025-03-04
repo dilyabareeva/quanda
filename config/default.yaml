@@ -11,7 +11,7 @@ defaults:
 
 hydra:
   sweep:
-    dir: "${log_dir}/${id}_${bench}"
+    dir: "${log_dir}/${id}"
     subdir: hydra_logs
 
   sweeper:
@@ -19,7 +19,7 @@ hydra:
       seed: 123
     direction:
       - maximize
-    study_name: "${cfg_file_name}_{bench}"
+    study_name: "${cfg_file_name}"
     storage: null
     n_trials: 2
     n_jobs: 1

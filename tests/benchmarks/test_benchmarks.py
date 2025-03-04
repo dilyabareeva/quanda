@@ -22,6 +22,106 @@ from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
 
+@pytest.mark.tested
+@pytest.mark.parametrize(
+    "test_id, bench_id, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",
+    [
+        (
+            "mnist",
+            "mnist_mislabeling_detection_unit",
+            False,
+            False,
+            MislabelingDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.44353821873664856,
+        ),
+        (
+            "mnist",
+            "mnist_top_k_cardinality_unit",
+            True,
+            False,
+            TopKCardinality,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.638,
+        ),
+        (
+            "mnist",
+            "mnist_mixed_datasets_unit",
+            True,
+            False,
+            MixedDatasets,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.03915480896830559,
+        ),
+        (
+            "mnist",
+            "mnist_class_detection_unit",
+            True,
+            False,
+            ClassDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.9399999976158142,
+        ),
+        (
+            "mnist",
+            "mnist_shortcut_detection_unit",
+            True,
+            False,
+            ShortcutDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.1348356008529663,
+        ),
+        (
+            "mnist",
+            "mnist_subclass_detection_unit",
+            True,
+            False,
+            SubclassDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.23999999463558197,
+        ),
+    ],
+)
+def test_load(
+    test_id,
+    bench_id,
+    load_from_disk,
+    offline,
+    bench_cls,
+    explainer_cls,
+    expl_kwargs,
+    expected_score,
+    tmp_path,
+    request,
+):
+    expl_kwargs = {
+        **expl_kwargs,
+        "model_id": "test",
+        "cache_dir": str(tmp_path),
+    }
+
+    dst_eval = bench_cls.load_pretrained(
+        bench_id=bench_id,
+        cache_dir=str(tmp_path),
+        offline=offline,
+        device="cpu",
+    )
+
+    score = dst_eval.evaluate(
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
+        batch_size=8,
+    )["score"]
+
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
 @pytest.mark.benchmark
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",

@@ -7,10 +7,12 @@ from typing import Callable, List, Optional, Any
 
 import lightning as L
 import torch
+import yaml
 from tqdm import tqdm
 from huggingface_hub import upload_folder, create_repo
 
 from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.resources.config_map import config_map
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.common import (
@@ -35,6 +37,50 @@ class Benchmark(ABC):
         self.checkpoints: List[str] = []
         self.checkpoints_load_func: Callable[..., Any]
         self.use_predictions: bool = False
+
+    @classmethod
+    def load_pretrained(
+        cls,
+        bench_id: str,
+        cache_dir: str,
+        device: str = "cpu",
+        offline: bool = False,
+    ):
+        """Load a precomputed benchmark.
+
+        Load precomputed benchmark components from a file and creates an
+        instance from the state dictionary.
+
+        Parameters
+        ----------
+        bench_id : str
+            ID of the benchmark to be loaded.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        device : str, optional
+            Device to load the model on, by default "cpu".
+        offline : bool, optional
+            Whether to load the benchmark in offline mode, by default False.
+
+        Returns
+        -------
+        Benchmark
+            The benchmark instance.
+
+        """
+        bench_yaml = config_map[bench_id]
+
+        # Load the benchmark configuration
+        with open(bench_yaml, "r") as f:
+            cfg = yaml.safe_load(f)
+
+        cfg["bench_save_dir"] = cache_dir
+        return cls.from_config(
+            cfg,
+            load_meta_from_disk=True,
+            offline=offline,
+            device=device,
+        )
 
     @classmethod
     def from_config(
@@ -88,7 +134,6 @@ class Benchmark(ABC):
         cls,
         config: dict,
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
-        load_meta_from_disk: bool = True,
         device: str = "cpu",
         batch_size: int = 8,
     ) -> "Benchmark":
@@ -168,7 +213,6 @@ class Benchmark(ABC):
         cls,
         config: dict,
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
-        load_meta_from_disk: bool = True,
         device: str = "cpu",
         batch_size: int = 8,
     ):
@@ -176,7 +220,6 @@ class Benchmark(ABC):
         obj = cls.train(
             config,
             logger=logger,
-            load_meta_from_disk=load_meta_from_disk,
             device=device,
             batch_size=batch_size,
         )
@@ -185,9 +228,11 @@ class Benchmark(ABC):
         metadata_dir = BenchConfigParser.parse_metadata(
             metadata_str=config["metadata_str"],
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
-            load_meta_from_disk=load_meta_from_disk,
+            load_meta_from_disk=False,
         )
-        create_repo(repo_id=config["metadata_str"], repo_type="dataset")
+        create_repo(
+            repo_id=config["metadata_str"], repo_type="dataset", exist_ok=True
+        )
         upload_folder(
             folder_path=metadata_dir,
             repo_id=config["metadata_str"],

@@ -22,6 +22,8 @@ def opt_results_to_cfg(cfg: DictConfig) -> Tuple[float]:
     cfg = OmegaConf.merge(cfg, override_cfg)
 
     output_file = os.path.join(cfg.cfg_output_dir, cfg.cfg_file_name)
+    cfg = OmegaConf.to_container(cfg, resolve=True)
+
     with open(output_file, "w") as file:
         OmegaConf.save(cfg, file)
 

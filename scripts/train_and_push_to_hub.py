@@ -19,7 +19,8 @@ def main(cfg: DictConfig) -> Tuple[float]:
     bench_cls = bench_dict[cfg.bench]
     logger = BenchConfigParser.parse_logger(cfg)
     bench = bench_cls.train_and_push_to_hub(
-        cfg, logger=logger, load_meta_from_disk=False
+        cfg,
+        logger=logger,
     )
     scores = bench.sanity_check()
     logger.log_metrics(scores)
