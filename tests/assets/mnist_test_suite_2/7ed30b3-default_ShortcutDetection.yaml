@@ -48,6 +48,20 @@ eval_dataset:
       seed: 42
     sample_fn: add_white_square_mnist
     dataset_transform: mnist_transforms
+val_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: test[:1%]
+  transforms: none
+  indices: all
+  wrapper:
+    type: SampleTransformationDataset
+    metadata:
+      metadata_filename: mnist_test_unit_shortcut.yaml
+      p: 0.3
+      cls_idx: 0
+      seed: 42
+    sample_fn: add_white_square_mnist
+    dataset_transform: mnist_transforms
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: ${log_dir}/wandb/
