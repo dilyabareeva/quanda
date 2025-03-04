@@ -11,8 +11,8 @@ from quanda.benchmarks.base import Benchmark
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
-from quanda.utils.common import get_load_state_dict_func
-from quanda.utils.functions import CorrelationFnLiterals
+from quanda.utils.functions import correlation_functions
+
 from quanda.utils.training import BaseTrainer
 
 logger = logging.getLogger(__name__)
@@ -55,179 +55,71 @@ class LinearDatamodeling(Benchmark):
         super().__init__()
 
         self.model: Union[torch.nn.Module, L.LightningModule]
-
+        self.device: str
         self.train_dataset: torch.utils.data.Dataset
         self.eval_dataset: torch.utils.data.Dataset
         self.dataset_transform: Optional[Callable]
         self.m: int
         self.alpha: float
-        self.trainer: Union[L.Trainer, BaseTrainer]
+        self.counterfactual_trainer: Union[L.Trainer, BaseTrainer]
         self.trainer_fit_kwargs: Optional[dict]
         self.cache_dir: str
         self.model_id: str
-        self.checkpoints_load_func: Callable  # TODO: fix
         self.use_predictions: bool
-        self.correlation_fn: Union[Callable, CorrelationFnLiterals]
+        self.correlation_fn: Callable
         self.seed: int
         self.subset_ids: Optional[List[List[int]]]
         self.pretrained_models: Optional[List[torch.nn.Module]]
 
+        self.checkpoints: List[str]
+        self.checkpoints_load_func: Callable[..., Any]
+
     @classmethod
-    def assemble(
+    def from_config(
         cls,
-        model: torch.nn.Module,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        trainer: Union[L.Trainer, BaseTrainer],
-        cache_dir: str,
-        model_id: str,
-        m: int = 100,
-        alpha: float = 0.5,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        trainer_fit_kwargs: Optional[dict] = None,
-        dataset_transform: Optional[Callable] = None,
-        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-        seed: int = 42,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        subset_ids: Optional[List[List[int]]] = None,
-        pretrained_models: Optional[List[torch.nn.Module]] = None,
-        *args,
-        **kwargs,
+        config: dict,
+        load_meta_from_disk: bool = True,
+        offline: bool = False,
+        device: str = "cpu",
     ):
-        """Assembles the benchmark from existing components.
+        """Initialize the benchmark from a dictionary.
 
         Parameters
         ----------
-        model : torch.nn.Module
-            The model used to generate attributions.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed,
-            it should be a HuggingFace dataset name.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        trainer : Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the models on different subsets.
-            Can be a Lightning Trainer or a `BaseTrainer`.
-        cache_dir : str
-            Directory to be used for caching. This directory will be used to
-            save checkpoints of models trained on different subsets of the
-            training data.
-        model_id : str
-            Identifier for the model, to be used in naming cached checkpoints.
-        m : int, optional
-            Number of subsets to be used for training the models, by default
-            100.
-        alpha : float, optional
-            Percentage of datapoints to be used for training the models, by
-            default 0.5.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments to be passed to the `fit` method of
-            the trainer, by default None.
-        dataset_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None.
-        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation.
-        seed : int, optional
-            Seed to be used for the evaluation, by default 42.
-        use_predictions : bool, optional
-            Whether to use model predictions or the true test labels for the
-            evaluation, defaults to False.
-        dataset_split : str, optional
-            The dataset split to use, by default "train". Only used if
-            `train_dataset` is a string.
-        subset_ids : Optional[List[List[int]]], optional
-            A list of pre-defined subset indices, by default None.
-        pretrained_models : Optional[List[torch.nn.Module]], optional
-            A list of pre-trained models for each subset, by default None.
-        args : Any
-            Additional arguments.
-        kwargs : Any
-            Additional keyword arguments.
-
-        """
-        obj = cls()
-
-        obj._assemble_common(
-            model=model,
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints,
-            checkpoints_load_func=get_load_state_dict_func("cpu"),  # TODO: fix
-            use_predictions=use_predictions,
-        )
-        obj.subset_ids = subset_ids
-        obj.pretrained_models = pretrained_models
-        obj.correlation_fn = correlation_fn
-        obj.trainer = trainer
-        obj.m = m
-        obj.alpha = alpha
-        obj.trainer_fit_kwargs = trainer_fit_kwargs
-        obj.seed = seed
-        obj.cache_dir = cache_dir
-        obj.model_id = model_id
-        obj.train_dataset = BenchConfigParser.process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
-        )
-        # this sets the function to the default value
-
-        return obj
-
-    def _assemble_common(
-        self,
-        model: torch.nn.Module,
-        eval_dataset: torch.utils.data.Dataset,
-        checkpoints_load_func: Callable[..., Any],
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        use_predictions: bool = True,
-    ):
-        """Assembles the benchmark from existing components.
-
-        Parameters
-        ----------
-        model : torch.nn.Module
-            The model used to generate attributions.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by
+        config : dict
+            Dictionary containing the configuration.
+        load_meta_from_disk : str
+            Loads dataset metadata from disk if True, otherwise generates it,
             default True.
-
-        Returns
-        -------
-        None
+        offline : bool
+            If True, the model is not downloaded, default False.
+        device: str, optional
+            Device to use for the evaluation, by default "cpu".
 
         """
-        self.model = model
-        self.eval_dataset = eval_dataset
-        self.checkpoints = checkpoints
-        self.checkpoints_load_func = checkpoints_load_func  # TODO: fix
-        self.use_predictions = use_predictions
+        obj = super().from_config(config, load_meta_from_disk, offline, device)
+        obj.m = config.get("m", 100)
+        obj.alpha = config.get("alpha", 0.5)
+        if not config.get("counterfactual_trainer"):
+            config["counterfactual_trainer"] = config["model"].get(
+                "trainer", None
+            )
+        if config["counterfactual_trainer"] is None:
+            raise ValueError(
+                "Either 'trainer' or 'model.trainer' should be set."
+            )
+        obj.counterfactual_trainer = BenchConfigParser.parse_trainer_cfg(
+            config["counterfactual_trainer"]
+        )
+        obj.trainer_fit_kwargs = config.get("trainer_fit_kwargs", None)
+        obj.model_id = config.get("model_id", "0")
+        obj.cache_dir = config.get("cache_dir", "./tmp")
+        obj.seed = config["seed"]
+        obj.subset_ids = config.get("subset_ids", None)
+        obj.pretrained_models = config.get("pretrained_models", None)
 
-    @property
-    def checkpoints(self):
-        """Return the checkpoint paths."""
-        return self._checkpoints
-
-    @checkpoints.setter
-    def checkpoints(self, value):
-        """Set the checkpoint paths."""
-        if value is None:
-            self._checkpoints = []
-        else:
-            self._checkpoints = value if isinstance(value, List) else [value]
+        obj.correlation_fn = correlation_functions[config["correlation_fn"]]
+        obj.use_predictions = config.get("use_predictions", True)
 
     def evaluate(
         self,
@@ -264,7 +156,7 @@ class LinearDatamodeling(Benchmark):
             train_dataset=self.train_dataset,
             alpha=self.alpha,
             m=self.m,
-            trainer=self.trainer,
+            trainer=self.counterfactual_trainer,
             trainer_fit_kwargs=self.trainer_fit_kwargs,
             cache_dir=self.cache_dir,
             model_id=self.model_id,
