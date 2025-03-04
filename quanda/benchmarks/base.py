@@ -145,8 +145,6 @@ class Benchmark(ABC):
             Dictionary containing the configuration.
         logger : Optional[Callable], optional
             Logger to be used for logging, by default None.
-        load_meta_from_disk : bool, optional
-            Whether to load metadata from disk, by default True
         device : str, optional
             Device to use for training, by default "cpu"
         batch_size : int, optional

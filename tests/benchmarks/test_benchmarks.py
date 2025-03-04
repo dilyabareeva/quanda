@@ -342,11 +342,8 @@ def test_train_from_config(
     dst_eval = bench_cls.train(
         config=config,
         logger=logger,
-        load_meta_from_disk=load_from_disk,
+        #load_meta_from_disk=load_from_disk,
     )
-
-    # TODO: create push_to_hub method
-    # dst_eval.model.push_to_hub(f"quanda-bench-test/{config['id']}")
 
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
