@@ -31,13 +31,23 @@ def test_load_ckpt_from_hf(
     rand_input = torch.rand(1, *input_shape)
 
     model, ckpt, load_fn = BenchConfigParser.parse_model_cfg(
-        config["model"], str(tmp_path), config["repo_id"], config["id"], False, "cpu"
+        config["model"],
+        str(tmp_path),
+        config["repo_id"],
+        config["id"],
+        False,
+        "cpu",
     )
     load_fn(model, ckpt[-1])
     out_offline = model(rand_input).mean().item()
 
     model, ckpt, load_fn = BenchConfigParser.parse_model_cfg(
-        config["model"], str(tmp_path), config["repo_id"], config["id"], True, "cpu"
+        config["model"],
+        str(tmp_path),
+        config["repo_id"],
+        config["id"],
+        True,
+        "cpu",
     )
     load_fn(model, ckpt[-1])
     out_online = model(rand_input).mean().item()

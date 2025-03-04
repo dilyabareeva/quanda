@@ -342,7 +342,7 @@ def test_train_from_config(
     dst_eval = bench_cls.train(
         config=config,
         logger=logger,
-        #load_meta_from_disk=load_from_disk,
+        # load_meta_from_disk=load_from_disk,
     )
 
     score = dst_eval.evaluate(

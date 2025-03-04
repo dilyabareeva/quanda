@@ -1,8 +1,6 @@
 import math
 
 import pytest
-import torch
-from torcheval.metrics.functional import binary_auprc
 
 from quanda.explainers import SumAggregator
 from quanda.explainers.wrappers import CaptumSimilarity
@@ -277,15 +275,14 @@ def test_shortcut_detection_metric(
     tda = request.getfixturevalue(explanations)
     if isinstance(expected, type):
         with pytest.raises(expected):
-            metric = ShortcutDetectionMetric(
+            ShortcutDetectionMetric(
                 model,
                 dataset,
                 poisoned_ids,
                 poisoned_cls,
                 checkpoints=checkpoint,
                 filter_by_prediction=filter_by_prediction,
-            )
-            metric.update(tda)
+            ).update(tda)
         return
 
     metric = ShortcutDetectionMetric(

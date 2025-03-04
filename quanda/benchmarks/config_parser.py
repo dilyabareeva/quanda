@@ -433,4 +433,3 @@ class BenchConfigParser:
         logger = instantiate(logger_cfg)
 
         return logger
-

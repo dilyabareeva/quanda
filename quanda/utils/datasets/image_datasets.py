@@ -1,12 +1,6 @@
 """Dataset classes for image datasets."""
 
-import glob
-import os
-from typing import Optional, List
-
 import torch
-from PIL import Image  # type: ignore
-from torch.utils.data import Dataset
 
 
 class HFtoTV(torch.utils.data.Dataset):

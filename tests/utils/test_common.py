@@ -50,4 +50,3 @@ def test_train_test_val_split(
     all = torch.cat([train, test, val]).sort().values
 
     assert torch.eq(all, torch.arange(n_indices)).all()
-
