@@ -92,7 +92,7 @@ def test_mislabeling_detection(
         BenchConfigParser.parse_model_cfg(
             config["model"],
             config["bench_save_dir"],
-            config["id"],
+            config["repo_id"], config["id"],
             True,
             "cpu",
         )

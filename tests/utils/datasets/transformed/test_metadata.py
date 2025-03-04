@@ -42,8 +42,8 @@ def test_mislabeling_detection(
         train_metadata.generate_mislabeling_labels(dataset)
     )
 
-    metadata_dir = BenchConfigParser.parse_metadata(
-        metadata_str=config["metadata_str"],
+    metadata_dir = BenchConfigParser.load_metadata(
+        cfg=config,
         bench_save_dir=config.get("bench_save_dir", "./tmp"),
     )
     train_metadata_loaded = LabelFlippingMetadata.load(

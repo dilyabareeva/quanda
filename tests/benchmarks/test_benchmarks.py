@@ -22,7 +22,7 @@ from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
 
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, bench_id, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",
     [

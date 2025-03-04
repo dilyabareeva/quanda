@@ -9,46 +9,6 @@ from PIL import Image  # type: ignore
 from torch.utils.data import Dataset
 
 
-class SingleClassImageDataset(Dataset):
-    """Dataset class for a single class of images."""
-
-    def __init__(
-        self,
-        root: str,
-        label: int,
-        indices: Optional[List[int]] = None,
-        transform=None,
-    ):
-        """Construct the SingleClassImageDataset."""
-        self.root = root
-        self.label = label
-        self.transform = transform
-        self.indices = indices
-
-        # find all images in the root directory
-        filenames = []
-        for extension in ["*.JPEG", "*.jpeg", "*.jpg", "*.png"]:
-            filenames += glob.glob(os.path.join(root, extension))
-
-        self.filenames = sorted(filenames)
-
-    def __len__(self):
-        """Get dataset length."""
-        if self.indices is None:
-            return len(self.filenames)
-        return len(self.indices)
-
-    def __getitem__(self, idx):
-        """Get a sample by index."""
-        if self.indices is not None:
-            idx = self.indices[idx]
-        img_path = self.filenames[idx]
-        image = Image.open(img_path).convert("RGB")
-        if self.transform:
-            image = self.transform(image)
-        return image, self.label
-
-
 class HFtoTV(torch.utils.data.Dataset):
     """Wrapper to make Hugging Face datasets compatible with torchvision."""
 
