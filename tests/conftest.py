@@ -790,6 +790,22 @@ def load_mnist_unit_test_config():
 
 
 @pytest.fixture
+def load_mnist_linear_datamodeling_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_test_suite_2/7ed30b3-default_ClassDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+
+    # These are not specified in the default config file, because "correlation_fn" clashes with the default one for randomization.
+    config["m"] = 5
+    config["alpha"] = 0.5
+    config["correlation_fn"] = "spearman"
+    return config
+
+
+@pytest.fixture
 def load_mnist_mislabeling_config():
     # load yaml file
     with open(

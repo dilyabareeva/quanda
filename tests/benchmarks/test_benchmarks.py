@@ -13,6 +13,7 @@ from quanda.benchmarks.downstream_eval import (
     ShortcutDetection,
     SubclassDetection,
 )
+from quanda.benchmarks.ground_truth import LinearDatamodeling
 from quanda.benchmarks.heuristics import (
     ModelRandomization,
     TopKCardinality,
@@ -216,6 +217,16 @@ def test_load(
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             0.23000000417232513,
         ),
+        (
+            "mnist",
+            "load_mnist_linear_datamodeling_config",
+            True,
+            True,
+            LinearDatamodeling,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            None,
+        ),
     ],
 )
 def test_bench_from_config(
@@ -304,6 +315,16 @@ def test_bench_from_config(
             True,
             True,
             SubclassDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            None,
+        ),
+        (
+            "mnist",
+            "load_mnist_linear_datamodeling_config",
+            True,
+            True,
+            LinearDatamodeling,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             None,
