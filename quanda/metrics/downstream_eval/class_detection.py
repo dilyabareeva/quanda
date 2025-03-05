@@ -44,7 +44,7 @@ class ClassDetectionMetric(Metric):
         ----------
         model : torch.nn.Module
             The model associated with the attributions to be evaluated.
-        train_dataset : torch.utils.data.Dataset
+        train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
             The training dataset that was used to train `model`.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
