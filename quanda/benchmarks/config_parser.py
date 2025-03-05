@@ -25,21 +25,28 @@ class BenchConfigParser:
     """Parser for benchmark configurations."""
 
     @classmethod
-    def load_metadata(
-        cls,
-        cfg: dict,
-        bench_save_dir: str = ".tmp",
-        load_meta_from_disk: bool = True,
-    ):
+    def get_metadata_dir(cls, cfg: dict, bench_save_dir: str = ".tmp"):
         """Parse metadata configuration and return the metadata directory."""
-        meta_id = cfg.get("meta_id", f"{cfg['id']}_metadata")
-        repo_id = f"{cfg['repo_id']}/{meta_id}"
         base_metadata_dir = os.path.join(bench_save_dir, "metadata")
         # create metadata_dir if it doesn't exist
         os.makedirs(base_metadata_dir, exist_ok=True)
         metadata_dir = os.path.join(base_metadata_dir, f"{cfg['id']}_metadata")
-        if os.path.exists(metadata_dir) or not load_meta_from_disk:
-            return metadata_dir
+
+        # create metadata_dir if it doesn't exist
+        os.makedirs(metadata_dir, exist_ok=True)
+
+        return metadata_dir
+
+    @classmethod
+    def load_metadata(
+        cls,
+        cfg: dict,
+        metadata_dir: str = ".tmp/meta",
+    ):
+        """Load metadata from the given configuration."""
+        meta_id = cfg.get("meta_id", f"{cfg['id']}_metadata")
+        repo_id = f"{cfg['repo_id']}/{meta_id}"
+
         return snapshot_download(
             repo_id=repo_id, local_dir=metadata_dir, repo_type="dataset"
         )
@@ -74,7 +81,7 @@ class BenchConfigParser:
         bench_save_dir: str,
         repo_id: str,
         cfg_id: str,
-        offline: bool,
+        load_model_from_disk: bool,
         device: str,
     ) -> Tuple[torch.nn.Module, List[str], Callable]:
         """Parse model configuration and return the model and checkpoints.
@@ -89,7 +96,7 @@ class BenchConfigParser:
             Repo ID Hugging Face
         cfg_id : str
             Configuration ID
-        offline : bool
+        load_model_from_disk : bool
             If True, the method tries to load the model from the local cache.
         device : str
             Device to use for the model.
@@ -118,7 +125,7 @@ class BenchConfigParser:
             pretrained_model = module_cls.from_pretrained(
                 ckpt_str,
                 cache_dir=ckpt_dir,
-                local_files_only=offline,
+                local_files_only=load_model_from_disk,
             )
             model.load_state_dict(pretrained_model.state_dict())
             model.to(device)

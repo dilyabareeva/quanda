@@ -75,6 +75,14 @@ class Benchmark(ABC):
             cfg = yaml.safe_load(f)
 
         cfg["bench_save_dir"] = cache_dir
+
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=cfg, bench_save_dir=cache_dir
+        )
+        BenchConfigParser.load_metadata(
+            cfg,
+            metadata_dir,
+        )
         return cls.from_config(
             cfg,
             load_meta_from_disk=True,
@@ -93,27 +101,26 @@ class Benchmark(ABC):
         """Initialize the benchmark from a dictionary."""
         obj = cls()
         obj.device = device
-        metadata_dir = BenchConfigParser.load_metadata(
-            cfg=config,
-            bench_save_dir=config.get("bench_save_dir", "./tmp"),
-            load_meta_from_disk=load_meta_from_disk,
+        cache_dir = config.get("bench_save_dir", "./tmp")
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=cache_dir
         )
         obj.train_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
             metadata_dir=metadata_dir,
-            bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            bench_save_dir=cache_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.val_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset", None),
             metadata_dir=metadata_dir,
-            bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            bench_save_dir=cache_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.eval_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),
             metadata_dir=metadata_dir,
-            bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            bench_save_dir=cache_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
 
@@ -123,7 +130,7 @@ class Benchmark(ABC):
                 bench_save_dir=config["bench_save_dir"],
                 repo_id=config["repo_id"],
                 cfg_id=config["id"],
-                offline=offline,
+                load_model_from_disk=offline,
                 device=device,
             )
         )
@@ -224,10 +231,8 @@ class Benchmark(ABC):
         )
         obj.model.push_to_hub(f"quanda-bench-test/{config['id']}")
 
-        metadata_dir = BenchConfigParser.load_metadata(
-            cfg=config,
-            bench_save_dir=config.get("bench_save_dir", "./tmp"),
-            load_meta_from_disk=False,
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
         )
         create_repo(
             repo_id=config["metadata_str"], repo_type="dataset", exist_ok=True
