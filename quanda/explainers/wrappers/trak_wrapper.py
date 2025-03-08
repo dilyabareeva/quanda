@@ -5,28 +5,28 @@ import warnings
 from importlib.util import find_spec
 from typing import (
     Any,
+    Callable,
     Iterable,
     List,
     Literal,
     Optional,
     Sized,
     Union,
-    Callable,
 )
 
-import torch
 import lightning as L
+import torch
 from trak import TRAKer
-from trak.utils import get_matrix_mult
 from trak.projectors import BasicProjector, CudaProjector, NoOpProjector
+from trak.utils import get_matrix_mult
 
-from quanda.utils.tasks import TaskLiterals
 from quanda.explainers.base import Explainer
-from quanda.utils.common import ds_len, process_targets
 from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
+from quanda.utils.common import ds_len, process_targets
+from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
 

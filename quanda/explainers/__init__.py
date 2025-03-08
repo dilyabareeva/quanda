@@ -1,8 +1,7 @@
 """Training data attribution methods."""
 
-from quanda.explainers.base import Explainer
 from quanda.explainers import utils, wrappers
-from quanda.explainers.random import RandomExplainer
+from quanda.explainers.base import Explainer
 from quanda.explainers.functional import ExplainFunc, ExplainFuncMini
 from quanda.explainers.global_ranking.aggregators import (
     AbsSumAggregator,
@@ -10,6 +9,7 @@ from quanda.explainers.global_ranking.aggregators import (
     SumAggregator,
     aggr_types,
 )
+from quanda.explainers.random import RandomExplainer
 
 __all__ = [
     "Explainer",

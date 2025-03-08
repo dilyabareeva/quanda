@@ -1,34 +1,26 @@
-import os
 import json
+import os
 import pickle
 from typing import Dict, List, Tuple
 
-import yaml
-import torch
-import pytest
 import datasets
-import torchvision
 import numpy as np
+import pytest
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
+import yaml
 from kronfluence.task import Task  # type: ignore
-from torchvision.models import vit_b_16, resnet18
 from torch.utils.data import Dataset, TensorDataset
-from transformers.modeling_outputs import SequenceClassifierOutput
+from torchvision.models import resnet18, vit_b_16
 from transformers import (
     AutoConfig,
     AutoModelForSequenceClassification,
     AutoTokenizer,
 )
+from transformers.modeling_outputs import SequenceClassifierOutput
 
-from tests.models import LeNet
-from quanda.utils.training.base_pl_module import BasicLightningModule
-from quanda.utils.datasets.transformed.label_flipping import (
-    LabelFlippingDataset,
-)
-from quanda.utils.datasets.transformed.label_grouping import (
-    LabelGroupingDataset,
-)
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
     MislabelingDetection,
@@ -40,7 +32,14 @@ from quanda.benchmarks.heuristics import (
     ModelRandomization,
     TopKCardinality,
 )
-
+from quanda.utils.datasets.transformed.label_flipping import (
+    LabelFlippingDataset,
+)
+from quanda.utils.datasets.transformed.label_grouping import (
+    LabelGroupingDataset,
+)
+from quanda.utils.training.base_pl_module import BasicLightningModule
+from tests.models import LeNet
 
 # Copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
 GLUE_TASK_TO_KEYS = {
@@ -784,7 +783,7 @@ def load_qnli_dataset():
 def load_mnist_unit_test_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_test_suite_2/99e01f1-default_ClassDetection.yaml",
+        "tests/assets/mnist_test_suite_2/7ed30b3-default_ClassDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -795,7 +794,7 @@ def load_mnist_unit_test_config():
 def load_mnist_mislabeling_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_test_suite_2/99e01f1-default_MislabelingDetection.yaml",
+        "tests/assets/mnist_test_suite_2/7ed30b3-default_MislabelingDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -806,7 +805,7 @@ def load_mnist_mislabeling_config():
 def load_mnist_subclass_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_test_suite_2/99e01f1-default_SubclassDetection.yaml",
+        "tests/assets/mnist_test_suite_2/7ed30b3-default_SubclassDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -817,7 +816,7 @@ def load_mnist_subclass_config():
 def load_mnist_shortcut_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_test_suite_2/99e01f1-default_ShortcutDetection.yaml",
+        "tests/assets/mnist_test_suite_2/7ed30b3-default_ShortcutDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -828,11 +827,32 @@ def load_mnist_shortcut_config():
 def load_mnist_mixed_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_test_suite_2/99e01f1-default_MixedDatasets.yaml",
+        "tests/assets/mnist_test_suite_2/7ed30b3-default_MixedDatasets.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
     return config
+
+
+def load_yaml(file_path):
+    """Helper function to load a YAML file as a Python dictionary."""
+    assert os.path.exists(file_path), f"Config file not found: {file_path}"
+    with open(file_path, "r") as f:
+        return yaml.safe_load(f)  # Load YAML as Python dict
+
+
+@pytest.fixture
+def load_wandb_config():
+    """Load WandB config from wandb.yaml as a Python dict."""
+    dict = load_yaml("config/logger/wandb.yaml")
+    dict["offline"] = True
+    return dict
+
+
+@pytest.fixture
+def load_tensorboard_config():
+    """Load TensorBoard config from tensorboard.yaml as a Python dict."""
+    return load_yaml("config/logger/tensorboard.yaml")
 
 
 @pytest.fixture

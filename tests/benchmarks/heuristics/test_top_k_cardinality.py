@@ -1,11 +1,12 @@
-import os
 import math
+import os
 
-import torch
 import pytest
+import torch
 
-from quanda.explainers.wrappers import Kronfluence
 from quanda.benchmarks.heuristics import TopKCardinality
+from quanda.explainers.wrappers import Kronfluence
+from quanda.utils.common import get_load_state_dict_func
 
 
 @pytest.mark.benchmarks
@@ -55,7 +56,7 @@ def test_top_k_cardinality_kronfluence_vision(
     torch.save(model.state_dict(), checkpoint_path)
     dst_eval.checkpoints = [checkpoint_path]
 
-    dst_eval.checkpoints_load_func = None
+    dst_eval.checkpoints_load_func = get_load_state_dict_func("cpu")
     dst_eval.use_predictions = config.get("use_predictions", True)
 
     expl_kwargs = {"task_module": task}
@@ -105,7 +106,7 @@ def test_top_k_cardinality_kronfluence_text(
     dst_eval.model = model
     dst_eval.device = "cpu"
     dst_eval.use_predictions = True
-    dst_eval.checkpoints_load_func = None
+    dst_eval.checkpoints_load_func = get_load_state_dict_func("cpu")
     dst_eval.top_k = 5
 
     # Save current model state as checkpoint
@@ -160,7 +161,7 @@ def test_top_k_cardinality_kronfluence_qnli(
     dst_eval.model = model
     dst_eval.device = "cpu"
     dst_eval.use_predictions = True
-    dst_eval.checkpoints_load_func = None
+    dst_eval.checkpoints_load_func = get_load_state_dict_func("cpu")
     dst_eval.top_k = 2
 
     # Save current model state as checkpoint

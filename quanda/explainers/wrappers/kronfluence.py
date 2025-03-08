@@ -1,26 +1,23 @@
 """Kronfluence data attribution wrapper."""
 
-from typing import Any, Callable, List, Optional, Union, Dict
+from typing import Any, Callable, Dict, List, Optional, Union
 
-import torch
-from torch import nn
 import datasets  # type: ignore
-from transformers import default_data_collator  # type: ignore
+import torch
+from kronfluence.analyzer import Analyzer, prepare_model  # type: ignore
+from kronfluence.arguments import FactorArguments, ScoreArguments  # type: ignore
 from kronfluence.task import Task  # type: ignore
 from kronfluence.utils.dataset import DataLoaderKwargs  # type: ignore
-from kronfluence.analyzer import Analyzer, prepare_model  # type: ignore
-from kronfluence.arguments import (  # type: ignore
-    FactorArguments,
-    ScoreArguments,
-)
+from torch import nn
+from transformers import default_data_collator  # type: ignore
 
-from quanda.utils.tasks import TaskLiterals
 from quanda.explainers.base import Explainer
-from quanda.utils.common import process_targets
 from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
+from quanda.utils.common import process_targets
+from quanda.utils.tasks import TaskLiterals
 
 
 class Kronfluence(Explainer):

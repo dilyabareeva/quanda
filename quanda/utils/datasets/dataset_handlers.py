@@ -3,10 +3,10 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Tuple, Union
 
-import torch
 import datasets  # type: ignore
-from transformers import default_data_collator  # type: ignore
+import torch
 from torch.utils.data import DataLoader
+from transformers import default_data_collator  # type: ignore
 
 
 class DatasetHandler(ABC):

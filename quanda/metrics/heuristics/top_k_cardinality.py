@@ -1,9 +1,10 @@
 """Top-K Cardinality Metric."""
 
-from typing import Optional, Union, List, Callable, Any
+from typing import Any, Callable, List, Optional, Union
 
-import torch
 import datasets  # type: ignore
+import torch
+
 from quanda.metrics.base import Metric
 
 

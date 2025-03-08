@@ -1,15 +1,15 @@
 """Common utility functions for the Quanda package."""
 
-import os
 import functools
+import os
 from abc import ABC
-from functools import reduce
-from dataclasses import dataclass
 from contextlib import contextmanager
-from typing import Any, Callable, List, Mapping, Optional, Sized, Union, Dict
+from dataclasses import dataclass
+from functools import reduce
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sized, Union
 
-import yaml
 import torch
+import yaml
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:

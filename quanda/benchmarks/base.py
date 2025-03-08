@@ -3,21 +3,21 @@
 import os
 import warnings
 from abc import ABC
-from typing import Callable, List, Optional, Any, Union
+from typing import Any, Callable, List, Optional, Union
 
-import torch
 import datasets  # type: ignore
+import lightning as L
+import torch
+import yaml
+from huggingface_hub import create_repo, upload_folder
 from tqdm import tqdm
 
-
-from quanda.metrics import Metric
-from quanda.explainers import Explainer
 from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.resources.config_map import config_map
+from quanda.explainers import Explainer
+from quanda.metrics import Metric
+from quanda.utils.common import class_accuracy, load_last_checkpoint
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
-from quanda.utils.common import (
-    get_load_state_dict_func,
-    load_last_checkpoint,
-)
 
 
 class Benchmark(ABC):
@@ -36,62 +36,117 @@ class Benchmark(ABC):
         ] = None
         self.eval_dataset: torch.utils.data.Dataset
         self.checkpoints: List[str] = []
-        self.checkpoints_load_func: Optional[Callable[..., Any]]
+        self.checkpoints_load_func: Callable[..., Any]  # TODO: Why mandatory?
         self.use_predictions: bool = False
+
+    @classmethod
+    def load_pretrained(
+        cls,
+        bench_id: str,
+        cache_dir: str,
+        device: str = "cpu",
+        offline: bool = False,
+    ):
+        """Load a precomputed benchmark.
+
+        Load precomputed benchmark components from a file and creates an
+        instance from the state dictionary.
+
+        Parameters
+        ----------
+        bench_id : str
+            ID of the benchmark to be loaded.
+        cache_dir : str
+            Directory to store the downloaded benchmark components.
+        device : str, optional
+            Device to load the model on, by default "cpu".
+        offline : bool, optional
+            Whether to load the benchmark in offline mode, by default False.
+
+        Returns
+        -------
+        Benchmark
+            The benchmark instance.
+
+        """
+        bench_yaml = config_map[bench_id]
+
+        # Load the benchmark configuration
+        with open(bench_yaml, "r") as f:
+            cfg = yaml.safe_load(f)
+
+        cfg["bench_save_dir"] = cache_dir
+        return cls.from_config(
+            cfg,
+            load_meta_from_disk=True,
+            offline=offline,
+            device=device,
+        )
 
     @classmethod
     def from_config(
         cls,
         config: dict,
         load_meta_from_disk: bool = True,
+        offline: bool = False,
         device: str = "cpu",
     ):
         """Initialize the benchmark from a dictionary."""
         obj = cls()
         obj.device = device
+        metadata_dir = BenchConfigParser.load_metadata(
+            cfg=config,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            load_meta_from_disk=load_meta_from_disk,
+        )
         obj.train_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
-            metadata_dir=config.get("metadata_dir", "./tmp"),
-            dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=metadata_dir,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.val_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset", None),
-            metadata_dir=config.get("metadata_dir", "./tmp"),
-            dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=metadata_dir,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.eval_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),
-            metadata_dir=config.get("metadata_dir", "./tmp"),
-            dataset_dir=config.get("dataset_dir", "./tmp"),
+            metadata_dir=metadata_dir,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
 
-        obj.model, obj.checkpoints = BenchConfigParser.parse_model_cfg(
-            model_cfg=config["model"],
-            checkpoint_path=config["ckpt_dir"],
-            cfg_id=config["id"],
+        obj.model, obj.checkpoints, obj.checkpoints_load_func = (
+            BenchConfigParser.parse_model_cfg(
+                model_cfg=config["model"],
+                bench_save_dir=config["bench_save_dir"],
+                repo_id=config["repo_id"],
+                cfg_id=config["id"],
+                offline=offline,
+                device=device,
+            )
         )
-        obj.checkpoints_load_func = None  # TODO: be more flexible
+
         return obj
 
     @classmethod
     def train(
         cls,
         config: dict,
-        load_meta_from_disk: bool = True,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 8,
-    ):
+    ) -> "Benchmark":
         """Train a model using the provided configuration.
 
         Parameters
         ----------
         config : dict
             Dictionary containing the configuration.
-        load_meta_from_disk : bool, optional
-            Whether to load metadata from disk, by default True
+        logger : Optional[Callable], optional
+            Logger to be used for logging, by default None.
         device : str, optional
             Device to use for training, by default "cpu"
         batch_size : int, optional
@@ -105,7 +160,11 @@ class Benchmark(ABC):
         obj = cls.from_config(config, load_meta_from_disk=False, device=device)
 
         # Parse trainer configuration
-        trainer = BenchConfigParser.parse_trainer_cfg(config["trainer"])
+        trainer = BenchConfigParser.parse_trainer_cfg(
+            config["model"]["trainer"]
+        )
+        if logger is not None:
+            trainer.logger = logger
 
         train_dl = torch.utils.data.DataLoader(
             obj.train_dataset,
@@ -130,30 +189,102 @@ class Benchmark(ABC):
             val_dataloaders=val_dl,
         )
 
+        ckpt_dir = os.path.join(config["bench_save_dir"], "ckpt")
         ckpt_dir = BenchConfigParser.get_ckpt_folder(
-            config["model"], config["ckpt_dir"], config["id"]
+            config["model"], ckpt_dir, config["id"]
         )
         if len(os.listdir(ckpt_dir)) > 0:
             warnings.warn(
                 f"Directory {ckpt_dir} already exists and is not empty. "
                 "Checkpoints will be overwritten."
             )
-            # remove existing checkpoints
-            for file in os.listdir(ckpt_dir):
-                os.remove(os.path.join(ckpt_dir, file))
-
-        torch.save(
-            obj.model.state_dict(),
-            os.path.join(ckpt_dir, f"{config['id']}.pth"),
-        )
 
         obj.model.to(obj.device)
         obj.model.eval()
-        obj.checkpoints = [os.path.join(ckpt_dir, f"{config['id']}.pth")]
 
-        # obj.save_metadata() TODO: implement this
+        hf_ckpt_dir = ckpt_dir
+        obj.model.save_pretrained(hf_ckpt_dir, safe_serialization=True)
+        obj.checkpoints = [hf_ckpt_dir]
 
         return obj
+
+    @classmethod
+    def train_and_push_to_hub(
+        cls,
+        config: dict,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
+        device: str = "cpu",
+        batch_size: int = 8,
+    ):
+        """Train a model using the provided config and push to HF hub."""
+        obj = cls.train(
+            config,
+            logger=logger,
+            device=device,
+            batch_size=batch_size,
+        )
+        obj.model.push_to_hub(f"quanda-bench-test/{config['id']}")
+
+        metadata_dir = BenchConfigParser.load_metadata(
+            cfg=config,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            load_meta_from_disk=False,
+        )
+        create_repo(
+            repo_id=config["metadata_str"], repo_type="dataset", exist_ok=True
+        )
+        upload_folder(
+            folder_path=metadata_dir,
+            repo_id=config["metadata_str"],
+            repo_type="dataset",
+        )
+
+        return obj
+
+    def sanity_check(self, batch_size: int = 32) -> dict:
+        """Compute training and validation accuracy of the model.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            Batch size to be used for the evaluation, defaults to 32.
+
+        Returns
+        -------
+        dict
+            Computed accuracy results.
+
+        """
+        results = {}
+
+        train_dl = torch.utils.data.DataLoader(
+            self.train_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+        )
+        if self.val_dataset is not None:
+            val_dl = torch.utils.data.DataLoader(
+                self.val_dataset,
+                batch_size=batch_size,
+                shuffle=False,
+            )
+        else:
+            val_dl = None
+
+        self.model.eval()
+        self.model.to(self.device)
+
+        # By default we only run accuracy
+        results["train_acc"] = class_accuracy(
+            self.model, train_dl, self.device
+        )
+
+        if val_dl is not None:
+            results["val_acc"] = class_accuracy(
+                self.model, val_dl, self.device
+            )
+
+        return results
 
     @classmethod
     def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
@@ -211,24 +342,6 @@ class Benchmark(ABC):
     def save_metadata(self):
         """Save metadata to disk."""
         raise NotImplementedError
-
-    @property
-    def checkpoints_load_func(self):
-        """Return the function to load the checkpoints."""
-        return self._checkpoints_load_func
-
-    @checkpoints_load_func.setter
-    def checkpoints_load_func(self, value):
-        """Set the function to load the checkpoints."""
-        if self.device is None:
-            raise ValueError(
-                "The device must be set before setting the "
-                "checkpoints_load_func."
-            )
-        if value is None:
-            self._checkpoints_load_func = get_load_state_dict_func(self.device)
-        else:
-            self._checkpoints_load_func = value
 
     def _prepare_explainer(
         self,

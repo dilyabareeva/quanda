@@ -1,6 +1,6 @@
 """Mixed Datasets Metric."""
 
-from typing import Any, List, Optional, Union, Callable
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 from torcheval.metrics.functional import binary_auprc

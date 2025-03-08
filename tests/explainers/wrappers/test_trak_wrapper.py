@@ -1,7 +1,7 @@
 import os
 
-import torch
 import pytest
+import torch
 from trak import TRAKer
 from trak.projectors import BasicProjector, CudaProjector, NoOpProjector
 

@@ -1,17 +1,17 @@
 import math
 
-import torch
 import pytest
+import torch
 from torch.nn.modules.batchnorm import _BatchNorm
 
-from quanda.utils.functions import cosine_similarity
-from quanda.utils.common import get_parent_module_from_name
 from quanda.explainers.wrappers import CaptumSimilarity, CaptumTracInCP
-from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.metrics.heuristics import (
     ModelRandomizationMetric,
     TopKCardinalityMetric,
 )
+from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
+from quanda.utils.common import get_parent_module_from_name
+from quanda.utils.functions import cosine_similarity
 
 
 @pytest.mark.heuristic_metrics

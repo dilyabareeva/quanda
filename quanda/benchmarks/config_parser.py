@@ -1,36 +1,54 @@
 """Configuration parser for benchmarks."""
 
-import os
 import copy
-from typing import Optional, Tuple, Any, List, Union, Callable
-import requests
-import zipfile
-import warnings
+import os
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import torch
 from datasets import load_dataset  # type: ignore
+from huggingface_hub import snapshot_download
 
-from quanda.utils.training import Trainer
+from quanda.benchmarks.resources import pl_modules
+from quanda.benchmarks.resources.sample_transforms import sample_transforms
 from quanda.utils.common import TrainValTest
 from quanda.utils.datasets.image_datasets import HFtoTV
-from quanda.benchmarks.resources import sample_transforms, pl_modules
-from quanda.utils.datasets.image_datasets import SingleClassImageDataset
-from quanda.utils.training.options import optimizers, criteria, schedulers
 from quanda.utils.datasets.transformed import (
-    transform_wrappers,
     TransformedDataset,
+    transform_wrappers,
 )
+from quanda.utils.training import Trainer
+from quanda.utils.training.options import criteria, optimizers, schedulers
 
 
 class BenchConfigParser:
     """Parser for benchmark configurations."""
 
     @classmethod
+    def load_metadata(
+        cls,
+        cfg: dict,
+        bench_save_dir: str = ".tmp",
+        load_meta_from_disk: bool = True,
+    ):
+        """Parse metadata configuration and return the metadata directory."""
+        meta_id = cfg.get("meta_id", f"{cfg['id']}_metadata")
+        repo_id = f"{cfg['repo_id']}/{meta_id}"
+        base_metadata_dir = os.path.join(bench_save_dir, "metadata")
+        # create metadata_dir if it doesn't exist
+        os.makedirs(base_metadata_dir, exist_ok=True)
+        metadata_dir = os.path.join(base_metadata_dir, f"{cfg['id']}_metadata")
+        if os.path.exists(metadata_dir) or not load_meta_from_disk:
+            return metadata_dir
+        return snapshot_download(
+            repo_id=repo_id, local_dir=metadata_dir, repo_type="dataset"
+        )
+
+    @classmethod
     def parse_dataset_cfg(
         cls,
         ds_config: Optional[dict],
-        metadata_dir: str = ".tmp",
-        dataset_dir: str = ".tmp",
+        metadata_dir: str = ".tmp/meta",
+        bench_save_dir: str = ".tmp",
         load_meta_from_disk: bool = True,
     ):
         """Return the dataset using the given parameters."""
@@ -38,7 +56,7 @@ class BenchConfigParser:
             return None
 
         dataset = cls._load_dataset_from_cfg(
-            ds_config, dataset_dir, load_meta_from_disk
+            ds_config, bench_save_dir, load_meta_from_disk
         )
 
         wrapper = copy.deepcopy(ds_config.get("wrapper", None))
@@ -50,18 +68,30 @@ class BenchConfigParser:
 
     @classmethod
     def parse_model_cfg(
-        cls, model_cfg: dict, checkpoint_path: str, cfg_id: str
-    ) -> Tuple[torch.nn.Module, List[str]]:
+        cls,
+        model_cfg: dict,
+        bench_save_dir: str,
+        repo_id: str,
+        cfg_id: str,
+        offline: bool,
+        device: str,
+    ) -> Tuple[torch.nn.Module, List[str], Callable]:
         """Parse model configuration and return the model and checkpoints.
 
         Parameters
         ----------
         model_cfg : dict
             Model configuration dictionary
-        checkpoint_path : str
-            Path to checkpoint directory
+        bench_save_dir : str
+            Path to checkpoint directory "ckpt".
+        repo_id : str
+            Repo ID Hugging Face
         cfg_id : str
             Configuration ID
+        offline : bool
+            If True, the method tries to load the model from the local cache.
+        device : str
+            Device to use for the model.
 
         Returns
         -------
@@ -70,15 +100,31 @@ class BenchConfigParser:
 
         """
         module_cfg = model_cfg["module"]
-        module = pl_modules[module_cfg["name"]](**module_cfg["args"])
+        module_cls = pl_modules[module_cfg["name"]]
+        module = module_cls(**module_cfg["args"])
 
+        checkpoint_path = os.path.join(bench_save_dir, "ckpt")
         ckpt_dir = cls.get_ckpt_folder(model_cfg, checkpoint_path, cfg_id)
+        ckpt_id = f"{repo_id}/{cfg_id}"
+
         if not os.path.exists(ckpt_dir):
             os.makedirs(ckpt_dir, exist_ok=True)
 
-        checkpoints = [os.path.join(ckpt_dir, f) for f in os.listdir(ckpt_dir)]
+        if not hasattr(module_cls, "from_pretrained"):
+            raise ValueError(f"Model class {module_cls} is not HF compatible.")
 
-        return module, checkpoints
+        def load_state_dict(model: torch.nn.Module, ckpt_str: str):
+            pretrained_model = module_cls.from_pretrained(
+                ckpt_str,
+                cache_dir=ckpt_dir,
+                local_files_only=offline,
+            )
+            model.load_state_dict(pretrained_model.state_dict())
+            model.to(device)
+            return model_cfg["trainer"]["lr"]
+
+        # check if dir is empty
+        return module, [ckpt_id], load_state_dict
 
     @classmethod
     def parse_trainer_cfg(cls, trainer_cfg: dict) -> Trainer:
@@ -124,14 +170,16 @@ class BenchConfigParser:
     def _load_dataset_from_cfg(
         cls,
         ds_config: dict,
-        dataset_dir: str,
+        bench_save_dir: str,
         load_meta_from_disk: bool = True,
     ) -> torch.utils.data.Dataset:
         """Load dataset based on configuration."""
-        if "dataset_str" in ds_config:
+        if "single_class_dataset" not in ds_config:
             return cls._load_hf_dataset(ds_config, load_meta_from_disk)
-        elif "zip_url" in ds_config:
-            return cls._load_zip_dataset(ds_config, dataset_dir=dataset_dir)
+        elif ds_config["single_class_dataset"]:
+            return cls._load_single_class_dataset(
+                ds_config, bench_save_dir=bench_save_dir
+            )
         else:
             raise ValueError("Dataset configuration not recognized.")
 
@@ -149,24 +197,39 @@ class BenchConfigParser:
         return cls._apply_indices(base_dataset, ds_config, load_meta_from_disk)
 
     @classmethod
-    def _load_zip_dataset(
-        cls, ds_config: dict, dataset_dir: str
+    def _load_single_class_dataset(
+        cls, ds_config: dict, bench_save_dir: str
     ) -> torch.utils.data.Dataset:
         """Load a dataset from a zip file based on configuration."""
+        dataset_dir = os.path.join(bench_save_dir, ds_config["save_dir"])
         transform = cls._get_transform(ds_config)
-        download_dir = cls._download_zip_file(
-            url=ds_config["zip_url"], download_dir=dataset_dir
+        transform = transform if transform is not None else lambda x: x
+        base_dataset = load_dataset(
+            ds_config["dataset_str"],
+            split=ds_config.get("dataset_split", "train"),
+            cache_dir=dataset_dir,
         )
-        return SingleClassImageDataset(
-            root=download_dir,
-            label=ds_config["label"],
-            transform=transform,
-        )
+
+        if "label" in ds_config:
+            return HFtoTV(
+                base_dataset.map(
+                    lambda x: {
+                        "label": ds_config["label"],
+                        "image": transform(x["image"]),
+                    }
+                ).with_format("torch"),
+                transform=None,
+            )
+        else:
+            return HFtoTV(base_dataset, transform=transform)
 
     @classmethod
     def _get_transform(cls, ds_config: dict) -> Optional[Any]:
         """Get the transform function from configuration."""
-        return sample_transforms.get(ds_config.get("transforms", None), None)
+        transform_name = ds_config.get("transforms", None)
+        return (
+            sample_transforms.get(transform_name) if transform_name else None
+        )
 
     @classmethod
     def _apply_indices(
@@ -182,7 +245,8 @@ class BenchConfigParser:
 
         split_name = indices.get("split_name", "train")
         split_filename = indices.get("split_filename", "DOESNT_EXIST")
-        metadata_dir = ds_config.get("metadata_dir", ".tmp")
+        bench_save_dir = ds_config.get("bench_save_dir", ".tmp")
+        metadata_dir = os.path.join(bench_save_dir, "metadata")
         split = cls._load_split_if_exists_or_generate(
             base_dataset, load_meta_from_disk, metadata_dir, split_filename
         )
@@ -197,6 +261,7 @@ class BenchConfigParser:
         load_meta_from_disk: bool,
     ) -> torch.utils.data.Dataset:
         """Apply a wrapper to the dataset based on configuration."""
+        wrapper_cfg = dict(wrapper_cfg)
         wrapper_cls = transform_wrappers[wrapper_cfg.pop("type")]
         # check if wrapper_cls is a subclass of TransformedDataset
         if not hasattr(wrapper_cls, "metadata_cls"):
@@ -206,7 +271,7 @@ class BenchConfigParser:
 
         kwargs = wrapper_cfg
         if "metadata" in kwargs:
-            metadata_args = kwargs.pop("metadata", {})
+            metadata_args = dict(kwargs.pop("metadata", {}))
             meta_filename = metadata_args.pop(
                 "metadata_filename", "DOESNT_EXIST"
             )
@@ -300,92 +365,6 @@ class BenchConfigParser:
             return dataset
 
     @classmethod
-    def _download_zip_file(cls, url: str, download_dir: str) -> str:
-        """Download a zip file from the given URL and extract it.
-
-        Parameters
-        ----------
-        url: str
-            URL to the zip file.
-        download_dir: str
-            Path to the cache directory.
-
-        Returns
-        -------
-        str
-            Path to the extracted directory.
-
-        Raises
-        ------
-        RuntimeError
-            If downloading or extracting the zip file fails.
-
-        """
-        if os.path.exists(download_dir):
-            warnings.warn(
-                f"Directory {download_dir} already exists. Skipping download."
-            )
-            return download_dir
-
-        os.makedirs(download_dir, exist_ok=True)
-        zip_path = os.path.join(download_dir, "downloaded_file.zip")
-
-        if not os.path.exists(zip_path):
-            cls._download_file(url, zip_path)
-
-        cls._extract_zip(zip_path, download_dir)
-        return download_dir
-
-    @classmethod
-    def _download_file(cls, url: str, save_path: str):
-        """Download file from URL with progress tracking.
-
-        Parameters
-        ----------
-        url: str
-            URL to download from.
-        save_path: str
-            Path to save the downloaded file.
-
-        Raises
-        ------
-        RuntimeError
-            If downloading fails.
-
-        """
-        try:
-            response = requests.get(url, stream=True)
-            response.raise_for_status()
-            with open(save_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-        except requests.RequestException as e:
-            raise RuntimeError(f"Failed to download the zip file: {e}")
-
-    @classmethod
-    def _extract_zip(cls, zip_path: str, extract_dir: str):
-        """Extract zip file to specified directory.
-
-        Parameters
-        ----------
-        zip_path: str
-            Path to the zip file.
-        extract_dir: str
-            Directory to extract to.
-
-        Raises
-        ------
-        RuntimeError
-            If extraction fails.
-
-        """
-        try:
-            with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                zip_ref.extractall(extract_dir)
-        except zipfile.BadZipFile as e:
-            raise RuntimeError(f"Failed to extract the zip file: {e}")
-
-    @classmethod
     def split_dataset(
         cls,
         dataset: torch.utils.data.Dataset,
@@ -426,3 +405,33 @@ class BenchConfigParser:
             val_dataset = None
 
         return train_dataset, val_dataset, test_dataset
+
+    @classmethod
+    def parse_logger(cls, cfg):
+        """Parse the logger configuration from the main config.
+
+        Parameters
+        ----------
+        cfg: DictConfig
+            The main configuration dictionary.
+
+        Returns
+        -------
+        Any
+            The logger instance
+
+        """
+        # Import Hydra only when needed
+        try:
+            from hydra.utils import instantiate
+        except ImportError:
+            raise ImportError(
+                "Hydra is not installed, but `instantiate` was requested. "
+                "Either install Hydra (`pip install hydra-core`) or modify "
+                "the config parsing."
+            )
+
+        logger_cfg = cfg.get("logger", None)
+        logger = instantiate(logger_cfg)
+
+        return logger

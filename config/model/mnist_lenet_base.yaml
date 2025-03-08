@@ -1,4 +1,3 @@
-ckpt_postfix: base
 module:
   name: MnistTorch
   args:

@@ -1,10 +1,10 @@
 """Base class for metrics."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Union, List, Optional, Callable
+from typing import Any, Callable, List, Optional, Union
 
-import torch
 import datasets  # type: ignore
+import torch
 
 from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
 

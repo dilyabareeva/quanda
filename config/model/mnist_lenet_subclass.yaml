@@ -1,4 +1,3 @@
-ckpt_postfix: subclass
 module:
   name: MnistTorch
   args:

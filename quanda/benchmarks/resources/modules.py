@@ -1,14 +1,15 @@
 """Lightning modules for the benchmarks."""
 
-import torch
 import lightning as L
+import torch
+from huggingface_hub import PyTorchModelHubMixin
 from torch.nn import CrossEntropyLoss
+from torch.optim import Adam, lr_scheduler
 from torchmetrics.functional import accuracy
-from torch.optim import Adam, AdamW, lr_scheduler
 from torchvision.models import ResNet18_Weights, resnet18  # type: ignore
 
 
-class LeNet(torch.nn.Module):
+class LeNet(torch.nn.Module, PyTorchModelHubMixin):
     """A torch implementation of LeNet architecture.
 
     Adapted from: https://github.com/ChawDoe/LeNet5-MNIST-PyTorch.
@@ -40,7 +41,7 @@ class LeNet(torch.nn.Module):
         return x
 
 
-class TinyImagenetModel(L.LightningModule):
+class TinyImagenetModel(L.LightningModule, PyTorchModelHubMixin):
     """Model definition for downloadable Tiny Imagenet benchmarks."""
 
     def __init__(
@@ -134,93 +135,7 @@ class TinyImagenetModel(L.LightningModule):
         self.model.load_state_dict(checkpoint["model_state_dict"])
 
 
-class MnistModel(L.LightningModule):
-    """A simple model for MNIST classification."""
-
-    def __init__(
-        self,
-        lr=1e-4,
-        epochs=24,
-        weight_decay=0.01,
-        num_labels=64,
-        device="cuda:0",
-    ):
-        """Initialize the model."""
-        super(MnistModel, self).__init__()
-        self._init_model(num_labels)
-        self.model.to(device)
-        self.lr = lr
-        self.epochs = epochs
-        self.weight_decay = weight_decay
-        self.criterion = CrossEntropyLoss()
-        self.num_labels = num_labels
-        self.save_hyperparameters()
-
-    def _init_model(self, num_labels):
-        """Initialize the model."""
-        self.model = LeNet(num_outputs=num_labels)
-
-    def forward(self, x):
-        """Forward the input."""
-        return self.model(x)
-
-    def training_step(self, batch, batch_idx):
-        """Perform training step."""
-        ims, labs = batch
-        ims = ims.to(self.device)
-        labs = labs.to(self.device)
-        out = self.model(ims)
-        loss = self.criterion(out, labs)
-        self.log(
-            "train_loss", loss, on_step=True, on_epoch=True, prog_bar=True
-        )
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        """Perform validation step."""
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"val_acc": acc, "val_loss": loss}
-        self.log_dict(metrics)
-        return metrics
-
-    def test_step(self, batch, batch_idx):
-        """Perform test step."""
-        loss, acc = self._shared_eval_step(batch, batch_idx)
-        metrics = {"test_acc": acc, "test_loss": loss}
-        self.log_dict(metrics)
-        return metrics
-
-    def _shared_eval_step(self, batch, batch_idx):
-        """Shared evaluation step between test and val."""
-        x, y = batch
-        y_hat = self.model(x)
-        loss = self.criterion(y_hat, y)
-        acc = accuracy(
-            y_hat, y, task="multiclass", num_classes=self.num_labels
-        )
-        return loss, acc
-
-    def configure_optimizers(self):
-        """Configure the optimizer and scheduler."""
-        optimizer = AdamW(
-            self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay
-        )
-        scheduler = lr_scheduler.CosineAnnealingLR(
-            optimizer, T_max=self.epochs, eta_min=self.lr * 1e-4
-        )
-        return [optimizer], [scheduler]
-
-    def on_save_checkpoint(self, checkpoint):
-        """Save the state of the model attribute manually."""
-        checkpoint["model_state_dict"] = self.model.state_dict()
-
-    def on_load_checkpoint(self, checkpoint):
-        """Load the state of the model attribute manually."""
-        self.model.load_state_dict(checkpoint["model_state_dict"])
-
-
 pl_modules = {
     "MnistTorch": LeNet,
-    "MnistModel": MnistModel,
     "TinyImagenetModel": TinyImagenetModel,
 }

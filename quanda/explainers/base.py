@@ -1,20 +1,20 @@
 """Base class for explainers."""
 
 from abc import ABC, abstractmethod
-from typing import List, Union, Optional, Callable, Any
+from typing import Any, Callable, List, Optional, Union
 
-import torch
 import datasets  # type: ignore
 import lightning as L
+import torch
 
-from quanda.utils.tasks import TaskLiterals
-from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.common import (
     cache_result,
     ds_len,
     get_load_state_dict_func,
     load_last_checkpoint,
 )
+from quanda.utils.datasets import OnDeviceDataset
+from quanda.utils.tasks import TaskLiterals
 
 
 class Explainer(ABC):

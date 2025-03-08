@@ -1,10 +1,10 @@
 """Top-K Cardinality benchmark module."""
 
 import logging
-from typing import Callable, List, Optional, Any, Union
+from typing import Any, Callable, List, Optional, Union
 
-import torch
 import datasets  # type: ignore
+import torch
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics import TopKCardinalityMetric
@@ -52,7 +52,7 @@ class TopKCardinality(Benchmark):
         self.eval_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
         self.use_predictions: bool
         self.checkpoints: List[str]
-        self.checkpoints_load_func: Optional[Callable[..., Any]]
+        self.checkpoints_load_func: Callable[..., Any]
         self.top_k: int
 
     @classmethod
@@ -60,6 +60,7 @@ class TopKCardinality(Benchmark):
         cls,
         config: dict,
         load_meta_from_disk: bool = True,
+        offline: bool = False,
         device: str = "cpu",
     ):
         """Initialize the benchmark from a dictionary.
@@ -71,11 +72,13 @@ class TopKCardinality(Benchmark):
         load_meta_from_disk : str
             Loads dataset metadata from disk if True, otherwise generates it,
             default True.
+        offline : bool
+            If True, the model is not downloaded, default False.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
 
         """
-        obj = super().from_config(config, load_meta_from_disk, device)
+        obj = super().from_config(config, load_meta_from_disk, offline, device)
         obj.top_k = config["top_k"]
         obj.use_predictions = config.get("use_predictions", True)
         return obj

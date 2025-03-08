@@ -1,8 +1,8 @@
 """Model randomization metric."""
 
-import os
 import copy
-from typing import Callable, Dict, List, Optional, Union, Any, Tuple
+import os
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import torch
 

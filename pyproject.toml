@@ -138,11 +138,15 @@ dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "sphinx-rtd-theme>=1.0.0",
     "sphinx>=7.0.0",
     "numpydoc",
+    "tensorboard",
+    "wandb>=0.12.10",
     "torchvision>=0.10.0",
     "types-Pillow>=8.3.0",
     "ruff>=0.7.0",
-    "hydra-core>=1.1.0",
     "types-PyYAML>=5.0.0",
+    "hydra-core>=1.1.0",
+    "hydra-optuna-sweeper>=1.2.0",
+    "optuna>=2.10.0,<3.0.0",
 ]
 tutorials = [
     "torchvision>=0.10.0",

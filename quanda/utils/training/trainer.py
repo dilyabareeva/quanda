@@ -4,8 +4,8 @@ import abc
 from abc import abstractmethod
 from typing import Callable, Optional
 
-import torch
 import lightning as L
+import torch
 from lightning import seed_everything
 
 from quanda.utils.training.base_pl_module import BasicLightningModule
@@ -83,6 +83,7 @@ class Trainer(BaseTrainer):
         scheduler: Optional[Callable] = None,
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         seed: int = 27,
     ):
         """Construct the Trainer class.
@@ -103,6 +104,8 @@ class Trainer(BaseTrainer):
             Keyword arguments for the optimizer, defaults to None
         scheduler_kwargs : Optional[dict], optional
             Keyword arguments for the scheduler, defaults to None
+        logger : Optional[Callable], optional
+            Logger to use during training, defaults to None
         seed : int, optional
             The seed for the projector, by default 27.
         accelerator : str, optional
@@ -114,6 +117,7 @@ class Trainer(BaseTrainer):
         self.max_epochs = max_epochs
         self.criterion = criterion
         self.scheduler = scheduler
+        self.logger = logger
         self.optimizer_kwargs = optimizer_kwargs or {}
         self.scheduler_kwargs = scheduler_kwargs or {}
 
@@ -165,7 +169,10 @@ class Trainer(BaseTrainer):
         )
 
         trainer = L.Trainer(
-            max_epochs=self.max_epochs, devices=1, accelerator=accelerator
+            max_epochs=self.max_epochs,
+            devices=1,
+            accelerator=accelerator,
+            logger=self.logger,
         )
         trainer.fit(module, train_dataloaders, val_dataloaders)
 

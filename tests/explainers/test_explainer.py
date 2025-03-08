@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
-import torch
 import pytest
+import torch
 
 from quanda.explainers import Explainer
 from quanda.utils.functions import cosine_similarity

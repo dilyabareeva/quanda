@@ -1,10 +1,6 @@
 import pytest
-
+from kronfluence.arguments import FactorArguments, ScoreArguments  # type: ignore
 from kronfluence.utils.dataset import DataLoaderKwargs  # type: ignore
-from kronfluence.arguments import (  # type: ignore
-    FactorArguments,
-    ScoreArguments,
-)
 
 from quanda.explainers.wrappers import (
     Kronfluence,

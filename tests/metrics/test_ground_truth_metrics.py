@@ -1,13 +1,13 @@
-import torch
 import pytest
+import torch
 from lightning.pytorch import Trainer as LightningTrainer
 
-from quanda.utils.training import Trainer
-from quanda.utils.functions import cosine_similarity
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
+from quanda.utils.functions import cosine_similarity
+from quanda.utils.training import Trainer
 
 
 @pytest.mark.ground_truth_metrics

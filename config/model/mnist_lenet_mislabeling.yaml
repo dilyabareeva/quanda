@@ -1,5 +1,0 @@
-ckpt_postfix: mislabeling
-module:
-  name: MnistTorch
-  args:
-    num_outputs: 10

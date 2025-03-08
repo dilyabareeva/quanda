@@ -1,8 +1,8 @@
 """Strategies for global ranking computation."""
 
 import warnings
-from typing import Optional
 from functools import lru_cache
+from typing import Optional
 
 import torch
 

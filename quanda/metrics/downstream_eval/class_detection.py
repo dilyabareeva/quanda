@@ -1,9 +1,9 @@
 """Class Detection Metric."""
 
-from typing import List, Optional, Union, Callable, Any
+from typing import Any, Callable, List, Optional, Union
 
-import torch
 import datasets  # type: ignore
+import torch
 
 from quanda.metrics.base import Metric
 

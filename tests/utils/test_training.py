@@ -1,7 +1,7 @@
 import copy
 
-import torch
 import pytest
+import torch
 
 from quanda.utils.training.trainer import Trainer
 

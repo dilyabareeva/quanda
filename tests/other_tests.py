@@ -1,5 +1,5 @@
-import torch
 import pytest
+import torch
 
 """
 Maybe we can find a different name/place for these tests.

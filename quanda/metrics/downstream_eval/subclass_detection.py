@@ -1,11 +1,11 @@
 """Subclass Detection Metric."""
 
-from typing import List, Optional, Union, Callable, Any
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 
-from quanda.utils.common import ds_len
 from quanda.metrics.downstream_eval import ClassDetectionMetric
+from quanda.utils.common import ds_len
 
 
 class SubclassDetectionMetric(ClassDetectionMetric):

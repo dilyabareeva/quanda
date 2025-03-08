@@ -4,10 +4,10 @@ import os
 import random
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Union, Literal, Type, TypeVar
+from typing import Dict, List, Literal, Optional, Type, TypeVar, Union
 
-import yaml
 import torch
+import yaml
 
 from quanda.utils.common import ds_len
 

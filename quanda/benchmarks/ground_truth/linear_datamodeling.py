@@ -1,18 +1,19 @@
 """Benchmark for the Linear Datamodeling Score metric."""
 
 import logging
-from typing import Callable, Optional, Union, List, Any
+from typing import Any, Callable, List, Optional, Union
 
-import torch
 import lightning as L
+import torch
 
 from quanda.benchmarks.base import Benchmark
-from quanda.utils.training import BaseTrainer
-from quanda.utils.functions import CorrelationFnLiterals
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
+from quanda.utils.common import get_load_state_dict_func
+from quanda.utils.functions import CorrelationFnLiterals
+from quanda.utils.training import BaseTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ class LinearDatamodeling(Benchmark):
         self.trainer_fit_kwargs: Optional[dict]
         self.cache_dir: str
         self.model_id: str
-
+        self.checkpoints_load_func: Callable  # TODO: fix
         self.use_predictions: bool
         self.correlation_fn: Union[Callable, CorrelationFnLiterals]
         self.seed: int
@@ -152,11 +153,12 @@ class LinearDatamodeling(Benchmark):
 
         """
         obj = cls()
+
         obj._assemble_common(
             model=model,
             eval_dataset=eval_dataset,
             checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
+            checkpoints_load_func=get_load_state_dict_func("cpu"),  # TODO: fix
             use_predictions=use_predictions,
         )
         obj.subset_ids = subset_ids
@@ -175,7 +177,6 @@ class LinearDatamodeling(Benchmark):
             dataset_split=dataset_split,
         )
         # this sets the function to the default value
-        obj.checkpoints_load_func = None
 
         return obj
 
@@ -183,8 +184,8 @@ class LinearDatamodeling(Benchmark):
         self,
         model: torch.nn.Module,
         eval_dataset: torch.utils.data.Dataset,
+        checkpoints_load_func: Callable[..., Any],
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
         use_predictions: bool = True,
     ):
         """Assembles the benchmark from existing components.
@@ -212,7 +213,7 @@ class LinearDatamodeling(Benchmark):
         self.model = model
         self.eval_dataset = eval_dataset
         self.checkpoints = checkpoints
-        self.checkpoints_load_func = checkpoints_load_func
+        self.checkpoints_load_func = checkpoints_load_func  # TODO: fix
         self.use_predictions = use_predictions
 
     @property

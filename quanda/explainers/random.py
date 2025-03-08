@@ -1,12 +1,12 @@
 """Random explainer module."""
 
-from typing import Any, List, Optional, Union, Callable
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 
 from quanda.explainers import Explainer
-from quanda.utils.tasks import TaskLiterals
 from quanda.utils.common import cache_result, ds_len
+from quanda.utils.tasks import TaskLiterals
 
 
 class RandomExplainer(Explainer):

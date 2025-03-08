@@ -1,6 +1,5 @@
 """Wrapping explainers."""
 
-from quanda.explainers.wrappers.representer_points import RepresenterPoints
 from quanda.explainers.wrappers.captum_influence import (
     CaptumArnoldi,
     CaptumInfluence,
@@ -24,6 +23,7 @@ from quanda.explainers.wrappers.kronfluence import (
     kronfluence_explain,
     kronfluence_self_influence,
 )
+from quanda.explainers.wrappers.representer_points import RepresenterPoints
 from quanda.explainers.wrappers.trak_wrapper import (
     TRAK,
     trak_explain,

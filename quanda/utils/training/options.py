@@ -3,11 +3,11 @@
 import torch
 from torch.optim import SGD, Adam, AdamW, RMSprop
 from torch.optim.lr_scheduler import (
-    StepLR,
-    CosineAnnealingLR,
-    ReduceLROnPlateau,
-    OneCycleLR,
     ConstantLR,
+    CosineAnnealingLR,
+    OneCycleLR,
+    ReduceLROnPlateau,
+    StepLR,
 )
 
 # Optimizer mappings

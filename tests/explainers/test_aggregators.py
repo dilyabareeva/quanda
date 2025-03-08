@@ -1,5 +1,5 @@
-import torch
 import pytest
+import torch
 
 from quanda.explainers import AbsSumAggregator, SumAggregator
 

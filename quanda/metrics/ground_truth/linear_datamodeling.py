@@ -4,13 +4,13 @@ import os
 from copy import deepcopy
 from typing import Callable, Dict, List, Optional, Union
 
-import torch
 import lightning as L
+import torch
 from torch.utils.data import DataLoader
 
 from quanda.metrics.base import Metric
-from quanda.utils.training import BaseTrainer
 from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
+from quanda.utils.training import BaseTrainer
 
 
 class LinearDatamodelingMetric(Metric):
@@ -98,7 +98,6 @@ class LinearDatamodelingMetric(Metric):
         )
 
         self.device = "cpu"  # TODO: why is this CPU?
-
         self.cache_dir = cache_dir
         self.model_id = model_id
 
