@@ -1,5 +1,6 @@
 """Kronfluence data attribution wrapper."""
 
+import copy
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import datasets  # type: ignore
@@ -165,8 +166,9 @@ class Kronfluence(Explainer):
             The prepared model.
 
         """
-        self.model.to(self.device)
-        prepared_model = prepare_model(model=self.model, task=self.task)
+        model_copy = copy.deepcopy(self.model)
+        model_copy.to(self.device)
+        prepared_model = prepare_model(model=model_copy, task=self.task)
         return prepared_model
 
     def _create_dataset(

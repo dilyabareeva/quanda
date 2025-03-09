@@ -107,18 +107,18 @@ class TopKCardinality(Benchmark):
             Dictionary containing the metric score.
 
         """
+        explainer = self._prepare_explainer(
+            dataset=self.train_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
+        )
+
         metric = TopKCardinalityMetric(
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
             top_k=self.top_k,
-        )
-
-        explainer = self._prepare_explainer(
-            dataset=self.train_dataset,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
         )
 
         return self._evaluate_dataset(

@@ -22,7 +22,7 @@ from quanda.utils.functions import correlation_functions
             "load_mnist_dataset",
             "load_mnist_unit_test_config",
             8,
-            0.3363094627857208,
+            0.166666641831398,
         ),
     ],
 )
@@ -84,7 +84,7 @@ def test_model_randomization_kronfluence_vision(
             "load_simple_classifier",
             "load_text_dataset",
             2,
-            0.9918798208236694,
+            0.9825565218925476,
         ),
     ],
 )

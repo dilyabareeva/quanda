@@ -116,6 +116,12 @@ class ModelRandomization(Benchmark):
             Dictionary containing the evaluation results.
 
         """
+        explainer = self._prepare_explainer(
+            dataset=self.train_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
+        )
+
         metric = ModelRandomizationMetric(
             model=self.model,
             checkpoints=self.checkpoints,
@@ -127,12 +133,6 @@ class ModelRandomization(Benchmark):
             expl_kwargs=expl_kwargs,
             correlation_fn=self.correlation_fn,
             seed=self.seed,
-        )
-        
-        explainer = self._prepare_explainer(
-            dataset=self.train_dataset,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
         )
 
         return self._evaluate_dataset(
