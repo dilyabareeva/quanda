@@ -311,6 +311,30 @@ def process_targets(
     return targets
 
 
+def move_to_device(
+    data: Union[torch.Tensor, Dict[str, torch.Tensor]],
+    device: Union[str, torch.device],
+) -> Union[torch.Tensor, Dict[str, torch.Tensor]]:
+    """Move test data to the device.
+
+    Parameters
+    ----------
+    data : Union[torch.Tensor, Dict[str, torch.Tensor]]
+        The data to process.
+    device: Union[str, torch.device]
+        The device to use.
+
+    Returns
+    -------
+    Union[torch.Tensor, Dict[str, torch.Tensor]]
+        The data on the specified device.
+
+    """
+    if isinstance(data, dict):
+        return {k: v.to(device) for k, v in data.items()}
+    return data.to(device)
+
+
 def load_last_checkpoint(
     model: torch.nn.Module,
     checkpoints: List[str],
