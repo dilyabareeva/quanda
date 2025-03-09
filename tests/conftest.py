@@ -881,21 +881,21 @@ def load_simple_classifier():
 
 @pytest.fixture
 def load_text_dataset():
-    np.random.seed(42)
+    torch.manual_seed(42)
 
     def create_dummy_data(size):
         seq_length = 10
 
-        input_ids = np.random.randint(0, 100, size=(size, seq_length))
-        attention_mask = np.ones((size, seq_length))
-        token_type_ids = np.zeros((size, seq_length))
-        labels = np.random.randint(0, 2, size=(size,))
+        input_ids = torch.randint(0, 100, (size, seq_length)).tolist()
+        attention_mask = torch.ones(size, seq_length).tolist()
+        token_type_ids = torch.zeros(size, seq_length).tolist()
+        labels = torch.randint(0, 2, (size,)).tolist()
 
         data = {
-            "input_ids": input_ids.tolist(),
-            "attention_mask": attention_mask.tolist(),
-            "token_type_ids": token_type_ids.tolist(),
-            "labels": labels.tolist(),
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "token_type_ids": token_type_ids,
+            "labels": labels,
         }
 
         return datasets.Dataset.from_dict(data)

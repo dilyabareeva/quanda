@@ -79,7 +79,7 @@ def test_class_detection_kronfluence_vision(
             "load_simple_classifier",
             "load_text_dataset",
             2,
-            0.4000000059604645,
+            0.6000000238418579,
         ),
     ],
 )
