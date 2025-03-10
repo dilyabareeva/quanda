@@ -881,15 +881,19 @@ def load_simple_classifier():
 
 @pytest.fixture
 def load_text_dataset():
-    torch.manual_seed(42)
-
-    def create_dummy_data(size):
+    def create_dummy_data(size, is_train=True):
         seq_length = 10
 
-        input_ids = torch.randint(0, 100, (size, seq_length)).tolist()
-        attention_mask = torch.ones(size, seq_length).tolist()
-        token_type_ids = torch.zeros(size, seq_length).tolist()
-        labels = torch.randint(0, 2, (size,)).tolist()
+        if is_train:
+            base_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            input_ids = [base_ids for _ in range(size)]
+            labels = [i % 2 for i in range(size)]
+        else:
+            input_ids = [[10, 9, 8, 7, 6, 5, 4, 3, 2, 1] for _ in range(size)]
+            labels = [0, 1, 0, 1, 0][:size]
+
+        attention_mask = [[1] * seq_length for _ in range(size)]
+        token_type_ids = [[0] * seq_length for _ in range(size)]
 
         data = {
             "input_ids": input_ids,
@@ -900,16 +904,7 @@ def load_text_dataset():
 
         return datasets.Dataset.from_dict(data)
 
-    ds_train = create_dummy_data(20)
-    ds_val = create_dummy_data(5)
+    ds_train = create_dummy_data(20, is_train=True)
+    ds_val = create_dummy_data(5, is_train=False)
 
     return ds_train, ds_val
-
-
-@pytest.fixture
-def load_torch_dataset():
-    torch.manual_seed(42)
-    size = 4
-    data = torch.randn(size, 3)
-    labels = torch.randint(0, 2, (size,))
-    return torch.utils.data.TensorDataset(data, labels)

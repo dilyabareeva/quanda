@@ -81,7 +81,7 @@ def test_top_k_cardinality_kronfluence_vision(
             "load_simple_classifier",
             "load_text_dataset",
             2,
-            0.56,
+            0.2,
         ),
     ],
 )

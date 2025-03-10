@@ -84,7 +84,7 @@ def test_model_randomization_kronfluence_vision(
             "load_simple_classifier",
             "load_text_dataset",
             2,
-            0.9867669939994812,
+            0.9999998807907104,
         ),
     ],
 )
