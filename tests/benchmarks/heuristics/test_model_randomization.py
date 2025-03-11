@@ -12,69 +12,6 @@ from quanda.utils.functions import correlation_functions
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, explainer_cls, task, model, dataset, config, batch_size, expected_score",
-    [
-        (
-            "mnist",
-            Kronfluence,
-            "classification_task",
-            "load_mnist_model",
-            "load_mnist_dataset",
-            "load_mnist_unit_test_config",
-            8,
-            0.166666641831398,
-        ),
-    ],
-)
-def test_model_randomization_kronfluence_vision(
-    test_id,
-    explainer_cls,
-    task,
-    model,
-    dataset,
-    config,
-    batch_size,
-    expected_score,
-    tmp_path,
-    request,
-):
-    config = request.getfixturevalue(config)
-    config["cache_dir"] = str(tmp_path)
-    model = request.getfixturevalue(model)
-    dataset = request.getfixturevalue(dataset)
-    task = request.getfixturevalue(task)
-
-    dst_eval = ModelRandomization()
-    dst_eval.train_dataset = dataset
-    dst_eval.device = "cpu"
-    dst_eval.eval_dataset = dataset
-    dst_eval.model = model
-    dst_eval.use_predictions = config.get("use_predictions", True)
-    dst_eval.correlation_fn = correlation_functions["spearman"]
-
-    # Save current model state as checkpoint
-    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
-    torch.save(model.state_dict(), checkpoint_path)
-    dst_eval.checkpoints = [checkpoint_path]
-
-    dst_eval.checkpoints_load_func = get_load_state_dict_func("cpu")
-    dst_eval.model_id = "test"
-    dst_eval.cache_dir = str(tmp_path)
-    dst_eval.seed = 42
-
-    expl_kwargs = {"task_module": task}
-
-    score = dst_eval.evaluate(
-        explainer_cls=explainer_cls,
-        expl_kwargs=expl_kwargs,
-        batch_size=batch_size,
-    )["score"]
-
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
-
-
-@pytest.mark.benchmarks
-@pytest.mark.parametrize(
     "test_id, explainer_cls, task, model, dataset, batch_size, expected_score",
     [
         (

@@ -71,9 +71,9 @@ def test_randomization_metric_score(
     )
 
     out = metric.compute()["score"]
-    assert (out >= -1.0) & (out <= 1.0), (
-        "Metric score is out of expected range."
-    )
+    assert (out >= -1.0) & (
+        out <= 1.0
+    ), "Metric score is out of expected range."
 
 
 @pytest.mark.heuristic_metrics
@@ -167,9 +167,9 @@ def test_randomization_metric_output_nan(
     with torch.no_grad():
         randomized_out = rand_model(random_tensor)
 
-    assert not torch.isnan(randomized_out).any(), (
-        "Randomized model output contains NaNs."
-    )
+    assert not torch.isnan(
+        randomized_out
+    ).any(), "Randomized model output contains NaNs."
 
 
 @pytest.mark.heuristic_metrics
@@ -260,9 +260,9 @@ def test_randomization_metric_randomization(
         if (not isinstance(parent, (_BatchNorm))) and (
             not isinstance(parent, torch.nn.LayerNorm)
         ):
-            assert not torch.allclose(param1.data, param2.data), (
-                "Randomized model output contains NaNs."
-            )
+            assert not torch.allclose(
+                param1.data, param2.data
+            ), "Randomized model output contains NaNs."
 
 
 @pytest.mark.heuristic_metrics
