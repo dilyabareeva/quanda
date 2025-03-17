@@ -24,24 +24,6 @@ from quanda.utils.functions import cosine_similarity
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             0.44353821873664856,
         ),
-        (
-            "mnist",
-            "load_mnist_mislabeling_config",
-            "sum",
-            False,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.48903006315231323,
-        ),
-        (
-            "mnist",
-            "load_mnist_mislabeling_config",
-            "sum_abs",
-            False,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.48903006315231323,
-        ),
     ],
 )
 def test_mislabeling_detection(

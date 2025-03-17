@@ -3,6 +3,7 @@
 import logging
 from typing import Callable, Optional, Union, List, Any
 
+
 import lightning as L
 import torch
 
@@ -120,6 +121,7 @@ class LinearDatamodeling(Benchmark):
 
         obj.correlation_fn = correlation_functions[config["correlation_fn"]]
         obj.use_predictions = config.get("use_predictions", True)
+        return obj
 
     def evaluate(
         self,
@@ -150,9 +152,15 @@ class LinearDatamodeling(Benchmark):
             expl_kwargs=expl_kwargs,
         )
 
+        def _metric_checkpoints_load_func(model, ckpt_path):
+            state_dict = torch.load(ckpt_path, map_location=self.device)
+            model.load_state_dict(state_dict)
+
         metric = LinearDatamodelingMetric(
             model=self.model,
             checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+            counterfactual_load_func=_metric_checkpoints_load_func,
             train_dataset=self.train_dataset,
             alpha=self.alpha,
             m=self.m,

@@ -2,7 +2,6 @@ import math
 
 import pytest
 
-from quanda.explainers import SumAggregator
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.downstream_eval import (
     ClassDetectionMetric,
@@ -122,46 +121,20 @@ def test_identical_subclass_metrics(
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, explanations, test_samples, test_labels, global_method, expl_kwargs, expected_score",
+    "test_id, model, checkpoint,dataset, test_samples, test_labels, expl_kwargs, expected_score",
     [
         (
             "mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mislabeling_mnist_dataset",
-            "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            "self-influence",
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
                 "model_id": "test",
             },
-            0.4921875,
-        ),
-        (
-            "mnist",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "load_mislabeling_mnist_dataset",
-            "load_mnist_explanations_similarity_1",
-            "load_mnist_test_samples_1",
-            "load_mnist_test_labels_1",
-            SumAggregator,
-            None,
-            0.4921875,
-        ),
-        (
-            "mnist",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "load_mislabeling_mnist_dataset",
-            "load_mnist_explanations_similarity_1",
-            "load_mnist_test_samples_1",
-            "load_mnist_test_labels_1",
-            "sum_abs",
-            None,
             0.4921875,
         ),
     ],
@@ -171,43 +144,27 @@ def test_mislabeling_detection_metric(
     model,
     checkpoint,
     dataset,
-    explanations,
     test_samples,
     test_labels,
-    global_method,
     expl_kwargs,
     expected_score,
     request,
     tmp_path,
 ):
     dataset = request.getfixturevalue(dataset)
-    tda = request.getfixturevalue(explanations)
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
     test_labels = request.getfixturevalue(test_labels)
     test_samples = request.getfixturevalue(test_samples)
 
-    if global_method != "self-influence":
-        metric = MislabelingDetectionMetric(
-            model=model,
-            checkpoints=checkpoint,
-            train_dataset=dataset,
-            mislabeling_indices=dataset.transform_indices,
-            global_method=global_method,
-        )
-        metric.update(
-            test_data=test_samples, test_labels=test_labels, explanations=tda
-        )
-    else:
-        metric = MislabelingDetectionMetric(
-            model=model,
-            checkpoints=checkpoint,
-            train_dataset=dataset,
-            global_method=global_method,
-            mislabeling_indices=dataset.transform_indices,
-            explainer_cls=CaptumSimilarity,
-            expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
-        )
+    metric = MislabelingDetectionMetric(
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        mislabeling_indices=dataset.transform_indices,
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
+    )
     score = metric.compute()["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)

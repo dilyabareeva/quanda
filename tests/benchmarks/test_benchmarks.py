@@ -225,7 +225,7 @@ def test_load(
             LinearDatamodeling,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            None,
+            0.2339998036623001,
         ),
     ],
 )

@@ -121,7 +121,7 @@ Currently, the following markers are available to filter tests:
 -  ground_truth_metrics: Ground Truth metrics
 -  benchmarks: Benchmark modules
 -  aggregators: Aggregator modules
--  aggr_strategies: aggr_strategies modules
+-  global_ranking: global_ranking modules
 -  self_influence: self_influence methods of explainers
 
 Ideally, all contributions should include tests to ensure correctness.
