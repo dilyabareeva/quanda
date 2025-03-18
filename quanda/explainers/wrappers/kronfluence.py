@@ -53,6 +53,7 @@ class Kronfluence(Explainer):
     accepted_tasks: List[TaskLiterals] = [
         "image_classification",
         "text_classification",
+        "causal_lm",
     ]
 
     def __init__(

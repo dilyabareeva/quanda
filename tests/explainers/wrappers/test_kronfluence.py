@@ -651,3 +651,184 @@ def test_kronfluence_cache_dir_none_uses_default(
         "./kronfluence_cache", "fallback"
     )
     assert os.path.isdir(explainer.cache_dir)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "test_id, model, dataset, task",
+    [
+        (
+            "gpt2_kronfluence",
+            "load_gpt2_model",
+            "load_wikitext_dataset",
+            "language_modeling_task",
+        ),
+    ],
+)
+def test_kronfluence_causal_lm_self_influence(
+    test_id,
+    model,
+    dataset,
+    task,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model)
+    train_dataset = request.getfixturevalue(dataset)
+    task = request.getfixturevalue(task)
+
+    explainer = Kronfluence(
+        model=model,
+        task_module=task,
+        train_dataset=train_dataset,
+        task="causal_lm",
+        batch_size=1,
+        device="cpu",
+        cache_dir=str(tmp_path),
+    )
+
+    self_influence_scores = explainer.self_influence()
+    assert self_influence_scores.shape == (
+        len(train_dataset),
+    ), "Self-influence scores have incorrect shape"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, task",
+    [
+        (
+            "dummy_causal_lm",
+            "load_dummy_causal_lm_model",
+            "load_dummy_causal_lm_dataset",
+            "dummy_language_modeling_task",
+        ),
+    ],
+)
+def test_kronfluence_dummy_causal_lm_self_influence(
+    test_id,
+    model,
+    dataset,
+    task,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model)
+    train_dataset = request.getfixturevalue(dataset)
+    task = request.getfixturevalue(task)
+
+    explainer = Kronfluence(
+        model=model,
+        task_module=task,
+        train_dataset=train_dataset,
+        task="causal_lm",
+        batch_size=1,
+        device="cpu",
+        cache_dir=str(tmp_path),
+    )
+
+    self_influence_scores = explainer.self_influence()
+
+    assert self_influence_scores.shape == (
+        len(train_dataset),
+    ), "Self-influence scores have incorrect shape"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, task, num_test_points",
+    [
+        (
+            "dummy_causal_lm",
+            "load_dummy_causal_lm_model",
+            "load_dummy_causal_lm_dataset",
+            "dummy_language_modeling_task",
+            2,
+        ),
+    ],
+)
+def test_kronfluence_dummy_causal_lm_explain(
+    test_id,
+    model,
+    dataset,
+    task,
+    num_test_points,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model)
+    train_dataset = request.getfixturevalue(dataset)
+    task = request.getfixturevalue(task)
+
+    test_data = [train_dataset[i] for i in range(num_test_points)]
+    test_targets = [item["labels"] for item in test_data]
+
+    explainer = Kronfluence(
+        model=model,
+        task_module=task,
+        train_dataset=train_dataset,
+        task="causal_lm",
+        batch_size=1,
+        device="cpu",
+        cache_dir=str(tmp_path),
+    )
+
+    explanations = explainer.explain(
+        test_data=test_data,
+        targets=test_targets,
+    )
+
+    assert explanations.shape == (
+        num_test_points,
+        len(train_dataset),
+    ), "Explanation scores have incorrect shape"
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "test_id, model, dataset, task, num_test_points",
+    [
+        (
+            "gpt2_kronfluence",
+            "load_gpt2_model",
+            "load_wikitext_dataset",
+            "language_modeling_task",
+            2,
+        ),
+    ],
+)
+def test_kronfluence_causal_lm_explain(
+    test_id,
+    model,
+    dataset,
+    task,
+    num_test_points,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model)
+    train_dataset = request.getfixturevalue(dataset)
+    task = request.getfixturevalue(task)
+
+    test_data = [train_dataset[i] for i in range(num_test_points)]
+    test_targets = [item["labels"] for item in test_data]
+
+    explainer = Kronfluence(
+        model=model,
+        task_module=task,
+        train_dataset=train_dataset,
+        task="causal_lm",
+        batch_size=1,
+        device="cpu",
+        cache_dir=str(tmp_path),
+    )
+
+    explanations = explainer.explain(
+        test_data=test_data,
+        targets=test_targets,
+    )
+
+    assert explanations.shape == (
+        num_test_points,
+        len(train_dataset),
+    ), "Explanation scores have incorrect shape"

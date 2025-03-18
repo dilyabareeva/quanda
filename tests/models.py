@@ -5,6 +5,7 @@ from transformers import (  # type: ignore
 )
 from transformers.modeling_outputs import (  # type: ignore
     SequenceClassifierOutput,
+    CausalLMOutputWithCrossAttentions
 )
 
 
@@ -86,3 +87,73 @@ class SimpleTextClassifier(torch.nn.Module):
             pooled = embeddings.mean(1)
         logits = self.classifier(pooled)
         return SequenceClassifierOutput(logits=logits)
+
+
+class AttnBlock(torch.nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.c_attn = torch.nn.Linear(hidden_size, hidden_size * 3)
+        self.c_proj = torch.nn.Linear(hidden_size, hidden_size)
+
+    def forward(self, x):
+        attn_output = self.c_attn(x)
+        return self.c_proj(attn_output[:, :, : x.size(-1)])
+
+
+class MLPBlock(torch.nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.c_fc = torch.nn.Linear(hidden_size, hidden_size * 2)
+        self.c_proj = torch.nn.Linear(hidden_size * 2, hidden_size)
+
+    def forward(self, x):
+        return self.c_proj(self.c_fc(x))
+
+
+class TransformerBlock(torch.nn.Module):
+    def __init__(self, hidden_size):
+        super().__init__()
+        self.attn = AttnBlock(hidden_size)
+        self.mlp = MLPBlock(hidden_size)
+
+    def forward(self, x):
+        x = self.attn(x) + x
+        x = self.mlp(x) + x
+        return x
+
+
+class DummyTransformer(torch.nn.Module):
+    def __init__(self, hidden_size, num_layers):
+        super().__init__()
+        self.h = torch.nn.ModuleList(
+            [TransformerBlock(hidden_size) for _ in range(num_layers)]
+        )
+
+    def forward(self, hidden_states):
+        for block in self.h:
+            hidden_states = block(hidden_states)
+        return hidden_states
+
+
+class TinyGPT2(torch.nn.Module):
+    """
+    A tiny causal language model that mimics the structure of GPT-2 but is much smaller.
+    """
+
+    def __init__(self, vocab_size=100, hidden_size=32, num_layers=2):
+        super().__init__()
+        self.embedding = torch.nn.Embedding(vocab_size, hidden_size)
+        self.transformer = DummyTransformer(hidden_size, num_layers)
+        self.lm_head = torch.nn.Linear(hidden_size, vocab_size)
+
+    def forward(self, input_ids, attention_mask=None, **kwargs):
+        embeddings = self.embedding(input_ids)
+
+        if attention_mask is not None:
+            mask_expanded = attention_mask.unsqueeze(-1)
+            embeddings = embeddings * mask_expanded
+
+        hidden_states = self.transformer(embeddings)
+        logits = self.lm_head(hidden_states)
+
+        return CausalLMOutputWithCrossAttentions(logits=logits)
