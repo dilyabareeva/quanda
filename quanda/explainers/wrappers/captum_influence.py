@@ -19,7 +19,9 @@ from captum.influence import (  # type: ignore
 from captum.influence._core.arnoldi_influence_function import (  # type: ignore
     ArnoldiInfluenceFunction,
 )
-from captum.influence._utils.nearest_neighbors import NearestNeighbors  # type: ignore
+from captum.influence._utils.nearest_neighbors import (
+    NearestNeighbors,  # type: ignore
+)
 
 from quanda.explainers.base import Explainer
 from quanda.explainers.utils import (
