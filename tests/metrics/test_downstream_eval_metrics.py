@@ -170,6 +170,109 @@ def test_mislabeling_detection_metric(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
+@pytest.mark.downstream_eval_metrics
+@pytest.mark.parametrize(
+    "test_id, model, checkpoint, dataset, test_samples, test_labels, expl_kwargs, method",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mislabeling_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+                "model_id": "test",
+            },
+            "update",
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mislabeling_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+                "model_id": "test",
+            },
+            "reset",
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mislabeling_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+                "model_id": "test",
+            },
+            "load",
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mislabeling_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+                "model_id": "test",
+            },
+            "save",
+        ),
+    ],
+)
+def test_mislabeling_detection_metric_si_warnings(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_samples,
+    test_labels,
+    expl_kwargs,
+    method,
+    request,
+    tmp_path,
+):
+    dataset = request.getfixturevalue(dataset)
+    model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
+    test_labels = request.getfixturevalue(test_labels)
+    test_samples = request.getfixturevalue(test_samples)
+
+    metric = MislabelingDetectionMetric(
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        mislabeling_indices=dataset.transform_indices,
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
+    )
+    with pytest.warns(
+        UserWarning,
+    ):
+        if method == "update":
+            metric.update(None, None, None)
+        elif method == "reset":
+            metric.reset()
+        elif method == "save":
+            metric.state_dict()
+        elif method == "load":
+            metric.load_state_dict(None)
+        else:
+            pass
+
+
 @pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, model, checkpoint,dataset, labels, poisoned_ids, poisoned_cls, explanations, filter_by_prediction, expected",

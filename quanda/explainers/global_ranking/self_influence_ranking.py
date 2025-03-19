@@ -84,7 +84,7 @@ class SelfInfluenceRanking:
 
     def reset(self, *args, **kwargs):
         """Reset the explainer state."""
-        pass
+        self._si_warning("reset")
 
     def load_state_dict(self, state_dict: dict, *args, **kwargs):
         """Load the state dictionary."""

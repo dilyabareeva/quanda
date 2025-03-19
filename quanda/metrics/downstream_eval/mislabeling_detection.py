@@ -4,7 +4,6 @@ from typing import Any, List, Optional, Union, Callable
 
 import torch
 
-import warnings
 
 from quanda.explainers.global_ranking import SelfInfluenceRanking
 from quanda.metrics.base import Metric
@@ -124,11 +123,7 @@ class MislabelingDetectionMetric(Metric):
             Additional keyword arguments.
 
         """
-        warnings.warn(
-            "The `MislabelingDetectionMetric.update` method is not needed. "
-            "Directly call the `compute` function to compute self-influences "
-            "and get the mislabeling detection score."
-        )
+        self.global_ranker._si_warning("update")
 
     def reset(self, *args, **kwargs):
         """Reset the global ranking strategy."""
@@ -146,7 +141,7 @@ class MislabelingDetectionMetric(Metric):
         self.global_ranker.load_state_dict(state_dict)
 
     def state_dict(self, *args, **kwargs):
-        """Returnthe state dictionary of the metric.
+        """Return the state dictionary of the metric.
 
         Returns
         -------
