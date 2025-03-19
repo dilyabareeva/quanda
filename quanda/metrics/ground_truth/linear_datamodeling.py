@@ -101,6 +101,7 @@ class LinearDatamodelingMetric(Metric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
+        os.makedirs(cache_dir, exist_ok=True)
         if counterfactual_load_func is None:
             counterfactual_load_func = self.checkpoints_load_func
         self.counterfactual_load_func = counterfactual_load_func

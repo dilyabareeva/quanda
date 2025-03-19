@@ -352,6 +352,7 @@ def test_train_from_config(
     }
 
     config["bench_save_dir"] = str(tmp_path)
+    config["cache_dir"] = str(tmp_path)
 
     if logger is not None:
         logger_cfg = request.getfixturevalue(logger)
