@@ -4,11 +4,8 @@ from typing import Any, List, Optional, Union, Callable
 
 import torch
 
-from quanda.explainers.global_ranking import (
-    GlobalAggrStrategy,
-    GlobalSelfInfluenceStrategy,
-    aggr_types,
-)
+
+from quanda.explainers.global_ranking import SelfInfluenceRanking
 from quanda.metrics.base import Metric
 from quanda.utils.common import ds_len
 
@@ -50,11 +47,10 @@ class MislabelingDetectionMetric(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         mislabeling_indices: List[int],
+        explainer_cls: type,
+        expl_kwargs: Optional[dict] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        global_method: Union[str, type] = "self-influence",
-        explainer_cls: Optional[type] = None,
-        expl_kwargs: Optional[dict] = None,
     ):
         """Initialize the Mislabeling Detection metric.
 
@@ -75,16 +71,9 @@ class MislabelingDetectionMetric(Metric):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
-        global_method : Union[str, type], optional
-            The methodology to generate a global ranking from local explainer.
-            It can be "self-influence" or a subclass of
-            `quanda.explainers.aggregators.BaseAggregator`. Defaults to
-            "self-influence".
-        explainer_cls : Optional[type], optional
-            The explainer class. Defaults to None.
-            This parameter should be a subclass of
-            `quanda.explainers.BaseExplainer` whenever `global_method` is
-            "self-influence".
+        explainer_cls : type
+            The local explainer class to compute self explanations.
+            It should have `explainer.self_influence()` implemented.
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer class.
 
@@ -96,10 +85,6 @@ class MislabelingDetectionMetric(Metric):
             checkpoints_load_func=checkpoints_load_func,
         )
 
-        strategies = {
-            "self-influence": GlobalSelfInfluenceStrategy,
-            "aggr": GlobalAggrStrategy,
-        }
         if expl_kwargs is None:
             expl_kwargs = {}
         self.explainer = (
@@ -114,116 +99,8 @@ class MislabelingDetectionMetric(Metric):
             )
         )
 
-        if isinstance(global_method, str):
-            if global_method == "self-influence":
-                self.strategy = strategies[global_method](
-                    explainer=self.explainer
-                )
-
-            elif global_method in aggr_types.keys():
-                aggr_type = aggr_types[global_method]
-                self.strategy = strategies["aggr"](aggr_type=aggr_type)
-            else:
-                raise ValueError(
-                    f"Global method {global_method} is not supported."
-                )
-        elif isinstance(global_method, type):
-            self.strategy = strategies["aggr"](
-                aggr_type=global_method,
-            )
+        self.global_ranker = SelfInfluenceRanking(explainer=self.explainer)
         self.mislabeling_indices = mislabeling_indices
-
-    @classmethod
-    def self_influence_based(
-        cls,
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        explainer_cls: type,
-        mislabeling_indices: List[int],
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        expl_kwargs: Optional[dict] = None,
-        *args: Any,
-        **kwargs: Any,
-    ):
-        """Perform self-influence based mislabeling detection.
-
-        Parameters
-        ----------
-        model : torch.nn.Module
-            The trained model which was used for the attributions to be
-            evaluated.
-        train_dataset : torch.utils.data.Dataset
-            The training dataset used to train `model`.
-        explainer_cls : type
-            The class of the explainer used for self-influence computation.
-        mislabeling_indices : List[int]
-            The indices of the poisoned samples in the training dataset.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        expl_kwargs : Optional[dict]
-            Optional keyword arguments for the explainer class.
-        *args : Any
-            Additional positional arguments.
-        **kwargs : Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        MislabelingDetectionMetric
-            An instance of the mislabeling detection metric with self-influence
-            strategy.
-
-        """
-        return cls(
-            model=model,
-            checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
-            mislabeling_indices=mislabeling_indices,
-            train_dataset=train_dataset,
-            global_method="self-influence",
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
-        )
-
-    @classmethod
-    def aggr_based(
-        cls,
-        model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
-        mislabeling_indices: List[int],
-        aggregator_cls: Union[str, type],
-    ):
-        """Perform aggregation-based mislabeling detection.
-
-        Parameters
-        ----------
-        model : torch.nn.Module
-            The model to be evaluated.
-        train_dataset : torch.utils.data.Dataset
-            The training dataset used to train the model.
-        mislabeling_indices : List[int]
-            The indices of the poisoned samples in the training dataset.
-        aggregator_cls : Union[str, type]
-            The class of the aggregation method to be used, or a string
-            indicating the method.
-
-        Returns
-        -------
-        MislabelingDetectionMetric
-            An instance of the class for aggregation-based mislabeling
-            detection.
-
-        """
-        return cls(
-            model=model,
-            global_method=aggregator_cls,
-            mislabeling_indices=mislabeling_indices,
-            train_dataset=train_dataset,
-        )
 
     def update(
         self,
@@ -232,9 +109,7 @@ class MislabelingDetectionMetric(Metric):
         test_labels: torch.Tensor,
         **kwargs,
     ):
-        """Update the aggregator based metric with local attributions.
-
-        This method is not used for self-influence based mislabeling detection.
+        """Issues a warning. This method is not used for mislabeling detection.
 
         Parameters
         ----------
@@ -248,21 +123,11 @@ class MislabelingDetectionMetric(Metric):
             Additional keyword arguments.
 
         """
-        explanations = explanations.to(self.device)
-        test_data = test_data.to(self.device)
-        test_labels = test_labels.to(self.device)
-
-        # compute prediction labels
-        pred_labels = self.model(test_data).argmax(dim=1)
-
-        # identify wrong prediction indices
-        wrong_indices = torch.where(pred_labels != test_labels)[0]
-
-        self.strategy.update(explanations[wrong_indices], **kwargs)
+        self.global_ranker._si_warning("update")
 
     def reset(self, *args, **kwargs):
         """Reset the global ranking strategy."""
-        self.strategy.reset(*args, **kwargs)
+        self.global_ranker.reset(*args, **kwargs)
 
     def load_state_dict(self, state_dict: dict):
         """Load previously computed state for the metric.
@@ -273,10 +138,10 @@ class MislabelingDetectionMetric(Metric):
             A state dictionary for the metric
 
         """
-        self.strategy.load_state_dict(state_dict)
+        self.global_ranker.load_state_dict(state_dict)
 
     def state_dict(self, *args, **kwargs):
-        """Returnthe state dictionary of the metric.
+        """Return the state dictionary of the metric.
 
         Returns
         -------
@@ -284,7 +149,7 @@ class MislabelingDetectionMetric(Metric):
             The state dictionary of the metric.
 
         """
-        return self.strategy.state_dict()
+        return self.global_ranker.state_dict()
 
     def compute(self, *args, **kwargs):
         """Compute the mislabeling detection metrics.
@@ -300,7 +165,7 @@ class MislabelingDetectionMetric(Metric):
             `curve`.
 
         """
-        global_ranking = self.strategy.get_global_rank(*args, **kwargs)
+        global_ranking = self.global_ranker.get_global_rank(*args, **kwargs)
         mislabeling_set = set(self.mislabeling_indices)
         success_arr = torch.tensor(
             [elem.item() in mislabeling_set for elem in global_ranking]

@@ -1,21 +1,9 @@
 """Global ranking for attributions."""
 
-from quanda.explainers.global_ranking.aggregators import (
-    AbsSumAggregator,
-    BaseAggregator,
-    SumAggregator,
-    aggr_types,
-)
-from quanda.explainers.global_ranking.global_ranking_strategies import (
-    GlobalAggrStrategy,
-    GlobalSelfInfluenceStrategy,
+from quanda.explainers.global_ranking.self_influence_ranking import (
+    SelfInfluenceRanking,
 )
 
 __all__ = [
-    "BaseAggregator",
-    "AbsSumAggregator",
-    "SumAggregator",
-    "aggr_types",
-    "GlobalAggrStrategy",
-    "GlobalSelfInfluenceStrategy",
+    "SelfInfluenceRanking",
 ]
