@@ -70,7 +70,7 @@ class LinearDatamodeling(Benchmark):
         self.correlation_fn: Callable
         self.seed: int
         self.subset_ids: Optional[List[List[int]]]
-        self.pretrained_models: Optional[List[torch.nn.Module]]
+        self.pretrained_models: Optional[List[str]]
 
         self.checkpoints: List[str]
         self.checkpoints_load_func: Callable[..., Any]
@@ -151,10 +151,6 @@ class LinearDatamodeling(Benchmark):
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
         )
-
-        def _metric_checkpoints_load_func(model, ckpt_path):
-            state_dict = torch.load(ckpt_path, map_location=self.device)
-            model.load_state_dict(state_dict)
 
         metric = LinearDatamodelingMetric(
             model=self.model,

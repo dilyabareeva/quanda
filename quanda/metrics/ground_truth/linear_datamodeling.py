@@ -269,7 +269,7 @@ class LinearDatamodelingMetric(Metric):
                 pretrained_models.append(ckpt_fname)
                 model_ckpt_path = os.path.join(self.cache_dir, ckpt_fname)
                 torch.save(counterfactual_model.state_dict(), model_ckpt_path)
-            return pretrained_models
+        return pretrained_models
 
     def load_counterfactual_model(self, model_idx: int):
         """Load a model checkpoint.
@@ -366,9 +366,8 @@ class LinearDatamodelingMetric(Metric):
         self.results["scores"].append(batch_lds_scores)
 
     def reset(self, *args, **kwargs):
-        """Reset the LDS score and resample subsets of the training data."""
+        """Reset the LDS score."""
         self.results = {"scores": []}
-        self.subsets = self.sample_subsets(dataset=self.train_dataset)
 
     def load_state_dict(self, state_dict: dict):
         """Load the state of the metric.
