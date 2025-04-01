@@ -160,7 +160,6 @@ class LinearDatamodeling(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             checkpoints_load_func=self.checkpoints_load_func,
-            counterfactual_load_func=_metric_checkpoints_load_func,
             train_dataset=self.train_dataset,
             alpha=self.alpha,
             m=self.m,
