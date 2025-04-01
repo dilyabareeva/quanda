@@ -186,12 +186,11 @@ class LinearDatamodelingMetric(Metric):
                 assert os.path.exists(subset_ids), (
                     f"No file found at {subset_ids}"
                 )
-                return torch.load(subset_ids, map_location=self.device)
-            else:
-                return [
-                    torch.utils.data.Subset(dataset, indices)
-                    for indices in subset_ids
-                ]
+                subset_ids = torch.load(subset_ids, map_location=self.device)
+            return [
+                torch.utils.data.Subset(dataset, indices)
+                for indices in subset_ids
+            ], subset_ids
         N = len(dataset)
         subset_size = int(self.alpha * N)
 
