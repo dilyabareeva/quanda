@@ -102,8 +102,6 @@ class LinearDatamodeling(Benchmark):
         obj.m = config.get("m", 100)
         obj.alpha = config.get("alpha", 0.5)
         if not config.get("counterfactual_trainer"):
-            # GALIPTODO how to load trainer for
-            # counterfactual training from configs
             config["counterfactual_trainer"] = config["model"].get(
                 "trainer", None
             )
@@ -116,9 +114,7 @@ class LinearDatamodeling(Benchmark):
         )
         obj.trainer_fit_kwargs = config.get("trainer_fit_kwargs", None)
         obj.model_id = config.get("model_id", "0")
-        obj.cache_dir = config.get(
-            "cache_dir", "./tmp"
-        )  ## CHANGE HERE TO FIX EVERYTHING?
+        obj.cache_dir = config.get("cache_dir", "./tmp")
         obj.seed = config["seed"]
         obj.subset_ids = config.get("subset_ids", None)
         obj.pretrained_models = config.get("pretrained_models", None)
