@@ -474,32 +474,18 @@ def mnist_top_k_cardinality_benchmark(tmp_path_factory):
 
 
 @pytest.fixture
-def get_lds_score():
-    with open("tests/assets/lds_score.json", "r") as f:
-        score_data = json.load(f)
-    return score_data["lds_score"]
-
-
-@pytest.fixture
 def load_subset_indices_lds():
-    indices_path = "tests/assets/lds_checkpoints/subset_indices.pt"
-    return torch.load(indices_path)
+    return "subset_indices.pt"
 
 
 @pytest.fixture
 def load_pretrained_models_lds():
-    model_paths = [
-        "tests/assets/lds_checkpoints/model_subset_0.pt",
-        "tests/assets/lds_checkpoints/model_subset_1.pt",
-        "tests/assets/lds_checkpoints/model_subset_2.pt",
-        "tests/assets/lds_checkpoints/model_subset_3.pt",
+    return [
+        "model_subset_0.pt",
+        "model_subset_1.pt",
+        "model_subset_2.pt",
+        "model_subset_3.pt",
     ]
-    models = []
-    for path in model_paths:
-        model = LeNet()
-        model.load_state_dict(torch.load(path, map_location="cpu"))
-        models.append(model)
-    return models
 
 
 @pytest.fixture
@@ -806,6 +792,7 @@ def load_mnist_linear_datamodeling_config(
     config["pretrained_models"] = load_pretrained_models_lds
     config["subset_ids"] = load_subset_indices_lds
     config["m"] = 4
+    config["cache_dir"] = "tests/assets/lds_checkpoints/"
     return config
 
 

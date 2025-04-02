@@ -93,6 +93,8 @@ class Benchmark(ABC):
         """Initialize the benchmark from a dictionary."""
         obj = cls()
         obj.device = device
+        # What would happen here if there is no metadata folder
+        # and no metadata on the hub?
         metadata_dir = BenchConfigParser.load_metadata(
             cfg=config,
             bench_save_dir=config.get("bench_save_dir", "./tmp"),

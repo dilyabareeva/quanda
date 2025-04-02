@@ -183,10 +183,13 @@ class LinearDatamodelingMetric(Metric):
         """
         if subset_ids is not None:
             if isinstance(subset_ids, str):
-                assert os.path.exists(subset_ids), (
-                    f"No file found at {subset_ids}"
+                assert os.path.exists(
+                    os.path.join(self.cache_dir, subset_ids)
+                ), f"No file found at {subset_ids}"
+                subset_ids = torch.load(
+                    os.path.join(self.cache_dir, subset_ids),
+                    map_location=self.device,
                 )
-                subset_ids = torch.load(subset_ids, map_location=self.device)
             return [
                 torch.utils.data.Subset(dataset, indices)
                 for indices in subset_ids
@@ -288,7 +291,9 @@ class LinearDatamodelingMetric(Metric):
             self.cache_dir, self.pretrained_models[model_idx]
         )
         counterfactual_model = deepcopy(self.model)
-        self.checkpoints_load_func(counterfactual_model, model_ckpt_path)
+        state_dict = torch.load(model_ckpt_path, map_location=self.device)
+        counterfactual_model.load_state_dict(state_dict=state_dict)
+        counterfactual_model = counterfactual_model.to(self.device)
 
         counterfactual_model.to(self.device)
         return counterfactual_model

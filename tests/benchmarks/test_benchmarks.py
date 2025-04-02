@@ -225,7 +225,7 @@ def test_load(
             LinearDatamodeling,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.2339998036623001,
+            0.10982376337051392,
         ),
     ],
 )
@@ -249,7 +249,7 @@ def test_bench_from_config(
         "cache_dir": str(tmp_path),
     }
 
-    config["cache_dir"] = str(tmp_path)
+    config["cache_dir"] = "tests/assets/lds_checkpoints"
     dst_eval = bench_cls.from_config(
         config=config,
         load_meta_from_disk=load_from_disk,
