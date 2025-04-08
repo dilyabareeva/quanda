@@ -9,7 +9,7 @@ import datasets  # type: ignore
 import lightning as L
 import torch
 import yaml
-from huggingface_hub import create_repo, upload_folder
+from huggingface_hub import create_repo, upload_folder  # type: ignore
 from tqdm import tqdm
 
 from quanda.benchmarks.config_parser import BenchConfigParser
@@ -441,6 +441,9 @@ class Benchmark(ABC):
                 "test_labels": labels,
                 "explanations": explanations,
             }
+
+            if hasattr(self, "entailment_labels"):
+                data_unit["entailment_labels"] = self.entailment_labels
 
             if hasattr(self, "class_to_group"):
                 data_unit["grouped_labels"] = torch.tensor(

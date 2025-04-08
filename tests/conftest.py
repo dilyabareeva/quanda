@@ -1123,3 +1123,54 @@ def load_dummy_causal_lm_dataset():
 
     dataset = datasets.Dataset.from_dict(data)
     return dataset
+
+
+# @pytest.fixture
+# def load_dummy_causal_lm_config():
+#     return {
+#         "model": "load_dummy_causal_lm_model",
+#         "train_dataset": "load_dummy_causal_lm_dataset",
+#         "eval_dataset": "load_dummy_causal_lm_dataset",
+#         "task": "causal_lm",
+#         "task_module": "dummy_language_modeling_task",
+#         "device": "cpu",
+#     }
+
+
+@pytest.fixture
+def causal_lm_test_dataset():
+    vocab_size = 100
+    seq_length = 16
+    num_queries = 3
+
+    np.random.seed(42)
+    input_ids = np.random.randint(
+        low=0, high=vocab_size, size=(num_queries, seq_length), dtype=np.int64
+    )
+
+    attention_mask = np.ones((num_queries, seq_length), dtype=np.int64)
+
+    labels = input_ids.copy()
+
+    data_dict = {
+        "input_ids": input_ids,
+        "attention_mask": attention_mask,
+        "labels": labels,
+    }
+
+    return datasets.Dataset.from_dict(data_dict)
+
+
+@pytest.fixture
+def causal_lm_test_entailment_labels():
+    num_queries = 3
+    num_training_examples = 10
+
+    entailment_labels = torch.zeros(
+        (num_queries, num_training_examples), dtype=torch.bool
+    )
+    entailment_labels[0, 1] = True
+    entailment_labels[1, 0] = True
+    entailment_labels[2, 2] = True
+
+    return entailment_labels

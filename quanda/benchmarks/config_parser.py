@@ -6,7 +6,7 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 import torch
 from datasets import load_dataset  # type: ignore
-from huggingface_hub import snapshot_download
+from huggingface_hub import snapshot_download  # type: ignore
 
 from quanda.benchmarks.resources import pl_modules
 from quanda.benchmarks.resources.sample_transforms import sample_transforms

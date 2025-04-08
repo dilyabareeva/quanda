@@ -1,12 +1,15 @@
 import math
 
 import pytest
+import torch
 
 from quanda.explainers import SumAggregator
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.downstream_eval import (
     ClassDetectionMetric,
     MislabelingDetectionMetric,
+    MRRMetric,
+    RecallAtKMetric,
     ShortcutDetectionMetric,
     SubclassDetectionMetric,
 )
@@ -296,3 +299,106 @@ def test_shortcut_detection_metric(
     metric.update(tda)
     score = metric.compute()["score"]
     assert math.isclose(score, expected, abs_tol=0.00001)
+
+
+@pytest.mark.downstream_eval_metrics
+@pytest.mark.parametrize(
+    "test_id, model, checkpoint, dataset, explanations, expected_score",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_explanations_similarity_1",
+            0.07678571343421936,
+        ),
+    ],
+)
+def test_mrr_metric(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    explanations,
+    expected_score,
+    request,
+):
+    model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
+    dataset = request.getfixturevalue(dataset)
+    tda = request.getfixturevalue(explanations)
+
+    num_training_examples = tda.shape[1]
+    num_queries = tda.shape[0]
+    entailment_labels = torch.zeros(
+        (num_queries, num_training_examples), dtype=torch.bool
+    )
+    entailment_labels[0, 1] = True
+    entailment_labels[1, 0] = True
+    entailment_labels[2, 2] = True
+
+    metric = MRRMetric(
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+    )
+    metric.update(explanations=tda, entailment_labels=entailment_labels)
+    score = metric.compute()["score"]
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.downstream_eval_metrics
+@pytest.mark.parametrize(
+    "test_id, model, checkpoint, dataset, explanations, k, expected_score",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_explanations_similarity_1",
+            2,
+            0.10000000149011612,
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_explanations_similarity_1",
+            4,
+            0.20000000298023224,
+        ),
+    ],
+)
+def test_recall_at_k_metric(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    explanations,
+    k,
+    expected_score,
+    request,
+):
+    model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
+    dataset = request.getfixturevalue(dataset)
+    tda = request.getfixturevalue(explanations)
+
+    num_training_examples = tda.shape[1]
+    num_queries = tda.shape[0]
+    entailment_labels = torch.zeros(
+        (num_queries, num_training_examples), dtype=torch.bool
+    )
+    entailment_labels[0, 1] = True
+    entailment_labels[1, 0] = True
+    entailment_labels[2, k + 1] = True
+
+    metric = RecallAtKMetric(
+        model=model, checkpoints=checkpoint, train_dataset=dataset, k=k
+    )
+    metric.update(explanations=tda, entailment_labels=entailment_labels)
+    score = metric.compute()["score"]
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
