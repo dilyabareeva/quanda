@@ -1129,6 +1129,9 @@ class Benchmark(ABC):
                 "explanations": explanations,
             }
 
+            if hasattr(self, "entailment_labels"):
+                data_unit["entailment_labels"] = self.entailment_labels
+
             if self.name == "Subclass Detection":
                 data_unit["test_superclass_targets"] = torch.tensor(
                     [self.class_to_group[i.item()] for i in labels],  # type: ignore[attr-defined]
