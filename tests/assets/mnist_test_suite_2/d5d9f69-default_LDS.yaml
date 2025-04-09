@@ -29,7 +29,7 @@ logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
   project: quanda-bench
-id: c2838d7-default_LDS
+id: d5d9f69-default_LDS
 bench: LDS
 adversarial_label: 0
 bench_save_dir: bench_out
@@ -45,12 +45,12 @@ m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 subset_ckpts:
-- c2838d7-default_LDS_lds_subset_0
-- c2838d7-default_LDS_lds_subset_1
-- c2838d7-default_LDS_lds_subset_2
-- c2838d7-default_LDS_lds_subset_3
-- c2838d7-default_LDS_lds_subset_4
+- d5d9f69-default_LDS_lds_subset_0
+- d5d9f69-default_LDS_lds_subset_1
+- d5d9f69-default_LDS_lds_subset_2
+- d5d9f69-default_LDS_lds_subset_3
+- d5d9f69-default_LDS_lds_subset_4
 ckpts:
-- c2838d7-default_LDS
+- d5d9f69-default_LDS
 cfg_output_dir: tests/assets/mnist_test_suite_2
-cfg_file_name: c2838d7-default_LDS.yaml
+cfg_file_name: d5d9f69-default_LDS.yaml

@@ -190,8 +190,10 @@ class Benchmark(ABC):
         )
 
         ckpt_dir = os.path.join(config["bench_save_dir"], "ckpt")
+
+        # TODO: add support for multiple checkpoints
         ckpt_dir = BenchConfigParser.get_ckpt_folder(
-            config["model"], ckpt_dir, config["id"]
+            config["model"], ckpt_dir, config["ckpts"][-1]
         )
         os.makedirs(ckpt_dir, exist_ok=True)
         if len(os.listdir(ckpt_dir)) > 0:
@@ -203,9 +205,8 @@ class Benchmark(ABC):
         obj.model.to(obj.device)
         obj.model.eval()
 
-        hf_ckpt_dir = ckpt_dir
-        obj.model.save_pretrained(hf_ckpt_dir, safe_serialization=True)
-        obj.checkpoints = [hf_ckpt_dir]
+        obj.model.save_pretrained(ckpt_dir, safe_serialization=True)
+        obj.checkpoints = [ckpt_dir]
 
         return obj
 
@@ -224,15 +225,16 @@ class Benchmark(ABC):
             device=device,
             batch_size=batch_size,
         )
+        # TODO: add support for multiple checkpoints
         obj.model.push_to_hub(f"quanda-bench-test/{config['id']}")
+
+        # TODO: push to hub for LDS models
 
         metadata_dir = BenchConfigParser.load_metadata(
             cfg=config,
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=False,
         )
-        print(metadata_dir)
-        """
         create_repo(
             repo_id=f"quanda-bench-test/{config['id']}_metadata", repo_type="dataset", exist_ok=True
         )
@@ -241,7 +243,7 @@ class Benchmark(ABC):
             repo_id=f"quanda-bench-test/{config['id']}_metadata",
             repo_type="dataset",
         )
-        """
+
 
         return obj
 

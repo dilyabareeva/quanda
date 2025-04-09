@@ -206,11 +206,10 @@ class LinearDatamodelingMetric(Metric):
 
         subset_ids = []
         for _ in range(m):
-            indices = torch.randperm(N, generator=generator)[
+            indices = list(torch.randperm(N, generator=generator)[
                       :subset_size
-                      ].tolist()
+                      ].tolist())
             subset_ids.append(indices)
-        subset_ids = torch.tensor(subset_ids, device=device)
         return subset_ids
 
 
