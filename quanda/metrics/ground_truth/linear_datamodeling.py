@@ -6,6 +6,7 @@ from typing import Callable, Dict, List, Optional, Union
 
 import lightning as L
 import torch
+import yaml
 from torch.nn.functional import log_softmax
 from torch.utils.data import DataLoader
 
@@ -126,8 +127,12 @@ class LinearDatamodelingMetric(Metric):
             self.generator = torch.Generator()
             self.generator.manual_seed(self.seed)
 
-        self.subsets, self.subset_ids = self.sample_subsets(
+        self.subset_ids = self.sample_subsets(
             train_dataset, subset_ids
+        )
+        self.subsets = self.get_subsets_from_ids(
+            dataset=train_dataset,
+            subset_ids=self.subset_ids,
         )
 
         self.pretrained_models = self.create_counterfactual_models(
@@ -162,6 +167,79 @@ class LinearDatamodelingMetric(Metric):
                 "should be specified."
             )
 
+    @classmethod
+    def generate_subsets(
+        cls,
+        dataset,
+        subset_ids,
+        alpha,
+        m,
+        cache_dir,
+        generator,
+        device,
+    ):
+        """Generate subsets of the dataset.
+
+        Parameters
+        ----------
+        dataset : torch.utils.data.Dataset
+            The dataset to sample subsets from.
+        subset_ids : List[List[int]]
+            Indices of datapoints for each subset.
+
+        Returns
+        -------
+        List[torch.utils.data.Subset]
+            A list of m subsets of the training data.
+
+        """
+        if subset_ids is not None:
+            if isinstance(subset_ids, str):
+                assert os.path.exists(subset_ids), f"No file found at {subset_ids}"
+                # load a yaml file
+                with open(subset_ids, "r") as f:
+                    subset_ids = yaml.safe_load(f)
+            return subset_ids
+
+        N = len(dataset)
+        subset_size = int(alpha * N)
+
+        subset_ids = []
+        for _ in range(m):
+            indices = torch.randperm(N, generator=generator)[
+                      :subset_size
+                      ].tolist()
+            subset_ids.append(indices)
+        subset_ids = torch.tensor(subset_ids, device=device)
+        return subset_ids
+
+
+    def get_subsets_from_ids(
+        self,
+        dataset,
+        subset_ids,
+    ):
+        """Get subsets from the subset IDs.
+
+        Parameters
+        ----------
+        dataset : torch.utils.data.Dataset
+            The dataset to sample subsets from.
+        subset_ids : List[List[int]]
+            Indices of datapoints for each subset.
+
+        Returns
+        -------
+        List[torch.utils.data.Subset]
+            A list of m subsets of the training data.
+        """
+
+        return [
+            torch.utils.data.Subset(dataset, indices)
+            for indices in subset_ids
+        ]
+
+
     def sample_subsets(self, dataset, subset_ids):
         """Randomly sample m subsets of the training set, each of size alpha*N.
 
@@ -181,32 +259,15 @@ class LinearDatamodelingMetric(Metric):
             A list of m subsets of the training data.
 
         """
-        if subset_ids is not None:
-            if isinstance(subset_ids, str):
-                assert os.path.exists(
-                    os.path.join(self.cache_dir, subset_ids)
-                ), f"No file found at {subset_ids}"
-                subset_ids = torch.load(
-                    os.path.join(self.cache_dir, subset_ids),
-                    map_location=self.device,
-                )
-            return [
-                torch.utils.data.Subset(dataset, indices)
-                for indices in subset_ids
-            ], subset_ids
-        N = len(dataset)
-        subset_size = int(self.alpha * N)
-
-        subsets = []
-        subset_ids = []
-        for _ in range(self.m):
-            indices = torch.randperm(N, generator=self.generator)[
-                :subset_size
-            ].tolist()
-            subset_ids.append(indices)
-            subsets.append(torch.utils.data.Subset(dataset, indices))
-        subset_ids = torch.tensor(subset_ids, device=self.device)
-        return subsets, subset_ids
+        return self.generate_subsets(
+            dataset,
+            subset_ids,
+            self.alpha,
+            self.m,
+            self.cache_dir,
+            self.generator,
+            self.device
+        )
 
     def create_counterfactual_models(
         self, pretrained_models: Optional[List[str]]

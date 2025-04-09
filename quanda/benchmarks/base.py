@@ -93,8 +93,7 @@ class Benchmark(ABC):
         """Initialize the benchmark from a dictionary."""
         obj = cls()
         obj.device = device
-        # What would happen here if there is no metadata folder
-        # and no metadata on the hub?
+
         metadata_dir = BenchConfigParser.load_metadata(
             cfg=config,
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
@@ -124,7 +123,7 @@ class Benchmark(ABC):
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
                 repo_id=config["repo_id"],
-                cfg_id=config["id"],
+                ckpts=config["ckpts"],
                 offline=offline,
                 device=device,
             )
@@ -194,6 +193,7 @@ class Benchmark(ABC):
         ckpt_dir = BenchConfigParser.get_ckpt_folder(
             config["model"], ckpt_dir, config["id"]
         )
+        os.makedirs(ckpt_dir, exist_ok=True)
         if len(os.listdir(ckpt_dir)) > 0:
             warnings.warn(
                 f"Directory {ckpt_dir} already exists and is not empty. "
@@ -231,14 +231,17 @@ class Benchmark(ABC):
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=False,
         )
+        print(metadata_dir)
+        """
         create_repo(
-            repo_id=config["metadata_str"], repo_type="dataset", exist_ok=True
+            repo_id=f"quanda-bench-test/{config['id']}_metadata", repo_type="dataset", exist_ok=True
         )
         upload_folder(
             folder_path=metadata_dir,
-            repo_id=config["metadata_str"],
+            repo_id=f"quanda-bench-test/{config['id']}_metadata",
             repo_type="dataset",
         )
+        """
 
         return obj
 

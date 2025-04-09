@@ -14,7 +14,7 @@ from quanda.benchmarks.config_parser import BenchConfigParser
 def main(cfg: DictConfig) -> Tuple[float]:
     bench_cls = bench_dict[cfg.bench]
     logger = BenchConfigParser.parse_logger(cfg)
-    bench = bench_cls.train(cfg, logger=logger, load_meta_from_disk=False)
+    bench = bench_cls.train(cfg, logger=logger)
     scores = bench.sanity_check()
     logger.log_metrics(scores)
     scores_sum = list(scores.values())

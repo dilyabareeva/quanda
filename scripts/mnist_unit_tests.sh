@@ -3,14 +3,16 @@
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 bench_types=(
-    "MislabelingDetection"
+    "LDS"
+    #"MislabelingDetection"
     #"ClassDetection"
     #"SubclassDetection"
     #"ShortcutDetection"
     #"MixedDatasets"
 )
 bench_params=(
-    "train_dataset=mnist_train_unit_mislabeling train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test_unit eval_dataset.dataset_split='test[:1%]'"
+    "train_dataset=mnist_train_unit train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test_unit eval_dataset.dataset_split='test[:1%]'"
+    #"train_dataset=mnist_train_unit_mislabeling train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test_unit eval_dataset.dataset_split='test[:1%]'"
     #"train_dataset=mnist_train_unit train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test_unit eval_dataset.dataset_split='test[:1%]'"
     #"model=mnist_lenet_subclass train_dataset=mnist_train_unit_subclass train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test_unit_subclass eval_dataset.dataset_split='test[:1%]'"
     #"train_dataset=mnist_train_unit_shortcut train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test_unit_shortcut eval_dataset.dataset_split='test[:1%]'"
@@ -36,10 +38,11 @@ for i in "${!bench_types[@]}"; do
     echo "Bench type: $bench"
     echo "Running with parameters: $params"
     echo "Saving output to: $cfg_output_dir/$cfg_file_name"
+    python scripts/generate_config.py hydra.run.dir="hydra_logs" $params id=$id +cfg_file_name=$cfg_file_name +cfg_output_dir=$cfg_output_dir
     # Hyperparameter sweep
-    #python scripts/train.py bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name --multirun
+    python scripts/train.py bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name --multirun
     # Saving the results to a config file
-    #python scripts/opt_results_to_cfg.py bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name
+    python scripts/opt_results_to_cfg.py bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name
     # Training the model
     python scripts/train_and_push_to_hub.py --config-name $cfg_file_name --config-dir $cfg_output_dir
     echo "Finished running with parameters: $params"

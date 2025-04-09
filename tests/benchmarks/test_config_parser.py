@@ -34,7 +34,7 @@ def test_load_ckpt_from_hf(
         config["model"],
         str(tmp_path),
         config["repo_id"],
-        config["id"],
+        config["ckpts"],
         False,
         "cpu",
     )
@@ -45,7 +45,7 @@ def test_load_ckpt_from_hf(
         config["model"],
         str(tmp_path),
         config["repo_id"],
-        config["id"],
+        config["ckpts"],
         True,
         "cpu",
     )

@@ -12,7 +12,7 @@ model:
     scheduler: constant
     scheduler_kwargs:
       last_epoch: -1
-    lr: 0.001
+    lr: 0.01
     max_epochs: 5
     seed: 42
 train_dataset:
@@ -27,28 +27,30 @@ eval_dataset:
   indices: all
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
-  save_dir: ${log_dir}/wandb/
+  save_dir: hydra_logs/wandb/
   project: quanda-bench
-id: 7ed30b3-default_MixedDatasets
-meta_id: 7ed30b3_metadata
-bench: MixedDatasets
+id: c2838d7-default_LDS
+bench: LDS
 adversarial_label: 0
-bench_save_dir: tests/assets/mnist_test_suite_2
-repo_id: "quanda-bench-test"
+bench_save_dir: bench_out
+log_dir: hydra_logs
+repo_id: quanda-bench-test
 cache_dir: tmp
 top_k: 5
 model_id: '0'
 correlation_fn: kendall
 offline: true
 seed: 42
-adv_dataset:
-  single_class_dataset: true
-  label: 0
-  transforms: "adversarial_transforms"
-  split_filename: "fashion_mnist_split.yaml"
-  dataset_str: "quanda-bench-test/fashion_mnist_unit"
-  save_dir: "fashion_mnist_unit"
-cfg_file_name: 7ed30b3-default_MixedDatasets.yaml
-cfg_output_dir: tests/assets/mnist_test_suite_2
+m: 4
+alpha: 0.5
+subset_ids: lds_subsets.yaml
+subset_ckpts:
+- c2838d7-default_LDS_lds_subset_0
+- c2838d7-default_LDS_lds_subset_1
+- c2838d7-default_LDS_lds_subset_2
+- c2838d7-default_LDS_lds_subset_3
+- c2838d7-default_LDS_lds_subset_4
 ckpts:
-- 7ed30b3-default_MixedDatasets
+- c2838d7-default_LDS
+cfg_output_dir: tests/assets/mnist_test_suite_2
+cfg_file_name: c2838d7-default_LDS.yaml

@@ -781,18 +781,11 @@ def load_mnist_linear_datamodeling_config(
 ):
     # load yaml file
     with open(
-        "tests/assets/mnist_test_suite_2/7ed30b3-default_ClassDetection.yaml",
+        "tests/assets/mnist_test_suite_2/c2838d7-default_LDS.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
 
-    # These are not specified in the default config file, because "correlation_fn" clashes with the default one for randomization.
-    config["alpha"] = 0.5
-    config["correlation_fn"] = "spearman"
-    config["pretrained_models"] = load_pretrained_models_lds
-    config["subset_ids"] = load_subset_indices_lds
-    config["m"] = 4
-    config["cache_dir"] = "tests/assets/lds_checkpoints/"
     return config
 
 

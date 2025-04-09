@@ -123,7 +123,7 @@ def test_load(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.benchmark
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",
     [
@@ -265,7 +265,7 @@ def test_bench_from_config(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.benchmarks
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, logger",
     [
@@ -352,7 +352,7 @@ def test_train_from_config(
     }
 
     config["bench_save_dir"] = str(tmp_path)
-    config["cache_dir"] = str(tmp_path)
+    config["cache_dir"] = "tests/assets/lds_checkpoints"
 
     if logger is not None:
         logger_cfg = request.getfixturevalue(logger)

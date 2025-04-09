@@ -39,3 +39,18 @@ model_id: "0"
 correlation_fn: "kendall"
 offline: true
 seed: 42
+
+m: 4
+alpha: 0.5
+
+subset_ids: lds_subsets.yaml
+
+subset_ckpts:
+  - "${id}_lds_subset_0"
+  - "${id}_lds_subset_1"
+  - "${id}_lds_subset_2"
+  - "${id}_lds_subset_3"
+  - "${id}_lds_subset_4"
+
+ckpts:
+  - "${id}"
