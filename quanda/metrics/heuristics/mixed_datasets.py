@@ -108,9 +108,9 @@ class MixedDatasetsMetric(Metric):
                 for i in torch.where(self.adversarial_indices == 1)[0]
             ]
         )
-        assert (
-            len(adversarial_labels) == 1
-        ), "Adversarial labels must be unique."
+        assert len(adversarial_labels) == 1, (
+            "Adversarial labels must be unique."
+        )
         return adversarial_labels.pop()
 
     def update(

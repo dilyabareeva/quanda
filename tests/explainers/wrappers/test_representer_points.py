@@ -51,9 +51,9 @@ def test_representer_points_explain(
 
     explanations = explainer.explain(test_data=test_data, targets=test_labels)
 
-    assert explanations.shape[0] == len(
-        test_labels
-    ), "Explanations shape is not as expected"
+    assert explanations.shape[0] == len(test_labels), (
+        "Explanations shape is not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -101,6 +101,6 @@ def test_representer_points_self_influence(
 
     self_influence = explainer.self_influence()
 
-    assert (
-        self_influence[7] == explainer.coefficients[7][train_labels[7]]
-    ), "Self-influence is not as expected"
+    assert self_influence[7] == explainer.coefficients[7][train_labels[7]], (
+        "Self-influence is not as expected"
+    )

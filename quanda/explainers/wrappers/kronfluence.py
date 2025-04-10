@@ -6,7 +6,10 @@ from typing import Any, Callable, Dict, List, Optional, Union
 import datasets  # type: ignore
 import torch
 from kronfluence.analyzer import Analyzer, prepare_model  # type: ignore
-from kronfluence.arguments import FactorArguments, ScoreArguments  # type: ignore
+from kronfluence.arguments import (  # type: ignore
+    FactorArguments,
+    ScoreArguments,
+)
 from kronfluence.task import Task  # type: ignore
 from kronfluence.utils.dataset import DataLoaderKwargs  # type: ignore
 from torch import nn
