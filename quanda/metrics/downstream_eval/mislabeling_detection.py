@@ -4,7 +4,6 @@ from typing import Any, Callable, List, Optional, Union
 
 import torch
 
-
 from quanda.explainers.global_ranking import SelfInfluenceRanking
 from quanda.metrics.base import Metric
 from quanda.utils.common import ds_len

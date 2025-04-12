@@ -3,7 +3,6 @@
 import logging
 from typing import Any, Callable, List, Optional, Union
 
-
 import lightning as L
 import torch
 
@@ -13,7 +12,6 @@ from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
 from quanda.utils.functions import correlation_functions
-
 from quanda.utils.training import BaseTrainer
 
 logger = logging.getLogger(__name__)
