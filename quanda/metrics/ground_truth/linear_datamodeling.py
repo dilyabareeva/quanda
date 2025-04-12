@@ -44,6 +44,7 @@ class LinearDatamodelingMetric(Metric):
         trainer_fit_kwargs: Optional[dict] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable] = None,
+        counterfactual_load_func: Optional[Callable] = None,
         seed: int = 42,
         batch_size: int = 32,
         subset_ids: Optional[List[List[int]]] = None,
@@ -76,6 +77,10 @@ class LinearDatamodelingMetric(Metric):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
+        counterfactual_load_func : Optional[Callable[..., Any]], optional
+            Function to load the model from the counterfactual checkpoint
+            files, takes (model, checkpoint path) as two arguments,
+            by default None.
         seed : Optional[int], optional
             Random seed for reproducibility, by default 42.
         batch_size : int, optional
@@ -96,7 +101,10 @@ class LinearDatamodelingMetric(Metric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-
+        os.makedirs(cache_dir, exist_ok=True)
+        if counterfactual_load_func is None:
+            counterfactual_load_func = self.checkpoints_load_func
+        self.counterfactual_load_func = counterfactual_load_func
         self.device = "cpu"  # TODO: why is this CPU?
         self.cache_dir = cache_dir
         self.model_id = model_id
@@ -186,7 +194,7 @@ class LinearDatamodelingMetric(Metric):
         if self.pretrained_models:
             for i, model in enumerate(self.pretrained_models):
                 model_ckpt_path = os.path.join(
-                    self.cache_dir, f"{self.model_id}_model_{i}.ckpt"
+                    self.cache_dir, f"{self.model_id}_lds_model_{i}.ckpt"
                 )
                 torch.save(model.state_dict(), model_ckpt_path)
         else:
@@ -222,7 +230,7 @@ class LinearDatamodelingMetric(Metric):
                     )
 
                 model_ckpt_path = os.path.join(
-                    self.cache_dir, f"{self.model_id}_model_{i}.ckpt"
+                    self.cache_dir, f"{self.model_id}_lds_model_{i}.ckpt"
                 )
                 torch.save(counterfactual_model.state_dict(), model_ckpt_path)
 
@@ -241,10 +249,10 @@ class LinearDatamodelingMetric(Metric):
 
         """
         model_ckpt_path = os.path.join(
-            self.cache_dir, f"{self.model_id}_model_{model_idx}.ckpt"
+            self.cache_dir, f"{self.model_id}_lds_model_{model_idx}.ckpt"
         )
         counterfactual_model = deepcopy(self.model)
-        self.checkpoints_load_func(counterfactual_model, model_ckpt_path)
+        self.counterfactual_load_func(counterfactual_model, model_ckpt_path)
 
         counterfactual_model.to(self.device)
         return counterfactual_model

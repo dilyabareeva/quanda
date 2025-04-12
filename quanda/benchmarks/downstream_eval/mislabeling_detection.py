@@ -67,7 +67,7 @@ class MislabelingDetection(Benchmark):
         """Initialize the Mislabeling Detection benchmark.
 
         This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
+        the `from_config` or the `train` method should be used.
         Alternatively, `download` can be used to load a precomputed benchmark.
         """
         super().__init__()
@@ -77,7 +77,6 @@ class MislabelingDetection(Benchmark):
         self.train_dataset: LabelFlippingDataset
         self.device: str
 
-        self.global_method: Union[str, type] = "self-influence"
         self.use_predictions: bool = True
         self.checkpoints: List[str]
         self.checkpoints_load_func: Callable[..., Any]
@@ -106,7 +105,6 @@ class MislabelingDetection(Benchmark):
 
         """
         obj = super().from_config(config, load_meta_from_disk, offline, device)
-        obj.global_method = config.get("global_method", "self-influence")
         obj.use_predictions = config.get("use_predictions", True)
         return obj
 
@@ -161,12 +159,6 @@ class MislabelingDetection(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-        explainer = self._prepare_explainer(
-            dataset=self.train_dataset,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
-        )
-
         if isinstance(self.eval_dataset, LabelFlippingDataset):
             raise ValueError(
                 "Evaluation dataset in Mislabeling Metric should not have "
@@ -179,36 +171,14 @@ class MislabelingDetection(Benchmark):
                 "labels."
             )
 
-        if self.global_method != "self-influence":
-            if self.eval_dataset is None:
-                raise ValueError(
-                    "eval_dataset should be given for non-self-influence "
-                    "methods."
-                )
+        metric = MislabelingDetectionMetric(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+            train_dataset=self.train_dataset,
+            mislabeling_indices=self.train_dataset.transform_indices,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
+        )
 
-            metric = MislabelingDetectionMetric.aggr_based(
-                model=self.model,
-                train_dataset=self.train_dataset,
-                mislabeling_indices=self.train_dataset.transform_indices,
-                aggregator_cls=self.global_method,
-            )
-
-            return self._evaluate_dataset(
-                eval_dataset=self.eval_dataset,
-                explainer=explainer,
-                metric=metric,
-                batch_size=batch_size,
-            )
-
-        else:
-            metric = MislabelingDetectionMetric.self_influence_based(
-                model=self.model,
-                checkpoints=self.checkpoints,
-                checkpoints_load_func=self.checkpoints_load_func,
-                train_dataset=self.train_dataset,
-                mislabeling_indices=self.train_dataset.transform_indices,
-                explainer_cls=explainer_cls,
-                expl_kwargs=expl_kwargs,
-            )
-
-            return metric.compute()
+        return metric.compute()
