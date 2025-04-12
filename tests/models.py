@@ -1,9 +1,11 @@
 import torch
-from transformers import (
+from transformers import (  # type: ignore
     AutoConfig,
     AutoModelForSequenceClassification,
 )
-from transformers.modeling_outputs import SequenceClassifierOutput
+from transformers.modeling_outputs import (
+    SequenceClassifierOutput,  # type: ignore
+)
 
 
 class LeNet(torch.nn.Module):

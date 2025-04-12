@@ -14,7 +14,7 @@ import yaml
 from kronfluence.task import Task  # type: ignore
 from torch.utils.data import Dataset, TensorDataset
 from torchvision.models import resnet18, vit_b_16
-from transformers import (
+from transformers import (  # type: ignore
     AutoTokenizer,
 )
 
