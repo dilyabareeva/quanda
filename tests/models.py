@@ -3,8 +3,8 @@ from transformers import (  # type: ignore
     AutoConfig,
     AutoModelForSequenceClassification,
 )
-from transformers.modeling_outputs import (
-    SequenceClassifierOutput,  # type: ignore
+from transformers.modeling_outputs import (  # type: ignore
+    SequenceClassifierOutput,
 )
 
 
