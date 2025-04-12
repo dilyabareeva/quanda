@@ -426,7 +426,7 @@ class Benchmark(ABC):
                         if isinstance(model_inputs, dict)
                         else self.model(model_inputs)
                     )
-                    targets = ds_handler.extract_predictions(outputs=outputs)
+                    targets = ds_handler.get_predictions(outputs=outputs)
             else:
                 targets = labels
 

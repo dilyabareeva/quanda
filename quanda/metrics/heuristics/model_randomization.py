@@ -7,7 +7,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import torch
 
 from quanda.metrics.base import Metric
-from quanda.utils.common import get_parent_module_from_name, move_to_device
+from quanda.utils.common import (
+    get_parent_module_from_name,
+    move_ds_item_to_device,
+)
 from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
 
 
@@ -132,7 +135,7 @@ class ModelRandomizationMetric(Metric):
 
         """
         explanations = explanations.to(self.device)
-        test_data = move_to_device(test_data, self.device)
+        test_data = move_ds_item_to_device(test_data, self.device)
         if test_targets is not None:
             test_targets = test_targets.to(self.device)
 

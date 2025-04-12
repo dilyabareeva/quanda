@@ -6,6 +6,7 @@ import datasets  # type: ignore
 import torch
 
 from quanda.metrics.base import Metric
+from quanda.utils.common import get_targets
 
 
 class ClassDetectionMetric(Metric):
@@ -62,36 +63,6 @@ class ClassDetectionMetric(Metric):
 
         self.scores: List[torch.Tensor] = []
 
-    def _get_targets(self, item: Union[tuple, dict]):
-        """Extract targets from dataset item.
-
-        Parameters
-        ----------
-        item : Union[tuple, dict]
-            Dataset item which can be either a tuple (data, target) or a dict
-            with 'labels' key.
-
-        Returns
-        -------
-        int
-            The target value.
-
-        """
-        if isinstance(item, tuple):
-            return item[1]
-        elif isinstance(item, dict):
-            if "labels" in item:
-                return item["labels"]
-            else:
-                raise ValueError(
-                    f"Dataset item missing required 'labels' key: {item}."
-                )
-        else:
-            raise ValueError(
-                f"Unsupported dataset item type: {type(item)}. "
-                "Expected tuple (data, target) or dict with 'labels' key."
-            )
-
     def update(self, explanations: torch.Tensor, test_targets: torch.Tensor):
         """Update the metric state with the provided explanations.
 
@@ -114,7 +85,7 @@ class ClassDetectionMetric(Metric):
         _, top_one_xpl_indices = explanations.topk(k=1, dim=1)
         top_one_xpl_targets = torch.tensor(
             [
-                self._get_targets(self.train_dataset[int(i)])
+                get_targets(self.train_dataset[int(i)])
                 for i in top_one_xpl_indices
             ]
         ).to(self.device)

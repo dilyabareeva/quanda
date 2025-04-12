@@ -15,11 +15,8 @@ from kronfluence.task import Task  # type: ignore
 from torch.utils.data import Dataset, TensorDataset
 from torchvision.models import resnet18, vit_b_16
 from transformers import (
-    AutoConfig,
-    AutoModelForSequenceClassification,
     AutoTokenizer,
 )
-from transformers.modeling_outputs import SequenceClassifierOutput
 
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
@@ -39,7 +36,11 @@ from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
 from quanda.utils.training.base_pl_module import BasicLightningModule
-from tests.models import LeNet
+from tests.models import (
+    LeNet,
+    SequenceClassificationModel,
+    SimpleTextClassifier,
+)
 
 # Copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
 GLUE_TASK_TO_KEYS = {
@@ -679,41 +680,6 @@ def get_glue_dataset(
     return ds
 
 
-class SequenceClassificationModel(nn.Module):
-    """
-    Wrapper for HuggingFace sequence classification models.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.config = AutoConfig.from_pretrained(
-            "gchhablani/bert-base-cased-finetuned-qnli",
-            num_labels=2,
-            finetuning_task="qnli",
-            cache_dir=None,
-            revision="main",
-            token=None,
-        )
-
-        self.model = AutoModelForSequenceClassification.from_pretrained(
-            "gchhablani/bert-base-cased-finetuned-qnli",
-            config=self.config,
-            cache_dir=None,
-            revision="main",
-            token=None,
-            ignore_mismatched_sizes=False,
-        )
-
-        self.model.eval()
-
-    def forward(self, input_ids, token_type_ids, attention_mask):
-        return self.model(
-            input_ids=input_ids,
-            token_type_ids=token_type_ids,
-            attention_mask=attention_mask,
-        )
-
-
 def get_dataset(split, inds=None):
     raw_datasets = datasets.load_dataset(
         "glue",
@@ -857,25 +823,6 @@ def load_tensorboard_config():
 
 @pytest.fixture
 def load_simple_classifier():
-    torch.manual_seed(42)
-
-    class SimpleTextClassifier(nn.Module):
-        def __init__(self, vocab_size=100, hidden_size=32):
-            super().__init__()
-            self.embedding = nn.Embedding(vocab_size, hidden_size)
-            self.classifier = nn.Linear(hidden_size, 2)
-
-        def forward(self, input_ids, attention_mask=None, token_type_ids=None):
-            embeddings = self.embedding(input_ids)
-            if attention_mask is not None:
-                mask = attention_mask.unsqueeze(-1)
-                embeddings = embeddings * mask
-                pooled = embeddings.sum(1) / mask.sum(1)
-            else:
-                pooled = embeddings.mean(1)
-            logits = self.classifier(pooled)
-            return SequenceClassifierOutput(logits=logits)
-
     return SimpleTextClassifier()
 
 

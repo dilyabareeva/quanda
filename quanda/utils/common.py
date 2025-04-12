@@ -311,7 +311,38 @@ def process_targets(
     return targets
 
 
-def move_to_device(
+def get_targets(item: Union[tuple, dict]) -> int:
+    """Extract targets from dataset item.
+
+    Parameters
+    ----------
+    item : Union[tuple, dict]
+        Dataset item which can be either a tuple (data, target) or a dict
+        with 'labels' key.
+
+    Returns
+    -------
+    int
+        The target value.
+
+    """
+    if isinstance(item, tuple):
+        return item[1]
+    elif isinstance(item, dict):
+        if "labels" in item:
+            return item["labels"]
+        else:
+            raise ValueError(
+                f"Dataset item missing required 'labels' key: {item}."
+            )
+    else:
+        raise ValueError(
+            f"Unsupported dataset item type: {type(item)}. "
+            "Expected tuple (data, target) or dict with 'labels' key."
+        )
+
+
+def move_ds_item_to_device(
     data: Union[torch.Tensor, Dict[str, torch.Tensor]],
     device: Union[str, torch.device],
 ) -> Union[torch.Tensor, Dict[str, torch.Tensor]]:

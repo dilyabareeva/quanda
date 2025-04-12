@@ -52,7 +52,7 @@ class DatasetHandler(ABC):
         pass
 
     @abstractmethod
-    def extract_predictions(self, outputs: Any) -> torch.Tensor:
+    def get_predictions(self, outputs: Any) -> torch.Tensor:
         """Extract predictions from model outputs.
 
         Parameters
@@ -137,7 +137,7 @@ class TorchDatasetHandler(DatasetHandler):
         """
         return inputs
 
-    def extract_predictions(self, outputs: torch.Tensor) -> torch.Tensor:
+    def get_predictions(self, outputs: torch.Tensor) -> torch.Tensor:
         """Extract predictions from model outputs.
 
         Parameters
@@ -225,7 +225,7 @@ class HuggingFaceDatasetHandler(DatasetHandler):
             key: value for key, value in inputs.items() if key in allowed_keys
         }
 
-    def extract_predictions(self, outputs: Any) -> torch.Tensor:
+    def get_predictions(self, outputs: Any) -> torch.Tensor:
         """Extract predictions from model outputs.
 
         Parameters
@@ -284,13 +284,13 @@ def get_dataset_handler(
     DatasetHandler
         A handler instance suited for the dataset.
 
-    Raises
-    ------
-    ValueError
-        If the dataset is not supported.
-
     """
     if isinstance(dataset, datasets.Dataset):
+        if "labels" not in dataset.features:
+            raise ValueError(
+                "HuggingFace dataset must contain 'labels' key. "
+                f"Available features: {list(dataset.features.keys())}"
+            )
         return HuggingFaceDatasetHandler()
     elif isinstance(dataset, torch.utils.data.Dataset):
         return TorchDatasetHandler()
