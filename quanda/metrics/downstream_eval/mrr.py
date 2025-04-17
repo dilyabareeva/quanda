@@ -79,14 +79,14 @@ class MRRMetric(Metric):
         # Compute MRR for each query
         ranks = torch.zeros(num_queries, device=self.device)
         for i in range(num_queries):
-            # Find rank of first entailing proponent
+            # Find the rank of the first entailing proponent
             rank_indices = torch.nonzero(
                 entailment_labels[i][sorted_indices[i]], as_tuple=True
             )[0]
             if len(rank_indices) > 0:
                 first_rank = (
                     rank_indices[0].item() + 1
-                )  # +1 because rank is 1-indexed
+                )  # Add 1 because the rank is 1-indexed
                 ranks[i] = 1.0 / first_rank
 
         self.reciprocal_ranks.append(ranks)

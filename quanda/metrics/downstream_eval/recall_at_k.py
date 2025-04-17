@@ -83,7 +83,7 @@ class RecallAtKMetric(Metric):
         # Compute Recall@k for each query
         recalls = torch.zeros(num_queries, device=self.device)
         for i in range(num_queries):
-            # Check if any entailing proponent in top k
+            # Check if any entailing proponents are in the top k
             top_k_indices = sorted_indices[i][: self.k]
             has_entailing_in_top_k = torch.any(
                 entailment_labels[i][top_k_indices]
