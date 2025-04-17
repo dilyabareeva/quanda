@@ -1,6 +1,7 @@
 import json
 import os
 import pickle
+import random
 from itertools import chain
 from typing import Dict, List
 
@@ -421,8 +422,8 @@ def classification_task():
     return ImageClassificationTask()
 
 
-# Partially copied from https://github.com/pomonam/kronfluence/tree/main/examples/glue.
 class TextClassificationTask(Task):
+    # Partially copied from: https://github.com/pomonam/kronfluence/tree/main/examples/glue.
     def compute_train_loss(
         self,
         batch: Dict[str, torch.Tensor],
@@ -482,8 +483,8 @@ def text_classification_task():
     return TextClassificationTask()
 
 
-# Taken from https://github.com/pomonam/kronfluence/blob/main/examples/wikitext/analyze.py
 class LanguageModelingTask(Task):
+    # Copied from: https://github.com/pomonam/kronfluence/blob/main/examples/wikitext/analyze.py
     def compute_train_loss(
         self,
         batch: Dict[str, torch.Tensor],
@@ -546,11 +547,82 @@ def language_modeling_task():
     return LanguageModelingTask()
 
 
+class LanguageModelingTaskExtended(Task):
+    def compute_train_loss(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+        sample: bool = False,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+        ).logits.float()
+        logits = logits[..., :-1, :].contiguous()
+        logits = logits.view(-1, logits.size(-1))
+        labels = batch["labels"][..., 1:].contiguous()
+
+        if not sample:
+            summed_loss = F.cross_entropy(
+                logits, labels.view(-1), reduction="sum", ignore_index=-100
+            )
+        else:
+            with torch.no_grad():
+                probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
+                sampled_labels = torch.multinomial(
+                    probs,
+                    num_samples=1,
+                ).flatten()
+                masks = labels.view(-1) == -100
+                sampled_labels[masks] = -100
+            summed_loss = F.cross_entropy(
+                logits, sampled_labels, ignore_index=-100, reduction="sum"
+            )
+        return summed_loss
+
+    def compute_measurement(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+        ).logits.float()
+        shift_labels = batch["labels"][..., 1:].contiguous().view(-1)
+        logits = logits[..., :-1, :].contiguous().view(-1, logits.size(-1))
+        return F.cross_entropy(
+            logits, shift_labels, ignore_index=-100, reduction="sum"
+        )
+
+    def get_influence_tracked_modules(self) -> List[str]:
+        total_modules = []
+
+        for i in range(12):
+            total_modules.append(f"transformer.h.{i}.attn.c_attn")
+            total_modules.append(f"transformer.h.{i}.attn.c_proj")
+
+        for i in range(12):
+            total_modules.append(f"transformer.h.{i}.mlp.c_fc")
+            total_modules.append(f"transformer.h.{i}.mlp.c_proj")
+
+        return total_modules
+
+    def get_attention_mask(
+        self, batch: Dict[str, torch.Tensor]
+    ) -> torch.Tensor:
+        return batch["attention_mask"]
+
+
+@pytest.fixture
+def language_modeling_task_extended():
+    return LanguageModelingTaskExtended()
+
+
 class DummyLanguageModelingTask(LanguageModelingTask):
     def get_influence_tracked_modules(self) -> List[str]:
         total_modules = []
 
-        # Only include modules for 2 layers instead of 12
         for i in range(2):
             total_modules.append(f"transformer.h.{i}.attn.c_attn")
             total_modules.append(f"transformer.h.{i}.attn.c_proj")
@@ -569,8 +641,6 @@ def dummy_language_modeling_task():
 
 def replace_conv1d_modules(model: nn.Module) -> None:
     # Partially copied from https://github.com/pomonam/kronfluence/blob/main/examples/wikitext/pipeline.py
-    # GPT-2 is defined in terms of Conv1D. However, this does not work for Kronfluence.
-    # Here, we convert these Conv1D modules to linear modules recursively.
     for name, module in model.named_children():
         if len(list(module.children())) > 0:
             replace_conv1d_modules(module)
@@ -587,7 +657,6 @@ def replace_conv1d_modules(model: nn.Module) -> None:
 
 @pytest.fixture
 def load_gpt2_model():
-    # Partially copied from https://github.com/pomonam/kronfluence/blob/main/examples/wikitext/pipeline.py
     config = AutoConfig.from_pretrained(
         "gpt2",
         trust_remote_code=True,
@@ -605,7 +674,6 @@ def load_gpt2_model():
 
 @pytest.fixture
 def load_wikitext_dataset():
-    # Partially copied from https://github.com/pomonam/kronfluence/blob/main/examples/wikitext/pipeline.py
     split = "train"
     indices = [i for i in range(2)]
 
@@ -1185,18 +1253,6 @@ def load_dummy_causal_lm_dataset():
     return dataset
 
 
-# @pytest.fixture
-# def load_dummy_causal_lm_config():
-#     return {
-#         "model": "load_dummy_causal_lm_model",
-#         "train_dataset": "load_dummy_causal_lm_dataset",
-#         "eval_dataset": "load_dummy_causal_lm_dataset",
-#         "task": "causal_lm",
-#         "task_module": "dummy_language_modeling_task",
-#         "device": "cpu",
-#     }
-
-
 @pytest.fixture
 def causal_lm_test_dataset():
     vocab_size = 100
@@ -1234,3 +1290,118 @@ def causal_lm_test_entailment_labels():
     entailment_labels[2, 2] = True
 
     return entailment_labels
+
+
+@pytest.fixture
+def load_fact_tracing_dataset(
+    dataset_name="quanda-bench-test/trex-subset",
+    tokenizer_name="gpt2",
+    num_prompts=3,
+    max_evidence_per_prompt=3,
+    max_length=64,
+    seed=42,
+):
+    # Load GPT-2 tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
+    tokenizer.pad_token = tokenizer.eos_token
+
+    # Load the TREx dataset
+    dataset = datasets.load_dataset(dataset_name, split="train")
+
+    # Sample prompt entries
+    if num_prompts < len(dataset):
+        random.seed(seed)
+        indices = random.sample(range(len(dataset)), num_prompts)
+        sampled_dataset = dataset.select(indices)
+    else:
+        sampled_dataset = dataset
+
+    # Tokenize prompt + answer and mask prompt in labels
+    input_ids = []
+    attention_mask = []
+    labels = []
+    prompts = []
+    answers = []
+
+    for entry in sampled_dataset:
+        prompt = entry["prompt"].strip()
+        answer = entry["answer"][0].strip()
+        full_text = prompt + " " + answer
+
+        encoded = tokenizer(
+            full_text,
+            padding="max_length",
+            truncation=True,
+            max_length=max_length,
+        )
+
+        prompt_ids = tokenizer(prompt, truncation=True, max_length=max_length)[
+            "input_ids"
+        ]
+        prompt_len = len(prompt_ids)
+
+        label_ids = encoded["input_ids"].copy()
+        label_ids[:prompt_len] = [
+            -100
+        ] * prompt_len  # Mask out prompt from loss
+
+        input_ids.append(encoded["input_ids"])
+        attention_mask.append(encoded["attention_mask"])
+        labels.append(label_ids)
+        prompts.append(prompt)
+        answers.append(answer)
+
+    prompt_dataset = datasets.Dataset.from_dict(
+        {
+            "prompt": prompts,
+            "answer": answers,
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "labels": labels,
+        }
+    )
+
+    # Gather evidence sentences
+    evidence_sentences = []
+    evidence_map = []
+
+    for i, entry in enumerate(sampled_dataset):
+        selected = entry["evidence_sentences"][:max_evidence_per_prompt]
+        for sentence in selected:
+            evidence_sentences.append(sentence)
+            evidence_map.append(i)
+
+    # Tokenize evidence sentences
+    evidence_input_ids = []
+    evidence_attention_mask = []
+    for sentence in evidence_sentences:
+        encoded = tokenizer(
+            sentence,
+            padding="max_length",
+            truncation=True,
+            max_length=max_length,
+        )
+        evidence_input_ids.append(encoded["input_ids"])
+        evidence_attention_mask.append(encoded["attention_mask"])
+
+    evidence_dataset = datasets.Dataset.from_dict(
+        {
+            "sentence": evidence_sentences,
+            "input_ids": evidence_input_ids,
+            "attention_mask": evidence_attention_mask,
+            "labels": evidence_input_ids,
+        }
+    )
+
+    # Create entailment matrix
+    num_queries = len(prompt_dataset)
+    num_evidence = len(evidence_dataset)
+    entailment_labels = torch.zeros(
+        (num_queries, num_evidence), dtype=torch.long
+    )
+    for i in range(num_queries):
+        for j in range(num_evidence):
+            if evidence_map[j] == i:
+                entailment_labels[i, j] = 1
+
+    return prompt_dataset, evidence_dataset, entailment_labels
