@@ -12,6 +12,7 @@ from quanda.metrics.downstream_eval.shortcut_detection import (
 from quanda.metrics.downstream_eval.subclass_detection import (
     SubclassDetectionMetric,
 )
+from quanda.metrics.downstream_eval.tail_patch import TailPatchMetric
 
 __all__ = [
     "ClassDetectionMetric",
@@ -20,4 +21,5 @@ __all__ = [
     "ShortcutDetectionMetric",
     "MRRMetric",
     "RecallAtKMetric",
+    "TailPatchMetric",
 ]
