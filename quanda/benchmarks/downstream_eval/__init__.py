@@ -12,6 +12,7 @@ from quanda.benchmarks.downstream_eval.shortcut_detection import (
 from quanda.benchmarks.downstream_eval.subclass_detection import (
     SubclassDetection,
 )
+from quanda.benchmarks.downstream_eval.tail_patch import TailPatch
 
 __all__ = [
     "ClassDetection",
@@ -20,4 +21,5 @@ __all__ = [
     "ShortcutDetection",
     "MRR",
     "RecallAtK",
+    "TailPatch",
 ]

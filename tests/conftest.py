@@ -42,7 +42,7 @@ from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
 from quanda.utils.training.base_pl_module import BasicLightningModule
-from tests.models import LeNet, TinyGPT2
+from tests.models import LeNet, SimpleCausalLM, TinyGPT2
 
 # Copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
 GLUE_TASK_TO_KEYS = {
@@ -800,11 +800,11 @@ def replace_conv1d_modules(model: nn.Module) -> None:
 @pytest.fixture
 def load_gpt2_model():
     config = AutoConfig.from_pretrained(
-        "gpt2",
+        "gpt2-ft",
         trust_remote_code=True,
     )
     model = AutoModelForCausalLM.from_pretrained(
-        "gpt2",
+        "gpt2-ft",
         from_tf=False,
         config=config,
         ignore_mismatched_sizes=False,
@@ -1232,11 +1232,128 @@ def causal_lm_test_entailment_labels():
     return entailment_labels
 
 
+
 @pytest.fixture
 def load_fact_tracing_dataset(
     dataset_name="quanda-bench-test/trex-subset",
     tokenizer_name="gpt2",
-    num_prompts=3,
+    num_prompts=4,
+    max_evidence_per_prompt=3,
+    max_length=64,
+    seed=42,
+):
+    # Load GPT-2 tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
+    tokenizer.pad_token = tokenizer.eos_token
+
+    # Load the TREx dataset
+    dataset = datasets.load_dataset("json", data_files="tests/updated_correct_small.jsonl", split="train")
+    #dataset = datasets.load_dataset(dataset_name, split="train")
+
+    # Sample prompt entries
+    if num_prompts < len(dataset):
+        random.seed(seed)
+        indices = random.sample(range(len(dataset)), num_prompts)
+        sampled_dataset = dataset.select(indices)
+    else:
+        sampled_dataset = dataset
+
+    # Tokenize prompt + answer and mask prompt in labels
+    input_ids = []
+    attention_mask = []
+    labels = []
+    prompts = []
+    answers = []
+
+    for entry in sampled_dataset:
+        prompt = entry["prompt"].strip()
+        answer = entry["answer"][0].strip()
+        full_text = prompt + " " + answer
+
+        encoded = tokenizer(
+            full_text,
+            padding="max_length",
+            truncation=True,
+            max_length=max_length,
+        )
+
+        prompt_ids = tokenizer(prompt, truncation=True, max_length=max_length)[
+            "input_ids"
+        ]
+        prompt_len = len(prompt_ids)
+
+        label_ids = encoded["input_ids"].copy()
+        label_ids[:prompt_len] = [
+            -100
+        ] * prompt_len  # Mask out prompt from loss
+
+        input_ids.append(encoded["input_ids"])
+        attention_mask.append(encoded["attention_mask"])
+        labels.append(label_ids)
+        prompts.append(prompt)
+        answers.append(answer)
+
+    prompt_dataset = datasets.Dataset.from_dict(
+        {
+            "prompt": prompts,
+            "answer": answers,
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "labels": labels,
+        }
+    )
+
+    # Gather evidence sentences
+    evidence_sentences = []
+    evidence_map = []
+
+    for i, entry in enumerate(sampled_dataset):
+        selected = entry["evidence_sentences"][:max_evidence_per_prompt]
+        for sentence in selected:
+            evidence_sentences.append(sentence)
+            evidence_map.append(i)
+
+    # Tokenize evidence sentences
+    evidence_input_ids = []
+    evidence_attention_mask = []
+    for sentence in evidence_sentences:
+        encoded = tokenizer(
+            sentence,
+            padding="max_length",
+            truncation=True,
+            max_length=max_length,
+        )
+        evidence_input_ids.append(encoded["input_ids"])
+        evidence_attention_mask.append(encoded["attention_mask"])
+
+    evidence_dataset = datasets.Dataset.from_dict(
+        {
+            "sentence": evidence_sentences,
+            "input_ids": evidence_input_ids,
+            "attention_mask": evidence_attention_mask,
+            "labels": evidence_input_ids,
+        }
+    )
+
+    # Create entailment matrix
+    num_queries = len(prompt_dataset)
+    num_evidence = len(evidence_dataset)
+    entailment_labels = torch.zeros(
+        (num_queries, num_evidence), dtype=torch.long
+    )
+    for i in range(num_queries):
+        for j in range(num_evidence):
+            if evidence_map[j] == i:
+                entailment_labels[i, j] = 1
+
+    return prompt_dataset, evidence_dataset, entailment_labels
+
+
+@pytest.fixture
+def load_fact_tracing_dataset_old(
+    dataset_name="quanda-bench-test/trex-subset",
+    tokenizer_name="gpt2",
+    num_prompts=2,
     max_evidence_per_prompt=3,
     max_length=64,
     seed=42,
@@ -1345,3 +1462,42 @@ def load_fact_tracing_dataset(
                 entailment_labels[i, j] = 1
 
     return prompt_dataset, evidence_dataset, entailment_labels
+
+
+class SimpleLanguageModelingTask(LanguageModelingTask):
+
+    def get_influence_tracked_modules(self) -> List[str]:
+        return [
+            "mlp1.0",
+            "mlp1.2",
+            "mlp2.0",
+            "mlp2.2",
+            "lm_head",
+        ]
+
+
+@pytest.fixture
+def simple_language_modeling_task() -> SimpleLanguageModelingTask:
+    return SimpleLanguageModelingTask()
+
+
+@pytest.fixture
+def load_simple_causal_lm_model() -> SimpleCausalLM:
+    return SimpleCausalLM()
+
+
+@pytest.fixture
+def load_simple_causal_lm_dataset() -> datasets.Dataset:
+    input_ids = torch.randint(
+        0, 100, (5, 16)
+    )  # 5 examples, sequence length 16
+    attention_mask = torch.ones_like(input_ids)
+    labels = input_ids.clone()
+
+    data = {
+        "input_ids": input_ids.tolist(),
+        "attention_mask": attention_mask.tolist(),
+        "labels": labels.tolist(),
+    }
+
+    return datasets.Dataset.from_dict(data)
