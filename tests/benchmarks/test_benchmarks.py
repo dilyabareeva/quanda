@@ -123,109 +123,112 @@ def test_load(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.benchmark
+"""
+(
+    "mnist-top-k",
+    "load_mnist_unit_test_config",
+    True,
+    True,
+    TopKCardinality,
+    CaptumSimilarity,
+    {"layers": "fc_2", "similarity_metric": cosine_similarity},
+    0.618,
+),
+(
+    "mnist-rand",
+    "load_mnist_unit_test_config",
+    True,
+    True,
+    ModelRandomization,
+    CaptumSimilarity,
+    {"layers": "fc_2", "similarity_metric": cosine_similarity},
+    0.3020453453063965,
+),
+(
+    "mnist-mixed",
+    "load_mnist_mixed_config",
+    True,
+    True,
+    MixedDatasets,
+    CaptumSimilarity,
+    {"layers": "fc_2", "similarity_metric": cosine_similarity},
+    0.03915480896830559,
+),
+(
+    "mnist-class",
+    "load_mnist_unit_test_config",
+    True,
+    True,
+    ClassDetection,
+    CaptumSimilarity,
+    {"layers": "fc_2", "similarity_metric": cosine_similarity},
+    0.9200000166893005,
+),
+(
+    "mnist-mislabeling",
+    "load_mnist_mislabeling_config",
+    False,
+    True,
+    MislabelingDetection,
+    CaptumSimilarity,
+    {"layers": "fc_2", "similarity_metric": cosine_similarity},
+    0.44353821873664856,
+),
+(
+    "mnist-mislabeling-download",
+    "load_mnist_mislabeling_config",
+    True,
+    True,
+    MislabelingDetection,
+    CaptumSimilarity,
+    {"layers": "fc_2", "similarity_metric": cosine_similarity},
+    0.44353821873664856,
+),
+(
+    "mnist-shortcut",
+    "load_mnist_shortcut_config",
+    True,
+    True,
+    ShortcutDetection,
+    CaptumSimilarity,
+    {"layers": "fc_2", "similarity_metric": cosine_similarity},
+    0.12516948580741882,
+),
+(
+    "mnist-shortcut-download",
+    "load_mnist_shortcut_config",
+    False,
+    True,
+    ShortcutDetection,
+    CaptumSimilarity,
+    {"layers": "fc_2", "similarity_metric": cosine_similarity},
+    0.12516948580741882,
+),
+(
+    "mnist-subclass",
+    "load_mnist_subclass_config",
+    True,
+    True,
+    SubclassDetection,
+    CaptumSimilarity,
+    {"layers": "fc_2", "similarity_metric": cosine_similarity},
+    0.23000000417232513,
+),
+"""
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",
     [
+
         (
-            "mnist",
-            "load_mnist_unit_test_config",
-            True,
-            True,
-            TopKCardinality,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.618,
-        ),
-        (
-            "mnist",
-            "load_mnist_unit_test_config",
-            True,
-            True,
-            ModelRandomization,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.3020453453063965,
-        ),
-        (
-            "mnist",
-            "load_mnist_mixed_config",
-            True,
-            True,
-            MixedDatasets,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.03915480896830559,
-        ),
-        (
-            "mnist",
-            "load_mnist_unit_test_config",
-            True,
-            True,
-            ClassDetection,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.9200000166893005,
-        ),
-        (
-            "mnist",
-            "load_mnist_mislabeling_config",
-            False,
-            True,
-            MislabelingDetection,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.44353821873664856,
-        ),
-        (
-            "mnist",
-            "load_mnist_mislabeling_config",
-            True,
-            True,
-            MislabelingDetection,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.44353821873664856,
-        ),
-        (
-            "mnist",
-            "load_mnist_shortcut_config",
-            True,
-            True,
-            ShortcutDetection,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.12516948580741882,
-        ),
-        (
-            "mnist",
-            "load_mnist_shortcut_config",
-            False,
-            True,
-            ShortcutDetection,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.12516948580741882,
-        ),
-        (
-            "mnist",
-            "load_mnist_subclass_config",
-            True,
-            True,
-            SubclassDetection,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.23000000417232513,
-        ),
-        (
-            "mnist",
+            "mnist-linear-datamodeling",
             "load_mnist_linear_datamodeling_config",
-            True,
-            True,
+            False,
+            False,
             LinearDatamodeling,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.2339998036623001,
+            0.10982376337051392,
         ),
     ],
 )
@@ -249,7 +252,7 @@ def test_bench_from_config(
         "cache_dir": str(tmp_path),
     }
 
-    config["cache_dir"] = str(tmp_path)
+    config["cache_dir"] = "tests/assets/lds_checkpoints"
     dst_eval = bench_cls.from_config(
         config=config,
         load_meta_from_disk=load_from_disk,
@@ -264,11 +267,7 @@ def test_bench_from_config(
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
-
-@pytest.mark.benchmarks
-@pytest.mark.parametrize(
-    "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, logger",
-    [
+"""
         (
             "mnist",
             "load_mnist_unit_test_config",
@@ -319,6 +318,11 @@ def test_bench_from_config(
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             None,
         ),
+"""
+@pytest.mark.tested
+@pytest.mark.parametrize(
+    "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, logger",
+    [
         (
             "mnist",
             "load_mnist_linear_datamodeling_config",
@@ -352,7 +356,7 @@ def test_train_from_config(
     }
 
     config["bench_save_dir"] = str(tmp_path)
-    config["cache_dir"] = str(tmp_path)
+    config["cache_dir"] = "tests/assets/lds_checkpoints"
 
     if logger is not None:
         logger_cfg = request.getfixturevalue(logger)

@@ -6,6 +6,8 @@ from typing import Callable, Dict, List, Optional, Union
 
 import lightning as L
 import torch
+import yaml
+from torch.nn.functional import log_softmax
 from torch.utils.data import DataLoader
 
 from quanda.metrics.base import Metric
@@ -37,18 +39,17 @@ class LinearDatamodelingMetric(Metric):
         self,
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
-        trainer: Union[L.Trainer, BaseTrainer],
+        trainer: Optional[Union[L.Trainer, BaseTrainer]] = None,
         alpha: float = 0.5,
         m: int = 100,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         trainer_fit_kwargs: Optional[dict] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable] = None,
-        counterfactual_load_func: Optional[Callable] = None,
         seed: int = 42,
         batch_size: int = 32,
-        subset_ids: Optional[List[List[int]]] = None,
-        pretrained_models: Optional[List[torch.nn.Module]] = None,
+        subset_ids: Optional[Union[List[List[int]], str]] = None,
+        pretrained_models: Optional[List[str]] = None,
         model_id: Optional[str] = "0",
         cache_dir: str = "./cache",
     ):
@@ -77,10 +78,6 @@ class LinearDatamodelingMetric(Metric):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
-        counterfactual_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the counterfactual checkpoint
-            files, takes (model, checkpoint path) as two arguments,
-            by default None.
         seed : Optional[int], optional
             Random seed for reproducibility, by default 42.
         batch_size : int, optional
@@ -101,15 +98,14 @@ class LinearDatamodelingMetric(Metric):
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
         )
-        os.makedirs(cache_dir, exist_ok=True)
-        if counterfactual_load_func is None:
-            counterfactual_load_func = self.checkpoints_load_func
-        self.counterfactual_load_func = counterfactual_load_func
-        self.device = "cpu"  # TODO: why is this CPU?
+
         self.cache_dir = cache_dir
         self.model_id = model_id
 
-        # TODO: create a validation utility function
+        LinearDatamodelingMetric._validate_parameters(
+            correlation_fn, subset_ids, pretrained_models, trainer
+        )
+
         if (
             isinstance(correlation_fn, str)
             and correlation_fn in correlation_functions
@@ -117,12 +113,6 @@ class LinearDatamodelingMetric(Metric):
             self.corr_measure = correlation_functions[correlation_fn]
         elif callable(correlation_fn):
             self.corr_measure = correlation_fn
-        else:
-            raise ValueError(
-                f"Invalid correlation function: expected one of "
-                f"{list(correlation_functions.keys())} or"
-                f"a Callable, but got {self.corr_measure}."
-            )
 
         self.results: Dict[str, List[torch.Tensor]] = {"scores": []}
         self.m = m
@@ -131,55 +121,163 @@ class LinearDatamodelingMetric(Metric):
         self.trainer_fit_kwargs = trainer_fit_kwargs
         self.seed = seed
         self.batch_size = batch_size
-        self.subset_ids = subset_ids
-        self.pretrained_models = pretrained_models
 
         self.generator = None
         if self.seed is not None:
             self.generator = torch.Generator()
             self.generator.manual_seed(self.seed)
 
-        self.subsets, self.subset_ids = self.sample_subsets(train_dataset)
+        self.subset_ids = self.sample_subsets(
+            train_dataset, subset_ids
+        )
+        self.subsets = self.get_subsets_from_ids(
+            dataset=train_dataset,
+            subset_ids=self.subset_ids,
+        )
 
-        self.create_counterfactual_models()
+        self.pretrained_models = self.create_counterfactual_models(
+            pretrained_models=pretrained_models
+        )
 
-    def sample_subsets(self, dataset):
+    @classmethod
+    def _validate_parameters(
+        cls, correlation_fn, subset_ids, pretrained_models, trainer
+    ):
+        if not (
+            (
+                isinstance(correlation_fn, str)
+                and correlation_fn in correlation_functions
+            )
+            or callable(correlation_fn)
+        ):
+            raise ValueError(
+                f"Invalid correlation function: expected one of "
+                f"{list(correlation_functions.keys())} or"
+                f"a Callable, but got {correlation_fn}."
+            )
+        if (
+            trainer is None
+            and pretrained_models is None
+            and subset_ids is None
+        ):
+            raise ValueError(
+                "Invalid combination of argumetns."
+                "Either trainer should be given, "
+                "or both pretrained_models and subset_ids"
+                "should be specified."
+            )
+
+    @classmethod
+    def generate_subsets(
+        cls,
+        dataset,
+        subset_ids,
+        alpha,
+        m,
+        cache_dir,
+        generator,
+        device,
+    ):
+        """Generate subsets of the dataset.
+
+        Parameters
+        ----------
+        dataset : torch.utils.data.Dataset
+            The dataset to sample subsets from.
+        subset_ids : List[List[int]]
+            Indices of datapoints for each subset.
+
+        Returns
+        -------
+        List[torch.utils.data.Subset]
+            A list of m subsets of the training data.
+
+        """
+        if subset_ids is not None:
+            if isinstance(subset_ids, str):
+                assert os.path.exists(subset_ids), f"No file found at {subset_ids}"
+                # load a yaml file
+                with open(subset_ids, "r") as f:
+                    subset_ids = yaml.safe_load(f)
+            return subset_ids
+
+        N = len(dataset)
+        subset_size = int(alpha * N)
+
+        subset_ids = []
+        for _ in range(m):
+            indices = list(torch.randperm(N, generator=generator)[
+                      :subset_size
+                      ].tolist())
+            subset_ids.append(indices)
+        return subset_ids
+
+
+    def get_subsets_from_ids(
+        self,
+        dataset,
+        subset_ids,
+    ):
+        """Get subsets from the subset IDs.
+
+        Parameters
+        ----------
+        dataset : torch.utils.data.Dataset
+            The dataset to sample subsets from.
+        subset_ids : List[List[int]]
+            Indices of datapoints for each subset.
+
+        Returns
+        -------
+        List[torch.utils.data.Subset]
+            A list of m subsets of the training data.
+        """
+
+        return [
+            torch.utils.data.Subset(dataset, indices)
+            for indices in subset_ids
+        ]
+
+
+    def sample_subsets(self, dataset, subset_ids):
         """Randomly sample m subsets of the training set, each of size alpha*N.
 
         Parameters
         ----------
         dataset : torch.utils.data.Dataset
             The dataset to sample subsets from.
+        subset_ids : Optional[List[List[int]], str]
+            Indices of datapoints for each subset.
+            The list should have `self.m` subsets.
+            Alternatively, a torch tensor file name
+            can be given to be loaded from `self.cache_dir`.
 
         Returns
         -------
-        Tuple[List[torch.utils.data.Subset], List[List[int]]]
-            A list of subsets and a list of subset indices.
+        List[torch.utils.data.Subset], List[List[int]]
+            A list of m subsets of the training data.
 
         """
-        if self.subset_ids:
-            subsets = [
-                torch.utils.data.Subset(dataset, indices)
-                for indices in self.subset_ids
-            ]
-            return subsets, self.subset_ids
+        return self.generate_subsets(
+            dataset,
+            subset_ids,
+            self.alpha,
+            self.m,
+            self.cache_dir,
+            self.generator,
+            self.device
+        )
 
-        N = len(dataset)
-        subset_size = int(self.alpha * N)
-
-        subsets = []
-        subset_indices = []
-        for _ in range(self.m):
-            indices = torch.randperm(N, generator=self.generator)[
-                :subset_size
-            ].tolist()
-            subset_indices.append(indices)
-            subsets.append(torch.utils.data.Subset(dataset, indices))
-
-        return subsets, subset_indices
-
-    def create_counterfactual_models(self):
+    def create_counterfactual_models(
+        self, pretrained_models: Optional[List[str]]
+    ) -> List[str]:
         """Train counterfactual model on a subset.
+
+        Parameters
+        ----------
+        pretrained_models : Optional[List[str]]
+            Optional list of filenames of checkpoints to be
+            loaded from `self.cache_dir`.
 
         Raises
         ------
@@ -191,13 +289,13 @@ class LinearDatamodelingMetric(Metric):
             BaseTrainer.
 
         """
-        if self.pretrained_models:
-            for i, model in enumerate(self.pretrained_models):
-                model_ckpt_path = os.path.join(
-                    self.cache_dir, f"{self.model_id}_lds_model_{i}.ckpt"
-                )
-                torch.save(model.state_dict(), model_ckpt_path)
+        if pretrained_models:
+            for i, model_path in enumerate(pretrained_models):
+                assert os.path.exists(
+                    os.path.join(self.cache_dir, model_path)
+                ), f"No model {model_path} found at {self.cache_dir}"
         else:
+            pretrained_models = []
             for i, subset in enumerate(self.subsets):
                 counterfactual_model = deepcopy(self.model)
                 subset_loader = DataLoader(
@@ -229,10 +327,11 @@ class LinearDatamodelingMetric(Metric):
                         **self.trainer_fit_kwargs,
                     )
 
-                model_ckpt_path = os.path.join(
-                    self.cache_dir, f"{self.model_id}_lds_model_{i}.ckpt"
-                )
+                ckpt_fname = f"{self.model_id}_lds_model_{i}.ckpt"
+                pretrained_models.append(ckpt_fname)
+                model_ckpt_path = os.path.join(self.cache_dir, ckpt_fname)
                 torch.save(counterfactual_model.state_dict(), model_ckpt_path)
+        return pretrained_models
 
     def load_counterfactual_model(self, model_idx: int):
         """Load a model checkpoint.
@@ -249,10 +348,12 @@ class LinearDatamodelingMetric(Metric):
 
         """
         model_ckpt_path = os.path.join(
-            self.cache_dir, f"{self.model_id}_lds_model_{model_idx}.ckpt"
+            self.cache_dir, self.pretrained_models[model_idx]
         )
         counterfactual_model = deepcopy(self.model)
-        self.counterfactual_load_func(counterfactual_model, model_ckpt_path)
+        state_dict = torch.load(model_ckpt_path, map_location=self.device)
+        counterfactual_model.load_state_dict(state_dict=state_dict)
+        counterfactual_model = counterfactual_model.to(self.device)
 
         counterfactual_model.to(self.device)
         return counterfactual_model
@@ -298,13 +399,23 @@ class LinearDatamodelingMetric(Metric):
 
             counterfactual_model = self.load_counterfactual_model(s)
             counterfactual_output = counterfactual_model(test_data).detach()
-
+            # We take softmax since we want the rank
+            # correlation of probabilities
+            # The original definition computes the rank
+            # correlation of p/1-p
+            # So it is skipped to avoid overflow errors.
+            # This operation conserves the ranking of the data
+            # We also take logsoftmax
+            # to avoid underflow issues at the softmax output
             if (
                 counterfactual_output.ndim == 1
                 or counterfactual_output.shape[1] == 1
             ):
                 counterfactual_output = counterfactual_output.squeeze()
             else:
+                counterfactual_output = log_softmax(
+                    counterfactual_output, dim=-1
+                )
                 counterfactual_output = counterfactual_output.gather(
                     1, test_targets.unsqueeze(1)
                 ).squeeze(1)
@@ -319,9 +430,8 @@ class LinearDatamodelingMetric(Metric):
         self.results["scores"].append(batch_lds_scores)
 
     def reset(self, *args, **kwargs):
-        """Reset the LDS score and resample subsets of the training data."""
+        """Reset the LDS score."""
         self.results = {"scores": []}
-        self.subsets = self.sample_subsets(dataset=self.train_dataset)
 
     def load_state_dict(self, state_dict: dict):
         """Load the state of the metric.

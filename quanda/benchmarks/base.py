@@ -102,8 +102,10 @@ class Benchmark(ABC):
         obj = cls()
         obj.device = device
         cache_dir = config.get("bench_save_dir", "./tmp")
-        metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=cache_dir
+        metadata_dir = BenchConfigParser.load_metadata(
+            cfg=config,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            load_meta_from_disk=load_meta_from_disk,
         )
         obj.train_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
@@ -129,7 +131,8 @@ class Benchmark(ABC):
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
                 repo_id=config["repo_id"],
-                cfg_id=config["id"],
+                ckpts=config["ckpts"],
+                offline=offline,
                 load_model_from_disk=offline,
                 device=device,
             )
@@ -196,9 +199,12 @@ class Benchmark(ABC):
         )
 
         ckpt_dir = os.path.join(config["bench_save_dir"], "ckpt")
+
+        # TODO: add support for multiple checkpoints
         ckpt_dir = BenchConfigParser.get_ckpt_folder(
-            config["model"], ckpt_dir, config["id"]
+            config["model"], ckpt_dir, config["ckpts"][-1]
         )
+        os.makedirs(ckpt_dir, exist_ok=True)
         if len(os.listdir(ckpt_dir)) > 0:
             warnings.warn(
                 f"Directory {ckpt_dir} already exists and is not empty. "
@@ -208,9 +214,8 @@ class Benchmark(ABC):
         obj.model.to(obj.device)
         obj.model.eval()
 
-        hf_ckpt_dir = ckpt_dir
-        obj.model.save_pretrained(hf_ckpt_dir, safe_serialization=True)
-        obj.checkpoints = [hf_ckpt_dir]
+        obj.model.save_pretrained(ckpt_dir, safe_serialization=True)
+        obj.checkpoints = [ckpt_dir]
 
         return obj
 
@@ -229,21 +234,25 @@ class Benchmark(ABC):
             device=device,
             batch_size=batch_size,
         )
-        obj.model.push_to_hub(f"quanda-bench-test/{config['id']}")
+        # TODO: add support for multiple checkpoints
+        obj.model.push_to_hub(f"quanda-bench-test/{config['ckpts'][-1]}")
+
+        # TODO: push to hub for LDS models
 
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
         )
         create_repo(
-            repo_id=config["metadata_str"], repo_type="dataset", exist_ok=True
+            repo_id=f"quanda-bench-test/{config['id']}_metadata", repo_type="dataset", exist_ok=True
         )
         upload_folder(
             folder_path=metadata_dir,
-            repo_id=config["metadata_str"],
+            repo_id=f"quanda-bench-test/{config['id']}_metadata",
             repo_type="dataset",
         )
 
         return obj
+
 
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute training and validation accuracy of the model.
