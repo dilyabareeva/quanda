@@ -226,7 +226,7 @@ class Benchmark(ABC):
             batch_size=batch_size,
         )
         # TODO: add support for multiple checkpoints
-        obj.model.push_to_hub(f"quanda-bench-test/{config['id']}")
+        obj.model.push_to_hub(f"quanda-bench-test/{config['ckpts'][-1]}")
 
         # TODO: push to hub for LDS models
 
@@ -244,8 +244,8 @@ class Benchmark(ABC):
             repo_type="dataset",
         )
 
-
         return obj
+
 
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute training and validation accuracy of the model.

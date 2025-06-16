@@ -51,6 +51,3 @@ subset_ckpts:
   - "${id}_lds_subset_2"
   - "${id}_lds_subset_3"
   - "${id}_lds_subset_4"
-
-ckpts:
-  - "${id}"

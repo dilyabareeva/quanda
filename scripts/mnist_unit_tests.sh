@@ -36,13 +36,14 @@ for i in "${!bench_types[@]}"; do
 
     # Construct and execute the command with Hydra overrides
     echo "Bench type: $bench"
+    echo "Config file name: $cfg_file_name"
     echo "Running with parameters: $params"
     echo "Saving output to: $cfg_output_dir/$cfg_file_name"
-    python scripts/generate_config.py hydra.run.dir="hydra_logs" $params id=$id +cfg_file_name=$cfg_file_name +cfg_output_dir=$cfg_output_dir
+    #python scripts/generate_config.py hydra.run.dir="hydra_logs" $params id=$id +cfg_file_name=$cfg_file_name +cfg_output_dir=$cfg_output_dir
     # Hyperparameter sweep
-    python scripts/train.py bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name --multirun
+    #python scripts/train.py bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name --multirun
     # Saving the results to a config file
-    python scripts/opt_results_to_cfg.py bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name
+    #python scripts/opt_results_to_cfg.py bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name
     # Training the model
     python scripts/train_and_push_to_hub.py --config-name $cfg_file_name --config-dir $cfg_output_dir
     echo "Finished running with parameters: $params"

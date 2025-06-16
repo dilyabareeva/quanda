@@ -8,7 +8,7 @@ import torch
 from quanda.benchmarks.config_parser import BenchConfigParser
 
 
-@pytest.mark.tested
+@pytest.mark.utils
 @pytest.mark.parametrize(
     "test_id, config, input_shape",
     [

@@ -146,6 +146,17 @@ class LinearDatamodeling(Benchmark):
         with open(f"{metadata_dir}/{config['subset_ids']}", "w") as f:
             f.write(f"{obj.subset_ids}")
 
+        obj.model, obj.checkpoints, obj.checkpoints_load_func = (
+            BenchConfigParser.parse_model_cfg(
+                model_cfg=config["model"],
+                bench_save_dir=config["bench_save_dir"],
+                repo_id=config["repo_id"],
+                ckpts=config["ckpts"],
+                offline=offline,
+                device=device,
+            )
+        )
+
         _, obj.pretrained_models, _ = (
             BenchConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
@@ -204,6 +215,7 @@ class LinearDatamodeling(Benchmark):
             batch_size=batch_size,
             subset_ids=self.subset_ids,
             pretrained_models=self.pretrained_models,
+            # TODO: implement pretrained_models in LDS metric
         )
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,
