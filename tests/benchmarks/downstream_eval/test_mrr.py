@@ -137,3 +137,67 @@ def test_mrr_benchmark_gpt2(
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.slow
+@pytest.mark.benchmarks
+@pytest.mark.parametrize(
+    "test_id, explainer_cls, task, model, dataset, batch_size, expected_score",
+    [
+        (
+            "mrr_test_nano_gpt",
+            Kronfluence,
+            "language_modeling_task_nano_gpt",
+            "load_nano_gpt_model",
+            "load_fact_tracing_dataset_nanogpt",
+            1,
+            0.5,
+        ),
+    ],
+)
+def test_mrr_benchmark_nano_gpt(
+    test_id,
+    explainer_cls,
+    task,
+    model,
+    dataset,
+    batch_size,
+    expected_score,
+    tmp_path,
+    request,
+):
+    model = request.getfixturevalue(model)
+    prompt_dataset, evidence_dataset, entailment_labels = (
+        request.getfixturevalue(dataset)
+    )
+    task = request.getfixturevalue(task)
+
+    mrr_benchmark = MRR()
+
+    mrr_benchmark.train_dataset = evidence_dataset
+    mrr_benchmark.model = model
+    mrr_benchmark.device = "cpu"
+
+    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
+    torch.save(model.state_dict(), checkpoint_path)
+    mrr_benchmark.checkpoints = [checkpoint_path]
+
+    mrr_benchmark.checkpoints_load_func = get_load_state_dict_func("cpu")
+
+    mrr_benchmark.entailment_labels = entailment_labels
+    mrr_benchmark.eval_dataset = prompt_dataset
+
+    expl_kwargs = {
+        "task_module": task,
+        "task": "causal_lm",
+        "batch_size": batch_size,
+        "cache_dir": str(tmp_path),
+    }
+
+    score = mrr_benchmark.evaluate(
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
+        batch_size=batch_size,
+    )["score"]
+
+    assert math.isclose(score, expected_score, abs_tol=0.00001)

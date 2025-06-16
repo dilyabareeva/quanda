@@ -8,12 +8,14 @@ from typing import Dict, List
 import datasets
 import numpy as np
 import pytest
+import tiktoken
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
 import yaml
 from kronfluence.task import Task  # type: ignore
+from safetensors.torch import load_model
 from torch.utils.data import Dataset, TensorDataset
 from torchvision.models import resnet18, vit_b_16
 from transformers import (
@@ -36,6 +38,8 @@ from quanda.utils.training import Trainer
 from quanda.utils.training.base_pl_module import BasicLightningModule
 from tests.models import (
     LeNet,
+    NanoGPT,
+    NanoGPTConfig,
     SequenceClassificationModel,
     SimpleTextClassifier,
     TinyGPT2,
@@ -620,6 +624,72 @@ def language_modeling_task_extended():
     return LanguageModelingTaskExtended()
 
 
+class LanguageModelingTaskNanoGPT(Task):
+    def compute_train_loss(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+        sample: bool = False,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+        ).logits.float()
+        logits = logits[..., :-1, :].contiguous()
+        logits = logits.view(-1, logits.size(-1))
+        labels = batch["labels"][..., 1:].contiguous()
+        if not sample:
+            summed_loss = F.cross_entropy(
+                logits, labels.view(-1), reduction="sum", ignore_index=-100
+            )
+        else:
+            with torch.no_grad():
+                probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
+                sampled_labels = torch.multinomial(
+                    probs,
+                    num_samples=1,
+                ).flatten()
+                masks = labels.view(-1) == -100
+                sampled_labels[masks] = -100
+            summed_loss = F.cross_entropy(
+                logits, sampled_labels, ignore_index=-100, reduction="sum"
+            )
+        return summed_loss
+
+    def compute_measurement(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+        ).logits.float()
+        shift_labels = batch["labels"][..., 1:].contiguous().view(-1)
+        logits = logits[..., :-1, :].contiguous().view(-1, logits.size(-1))
+        return F.cross_entropy(
+            logits, shift_labels, ignore_index=-100, reduction="sum"
+        )
+
+    def get_influence_tracked_modules(self) -> List[str]:
+        return (
+            [f"transformer.transformer.h.{i}.attn.c_attn" for i in range(12)]
+            + [f"transformer.transformer.h.{i}.attn.c_proj" for i in range(12)]
+            + [f"transformer.transformer.h.{i}.mlp.c_fc" for i in range(12)]
+            + [f"transformer.transformer.h.{i}.mlp.c_proj" for i in range(12)]
+        )
+
+    def get_attention_mask(
+        self, batch: Dict[str, torch.Tensor]
+    ) -> torch.Tensor:
+        return batch["attention_mask"]
+
+
+@pytest.fixture
+def language_modeling_task_nano_gpt():
+    return LanguageModelingTaskNanoGPT()
+
+
 class DummyLanguageModelingTask(LanguageModelingTask):
     def get_influence_tracked_modules(self) -> List[str]:
         total_modules = []
@@ -654,6 +724,32 @@ def replace_conv1d_modules(model: nn.Module) -> None:
             new_module.weight.data.copy_(module.weight.data.t())
             new_module.bias.data.copy_(module.bias.data)
             setattr(model, name, new_module)
+
+
+@pytest.fixture
+def load_nano_gpt_model_local():
+    model_dir = "gpt2-small-trex-openwebtext-ft"
+
+    with open(os.path.join(model_dir, "config.json")) as f:
+        config = NanoGPTConfig(**json.load(f))
+
+    model = NanoGPT(config)
+    load_model(model, os.path.join(model_dir, "model.safetensors"))
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.eval().to(device)
+
+    return model
+
+
+@pytest.fixture
+def load_nano_gpt_model():
+    model = NanoGPT.from_pretrained(
+        "quanda-bench-test/gpt2-small-trex-openwebtext-ft"
+    )
+    model.eval()
+    model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+    return model
 
 
 @pytest.fixture
@@ -1293,25 +1389,22 @@ def causal_lm_test_entailment_labels():
     return entailment_labels
 
 
-
 @pytest.fixture
-def load_fact_tracing_dataset(
-    dataset_name="quanda-bench-test/trex-subset",
-    tokenizer_name="gpt2",
-    num_prompts=4,
-    max_evidence_per_prompt=3,
+def load_fact_tracing_dataset_nanogpt(
+    dataset_name="quanda-bench-test/trex-subset-benchmark",
+    num_prompts=30,
+    max_evidence_per_prompt=10,
     max_length=64,
     seed=42,
 ):
-    # Load GPT-2 tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
-    tokenizer.pad_token = tokenizer.eos_token
+    # Load tokenizer
+    tokenizer = tiktoken.get_encoding("gpt2")
+    pad_token_id = tokenizer.eot_token
 
-    # Load the TREx dataset
-    dataset = datasets.load_dataset("json", data_files="tests/updated_correct_small.jsonl", split="train")
-    #dataset = datasets.load_dataset(dataset_name, split="train")
+    # Load dataset
+    dataset = datasets.load_dataset(dataset_name, split="train")
 
-    # Sample prompt entries
+    # Sample prompts
     if num_prompts < len(dataset):
         random.seed(seed)
         indices = random.sample(range(len(dataset)), num_prompts)
@@ -1319,7 +1412,6 @@ def load_fact_tracing_dataset(
     else:
         sampled_dataset = dataset
 
-    # Tokenize prompt + answer and mask prompt in labels
     input_ids = []
     attention_mask = []
     labels = []
@@ -1331,25 +1423,23 @@ def load_fact_tracing_dataset(
         answer = entry["answer"][0].strip()
         full_text = prompt + " " + answer
 
-        encoded = tokenizer(
-            full_text,
-            padding="max_length",
-            truncation=True,
-            max_length=max_length,
-        )
-
-        prompt_ids = tokenizer(prompt, truncation=True, max_length=max_length)[
-            "input_ids"
-        ]
+        # Tokenize
+        full_ids = tokenizer.encode_ordinary(full_text)[:max_length]
+        prompt_ids = tokenizer.encode_ordinary(prompt)[:max_length]
         prompt_len = len(prompt_ids)
 
-        label_ids = encoded["input_ids"].copy()
-        label_ids[:prompt_len] = [
-            -100
-        ] * prompt_len  # Mask out prompt from loss
+        # Pad
+        padding_length = max_length - len(full_ids)
+        padded_ids = full_ids + [pad_token_id] * padding_length
+        padded_mask = [1] * len(full_ids) + [0] * padding_length
 
-        input_ids.append(encoded["input_ids"])
-        attention_mask.append(encoded["attention_mask"])
+        # Create labels (masking out prompt part)
+        label_ids = padded_ids.copy()
+        for i in range(min(prompt_len, max_length)):
+            label_ids[i] = -100
+
+        input_ids.append(padded_ids)
+        attention_mask.append(padded_mask)
         labels.append(label_ids)
         prompts.append(prompt)
         answers.append(answer)
@@ -1364,7 +1454,7 @@ def load_fact_tracing_dataset(
         }
     )
 
-    # Gather evidence sentences
+    # Collect evidence sentences
     evidence_sentences = []
     evidence_map = []
 
@@ -1374,18 +1464,19 @@ def load_fact_tracing_dataset(
             evidence_sentences.append(sentence)
             evidence_map.append(i)
 
-    # Tokenize evidence sentences
+    # Tokenize
     evidence_input_ids = []
     evidence_attention_mask = []
     for sentence in evidence_sentences:
-        encoded = tokenizer(
-            sentence,
-            padding="max_length",
-            truncation=True,
-            max_length=max_length,
+        sentence_ids = tokenizer.encode_ordinary(sentence)[:max_length]
+        padded_ids = sentence_ids + [pad_token_id] * (
+            max_length - len(sentence_ids)
         )
-        evidence_input_ids.append(encoded["input_ids"])
-        evidence_attention_mask.append(encoded["attention_mask"])
+        padded_mask = [1] * len(sentence_ids) + [0] * (
+            max_length - len(sentence_ids)
+        )
+        evidence_input_ids.append(padded_ids)
+        evidence_attention_mask.append(padded_mask)
 
     evidence_dataset = datasets.Dataset.from_dict(
         {
@@ -1411,8 +1502,8 @@ def load_fact_tracing_dataset(
 
 
 @pytest.fixture
-def load_fact_tracing_dataset_old(
-    dataset_name="quanda-bench-test/trex-subset",
+def load_fact_tracing_dataset(
+    dataset_name="quanda-bench-test/trex-subset-benchmark",
     tokenizer_name="gpt2",
     num_prompts=2,
     max_evidence_per_prompt=3,
@@ -1526,7 +1617,6 @@ def load_fact_tracing_dataset_old(
 
 
 class SimpleLanguageModelingTask(LanguageModelingTask):
-
     def get_influence_tracked_modules(self) -> List[str]:
         return [
             "mlp1.0",
@@ -1551,7 +1641,7 @@ def load_simple_causal_lm_model() -> SimpleCausalLM:
 def load_simple_causal_lm_dataset() -> datasets.Dataset:
     input_ids = torch.randint(
         0, 100, (5, 16)
-    )  # 5 examples, sequence length 16
+    )  # 5 examples with sequence length 16
     attention_mask = torch.ones_like(input_ids)
     labels = input_ids.clone()
 
