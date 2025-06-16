@@ -87,6 +87,12 @@ The best-performing model was the one trained on **TREx + OpenWebText**, which a
 
 ---
 
+### Inference
+
+**TODO: explain how the `inference.py` script builds the benchmark dataset.**
+
+---
+
 ### 📦 Available Model Checkpoints
 
 All models are uploaded under the `quanda-bench-test` namespace:
