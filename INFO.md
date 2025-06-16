@@ -116,6 +116,8 @@ All models are uploaded under the `quanda-bench-test` namespace:
 - [`gpt2-small-trex-wikitext-ft`](https://huggingface.co/quanda-bench-test/gpt2-small-trex-wikitext-ft)
 - [`gpt2-small-trex-openwebtext-ft`](https://huggingface.co/quanda-bench-test/gpt2-small-trex-openwebtext-ft)
 
+There are also trained models for **GPT-2 Medium (355M)**, however they are quite large (4.5 GB each) and I got rate-limited by huggingface.
+
 ---
 
 ## 🛠️ Benchmark
