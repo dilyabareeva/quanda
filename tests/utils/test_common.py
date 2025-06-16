@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from quanda.utils.common import make_func, TrainValTest
+from quanda.utils.common import TrainValTest, make_func
 
 
 @pytest.mark.utils

@@ -3,22 +3,21 @@
 import os
 import warnings
 from abc import ABC
-from typing import Callable, List, Optional, Any
+from typing import Any, Callable, List, Optional, Union
 
+import datasets  # type: ignore
 import lightning as L
 import torch
 import yaml
+from huggingface_hub import create_repo, upload_folder
 from tqdm import tqdm
-from huggingface_hub import upload_folder, create_repo
 
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.resources.config_map import config_map
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
-from quanda.utils.common import (
-    load_last_checkpoint,
-    class_accuracy,
-)
+from quanda.utils.common import class_accuracy, load_last_checkpoint
+from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 
 
 class Benchmark(ABC):
@@ -31,11 +30,13 @@ class Benchmark(ABC):
         """Initialize the base `Benchmark` class."""
         self.model: torch.nn.Module
         self.device: str = "cpu"
-        self.train_dataset: torch.utils.data.Dataset
-        self.val_dataset: Optional[torch.utils.data.Dataset] = None
+        self.train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
+        self.val_dataset: Optional[
+            Union[torch.utils.data.Dataset, datasets.Dataset]
+        ] = None
         self.eval_dataset: torch.utils.data.Dataset
         self.checkpoints: List[str] = []
-        self.checkpoints_load_func: Callable[..., Any]
+        self.checkpoints_load_func: Callable[..., Any]  # TODO: Why mandatory?
         self.use_predictions: bool = False
 
     @classmethod
@@ -362,6 +363,7 @@ class Benchmark(ABC):
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
     ):
+        # TODO: Should we always require a checkpoint?
         if len(self.checkpoints) == 0:
             raise ValueError(
                 "No model checkpoints found. Use `train` method "
@@ -392,33 +394,63 @@ class Benchmark(ABC):
         metric: Metric,
         batch_size: int,
     ):
-        expl_dl = torch.utils.data.DataLoader(
-            eval_dataset, batch_size=batch_size
+        """Evaluate dataset using explainer and metric.
+
+        Parameters
+        ----------
+        eval_dataset : torch.utils.data.Dataset
+            Dataset to evaluate
+        explainer : Explainer
+            Explainer to use for generating explanations
+        metric : Metric
+            Metric to compute
+        batch_size : int
+            Batch size for evaluation
+
+        Returns
+        -------
+        Any
+            Computed metric result
+
+        """
+        ds_handler = get_dataset_handler(dataset=eval_dataset)
+        expl_dl = ds_handler.create_dataloader(
+            dataset=eval_dataset,
+            batch_size=batch_size,
         )
 
         pbar = tqdm(expl_dl)
         n_batches = len(expl_dl)
 
-        for i, (input, labels) in enumerate(pbar):
+        for i, batch in enumerate(pbar):
             pbar.set_description(
-                "Metric evaluation, batch %d/%d" % (i + 1, n_batches)
+                f"Metric evaluation, batch {i + 1}/{n_batches}"
             )
 
-            input, labels = input.to(self.device), labels.to(self.device)
+            inputs, labels = ds_handler.process_batch(
+                batch=batch,
+                device=self.device,
+            )
 
             if self.use_predictions:
                 with torch.no_grad():
-                    output = self.model(input)
-                    targets = output.argmax(dim=-1)
+                    model_inputs = ds_handler.get_model_inputs(inputs=inputs)
+                    outputs = (
+                        self.model(**model_inputs)
+                        if isinstance(model_inputs, dict)
+                        else self.model(model_inputs)
+                    )
+                    targets = ds_handler.get_predictions(outputs=outputs)
             else:
                 targets = labels
 
             explanations = explainer.explain(
-                test_data=input,
+                test_data=inputs,
                 targets=targets,
             )
+
             data_unit = {
-                "test_data": input,
+                "test_data": inputs,
                 "test_targets": targets,
                 "test_labels": labels,
                 "explanations": explanations,

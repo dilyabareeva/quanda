@@ -1,6 +1,7 @@
+import os
+
 import hydra
 from omegaconf import DictConfig, OmegaConf
-import os
 
 
 @hydra.main(version_base=None, config_path="../config", config_name="default")

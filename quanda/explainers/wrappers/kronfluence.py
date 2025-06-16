@@ -1,9 +1,10 @@
 """Kronfluence data attribution wrapper."""
 
-from typing import Any, Callable, List, Optional, Union
+import copy
+from typing import Any, Callable, Dict, List, Optional, Union
 
+import datasets  # type: ignore
 import torch
-from datasets import DatasetDict  # type: ignore
 from kronfluence.analyzer import Analyzer, prepare_model  # type: ignore
 from kronfluence.arguments import (  # type: ignore
     FactorArguments,
@@ -12,7 +13,7 @@ from kronfluence.arguments import (  # type: ignore
 from kronfluence.task import Task  # type: ignore
 from kronfluence.utils.dataset import DataLoaderKwargs  # type: ignore
 from torch import nn
-from torch.utils.data import Dataset
+from transformers import default_data_collator  # type: ignore
 
 from quanda.explainers.base import Explainer
 from quanda.explainers.utils import (
@@ -26,7 +27,7 @@ from quanda.utils.tasks import TaskLiterals
 class Kronfluence(Explainer):
     """Class for Kronfluence Explainer.
 
-    This explainer uses the Kronfluence package [2] to compute training data
+    This explainer uses the Kronfluence package [2] to compute training data
     attributions.
 
     Notes
@@ -57,7 +58,7 @@ class Kronfluence(Explainer):
         self,
         model: nn.Module,
         task_module: Task,
-        train_dataset: Dataset,
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -80,7 +81,7 @@ class Kronfluence(Explainer):
             The trained model for which influence scores will be computed.
         task_module : kronfluence.task.Task
             The task associated with the model.
-        train_dataset : torch.utils.data.Dataset
+        train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
             Training dataset to be used for the influence computation.
         task: TaskLiterals, optional
             Task type of the model. Defaults to "image_classification".
@@ -142,8 +143,15 @@ class Kronfluence(Explainer):
             output_dir=self.cache_dir,
         )
 
-        if dataloader_kwargs:
-            self.analyzer.set_dataloader_kwargs(dataloader_kwargs)
+        if dataloader_kwargs is None:
+            if isinstance(train_dataset, datasets.Dataset):
+                dataloader_kwargs = DataLoaderKwargs(
+                    collate_fn=default_data_collator
+                )
+            else:
+                dataloader_kwargs = DataLoaderKwargs()
+
+        self.analyzer.set_dataloader_kwargs(dataloader_kwargs)
 
         self.analyzer.fit_all_factors(
             factors_name=self.factors_name,
@@ -161,13 +169,53 @@ class Kronfluence(Explainer):
             The prepared model.
 
         """
-        self.model.to(self.device)
-        prepared_model = prepare_model(model=self.model, task=self.task)
+        model_copy = copy.deepcopy(self.model)
+        model_copy.to(self.device)
+        prepared_model = prepare_model(model=model_copy, task=self.task)
         return prepared_model
+
+    def _create_dataset(
+        self,
+        test_data: Union[torch.Tensor, Dict[str, torch.Tensor], List[dict]],
+        targets: torch.Tensor,
+    ) -> Union[datasets.Dataset, torch.utils.data.Dataset]:
+        """Convert test data and targets into a dataset.
+
+        Parameters
+        ----------
+        test_data : Union[torch.Tensor, Dict[str, torch.Tensor], List[dict]]
+            Test samples for which influence scores are computed.
+        targets : torch.Tensor
+            Targets for the test samples.
+
+        Returns
+        -------
+        Union[datasets.Dataset, torch.utils.data.Dataset]
+            Dataset containing the test data and targets.
+
+        """
+        if isinstance(test_data, torch.Tensor):
+            return torch.utils.data.TensorDataset(test_data, targets)
+        elif isinstance(test_data, Dict):
+            test_data["labels"] = targets
+            return datasets.Dataset.from_dict(test_data)
+        elif isinstance(test_data, List):
+            data_dict = {
+                key: [d[key] for d in test_data] for key in test_data[0].keys()
+            }
+            data_dict["labels"] = targets.tolist()
+            dataset = datasets.Dataset.from_dict(data_dict)
+            return dataset
+        else:
+            raise ValueError(
+                f"Unsupported test_data type: {type(test_data)}. "
+                "Expected torch.Tensor, List[dict], or "
+                "Dict[str, torch.Tensor]."
+            )
 
     def explain(
         self,
-        test_data: Union[torch.Tensor, DatasetDict],
+        test_data: Union[torch.Tensor, Dict[str, torch.Tensor], List[dict]],
         targets: Union[List[int], torch.Tensor],
         scores_name: Optional[str] = None,
         score_args: ScoreArguments = None,
@@ -177,7 +225,7 @@ class Kronfluence(Explainer):
 
         Parameters
         ----------
-        test_data : torch.Tensor
+        test_data : Union[torch.Tensor, Dict[str, torch.Tensor], List[dict]]
             Test samples for which influence scores are computed.
         targets : Union[List[int], torch.Tensor]
             Labels for the test samples. This argument is required.
@@ -198,7 +246,7 @@ class Kronfluence(Explainer):
 
         """
         targets = process_targets(targets, self.device)
-        test_dataset = torch.utils.data.TensorDataset(test_data, targets)
+        query_dataset = self._create_dataset(test_data, targets)
 
         scores_name = scores_name or self.scores_name
         score_args = score_args or self.score_args
@@ -206,7 +254,7 @@ class Kronfluence(Explainer):
         self.analyzer.compute_pairwise_scores(
             scores_name=scores_name,
             factors_name=self.factors_name,
-            query_dataset=test_dataset,
+            query_dataset=query_dataset,
             train_dataset=self.train_dataset,
             per_device_query_batch_size=self.batch_size,
             score_args=score_args,
@@ -268,9 +316,9 @@ class Kronfluence(Explainer):
 def kronfluence_explain(
     model: nn.Module,
     task_module: Task,
-    test_tensor: Union[torch.Tensor, DatasetDict],
+    test_data: Union[torch.Tensor, Dict[str, torch.Tensor], List[dict]],
     explanation_targets: Union[List[int], torch.Tensor],
-    train_dataset: Dataset,
+    train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
     checkpoints: Optional[Union[str, List[str]]] = None,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs: Any,
@@ -283,11 +331,11 @@ def kronfluence_explain(
         The model to be used for the influence computation.
     task_module : kronfluence.task.Task
         The task associated with the model.
-    test_tensor : torch.Tensor
+    test_data : Union[torch.Tensor, Dict[str, torch.Tensor], List[dict]]
         Test samples for which influence scores are computed.
     explanation_targets : Union[List[int], torch.Tensor]
         Labels for the test samples.
-    train_dataset : torch.utils.data.Dataset
+    train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
         Training dataset to be used for the influence computation.
     checkpoints : Optional[Union[str, List[str]]], optional
         Path to the model checkpoint file(s), defaults to None.
@@ -308,7 +356,7 @@ def kronfluence_explain(
         explainer_cls=Kronfluence,
         model=model,
         task_module=task_module,
-        test_data=test_tensor,
+        test_data=test_data,
         targets=explanation_targets,
         train_dataset=train_dataset,
         checkpoints=checkpoints,
@@ -320,7 +368,7 @@ def kronfluence_explain(
 def kronfluence_self_influence(
     model: nn.Module,
     task: Task,
-    train_dataset: Dataset,
+    train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
     checkpoints: Optional[Union[str, List[str]]] = None,
     checkpoints_load_func: Optional[Callable[..., Any]] = None,
     **kwargs: Any,
@@ -333,7 +381,7 @@ def kronfluence_self_influence(
         The model to be used for the influence computation.
     task : kronfluence.task.Task
         The task associated with the model.
-    train_dataset : torch.utils.data.Dataset
+    train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
         Training dataset to be used for the influence computation.
     checkpoints : Optional[Union[str, List[str]]], optional
         Path to the model checkpoint file(s), defaults to None.

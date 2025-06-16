@@ -1,16 +1,16 @@
 """Mixed Datasets benchmark module."""
 
 import logging
-from typing import Callable, List, Optional, Union, Any
+from typing import Any, Callable, List, Optional, Union
 
 import lightning as L
 import torch
 from torch.utils.data import Subset
 
-from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.base import Benchmark
-from quanda.utils.common import class_accuracy
+from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
+from quanda.utils.common import class_accuracy
 
 logger = logging.getLogger(__name__)
 

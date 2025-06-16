@@ -2,16 +2,14 @@
 
 import functools
 import os
-import yaml
 from abc import ABC
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import reduce
-from typing import Any, Callable, List, Mapping, Optional, Sized, Union, Dict
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sized, Union
 
 import torch
-import torch.utils
-import torch.utils.data
+import yaml
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
@@ -311,6 +309,61 @@ def process_targets(
             targets = torch.tensor(targets)
         targets = targets.to(device)
     return targets
+
+
+def get_targets(item: Union[tuple, dict]) -> int:
+    """Extract targets from dataset item.
+
+    Parameters
+    ----------
+    item : Union[tuple, dict]
+        Dataset item which can be either a tuple (data, target) or a dict
+        with 'labels' key.
+
+    Returns
+    -------
+    int
+        The target value.
+
+    """
+    if isinstance(item, tuple):
+        return item[1]
+    elif isinstance(item, dict):
+        if "labels" in item:
+            return item["labels"]
+        else:
+            raise ValueError(
+                f"Dataset item missing required 'labels' key: {item}."
+            )
+    else:
+        raise ValueError(
+            f"Unsupported dataset item type: {type(item)}. "
+            "Expected tuple (data, target) or dict with 'labels' key."
+        )
+
+
+def move_ds_item_to_device(
+    data: Union[torch.Tensor, Dict[str, torch.Tensor]],
+    device: Union[str, torch.device],
+) -> Union[torch.Tensor, Dict[str, torch.Tensor]]:
+    """Move test data to the device.
+
+    Parameters
+    ----------
+    data : Union[torch.Tensor, Dict[str, torch.Tensor]]
+        The data to process.
+    device: Union[str, torch.device]
+        The device to use.
+
+    Returns
+    -------
+    Union[torch.Tensor, Dict[str, torch.Tensor]]
+        The data on the specified device.
+
+    """
+    if isinstance(data, dict):
+        return {k: v.to(device) for k, v in data.items()}
+    return data.to(device)
 
 
 def load_last_checkpoint(

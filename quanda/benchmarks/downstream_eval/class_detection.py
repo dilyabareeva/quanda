@@ -1,8 +1,9 @@
 """Class Detection benchmark."""
 
 import logging
-from typing import Callable, List, Optional, Any
+from typing import Any, Callable, List, Optional, Union
 
+import datasets  # type: ignore
 import torch
 
 from quanda.benchmarks.base import Benchmark
@@ -51,8 +52,8 @@ class ClassDetection(Benchmark):
 
         self.model: torch.nn.Module
         self.device: str
-        self.train_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
+        self.train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
+        self.eval_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
         self.use_predictions: bool
         self.checkpoints: List[str]
         self.checkpoints_load_func: Callable[..., Any]

@@ -1,10 +1,12 @@
 """Class Detection Metric."""
 
-from typing import List, Optional, Union, Callable, Any
+from typing import Any, Callable, List, Optional, Union
 
+import datasets  # type: ignore
 import torch
 
 from quanda.metrics.base import Metric
+from quanda.utils.common import get_targets
 
 
 class ClassDetectionMetric(Metric):
@@ -33,7 +35,7 @@ class ClassDetectionMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
     ):
@@ -43,7 +45,7 @@ class ClassDetectionMetric(Metric):
         ----------
         model : torch.nn.Module
             The model associated with the attributions to be evaluated.
-        train_dataset : torch.utils.data.Dataset
+        train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
             The training dataset that was used to train `model`.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
@@ -83,8 +85,8 @@ class ClassDetectionMetric(Metric):
         _, top_one_xpl_indices = explanations.topk(k=1, dim=1)
         top_one_xpl_targets = torch.tensor(
             [
-                self.train_dataset[int(i)][1]
-                for i in top_one_xpl_indices.squeeze()
+                get_targets(self.train_dataset[int(i)])
+                for i in top_one_xpl_indices
             ]
         ).to(self.device)
         scores = (test_targets == top_one_xpl_targets) * 1.0

@@ -1,7 +1,7 @@
 """Model Randomization benchmark module."""
 
 import logging
-from typing import Callable, List, Optional, Any
+from typing import Any, Callable, List, Optional
 
 import torch
 
@@ -134,6 +134,7 @@ class ModelRandomization(Benchmark):
             correlation_fn=self.correlation_fn,
             seed=self.seed,
         )
+
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,
             explainer=explainer,

@@ -1,10 +1,10 @@
 """Top-K Cardinality benchmark module."""
 
 import logging
-from typing import Callable, List, Optional, Any
+from typing import Any, Callable, List, Optional, Union
 
+import datasets  # type: ignore
 import torch
-import torch.utils
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics import TopKCardinalityMetric
@@ -48,8 +48,8 @@ class TopKCardinality(Benchmark):
 
         self.model: torch.nn.Module
         self.device: str
-        self.train_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
+        self.train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
+        self.eval_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
         self.use_predictions: bool
         self.checkpoints: List[str]
         self.checkpoints_load_func: Callable[..., Any]

@@ -1,7 +1,7 @@
 """Benchmark for noisy label detection."""
 
 import logging
-from typing import Callable, List, Optional, Union, Any
+from typing import Any, Callable, List, Optional, Union
 
 import lightning as L
 import torch
@@ -9,8 +9,8 @@ import torch.utils
 from torch.utils.data import Subset
 
 from quanda.benchmarks.base import Benchmark
-from quanda.utils.common import class_accuracy
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
+from quanda.utils.common import class_accuracy
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )

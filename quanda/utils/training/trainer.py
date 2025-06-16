@@ -8,7 +8,7 @@ import lightning as L
 import torch
 from lightning import seed_everything
 
-from quanda.utils.training import BasicLightningModule
+from quanda.utils.training.base_pl_module import BasicLightningModule
 
 
 class BaseTrainer(metaclass=abc.ABCMeta):

@@ -1,10 +1,11 @@
 """Strategies for global ranking computation from a given local explainer."""
 
+import warnings
 from functools import lru_cache
 from typing import Optional
 
 import torch
-import warnings
+
 from quanda.explainers.base import Explainer
 
 

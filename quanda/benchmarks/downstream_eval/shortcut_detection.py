@@ -1,16 +1,16 @@
 """Shortcut Detection Benchmark."""
 
-from typing import Callable, List, Optional, Union, Any
+from typing import Any, Callable, List, Optional, Union
 
 import lightning as L
 import torch
 from torch.utils.data import Subset
 
 from quanda.benchmarks.base import Benchmark
-from quanda.utils.common import class_accuracy
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
+from quanda.utils.common import class_accuracy
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
 )

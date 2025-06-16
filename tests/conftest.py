@@ -1,5 +1,4 @@
 import json
-import yaml
 import os
 import pickle
 from typing import Dict, List, Tuple
@@ -11,14 +10,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
+import yaml
 from kronfluence.task import Task  # type: ignore
 from torch.utils.data import Dataset, TensorDataset
-from transformers import (
-    AutoConfig,
-    AutoModelForSequenceClassification,
+from torchvision.models import resnet18, vit_b_16
+from transformers import (  # type: ignore
     AutoTokenizer,
 )
-from torchvision.models import vit_b_16, resnet18
 
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
@@ -38,7 +36,11 @@ from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
 from quanda.utils.training.base_pl_module import BasicLightningModule
-from tests.models import LeNet
+from tests.models import (
+    LeNet,
+    SequenceClassificationModel,
+    SimpleTextClassifier,
+)
 
 # Copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
 GLUE_TASK_TO_KEYS = {
@@ -664,41 +666,6 @@ def get_glue_dataset(
     return ds
 
 
-class SequenceClassificationModel(nn.Module):
-    """
-    Wrapper for HuggingFace sequence classification models.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.config = AutoConfig.from_pretrained(
-            "gchhablani/bert-base-cased-finetuned-qnli",
-            num_labels=2,
-            finetuning_task="qnli",
-            cache_dir=None,
-            revision="main",
-            token=None,
-        )
-
-        self.model = AutoModelForSequenceClassification.from_pretrained(
-            "gchhablani/bert-base-cased-finetuned-qnli",
-            config=self.config,
-            cache_dir=None,
-            revision="main",
-            token=None,
-            ignore_mismatched_sizes=False,
-        )
-
-        self.model.eval()
-
-    def forward(self, input_ids, token_type_ids, attention_mask):
-        return self.model(
-            input_ids=input_ids,
-            token_type_ids=token_type_ids,
-            attention_mask=attention_mask,
-        )
-
-
 def get_dataset(split, inds=None):
     raw_datasets = datasets.load_dataset(
         "glue",
@@ -750,13 +717,13 @@ def get_dataset(split, inds=None):
 
 
 @pytest.fixture
-def qnli_model():
+def load_qnli_model():
     model = SequenceClassificationModel()
     return model
 
 
 @pytest.fixture
-def qnli_dataset():
+def load_qnli_dataset():
     ds_train = get_dataset("train")
     ds_train = ds_train.select(range(QNLI_TRAIN_SET_SIZE))
     ds_val = get_dataset("validation")
@@ -852,3 +819,39 @@ def load_wandb_config():
 def load_tensorboard_config():
     """Load TensorBoard config from tensorboard.yaml as a Python dict."""
     return load_yaml("config/logger/tensorboard.yaml")
+
+
+@pytest.fixture
+def load_simple_classifier():
+    return SimpleTextClassifier()
+
+
+@pytest.fixture
+def load_text_dataset():
+    def create_dummy_data(size, is_train=True):
+        seq_length = 10
+
+        if is_train:
+            base_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            input_ids = [base_ids for _ in range(size)]
+            labels = [i % 2 for i in range(size)]
+        else:
+            input_ids = [[10, 9, 8, 7, 6, 5, 4, 3, 2, 1] for _ in range(size)]
+            labels = [0, 1, 0, 1, 0][:size]
+
+        attention_mask = [[1] * seq_length for _ in range(size)]
+        token_type_ids = [[0] * seq_length for _ in range(size)]
+
+        data = {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "token_type_ids": token_type_ids,
+            "labels": labels,
+        }
+
+        return datasets.Dataset.from_dict(data)
+
+    ds_train = create_dummy_data(20, is_train=True)
+    ds_val = create_dummy_data(5, is_train=False)
+
+    return ds_train, ds_val

@@ -1,11 +1,11 @@
 """Dataset wrapper that groups the classes of a dataset into superclasses."""
 
-from typing import Callable, Optional, Literal
+from typing import Callable, Literal, Optional
 
 import torch
 
+from quanda.utils.datasets.transformed.base import TransformedDataset
 from quanda.utils.datasets.transformed.metadata import LabelGroupingMetadata
-from .base import TransformedDataset
 
 ClassToGroupLiterals = Literal["random"]
 

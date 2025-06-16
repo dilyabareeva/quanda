@@ -2,19 +2,17 @@
 
 import logging
 import os
-from typing import Callable, Optional, Union, List, Any
-
+from typing import Any, Callable, List, Optional, Union
 
 import lightning as L
 import torch
 
-from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
 from quanda.utils.functions import correlation_functions
-
 from quanda.utils.training import BaseTrainer
 
 logger = logging.getLogger(__name__)

@@ -2,7 +2,6 @@ import pytest
 import torch
 from lightning.pytorch import Trainer as LightningTrainer
 
-
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,

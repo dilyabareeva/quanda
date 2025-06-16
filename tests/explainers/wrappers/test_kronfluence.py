@@ -1,5 +1,4 @@
 import pytest
-
 from kronfluence.arguments import (  # type: ignore
     FactorArguments,
     ScoreArguments,
@@ -133,7 +132,7 @@ def test_kronfluence_explain_functional(
     explanations = kronfluence_explain(
         model=model,
         task_module=task,
-        test_tensor=test_tensor,
+        test_data=test_tensor,
         explanation_targets=test_labels,
         train_dataset=train_dataset,
         batch_size=1,
@@ -334,7 +333,7 @@ def test_kronfluence_explain_functional_with_optional_args(
     explanations = kronfluence_explain(
         model=model,
         task_module=task,
-        test_tensor=test_tensor,
+        test_data=test_tensor,
         explanation_targets=test_labels,
         train_dataset=train_dataset,
         batch_size=1,
@@ -394,44 +393,227 @@ def test_kronfluence_self_influence_functional_with_optional_args(
     )
 
 
-"""
 @pytest.mark.explainers
 @pytest.mark.parametrize(
-    "test_id, model, dataset",
+    "test_id, model, dataset, task, batch_size",
     [
         (
-            "qnli_kronfluence",
-            "qnli_model",
-            "qnli_dataset",
+            "dummy_text",
+            "load_simple_classifier",
+            "load_text_dataset",
+            "text_classification_task",
+            1,
         ),
     ],
 )
-def test_kronfluence_self_influence_qnli(
-    test_id, model, dataset, text_classification_task, request, tmp_path
+def test_kronfluence_language_explain_single(
+    test_id,
+    model,
+    dataset,
+    task,
+    batch_size,
+    request,
+    tmp_path,
 ):
     model = request.getfixturevalue(model)
     train_dataset, test_dataset = request.getfixturevalue(dataset)
+    task = request.getfixturevalue(task)
 
-    train_dataset.set_format(
-        type="torch",
-        columns=["input_ids", "attention_mask", "token_type_ids", "labels"],
-    )
-    test_dataset.set_format(
-        type="torch",
-        columns=["input_ids", "attention_mask", "token_type_ids", "labels"],
-    )
+    model.eval()
 
     explainer = Kronfluence(
         model=model,
-        task_module=text_classification_task,
+        task_module=task,
+        train_dataset=train_dataset,
+        batch_size=batch_size,
+        device="cpu",
+        cache_dir=str(tmp_path),
+    )
+
+    test_datapoint = test_dataset[0]
+    explanations = explainer.explain(
+        test_data=[test_datapoint],
+        targets=[test_datapoint["labels"]],
+    )
+    assert explanations.shape == (
+        1,
+        len(train_dataset),
+    ), "Explanation scores have incorrect shape"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, task, batch_size, num_test_points",
+    [
+        (
+            "dummy_text",
+            "load_simple_classifier",
+            "load_text_dataset",
+            "text_classification_task",
+            1,
+            3,
+        ),
+    ],
+)
+def test_kronfluence_language_explain_multiple(
+    test_id,
+    model,
+    dataset,
+    task,
+    batch_size,
+    num_test_points,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model)
+    train_dataset, test_dataset = request.getfixturevalue(dataset)
+    task = request.getfixturevalue(task)
+
+    model.eval()
+
+    explainer = Kronfluence(
+        model=model,
+        task_module=task,
+        train_dataset=train_dataset,
+        batch_size=batch_size,
+        device="cpu",
+        cache_dir=str(tmp_path),
+    )
+
+    test_datapoints = [test_dataset[i] for i in range(num_test_points)]
+    test_labels = [d["labels"] for d in test_datapoints]
+    explanations = explainer.explain(
+        test_data=test_datapoints,
+        targets=test_labels,
+    )
+    assert explanations.shape == (
+        num_test_points,
+        len(train_dataset),
+    ), "Explanation scores have incorrect shape"
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, task, batch_size",
+    [
+        (
+            "dummy_text",
+            "load_simple_classifier",
+            "load_text_dataset",
+            "text_classification_task",
+            1,
+        ),
+    ],
+)
+def test_kronfluence_language_self_influence(
+    test_id,
+    model,
+    dataset,
+    task,
+    batch_size,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model)
+    train_dataset, test_dataset = request.getfixturevalue(dataset)
+    task = request.getfixturevalue(task)
+
+    model.eval()
+
+    explainer = Kronfluence(
+        model=model,
+        task_module=task,
+        train_dataset=train_dataset,
+        batch_size=batch_size,
+        device="cpu",
+        cache_dir=str(tmp_path),
+    )
+
+    self_influence_scores = explainer.self_influence()
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "test_id, model, dataset, task",
+    [
+        (
+            "qnli_kronfluence",
+            "load_qnli_model",
+            "load_qnli_dataset",
+            "text_classification_task",
+        ),
+    ],
+)
+def test_kronfluence_qnli_self_influence(
+    test_id,
+    model,
+    dataset,
+    task,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model)
+    train_dataset, test_dataset = request.getfixturevalue(dataset)
+    task = request.getfixturevalue(task)
+
+    explainer = Kronfluence(
+        model=model,
+        task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
         device="cpu",
         cache_dir=str(tmp_path),
     )
-    self_influence_scores = explainer.self_influence()
 
-    assert self_influence_scores.shape == (
+    self_influence_scores = explainer.self_influence()
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    "test_id, model, dataset, task",
+    [
+        (
+            "qnli_kronfluence",
+            "load_qnli_model",
+            "load_qnli_dataset",
+            "text_classification_task",
+        ),
+    ],
+)
+def test_kronfluence_qnli_explain(
+    test_id,
+    model,
+    dataset,
+    task,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model)
+    train_dataset, test_dataset = request.getfixturevalue(dataset)
+    task = request.getfixturevalue(task)
+
+    explainer = Kronfluence(
+        model=model,
+        task_module=task,
+        train_dataset=train_dataset,
+        batch_size=1,
+        device="cpu",
+        cache_dir=str(tmp_path),
+    )
+
+    test_datapoint = test_dataset[0]
+    explanations = explainer.explain(
+        test_data=[test_datapoint],
+        targets=[test_datapoint["labels"]],
+    )
+
+    assert explanations.shape == (
+        1,
         len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
-"""
+    ), "Explanation scores have incorrect shape"

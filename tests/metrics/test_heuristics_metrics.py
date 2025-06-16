@@ -10,10 +10,8 @@ from quanda.metrics.heuristics import (
     TopKCardinalityMetric,
 )
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
+from quanda.utils.common import get_parent_module_from_name
 from quanda.utils.functions import cosine_similarity
-from quanda.utils.common import (
-    get_parent_module_from_name,
-)
 
 
 @pytest.mark.heuristic_metrics

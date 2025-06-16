@@ -1,7 +1,7 @@
 """Contains tests common to all benchmarks."""
 
-import os
 import math
+import os
 
 import pytest
 from omegaconf import OmegaConf
@@ -15,9 +15,9 @@ from quanda.benchmarks.downstream_eval import (
 )
 from quanda.benchmarks.ground_truth import LinearDatamodeling
 from quanda.benchmarks.heuristics import (
+    MixedDatasets,
     ModelRandomization,
     TopKCardinality,
-    MixedDatasets,
 )
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity

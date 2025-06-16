@@ -4,10 +4,10 @@ import hydra
 from omegaconf import DictConfig
 
 from quanda.benchmarks import bench_dict
-from quanda.benchmarks.downstream_eval import *
-from quanda.benchmarks.heuristics import *
-from quanda.benchmarks.ground_truth import *
 from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.downstream_eval import *
+from quanda.benchmarks.ground_truth import *
+from quanda.benchmarks.heuristics import *
 
 
 @hydra.main(version_base=None, config_path="../config", config_name="default")

@@ -1,7 +1,8 @@
 """Top-K Cardinality Metric."""
 
-from typing import Optional, Union, List, Callable, Any
+from typing import Any, Callable, List, Optional, Union
 
+import datasets  # type: ignore
 import torch
 
 from quanda.metrics.base import Metric
@@ -27,7 +28,7 @@ class TopKCardinalityMetric(Metric):
     def __init__(
         self,
         model: torch.nn.Module,
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         top_k: int = 1,
@@ -38,7 +39,7 @@ class TopKCardinalityMetric(Metric):
         ----------
         model : torch.nn.Module
             The model associated with the attributions to be evaluated.
-        train_dataset : torch.utils.data.Dataset
+        train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
             The training dataset that was used to train `model`.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.

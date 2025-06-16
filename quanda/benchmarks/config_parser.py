@@ -1,24 +1,23 @@
 """Configuration parser for benchmarks."""
 
-import os
 import copy
-from typing import Optional, Tuple, Any, List, Union, Callable
-from huggingface_hub import snapshot_download
+import os
+from typing import Any, Callable, List, Optional, Tuple, Union
+
 import torch
 from datasets import load_dataset  # type: ignore
-from quanda.utils.datasets.image_datasets import HFtoTV
+from huggingface_hub import snapshot_download
 
-from quanda.benchmarks.resources import (
-    sample_transforms,
-    pl_modules,
-)
+from quanda.benchmarks.resources import pl_modules
+from quanda.benchmarks.resources.sample_transforms import sample_transforms
 from quanda.utils.common import TrainValTest
+from quanda.utils.datasets.image_datasets import HFtoTV
 from quanda.utils.datasets.transformed import (
-    transform_wrappers,
     TransformedDataset,
+    transform_wrappers,
 )
 from quanda.utils.training import Trainer
-from quanda.utils.training.options import optimizers, criteria, schedulers
+from quanda.utils.training.options import criteria, optimizers, schedulers
 
 
 class BenchConfigParser:
@@ -237,7 +236,10 @@ class BenchConfigParser:
     @classmethod
     def _get_transform(cls, ds_config: dict) -> Optional[Any]:
         """Get the transform function from configuration."""
-        return sample_transforms.get(ds_config.get("transforms", None), None)
+        transform_name = ds_config.get("transforms", None)
+        return (
+            sample_transforms.get(transform_name) if transform_name else None
+        )
 
     @classmethod
     def _apply_indices(

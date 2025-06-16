@@ -1,6 +1,6 @@
+import os
 from typing import Tuple
 
-import os
 import hydra
 from omegaconf import DictConfig, OmegaConf
 

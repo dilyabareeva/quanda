@@ -4,7 +4,7 @@ import pytest
 
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.downstream_eval import MislabelingDetection
-from quanda.benchmarks.resources import sample_transforms
+from quanda.benchmarks.resources.sample_transforms import sample_transforms
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.datasets.transformed import LabelFlippingDataset
 from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata

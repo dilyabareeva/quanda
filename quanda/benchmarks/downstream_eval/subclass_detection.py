@@ -1,7 +1,7 @@
 """Benchmark for subclass detection task."""
 
 import logging
-from typing import Callable, Dict, List, Optional, Union, Any
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import lightning as L
 import torch

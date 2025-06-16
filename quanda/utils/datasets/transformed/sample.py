@@ -4,10 +4,10 @@ from typing import Callable, Optional
 
 import torch
 
+from quanda.utils.datasets.transformed.base import TransformedDataset
 from quanda.utils.datasets.transformed.metadata import (
     SampleTransformationMetadata,
 )
-from .base import TransformedDataset
 
 
 class SampleTransformationDataset(TransformedDataset):
