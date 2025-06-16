@@ -4,11 +4,11 @@
 
 We reconstruct the dataset used in [pretraining-tda](https://github.com/PAIR-code/pretraining-tda). The dataset consists of:
 
-- **Prompts:** e.g., `"The capital of France is:"`
+- **Prompts:** e.g., `"The capital of France is: "`
 - **Answers:** e.g., `"Paris"`
 - **Evidence Sentences:** Factual sentences containing the answer.
 
-The original 5.4k sample dataset from the repository is not accessible (broken link), so we recreated it using the following files:
+The original 5.4k sample dataset from the repository is not accessible ([broken link](https://storage.googleapis.com/tda-resources/2410.17413/public/trex_facts_sample.jsonl)), so we recreated it using the following files:
 
 - [`trex_retrievals_trak.jsonl`](https://storage.googleapis.com/tda-resources/2410.17413/public/trex_retrievals_trak.jsonl)
 - [`trex_facts.jsonl`](https://storage.googleapis.com/tda-resources/2410.17413/public/trex_facts.jsonl)
@@ -32,7 +32,7 @@ Each sample contains:
 
 ---
 
-## 🧠 Language Models
+## 🧠 Models
 
 We pretrain and fine-tune GPT-2 variants using a forked [NanoGPT](https://github.com/aski02/nanoGPT).
 
@@ -40,9 +40,9 @@ We pretrain and fine-tune GPT-2 variants using a forked [NanoGPT](https://github
 
 We trained GPT-2 small (124M) and medium (355M) models under three different data regimes:
 
-1. **TREx-only:** 20M TREx factual sentences.
-2. **TREx + WikiText-103:** Combined with the train split of WikiText-103.
-3. **TREx + OpenWebText (10%):** Combined with 10% of OpenWebText.
+1. **TREx-only:** 20M TREx sentences, 99/1 train/val split.
+2. **TREx + WikiText-103-v1:** full TREx + train split of WikiText-103-v1; evaluated on a subset of WikiText-103-v1.
+3. **TREx + OpenWebText (10%):** full TREx + 10% of OpenWebText; evaluated on a subset of OpenWebText.
 
 Each variant was trained using dedicated `.py` training scripts wrapped in `.sh` shell scripts for execution on a cluster.
 
@@ -81,7 +81,7 @@ python finetuning.py \
   --max_length 64
 ```
 
-This command trains the model to generate brief answers like `"Paris"` for prompts like `"The capital of France is:"`.
+This command trains the model to generate brief answers like `"Paris"` for prompts like `"The capital of France is: "`.
 
 The best-performing model was the one trained on **TREx + OpenWebText**, which achieved **~35% accuracy** on the validation split. Correctly answered samples were saved in the [`trex-subset-benchmark`](https://huggingface.co/datasets/quanda-bench-test/trex-subset-benchmark) set. These can be used in the benchmark.
 
