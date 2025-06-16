@@ -83,13 +83,22 @@ python finetuning.py \
 
 This command trains the model to generate brief answers like `"Paris"` for prompts like `"The capital of France is: "`.
 
-The best-performing model was the one trained on **TREx + OpenWebText**, which achieved **~35% accuracy** on the validation split. Correctly answered samples were saved in the [`trex-subset-benchmark`](https://huggingface.co/datasets/quanda-bench-test/trex-subset-benchmark) set. These can be used in the benchmark.
+The best-performing model was the one trained on **TREx + OpenWebText**, which achieved **~33% accuracy** on the validation split. Correctly answered samples were saved in the [`trex-subset-benchmark`](https://huggingface.co/datasets/quanda-bench-test/trex-subset-benchmark) set. These can be used in the benchmark.
 
 ---
 
 ### Inference
 
-**TODO: explain how the `inference.py` script builds the benchmark dataset.**
+Once a model was fine-tuned, we can use it to predict answers for the TREx prompts. The `inference.py` script inside the [NanoGPT fork](https://github.com/aski02/nanoGPT) will run through the `val` set in `quanda-bench-test/trex-subset-split` and save all the correctly predicted prompts to the specified output file:
+
+```bash
+python inference.py \
+  --model_dir gpt2-small-trex \
+  --output_path trex-subset-benchmark.jsonl \
+  --num_prompts 50
+```
+
+For fact tracing benchmarks we oftentimes want to evaluate wether the evidence sentence (i.e. the sentence containing the answer to the prompt) is inside the top proponents for a given prompt. Therefore it makes sense to evaluate prompts for which the model knows the correct answer.
 
 ---
 
@@ -107,18 +116,22 @@ All models are uploaded under the `quanda-bench-test` namespace:
 - [`gpt2-small-trex-wikitext-ft`](https://huggingface.co/quanda-bench-test/gpt2-small-trex-wikitext-ft)
 - [`gpt2-small-trex-openwebtext-ft`](https://huggingface.co/quanda-bench-test/gpt2-small-trex-openwebtext-ft)
 
-#### 🔹 GPT-2 Medium (355M)
-- [`gpt2-med-trex`](https://huggingface.co/quanda-bench-test/gpt2-med-trex)
-- [`gpt2-med-trex-wikitext`](https://huggingface.co/quanda-bench-test/gpt2-med-trex-wikitext)
-- [`gpt2-med-trex-openwebtext`](https://huggingface.co/quanda-bench-test/gpt2-med-trex-openwebtext)
-
 ---
 
 ## 🛠️ Benchmark
 
 In order to now create a benchmark, all we need is to select one of the finetuned models as well as the [`trex-subset-benchmark`](https://huggingface.co/datasets/quanda-bench-test/trex-subset-benchmark) dataset.
 
-In `quanda/tests/conftest.py` there is a method `load_fact_tracing_dataset` which generates a fitting dataset from the provided huggingface dataset. It selects a specified number of prompts and combines all their evidence sentences into a large corpus. The TDA method should then rank the entire set of evidence sentences for each prompt. If the evidence sentences which belong to that prompt are among the top proponents, then we will get a high score.
-`quanda/tests/benchmarks/downstream_eval/test_mrr.py` already implements such a benchmark but on a very small scale. 
+In `quanda/tests/conftest.py` there is a method `load_fact_tracing_dataset` which generates a fitting dataset from the provided huggingface dataset. It selects a specified number of prompts and combines all their evidence sentences into a large corpus. The TDA method should then rank the entire set of evidence sentences for each prompt. If the evidence sentences which belong to that prompt are among the top proponents, then we will get a high score. 
+The final test inside `quanda/tests/benchmarks/downstream_eval/test_mrr.py` already implements such a benchmark using the finetuned [`gpt2-small-trex-openwebtext-ft`](https://huggingface.co/quanda-bench-test/gpt2-small-trex-openwebtext-ft) as well as the [`trex-subset-benchmark`](https://huggingface.co/datasets/quanda-bench-test/trex-subset-benchmark) dataset for the MRR metric. The scores however are quite low when increasing the number of prompts.
 
-**TODO: Write about larger scale benchmark incl. script.**
+> **Note:** Kronfluence expects a model's forward pass to return full sequence logits of shape `[B, T, V]`.  
+> The original NanoGPT implementation by Karpathy only returns a single-token prediction during inference (`[B, 1, V]`) when `targets=None` for efficiency reasons.
+> For compatibility, we modified the forward pass of the GPT model to always return full logits:
+>
+> ```python
+> logits = self.lm_head(x)  # instead of logits = self.lm_head(x[:, [-1], :])
+> ```
+>
+> We did this change only in the `quanda/tests/models.py` file. In the [training repository](https://github.com/aski02/nanoGPT) we still use the optimized code.
+
