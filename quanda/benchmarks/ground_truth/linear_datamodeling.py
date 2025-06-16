@@ -116,11 +116,13 @@ class LinearDatamodeling(Benchmark):
         obj.model_id = config.get("model_id", "0")
         obj.cache_dir = config.get("cache_dir", "./tmp")
         obj.seed = config["seed"]
-
+        cache_dir = config.get("bench_save_dir", "./tmp")
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=cache_dir
+        )
         metadata_dir = BenchConfigParser.load_metadata(
             cfg=config,
-            bench_save_dir=config.get("bench_save_dir", "./tmp"),
-            load_meta_from_disk=load_meta_from_disk,
+            metadata_dir=metadata_dir,
         )
 
         # create metadata dir if it doesn't exist
@@ -150,7 +152,7 @@ class LinearDatamodeling(Benchmark):
                 bench_save_dir=config["bench_save_dir"],
                 repo_id=config["repo_id"],
                 ckpts=config["ckpts"],
-                offline=offline,
+                load_model_from_disk=offline,
                 device=device,
             )
         )
@@ -161,7 +163,7 @@ class LinearDatamodeling(Benchmark):
                 bench_save_dir=config["bench_save_dir"],
                 repo_id=config["repo_id"],
                 ckpts=config["subset_ckpts"],
-                offline=offline,
+                load_model_from_disk=offline,
                 device=device,
             )
         )

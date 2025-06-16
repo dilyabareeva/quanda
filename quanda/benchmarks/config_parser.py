@@ -80,7 +80,6 @@ class BenchConfigParser:
         bench_save_dir: str,
         repo_id: str,
         ckpts: List[str],
-        offline: bool,
         load_model_from_disk: bool,
         device: str,
     ) -> Tuple[torch.nn.Module, List[str], Callable]:

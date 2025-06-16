@@ -66,3 +66,5 @@ offline: true
 seed: 42
 cfg_output_dir: tests/assets/mnist_test_suite_3
 cfg_file_name: 0921427-default_ShortcutDetection.yaml
+ckpts:
+  - 0921427-default_ShortcutDetection

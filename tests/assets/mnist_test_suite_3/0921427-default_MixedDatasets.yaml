@@ -50,3 +50,5 @@ adv_dataset:
   save_dir: fashion_mnist_unit
 cfg_output_dir: tests/assets/mnist_test_suite_3
 cfg_file_name: 0921427-default_MixedDatasets.yaml
+ckpts:
+  - 0921427-default_MixedDatasets

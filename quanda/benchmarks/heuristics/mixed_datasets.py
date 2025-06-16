@@ -153,7 +153,6 @@ class MixedDatasets(Benchmark):
                 bench_save_dir=config["bench_save_dir"],
                 repo_id=config["repo_id"],
                 ckpts=config["ckpts"],
-                offline=offline,
                 load_model_from_disk=offline,
                 device=device,
             )
