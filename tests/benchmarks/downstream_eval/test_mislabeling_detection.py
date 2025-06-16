@@ -78,7 +78,6 @@ def test_mislabeling_detection(
             config["ckpts"],
             load_model_from_disk=True,
             device="cpu",
-
         )
     )
     dst_eval.filter_by_prediction = config.get("filter_by_prediction", False)

@@ -93,8 +93,8 @@ class BenchConfigParser:
             Path to checkpoint directory "ckpt".
         repo_id : str
             Repo ID Hugging Face
-        cfg_id : str
-            Configuration ID
+        ckpts: List[str]
+            File names of checkpoints.
         load_model_from_disk : bool
             If True, the method tries to load the model from the local cache.
         load_model_from_disk : bool

@@ -101,8 +101,7 @@ class LinearDatamodeling(Benchmark):
         obj.m = config.get("m", 100)
         obj.alpha = config.get("alpha", 0.5)
         counterfactual_trainer = config.get(
-            "counterfactual_trainer",
-            config["model"].get("trainer", None)
+            "counterfactual_trainer", config["model"].get("trainer", None)
         )
         if counterfactual_trainer is None:
             raise ValueError(
@@ -128,8 +127,6 @@ class LinearDatamodeling(Benchmark):
         # create metadata dir if it doesn't exist
         os.makedirs(metadata_dir, exist_ok=True)
         subset_ids = f"{metadata_dir}/{config['subset_ids']}"
-        if not os.path.exists(subset_ids):
-            subset_ids = None
 
         obj.generator = torch.Generator()
         obj.generator.manual_seed(obj.seed)
@@ -138,9 +135,7 @@ class LinearDatamodeling(Benchmark):
             subset_ids=subset_ids,
             alpha=obj.alpha,
             m=obj.m,
-            cache_dir=metadata_dir,
             generator=obj.generator,
-            device=device,
         )
 
         with open(f"{metadata_dir}/{config['subset_ids']}", "w") as f:
@@ -157,15 +152,13 @@ class LinearDatamodeling(Benchmark):
             )
         )
 
-        _, obj.pretrained_models, _ = (
-            BenchConfigParser.parse_model_cfg(
-                model_cfg=config["model"],
-                bench_save_dir=config["bench_save_dir"],
-                repo_id=config["repo_id"],
-                ckpts=config["subset_ckpts"],
-                load_model_from_disk=offline,
-                device=device,
-            )
+        _, obj.pretrained_models, _ = BenchConfigParser.parse_model_cfg(
+            model_cfg=config["model"],
+            bench_save_dir=config["bench_save_dir"],
+            repo_id=config["repo_id"],
+            ckpts=config["subset_ckpts"],
+            load_model_from_disk=offline,
+            device=device,
         )
 
         obj.correlation_fn = correlation_functions[config["correlation_fn"]]

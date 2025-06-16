@@ -241,7 +241,9 @@ class Benchmark(ABC):
             cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
         )
         create_repo(
-            repo_id=f"quanda-bench-test/{config['id']}_metadata", repo_type="dataset", exist_ok=True
+            repo_id=f"quanda-bench-test/{config['id']}_metadata",
+            repo_type="dataset",
+            exist_ok=True,
         )
         upload_folder(
             folder_path=metadata_dir,
@@ -250,7 +252,6 @@ class Benchmark(ABC):
         )
 
         return obj
-
 
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute training and validation accuracy of the model.
