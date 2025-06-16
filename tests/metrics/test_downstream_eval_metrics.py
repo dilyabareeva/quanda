@@ -273,7 +273,7 @@ def test_mislabeling_detection_metric_si_warnings(
             pass
 
 
-@pytest.mark.tested
+@pytest.mark.metrics
 @pytest.mark.parametrize(
     "test_id, model, checkpoint,dataset, labels, poisoned_ids, poisoned_cls, explanations, filter_by_prediction, expected",
     [

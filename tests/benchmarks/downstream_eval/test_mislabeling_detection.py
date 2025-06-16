@@ -75,7 +75,7 @@ def test_mislabeling_detection(
             config["model"],
             config["bench_save_dir"],
             config["repo_id"],
-            config["id"],
+            config["ckpts"],
             True,
             "cpu",
         )

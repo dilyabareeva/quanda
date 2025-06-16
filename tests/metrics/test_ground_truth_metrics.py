@@ -12,7 +12,7 @@ from quanda.utils.training import Trainer
 
 @pytest.mark.ground_truth_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, expected, method_kwargs",
     [
         (
             "mnist",
@@ -23,6 +23,7 @@ from quanda.utils.training import Trainer
             "load_mnist_test_labels_1",
             "torch_sgd_optimizer",
             "torch_cross_entropy_loss_object",
+            0.25999,
             {"layers": "relu_4", "similarity_metric": cosine_similarity},
         ),
     ],
@@ -36,7 +37,7 @@ def test_linear_datamodeling(
     test_labels,
     optimizer,
     criterion,
-    get_lds_score,
+    expected,
     method_kwargs,
     request,
     tmp_path,
@@ -90,9 +91,7 @@ def test_linear_datamodeling(
 
     score = metric.compute()["score"]
 
-    assert abs(score - get_lds_score) < 0.01, (
-        "LDS scores differ significantly."
-    )
+    assert abs(score - expected) < 0.01, "LDS scores differ significantly."
 
 
 @pytest.mark.ground_truth_metrics
@@ -160,10 +159,10 @@ def test_linear_datamodeling_extended(
         trainer=trainer,
         alpha=0.5,
         model_id="mnist_lds",
-        m=len(subset_indices),
+        m=len(pretrained_models),
         seed=3,
         correlation_fn="spearman",
-        cache_dir=str(tmp_path),
+        cache_dir="tests/assets/lds_checkpoints/",
         batch_size=1,
         subset_ids=subset_indices,
         pretrained_models=pretrained_models,

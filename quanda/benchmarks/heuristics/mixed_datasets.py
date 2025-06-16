@@ -102,10 +102,8 @@ class MixedDatasets(Benchmark):
         obj = cls()
         obj.device = device
 
-        metadata_dir = BenchConfigParser.load_metadata(
-            cfg=config,
-            bench_save_dir=config.get("bench_save_dir", "./tmp"),
-            load_meta_from_disk=load_meta_from_disk,
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
         )
         train_base_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config["train_dataset"],
@@ -154,8 +152,9 @@ class MixedDatasets(Benchmark):
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
                 repo_id=config["repo_id"],
-                cfg_id=config["id"],
+                ckpts=config["ckpts"],
                 offline=offline,
+                load_model_from_disk=offline,
                 device=device,
             )
         )

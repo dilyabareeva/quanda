@@ -22,7 +22,7 @@ def test_trainer(
     assert bar(y=1) == 101
 
 
-@pytest.mark.tested
+@pytest.mark.utils
 @pytest.mark.parametrize(
     "test_id, n_indices, test_size, val_size",
     [

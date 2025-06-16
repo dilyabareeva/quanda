@@ -476,32 +476,18 @@ def mnist_top_k_cardinality_benchmark(tmp_path_factory):
 
 
 @pytest.fixture
-def get_lds_score():
-    with open("tests/assets/lds_score.json", "r") as f:
-        score_data = json.load(f)
-    return score_data["lds_score"]
-
-
-@pytest.fixture
 def load_subset_indices_lds():
-    indices_path = "tests/assets/lds_checkpoints/subset_indices.pt"
-    return torch.load(indices_path)
+    return "subset_indices.pt"
 
 
 @pytest.fixture
 def load_pretrained_models_lds():
-    model_paths = [
-        "tests/assets/lds_checkpoints/model_subset_0.pt",
-        "tests/assets/lds_checkpoints/model_subset_1.pt",
-        "tests/assets/lds_checkpoints/model_subset_2.pt",
-        "tests/assets/lds_checkpoints/model_subset_3.pt",
+    return [
+        "model_subset_0.pt",
+        "model_subset_1.pt",
+        "model_subset_2.pt",
+        "model_subset_3.pt",
     ]
-    models = []
-    for path in model_paths:
-        model = LeNet()
-        model.load_state_dict(torch.load(path, map_location="cpu"))
-        models.append(model)
-    return models
 
 
 @pytest.fixture
@@ -762,17 +748,11 @@ def load_mnist_linear_datamodeling_config(
 ):
     # load yaml file
     with open(
-        "tests/assets/mnist_test_suite_2/7ed30b3-default_ClassDetection.yaml",
+        "tests/assets/mnist_test_suite_2/f1c529c-default_LDS.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
 
-    # These are not specified in the default config file, because "correlation_fn" clashes with the default one for randomization.
-    config["alpha"] = 0.5
-    config["correlation_fn"] = "spearman"
-    config["pretrained_models"] = load_pretrained_models_lds
-    config["subset_ids"] = load_subset_indices_lds
-    config["m"] = 4
     return config
 
 

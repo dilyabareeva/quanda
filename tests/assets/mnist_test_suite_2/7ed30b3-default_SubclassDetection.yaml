@@ -59,3 +59,5 @@ offline: true
 seed: 42
 cfg_file_name: 7ed30b3-default_SubclassDetection.yaml
 cfg_output_dir: tests/assets/mnist_test_suite_2
+ckpts:
+- 7ed30b3-default_SubclassDetection

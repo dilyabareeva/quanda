@@ -1,6 +1,7 @@
 """Benchmark for the Linear Datamodeling Score metric."""
 
 import logging
+import os
 from typing import Any, Callable, List, Optional, Union
 
 import lightning as L
@@ -68,7 +69,7 @@ class LinearDatamodeling(Benchmark):
         self.correlation_fn: Callable
         self.seed: int
         self.subset_ids: Optional[List[List[int]]]
-        self.pretrained_models: Optional[List[torch.nn.Module]]
+        self.pretrained_models: Optional[List[str]]
 
         self.checkpoints: List[str]
         self.checkpoints_load_func: Callable[..., Any]
@@ -99,23 +100,71 @@ class LinearDatamodeling(Benchmark):
         obj = super().from_config(config, load_meta_from_disk, offline, device)
         obj.m = config.get("m", 100)
         obj.alpha = config.get("alpha", 0.5)
-        if not config.get("counterfactual_trainer"):
-            config["counterfactual_trainer"] = config["model"].get(
-                "trainer", None
-            )
-        if config["counterfactual_trainer"] is None:
+        counterfactual_trainer = config.get(
+            "counterfactual_trainer",
+            config["model"].get("trainer", None)
+        )
+        if counterfactual_trainer is None:
             raise ValueError(
                 "Either 'trainer' or 'model.trainer' should be set."
             )
         obj.counterfactual_trainer = BenchConfigParser.parse_trainer_cfg(
-            config["counterfactual_trainer"]
+            counterfactual_trainer
         )
+        # TODO: make trainer_fit_kwargs available to all benchmarks
         obj.trainer_fit_kwargs = config.get("trainer_fit_kwargs", None)
         obj.model_id = config.get("model_id", "0")
         obj.cache_dir = config.get("cache_dir", "./tmp")
         obj.seed = config["seed"]
-        obj.subset_ids = config.get("subset_ids", None)
-        obj.pretrained_models = config.get("pretrained_models", None)
+
+        metadata_dir = BenchConfigParser.load_metadata(
+            cfg=config,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            load_meta_from_disk=load_meta_from_disk,
+        )
+
+        # create metadata dir if it doesn't exist
+        os.makedirs(metadata_dir, exist_ok=True)
+        subset_ids = f"{metadata_dir}/{config['subset_ids']}"
+        if not os.path.exists(subset_ids):
+            subset_ids = None
+
+        obj.generator = torch.Generator()
+        obj.generator.manual_seed(obj.seed)
+        obj.subset_ids = LinearDatamodelingMetric.generate_subsets(
+            dataset=obj.train_dataset,
+            subset_ids=subset_ids,
+            alpha=obj.alpha,
+            m=obj.m,
+            cache_dir=metadata_dir,
+            generator=obj.generator,
+            device=device,
+        )
+
+        with open(f"{metadata_dir}/{config['subset_ids']}", "w") as f:
+            f.write(f"{obj.subset_ids}")
+
+        obj.model, obj.checkpoints, obj.checkpoints_load_func = (
+            BenchConfigParser.parse_model_cfg(
+                model_cfg=config["model"],
+                bench_save_dir=config["bench_save_dir"],
+                repo_id=config["repo_id"],
+                ckpts=config["ckpts"],
+                offline=offline,
+                device=device,
+            )
+        )
+
+        _, obj.pretrained_models, _ = (
+            BenchConfigParser.parse_model_cfg(
+                model_cfg=config["model"],
+                bench_save_dir=config["bench_save_dir"],
+                repo_id=config["repo_id"],
+                ckpts=config["subset_ckpts"],
+                offline=offline,
+                device=device,
+            )
+        )
 
         obj.correlation_fn = correlation_functions[config["correlation_fn"]]
         obj.use_predictions = config.get("use_predictions", True)
@@ -150,20 +199,13 @@ class LinearDatamodeling(Benchmark):
             expl_kwargs=expl_kwargs,
         )
 
-        def _metric_checkpoints_load_func(model, ckpt_path):
-            state_dict = torch.load(ckpt_path, map_location=self.device)
-            model.load_state_dict(state_dict)
-
         metric = LinearDatamodelingMetric(
             model=self.model,
             checkpoints=self.checkpoints,
             checkpoints_load_func=self.checkpoints_load_func,
-            counterfactual_load_func=_metric_checkpoints_load_func,
             train_dataset=self.train_dataset,
             alpha=self.alpha,
             m=self.m,
-            trainer=self.counterfactual_trainer,
-            trainer_fit_kwargs=self.trainer_fit_kwargs,
             cache_dir=self.cache_dir,
             model_id=self.model_id,
             correlation_fn=self.correlation_fn,
@@ -171,6 +213,7 @@ class LinearDatamodeling(Benchmark):
             batch_size=batch_size,
             subset_ids=self.subset_ids,
             pretrained_models=self.pretrained_models,
+            # TODO: implement pretrained_models in LDS metric
         )
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,
