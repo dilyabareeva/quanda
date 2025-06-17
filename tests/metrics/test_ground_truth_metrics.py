@@ -94,7 +94,7 @@ def test_linear_datamodeling(
     assert abs(score - expected) < 0.01, "LDS scores differ significantly."
 
 
-@pytest.mark.ground_truth_metrics
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, model, dataset, test_data, test_labels, subset_indices, pretrained_models, optimizer, criterion, method_kwargs",
     [
@@ -165,7 +165,7 @@ def test_linear_datamodeling_extended(
         cache_dir="tests/assets/lds_checkpoints/",
         batch_size=1,
         subset_ids=subset_indices,
-        pretrained_models=pretrained_models,
+        subset_ckpt_filenames=pretrained_models,
     )
 
     metric.update(

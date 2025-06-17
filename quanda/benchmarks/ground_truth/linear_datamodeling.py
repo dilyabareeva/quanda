@@ -6,6 +6,8 @@ from typing import Any, Callable, List, Optional, Union
 
 import lightning as L
 import torch
+import yaml
+from huggingface_hub import create_repo, upload_folder
 
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.config_parser import BenchConfigParser
@@ -41,38 +43,6 @@ class LinearDatamodeling(Benchmark):
     name: str = "Linear Datamodeling Score"
     eval_args: list = ["explanations", "test_data", "test_targets"]
 
-    def __init__(
-        self,
-        *args,
-        **kwargs,
-    ):
-        """Initialize the `LinearDatamodeling` benchmark.
-
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: Union[torch.nn.Module, L.LightningModule]
-        self.device: str
-        self.train_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
-        self.dataset_transform: Optional[Callable]
-        self.m: int
-        self.alpha: float
-        self.counterfactual_trainer: Union[L.Trainer, BaseTrainer]
-        self.trainer_fit_kwargs: Optional[dict]
-        self.cache_dir: str
-        self.model_id: str
-        self.use_predictions: bool
-        self.correlation_fn: Callable
-        self.seed: int
-        self.subset_ids: Optional[List[List[int]]]
-        self.pretrained_models: Optional[List[str]]
-
-        self.checkpoints: List[str]
-        self.checkpoints_load_func: Callable[..., Any]
 
     @classmethod
     def from_config(
@@ -99,6 +69,11 @@ class LinearDatamodeling(Benchmark):
         """
         obj = super().from_config(config, load_meta_from_disk, offline, device)
         obj.m = config.get("m", 100)
+
+        obj.subset_ckpt_filenames = []
+        for i in range(obj.m):
+            obj.subset_ckpt_filenames.append(f"{config['repo_id']}/{config['ckpts'][-1]}_lds_subset_{i}")
+
         obj.alpha = config.get("alpha", 0.5)
         counterfactual_trainer = config.get(
             "counterfactual_trainer", config["model"].get("trainer", None)
@@ -119,27 +94,25 @@ class LinearDatamodeling(Benchmark):
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=cache_dir
         )
-        metadata_dir = BenchConfigParser.load_metadata(
-            cfg=config,
-            metadata_dir=metadata_dir,
-        )
-
         # create metadata dir if it doesn't exist
         os.makedirs(metadata_dir, exist_ok=True)
-        subset_ids = f"{metadata_dir}/{config['subset_ids']}"
 
-        obj.generator = torch.Generator()
-        obj.generator.manual_seed(obj.seed)
-        obj.subset_ids = LinearDatamodelingMetric.generate_subsets(
-            dataset=obj.train_dataset,
-            subset_ids=subset_ids,
-            alpha=obj.alpha,
-            m=obj.m,
-            generator=obj.generator,
-        )
+        generator = torch.Generator()
+        generator.manual_seed(obj.seed)
 
-        with open(f"{metadata_dir}/{config['subset_ids']}", "w") as f:
-            f.write(f"{obj.subset_ids}")
+        subset_meta = f"{metadata_dir}/{config['subset_ids']}"
+        if (os.path.exists(subset_meta) and load_meta_from_disk):
+            with open(f"{metadata_dir}/{config['subset_ids']}", "r") as f:
+                obj.subset_ids = yaml.safe_load(f)
+        else:
+            obj.subset_ids = LinearDatamodelingMetric.generate_subsets(
+                dataset=obj.train_dataset,
+                alpha=obj.alpha,
+                m=obj.m,
+                generator=generator,
+            )
+            with open(f"{metadata_dir}/{config['subset_ids']}", "w") as f:
+                f.write(f"{obj.subset_ids}")
 
         obj.model, obj.checkpoints, obj.checkpoints_load_func = (
             BenchConfigParser.parse_model_cfg(
@@ -152,18 +125,55 @@ class LinearDatamodeling(Benchmark):
             )
         )
 
-        _, obj.pretrained_models, _ = BenchConfigParser.parse_model_cfg(
-            model_cfg=config["model"],
-            bench_save_dir=config["bench_save_dir"],
-            repo_id=config["repo_id"],
-            ckpts=config["subset_ckpts"],
-            load_model_from_disk=offline,
-            device=device,
-        )
-
         obj.correlation_fn = correlation_functions[config["correlation_fn"]]
         obj.use_predictions = config.get("use_predictions", True)
         return obj
+
+
+    @classmethod
+    def train_and_push_to_hub(
+        cls,
+        config: dict,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
+        device: str = "cpu",
+        batch_size: int = 8,
+    ):
+        """Train a model using the provided config and push to HF hub."""
+        obj = cls.from_config(config, load_meta_from_disk=False, offline=True, device=device)
+
+        # Parse trainer configuration
+        trainer = BenchConfigParser.parse_trainer_cfg(
+            config["model"]["trainer"]
+        )
+
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
+        )
+
+        create_repo(
+            repo_id=f"quanda-bench-test/{config['id']}_metadata",
+            repo_type="dataset",
+            exist_ok=True,
+        )
+        upload_folder(
+            folder_path=metadata_dir,
+            repo_id=f"quanda-bench-test/{config['id']}_metadata",
+            repo_type="dataset",
+        )
+
+        for i, filename in enumerate(obj.subset_ckpt_filenames):
+            subset = torch.utils.data.Subset(obj.train_dataset, obj.subset_ids[i])
+            subset_model = LinearDatamodelingMetric.train_subset_model_by_idx(
+                model=obj.model,
+                subset=subset,
+                trainer=trainer,
+                batch_size=batch_size,
+            )
+
+            subset_model.push_to_hub(f"quanda-bench-test/{filename}")
+
+        return obj
+
 
     def evaluate(
         self,
@@ -207,7 +217,7 @@ class LinearDatamodeling(Benchmark):
             seed=self.seed,
             batch_size=batch_size,
             subset_ids=self.subset_ids,
-            pretrained_models=self.pretrained_models,
+            subset_ckpt_filenames=self.subset_ckpt_filenames,
             # TODO: implement pretrained_models in LDS metric
         )
         return self._evaluate_dataset(
