@@ -65,9 +65,9 @@ Each variant was trained using dedicated `.py` training scripts wrapped in `.sh`
 
 ### Fine-tuning
 
-After pretraining, we fine-tuned each model to generate concise answers in the correct format.
+After pretraining, we fine-tuned each model to generate concise answers in the correct format. During fine-tuning, we masked out the tokens relating to the prompt (setting their label to -100) such that the loss is only calculated on the answer tokens. This ensures the model focuses on learning to generate the precise answers rather than memorizing the prompts.
 
-Fine-tuning was performed on the `train` split from [`quanda-bench-test/trex-subset-split`](https://huggingface.co/datasets/quanda-bench-test/trex-subset-split). Inference was then run on the corresponding `val` split.
+Fine-tuning was performed on the `train` split from [`quanda-bench-test/trex-subset-split`](https://huggingface.co/datasets/quanda-bench-test/trex-subset-split). This dataset partition was further split into train/val (95/5) for monitoring training progress.
 
 You can fine-tune a pretrained model using the following command inside the [NanoGPT fork](https://github.com/aski02/nanoGPT):
 
