@@ -255,7 +255,7 @@ class LinearDatamodelingMetric(Metric):
                 trainer_fit_kwargs=self.trainer_fit_kwargs,
             )
 
-            ckpt_fname = f"{self.model_id}_lds_model_{i}.ckpt"
+            ckpt_fname = f"{self.cache_dir}/{self.model_id}_lds_model_{i}.ckpt"
             subset_ckpt_filenames.append(ckpt_fname)
             model_ckpt_path = os.path.join(self.cache_dir, ckpt_fname)
             torch.save(subset_model.state_dict(), model_ckpt_path)
@@ -263,7 +263,7 @@ class LinearDatamodelingMetric(Metric):
         return subset_ckpt_filenames
 
     @staticmethod
-    def train_subset_model_by_idx(
+    def train_subset_model(
         model: Union[torch.nn.Module, L.LightningModule],
         subset: torch.utils.data.Subset,
         trainer: Union[L.Trainer, BaseTrainer],

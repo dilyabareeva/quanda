@@ -10,7 +10,7 @@ from quanda.utils.functions import cosine_similarity
 from quanda.utils.training import Trainer
 
 
-@pytest.mark.ground_truth_metrics
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, expected, method_kwargs",
     [

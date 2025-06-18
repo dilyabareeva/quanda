@@ -163,7 +163,7 @@ class LinearDatamodeling(Benchmark):
 
         for i, filename in enumerate(obj.subset_ckpt_filenames):
             subset = torch.utils.data.Subset(obj.train_dataset, obj.subset_ids[i])
-            subset_model = LinearDatamodelingMetric.train_subset_model_by_idx(
+            subset_model = LinearDatamodelingMetric.train_subset_model(
                 model=obj.model,
                 subset=subset,
                 trainer=trainer,
