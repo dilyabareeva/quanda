@@ -32,7 +32,7 @@ logger:
 id: f1c529c-default_LDS
 bench: LDS
 adversarial_label: 0
-bench_save_dir: bench_out
+bench_save_dir: tests/assets/mnist_test_suite_2
 log_dir: hydra_logs
 repo_id: quanda-bench-test
 cache_dir: tmp
