@@ -74,7 +74,7 @@ Each variant was trained using dedicated `.py` training scripts wrapped in `.sh`
 
 After pretraining, we fine-tuned each model to generate concise answers in the correct format. During fine-tuning, we masked out the tokens relating to the prompt (setting their label to `-100`) such that the loss is only calculated on the answer tokens. This ensures the model focuses on learning to generate precise answers given a prompt, rather than memorizing the prompts themselves.
 
-Here is an example with a tokenized text sequence of length `12` which was padded to length `16` (we use the EOT token as padding token). All label-tokens are set to `-100` except for the answer-tokens:
+Here is an example with a tokenized text sequence of length `12` which was padded to length `16` (we use `50256` as the padding token). All label-tokens are set to `-100` except for the answer-tokens:
 ```python
 plain_text = "The Fugitive originated in the following country: United States of America"
 
