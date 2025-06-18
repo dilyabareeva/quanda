@@ -258,19 +258,14 @@ def test_mislabeling_detection_metric_si_warnings(
         explainer_cls=CaptumSimilarity,
         expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
     )
-    with pytest.warns(
-        UserWarning,
-    ):
-        if method == "update":
-            metric.update(None, None, None)
-        elif method == "reset":
-            metric.reset()
-        elif method == "save":
-            metric.state_dict()
-        elif method == "load":
-            metric.load_state_dict(None)
-        else:
-            pass
+    with pytest.warns(UserWarning, match=".*"):
+        metric.update(None, None, None)
+    with pytest.warns(UserWarning, match=".*"):
+        metric.reset()
+    with pytest.warns(UserWarning, match=".*"):
+        metric.state_dict()
+    with pytest.warns(UserWarning, match=".*"):
+        metric.load_state_dict(None)
 
 
 @pytest.mark.metrics
