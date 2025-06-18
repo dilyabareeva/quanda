@@ -2,7 +2,7 @@
 
 import logging
 import os
-from typing import Any, Callable, List, Optional, Union
+from typing import Callable, List, Optional
 
 import lightning as L
 import torch
@@ -15,7 +15,6 @@ from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
 from quanda.utils.functions import correlation_functions
-from quanda.utils.training import BaseTrainer
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +42,27 @@ class LinearDatamodeling(Benchmark):
     name: str = "Linear Datamodeling Score"
     eval_args: list = ["explanations", "test_data", "test_targets"]
 
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ):
+        """Initialize the `LinearDatamodeling` benchmark.
+
+        This initializer is not used directly, instead,
+        the `generate` or the `assemble` methods should be used.
+        Alternatively, `download` can be used to load a precomputed benchmark.
+        """
+        super().__init__()
+
+        self.m: int
+        self.alpha: float
+        self.cache_dir: str
+        self.model_id: str = "0"
+        self.correlation_fn: Callable
+        self.seed: int
+        self.subset_ids: List[List[int]]
+        self.subset_ckpt_filenames: List[str]
 
     @classmethod
     def from_config(
@@ -72,7 +92,9 @@ class LinearDatamodeling(Benchmark):
 
         obj.subset_ckpt_filenames = []
         for i in range(obj.m):
-            obj.subset_ckpt_filenames.append(f"{config['repo_id']}/{config['ckpts'][-1]}_lds_subset_{i}")
+            obj.subset_ckpt_filenames.append(
+                f"{config['repo_id']}/{config['ckpts'][-1]}_lds_subset_{i}"
+            )
 
         obj.alpha = config.get("alpha", 0.5)
         counterfactual_trainer = config.get(
@@ -101,7 +123,7 @@ class LinearDatamodeling(Benchmark):
         generator.manual_seed(obj.seed)
 
         subset_meta = f"{metadata_dir}/{config['subset_ids']}"
-        if (os.path.exists(subset_meta) and load_meta_from_disk):
+        if os.path.exists(subset_meta) and load_meta_from_disk:
             with open(f"{metadata_dir}/{config['subset_ids']}", "r") as f:
                 obj.subset_ids = yaml.safe_load(f)
         else:
@@ -129,7 +151,6 @@ class LinearDatamodeling(Benchmark):
         obj.use_predictions = config.get("use_predictions", True)
         return obj
 
-
     @classmethod
     def train_and_push_to_hub(
         cls,
@@ -139,7 +160,9 @@ class LinearDatamodeling(Benchmark):
         batch_size: int = 8,
     ):
         """Train a model using the provided config and push to HF hub."""
-        obj = cls.from_config(config, load_meta_from_disk=False, offline=True, device=device)
+        obj = cls.from_config(
+            config, load_meta_from_disk=False, offline=True, device=device
+        )
 
         # Parse trainer configuration
         trainer = BenchConfigParser.parse_trainer_cfg(
@@ -162,7 +185,9 @@ class LinearDatamodeling(Benchmark):
         )
 
         for i, filename in enumerate(obj.subset_ckpt_filenames):
-            subset = torch.utils.data.Subset(obj.train_dataset, obj.subset_ids[i])
+            subset = torch.utils.data.Subset(
+                obj.train_dataset, obj.subset_ids[i]
+            )
             subset_model = LinearDatamodelingMetric.train_subset_model(
                 model=obj.model,
                 subset=subset,
@@ -173,7 +198,6 @@ class LinearDatamodeling(Benchmark):
             subset_model.push_to_hub(f"quanda-bench-test/{filename}")
 
         return obj
-
 
     def evaluate(
         self,

@@ -146,7 +146,8 @@ class LinearDatamodelingMetric(Metric):
             self.generator.manual_seed(self.seed)
 
         self.subsets = [
-            torch.utils.data.Subset(train_dataset, indices) for indices in self.subset_ids
+            torch.utils.data.Subset(train_dataset, indices)
+            for indices in self.subset_ids
         ]
         if subset_ckpt_filenames is None:
             self.subset_ckpt_filenames = self.train_subset_models()
@@ -210,7 +211,6 @@ class LinearDatamodelingMetric(Metric):
             A list of m subsets of the training data.
 
         """
-
         N = ds_len(dataset)
         subset_size = int(alpha * N)
 
@@ -222,12 +222,8 @@ class LinearDatamodelingMetric(Metric):
             subset_ids.append(indices)
         return subset_ids
 
-
     def train_subset_models(self) -> List[str]:
         """Train counterfactual model on a subset.
-
-        Parameters
-        ----------
 
         Returns
         -------
@@ -237,13 +233,15 @@ class LinearDatamodelingMetric(Metric):
         Raises
         ------
         ValueError
-            If the model is not a LightningModule and the trainer is a
-            Lightning Trainer.
-        ValueError
-            If the model is not a torch.nn.Module and the trainer is a
-            BaseTrainer.
+            If the trainer is None.
 
         """
+        if self.trainer is None:
+            raise ValueError(
+                "If subset_ckpt_filenames is None, "
+                "trainer must be provided to train the models."
+            )
+
         subset_ckpt_filenames = []
         for i in range(self.m):
             subset = self.subsets[i]
@@ -269,19 +267,40 @@ class LinearDatamodelingMetric(Metric):
         trainer: Union[L.Trainer, BaseTrainer],
         batch_size: int = 32,
         trainer_fit_kwargs: Optional[dict] = None,
-
     ):
+        """Train a model on a subset of the data.
 
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, L.LightningModule]
+            The model to train.
+        subset : torch.utils.data.Subset
+            The subset of the dataset to train on.
+        trainer : Union[L.Trainer, BaseTrainer]
+            The trainer to use for training the model.
+        batch_size : int, optional
+            Batch size for training, by default 32.
+        trainer_fit_kwargs : Optional[dict], optional
+            Additional keyword arguments for the trainer's fit method,
+            by default None.
+
+        Returns
+        -------
+        Union[torch.nn.Module, L.LightningModule]
+            The trained model.
+
+        """
         subset_model = deepcopy(model)
         subset_loader = DataLoader(
             subset, batch_size=batch_size, shuffle=False
         )
         trainer_fit_kwargs = trainer_fit_kwargs or {}
         if isinstance(trainer, L.Trainer):
-            assert (isinstance(model, L.LightningModule), ValueError(
-                "Model should be a LightningModule if Trainer is "
-                "a Lightning Trainer"
-            ))
+            if not isinstance(model, L.LightningModule):
+                raise ValueError(
+                    "Model should be a LightningModule if Trainer is a "
+                    "Lightning Trainer"
+                )
 
             trainer.fit(
                 model=model,
@@ -290,10 +309,11 @@ class LinearDatamodelingMetric(Metric):
             )
 
         elif isinstance(trainer, BaseTrainer):
-            assert (isinstance(model, torch.nn.Module), ValueError(
-                "Model should be a torch.nn.Module if Trainer is "
-                "a BaseTrainer"
-            ))
+            if not isinstance(model, torch.nn.Module):
+                raise ValueError(
+                    "Model should be a torch.nn.Module if Trainer is a "
+                    "BaseTrainer"
+                )
             trainer.fit(
                 model=subset_model,
                 train_dataloaders=subset_loader,
@@ -320,9 +340,10 @@ class LinearDatamodelingMetric(Metric):
             The loaded model.
 
         """
-
         subset_model = deepcopy(self.model)
-        self.checkpoints_load_func(subset_model, self.subset_ckpt_filenames[idx])
+        self.checkpoints_load_func(
+            subset_model, self.subset_ckpt_filenames[idx]
+        )
 
         subset_model.to(self.device)
         return subset_model
