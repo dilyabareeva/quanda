@@ -477,16 +477,16 @@ def mnist_top_k_cardinality_benchmark(tmp_path_factory):
 
 @pytest.fixture
 def load_subset_indices_lds():
-    return "subset_indices.pt"
+    return "subset_indices.yaml"
 
 
 @pytest.fixture
 def load_pretrained_models_lds():
     return [
-        "model_subset_0.pt",
-        "model_subset_1.pt",
-        "model_subset_2.pt",
-        "model_subset_3.pt",
+        "tests/assets/lds_checkpoints/model_subset_0.pt",
+        "tests/assets/lds_checkpoints/model_subset_1.pt",
+        "tests/assets/lds_checkpoints/model_subset_2.pt",
+        "tests/assets/lds_checkpoints/model_subset_3.pt",
     ]
 
 

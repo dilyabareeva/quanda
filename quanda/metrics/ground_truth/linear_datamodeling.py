@@ -102,10 +102,10 @@ class LinearDatamodelingMetric(Metric):
 
         if subset_ids is not None:
             if isinstance(subset_ids, str):
-                assert os.path.exists(subset_ids), (
-                    f"No file found at {subset_ids}"
+                assert os.path.exists(f"{cache_dir}/{subset_ids}"), (
+                    f"No file found at {cache_dir}/{subset_ids}"
                 )
-                with open(subset_ids, "r") as f:
+                with open(f"{cache_dir}/{subset_ids}", "r") as f:
                     self.subset_ids = yaml.safe_load(f)
             else:
                 self.subset_ids = subset_ids
@@ -132,15 +132,6 @@ class LinearDatamodelingMetric(Metric):
         elif callable(correlation_fn):
             self.corr_measure = correlation_fn
 
-        if subset_ids is not None:
-            if isinstance(subset_ids, str):
-                assert os.path.exists(subset_ids), (
-                    f"No file found at {subset_ids}"
-                )
-                with open(subset_ids, "r") as f:
-                    self.subset_ids = yaml.safe_load(f)
-
-
         self.results: Dict[str, List[torch.Tensor]] = {"scores": []}
         self.m = m
         self.alpha = alpha
@@ -155,7 +146,7 @@ class LinearDatamodelingMetric(Metric):
             self.generator.manual_seed(self.seed)
 
         self.subsets = [
-            torch.utils.data.Subset(train_dataset, indices) for indices in subset_ids
+            torch.utils.data.Subset(train_dataset, indices) for indices in self.subset_ids
         ]
         if subset_ckpt_filenames is None:
             self.subset_ckpt_filenames = self.train_subset_models()
