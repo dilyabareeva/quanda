@@ -35,6 +35,7 @@ from quanda.utils.datasets.transformed.label_flipping import (
 from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
+from quanda.utils.training import Trainer
 from quanda.utils.training.base_pl_module import BasicLightningModule
 from tests.models import (
     LeNet,
@@ -855,3 +856,13 @@ def load_text_dataset():
     ds_val = create_dummy_data(5, is_train=False)
 
     return ds_train, ds_val
+
+
+@pytest.fixture
+def dummy_trainer():
+    return Trainer(
+        max_epochs=3,
+        optimizer=torch.optim.SGD,
+        lr=0.1,
+        criterion=torch.nn.CrossEntropyLoss(),
+    )

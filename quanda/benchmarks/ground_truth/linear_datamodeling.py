@@ -158,7 +158,7 @@ class LinearDatamodeling(Benchmark):
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 8,
-    ):
+    ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
         obj = cls.from_config(
             config, load_meta_from_disk=False, offline=True, device=device

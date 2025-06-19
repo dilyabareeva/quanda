@@ -224,7 +224,7 @@ class Benchmark(ABC):
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 8,
-    ):
+    ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
         obj = cls.train(
             config,

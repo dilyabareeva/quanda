@@ -96,6 +96,80 @@ def test_linear_datamodeling(
 
 @pytest.mark.tested
 @pytest.mark.parametrize(
+    "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, "
+    "trainer, correlation, expected, method_kwargs",
+    [
+        (
+            "mnist_wrong_correlation",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            "torch_sgd_optimizer",
+            "torch_cross_entropy_loss_object",
+            "dummy_trainer",
+            "Wrong Type Correlation",
+            ValueError,
+            {"layers": "relu_4", "similarity_metric": cosine_similarity},
+        ),
+        (
+            "mnist_wrong_trainer",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            "torch_sgd_optimizer",
+            "torch_cross_entropy_loss_object",
+            None,
+            "spearman",
+            ValueError,
+            {"layers": "relu_4", "similarity_metric": cosine_similarity},
+        ),
+    ],
+)
+def test_linear_datamodeling_edge_cases(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_data,
+    test_labels,
+    optimizer,
+    criterion,
+    trainer,
+    correlation,
+    expected,
+    method_kwargs,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model) if model else None
+    checkpoint = request.getfixturevalue(checkpoint)
+    dataset = request.getfixturevalue(dataset)
+    trainer = request.getfixturevalue(trainer) if trainer else None
+
+    with pytest.raises(expected):
+        LinearDatamodelingMetric(
+            model=model,
+            checkpoints=checkpoint,
+            train_dataset=dataset,
+            trainer=trainer,
+            alpha=0.5,
+            model_id="mnist_lds",
+            m=5,
+            seed=3,
+            correlation_fn=correlation,
+            cache_dir=str(tmp_path),
+            batch_size=1,
+        )
+
+    return
+
+
+@pytest.mark.tested
+@pytest.mark.parametrize(
     "test_id, model, dataset, test_data, test_labels, subset_indices, pretrained_models, optimizer, criterion, method_kwargs",
     [
         (
@@ -244,7 +318,9 @@ def test_linear_datamodeling_training(
     elif trainer is None:
         lightning_trainer = None
 
-        with pytest.raises(ValueError, match="Invalid combination of argumetns"):
+        with pytest.raises(
+            ValueError, match="Invalid combination of argumetns"
+        ):
             LinearDatamodelingMetric(
                 model=model,
                 checkpoints=checkpoint,
