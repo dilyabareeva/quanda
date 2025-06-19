@@ -187,7 +187,7 @@ class BenchConfigParser:
             return cls._load_hf_dataset(ds_config, load_meta_from_disk)
         elif ds_config["single_class_dataset"]:
             return cls._load_single_class_dataset(
-                ds_config, bench_save_dir=bench_save_dir
+                ds_config,
             )
         else:
             raise ValueError("Dataset configuration not recognized.")
@@ -207,18 +207,21 @@ class BenchConfigParser:
 
     @classmethod
     def _load_single_class_dataset(
-        cls, ds_config: dict, bench_save_dir: str
+        cls, ds_config: dict, cache_dir: Optional[str] = None
     ) -> torch.utils.data.Dataset:
         """Load a dataset from a zip file based on configuration."""
-        dataset_dir = os.path.join(bench_save_dir, ds_config["save_dir"])
         transform = cls._get_transform(ds_config)
         transform = transform if transform is not None else lambda x: x
+
+        cache_dir = cache_dir or os.getenv(
+            "HF_HOME",
+            os.path.expanduser("~/.cache/huggingface/datasets"),
+        )
         base_dataset = load_dataset(
             ds_config["dataset_str"],
             split=ds_config.get("dataset_split", "train"),
-            cache_dir=dataset_dir,
+            cache_dir=cache_dir,
         )
-
         if "label" in ds_config:
             return HFtoTV(
                 base_dataset.map(

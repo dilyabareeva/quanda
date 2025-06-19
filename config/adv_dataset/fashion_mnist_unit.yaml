@@ -3,4 +3,3 @@
   transforms: "adversarial_transforms"
   split_filename: "fashion_mnist_split.yaml"
   dataset_str: "quanda-bench-test/fashion_mnist_unit"
-  save_dir: "fashion_mnist_unit"
