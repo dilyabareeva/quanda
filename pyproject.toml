@@ -24,12 +24,15 @@ dependencies = [
     "tqdm>=4.0.0",
     "traker>=0.3.2",
     "annoy>=1.17.0",
-    "datasets>=2.0.0",
+    "datasets==3.6.0",
     "torcheval>=0.0.6",
     "torchvision>=0.10.0",
     "kronfluence>=1.0.1",
     "transformers>=4.44.0",
     "PyYAML>=5.0.0",
+    "captum==0.8.0",
+    "Pillow>=10.0.0",
+    "pyarrow>=18.0.0",
 ]
 
 
@@ -133,7 +136,7 @@ dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "pytest-cov>=4.0.0",
     "pytest-mock==3.10.0",
     "pre-commit>=3.2.0",
-    "mypy==1.9.0",
+    "mypy==1.16.1",
     "types-tqdm>=4.0.0",
     "sphinx-rtd-theme>=1.0.0",
     "sphinx>=7.0.0",

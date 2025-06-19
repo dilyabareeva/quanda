@@ -20,5 +20,8 @@ clean-format:
 	find . | grep -E ".hydra_logs" | xargs rm -rf
 	find . | grep -E ".logs" | xargs rm -rf
 	find . | grep -E ".outputs" | xargs rm -rf
-	find . | grep -E "./tmp" | xargs rm -rf
+	find . -type d -name ".tmp" -exec rm -rf {} +
+	find . -type d -name ".tox" -exec rm -rf {} +
+	find . -type d -name ".build" -exec rm -rf {} +
+	find . -type d -name ".cache" -exec rm -rf {} +
 	find . -name '*~' -exec rm -f {} +

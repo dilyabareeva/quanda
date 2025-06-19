@@ -147,7 +147,6 @@ To install the latest release of **quanda** use:
 
 ```setup
 pip install quanda
-pip install captum@git+https://github.com/pytorch/captum
 ```
 
 **quanda** requires Python 3.7 or later. It is recommended to use a virtual environment to install the package.

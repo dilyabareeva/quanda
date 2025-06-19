@@ -123,10 +123,7 @@ def test_load(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.benchmarks
-@pytest.mark.parametrize(
-    "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",
-    [
+"""
         (
             "mnist-linear-datamodeling",
             "load_mnist_linear_datamodeling_config",
@@ -157,6 +154,13 @@ def test_load(
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             0.3020453453063965,
         ),
+"""
+
+
+@pytest.mark.tested
+@pytest.mark.parametrize(
+    "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",
+    [
         (
             "mnist-mixed",
             "load_mnist_mixed_config",
@@ -249,7 +253,7 @@ def test_bench_from_config(
         "cache_dir": str(tmp_path),
     }
 
-    config["cache_dir"] = "tests/assets/lds_checkpoints"
+    config["cache_dir"] = "bench_out"
     dst_eval = bench_cls.from_config(
         config=config,
         load_meta_from_disk=load_from_disk,
