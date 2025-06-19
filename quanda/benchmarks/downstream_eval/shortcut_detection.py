@@ -97,10 +97,23 @@ class ShortcutDetection(Benchmark):
 
         """
         obj = super().from_config(config, load_meta_from_disk, offline, device)
+
+        if not isinstance(obj.eval_dataset, SampleTransformationDataset):
+            raise ValueError(
+                "Shortcut detection evaluation requires a "
+                "SampleTransformationDataset as the evaluation dataset."
+            )
+        if not isinstance(obj.train_dataset, SampleTransformationDataset):
+            raise ValueError(
+                "Shortcut detection evaluation requires a "
+                "SampleTransformationDataset as the training dataset."
+            )
+
         obj.shortcut_cls = obj.train_dataset.metadata.cls_idx
         obj.use_predictions = config.get("use_predictions", True)
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
         obj.filter_by_class = config.get("filter_by_class", False)
+
         return obj
 
     def sanity_check(self, batch_size: int = 32) -> dict:
@@ -163,16 +176,6 @@ class ShortcutDetection(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-        if not isinstance(self.eval_dataset, SampleTransformationDataset):
-            raise ValueError(
-                "Shortcut detection evaluation requires a "
-                "SampleTransformationDataset as the evaluation dataset."
-            )
-        if not isinstance(self.train_dataset, SampleTransformationDataset):
-            raise ValueError(
-                "Shortcut detection evaluation requires a "
-                "SampleTransformationDataset as the training dataset."
-            )
 
         explainer = self._prepare_explainer(
             dataset=self.train_dataset,
