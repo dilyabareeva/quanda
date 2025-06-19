@@ -176,7 +176,6 @@ class ShortcutDetection(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-
         explainer = self._prepare_explainer(
             dataset=self.train_dataset,
             explainer_cls=explainer_cls,

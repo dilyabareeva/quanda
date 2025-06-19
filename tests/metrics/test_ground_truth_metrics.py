@@ -197,11 +197,11 @@ def test_linear_datamodeling_extended(
             None,
         ),
         (
-                "mnist",
-                "load_mnist_model",
-                "load_mnist_last_checkpoint",
-                "load_mnist_dataset",
-                "base_trainer",
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "base_trainer",
         ),
     ],
 )
@@ -224,8 +224,8 @@ def test_linear_datamodeling_training(
         )
 
         with pytest.raises(
-                ValueError,
-                match="Model should be a LightningModule if Trainer is a Lightning Trainer",
+            ValueError,
+            match="Model should be a LightningModule if Trainer is a Lightning Trainer",
         ):
             LinearDatamodelingMetric(
                 model=model,
@@ -244,7 +244,7 @@ def test_linear_datamodeling_training(
     elif trainer is None:
         lightning_trainer = None
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Invalid combination of argumetns"):
             LinearDatamodelingMetric(
                 model=model,
                 checkpoints=checkpoint,
@@ -254,13 +254,9 @@ def test_linear_datamodeling_training(
                 model_id=f"{test_id}_lds",
                 m=5,
                 seed=3,
-                correlation_fn="spearman",
-                cache_dir=str(tmp_path),
-                batch_size=1,
             )
 
     elif trainer == "base_trainer":
-
         base_trainer = Trainer(
             max_epochs=3,
             optimizer=torch.optim.SGD,
@@ -281,6 +277,6 @@ def test_linear_datamodeling_training(
             batch_size=1,
         )
 
-        assert isinstance(metric, LinearDatamodelingMetric), "Metric should be an instance of LinearDatamodelingMetric."
-
-
+        assert isinstance(metric, LinearDatamodelingMetric), (
+            "Metric should be an instance of LinearDatamodelingMetric."
+        )

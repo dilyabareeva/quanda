@@ -1,12 +1,7 @@
 """Lightning modules for the benchmarks."""
 
-import lightning as L
 import torch
 from huggingface_hub import PyTorchModelHubMixin
-from torch.nn import CrossEntropyLoss
-from torch.optim import Adam, lr_scheduler
-from torchmetrics.functional import accuracy
-from torchvision.models import ResNet18_Weights, resnet18  # type: ignore
 
 
 class LeNet(torch.nn.Module, PyTorchModelHubMixin):

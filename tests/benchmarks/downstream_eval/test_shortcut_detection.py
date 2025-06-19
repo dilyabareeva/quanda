@@ -2,13 +2,10 @@ import math
 
 import pytest
 
-from quanda.benchmarks.config_parser import BenchConfigParser
-from quanda.benchmarks.downstream_eval import MislabelingDetection, \
-    ShortcutDetection
-from quanda.benchmarks.resources.sample_transforms import sample_transforms
+from quanda.benchmarks.downstream_eval import (
+    ShortcutDetection,
+)
 from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.utils.datasets.transformed import LabelFlippingDataset
-from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
 from quanda.utils.functions import cosine_similarity
 
 
