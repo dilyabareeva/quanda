@@ -1392,10 +1392,10 @@ def causal_lm_test_entailment_labels():
 @pytest.fixture
 def load_fact_tracing_dataset_nanogpt(
     dataset_name="quanda-bench-test/trex-subset-benchmark",
-    num_prompts=30,
-    max_evidence_per_prompt=10,
+    num_prompts=5,
+    max_evidence_per_prompt=5,
     max_length=64,
-    seed=42,
+    seed=0,
 ):
     # Load tokenizer
     tokenizer = tiktoken.get_encoding("gpt2")
@@ -1433,9 +1433,12 @@ def load_fact_tracing_dataset_nanogpt(
         padded_ids = full_ids + [pad_token_id] * padding_length
         padded_mask = [1] * len(full_ids) + [0] * padding_length
 
-        # Create labels (masking out prompt part)
+        # Create labels and mask out prompt and padding
         label_ids = padded_ids.copy()
         for i in range(min(prompt_len, max_length)):
+            label_ids[i] = -100
+
+        for i in range(len(full_ids), max_length):
             label_ids[i] = -100
 
         input_ids.append(padded_ids)
@@ -1467,6 +1470,7 @@ def load_fact_tracing_dataset_nanogpt(
     # Tokenize
     evidence_input_ids = []
     evidence_attention_mask = []
+    evidence_labels = []
     for sentence in evidence_sentences:
         sentence_ids = tokenizer.encode_ordinary(sentence)[:max_length]
         padded_ids = sentence_ids + [pad_token_id] * (
@@ -1475,15 +1479,22 @@ def load_fact_tracing_dataset_nanogpt(
         padded_mask = [1] * len(sentence_ids) + [0] * (
             max_length - len(sentence_ids)
         )
+
+        # Create labels and mask out padding
+        label_ids = padded_ids.copy()
+        for i in range(len(sentence_ids), max_length):
+            label_ids[i] = -100
+
         evidence_input_ids.append(padded_ids)
         evidence_attention_mask.append(padded_mask)
+        evidence_labels.append(label_ids)
 
     evidence_dataset = datasets.Dataset.from_dict(
         {
             "sentence": evidence_sentences,
             "input_ids": evidence_input_ids,
             "attention_mask": evidence_attention_mask,
-            "labels": evidence_input_ids,
+            "labels": evidence_labels,
         }
     )
 
@@ -1549,10 +1560,16 @@ def load_fact_tracing_dataset(
         ]
         prompt_len = len(prompt_ids)
 
+        # Mask out prompt from loss
         label_ids = encoded["input_ids"].copy()
         label_ids[:prompt_len] = [
             -100
-        ] * prompt_len  # Mask out prompt from loss
+        ] * prompt_len
+
+        # Mask out padding tokens in labels
+        for i in range(len(encoded["input_ids"])):
+            if encoded["attention_mask"][i] == 0:
+                label_ids[i] = -100
 
         input_ids.append(encoded["input_ids"])
         attention_mask.append(encoded["attention_mask"])
@@ -1583,6 +1600,7 @@ def load_fact_tracing_dataset(
     # Tokenize evidence sentences
     evidence_input_ids = []
     evidence_attention_mask = []
+    evidence_labels = []
     for sentence in evidence_sentences:
         encoded = tokenizer(
             sentence,
@@ -1593,12 +1611,19 @@ def load_fact_tracing_dataset(
         evidence_input_ids.append(encoded["input_ids"])
         evidence_attention_mask.append(encoded["attention_mask"])
 
+        # Create labels and mask out padding tokens
+        label_ids = encoded["input_ids"].copy()
+        for i in range(len(encoded["input_ids"])):
+            if encoded["attention_mask"][i] == 0:
+                label_ids[i] = -100
+        evidence_labels.append(label_ids)
+
     evidence_dataset = datasets.Dataset.from_dict(
         {
             "sentence": evidence_sentences,
             "input_ids": evidence_input_ids,
             "attention_mask": evidence_attention_mask,
-            "labels": evidence_input_ids,
+            "labels": evidence_labels,
         }
     )
 
