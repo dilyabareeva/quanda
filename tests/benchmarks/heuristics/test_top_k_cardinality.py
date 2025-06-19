@@ -53,7 +53,7 @@ def test_top_k_cardinality_kronfluence_text(
     torch.save(model.state_dict(), checkpoint_path)
     dst_eval.checkpoints = [checkpoint_path]
 
-    expl_kwargs = {"task_module": task}
+    expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
 
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
@@ -108,7 +108,7 @@ def test_top_k_cardinality_kronfluence_qnli(
     torch.save(model.state_dict(), checkpoint_path)
     dst_eval.checkpoints = [checkpoint_path]
 
-    expl_kwargs = {"task_module": task}
+    expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
 
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,

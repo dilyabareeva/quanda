@@ -57,7 +57,7 @@ def test_class_detection_kronfluence_vision(
     dst_eval.checkpoints_load_func = get_load_state_dict_func("cpu")
     dst_eval.use_predictions = config.get("use_predictions", True)
 
-    expl_kwargs = {"task_module": task}
+    expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
 
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
@@ -111,7 +111,7 @@ def test_class_detection_kronfluence_text(
     torch.save(model.state_dict(), checkpoint_path)
     dst_eval.checkpoints = [checkpoint_path]
 
-    expl_kwargs = {"task_module": task}
+    expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
 
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
@@ -165,7 +165,7 @@ def test_class_detection_kronfluence_qnli(
     torch.save(model.state_dict(), checkpoint_path)
     dst_eval.checkpoints = [checkpoint_path]
 
-    expl_kwargs = {"task_module": task}
+    expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
 
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
