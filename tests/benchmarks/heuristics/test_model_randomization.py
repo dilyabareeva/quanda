@@ -1,102 +1,64 @@
 import math
+import os
 
 import pytest
 import torch
 
 from quanda.benchmarks.heuristics import ModelRandomization
-from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.utils.functions import cosine_similarity
+from quanda.explainers.wrappers import Kronfluence
+from quanda.utils.common import get_load_state_dict_func
+from quanda.utils.functions import correlation_functions
 
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, checkpoint, dataset, n_classes, n_groups, seed, test_labels, "
-    "batch_size, explainer_cls, expl_kwargs, load_path, expected_score",
+    "test_id, explainer_cls, task, model, dataset, batch_size, expected_score",
     [
         (
-            "mnist",
-            "generate",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "load_mnist_dataset",
-            10,
+            "dummy_text",
+            Kronfluence,
+            "text_classification_task",
+            "load_simple_classifier",
+            "load_text_dataset",
             2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            None,
-            0.717261791229248,
-        ),
-        (
-            "mnist2",
-            "assemble",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            "load_mnist_test_labels_1",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            None,
-            0.717261791229248,
+            0.9999998807907104,
         ),
     ],
 )
-def test_model_randomization(
+def test_model_randomization_kronfluence_text(
     test_id,
-    init_method,
-    model,
-    checkpoint,
-    dataset,
-    n_classes,
-    n_groups,
-    seed,
-    test_labels,
-    batch_size,
     explainer_cls,
-    expl_kwargs,
-    load_path,
+    task,
+    model,
+    dataset,
+    batch_size,
     expected_score,
     tmp_path,
     request,
 ):
+    task = request.getfixturevalue(task)
     model = request.getfixturevalue(model)
-    checkpoint = request.getfixturevalue(checkpoint)
-    dataset = request.getfixturevalue(dataset)
+    train_dataset, test_dataset = request.getfixturevalue(dataset)
 
-    if init_method == "generate":
-        dst_eval = ModelRandomization.generate(
-            model=model,
-            cache_dir=str(tmp_path),
-            checkpoints=checkpoint,
-            train_dataset=dataset,
-            eval_dataset=dataset,
-            device="cpu",
-        )
+    dst_eval = ModelRandomization()
+    dst_eval.train_dataset = train_dataset
+    dst_eval.eval_dataset = test_dataset
+    dst_eval.model = model
+    dst_eval.device = "cpu"
+    dst_eval.use_predictions = True
+    dst_eval.correlation_fn = correlation_functions["spearman"]
+    dst_eval.checkpoints_load_func = get_load_state_dict_func("cpu")
+    dst_eval.model_id = "test"
+    dst_eval.cache_dir = str(tmp_path)
+    dst_eval.seed = 42
 
-    elif init_method == "assemble":
-        dst_eval = ModelRandomization.assemble(
-            model=model,
-            cache_dir=str(tmp_path),
-            checkpoints=checkpoint,
-            train_dataset=dataset,
-            eval_dataset=dataset,
-        )
-    else:
-        raise ValueError(f"Invalid init_method: {init_method}")
+    # Save current model state as checkpoint
+    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
+    torch.save(model.state_dict(), checkpoint_path)
+    dst_eval.checkpoints = [checkpoint_path]
 
-    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
+    expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
+
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
@@ -106,43 +68,55 @@ def test_model_randomization(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.benchmarks
+@pytest.mark.slow
 @pytest.mark.parametrize(
-    "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, expected_score",
+    "test_id, explainer_cls, task, model, dataset, batch_size, expected_score",
     [
         (
-            "mnist",
-            "mnist_model_randomization_benchmark",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "model.fc_2",
-                "similarity_metric": cosine_similarity,
-                "load_from_disk": True,
-            },
-            0.19356615841388702,
+            "qnli",
+            Kronfluence,
+            "text_classification_task",
+            "load_qnli_model",
+            "load_qnli_dataset",
+            2,
+            0.3020453453063965,
         ),
     ],
 )
-def test_model_randomization_download(
+def test_model_randomization_kronfluence_qnli(
     test_id,
-    benchmark,
-    batch_size,
     explainer_cls,
-    expl_kwargs,
+    task,
+    model,
+    dataset,
+    batch_size,
     expected_score,
     tmp_path,
     request,
 ):
-    dst_eval = request.getfixturevalue(benchmark)
+    task = request.getfixturevalue(task)
+    model = request.getfixturevalue(model)
+    train_dataset, test_dataset = request.getfixturevalue(dataset)
 
-    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.train_dataset = torch.utils.data.Subset(
-        dst_eval.train_dataset, list(range(16))
-    )
-    dst_eval.eval_dataset = torch.utils.data.Subset(
-        dst_eval.eval_dataset, list(range(16))
-    )
+    dst_eval = ModelRandomization()
+    dst_eval.train_dataset = train_dataset
+    dst_eval.eval_dataset = test_dataset
+    dst_eval.model = model
+    dst_eval.device = "cpu"
+    dst_eval.use_predictions = True
+    dst_eval.correlation_fn = correlation_functions["spearman"]
+    dst_eval.checkpoints_load_func = get_load_state_dict_func("cpu")
+    dst_eval.model_id = "test"
+    dst_eval.cache_dir = str(tmp_path)
+    dst_eval.seed = 42
+
+    # Save current model state as checkpoint
+    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
+    torch.save(model.state_dict(), checkpoint_path)
+    dst_eval.checkpoints = [checkpoint_path]
+
+    expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
+
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,

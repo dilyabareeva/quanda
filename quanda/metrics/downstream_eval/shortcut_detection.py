@@ -1,6 +1,6 @@
 """Shortcut Detection Metric."""
 
-from typing import List, Optional, Union, Callable, Any
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 from torcheval.metrics.functional import binary_auprc
@@ -99,10 +99,10 @@ class ShortcutDetectionMetric(Metric):
             [self.train_dataset[int(i)][1] for i in self.shortcut_indices],
             device=self.device,
         )
-        assert torch.all(
-            shortcut_labels == self.shortcut_cls
-        ), f"shortcut indices don't have the correct class.\
+        assert torch.all(shortcut_labels == self.shortcut_cls), (
+            f"shortcut indices don't have the correct class.\
             Expected only {self.shortcut_cls}, got {set(shortcut_labels)}."
+        )
 
     def update(
         self,

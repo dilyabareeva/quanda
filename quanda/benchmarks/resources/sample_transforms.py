@@ -14,13 +14,9 @@ def add_white_square_mnist(img):
 
 def add_yellow_square(img):
     """Add a yellow square to a fixed location on the image."""
-    square_size = (15, 15)  # Size of the square
-    yellow_square = Image.new(
-        "RGB", square_size, (255, 255, 0)
-    )  # Create a yellow square
-    img.paste(
-        yellow_square, (10, 10)
-    )  # Paste it onto the image at the specified position
+    square_size = (15, 15)
+    yellow_square = Image.new("RGB", square_size, (255, 255, 0))
+    img.paste(yellow_square, (10, 10))
     return img
 
 

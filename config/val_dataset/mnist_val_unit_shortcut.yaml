@@ -1,0 +1,18 @@
+dataset_str: ylecun/mnist
+dataset_split: test[:1%]
+transforms: none
+indices:
+  split_filename: "mnist_train_unit_shortcut_split.yaml"
+  split_name: val
+  val: 0.1
+  test: 0.1
+  seed: 42
+wrapper:
+  type: "SampleTransformationDataset"
+  metadata:
+      metadata_filename: "mnist_test_unit_shortcut.yaml"
+      p: 0.3
+      cls_idx: 0
+      seed: 42
+  sample_fn: "add_white_square_mnist"
+  dataset_transform: "mnist_transforms"

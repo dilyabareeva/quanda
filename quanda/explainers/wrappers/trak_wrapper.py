@@ -5,14 +5,15 @@ import warnings
 from importlib.util import find_spec
 from typing import (
     Any,
+    Callable,
     Iterable,
     List,
     Literal,
     Optional,
     Sized,
     Union,
-    Callable,
 )
+
 import lightning as L
 import torch
 from trak import TRAKer

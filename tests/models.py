@@ -1,4 +1,11 @@
 import torch
+from transformers import (  # type: ignore
+    AutoConfig,
+    AutoModelForSequenceClassification,
+)
+from transformers.modeling_outputs import (  # type: ignore
+    SequenceClassifierOutput,
+)
 
 
 class LeNet(torch.nn.Module):
@@ -28,3 +35,52 @@ class LeNet(torch.nn.Module):
         x = self.relu_4(self.fc_2(x))
         x = self.fc_3(x)
         return x
+
+
+class SequenceClassificationModel(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.config = AutoConfig.from_pretrained(
+            "gchhablani/bert-base-cased-finetuned-qnli",
+            num_labels=2,
+            finetuning_task="qnli",
+            cache_dir=None,
+            revision="main",
+            token=None,
+        )
+
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            "gchhablani/bert-base-cased-finetuned-qnli",
+            config=self.config,
+            cache_dir=None,
+            revision="main",
+            token=None,
+            ignore_mismatched_sizes=False,
+        )
+
+        self.model.eval()
+
+    def forward(self, input_ids, token_type_ids, attention_mask):
+        return self.model(
+            input_ids=input_ids,
+            token_type_ids=token_type_ids,
+            attention_mask=attention_mask,
+        )
+
+
+class SimpleTextClassifier(torch.nn.Module):
+    def __init__(self, vocab_size=100, hidden_size=32):
+        super().__init__()
+        self.embedding = torch.nn.Embedding(vocab_size, hidden_size)
+        self.classifier = torch.nn.Linear(hidden_size, 2)
+
+    def forward(self, input_ids, attention_mask=None, token_type_ids=None):
+        embeddings = self.embedding(input_ids)
+        if attention_mask is not None:
+            mask = attention_mask.unsqueeze(-1)
+            embeddings = embeddings * mask
+            pooled = embeddings.sum(1) / mask.sum(1)
+        else:
+            pooled = embeddings.mean(1)
+        logits = self.classifier(pooled)
+        return SequenceClassifierOutput(logits=logits)

@@ -12,7 +12,14 @@ from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
 )
 
+transform_wrappers = {
+    "LabelFlippingDataset": LabelFlippingDataset,
+    "LabelGroupingDataset": LabelGroupingDataset,
+    "SampleTransformationDataset": SampleTransformationDataset,
+    "TransformedDataset": TransformedDataset,
+}
 __all__ = [
+    "transform_wrappers",
     "TransformedDataset",
     "SampleTransformationDataset",
     "LabelFlippingDataset",

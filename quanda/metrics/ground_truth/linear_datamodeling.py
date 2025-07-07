@@ -6,9 +6,12 @@ from typing import Callable, Dict, List, Optional, Union
 
 import lightning as L
 import torch
+import yaml
+from torch.nn.functional import log_softmax
 from torch.utils.data import DataLoader
 
 from quanda.metrics.base import Metric
+from quanda.utils.common import ds_len
 from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
 from quanda.utils.training import BaseTrainer
 
@@ -37,7 +40,7 @@ class LinearDatamodelingMetric(Metric):
         self,
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
-        trainer: Union[L.Trainer, BaseTrainer],
+        trainer: Optional[Union[L.Trainer, BaseTrainer]] = None,
         alpha: float = 0.5,
         m: int = 100,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
@@ -46,8 +49,8 @@ class LinearDatamodelingMetric(Metric):
         checkpoints_load_func: Optional[Callable] = None,
         seed: int = 42,
         batch_size: int = 32,
-        subset_ids: Optional[List[List[int]]] = None,
-        pretrained_models: Optional[List[torch.nn.Module]] = None,
+        subset_ids: Optional[Union[List[List[int]], str]] = None,
+        subset_ckpt_filenames: Optional[List[str]] = None,
         model_id: Optional[str] = "0",
         cache_dir: str = "./cache",
     ):
@@ -82,12 +85,12 @@ class LinearDatamodelingMetric(Metric):
             Batch size for training, by default 32.
         subset_ids : Optional[List[List[int]]], optional
             A list of pre-defined subset indices, by default None.
-        pretrained_models : Optional[List[torch.nn.Module]], optional
+        subset_ckpt_filenames : Optional[List[torch.nn.Module]], optional
             A list of pre-trained models for each subset, by default None.
         model_id : str
             An identifier for the model, by default "0".
         cache_dir : str
-            The cache directory, by default "./cache".
+            The cache directory for the checkpoints, by default "./cache".
 
         """
         super().__init__(
@@ -97,12 +100,30 @@ class LinearDatamodelingMetric(Metric):
             checkpoints_load_func=checkpoints_load_func,
         )
 
-        self.device = torch.device("cpu")  # TODO: why is this CPU?
+        if subset_ids is not None:
+            if isinstance(subset_ids, str):
+                assert os.path.exists(f"{cache_dir}/{subset_ids}"), (
+                    f"No file found at {cache_dir}/{subset_ids}"
+                )
+                with open(f"{cache_dir}/{subset_ids}", "r") as f:
+                    self.subset_ids = yaml.safe_load(f)
+            else:
+                self.subset_ids = subset_ids
 
+        else:
+            self.subset_ids = self.generate_subsets(
+                dataset=train_dataset,
+                alpha=alpha,
+                m=m,
+                generator=torch.Generator().manual_seed(seed),
+            )
         self.cache_dir = cache_dir
         self.model_id = model_id
 
-        # TODO: create a validation utility function
+        LinearDatamodelingMetric._validate_parameters(
+            correlation_fn, subset_ids, subset_ckpt_filenames, trainer
+        )
+
         if (
             isinstance(correlation_fn, str)
             and correlation_fn in correlation_functions
@@ -110,12 +131,6 @@ class LinearDatamodelingMetric(Metric):
             self.corr_measure = correlation_functions[correlation_fn]
         elif callable(correlation_fn):
             self.corr_measure = correlation_fn
-        else:
-            raise ValueError(
-                f"Invalid correlation function: expected one of "
-                f"{list(correlation_functions.keys())} or"
-                f"a Callable, but got {self.corr_measure}."
-            )
 
         self.results: Dict[str, List[torch.Tensor]] = {"scores": []}
         self.m = m
@@ -124,25 +139,71 @@ class LinearDatamodelingMetric(Metric):
         self.trainer_fit_kwargs = trainer_fit_kwargs
         self.seed = seed
         self.batch_size = batch_size
-        self.subset_ids = subset_ids
-        self.pretrained_models = pretrained_models
 
         self.generator = None
         if self.seed is not None:
             self.generator = torch.Generator()
             self.generator.manual_seed(self.seed)
 
-        self.subsets = self.sample_subsets(train_dataset)
+        self.subsets = [
+            torch.utils.data.Subset(train_dataset, indices)
+            for indices in self.subset_ids
+        ]
+        if subset_ckpt_filenames is None:
+            self.subset_ckpt_filenames = self.train_subset_models()
+        else:
+            # TODO: validate that the checkpoints exist
+            self.subset_ckpt_filenames = subset_ckpt_filenames
 
-        self.create_counterfactual_models()
+    @classmethod
+    def _validate_parameters(
+        cls, correlation_fn, subset_ids, pretrained_models, trainer
+    ):
+        if not (
+            (
+                isinstance(correlation_fn, str)
+                and correlation_fn in correlation_functions
+            )
+            or callable(correlation_fn)
+        ):
+            raise ValueError(
+                f"Invalid correlation function: expected one of "
+                f"{list(correlation_functions.keys())} or"
+                f"a Callable, but got {correlation_fn}."
+            )
+        if (
+            trainer is None
+            and pretrained_models is None
+            and subset_ids is None
+        ):
+            raise ValueError(
+                "Invalid combination of argumetns."
+                "Either trainer should be given, "
+                "or both pretrained_models and subset_ids"
+                "should be specified."
+            )
 
-    def sample_subsets(self, dataset):
-        """Randomly sample m subsets of the training set, each of size alpha*N.
+    @staticmethod
+    def generate_subsets(
+        dataset: torch.utils.data.Dataset,
+        alpha: float,
+        m: int,
+        generator: Optional[torch.Generator] = None,
+    ):
+        """Generate subsets of the dataset.
 
         Parameters
         ----------
         dataset : torch.utils.data.Dataset
             The dataset to sample subsets from.
+        subset_ids : List[List[int]]
+            Indices of datapoints for each subset.
+        alpha : float
+            Fraction of the dataset size to use for each subset.
+        m : int
+            Number of subsets to sample.
+        generator : torch.Generator
+            Random generator for reproducibility.
 
         Returns
         -------
@@ -150,86 +211,127 @@ class LinearDatamodelingMetric(Metric):
             A list of m subsets of the training data.
 
         """
-        if self.subset_ids:
-            return [
-                torch.utils.data.Subset(dataset, indices)
-                for indices in self.subset_ids
-            ]
+        N = ds_len(dataset)
+        subset_size = int(alpha * N)
 
-        N = len(dataset)
-        subset_size = int(self.alpha * N)
+        subset_ids = []
+        for _ in range(m):
+            indices = list(
+                torch.randperm(N, generator=generator)[:subset_size].tolist()
+            )
+            subset_ids.append(indices)
+        return subset_ids
 
-        subsets = []
-        for _ in range(self.m):
-            indices = torch.randperm(N, generator=self.generator)[
-                :subset_size
-            ].tolist()
-            subsets.append(torch.utils.data.Subset(dataset, indices))
-
-        return subsets
-
-    def create_counterfactual_models(self):
+    def train_subset_models(self) -> List[str]:
         """Train counterfactual model on a subset.
+
+        Returns
+        -------
+        List[str]
+            A list of filenames of the trained counterfactual models.
 
         Raises
         ------
         ValueError
-            If the model is not a LightningModule and the trainer is a
-            Lightning Trainer.
-        ValueError
-            If the model is not a torch.nn.Module and the trainer is a
-            BaseTrainer.
+            If the trainer is None.
 
         """
-        if self.pretrained_models:
-            for i, model in enumerate(self.pretrained_models):
-                model_ckpt_path = os.path.join(
-                    self.cache_dir, f"{self.model_id}_model_{i}.ckpt"
+        if self.trainer is None:
+            raise ValueError(
+                "If subset_ckpt_filenames is None, "
+                "trainer must be provided to train the models."
+            )
+
+        subset_ckpt_filenames = []
+        for i in range(self.m):
+            subset = self.subsets[i]
+            subset_model = self.train_subset_model(
+                model=self.model,
+                subset=subset,
+                trainer=self.trainer,
+                batch_size=self.batch_size,
+                trainer_fit_kwargs=self.trainer_fit_kwargs,
+            )
+
+            ckpt_fname = f"{self.cache_dir}/{self.model_id}_lds_model_{i}.ckpt"
+            subset_ckpt_filenames.append(ckpt_fname)
+            model_ckpt_path = os.path.join(self.cache_dir, ckpt_fname)
+            torch.save(subset_model.state_dict(), model_ckpt_path)
+
+        return subset_ckpt_filenames
+
+    @staticmethod
+    def train_subset_model(
+        model: Union[torch.nn.Module, L.LightningModule],
+        subset: torch.utils.data.Subset,
+        trainer: Union[L.Trainer, BaseTrainer],
+        batch_size: int = 32,
+        trainer_fit_kwargs: Optional[dict] = None,
+    ):
+        """Train a model on a subset of the data.
+
+        Parameters
+        ----------
+        model : Union[torch.nn.Module, L.LightningModule]
+            The model to train.
+        subset : torch.utils.data.Subset
+            The subset of the dataset to train on.
+        trainer : Union[L.Trainer, BaseTrainer]
+            The trainer to use for training the model.
+        batch_size : int, optional
+            Batch size for training, by default 32.
+        trainer_fit_kwargs : Optional[dict], optional
+            Additional keyword arguments for the trainer's fit method,
+            by default None.
+
+        Returns
+        -------
+        Union[torch.nn.Module, L.LightningModule]
+            The trained model.
+
+        """
+        subset_model = deepcopy(model)
+        subset_loader = DataLoader(
+            subset, batch_size=batch_size, shuffle=False
+        )
+        trainer_fit_kwargs = trainer_fit_kwargs or {}
+        if isinstance(trainer, L.Trainer):
+            if not isinstance(model, L.LightningModule):
+                raise ValueError(
+                    "Model should be a LightningModule if Trainer is a "
+                    "Lightning Trainer"
                 )
-                torch.save(model.state_dict(), model_ckpt_path)
+
+            trainer.fit(
+                model=model,
+                train_dataloaders=subset_loader,
+                **trainer_fit_kwargs,
+            )
+
+        elif isinstance(trainer, BaseTrainer):
+            if not isinstance(model, torch.nn.Module):
+                raise ValueError(
+                    "Model should be a torch.nn.Module if Trainer is a "
+                    "BaseTrainer"
+                )
+            trainer.fit(
+                model=subset_model,
+                train_dataloaders=subset_loader,
+                **trainer_fit_kwargs,
+            )
         else:
-            for i, subset in enumerate(self.subsets):
-                counterfactual_model = deepcopy(self.model)
-                subset_loader = DataLoader(
-                    subset, batch_size=self.batch_size, shuffle=False
-                )
-                self.trainer_fit_kwargs = self.trainer_fit_kwargs or {}
-                if isinstance(self.trainer, L.Trainer):
-                    if not isinstance(self.model, L.LightningModule):
-                        raise ValueError(
-                            "Model should be a LightningModule if Trainer is "
-                            "a Lightning Trainer"
-                        )
+            raise ValueError(
+                "Trainer should be either a Lightning Trainer or "
+                "a BaseTrainer."
+            )
+        return subset_model
 
-                    self.trainer.fit(
-                        model=self.model,
-                        train_dataloaders=subset_loader,
-                        **self.trainer_fit_kwargs,
-                    )
-
-                elif isinstance(self.trainer, BaseTrainer):
-                    if not isinstance(self.model, torch.nn.Module):
-                        raise ValueError(
-                            "Model should be a torch.nn.Module if Trainer is "
-                            "a BaseTrainer"
-                        )
-                    self.trainer.fit(
-                        model=counterfactual_model,
-                        train_dataloaders=subset_loader,
-                        **self.trainer_fit_kwargs,
-                    )
-
-                model_ckpt_path = os.path.join(
-                    self.cache_dir, f"{self.model_id}_model_{i}.ckpt"
-                )
-                torch.save(counterfactual_model.state_dict(), model_ckpt_path)
-
-    def load_counterfactual_model(self, model_idx: int):
+    def load_counterfactual_model(self, idx: int):
         """Load a model checkpoint.
 
         Parameters
         ----------
-        model_idx : int
+        idx : int
             Index of the model to load.
 
         Returns
@@ -238,14 +340,13 @@ class LinearDatamodelingMetric(Metric):
             The loaded model.
 
         """
-        model_ckpt_path = os.path.join(
-            self.cache_dir, f"{self.model_id}_model_{model_idx}.ckpt"
+        subset_model = deepcopy(self.model)
+        self.checkpoints_load_func(
+            subset_model, self.subset_ckpt_filenames[idx]
         )
-        counterfactual_model = deepcopy(self.model)
-        self.checkpoints_load_func(counterfactual_model, model_ckpt_path)
 
-        counterfactual_model.to(self.device)
-        return counterfactual_model
+        subset_model.to(self.device)
+        return subset_model
 
     def update(
         self,
@@ -288,13 +389,23 @@ class LinearDatamodelingMetric(Metric):
 
             counterfactual_model = self.load_counterfactual_model(s)
             counterfactual_output = counterfactual_model(test_data).detach()
-
+            # We take softmax since we want the rank
+            # correlation of probabilities
+            # The original definition computes the rank
+            # correlation of p/1-p
+            # So it is skipped to avoid overflow errors.
+            # This operation conserves the ranking of the data
+            # We also take logsoftmax
+            # to avoid underflow issues at the softmax output
             if (
                 counterfactual_output.ndim == 1
                 or counterfactual_output.shape[1] == 1
             ):
                 counterfactual_output = counterfactual_output.squeeze()
             else:
+                counterfactual_output = log_softmax(
+                    counterfactual_output, dim=-1
+                )
                 counterfactual_output = counterfactual_output.gather(
                     1, test_targets.unsqueeze(1)
                 ).squeeze(1)
@@ -309,9 +420,8 @@ class LinearDatamodelingMetric(Metric):
         self.results["scores"].append(batch_lds_scores)
 
     def reset(self, *args, **kwargs):
-        """Reset the LDS score and resample subsets of the training data."""
+        """Reset the LDS score."""
         self.results = {"scores": []}
-        self.subsets = self.sample_subsets(dataset=self.train_dataset)
 
     def load_state_dict(self, state_dict: dict):
         """Load the state of the metric.

@@ -1,22 +1,20 @@
 """Benchmark for the Linear Datamodeling Score metric."""
 
 import logging
-from typing import Callable, Optional, Union, List, Any
+import os
+from typing import Callable, List, Optional
 
 import lightning as L
 import torch
+import yaml
+from huggingface_hub import create_repo, upload_folder
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import (
-    load_module_from_bench_state,
-    sample_transforms,
-)
-from quanda.benchmarks.resources.modules import bench_load_state_dict
+from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
-from quanda.utils.functions import CorrelationFnLiterals
-from quanda.utils.training import BaseTrainer
+from quanda.utils.functions import correlation_functions
 
 logger = logging.getLogger(__name__)
 
@@ -57,188 +55,149 @@ class LinearDatamodeling(Benchmark):
         """
         super().__init__()
 
-        self.model: Union[torch.nn.Module, L.LightningModule]
-
-        self.train_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
-        self.dataset_transform: Optional[Callable]
         self.m: int
         self.alpha: float
-        self.trainer: Union[L.Trainer, BaseTrainer]
-        self.trainer_fit_kwargs: Optional[dict]
         self.cache_dir: str
-        self.model_id: str
-
-        self.use_predictions: bool
-        self.correlation_fn: Union[Callable, CorrelationFnLiterals]
+        self.model_id: str = "0"
+        self.correlation_fn: Callable
         self.seed: int
-        self.subset_ids: Optional[List[List[int]]]
-        self.pretrained_models: Optional[List[torch.nn.Module]]
+        self.subset_ids: List[List[int]]
+        self.subset_ckpt_filenames: List[str]
 
     @classmethod
-    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """Download a precomputed benchmark.
-
-        Load precomputed benchmark components from a file and creates an
-        instance from the state dictionary.
-
-        Parameters
-        ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        device : str
-            Device to load the model on.
-        args : Any
-            Variable length argument list.
-        kwargs : Any
-            Arbitrary keyword arguments.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        eval_dataset = obj._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split=bench_state["test_split_name"],
-        )
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        return obj.assemble(
-            model=module,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            train_dataset=bench_state["dataset_str"],
-            eval_dataset=eval_dataset,
-            m=bench_state["m"],
-            cache_dir=bench_state["cache_dir"],
-            model_id=bench_state["model_id"],
-            alpha=bench_state["alpha"],
-            trainer=bench_state["trainer"],
-            trainer_fit_kwargs=bench_state["trainer_fit_kwargs"],
-            correlation_fn=bench_state["correlation_fn"],
-            seed=bench_state["seed"],
-            use_predictions=bench_state["use_predictions"],
-            subset_ids=bench_state["subset_ids"],
-            pretrained_models=bench_state["pretrained_models"],
-            dataset_transform=dataset_transform,
-        )
-
-    @classmethod
-    def assemble(
+    def from_config(
         cls,
-        model: torch.nn.Module,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        trainer: Union[L.Trainer, BaseTrainer],
-        cache_dir: str,
-        model_id: str,
-        m: int = 100,
-        alpha: float = 0.5,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        trainer_fit_kwargs: Optional[dict] = None,
-        dataset_transform: Optional[Callable] = None,
-        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-        seed: int = 42,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        subset_ids: Optional[List[List[int]]] = None,
-        pretrained_models: Optional[List[torch.nn.Module]] = None,
-        *args,
-        **kwargs,
+        config: dict,
+        load_meta_from_disk: bool = True,
+        offline: bool = False,
+        device: str = "cpu",
     ):
-        """Assembles the benchmark from existing components.
+        """Initialize the benchmark from a dictionary.
 
         Parameters
         ----------
-        model : torch.nn.Module
-            The model used to generate attributions.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed,
-            it should be a HuggingFace dataset name.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        trainer : Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the models on different subsets.
-            Can be a Lightning Trainer or a `BaseTrainer`.
-        cache_dir : str
-            Directory to be used for caching. This directory will be used to
-            save checkpoints of models trained on different subsets of the
-            training data.
-        model_id : str
-            Identifier for the model, to be used in naming cached checkpoints.
-        m : int, optional
-            Number of subsets to be used for training the models, by default
-            100.
-        alpha : float, optional
-            Percentage of datapoints to be used for training the models, by
-            default 0.5.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments to be passed to the `fit` method of
-            the trainer, by default None.
-        dataset_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None.
-        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation.
-        seed : int, optional
-            Seed to be used for the evaluation, by default 42.
-        use_predictions : bool, optional
-            Whether to use model predictions or the true test labels for the
-            evaluation, defaults to False.
-        dataset_split : str, optional
-            The dataset split to use, by default "train". Only used if
-            `train_dataset` is a string.
-        subset_ids : Optional[List[List[int]]], optional
-            A list of pre-defined subset indices, by default None.
-        pretrained_models : Optional[List[torch.nn.Module]], optional
-            A list of pre-trained models for each subset, by default None.
-        args : Any
-            Additional arguments.
-        kwargs : Any
-            Additional keyword arguments.
+        config : dict
+            Dictionary containing the configuration.
+        load_meta_from_disk : str
+            Loads dataset metadata from disk if True, otherwise generates it,
+            default True.
+        offline : bool
+            If True, the model is not downloaded, default False.
+        device: str, optional
+            Device to use for the evaluation, by default "cpu".
 
         """
-        obj = cls()
-        obj._assemble_common(
-            model=model,
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions,
-        )
-        obj.subset_ids = subset_ids
-        obj.pretrained_models = pretrained_models
-        obj.correlation_fn = correlation_fn
-        obj.trainer = trainer
-        obj.m = m
-        obj.alpha = alpha
-        obj.trainer_fit_kwargs = trainer_fit_kwargs
-        obj.seed = seed
-        obj.cache_dir = cache_dir
-        obj.model_id = model_id
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
-        )
-        # this sets the function to the default value
-        obj.checkpoints_load_func = None
+        obj = super().from_config(config, load_meta_from_disk, offline, device)
+        obj.m = config.get("m", 100)
 
+        obj.subset_ckpt_filenames = []
+        for i in range(obj.m):
+            obj.subset_ckpt_filenames.append(
+                f"{config['repo_id']}/{config['ckpts'][-1]}_lds_subset_{i}"
+            )
+
+        obj.alpha = config.get("alpha", 0.5)
+        counterfactual_trainer = config.get(
+            "counterfactual_trainer", config["model"].get("trainer", None)
+        )
+        if counterfactual_trainer is None:
+            raise ValueError(
+                "Either 'trainer' or 'model.trainer' should be set."
+            )
+        obj.counterfactual_trainer = BenchConfigParser.parse_trainer_cfg(
+            counterfactual_trainer
+        )
+        # TODO: make trainer_fit_kwargs available to all benchmarks
+        obj.trainer_fit_kwargs = config.get("trainer_fit_kwargs", None)
+        obj.model_id = config.get("model_id", "0")
+        obj.cache_dir = config.get("cache_dir", "./tmp")
+        obj.seed = config["seed"]
+        cache_dir = config.get("bench_save_dir", "./tmp")
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=cache_dir
+        )
+        # create metadata dir if it doesn't exist
+        os.makedirs(metadata_dir, exist_ok=True)
+
+        generator = torch.Generator()
+        generator.manual_seed(obj.seed)
+
+        subset_meta = f"{metadata_dir}/{config['subset_ids']}"
+        if os.path.exists(subset_meta) and load_meta_from_disk:
+            with open(f"{metadata_dir}/{config['subset_ids']}", "r") as f:
+                obj.subset_ids = yaml.safe_load(f)
+        else:
+            obj.subset_ids = LinearDatamodelingMetric.generate_subsets(
+                dataset=obj.train_dataset,
+                alpha=obj.alpha,
+                m=obj.m,
+                generator=generator,
+            )
+            with open(f"{metadata_dir}/{config['subset_ids']}", "w") as f:
+                f.write(f"{obj.subset_ids}")
+
+        obj.model, obj.checkpoints, obj.checkpoints_load_func = (
+            BenchConfigParser.parse_model_cfg(
+                model_cfg=config["model"],
+                bench_save_dir=config["bench_save_dir"],
+                repo_id=config["repo_id"],
+                ckpts=config["ckpts"],
+                load_model_from_disk=offline,
+                device=device,
+            )
+        )
+
+        obj.correlation_fn = correlation_functions[config["correlation_fn"]]
+        obj.use_predictions = config.get("use_predictions", True)
         return obj
 
-    generate = assemble
+    @classmethod
+    def train_and_push_to_hub(
+        cls,
+        config: dict,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
+        device: str = "cpu",
+        batch_size: int = 8,
+    ):  # pragma: no cover
+        """Train a model using the provided config and push to HF hub."""
+        obj = cls.from_config(
+            config, load_meta_from_disk=False, offline=True, device=device
+        )
+
+        # Parse trainer configuration
+        trainer = BenchConfigParser.parse_trainer_cfg(
+            config["model"]["trainer"]
+        )
+
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
+        )
+
+        create_repo(
+            repo_id=f"quanda-bench-test/{config['id']}_metadata",
+            repo_type="dataset",
+            exist_ok=True,
+        )
+        upload_folder(
+            folder_path=metadata_dir,
+            repo_id=f"quanda-bench-test/{config['id']}_metadata",
+            repo_type="dataset",
+        )
+
+        for i, filename in enumerate(obj.subset_ckpt_filenames):
+            subset = torch.utils.data.Subset(
+                obj.train_dataset, obj.subset_ids[i]
+            )
+            subset_model = LinearDatamodelingMetric.train_subset_model(
+                model=obj.model,
+                subset=subset,
+                trainer=trainer,
+                batch_size=batch_size,
+            )
+
+            subset_model.push_to_hub(filename)
+
+        return obj
 
     def evaluate(
         self,
@@ -272,18 +231,18 @@ class LinearDatamodeling(Benchmark):
         metric = LinearDatamodelingMetric(
             model=self.model,
             checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
             train_dataset=self.train_dataset,
             alpha=self.alpha,
             m=self.m,
-            trainer=self.trainer,
-            trainer_fit_kwargs=self.trainer_fit_kwargs,
             cache_dir=self.cache_dir,
             model_id=self.model_id,
             correlation_fn=self.correlation_fn,
             seed=self.seed,
             batch_size=batch_size,
             subset_ids=self.subset_ids,
-            pretrained_models=self.pretrained_models,
+            subset_ckpt_filenames=self.subset_ckpt_filenames,
+            # TODO: implement pretrained_models in LDS metric
         )
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,

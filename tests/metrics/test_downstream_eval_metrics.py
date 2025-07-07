@@ -1,10 +1,7 @@
 import math
 
 import pytest
-import torch
-from torcheval.metrics.functional import binary_auprc
 
-from quanda.explainers import SumAggregator
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.downstream_eval import (
     ClassDetectionMetric,
@@ -59,7 +56,7 @@ def test_identical_class_metrics(
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, subclass_labels, test_labels, batch_size, explanations, expected_score",
+    "test_id, model, checkpoint,dataset, subclass_labels, test_labels, batch_size, explanations, filter_by_prediction, expected_score",
     [
         (
             "mnist",
@@ -70,7 +67,20 @@ def test_identical_class_metrics(
             "load_mnist_test_labels_1",
             8,
             "load_mnist_explanations_similarity_1",
+            False,
             0.1,
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_grouped_mnist_dataset",
+            "load_mnist_labels",
+            "load_mnist_test_labels_1",
+            8,
+            "load_mnist_explanations_similarity_1",
+            True,
+            ValueError,
         ),
     ],
 )
@@ -83,6 +93,7 @@ def test_identical_subclass_metrics(
     test_labels,
     batch_size,
     explanations,
+    filter_by_prediction,
     expected_score,
     request,
 ):
@@ -97,7 +108,12 @@ def test_identical_subclass_metrics(
         checkpoints=checkpoint,
         train_dataset=dataset,
         train_subclass_labels=subclass_labels,
+        filter_by_prediction=filter_by_prediction,
     )
+    if isinstance(expected_score, type):
+        with pytest.raises(expected_score):
+            metric.update(test_labels=test_labels, explanations=tda)
+        return
     metric.update(test_labels=test_labels, explanations=tda)
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)
@@ -105,46 +121,20 @@ def test_identical_subclass_metrics(
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, explanations, test_samples, test_labels, global_method, expl_kwargs, expected_score",
+    "test_id, model, checkpoint,dataset, test_samples, test_labels, expl_kwargs, expected_score",
     [
         (
             "mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mislabeling_mnist_dataset",
-            "load_mnist_explanations_similarity_1",
             "load_mnist_test_samples_1",
             "load_mnist_test_labels_1",
-            "self-influence",
             {
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
                 "model_id": "test",
             },
-            0.4921875,
-        ),
-        (
-            "mnist",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "load_mislabeling_mnist_dataset",
-            "load_mnist_explanations_similarity_1",
-            "load_mnist_test_samples_1",
-            "load_mnist_test_labels_1",
-            SumAggregator,
-            None,
-            0.4921875,
-        ),
-        (
-            "mnist",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "load_mislabeling_mnist_dataset",
-            "load_mnist_explanations_similarity_1",
-            "load_mnist_test_samples_1",
-            "load_mnist_test_labels_1",
-            "sum_abs",
-            None,
             0.4921875,
         ),
     ],
@@ -154,43 +144,27 @@ def test_mislabeling_detection_metric(
     model,
     checkpoint,
     dataset,
-    explanations,
     test_samples,
     test_labels,
-    global_method,
     expl_kwargs,
     expected_score,
     request,
     tmp_path,
 ):
     dataset = request.getfixturevalue(dataset)
-    tda = request.getfixturevalue(explanations)
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
     test_labels = request.getfixturevalue(test_labels)
     test_samples = request.getfixturevalue(test_samples)
 
-    if global_method != "self-influence":
-        metric = MislabelingDetectionMetric(
-            model=model,
-            checkpoints=checkpoint,
-            train_dataset=dataset,
-            mislabeling_indices=dataset.transform_indices,
-            global_method=global_method,
-        )
-        metric.update(
-            test_data=test_samples, test_labels=test_labels, explanations=tda
-        )
-    else:
-        metric = MislabelingDetectionMetric(
-            model=model,
-            checkpoints=checkpoint,
-            train_dataset=dataset,
-            global_method=global_method,
-            mislabeling_indices=dataset.transform_indices,
-            explainer_cls=CaptumSimilarity,
-            expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
-        )
+    metric = MislabelingDetectionMetric(
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        mislabeling_indices=dataset.transform_indices,
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
+    )
     score = metric.compute()["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
@@ -198,7 +172,105 @@ def test_mislabeling_detection_metric(
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, labels, poisoned_ids, poisoned_cls, explanations, assert_err",
+    "test_id, model, checkpoint, dataset, test_samples, test_labels, expl_kwargs, method",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mislabeling_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+                "model_id": "test",
+            },
+            "update",
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mislabeling_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+                "model_id": "test",
+            },
+            "reset",
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mislabeling_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+                "model_id": "test",
+            },
+            "load",
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mislabeling_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+                "model_id": "test",
+            },
+            "save",
+        ),
+    ],
+)
+def test_mislabeling_detection_metric_si_warnings(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_samples,
+    test_labels,
+    expl_kwargs,
+    method,
+    request,
+    tmp_path,
+):
+    dataset = request.getfixturevalue(dataset)
+    model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
+    test_labels = request.getfixturevalue(test_labels)
+    test_samples = request.getfixturevalue(test_samples)
+
+    metric = MislabelingDetectionMetric(
+        model=model,
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        mislabeling_indices=dataset.transform_indices,
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs={**expl_kwargs, "cache_dir": str(tmp_path)},
+    )
+    with pytest.warns(UserWarning, match=".*"):
+        metric.update(None, None, None)
+    with pytest.warns(UserWarning, match=".*"):
+        metric.reset()
+    with pytest.warns(UserWarning, match=".*"):
+        metric.state_dict()
+    with pytest.warns(UserWarning, match=".*"):
+        metric.load_state_dict(None)
+
+
+@pytest.mark.metrics
+@pytest.mark.parametrize(
+    "test_id, model, checkpoint,dataset, labels, poisoned_ids, poisoned_cls, explanations, filter_by_prediction, expected",
     [
         (
             "mnist",
@@ -210,6 +282,7 @@ def test_mislabeling_detection_metric(
             1,
             "load_mnist_explanations_similarity_1",
             False,
+            0.39000001549720764,
         ),
         (
             "mnist",
@@ -220,7 +293,20 @@ def test_mislabeling_detection_metric(
             [3],
             0,
             "load_mnist_explanations_similarity_1",
+            False,
+            AssertionError,
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_labels",
+            [3],
+            1,
+            "load_mnist_explanations_similarity_1",
             True,
+            ValueError,
         ),
     ],
 )
@@ -233,7 +319,8 @@ def test_shortcut_detection_metric(
     poisoned_ids,
     poisoned_cls,
     explanations,
-    assert_err,
+    filter_by_prediction,
+    expected,
     request,
 ):
     model = request.getfixturevalue(model)
@@ -241,33 +328,26 @@ def test_shortcut_detection_metric(
     dataset = request.getfixturevalue(dataset)
     labels = request.getfixturevalue(labels)
     tda = request.getfixturevalue(explanations)
-    if assert_err:
-        with pytest.raises(AssertionError):
-            metric = ShortcutDetectionMetric(
+    if isinstance(expected, type):
+        with pytest.raises(expected):
+            ShortcutDetectionMetric(
                 model,
                 dataset,
                 poisoned_ids,
                 poisoned_cls,
                 checkpoints=checkpoint,
-            )
-    else:
-        metric = ShortcutDetectionMetric(
-            model,
-            dataset,
-            poisoned_ids,
-            poisoned_cls,
-            checkpoints=checkpoint,
-        )
-        metric.update(tda)
-        score = metric.compute()["score"]
-        binary_ids = torch.tensor(
-            [1 if i in poisoned_ids else 0 for i in range(len(dataset))]
-        )
-        expected_score = (
-            torch.tensor(
-                [binary_auprc(tda[i], binary_ids) for i in range(tda.shape[0])]
-            )
-            .mean()
-            .item()
-        )
-        assert math.isclose(score, expected_score, abs_tol=0.00001)
+                filter_by_prediction=filter_by_prediction,
+            ).update(tda)
+        return
+
+    metric = ShortcutDetectionMetric(
+        model,
+        dataset,
+        poisoned_ids,
+        poisoned_cls,
+        checkpoints=checkpoint,
+        filter_by_prediction=filter_by_prediction,
+    )
+    metric.update(tda)
+    score = metric.compute()["score"]
+    assert math.isclose(score, expected, abs_tol=0.00001)

@@ -1,0 +1,53 @@
+model:
+  module:
+    name: MnistTorch
+    args:
+      num_outputs: 10
+  trainer:
+    optimizer: adam
+    optimizer_kwargs:
+      weight_decay: 0.0
+    criterion: cross_entropy
+    criterion_kwargs: {}
+    scheduler: constant
+    scheduler_kwargs:
+      last_epoch: -1
+    lr: 0.001
+    max_epochs: 5
+    seed: 42
+train_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: train[:1%]
+  transforms: mnist_transforms
+  indices: all
+  wrapper:
+    type: LabelFlippingDataset
+    metadata:
+      metadata_filename: mnist_train_unit_mislabeling.yaml
+      p: 0.1
+      seed: 43
+eval_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: test[:1%]
+  transforms: mnist_transforms
+  indices: all
+logger:
+  _target_: lightning.pytorch.loggers.wandb.WandbLogger
+  save_dir: ${log_dir}/wandb/
+  project: quanda-bench
+id: 7ed30b3-default_MislabelingDetection
+meta_id: 7ed30b3_metadata
+bench: MislabelingDetection
+adversarial_label: 0
+bench_save_dir: tests/assets/mnist_test_suite_2
+repo_id: "quanda-bench-test"
+cache_dir: tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
+offline: true
+seed: 42
+cfg_file_name: 7ed30b3-default_MislabelingDetection.yaml
+cfg_output_dir: tests/assets/mnist_test_suite_2
+ckpts:
+- 7ed30b3-default_MislabelingDetection

@@ -24,6 +24,7 @@ from quanda.utils.datasets.transformed import LabelFlippingDataset
             None,
         ),
         ("load_mnist_dataset", 10, 27, [], None, ValueError),
+        ("load_mnist_dataset", 10, 27, {10022: 32, 892: 33}, None, ValueError),
     ],
 )
 def test_label_flipping_dataset(
@@ -39,34 +40,34 @@ def test_label_flipping_dataset(
     if expected is not None:
         expected = request.getfixturevalue(expected)
 
+    metadata = LabelFlippingDataset.metadata_cls(
+        seed=seed,
+    )
+    metadata.transform_indices = metadata.generate_indices(dataset)
+
+    if isinstance(flipped_labels, str):
+        flipped_labels = request.getfixturevalue(flipped_labels)
+
     if flipped_labels is None:
-        flipped_dataset = LabelFlippingDataset(
-            dataset=dataset,
-            n_classes=n_classes,
-            seed=seed,
-        )
-    else:
-        if isinstance(flipped_labels, str):
-            flipped_labels = request.getfixturevalue(flipped_labels)
-        if err is not None:
-            with pytest.raises(err):
-                flipped_dataset = LabelFlippingDataset(
-                    dataset=dataset,
-                    n_classes=n_classes,
-                    seed=seed,
-                    mislabeling_labels=flipped_labels,
-                )
-            return
-        else:
+        flipped_labels = metadata.generate_mislabeling_labels(dataset)
+
+    metadata.mislabeling_labels = flipped_labels
+
+    if err is not None:
+        with pytest.raises(err):
             flipped_dataset = LabelFlippingDataset(
                 dataset=dataset,
-                n_classes=n_classes,
-                seed=seed,
-                mislabeling_labels=flipped_labels,
+                metadata=metadata,
             )
-            assertions = []
-            labels = flipped_dataset.mislabeling_labels
-            assertions.append(len(labels.keys()) == len(expected.keys()))
-            for i in labels.keys():
-                assertions.append(labels[i] == expected[i])
-            assert all(assertions)
+        return
+    else:
+        flipped_dataset = LabelFlippingDataset(
+            dataset=dataset,
+            metadata=metadata,
+        )
+        assertions = []
+        labels = flipped_dataset.mislabeling_labels
+        assertions.append(len(labels.keys()) == len(expected.keys()))
+        for i in labels.keys():
+            assertions.append(labels[i] == expected[str(i)])
+        assert all(assertions)
