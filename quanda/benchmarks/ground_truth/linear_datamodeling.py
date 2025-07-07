@@ -195,7 +195,7 @@ class LinearDatamodeling(Benchmark):
                 batch_size=batch_size,
             )
 
-            subset_model.push_to_hub(f"quanda-bench-test/{filename}")
+            subset_model.push_to_hub(filename)
 
         return obj
 
