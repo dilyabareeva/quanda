@@ -1,5 +1,5 @@
 Contribution Guide for |quanda|
-=============================
+===============================
 
 |quanda| is an open source library that you can contribute to! We
 encourage you to contribute new metrics and explainers, optimizations or
@@ -255,14 +255,14 @@ attributions. Therefore it takes also the test data which was used to
 generate the supplied attributions, as well as the target labels used
 for explaining these samples:
 
-::
+.. code:: python
 
-       def update(
-           self,
-           test_data: torch.Tensor,
-           explanations: torch.Tensor,
-           explanation_targets: Optional[torch.Tensor] = None,
-       ):
+   def update(
+      self,
+      test_data: torch.Tensor,
+      explanations: torch.Tensor,
+      explanation_targets: Optional[torch.Tensor] = None,
+   ):
 
 The ``reset`` method resets the internal state of the metric, to a state
 before seeing any explanations.
@@ -295,21 +295,22 @@ downloadable benchmark using a HuggingFace dataset, which we take from
 the user as a string. Another input, ``dataset_split : str = "train"``
 is also needed, to use when a HuggingFace dataset is downloaded. When
 you are implementing the ``generate`` function, you should additionally:
+
 - Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
 
-::
+.. code:: python
 
    obj = cls()
 
 -  Infer device from the passed model using the base method:
 
-::
+.. code:: python
 
    obj._set_devices(model)
 
 -  Populate ``train_dataset`` field of ``obj``:
 
-::
+.. code:: python
 
    obj.train_dataset = obj._process_dataset(train_dataset, dataset_split)
 
@@ -322,21 +323,23 @@ you are implementing the ``generate`` function, you should additionally:
 The class method ``assemble`` should generate the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` object
 from existing components, generated beforehand with the ``generate``
 method. Again, it should take a ``train_dataset`` and ``model``. You
-should again: - Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
+should again: 
 
-::
+- Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
+
+.. code:: python
 
    obj = cls()
 
 -  Infer device from the passed model using the base method:
 
-::
+.. code:: python
 
    obj._set_devices(model)
 
 -  Populate ``train_dataset`` field of ``obj``:
 
-::
+.. code:: python
 
    obj.train_dataset = obj._process_dataset(train_dataset, dataset_split)
 

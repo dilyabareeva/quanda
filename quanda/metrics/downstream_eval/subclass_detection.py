@@ -127,6 +127,9 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         explanations = explanations[select_idx]
         test_labels = test_labels[select_idx].to(self.device)
 
+        if explanations.shape[0] == 0:
+            raise ValueError("No samples remain after filtering.")
+
         top_one_xpl_indices = explanations.argmax(dim=1)
         top_one_xpl_targets = torch.stack(
             [self.subclass_labels[int(i)] for i in top_one_xpl_indices]

@@ -1,6 +1,6 @@
 
 Welcome to |quanda|'s documentation!
-==================================
+====================================
 |quanda| is a toolkit for **quan**\ titative evaluation of **d**\ ata **a**\ ttribution methods in **PyTorch**.
 
 .. note::
@@ -31,7 +31,7 @@ Training Data Attribution (TDA) is a new avenue in the interpretation of neural 
 
 Library Features
 ----------------
-Here we list the main components of |quanda| along with basic explanations of their function. We refer the reader to the :doc:`contribution guide <./contributing>`, the :doc:`API reference <docs_api/modules>` and the :ref:`Basic Usage <quickstart:basic usage>` for further details. Below is a schematic representation of the components of |quanda|:
+Here we list the main components of |quanda| along with basic explanations of their function. We refer the reader to the :doc:`Contribution guide <./contributing>`, the :doc:`API reference <docs_api/modules>` and the :doc:`Basic Usage <./quickstart>` for further details. Below is a schematic representation of the components of |quanda|:
 
 .. figure:: _static/components.png
    :alt: Figure 2
