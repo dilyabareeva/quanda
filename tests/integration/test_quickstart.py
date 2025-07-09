@@ -34,7 +34,7 @@ from quanda.utils.training.trainer import Trainer
 
 
 @pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions")
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, model, dataset, batch_size",
     [

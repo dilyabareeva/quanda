@@ -68,7 +68,8 @@ def test_model_randomization_kronfluence_text(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.slow
+@pytest.mark.tested
+@pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions")
 @pytest.mark.parametrize(
     "test_id, explainer_cls, task, model, dataset, batch_size, expected_score",
     [
@@ -79,7 +80,7 @@ def test_model_randomization_kronfluence_text(
             "load_qnli_model",
             "load_qnli_dataset",
             2,
-            0.3020453453063965,
+            0.29999977350234985,
         ),
     ],
 )

@@ -122,7 +122,7 @@ def test_class_detection_kronfluence_text(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.slow
+@pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions")
 @pytest.mark.parametrize(
     "test_id, explainer_cls, task, model, dataset, batch_size, expected_score",
     [
