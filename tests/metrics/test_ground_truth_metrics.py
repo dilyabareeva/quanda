@@ -10,7 +10,7 @@ from quanda.utils.functions import cosine_similarity
 from quanda.utils.training import Trainer
 
 
-@pytest.mark.tested
+@pytest.mark.ground_truth_metrics
 @pytest.mark.parametrize(
     "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, expected, method_kwargs",
     [
@@ -94,7 +94,7 @@ def test_linear_datamodeling(
     assert abs(score - expected) < 0.01, "LDS scores differ significantly."
 
 
-@pytest.mark.tested
+@pytest.mark.ground_truth_metrics
 @pytest.mark.parametrize(
     "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, "
     "trainer, correlation, expected, method_kwargs",
@@ -168,7 +168,7 @@ def test_linear_datamodeling_edge_cases(
     return
 
 
-@pytest.mark.tested
+@pytest.mark.ground_truth_metrics
 @pytest.mark.parametrize(
     "test_id, model, dataset, test_data, test_labels, subset_indices, pretrained_models, optimizer, criterion, method_kwargs",
     [

@@ -134,11 +134,6 @@ In order to assemble a :doc:`MislabelingDetection <../docs_api/quanda.benchmarks
 
 Let's collect these components from the downloaded benchmark. We then assemble the benchmark and evaluate the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor with it. Note that the implementation depends on computing the self-influences of the whole training dataset. This procedure is fastest for the :doc:`RepresenterPoints <../docs_api/quanda.explainers.wrappers.representer_points>` attributor. Therefore, we use this explainer here.
 
-.. literalinclude:: ../../../tests/integration/test_benchmarks.py
-   :language: python
-   :start-after: # START12
-   :end-before: # END12
-   :dedent:
 
 Assembling the benchmark and running the evaluation
 ++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -164,12 +164,6 @@ For mislabeling detection, we will train a model from scratch. |quanda| allows t
    :end-before: # END13_1
    :dedent:
 
-.. literalinclude:: ../../tests/integration/test_quickstart.py
-   :language: python
-   :start-after: # START13_2
-   :end-before: # END13_2
-   :dedent:
-
 **4. Generate the benchmark object and run the evaluation**
 
 We can now call the ``generate`` method to instantiate our :doc:`MislabelingDetection <docs_api/quanda.benchmarks.downstream_eval.mislabeling_detection>` object and directly start the evaluation process with it. The ``generate`` method takes care of model training using ``trainer``, generation of explanations and their evaluation.

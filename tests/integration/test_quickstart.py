@@ -1,4 +1,6 @@
+import os
 import pytest
+import yaml
 from torch.utils.data import random_split
 
 # START1
@@ -31,7 +33,8 @@ from quanda.utils.training.trainer import Trainer
 # END13_1
 
 
-@pytest.mark.integration
+@pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions")
+@pytest.mark.tested
 @pytest.mark.parametrize(
     "test_id, model, dataset, batch_size",
     [
@@ -53,21 +56,22 @@ def test_quickstart(
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
 
-    n_classes = 10
-    train_set, eval_set = random_split(dataset, [6, 2])
+    eval_dataset = dataset
+
 
     # START2
     DEVICE = "cpu"
     model.to(DEVICE)
+    cache_dir = "quanda_benchmark_quickstart_cache"
 
     explainer_kwargs = {
         "layers": "fc_2",
         "model_id": "default_model_id",
-        "cache_dir": "./cache"
+        "cache_dir": cache_dir
     }
     explainer = CaptumSimilarity(
         model=model,
-        train_dataset=train_set,
+        train_dataset=dataset,
         **explainer_kwargs
     )
     # END2
@@ -76,13 +80,13 @@ def test_quickstart(
     explainer_kwargs = {
         "layers": "fc_2",
         "model_id": "randomized_model_id",
-        "cache_dir": "./cache"
+        "cache_dir": cache_dir
     }
     model_rand = ModelRandomizationMetric(
         model=model,
         model_id="randomized_model_id",
-        cache_dir="./cache",
-        train_dataset=train_set,
+        cache_dir=cache_dir,
+        train_dataset=dataset,
         explainer_cls=CaptumSimilarity,
         expl_kwargs=explainer_kwargs,
         correlation_fn="spearman",
@@ -91,7 +95,7 @@ def test_quickstart(
     # END3
 
     # START4
-    test_loader = DataLoader(eval_set, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=False)
     for test_data, _ in tqdm(test_loader):
         test_data = test_data.to(DEVICE)
         target = model(test_data).argmax(dim=-1)
@@ -110,29 +114,18 @@ def test_quickstart(
     model.to(DEVICE)
 
     explainer_kwargs = {
-        "layers": "model.fc_2",
+        "layers": "fc_2",
         "model_id": "default_model_id",
-        "cache_dir": "./cache",
+        "cache_dir": cache_dir,
     }
     # END6
 
     # START7_1
-    subclass_detect = SubclassDetection.download(
-        name="mnist_subclass_detection",
-        cache_dir="./cache",
-        device="cpu",
+    subclass_detect = SubclassDetection.load_pretrained(
+        bench_id="mnist_subclass_detection",
+        cache_dir=cache_dir,
     )
     # END7_1
-
-    subclass_detect.base_dataset = torch.utils.data.Subset(
-        subclass_detect.base_dataset, list(range(4))
-    )
-    subclass_detect.grouped_dataset = torch.utils.data.Subset(
-        subclass_detect.grouped_dataset, list(range(4))
-    )
-    subclass_detect.eval_dataset = torch.utils.data.Subset(
-        subclass_detect.eval_dataset, list(range(4))
-    )
 
     # START7_2
     score = subclass_detect.evaluate(
@@ -150,15 +143,20 @@ def test_quickstart(
     explainer_kwargs = {
         "layers": "fc_2",
         "model_id": "default_model_id",
-        "cache_dir": "./cache"
+        "cache_dir": cache_dir
     }
     # END9
 
     # START10
-    topk_cardinality = TopKCardinality.assemble(
-        model=model,
-        train_dataset=train_set,
-        eval_dataset=eval_set,
+    with open(
+        "tests/assets/mnist_test_suite_2/7ed30b3-default_TopKCardinality.yaml",
+        "r",
+    ) as f:
+        top_k_config = yaml.safe_load(f)
+
+    topk_cardinality = TopKCardinality.from_config(
+        top_k_config,
+
     )
     score = topk_cardinality.evaluate(
         explainer_cls=CaptumSimilarity,
@@ -174,27 +172,21 @@ def test_quickstart(
 
     explainer_kwargs = {
         "layers": "fc_2",
-        "model_id": "default_model_id",
-        "cache_dir": "./cache"
+        "model_id": "top_k_model",
+        "cache_dir": cache_dir
     }
     # END12
 
-    # START13_2
-    trainer = Trainer(
-        max_epochs=100,
-        optimizer=torch.optim.SGD,
-        lr=0.01,
-        criterion=torch.nn.CrossEntropyLoss(),
-    )
-    # END13_2
-
     # START14
-    mislabeling_detection = MislabelingDetection.generate(
-        model=model,
-        cache_dir="./cache",
-        base_dataset=train_set,
-        n_classes=n_classes,
-        trainer=trainer,
+    with open(
+        "tests/assets/mnist_test_suite_2/7ed30b3-default_MislabelingDetection.yaml",
+        "r",
+    ) as f:
+        mislabel_config = yaml.safe_load(f)
+
+    mislabeling_detection = MislabelingDetection.train(
+        mislabel_config,
+        device="cpu",
     )
     score = mislabeling_detection.evaluate(
         explainer_cls=CaptumSimilarity,

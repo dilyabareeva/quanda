@@ -123,41 +123,7 @@ def test_load(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-"""
-        (
-            "mnist-linear-datamodeling",
-            "load_mnist_linear_datamodeling_config",
-            True,
-            True,
-            LinearDatamodeling,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.1133333370089531,
-        ),
-        (
-            "mnist-top-k",
-            "load_mnist_unit_test_config",
-            True,
-            True,
-            TopKCardinality,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.618,
-        ),
-        (
-            "mnist-rand",
-            "load_mnist_unit_test_config",
-            True,
-            True,
-            ModelRandomization,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.3020453453063965,
-        ),
-"""
-
-
-@pytest.mark.tested
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",
     [
@@ -230,6 +196,36 @@ def test_load(
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             0.23000000417232513,
+        ),
+        (
+                "mnist-linear-datamodeling",
+                "load_mnist_linear_datamodeling_config",
+                True,
+                True,
+                LinearDatamodeling,
+                CaptumSimilarity,
+                {"layers": "fc_2", "similarity_metric": cosine_similarity},
+                0.1133333370089531,
+        ),
+        (
+                "mnist-top-k",
+                "load_mnist_unit_test_config",
+                True,
+                True,
+                TopKCardinality,
+                CaptumSimilarity,
+                {"layers": "fc_2", "similarity_metric": cosine_similarity},
+                0.618,
+        ),
+        (
+                "mnist-rand",
+                "load_mnist_unit_test_config",
+                True,
+                True,
+                ModelRandomization,
+                CaptumSimilarity,
+                {"layers": "fc_2", "similarity_metric": cosine_similarity},
+                0.3020453453063965,
         ),
     ],
 )
