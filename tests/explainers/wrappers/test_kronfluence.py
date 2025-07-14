@@ -1,5 +1,7 @@
 import os
+
 import pytest
+import torch
 from kronfluence.arguments import (  # type: ignore
     FactorArguments,
     ScoreArguments,
@@ -48,7 +50,7 @@ def test_kronfluence_explain(
         task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         cache_dir=str(tmp_path),
     )
     explanations = explainer.explain(
@@ -90,7 +92,7 @@ def test_kronfluence_self_influence(
         task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         cache_dir=str(tmp_path),
     )
     self_influence_scores = explainer.self_influence()
@@ -137,7 +139,7 @@ def test_kronfluence_explain_functional(
         explanation_targets=test_labels,
         train_dataset=train_dataset,
         batch_size=1,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         cache_dir=str(tmp_path),
     )
 
@@ -177,7 +179,7 @@ def test_kronfluence_self_influence_functional(
         train_dataset=train_dataset,
         batch_size=1,
         cache_dir=str(tmp_path),
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
     )
 
     assert self_influence_scores.shape == (len(train_dataset),), (
@@ -226,7 +228,7 @@ def test_kronfluence_explain_with_optional_args(
         task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         factor_args=factor_args,
         dataloader_kwargs=dataloader_kwargs,
         overwrite_output_dir=True,
@@ -281,7 +283,7 @@ def test_kronfluence_self_influence_with_optional_args(
         task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         factor_args=factor_args,
         dataloader_kwargs=dataloader_kwargs,
         overwrite_output_dir=True,
@@ -338,7 +340,7 @@ def test_kronfluence_explain_functional_with_optional_args(
         explanation_targets=test_labels,
         train_dataset=train_dataset,
         batch_size=1,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         factor_args=factor_args,
         score_args=score_args,
         cache_dir=str(tmp_path),
@@ -383,7 +385,7 @@ def test_kronfluence_self_influence_functional_with_optional_args(
         task=task,
         train_dataset=train_dataset,
         batch_size=1,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         factor_args=factor_args,
         score_args=score_args,
         cache_dir=str(tmp_path),
@@ -427,7 +429,7 @@ def test_kronfluence_language_explain_single(
         task_module=task,
         train_dataset=train_dataset,
         batch_size=batch_size,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         cache_dir=str(tmp_path),
     )
 
@@ -477,7 +479,7 @@ def test_kronfluence_language_explain_multiple(
         task_module=task,
         train_dataset=train_dataset,
         batch_size=batch_size,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         cache_dir=str(tmp_path),
     )
 
@@ -526,7 +528,7 @@ def test_kronfluence_language_self_influence(
         task_module=task,
         train_dataset=train_dataset,
         batch_size=batch_size,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         cache_dir=str(tmp_path),
     )
 
@@ -535,8 +537,9 @@ def test_kronfluence_language_self_influence(
         "Self-influence scores have incorrect shape"
     )
 
-
-@pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions")
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 @pytest.mark.parametrize(
     "test_id, model, dataset, task",
     [
@@ -565,7 +568,7 @@ def test_kronfluence_qnli_self_influence(
         task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         cache_dir=str(tmp_path),
     )
 
@@ -575,7 +578,9 @@ def test_kronfluence_qnli_self_influence(
     )
 
 
-@pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions")
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 @pytest.mark.parametrize(
     "test_id, model, dataset, task",
     [
@@ -604,7 +609,7 @@ def test_kronfluence_qnli_explain(
         task_module=task,
         train_dataset=train_dataset,
         batch_size=1,
-        device="cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         cache_dir=str(tmp_path),
     )
 

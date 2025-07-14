@@ -16,17 +16,17 @@ config_map: dict = {
     "mnist_model_randomization_unit": "tests/assets/mnist_test_suite_3/"
     "0921427-default_ClassDetection.yaml",
     "mnist_top_k_cardinality": "quanda/benchmarks/resources/configs/"
-                                    "7b6c898-default_ClassDetection.yaml",
+    "7b6c898-default_ClassDetection.yaml",
     "mnist_subclass_detection": "quanda/benchmarks/resources/configs/"
-                                     "7b6c898-default_SubclassDetection.yaml",
+    "7b6c898-default_SubclassDetection.yaml",
     "mnist_mixed_datasets": "quanda/benchmarks/resources/configs/"
-                                 "7b6c898-default_MixedDatasets.yaml",
+    "7b6c898-default_MixedDatasets.yaml",
     "mnist_mislabeling_detection": "quanda/benchmarks/resources/configs/"
-                                        "7b6c898-default_MislabelingDetection.yaml",
+    "7b6c898-default_MislabelingDetection.yaml",
     "mnist_shortcut_detection": "quanda/benchmarks/resources/configs/"
-                                     "7b6c898-default_ShortcutDetection.yaml",
+    "7b6c898-default_ShortcutDetection.yaml",
     "mnist_class_detection": "quanda/benchmarks/resources/configs/"
-                                  "7b6c898-default_ClassDetection.yaml",
+    "7b6c898-default_ClassDetection.yaml",
     "mnist_model_randomization": "quanda/benchmarks/resources/configs/"
-                                      "7b6c898-default_ClassDetection.yaml",
+    "7b6c898-default_ClassDetection.yaml",
 }

@@ -298,7 +298,6 @@ class Benchmark(ABC):
 
         return results
 
-
     def evaluate(
         self,
         explainer_cls: type,

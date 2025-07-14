@@ -18,17 +18,6 @@ from transformers import (  # type: ignore
     AutoTokenizer,
 )
 
-from quanda.benchmarks.downstream_eval import (
-    ClassDetection,
-    MislabelingDetection,
-    ShortcutDetection,
-    SubclassDetection,
-)
-from quanda.benchmarks.heuristics import (
-    MixedDatasets,
-    ModelRandomization,
-    TopKCardinality,
-)
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )

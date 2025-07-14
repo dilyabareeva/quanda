@@ -15,4 +15,4 @@ jobs:
           python-version: '3.11'
 
       - name: Run code check
-        run: python scripts/validate_code_snippets.py
+        run: python .github/scripts/validate_code_snippets.py

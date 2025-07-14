@@ -187,7 +187,7 @@ def test_benchmarks(
 
     benchmark = SubclassDetection.train(
         subclass_config,
-        device="cpu",
+        device=device,
     )
     # END14_2
 

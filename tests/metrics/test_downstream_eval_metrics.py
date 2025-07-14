@@ -268,7 +268,7 @@ def test_mislabeling_detection_metric_si_warnings(
         metric.load_state_dict(None)
 
 
-@pytest.mark.metrics
+@pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
     "test_id, model, checkpoint,dataset, labels, poisoned_ids, poisoned_cls, explanations, filter_by_prediction, expected",
     [
