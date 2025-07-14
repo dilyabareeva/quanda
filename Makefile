@@ -7,7 +7,7 @@ clean-format:
 	python -m ruff format .
 	python -m ruff check --fix .
 	ruff check --fix --select D --select E501 quanda
-	python -m mypy quanda --check-untyped-defs
+	python -m mypy --check-untyped-defs --show-traceback quanda
 	rm -f .coverage
 	rm -f .coverage.*
 	find . | grep -E "(__pycache__|\.pyc|\.pyo)" | xargs rm -rf

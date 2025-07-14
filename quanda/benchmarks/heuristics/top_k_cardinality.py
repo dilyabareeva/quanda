@@ -79,6 +79,11 @@ class TopKCardinality(Benchmark):
 
         """
         obj = super().from_config(config, load_meta_from_disk, offline, device)
+
+        assert isinstance(obj, TopKCardinality), (
+            "The object must be an instance of TopKCardinality."
+        )
+
         obj.top_k = config["top_k"]
         obj.use_predictions = config.get("use_predictions", True)
         return obj

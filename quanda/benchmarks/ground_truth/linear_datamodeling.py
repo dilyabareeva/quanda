@@ -15,6 +15,7 @@ from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
 from quanda.utils.functions import correlation_functions
+from quanda.utils.training import Trainer
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +64,8 @@ class LinearDatamodeling(Benchmark):
         self.seed: int
         self.subset_ids: List[List[int]]
         self.subset_ckpt_filenames: List[str]
+        self.counterfactual_trainer: Trainer
+        self.trainer_fit_kwargs: Optional[dict] = None
 
     @classmethod
     def from_config(
@@ -88,6 +91,11 @@ class LinearDatamodeling(Benchmark):
 
         """
         obj = super().from_config(config, load_meta_from_disk, offline, device)
+
+        assert isinstance(obj, LinearDatamodeling), (
+            "The object must be an instance of LinearDatamodeling."
+        )
+
         obj.m = config.get("m", 100)
 
         obj.subset_ckpt_filenames = []

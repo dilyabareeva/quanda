@@ -82,6 +82,11 @@ class SubclassDetection(Benchmark):
 
         """
         obj = super().from_config(config, load_meta_from_disk, offline, device)
+
+        assert isinstance(obj, SubclassDetection), (
+            "The object must be an instance of SubclassDetection."
+        )
+
         obj.class_to_group = obj.train_dataset.class_to_group
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
         obj.use_predictions = config.get("use_predictions", True)

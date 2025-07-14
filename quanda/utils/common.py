@@ -217,8 +217,8 @@ def default_tensor_type(device: Union[str, torch.device]):
     float_tensor = torch.FloatTensor([0.0])
     original_tensor_type = float_tensor.type()
 
-    tensor = float_tensor.to(device)
-    new_tensor_type = tensor.type()
+    new_float_tensor = float_tensor.to(device)
+    new_tensor_type = new_float_tensor.type()
 
     # Set the new tensor type
     torch.set_default_tensor_type(new_tensor_type)

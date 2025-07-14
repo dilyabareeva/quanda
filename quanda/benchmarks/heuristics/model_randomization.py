@@ -86,6 +86,10 @@ class ModelRandomization(Benchmark):
 
         """
         obj = super().from_config(config, load_meta_from_disk, offline, device)
+
+        assert isinstance(obj, ModelRandomization), (
+            "The object must be an instance of ModelRandomization."
+        )
         obj.correlation_fn = correlation_functions[config["correlation_fn"]]
         obj.model_id = config.get("model_id", "0")
         obj.cache_dir = config.get("cache_dir", "./tmp")

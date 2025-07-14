@@ -9,7 +9,7 @@ import datasets  # type: ignore
 import lightning as L
 import torch
 import yaml
-from huggingface_hub import create_repo, upload_folder
+from huggingface_hub import PyTorchModelHubMixin, create_repo, upload_folder
 from tqdm import tqdm
 
 from quanda.benchmarks.config_parser import BenchConfigParser
@@ -98,9 +98,10 @@ class Benchmark(ABC):
         load_meta_from_disk: bool = True,
         offline: bool = False,
         device: str = "cpu",
-    ):
+    ) -> "Benchmark":
         """Initialize the benchmark from a dictionary."""
         obj = cls()
+
         obj.device = device
         cache_dir = config.get("bench_save_dir", "./tmp")
         metadata_dir = BenchConfigParser.get_metadata_dir(
@@ -212,6 +213,9 @@ class Benchmark(ABC):
         obj.model.to(obj.device)
         obj.model.eval()
 
+        assert isinstance(obj.model, PyTorchModelHubMixin), (
+            "Model must inherit from PyTorchModelHubMixin."
+        )
         obj.model.save_pretrained(ckpt_dir, safe_serialization=True)
         obj.checkpoints = [ckpt_dir]
 
@@ -232,6 +236,10 @@ class Benchmark(ABC):
             device=device,
             batch_size=batch_size,
         )
+        assert isinstance(obj.model, PyTorchModelHubMixin), (
+            "Model must inherit from PyTorchModelHubMixin."
+        )
+
         # TODO: add support for multiple checkpoints
         obj.model.push_to_hub(f"quanda-bench-test/{config['ckpts'][-1]}")
 

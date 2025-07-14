@@ -5,7 +5,6 @@ import os
 from typing import Any, Optional, Union
 
 import torch
-from torch import Tensor
 
 
 class Cache:
@@ -118,7 +117,7 @@ class ExplanationsCache(Cache):
     @staticmethod
     def save(
         path: str,
-        exp_tensors: Tensor,
+        exp_tensors: torch.Tensor,
         num_id: Union[str, int],
     ) -> None:
         """Save the explanations to the given path.
@@ -127,7 +126,7 @@ class ExplanationsCache(Cache):
         ----------
         path: str
             Path to save the explanations.
-        exp_tensors: Tensor
+        exp_tensors: torch.Tensor
            Explanations to save.
         num_id: Union[str, int]
             Number identifier for the explanations.

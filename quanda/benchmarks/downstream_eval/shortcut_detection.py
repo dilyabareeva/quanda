@@ -109,6 +109,14 @@ class ShortcutDetection(Benchmark):
                 "SampleTransformationDataset as the training dataset."
             )
 
+        assert isinstance(obj, ShortcutDetection), (
+            "The object must be an instance of ShortcutDetection."
+        )
+
+        assert obj.train_dataset.metadata.cls_idx is not None, (
+            "The training dataset must have a class index in its metadata."
+        )
+
         obj.shortcut_cls = obj.train_dataset.metadata.cls_idx
         obj.use_predictions = config.get("use_predictions", True)
         obj.filter_by_prediction = config.get("filter_by_prediction", False)

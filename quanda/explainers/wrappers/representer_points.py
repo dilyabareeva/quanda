@@ -29,7 +29,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from captum._utils.av import AV  # type: ignore
-from torch import Tensor
 from tqdm import tqdm
 
 from quanda.explainers.base import Explainer
@@ -115,7 +114,7 @@ def softmax_torch(temp: torch.Tensor, N: int):
     return D_exp.div(D_exp_sum.expand_as(D_exp))
 
 
-def av_samples(av_dataset: AV.AVDataset) -> Tensor:
+def av_samples(av_dataset: AV.AVDataset) -> torch.Tensor:
     """Concatenates the samples of an captum AV dataset.
 
     Parameters
@@ -423,8 +422,8 @@ class RepresenterPoints(Explainer):
         labels = softmax_torch(logits, self.samples.shape[0])
 
         weight_linear, bias_linear = (
-            linear_classifier.weight.data,
-            linear_classifier.bias.data,
+            torch.tensor(linear_classifier.weight.data),
+            torch.tensor(linear_classifier.bias.data),
         )
         w_and_b = torch.concatenate(
             [weight_linear.T, bias_linear.unsqueeze(0)]
@@ -528,7 +527,7 @@ class RepresenterPoints(Explainer):
         """
         t = 10.0
         beta = 0.5
-        W_O = model.W.detach().cpu().numpy()
+        W_O = torch.tensor(model.W).detach().cpu().numpy()
         grad_np = grad.detach().cpu().numpy()
 
         while True:
