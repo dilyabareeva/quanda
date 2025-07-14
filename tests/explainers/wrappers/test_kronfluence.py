@@ -537,6 +537,7 @@ def test_kronfluence_language_self_influence(
         "Self-influence scores have incorrect shape"
     )
 
+
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )

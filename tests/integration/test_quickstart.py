@@ -95,7 +95,7 @@ def test_quickstart(
     # END3
 
     # START4
-    test_loader = DataLoader(eval_dataset, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(eval_set, batch_size=batch_size, shuffle=False)
     for test_data, _ in tqdm(test_loader):
         test_data = test_data.to(DEVICE)
         target = model(test_data).argmax(dim=-1)
@@ -178,15 +178,12 @@ def test_quickstart(
     # END12
 
     # START14
-    with open(
-        "tests/assets/mnist_test_suite_2/7ed30b3-default_MislabelingDetection.yaml",
-        "r",
-    ) as f:
-        mislabel_config = yaml.safe_load(f)
-
-    mislabeling_detection = MislabelingDetection.train(
-        mislabel_config,
-        device="cpu",
+    mislabeling_detection = MislabelingDetection.generate(
+        model=model,
+        cache_dir="./cache",
+        base_dataset=train_set,
+        n_classes=n_classes,
+        trainer=trainer,
     )
     score = mislabeling_detection.evaluate(
         explainer_cls=CaptumSimilarity,

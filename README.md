@@ -187,15 +187,16 @@ We now create our explainer. The device to be used by the explainer and metrics 
 ```python
 DEVICE = "cpu"
 model.to(DEVICE)
+cache_dir = "quanda_benchmark_quickstart_cache"
 
 explainer_kwargs = {
     "layers": "fc_2",
     "model_id": "default_model_id",
-    "cache_dir": "./cache"
+    "cache_dir": cache_dir
 }
 explainer = CaptumSimilarity(
     model=model,
-    train_dataset=train_set,
+    train_dataset=dataset,
     **explainer_kwargs
 )
 ```
@@ -212,13 +213,13 @@ The `ModelRandomizationMetric` needs to instantiate a new explainer to generate 
 explainer_kwargs = {
     "layers": "fc_2",
     "model_id": "randomized_model_id",
-    "cache_dir": "./cache"
+    "cache_dir": cache_dir
 }
 model_rand = ModelRandomizationMetric(
     model=model,
     model_id="randomized_model_id",
-    cache_dir="./cache",
-    train_dataset=train_set,
+    cache_dir=cache_dir,
+    train_dataset=dataset,
     explainer_cls=CaptumSimilarity,
     expl_kwargs=explainer_kwargs,
     correlation_fn="spearman",
@@ -275,9 +276,9 @@ DEVICE = "cpu"
 model.to(DEVICE)
 
 explainer_kwargs = {
-    "layers": "model.fc_2",
+    "layers": "fc_2",
     "model_id": "default_model_id",
-    "cache_dir": "./cache",
+    "cache_dir": cache_dir,
 }
 ```
 <!-- END6 -->
@@ -288,10 +289,9 @@ explainer_kwargs = {
 
 <!-- START7_1 -->
 ```python
-subclass_detect = SubclassDetection.download(
-    name="mnist_subclass_detection",
-    cache_dir="./cache",
-    device="cpu",
+subclass_detect = SubclassDetection.load_pretrained(
+    bench_id="mnist_subclass_detection",
+    cache_dir=cache_dir,
 )
 ```
 <!-- END7_1 -->
@@ -335,7 +335,7 @@ model.to(DEVICE)
 explainer_kwargs = {
     "layers": "fc_2",
     "model_id": "default_model_id",
-    "cache_dir": "./cache"
+    "cache_dir": cache_dir
 }
 ```
 <!-- END9 -->
@@ -348,10 +348,15 @@ We now have everything we need, we can just assemble the benchmark and run it. T
 
 <!-- START10 -->
 ```python
-topk_cardinality = TopKCardinality.assemble(
-    model=model,
-    train_dataset=train_set,
-    eval_dataset=eval_set,
+with open(
+    "tests/assets/mnist_test_suite_2/7ed30b3-default_TopKCardinality.yaml",
+    "r",
+) as f:
+    top_k_config = yaml.safe_load(f)
+
+topk_cardinality = TopKCardinality.from_config(
+    top_k_config,
+
 )
 score = topk_cardinality.evaluate(
     explainer_cls=CaptumSimilarity,
@@ -392,8 +397,8 @@ model.to(DEVICE)
 
 explainer_kwargs = {
     "layers": "fc_2",
-    "model_id": "default_model_id",
-    "cache_dir": "./cache"
+    "model_id": "top_k_model",
+    "cache_dir": cache_dir
 }
 ```
 <!-- END12 -->

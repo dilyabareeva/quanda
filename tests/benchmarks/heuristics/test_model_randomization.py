@@ -126,4 +126,4 @@ def test_model_randomization_kronfluence_qnli(
         batch_size=batch_size,
     )["score"]
 
-    assert (score < 1.0) and (score > -1.0), "Score should be between -1 and 1"
+    assert -1.0 < score < 1.0, "Score should be between -1 and 1"

@@ -112,8 +112,6 @@ def main():
             print("----- Test snippet -----")
             print(test_snippet)
             all_equal = False
-        else:
-            print(f"Snippet '{snippet_id}' matches.")
 
     if not all_equal:
         sys.exit(1)
