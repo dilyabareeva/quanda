@@ -23,7 +23,7 @@ import lightning as L
 
 
 @pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions")
-@pytest.mark.benchmarks
+@pytest.mark.integration
 @pytest.mark.parametrize(
     "test_id",
     [

@@ -34,7 +34,7 @@ from quanda.utils.training.trainer import Trainer
 
 
 @pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions")
-@pytest.mark.benchmarks
+@pytest.mark.integration
 @pytest.mark.parametrize(
     "test_id, model, dataset, batch_size",
     [
@@ -178,12 +178,15 @@ def test_quickstart(
     # END12
 
     # START14
-    mislabeling_detection = MislabelingDetection.generate(
-        model=model,
-        cache_dir="./cache",
-        base_dataset=train_set,
-        n_classes=n_classes,
-        trainer=trainer,
+    with open(
+        "tests/assets/mnist_test_suite_2/7ed30b3-default_MislabelingDetection.yaml",
+        "r",
+    ) as f:
+        mislabel_config = yaml.safe_load(f)
+
+    mislabeling_detection = MislabelingDetection.train(
+        mislabel_config,
+        device="cpu",
     )
     score = mislabeling_detection.evaluate(
         explainer_cls=CaptumSimilarity,
