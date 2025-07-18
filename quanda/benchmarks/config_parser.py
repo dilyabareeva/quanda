@@ -6,11 +6,12 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 import torch
 from datasets import load_dataset  # type: ignore
+from distlib.util import split_filename
 from huggingface_hub import snapshot_download
 
 from quanda.benchmarks.resources import pl_modules
 from quanda.benchmarks.resources.sample_transforms import sample_transforms
-from quanda.utils.common import TrainValTest
+from quanda.utils.common import DatasetSplit
 from quanda.utils.datasets.image_datasets import HFtoTV
 from quanda.utils.datasets.transformed import (
     TransformedDataset,
@@ -63,7 +64,7 @@ class BenchConfigParser:
             return None
 
         dataset = cls._load_dataset_from_cfg(
-            ds_config, bench_save_dir, load_meta_from_disk
+            ds_config, metadata_dir, load_meta_from_disk
         )
 
         wrapper = copy.deepcopy(ds_config.get("wrapper", None))
@@ -179,12 +180,14 @@ class BenchConfigParser:
     def _load_dataset_from_cfg(
         cls,
         ds_config: dict,
-        bench_save_dir: str,
+        metadata_dir: str,
         load_meta_from_disk: bool = True,
     ) -> torch.utils.data.Dataset:
         """Load dataset based on configuration."""
         if "single_class_dataset" not in ds_config:
-            return cls._load_hf_dataset(ds_config, load_meta_from_disk)
+            return cls._load_hf_dataset(
+                ds_config, metadata_dir, load_meta_from_disk
+            )
         elif ds_config["single_class_dataset"]:
             return cls._load_single_class_dataset(
                 ds_config,
@@ -194,7 +197,10 @@ class BenchConfigParser:
 
     @classmethod
     def _load_hf_dataset(
-        cls, ds_config: dict, load_meta_from_disk: bool = True
+        cls,
+        ds_config: dict,
+        metadata_dir: str,
+        load_meta_from_disk: bool = True,
     ) -> torch.utils.data.Dataset:
         """Load a HuggingFace dataset based on configuration."""
         transform = cls._get_transform(ds_config)
@@ -203,7 +209,9 @@ class BenchConfigParser:
             transform=transform,
             dataset_split=ds_config.get("dataset_split", "train"),
         )
-        return cls._apply_indices(base_dataset, ds_config, load_meta_from_disk)
+        return cls._apply_indices(
+            base_dataset, ds_config, metadata_dir, load_meta_from_disk
+        )
 
     @classmethod
     def _load_single_class_dataset(
@@ -248,6 +256,7 @@ class BenchConfigParser:
         cls,
         base_dataset: torch.utils.data.Dataset,
         ds_config: dict,
+        metadata_dir: str,
         load_meta_from_disk: bool = True,
     ) -> torch.utils.data.Dataset:
         """Apply indices to the dataset based on configuration."""
@@ -257,10 +266,19 @@ class BenchConfigParser:
 
         split_name = indices.get("split_name", "train")
         split_filename = indices.get("split_filename", "DOESNT_EXIST")
-        bench_save_dir = ds_config.get("bench_save_dir", ".tmp")
-        metadata_dir = os.path.join(bench_save_dir, "metadata")
+        val_split = indices.get("val", 0.0)
+        test_split = indices.get("test", 0.0)
+        train_split = indices.get("train", 1 - val_split - test_split)
         split = cls._load_split_if_exists_or_generate(
-            base_dataset, load_meta_from_disk, metadata_dir, split_filename
+            base_dataset,
+            load_meta_from_disk,
+            metadata_dir,
+            split_filename,
+            split_ratios={
+                "train": train_split,
+                "test": test_split,
+                "val": val_split,
+            },
         )
         return torch.utils.data.Subset(base_dataset, split[split_name])
 
@@ -311,16 +329,23 @@ class BenchConfigParser:
 
     @classmethod
     def _load_split_if_exists_or_generate(
-        cls, dataset, load_meta_from_disk, metadata_dir, split_filename
+        cls,
+        dataset,
+        load_meta_from_disk,
+        metadata_dir,
+        split_filename,
+        split_ratios: Optional[dict] = None,
     ):
         """Load the split if it exists, otherwise generate it."""
+        if split_ratios is None:
+            split_ratios = {"train": 0.9, "test": 0.1}
         if (
-            TrainValTest.exists(metadata_dir, split_filename)
+            DatasetSplit.exists(metadata_dir, split_filename)
             and load_meta_from_disk
         ):
-            split = TrainValTest.load(metadata_dir, split_filename)
+            split = DatasetSplit.load(metadata_dir, split_filename)
         else:
-            split = TrainValTest.split(len(dataset), 42, 0.1, 0.1)
+            split = DatasetSplit.split(len(dataset), 42, split_ratios)
             split.save(metadata_dir, split_filename)
         return split
 
@@ -380,8 +405,8 @@ class BenchConfigParser:
     def split_dataset(
         cls,
         dataset: torch.utils.data.Dataset,
+        ds_config: dict,
         metadata_dir: str,
-        split_filename: str,
         load_meta_from_disk: bool = True,
     ):
         """Split the dataset using the given parameters.
@@ -390,10 +415,10 @@ class BenchConfigParser:
         ----------
         dataset: torch.utils.data.Dataset
             The dataset to be split.
+        ds_config: dict
+            The dataset configuration dictionary.
         metadata_dir: str
             Directory to store the metadata.
-        split_filename: str
-            Name of the file to store the split.
         load_meta_from_disk: bool
             Whether to load metadata from disk.
 
@@ -404,19 +429,29 @@ class BenchConfigParser:
             The train, val, test datasets.
 
         """
-        split = cls._load_split_if_exists_or_generate(
-            dataset, load_meta_from_disk, metadata_dir, split_filename
-        )
+        indices = ds_config.get("indices", "all")
+        if indices == "all":
+            return {"train": dataset, "val": None, "test": None}
 
-        train_dataset = torch.utils.data.Subset(dataset, split.train)
-        test_dataset = torch.utils.data.Subset(dataset, split.test)
+        split_filename = indices.get("split_filename", "DOESNT_EXIST")
+        val_split = indices.get("val", 0.0)
+        test_split = indices.get("test", 0.0)
+        train_split = indices.get("train", 1 - val_split - test_split)
+        splits = cls._load_split_if_exists_or_generate(
+            dataset, load_meta_from_disk, metadata_dir, split_filename,
+            split_ratios={
+                "train": train_split,
+                "test": test_split,
+                "val": val_split,
+            }
+        ).splits
 
-        if len(split.val) > 0:
-            val_dataset = torch.utils.data.Subset(dataset, split.val)
-        else:
-            val_dataset = None
-
-        return train_dataset, val_dataset, test_dataset
+        return {
+            k: torch.utils.data.Subset(dataset, splits[k])
+            if len(splits[k]) > 0
+            else None
+            for k in splits.keys()
+        }
 
     @classmethod
     def parse_logger(cls, cfg):

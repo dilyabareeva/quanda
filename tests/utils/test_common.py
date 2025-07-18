@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from quanda.utils.common import TrainValTest, make_func
+from quanda.utils.common import DatasetSplit, make_func
 
 
 @pytest.mark.utils
@@ -37,11 +37,11 @@ def test_train_test_val_split(
     tmp_path,
     request,
 ):
-    split = TrainValTest.split(n_indices, 24, test_size, val_size)
+    split = DatasetSplit.split(n_indices, 24, test_size, val_size)
 
     split.save(str(tmp_path), "split.pt")
 
-    loaded_split = TrainValTest.load(str(tmp_path), "split.pt")
+    loaded_split = DatasetSplit.load(str(tmp_path), "split.pt")
 
     train = loaded_split.train
     test = loaded_split.test

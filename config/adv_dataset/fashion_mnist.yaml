@@ -1,5 +1,9 @@
   single_class_dataset: true
   label: 0
   transforms: "adversarial_transforms"
-  split_filename: "fashion_mnist_split.yaml"
   dataset_str: "quanda-bench-test/fashion_mnist_unit"
+  indices:
+    split_filename: "fashion_mnist_split.yaml"
+    val: 0.2
+    test: 0.2
+    seed: 42

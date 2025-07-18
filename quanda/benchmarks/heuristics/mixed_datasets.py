@@ -123,14 +123,16 @@ class MixedDatasets(Benchmark):
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
-        adv_base_dataset, adv_val_dataset, obj.eval_dataset = (
-            BenchConfigParser.split_dataset(
-                dataset=adv_dataset,
-                metadata_dir=metadata_dir,
-                split_filename=config["adv_dataset"]["split_filename"],
-                load_meta_from_disk=load_meta_from_disk,
-            )
+        slit_datasets = BenchConfigParser.split_dataset(
+            dataset=adv_dataset,
+            ds_config=config["adv_dataset"],
+            metadata_dir=metadata_dir,
+            load_meta_from_disk=load_meta_from_disk,
         )
+        adv_base_dataset = slit_datasets["train"]
+        adv_val_dataset = slit_datasets["val"]
+        obj.eval_dataset = slit_datasets["test"]
+
         obj.train_dataset = torch.utils.data.ConcatDataset(
             [adv_base_dataset, train_base_dataset]
         )
