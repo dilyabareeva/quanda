@@ -12,7 +12,7 @@ from quanda.utils.common import ds_len
 class ShortcutDetectionMetric(Metric):
     """Metric for the shortcut detection evaluation task.
 
-    Attributions of a  model with a shortcut is checked against the ground
+    Attributions of a model with a shortcut is checked against the ground
     truth of shortcut samples. This strategy is inspired by Koh et al. (2017).
 
     References
@@ -31,8 +31,8 @@ class ShortcutDetectionMetric(Metric):
         shortcut_cls: int,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        filter_by_prediction: bool = False,
-        filter_by_class: bool = False,
+        filter_by_prediction: bool = True,
+        filter_by_class: bool = True,
     ):
         """Initialize the Shortcut Detection metric.
 

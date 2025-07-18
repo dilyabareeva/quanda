@@ -11,7 +11,7 @@ wrapper:
   type: "SampleTransformationDataset"
   metadata:
       metadata_filename: "mnist_train_unit_shortcut.yaml"
-      p: 1.0
+      p: 0.3
       cls_idx: 0
       seed: 42
   sample_fn: "add_white_square_mnist"
