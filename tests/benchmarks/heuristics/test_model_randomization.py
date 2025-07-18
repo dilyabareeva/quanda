@@ -70,7 +70,6 @@ def test_model_randomization_kronfluence_text(
 
 
 @pytest.mark.slow
-@pytest.mark.tested
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )

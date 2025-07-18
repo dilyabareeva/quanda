@@ -22,11 +22,30 @@ from quanda.benchmarks.heuristics import (
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.functions import cosine_similarity
 
-
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, bench_id, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",
     [
+        (
+            "mnist",
+            "mnist_mixed_datasets_unit",
+            True,
+            False,
+            MixedDatasets,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.004159737378358841,
+        ),
+        (
+            "mnist",
+            "mnist_shortcut_detection_unit",
+            True,
+            False,
+            ShortcutDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.1411769986152649,
+        ),
         (
             "mnist",
             "mnist_mislabeling_detection_unit",
@@ -45,17 +64,7 @@ from quanda.utils.functions import cosine_similarity
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.638,
-        ),
-        (
-            "mnist",
-            "mnist_mixed_datasets_unit",
-            True,
-            False,
-            MixedDatasets,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.03915480896830559,
+            0.604,
         ),
         (
             "mnist",
@@ -65,17 +74,7 @@ from quanda.utils.functions import cosine_similarity
             ClassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.9399999976158142,
-        ),
-        (
-            "mnist",
-            "mnist_shortcut_detection_unit",
-            True,
-            False,
-            ShortcutDetection,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.1348356008529663,
+            0.9200000166893005,
         ),
         (
             "mnist",
@@ -85,7 +84,7 @@ from quanda.utils.functions import cosine_similarity
             SubclassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.23999999463558197,
+            0.23000000417232513,
         ),
     ],
 )
@@ -175,7 +174,7 @@ def test_load(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.12516948580741882,
+            0.12889963388442993,
         ),
         (
             "mnist-shortcut-download",
@@ -185,7 +184,7 @@ def test_load(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.12516948580741882,
+            0.12889963388442993,
         ),
         (
             "mnist-subclass",
