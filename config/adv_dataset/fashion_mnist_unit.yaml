@@ -1,7 +1,7 @@
   single_class_dataset: true
   label: 0
   transforms: "adversarial_transforms"
-  dataset_str: "zalando-datasets/fashion_mnist"
+  dataset_str: "quanda-bench-test/fashion_mnist_unit"
   indices:
     split_filename: "fashion_mnist_split.yaml"
     val: 0.2

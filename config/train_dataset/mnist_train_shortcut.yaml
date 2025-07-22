@@ -3,8 +3,10 @@ dataset_split: train
 indices:
   split_filename: "mnist_train_unit_shortcut_split.yaml"
   split_name: train
-  val: 0.1
-  test: 0.1
+  split_ratios:
+    train: 0.6
+    val: 0.2
+    test: 0.2
   seed: 42
 transforms: none
 wrapper:

@@ -4,8 +4,10 @@ transforms: none
 indices:
   split_filename: "mnist_train_unit_shortcut_split.yaml"
   split_name: val
-  val: 0.1
-  test: 0.1
+  split_ratios:
+    val: 0.2
+    test: 0.2
+    train: 0.6
   seed: 42
 wrapper:
   type: "SampleTransformationDataset"

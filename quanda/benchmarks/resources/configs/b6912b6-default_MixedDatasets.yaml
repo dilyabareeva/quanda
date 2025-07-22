@@ -12,42 +12,45 @@ model:
     scheduler: constant
     scheduler_kwargs:
       last_epoch: -1
-    lr: 0.01
+    lr: 0.001
     max_epochs: 5
     seed: 42
 train_dataset:
   dataset_str: ylecun/mnist
-  dataset_split: train[:1%]
+  dataset_split: train
   transforms: mnist_transforms
   indices: all
-  wrapper:
-    type: LabelFlippingDataset
-    metadata:
-      metadata_filename: mnist_train_unit_mislabeling.yaml
-      p: 0.1
-      seed: 43
 eval_dataset:
   dataset_str: ylecun/mnist
-  dataset_split: test[:1%]
+  dataset_split: test
   transforms: mnist_transforms
   indices: all
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
   project: quanda-bench
-id: 0921427-default_MislabelingDetection
-bench: MislabelingDetection
+id: b6912b6-default_MixedDatasets
+bench: MixedDatasets
 adversarial_label: 0
-bench_save_dir: tests/assets/mnist_test_suite_2
+bench_save_dir: bench_out
 log_dir: hydra_logs
-repo_id: "quanda-bench-test"
+repo_id: quanda-bench-test
 cache_dir: tmp
 top_k: 5
 model_id: '0'
 correlation_fn: kendall
 offline: true
 seed: 42
-cfg_output_dir: tests/assets/mnist_test_suite_3
-cfg_file_name: 0921427-default_MislabelingDetection.yaml
+m: 4
+alpha: 0.5
+subset_ids: lds_subsets.yaml
 ckpts:
-  - 0921427-default_MislabelingDetection
+- b6912b6-default_MixedDatasets
+adv_dataset:
+  single_class_dataset: true
+  label: 0
+  transforms: adversarial_transforms
+  split_filename: fashion_mnist_split.yaml
+  dataset_str: quanda-bench-test/fashion_mnist_unit
+cfg_output_dir: quanda/benchmarks/resources/configs
+cfg_file_name: b6912b6-default_MixedDatasets.yaml

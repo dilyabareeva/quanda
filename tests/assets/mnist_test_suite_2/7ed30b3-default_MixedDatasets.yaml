@@ -44,10 +44,15 @@ seed: 42
 adv_dataset:
   single_class_dataset: true
   label: 0
-  transforms: "adversarial_transforms"
-  split_filename: "fashion_mnist_split.yaml"
-  dataset_str: "quanda-bench-test/fashion_mnist_unit"
-  save_dir: "fashion_mnist_unit"
+  transforms: adversarial_transforms
+  dataset_str: quanda-bench-test/fashion_mnist_unit
+  indices:
+    split_filename: fashion_mnist_split.yaml
+    split_ratios:
+      train: 0.6
+      val: 0.2
+      test: 0.2
+    seed: 42
 cfg_file_name: 7ed30b3-default_MixedDatasets.yaml
 cfg_output_dir: tests/assets/mnist_test_suite_2
 ckpts:

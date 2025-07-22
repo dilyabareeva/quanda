@@ -1,7 +1,10 @@
 dataset_str: ylecun/mnist
 dataset_split: test
 transforms: none
-indices: all # TODO: NOT ALLLLLL!!!!!
+indices: all
+filter_indices:
+  split_filename: "mnist_eval_shortcut_split.yaml"
+  split_name: default
 wrapper:
   type: "SampleTransformationDataset"
   metadata:
