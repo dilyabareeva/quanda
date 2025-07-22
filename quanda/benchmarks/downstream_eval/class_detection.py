@@ -35,7 +35,7 @@ class ClassDetection(Benchmark):
 
     # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     name: str = "Class Detection"
-    eval_args = ["test_data", "test_labels", "explanations"]
+    eval_args = ["test_data", "test_targets", "explanations"]
 
     def __init__(
         self,

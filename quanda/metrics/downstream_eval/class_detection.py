@@ -72,7 +72,7 @@ class ClassDetectionMetric(Metric):
     def update(
         self,
         explanations: torch.Tensor,
-        test_labels: Union[List[int], torch.Tensor],
+        test_targets: Union[List[int], torch.Tensor],
         test_data: Optional[torch.Tensor] = None,
     ):
         """Update the metric state with the provided explanations.
@@ -81,8 +81,8 @@ class ClassDetectionMetric(Metric):
         ----------
         explanations : torch.Tensor
             Explanations of the test samples.
-        test_labels : torch.Tensor
-            Ground truth labels of the test samples.
+        test_targets : torch.Tensor
+            Explanation targets of the test samples, e.g., predicted labels.
         test_data: Optional[torch.Tensor]
             Test samples to used to generate the explanations.
             Only required if `filter_by_prediction` is True during
@@ -94,9 +94,9 @@ class ClassDetectionMetric(Metric):
             If the number of explanations does not match the number of labels.
 
         """
-        if isinstance(test_labels, list):
-            test_labels = torch.tensor(test_labels)
-        test_labels = test_labels.to(self.device)
+        if isinstance(test_targets, list):
+            test_targets = torch.tensor(test_targets)
+        test_targets = test_targets.to(self.device)
 
         if (test_data is None) and self.filter_by_prediction:
             raise ValueError(
@@ -104,16 +104,16 @@ class ClassDetectionMetric(Metric):
                 "filter_by_prediction is True"
             )
 
-        test_labels = test_labels.to(self.device)
+        test_targets = test_targets.to(self.device)
         explanations = explanations.to(self.device)
 
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
         if self.filter_by_prediction:
             pred_cls = self.model(test_data).argmax(dim=1)
-            select_idx *= pred_cls == test_labels
+            select_idx *= pred_cls == test_targets
 
         explanations = explanations[select_idx]
-        test_labels = test_labels[select_idx].to(self.device)
+        test_targets = test_targets[select_idx].to(self.device)
         _, top_one_xpl_indices = explanations.topk(k=1, dim=1)
         top_one_xpl_targets = torch.tensor(
             [
@@ -121,7 +121,7 @@ class ClassDetectionMetric(Metric):
                 for i in top_one_xpl_indices
             ]
         ).to(self.device)
-        scores = (test_labels == top_one_xpl_targets) * 1.0
+        scores = (test_targets == top_one_xpl_targets) * 1.0
         self.scores.append(scores)
 
     def compute(self):

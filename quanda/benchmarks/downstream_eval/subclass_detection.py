@@ -32,7 +32,7 @@ class SubclassDetection(Benchmark):
     """
 
     name: str = "Subclass Detection"
-    eval_args = ["test_labels", "explanations", "test_data", "grouped_labels"]
+    eval_args = ["test_labels", "explanations", "test_data", "test_targets"]
 
     def __init__(
         self,

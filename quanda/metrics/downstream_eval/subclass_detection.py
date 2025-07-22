@@ -73,7 +73,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         explanations: torch.Tensor,
         test_labels: Union[List[int], torch.Tensor],
         test_data: Optional[torch.Tensor] = None,
-        grouped_labels: Optional[torch.Tensor] = None,
+        test_targets: Optional[torch.Tensor] = None,
     ):
         """Update the metric state with the provided explanations.
 
@@ -87,24 +87,24 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             Test samples to used to generate the explanations.
             Only required if `filter_by_prediction` is True during
             initalization.
-        grouped_labels: Optional[torch.Tensor]
+        test_targets: Optional[torch.Tensor]
             The true superclasses of the test samples. Only required if
             `filter_by_prediction` is True during initalization.
 
         Raises
         ------
         ValueError
-            If `test_data` and `grouped_labels` are not provided when
+            If `test_data` and `test_targets` are not provided when
             `filter_by_prediction` is True.
 
         """
         explanations = explanations.to(self.device)
 
         if (
-            test_data is None or grouped_labels is None
+            test_data is None or test_targets is None
         ) and self.filter_by_prediction:
             raise ValueError(
-                "test_data and grouped_labels must be provided if "
+                "test_data and test_targets must be provided if "
                 "filter_by_prediction is True"
             )
 
@@ -114,15 +114,15 @@ class SubclassDetectionMetric(ClassDetectionMetric):
 
         if test_data is not None:
             test_data = test_data.to(self.device)
-        if grouped_labels is not None:
-            if isinstance(grouped_labels, list):
-                grouped_labels = torch.tensor(grouped_labels)
-            grouped_labels = grouped_labels.to(self.device)
+        if test_targets is not None:
+            if isinstance(test_targets, list):
+                test_targets = torch.tensor(test_targets)
+            test_targets = test_targets.to(self.device)
 
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
         if self.filter_by_prediction:
             pred_cls = self.model(test_data).argmax(dim=1)
-            select_idx *= pred_cls == grouped_labels
+            select_idx *= pred_cls == test_targets
 
         explanations = explanations[select_idx]
         test_labels = test_labels[select_idx].to(self.device)

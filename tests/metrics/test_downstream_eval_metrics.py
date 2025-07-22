@@ -82,10 +82,10 @@ def test_identical_class_metrics(
     )
     if isinstance(expected_score, type):
         with pytest.raises(expected_score):
-            metric.update(test_labels=test_targets, explanations=tda)
+            metric.update(test_targets=test_targets, explanations=tda)
         return
     metric.update(
-        test_labels=test_targets, explanations=tda, test_data=test_data
+        test_targets=test_targets, explanations=tda, test_data=test_data
     )
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)
