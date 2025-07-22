@@ -14,17 +14,43 @@ from quanda.utils.functions import cosine_similarity
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id,model,checkpoint,dataset,test_labels,batch_size,explanations,expected_score",
+    "test_id,model,checkpoint,dataset,test_data,test_labels,batch_size,explanations,filter_by_prediction,expected_score",
     [
         (
             "mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
+            None,
             "load_mnist_test_labels_1",
             8,
             "load_mnist_explanations_similarity_1",
+            False,
             0.1,
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            None,
+            "load_mnist_test_labels_1",
+            8,
+            "load_mnist_explanations_similarity_1",
+            True,
+            ValueError,
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            8,
+            "load_mnist_explanations_similarity_1",
+            True,
+            0.0,
         ),
     ],
 )
@@ -33,14 +59,18 @@ def test_identical_class_metrics(
     model,
     checkpoint,
     dataset,
+    test_data,
     test_labels,
     batch_size,
     explanations,
+    filter_by_prediction,
     expected_score,
     request,
 ):
     model = request.getfixturevalue(model)
     checkpoint = request.getfixturevalue(checkpoint)
+    if test_data is not None:
+        test_data = request.getfixturevalue(test_data)
     test_targets = request.getfixturevalue(test_labels)
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
@@ -48,8 +78,15 @@ def test_identical_class_metrics(
         model=model,
         checkpoints=checkpoint,
         train_dataset=dataset,
+        filter_by_prediction=filter_by_prediction,
     )
-    metric.update(test_targets=test_targets, explanations=tda)
+    if isinstance(expected_score, type):
+        with pytest.raises(expected_score):
+            metric.update(test_labels=test_targets, explanations=tda)
+        return
+    metric.update(
+        test_labels=test_targets, explanations=tda, test_data=test_data
+    )
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
@@ -337,6 +374,7 @@ def test_shortcut_detection_metric(
                 poisoned_cls,
                 checkpoints=checkpoint,
                 filter_by_prediction=filter_by_prediction,
+                filter_by_class=False,
             ).update(tda)
         return
 
@@ -347,7 +385,10 @@ def test_shortcut_detection_metric(
         poisoned_cls,
         checkpoints=checkpoint,
         filter_by_prediction=filter_by_prediction,
+        filter_by_class=False,
     )
-    metric.update(tda)
+    metric.update(
+        tda,
+    )
     score = metric.compute()["score"]
     assert math.isclose(score, expected, abs_tol=0.00001)

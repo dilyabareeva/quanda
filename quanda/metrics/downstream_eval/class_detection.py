@@ -38,6 +38,7 @@ class ClassDetectionMetric(Metric):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        filter_by_prediction: bool = False,
     ):
         """Initialize the Class Detection metric.
 
@@ -52,6 +53,10 @@ class ClassDetectionMetric(Metric):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
+        filter_by_prediction : bool, optional
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the correct class is predicted, by default
+            False.
 
         """
         super().__init__(
@@ -62,26 +67,53 @@ class ClassDetectionMetric(Metric):
         )
 
         self.scores: List[torch.Tensor] = []
+        self.filter_by_prediction = filter_by_prediction
 
-    def update(self, explanations: torch.Tensor, test_targets: torch.Tensor):
+    def update(
+        self,
+        explanations: torch.Tensor,
+        test_labels: Union[List[int], torch.Tensor],
+        test_data: Optional[torch.Tensor] = None,
+    ):
         """Update the metric state with the provided explanations.
 
         Parameters
         ----------
         explanations : torch.Tensor
             Explanations of the test samples.
-        test_targets : torch.Tensor
+        test_labels : torch.Tensor
             Ground truth labels of the test samples.
+        test_data: Optional[torch.Tensor]
+            Test samples to used to generate the explanations.
+            Only required if `filter_by_prediction` is True during
+            initalization.
+
+        Raises
+        ------
+        AssertionError
+            If the number of explanations does not match the number of labels.
 
         """
-        assert test_targets.shape[0] == explanations.shape[0], (
-            f"Number of explanations ({explanations.shape[0]}) does not match "
-            f"the number of labels ({test_targets.shape[0]})."
-        )
+        if isinstance(test_labels, list):
+            test_labels = torch.tensor(test_labels)
+        test_labels = test_labels.to(self.device)
 
-        test_targets = test_targets.to(self.device)
+        if (test_data is None) and self.filter_by_prediction:
+            raise ValueError(
+                "test_data and grouped_labels must be provided if "
+                "filter_by_prediction is True"
+            )
+
+        test_labels = test_labels.to(self.device)
         explanations = explanations.to(self.device)
 
+        select_idx = torch.tensor([True] * len(explanations)).to(self.device)
+        if self.filter_by_prediction:
+            pred_cls = self.model(test_data).argmax(dim=1)
+            select_idx *= pred_cls == test_labels
+
+        explanations = explanations[select_idx]
+        test_labels = test_labels[select_idx].to(self.device)
         _, top_one_xpl_indices = explanations.topk(k=1, dim=1)
         top_one_xpl_targets = torch.tensor(
             [
@@ -89,7 +121,7 @@ class ClassDetectionMetric(Metric):
                 for i in top_one_xpl_indices
             ]
         ).to(self.device)
-        scores = (test_targets == top_one_xpl_targets) * 1.0
+        scores = (test_labels == top_one_xpl_targets) * 1.0
         self.scores.append(scores)
 
     def compute(self):
