@@ -538,6 +538,7 @@ def test_kronfluence_language_self_influence(
     )
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )
@@ -579,6 +580,7 @@ def test_kronfluence_qnli_self_influence(
     )
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )

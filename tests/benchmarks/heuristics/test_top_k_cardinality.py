@@ -64,6 +64,7 @@ def test_top_k_cardinality_kronfluence_text(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
+@pytest.mark.slow
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )
