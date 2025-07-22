@@ -37,15 +37,23 @@ def test_train_test_val_split(
     tmp_path,
     request,
 ):
-    split = DatasetSplit.split(n_indices, 24, test_size, val_size)
+    split = DatasetSplit.split(
+        n_indices,
+        24,
+        {
+            "test": test_size,
+            "val": val_size,
+            "train": 1 - test_size - val_size,
+        },
+    )
 
     split.save(str(tmp_path), "split.pt")
 
     loaded_split = DatasetSplit.load(str(tmp_path), "split.pt")
 
-    train = loaded_split.train
-    test = loaded_split.test
-    val = loaded_split.val
+    train = loaded_split["train"]
+    test = loaded_split["test"]
+    val = loaded_split["val"]
 
     all = torch.cat([train, test, val]).sort().values
 

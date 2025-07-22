@@ -108,19 +108,16 @@ class MixedDatasets(Benchmark):
         train_base_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config["train_dataset"],
             metadata_dir=metadata_dir,
-            bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         val_base_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset", None),
             metadata_dir=metadata_dir,
-            bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         adv_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config["adv_dataset"],
             metadata_dir=metadata_dir,
-            bench_save_dir=config.get("bench_save_dir", "./tmp"),
             load_meta_from_disk=load_meta_from_disk,
         )
         slit_datasets = BenchConfigParser.split_dataset(

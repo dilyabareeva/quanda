@@ -401,6 +401,26 @@ class DatasetSplit(ABC):
             raise KeyError(f"Key '{key}' not found in splits.")
         return self.splits[key]
 
+    def __init__(
+        self,
+        splits: Dict[str, torch.Tensor],
+    ):
+        """Create a DatasetSplit from a dictionary of indices.
+
+        Parameters
+        ----------
+        splits : Dict[str, torch.Tensor]
+            A list of indices for the split.
+
+        Returns
+        -------
+            DatasetSplit: An object with a single split named 'default'.
+
+        """
+        if not splits:
+            raise ValueError("splits cannot be empty.")
+        self.splits = splits
+
     @classmethod
     def split(
         cls, n_indices: int, seed: int, split_ratios: Dict[str, float]

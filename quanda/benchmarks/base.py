@@ -110,19 +110,16 @@ class Benchmark(ABC):
         obj.train_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
             metadata_dir=metadata_dir,
-            bench_save_dir=cache_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.val_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset", None),
             metadata_dir=metadata_dir,
-            bench_save_dir=cache_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
         obj.eval_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),
             metadata_dir=metadata_dir,
-            bench_save_dir=cache_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
 

@@ -6,7 +6,6 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 import torch
 from datasets import load_dataset  # type: ignore
-from distlib.util import split_filename
 from huggingface_hub import snapshot_download
 
 from quanda.benchmarks.resources import pl_modules
@@ -56,7 +55,6 @@ class BenchConfigParser:
         cls,
         ds_config: Optional[dict],
         metadata_dir: str = ".tmp/meta",
-        bench_save_dir: str = ".tmp",
         load_meta_from_disk: bool = True,
     ):
         """Return the dataset using the given parameters."""
@@ -266,19 +264,15 @@ class BenchConfigParser:
 
         split_name = indices.get("split_name", "train")
         split_filename = indices.get("split_filename", "DOESNT_EXIST")
-        val_split = indices.get("val", 0.0)
-        test_split = indices.get("test", 0.0)
-        train_split = indices.get("train", 1 - val_split - test_split)
+        split_ratios = indices.get(
+            "split_ratios", {"train": 1.0, "test": 0.0, "val": 0.0}
+        )
         split = cls._load_split_if_exists_or_generate(
             base_dataset,
             load_meta_from_disk,
             metadata_dir,
             split_filename,
-            split_ratios={
-                "train": train_split,
-                "test": test_split,
-                "val": val_split,
-            },
+            split_ratios=split_ratios,
         )
         return torch.utils.data.Subset(base_dataset, split[split_name])
 
@@ -434,16 +428,15 @@ class BenchConfigParser:
             return {"train": dataset, "val": None, "test": None}
 
         split_filename = indices.get("split_filename", "DOESNT_EXIST")
-        val_split = indices.get("val", 0.0)
-        test_split = indices.get("test", 0.0)
-        train_split = indices.get("train", 1 - val_split - test_split)
+        split_ratios = indices.get(
+            "split_ratios", {"train": 1.0, "test": 0.0, "val": 0.0}
+        )
         splits = cls._load_split_if_exists_or_generate(
-            dataset, load_meta_from_disk, metadata_dir, split_filename,
-            split_ratios={
-                "train": train_split,
-                "test": test_split,
-                "val": val_split,
-            }
+            dataset,
+            load_meta_from_disk,
+            metadata_dir,
+            split_filename,
+            split_ratios=split_ratios,
         ).splits
 
         return {

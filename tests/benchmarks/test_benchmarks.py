@@ -174,7 +174,7 @@ def test_load(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.12889963388442993,
+            0.1216176301240921,
         ),
         (
             "mnist-shortcut-download",
@@ -184,7 +184,7 @@ def test_load(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.12889963388442993,
+            0.1216176301240921,
         ),
         (
             "mnist-subclass",
@@ -264,10 +264,21 @@ def test_bench_from_config(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
+@pytest.mark.tested
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, logger",
     [
+        (
+            "mnist",
+            "load_mnist_shortcut_config",
+            True,
+            True,
+            ShortcutDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            None,
+        ),
         (
             "mnist-lds",
             "load_mnist_linear_datamodeling_config",
@@ -304,16 +315,6 @@ def test_bench_from_config(
             False,
             True,
             MislabelingDetection,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            None,
-        ),
-        (
-            "mnist",
-            "load_mnist_shortcut_config",
-            True,
-            True,
-            ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             None,
