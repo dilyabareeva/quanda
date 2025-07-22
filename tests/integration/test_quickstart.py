@@ -1,39 +1,37 @@
 import os
+
 import pytest
+
+# END8
+# START11
 import yaml
-from torch.utils.data import random_split
 
 # START1
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+# END1
+# START5
+from quanda.benchmarks.downstream_eval import (
+    MislabelingDetection,
+    SubclassDetection,
+)
+
+# END5
+# START8
+from quanda.benchmarks.heuristics import TopKCardinality
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.heuristics import ModelRandomizationMetric
-# END1
 
-# START5
-from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.benchmarks.downstream_eval import SubclassDetection
-# END5
-
-# START8
-from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.benchmarks.heuristics import TopKCardinality
-# END8
-
-# START11
-import torch
-
-from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.benchmarks.downstream_eval import MislabelingDetection
 # END11
 
 # START13_1
-from quanda.utils.training.trainer import Trainer
 # END13_1
 
 
-@pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions")
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "test_id, model, dataset, batch_size",
@@ -51,28 +49,29 @@ def test_quickstart(
     model,
     dataset,
     batch_size,
+    tmp_path,
     request,
 ):
     model = request.getfixturevalue(model)
     dataset = request.getfixturevalue(dataset)
 
-    eval_dataset = dataset
+    eval_set = dataset
 
+    cache_dir = str(
+        os.path.join(tmp_path, "quanda_benchmark_quickstart_cache")
+    )
 
     # START2
     DEVICE = "cpu"
     model.to(DEVICE)
-    cache_dir = "quanda_benchmark_quickstart_cache"
 
     explainer_kwargs = {
         "layers": "fc_2",
         "model_id": "default_model_id",
-        "cache_dir": cache_dir
+        "cache_dir": cache_dir,
     }
     explainer = CaptumSimilarity(
-        model=model,
-        train_dataset=dataset,
-        **explainer_kwargs
+        model=model, train_dataset=dataset, **explainer_kwargs
     )
     # END2
 
@@ -80,7 +79,7 @@ def test_quickstart(
     explainer_kwargs = {
         "layers": "fc_2",
         "model_id": "randomized_model_id",
-        "cache_dir": cache_dir
+        "cache_dir": cache_dir,
     }
     model_rand = ModelRandomizationMetric(
         model=model,
@@ -99,12 +98,10 @@ def test_quickstart(
     for test_data, _ in tqdm(test_loader):
         test_data = test_data.to(DEVICE)
         target = model(test_data).argmax(dim=-1)
-        tda = explainer.explain(
-            test_data=test_data,
-            targets=target
+        tda = explainer.explain(test_data=test_data, targets=target)
+        model_rand.update(
+            explanations=tda, test_data=test_data, test_targets=target
         )
-        model_rand.update(explanations=tda,
-                          test_data=test_data, test_targets=target)
 
     print("Randomization metric output:", model_rand.compute())
     # END4
@@ -143,7 +140,7 @@ def test_quickstart(
     explainer_kwargs = {
         "layers": "fc_2",
         "model_id": "default_model_id",
-        "cache_dir": cache_dir
+        "cache_dir": cache_dir,
     }
     # END9
 
@@ -156,7 +153,6 @@ def test_quickstart(
 
     topk_cardinality = TopKCardinality.from_config(
         top_k_config,
-
     )
     score = topk_cardinality.evaluate(
         explainer_cls=CaptumSimilarity,
@@ -173,7 +169,7 @@ def test_quickstart(
     explainer_kwargs = {
         "layers": "fc_2",
         "model_id": "top_k_model",
-        "cache_dir": cache_dir
+        "cache_dir": cache_dir,
     }
     # END12
 

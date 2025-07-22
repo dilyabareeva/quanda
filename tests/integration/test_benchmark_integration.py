@@ -1,12 +1,19 @@
-import pytest
-
 # START1
 import os
+
+import pytest
 import torch
 import torchvision
 import yaml
 
-from quanda.benchmarks.downstream_eval import ShortcutDetection, MislabelingDetection, SubclassDetection
+from quanda.benchmarks.downstream_eval import (
+    MislabelingDetection,
+    ShortcutDetection,
+    SubclassDetection,
+)
+
+# END1
+# START14_1
 from quanda.explainers.wrappers import (
     TRAK,
     CaptumArnoldi,
@@ -14,25 +21,19 @@ from quanda.explainers.wrappers import (
     CaptumTracInCPFast,
     RepresenterPoints,
 )
-# END1
 
-# START14_1
-from quanda.benchmarks.resources import pl_modules
-import lightning as L
 # END14_1
 
 
-@pytest.mark.skipif("GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions")
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "test_id",
-    [
-        (
-            "benchmark_tutorial",
-        )
-    ],
+    [("benchmark_tutorial",)],
 )
-def test_benchmarks(
+def test_benchmark_integration(
     test_id,
     tmp_path,
 ):
@@ -50,8 +51,9 @@ def test_benchmarks(
     )
     # END2
 
+    cache_dir = str(os.path.join(tmp_path, "quanda_benchmark_tutorial_cache"))
+
     # START3
-    cache_dir = "quanda_benchmark_tutorial_cache"
     device = "cuda" if torch.cuda.is_available() else "cpu"
     benchmark = ShortcutDetection.load_pretrained(
         bench_id="mnist_shortcut_detection",
@@ -60,11 +62,13 @@ def test_benchmarks(
     )
     # END3
 
-
     # START4
-    shortcut_img = benchmark.train_dataset[benchmark.train_dataset.transform_indices[0]][0]
+    shortcut_img = benchmark.train_dataset[
+        benchmark.train_dataset.transform_indices[0]
+    ][0]
     tensor_img = shortcut_img.repeat(3, 1, 1)
     img = to_img(tensor_img)
+    img.show(title="Shortcut Image")
     # END4
 
     """
@@ -90,10 +94,12 @@ def test_benchmarks(
     # END5
 
     # START6
-    hessian_num_samples = 500  # number of samples to use for hessian estimation
+    hessian_num_samples = (
+        500  # number of samples to use for hessian estimation
+    )
     hessian_ds = torch.utils.data.Subset(
-        benchmark.train_dataset, torch.randint(
-            0, len(benchmark.train_dataset), (hessian_num_samples,))
+        benchmark.train_dataset,
+        torch.randint(0, len(benchmark.train_dataset), (hessian_num_samples,)),
     )
 
     captum_influence_args = {
@@ -137,22 +143,24 @@ def test_benchmarks(
     attributors = {
         "captum_similarity": (CaptumSimilarity, captum_similarity_args),
         "captum_arnoldi": (CaptumArnoldi, captum_influence_args),
-        # "captum_tracin": (CaptumTracInCPFast, captum_tracin_args),
+        "captum_tracin": (CaptumTracInCPFast, captum_tracin_args),
         "trak": (TRAK, trak_args),
         "representer": (RepresenterPoints, representer_points_args),
     }
     results = dict()
     for name, (cls, kwargs) in attributors.items():
         results[name] = benchmark.evaluate(
-            explainer_cls=cls, expl_kwargs=kwargs, batch_size=8)["score"]
+            explainer_cls=cls, expl_kwargs=kwargs, batch_size=8
+        )["score"]
     # END10
 
     # START11
-    temp_benchmark = MislabelingDetection.load_pretrained(
+    benchmark = MislabelingDetection.load_pretrained(
         bench_id="mnist_mislabeling_detection_unit",
         cache_dir=cache_dir,
     )
     # END11
+    print(type(benchmark))
 
     # START13
     with open(
