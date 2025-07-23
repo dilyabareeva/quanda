@@ -7,10 +7,16 @@ import torch
 from torch.utils.data import Subset
 
 from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
-from quanda.utils.common import class_accuracy
+from quanda.utils.common import (
+    DatasetSplit,
+    class_accuracy,
+    load_last_checkpoint,
+)
+from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
 )
@@ -70,6 +76,7 @@ class ShortcutDetection(Benchmark):
         self.use_predictions: bool
         self.filter_by_prediction: bool
         self.filter_by_class: bool
+        self.filter_indices: Optional[List[int]]
         self.checkpoints: List[str]
         self.checkpoints_load_func: Callable[..., Any]
 
@@ -122,7 +129,91 @@ class ShortcutDetection(Benchmark):
         obj.filter_by_prediction = config.get("filter_by_prediction", False)
         obj.filter_by_class = config.get("filter_by_class", False)
 
+        cache_dir = config.get("bench_save_dir", "./tmp")
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=cache_dir
+        )
+        eval_ds_config = config["eval_dataset"]
+        eval_indices = eval_ds_config["filter_indices"]
+
+        if DatasetSplit.exists(metadata_dir, eval_indices["split_filename"]) and load_meta_from_disk:
+            obj.filter_indices = DatasetSplit.load(
+                metadata_dir,
+                name=eval_indices["split_filename"]
+            )[eval_indices["split_name"]]
+        else:
+            obj.filter_indices = None
+
         return obj
+
+    @classmethod
+    def train(
+        cls,
+        config: dict,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
+        device: str = "cpu",
+        batch_size: int = 8,
+    ):  # pragma: no cover
+        """Train a model using the provided config and push to HF hub."""
+        obj = super().train(
+            config,
+            logger=logger,
+            device=device,
+            batch_size=batch_size,
+        )
+
+        assert isinstance(obj, ShortcutDetection), "Not ShortcutDetection."
+
+        # locate indices of eval samples that are shortcuts
+
+        load_last_checkpoint(
+            model=obj.model,
+            checkpoints=obj.checkpoints,
+            checkpoints_load_func=obj.checkpoints_load_func,
+        )
+        ds_handler = get_dataset_handler(dataset=obj.eval_dataset)
+        expl_dl = ds_handler.create_dataloader(
+            dataset=obj.eval_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        select_indices: List[int] = []
+
+        for i, batch in enumerate(expl_dl):
+            inputs, labels = ds_handler.process_batch(
+                batch=batch,
+                device=obj.device,
+            )
+            model_inputs = ds_handler.get_model_inputs(inputs=inputs)
+            outputs = (
+                obj.model(**model_inputs)
+                if isinstance(model_inputs, dict)
+                else obj.model(model_inputs)
+            )
+            pred_cls = ds_handler.get_predictions(outputs=outputs)
+
+            select_idx = torch.tensor([True] * len(pred_cls))
+            if obj.filter_by_class:
+                select_idx *= pred_cls == obj.shortcut_cls
+            if obj.filter_by_prediction:
+                select_idx *= labels != obj.shortcut_cls
+            select_indices.extend(select_idx)
+
+        obj.filter_indices = torch.nonzero(torch.tensor(select_indices), as_tuple=False)
+        obj.save_filtered_indices(config)
+
+        return obj
+
+    def save_filtered_indices(self, config):
+        cache_dir = config.get("bench_save_dir", "./tmp")
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=cache_dir
+        )
+        eval_ds_config = config["eval_dataset"]
+        eval_indices = eval_ds_config["filter_indices"]
+        split = DatasetSplit({eval_indices["split_name"]: self.filter_indices})
+        split.save(metadata_dir, eval_indices["split_filename"])
 
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute accuracy on shortcut datapoints as a sanity check.
@@ -156,7 +247,7 @@ class ShortcutDetection(Benchmark):
             self.model, train_dl, self.device
         )
         results["eval_shortcut_classification"] = class_accuracy(
-            self.model, eval_dl, self.device
+            self.model, eval_dl, single_class=self.shortcut_cls, device=self.device
         )
 
         return results
@@ -190,6 +281,14 @@ class ShortcutDetection(Benchmark):
             expl_kwargs=expl_kwargs,
         )
 
+        if self.filter_indices is not None:
+            filtered_dataset = torch.utils.data.Subset(
+                self.eval_dataset,
+                self.filter_indices,
+            )
+        else:
+            filtered_dataset = self.eval_dataset
+
         metric = ShortcutDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
@@ -201,7 +300,7 @@ class ShortcutDetection(Benchmark):
             filter_by_class=self.filter_by_class,
         )
         return self._evaluate_dataset(
-            eval_dataset=self.eval_dataset,
+            eval_dataset=filtered_dataset,
             explainer=explainer,
             metric=metric,
             batch_size=batch_size,

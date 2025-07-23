@@ -5,7 +5,7 @@ indices: "all"
 wrapper:
   type: "LabelGroupingDataset"
   metadata:
-      metadata_filename: "mnist_test_unit_subclass.yaml"
+      metadata_filename: "mnist_eval_unit_subclass.yaml"
       p: 1.0
       n_groups: 2
       class_to_group: "random"

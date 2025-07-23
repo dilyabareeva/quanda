@@ -21,15 +21,17 @@ train_dataset:
   indices:
     split_filename: mnist_train_unit_shortcut_split.yaml
     split_name: train
-    val: 0.1
-    test: 0.1
+    split_ratios:
+      train: 0.6
+      val: 0.2
+      test: 0.2
     seed: 42
   transforms: none
   wrapper:
     type: SampleTransformationDataset
     metadata:
       metadata_filename: mnist_train_unit_shortcut.yaml
-      p: 1.0
+      p: 0.3
       cls_idx: 0
       seed: 42
     sample_fn: add_white_square_mnist
@@ -39,10 +41,13 @@ eval_dataset:
   dataset_split: test
   transforms: none
   indices: all
+  filter_indices:
+    split_filename: mnist_eval_shortcut_split.yaml
+    split_name: default
   wrapper:
     type: SampleTransformationDataset
     metadata:
-      metadata_filename: mnist_test_unit_shortcut.yaml
+      metadata_filename: mnist_eval_unit_shortcut.yaml
       p: 1.0
       seed: 42
     sample_fn: add_white_square_mnist
@@ -51,7 +56,7 @@ logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
   project: quanda-bench
-id: b6912b6-default_ShortcutDetection
+id: e6d2f55-default_ShortcutDetection
 bench: ShortcutDetection
 adversarial_label: 0
 bench_save_dir: bench_out
@@ -67,6 +72,8 @@ m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
-- b6912b6-default_ShortcutDetection
+- e6d2f55-default_ShortcutDetection
+filter_by_class: true
+filter_by_prediction: true
 cfg_output_dir: quanda/benchmarks/resources/configs
-cfg_file_name: b6912b6-default_ShortcutDetection.yaml
+cfg_file_name: e6d2f55-default_ShortcutDetection.yaml

@@ -497,7 +497,7 @@ def test_logger(
     config = request.getfixturevalue(config)
     logger_cfg = request.getfixturevalue(logger_cfg)
 
-    config["log_dir"] = "./tmp"  # str(tmp_path)
+    config["log_dir"] = str(tmp_path)
     config["logger"] = logger_cfg
 
     config = OmegaConf.create(config)

@@ -98,6 +98,7 @@ def class_accuracy(
     net: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
     device: Union[str, torch.device] = "cpu",
+    single_class: Optional[int] = None,
 ):
     """Return accuracy on a dataset given by the data loader.
 
@@ -109,6 +110,8 @@ def class_accuracy(
         The data loader to evaluate the model on.
     device : Union[str, torch.device], optional
         The device to evaluate the model on, by default "cpu".
+    single_class : Optional[int], optional
+        If provided, all targets will be set to this class, by default None.
 
     Returns
     -------
@@ -119,6 +122,8 @@ def class_accuracy(
     total = 0
     for inputs, targets in loader:
         inputs, targets = inputs.to(device), targets.to(device)
+        if single_class is not None:
+            targets = single_class * torch.ones_like(targets)
         outputs = net(inputs)
         _, predicted = outputs.max(1)
         total += targets.size(0)
