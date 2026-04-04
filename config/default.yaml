@@ -30,7 +30,7 @@ hydra:
 id: "default"
 bench: ClassDetection
 adversarial_label: 0
-bench_save_dir: "bench_out"
+bench_save_dir: "tests/assets/mnist_local_bench"
 log_dir: hydra_logs
 repo_id: "quanda-bench-test"
 cache_dir: "tmp"

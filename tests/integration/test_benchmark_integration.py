@@ -163,7 +163,7 @@ def test_benchmark_integration(
 
     # START13
     with open(
-        "tests/assets/mnist_test_suite_2/7ed30b3-default_MislabelingDetection.yaml",
+        "tests/assets/mnist_local_bench/124bfe7-default_MislabelingDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -187,7 +187,7 @@ def test_benchmark_integration(
 
     # START14_2
     with open(
-        "tests/assets/mnist_test_suite_2/7ed30b3-default_SubclassDetection.yaml",
+        "tests/assets/mnist_local_bench/124bfe7-default_SubclassDetection.yaml",
         "r",
     ) as f:
         subclass_config = yaml.safe_load(f)

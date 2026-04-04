@@ -349,7 +349,7 @@ We now have everything we need, we can just assemble the benchmark and run it. T
 <!-- START10 -->
 ```python
 with open(
-    "tests/assets/mnist_test_suite_2/7ed30b3-default_TopKCardinality.yaml",
+    "tests/assets/mnist_local_bench/124bfe7-default_TopKCardinality.yaml",
     "r",
 ) as f:
     top_k_config = yaml.safe_load(f)
@@ -429,7 +429,7 @@ We can now call the `generate` method to instantiate our `MislabelingDetection` 
 <!-- START14 -->
 ```python
 with open(
-    "tests/assets/mnist_test_suite_2/7ed30b3-default_MislabelingDetection.yaml",
+    "tests/assets/mnist_local_bench/124bfe7-default_MislabelingDetection.yaml",
     "r",
 ) as f:
     mislabel_config = yaml.safe_load(f)

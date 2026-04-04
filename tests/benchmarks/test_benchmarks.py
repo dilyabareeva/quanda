@@ -134,7 +134,7 @@ def test_load(
             MixedDatasets,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.03915480896830559,
+            0.0036496350076049566,
         ),
         (
             "mnist-class",
@@ -174,7 +174,7 @@ def test_load(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.1216176301240921,
+            0.18258880078792572,
         ),
         (
             "mnist-shortcut-download",
@@ -184,7 +184,7 @@ def test_load(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.1216176301240921,
+            0.18258880078792572,
         ),
         (
             "mnist-subclass",
@@ -194,7 +194,7 @@ def test_load(
             SubclassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.23000000417232513,
+            0.20000000298023224,
         ),
         (
             "mnist-linear-datamodeling",
@@ -214,7 +214,7 @@ def test_load(
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.618,
+            0.628,
         ),
         (
             "mnist-rand",
@@ -224,7 +224,7 @@ def test_load(
             ModelRandomization,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.3020453453063965,
+            0.21110500395298004,
         ),
     ],
 )
