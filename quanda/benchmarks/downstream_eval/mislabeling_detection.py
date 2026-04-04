@@ -56,7 +56,7 @@ class MislabelingDetection(Benchmark):
 
     name: str = "Mislabeling Detection"
     eval_args = ["test_data", "test_labels", "explanations"]
-
+        
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute accuracy on  mislabeled datapoints as a sanity check.
 

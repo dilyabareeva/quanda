@@ -65,12 +65,8 @@ def test_mislabeling_detection(
         transform=sample_transforms[config["eval_dataset"]["transforms"]],
         dataset_split=config["eval_dataset"]["dataset_split"],
     )
-    dst_eval = MislabelingDetection()
-    dst_eval.train_dataset = train_dataset
-    dst_eval.global_method = global_method
-    dst_eval.device = "cpu"
-    dst_eval.mislabeling_indices = train_dataset.metadata.transform_indices
-    dst_eval.model, dst_eval.checkpoints, dst_eval.checkpoints_load_func = (
+
+    model, checkpoints, checkpoints_load_func = (
         BenchConfigParser.parse_model_cfg(
             config["model"],
             config["bench_save_dir"],
@@ -80,8 +76,15 @@ def test_mislabeling_detection(
             device="cpu",
         )
     )
-    dst_eval.filter_by_prediction = config.get("filter_by_prediction", False)
-    dst_eval.eval_dataset = eval_dataset
+    dst_eval = MislabelingDetection(
+        train_dataset = train_dataset,
+        device = "cpu",
+        #filter_by_prediction = config.get("filter_by_prediction", False),
+        eval_dataset = eval_dataset,
+        model = model,
+        checkpoints = checkpoints,
+        checkpoints_load_func = checkpoints_load_func,
+    )
 
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,

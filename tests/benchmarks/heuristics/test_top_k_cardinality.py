@@ -39,19 +39,20 @@ def test_top_k_cardinality_kronfluence_text(
     model = request.getfixturevalue(model)
     train_dataset, test_dataset = request.getfixturevalue(dataset)
 
-    dst_eval = TopKCardinality()
-    dst_eval.train_dataset = train_dataset
-    dst_eval.eval_dataset = test_dataset
-    dst_eval.model = model
-    dst_eval.device = "cpu"
-    dst_eval.use_predictions = True
-    dst_eval.checkpoints_load_func = get_load_state_dict_func("cpu")
-    dst_eval.top_k = 5
-
     # Save current model state as checkpoint
     checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
     torch.save(model.state_dict(), checkpoint_path)
-    dst_eval.checkpoints = [checkpoint_path]
+
+    dst_eval = TopKCardinality(
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        model=model,
+        device="cpu",
+        use_predictions=True,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        checkpoints = [checkpoint_path],
+    )
+    dst_eval.top_k = 5
 
     expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
 
@@ -97,19 +98,20 @@ def test_top_k_cardinality_kronfluence_qnli(
     model = request.getfixturevalue(model)
     train_dataset, test_dataset = request.getfixturevalue(dataset)
 
-    dst_eval = TopKCardinality()
-    dst_eval.train_dataset = train_dataset
-    dst_eval.eval_dataset = test_dataset
-    dst_eval.model = model
-    dst_eval.device = "cpu"
-    dst_eval.use_predictions = True
-    dst_eval.checkpoints_load_func = get_load_state_dict_func("cpu")
-    dst_eval.top_k = 2
-
     # Save current model state as checkpoint
     checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
     torch.save(model.state_dict(), checkpoint_path)
-    dst_eval.checkpoints = [checkpoint_path]
+    
+    dst_eval = TopKCardinality(
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        model=model,
+        device="cpu",
+        use_predictions=True,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        checkpoints = [checkpoint_path]
+    )
+    dst_eval.top_k = 2
 
     expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
 
