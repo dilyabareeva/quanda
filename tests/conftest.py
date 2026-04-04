@@ -111,7 +111,7 @@ def range_ranking():
 @pytest.fixture
 def mnist_seed_27_mislabeling_labels():
     with open(
-        "tests/assets/mnist_test_suite_1/mnist_seed_27_poisoned_labels.json",
+        "tests/assets/dataset/mnist_seed_27_poisoned_labels.json",
         "r",
     ) as f:
         return json.load(f)
@@ -292,44 +292,34 @@ def load_mnist_dataloader():
 
 @pytest.fixture
 def load_mnist_test_samples_1():
-    return torch.load("tests/assets/mnist_test_suite_1/test_dataset.pt")
+    return torch.load("tests/assets/dataset/test_dataset.pt")
 
 
 @pytest.fixture
 def load_mnist_test_samples_batches():
     return [
-        torch.load("tests/assets/mnist_test_suite_1/test_dataset.pt"),
-        torch.load("tests/assets/mnist_test_suite_1/test_dataset_2.pt"),
+        torch.load("tests/assets/dataset/test_dataset.pt"),
+        torch.load("tests/assets/dataset/test_dataset_2.pt"),
     ]
 
 
 @pytest.fixture
 def load_mnist_test_labels_1():
-    return torch.load("tests/assets/mnist_test_suite_1/test_labels.pt")
+    return torch.load("tests/assets/dataset/test_labels.pt")
 
 
 @pytest.fixture
 def load_mnist_explanations_similarity_1():
     return torch.load(
-        "tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt"
+        "tests/assets/tda/mnist_SimilarityInfluence_tda.pt"
     )
 
 
 @pytest.fixture
 def load_mnist_explanations_dot_similarity_1():
     return torch.load(
-        "tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_dot_tda.pt"
+        "tests/assets/tda/mnist_SimilarityInfluence_dot_tda.pt"
     )
-
-
-@pytest.fixture
-def load_mnist_explanations_trak_1():
-    return torch.load("tests/assets/mnist_test_suite_1/mnist_TRAK_tda.pt")
-
-
-@pytest.fixture
-def load_mnist_explanations_trak_si_1():
-    return torch.load("tests/assets/mnist_test_suite_1/mnist_TRAK_tda_si.pt")
 
 
 @pytest.fixture
