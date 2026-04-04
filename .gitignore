@@ -62,3 +62,12 @@ outputs/
 # quanda
 cache/
 /.env
+
+assets/demo/*
+bench_out/*
+fig_1_images/*
+tutorials/*
+tests/assets/*
+scripts/bench_out/*
+CLAUDE.md
+.vscode/

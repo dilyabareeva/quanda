@@ -16,7 +16,7 @@ bench_params=(
     #"train_dataset=mnist_train train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test eval_dataset.dataset_split='test[:1%]'"
     #"model=mnist_lenet_subclass train_dataset=mnist_train_subclass train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test_subclass eval_dataset.dataset_split='test[:1%]'"
     #"train_dataset=mnist_train_shortcut train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test_shortcut eval_dataset.dataset_split='test[:1%]'"
-    "train_dataset=mnist_train train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test eval_dataset.dataset_split='test[:1%]' +adv_dataset=fashion_mnist"
+    "train_dataset=mnist_train train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test eval_dataset.dataset_split='test[:1%]' +adv_dataset=fashion_mnist_unit"
 )
 
 # Define the output directory
