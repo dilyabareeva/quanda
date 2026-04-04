@@ -24,7 +24,7 @@ dependencies = [
     "tqdm>=4.0.0",
     "traker>=0.3.2",
     "annoy>=1.17.0",
-    "datasets==3.6.0",
+    "datasets>=4.8.4",
     "torcheval>=0.0.6",
     "torchvision>=0.10.0",
     "kronfluence>=1.0.1",
