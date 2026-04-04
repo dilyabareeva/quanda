@@ -1,10 +1,7 @@
 """Class Detection benchmark."""
 
 import logging
-from typing import Any, Callable, List, Optional, Union
-
-import datasets  # type: ignore
-import torch
+from typing import Optional
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import ClassDetectionMetric
@@ -36,54 +33,6 @@ class ClassDetection(Benchmark):
     # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     name: str = "Class Detection"
     eval_args = ["test_data", "test_targets", "explanations"]
-
-    def __init__(
-        self,
-        *args,
-        **kwargs,
-    ):
-        """Initialize the Class Detection benchmark.
-
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: torch.nn.Module
-        self.device: str
-        self.train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
-        self.eval_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
-        self.use_predictions: bool
-        self.checkpoints: List[str]
-        self.checkpoints_load_func: Callable[..., Any]
-
-    @classmethod
-    def from_config(
-        cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
-        offline: bool = False,
-        device: str = "cpu",
-    ):
-        """Initialize the benchmark from a dictionary.
-
-        Parameters
-        ----------
-        config : dict
-            Dictionary containing the configuration.
-        load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it,
-            default True.
-        offline : bool
-            If True, the model is not downloaded, default False.
-        device: str, optional
-            Device to use for the evaluation, by default "cpu".
-
-        """
-        obj = super().from_config(config, load_meta_from_disk, offline, device)
-        obj.use_predictions = config.get("use_predictions", True)
-        return obj
 
     def evaluate(
         self,

@@ -1,11 +1,9 @@
 """Benchmark for noisy label detection."""
 
 import logging
-from typing import Any, Callable, List, Optional, Union
+from typing import Optional
 
-import lightning as L
 import torch
-import torch.utils
 from torch.utils.data import Subset
 
 from quanda.benchmarks.base import Benchmark
@@ -58,55 +56,6 @@ class MislabelingDetection(Benchmark):
 
     name: str = "Mislabeling Detection"
     eval_args = ["test_data", "test_labels", "explanations"]
-
-    def __init__(
-        self,
-        *args,
-        **kwargs,
-    ):
-        """Initialize the Mislabeling Detection benchmark.
-
-        This initializer is not used directly, instead,
-        the `from_config` or the `train` method should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: Union[torch.nn.Module, L.LightningModule]
-        self.eval_dataset: torch.utils.data.Dataset
-        self.train_dataset: LabelFlippingDataset
-        self.device: str
-
-        self.use_predictions: bool = True
-        self.checkpoints: List[str]
-        self.checkpoints_load_func: Callable[..., Any]
-
-    @classmethod
-    def from_config(
-        cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
-        offline: bool = False,
-        device: str = "cpu",
-    ):
-        """Initialize the benchmark from a dictionary.
-
-        Parameters
-        ----------
-        config : dict
-            Dictionary containing the configuration.
-        load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it,
-            default True.
-        offline : bool
-            If True, the model is not downloaded, default False.
-        device: str, optional
-            Device to use for the evaluation, by default "cpu".
-
-        """
-        obj = super().from_config(config, load_meta_from_disk, offline, device)
-        obj.use_predictions = config.get("use_predictions", True)
-        return obj
 
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute accuracy on  mislabeled datapoints as a sanity check.

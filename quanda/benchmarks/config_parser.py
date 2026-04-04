@@ -316,9 +316,8 @@ class BenchConfigParser:
                 kwargs["dataset_transform"]
             )
         wrapped_dataset: TransformedDataset = wrapper_cls(dataset, **kwargs)
-        wrapped_dataset.metadata.save(
-            metadata_dir, meta_filename
-        )  # TODO: when to save metadata
+        if not load_meta_from_disk:
+            wrapped_dataset.metadata.save(metadata_dir, meta_filename)
         return wrapped_dataset
 
     @classmethod

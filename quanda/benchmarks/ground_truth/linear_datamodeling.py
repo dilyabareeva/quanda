@@ -26,7 +26,7 @@ class LinearDatamodeling(Benchmark):
     The LDS measures how well a data attribution method can predict the effect
     of retraining a model on different subsets of the training data. It
     computes the correlation between the model’s output when retrained on
-    subsets of the data and the attribution method's predictions of those
+    subsets of the data and the attribution method’s predictions of those
     outputs.
 
     References
@@ -34,7 +34,7 @@ class LinearDatamodeling(Benchmark):
     1) Sung Min Park, Kristian Georgiev, Andrew Ilyas, Guillaume Leclerc,
     and Aleksander Mądry. (2023). "TRAK: attributing model behavior at scale".
     In Proceedings of the 40th International Conference on Machine Learning"
-    (ICML'23), Vol. 202. JMLR.org, Article 1128, (27074–27113).
+    (ICML’23), Vol. 202. JMLR.org, Article 1128, (27074–27113).
 
     2) https://github.com/MadryLab/trak/
 
@@ -46,118 +46,125 @@ class LinearDatamodeling(Benchmark):
     def __init__(
         self,
         *args,
+        m: int = 100,
+        alpha: float = 0.5,
+        cache_dir: str = "./tmp",
+        model_id: str = "0",
+        correlation_fn: Callable = None,
+        seed: int = 42,
+        subset_ids: Optional[List[List[int]]] = None,
+        subset_ckpt_filenames: Optional[List[str]] = None,
+        counterfactual_trainer: Optional[Trainer] = None,
+        trainer_fit_kwargs: Optional[dict] = None,
         **kwargs,
     ):
         """Initialize the `LinearDatamodeling` benchmark.
 
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.m: int
-        self.alpha: float
-        self.cache_dir: str
-        self.model_id: str = "0"
-        self.correlation_fn: Callable
-        self.seed: int
-        self.subset_ids: List[List[int]]
-        self.subset_ckpt_filenames: List[str]
-        self.counterfactual_trainer: Trainer
-        self.trainer_fit_kwargs: Optional[dict] = None
-
-    @classmethod
-    def from_config(
-        cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
-        offline: bool = False,
-        device: str = "cpu",
-    ):
-        """Initialize the benchmark from a dictionary.
-
         Parameters
         ----------
-        config : dict
-            Dictionary containing the configuration.
-        load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it,
-            default True.
-        offline : bool
-            If True, the model is not downloaded, default False.
-        device: str, optional
-            Device to use for the evaluation, by default "cpu".
+        m : int, optional
+            Number of subsets, by default 100.
+        alpha : float, optional
+            Fraction of training data per subset, by default 0.5.
+        cache_dir : str, optional
+            Cache directory, by default "./tmp".
+        model_id : str, optional
+            Model identifier, by default "0".
+        correlation_fn : Callable
+            Correlation function to use.
+        seed : int, optional
+            Random seed, by default 42.
+        subset_ids : Optional[List[List[int]]]
+            Pre-computed subset indices.
+        subset_ckpt_filenames : Optional[List[str]]
+            Checkpoint filenames for subset models.
+        counterfactual_trainer : Optional[Trainer]
+            Trainer for counterfactual models.
+        trainer_fit_kwargs : Optional[dict]
+            Additional kwargs for trainer.fit().
+        **kwargs
+            Arguments passed to the base Benchmark class.
 
         """
-        obj = super().from_config(config, load_meta_from_disk, offline, device)
+        super().__init__(*args, **kwargs)
+        self.m = m
+        self.alpha = alpha
+        self.cache_dir = cache_dir
+        self.model_id = model_id
+        self.correlation_fn = correlation_fn
+        self.seed = seed
+        self.subset_ids = subset_ids or []
+        self.subset_ckpt_filenames = subset_ckpt_filenames or []
+        self.counterfactual_trainer = counterfactual_trainer
+        self.trainer_fit_kwargs = trainer_fit_kwargs
 
-        assert isinstance(obj, LinearDatamodeling), (
-            "The object must be an instance of LinearDatamodeling."
+    @classmethod
+    def _extra_kwargs_from_config(
+        cls,
+        config: dict,
+        train_dataset: torch.utils.data.Dataset,
+        eval_dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract linear datamodeling kwargs from config."""
+        m = config.get("m", 100)
+        alpha = config.get("alpha", 0.5)
+        seed = config["seed"]
+
+        subset_ckpt_filenames = [
+            f"{config['repo_id']}/{config['ckpts'][-1]}_lds_subset_{i}"
+            for i in range(m)
+        ]
+
+        counterfactual_trainer_cfg = config.get(
+            "counterfactual_trainer",
+            config["model"].get("trainer", None),
         )
-
-        obj.m = config.get("m", 100)
-
-        obj.subset_ckpt_filenames = []
-        for i in range(obj.m):
-            obj.subset_ckpt_filenames.append(
-                f"{config['repo_id']}/{config['ckpts'][-1]}_lds_subset_{i}"
-            )
-
-        obj.alpha = config.get("alpha", 0.5)
-        counterfactual_trainer = config.get(
-            "counterfactual_trainer", config["model"].get("trainer", None)
-        )
-        if counterfactual_trainer is None:
+        if counterfactual_trainer_cfg is None:
             raise ValueError(
-                "Either 'trainer' or 'model.trainer' should be set."
+                "Either ‘trainer’ or ‘model.trainer’ should be set."
             )
-        obj.counterfactual_trainer = BenchConfigParser.parse_trainer_cfg(
-            counterfactual_trainer
+        counterfactual_trainer = BenchConfigParser.parse_trainer_cfg(
+            counterfactual_trainer_cfg
         )
-        # TODO: make trainer_fit_kwargs available to all benchmarks
-        obj.trainer_fit_kwargs = config.get("trainer_fit_kwargs", None)
-        obj.model_id = config.get("model_id", "0")
-        obj.cache_dir = config.get("cache_dir", "./tmp")
-        obj.seed = config["seed"]
-        cache_dir = config.get("bench_save_dir", "./tmp")
-        metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=cache_dir
-        )
-        # create metadata dir if it doesn't exist
+
         os.makedirs(metadata_dir, exist_ok=True)
 
         generator = torch.Generator()
-        generator.manual_seed(obj.seed)
+        generator.manual_seed(seed)
 
         subset_meta = f"{metadata_dir}/{config['subset_ids']}"
         if os.path.exists(subset_meta) and load_meta_from_disk:
-            with open(f"{metadata_dir}/{config['subset_ids']}", "r") as f:
-                obj.subset_ids = yaml.safe_load(f)
+            with open(subset_meta, "r") as f:
+                subset_ids = yaml.safe_load(f)
         else:
-            obj.subset_ids = LinearDatamodelingMetric.generate_subsets(
-                dataset=obj.train_dataset,
-                alpha=obj.alpha,
-                m=obj.m,
+            subset_ids = LinearDatamodelingMetric.generate_subsets(
+                dataset=train_dataset,
+                alpha=alpha,
+                m=m,
                 generator=generator,
             )
-            with open(f"{metadata_dir}/{config['subset_ids']}", "w") as f:
-                f.write(f"{obj.subset_ids}")
+            with open(subset_meta, "w") as f:
+                f.write(f"{subset_ids}")
 
-        obj.model, obj.checkpoints, obj.checkpoints_load_func = (
-            BenchConfigParser.parse_model_cfg(
-                model_cfg=config["model"],
-                bench_save_dir=config["bench_save_dir"],
-                repo_id=config["repo_id"],
-                ckpts=config["ckpts"],
-                load_model_from_disk=offline,
-                device=device,
-            )
-        )
-
-        obj.correlation_fn = correlation_functions[config["correlation_fn"]]
-        obj.use_predictions = config.get("use_predictions", True)
-        return obj
+        return {
+            "m": m,
+            "alpha": alpha,
+            "cache_dir": config.get("cache_dir", "./tmp"),
+            "model_id": config.get("model_id", "0"),
+            "correlation_fn": correlation_functions[
+                config["correlation_fn"]
+            ],
+            "seed": seed,
+            "subset_ids": subset_ids,
+            "subset_ckpt_filenames": subset_ckpt_filenames,
+            "counterfactual_trainer": counterfactual_trainer,
+            # TODO: make trainer_fit_kwargs available to all benchmarks
+            "trainer_fit_kwargs": config.get(
+                "trainer_fit_kwargs", None
+            ),
+        }
 
     @classmethod
     def train_and_push_to_hub(

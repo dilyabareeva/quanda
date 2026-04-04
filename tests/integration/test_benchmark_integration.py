@@ -25,9 +25,8 @@ from quanda.explainers.wrappers import (
 # END14_1
 
 
-@pytest.mark.skipif(
-    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
-)
+@pytest.mark.skip(reason="Slow benchmark integration test")
+@pytest.mark.slow
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "test_id",

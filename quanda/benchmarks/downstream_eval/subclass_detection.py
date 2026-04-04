@@ -1,9 +1,8 @@
 """Benchmark for subclass detection task."""
 
 import logging
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Dict, Optional
 
-import lightning as L
 import torch
 
 from quanda.benchmarks.base import Benchmark
@@ -37,60 +36,46 @@ class SubclassDetection(Benchmark):
     def __init__(
         self,
         *args,
+        class_to_group: Optional[Dict[int, int]] = None,
+        filter_by_prediction: bool = False,
         **kwargs,
     ):
         """Initialize the Subclass Detection benchmark.
 
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: Union[torch.nn.Module, L.LightningModule]
-        self.train_dataset: LabelGroupingDataset
-        self.eval_dataset: LabelGroupingDataset
-        self.class_to_group: Dict[int, int]
-        self.device: str
-
-        self.use_predictions: bool
-        self.filter_by_prediction: bool
-        self.checkpoints: List[str]
-        self.checkpoints_load_func: Callable[..., Any]
-
-    @classmethod
-    def from_config(
-        cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
-        offline: bool = False,
-        device: str = "cpu",
-    ):
-        """Initialize the benchmark from a dictionary.
-
         Parameters
         ----------
-        config : dict
-            Dictionary containing the configuration.
-        load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it,
-            default True.
-        offline : bool
-            If True, the model is not downloaded, default False.
-        device: str, optional
-            Device to use for the evaluation, by default "cpu".
+        class_to_group : Optional[Dict[int, int]]
+            Mapping from class index to group index.
+        filter_by_prediction : bool, optional
+            Whether to filter by prediction, by default False.
+        **kwargs
+            Arguments passed to the base Benchmark class.
 
         """
-        obj = super().from_config(config, load_meta_from_disk, offline, device)
-
-        assert isinstance(obj, SubclassDetection), (
-            "The object must be an instance of SubclassDetection."
-        )
-
-        obj.class_to_group = obj.train_dataset.class_to_group
-        obj.filter_by_prediction = config.get("filter_by_prediction", False)
-        obj.use_predictions = config.get("use_predictions", True)
-        return obj
+        super().__init__(*args, **kwargs)
+        self.class_to_group = class_to_group
+        self.filter_by_prediction = filter_by_prediction
+    
+    @classmethod
+    def _extra_kwargs_from_config(
+        cls,
+        config: dict,
+        train_dataset: torch.utils.data.Dataset,
+        eval_dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract subclass detection kwargs from config."""
+        if not isinstance(train_dataset, LabelGroupingDataset):
+            raise ValueError(
+                "The train dataset must be a LabelGroupingDataset."
+            )
+        return {
+            "class_to_group": train_dataset.class_to_group,
+            "filter_by_prediction": config.get(
+                "filter_by_prediction", False
+            ),
+        }
 
     def evaluate(
         self,

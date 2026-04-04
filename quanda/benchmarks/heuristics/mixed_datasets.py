@@ -1,9 +1,8 @@
 """Mixed Datasets benchmark module."""
 
 import logging
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional
 
-import lightning as L
 import torch
 from torch.utils.data import Subset
 
@@ -52,29 +51,29 @@ class MixedDatasets(Benchmark):
     def __init__(
         self,
         *args,
+        adversarial_label: int = 0,
+        adversarial_indices: Optional[List[int]] = None,
+        filter_by_prediction: bool = False,
         **kwargs,
     ):
         """Initialize the Mixed Datasets benchmark.
 
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
+        Parameters
+        ----------
+        adversarial_label : int
+            The label assigned to adversarial samples.
+        adversarial_indices : Optional[List[int]]
+            Binary list indicating adversarial (1) vs clean (0) samples.
+        filter_by_prediction : bool, optional
+            Whether to filter by prediction, by default False.
+        **kwargs
+            Arguments passed to the base Benchmark class.
+
         """
-        super().__init__()
-
-        self.model: Union[torch.nn.Module, L.LightningModule]
-
-        self.train_dataset: torch.utils.data.ConcatDataset
-        self.eval_dataset: torch.utils.data.Dataset
-        self.val_dataset: Optional[torch.utils.data.Dataset] = None
-        self.adversarial_label: int
-        self.adversarial_indices: List[int]
-
-        self.filter_by_prediction: bool
-        self.cache_dir: str
-        self.checkpoints: List[str]
-        self.checkpoints_load_func: Callable[..., Any]
-        self.use_predictions: bool = False
+        super().__init__(*args, **kwargs)
+        self.adversarial_label = adversarial_label
+        self.adversarial_indices = adversarial_indices or []
+        self.filter_by_prediction = filter_by_prediction
 
     @classmethod
     def from_config(
@@ -91,19 +90,17 @@ class MixedDatasets(Benchmark):
         config : dict
             Dictionary containing the configuration.
         load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it,
-            default True.
+            Loads dataset metadata from disk if True, otherwise generates
+            it, default True.
         offline : bool, optional
             Whether to load the model in offline mode, by default False.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
 
         """
-        obj = cls()
-        obj.device = device
-
         metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
+            cfg=config,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
         )
         train_base_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config["train_dataset"],
@@ -120,33 +117,35 @@ class MixedDatasets(Benchmark):
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
-        slit_datasets = BenchConfigParser.split_dataset(
+        split_datasets = BenchConfigParser.split_dataset(
             dataset=adv_dataset,
             ds_config=config["adv_dataset"],
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
-        adv_base_dataset = slit_datasets["train"]
-        adv_val_dataset = slit_datasets["val"]
-        obj.eval_dataset = slit_datasets["test"]
+        adv_base_dataset = split_datasets["train"]
+        adv_val_dataset = split_datasets["val"]
+        eval_dataset = split_datasets["test"]
 
-        obj.train_dataset = torch.utils.data.ConcatDataset(
+        train_dataset = torch.utils.data.ConcatDataset(
             [adv_base_dataset, train_base_dataset]
         )
         datasets_to_concat = [
-            d for d in [adv_val_dataset, val_base_dataset] if d is not None
+            d
+            for d in [adv_val_dataset, val_base_dataset]
+            if d is not None
         ]
-        obj.val_dataset = (
+        val_dataset = (
             None
             if not datasets_to_concat
             else torch.utils.data.ConcatDataset(datasets_to_concat)
         )
-        obj.adversarial_label = config["adversarial_label"]
-        obj.adversarial_indices = [1] * len(adv_base_dataset) + [0] * len(
-            train_base_dataset
-        )
 
-        obj.model, obj.checkpoints, obj.checkpoints_load_func = (
+        adversarial_indices = [1] * len(adv_base_dataset) + [
+            0
+        ] * len(train_base_dataset)
+
+        model, checkpoints, checkpoints_load_func = (
             BenchConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
@@ -156,9 +155,22 @@ class MixedDatasets(Benchmark):
                 device=device,
             )
         )
-        obj.filter_by_prediction = config.get("filter_by_prediction", False)
 
-        return obj
+        return cls(
+            model=model,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            device=device,
+            val_dataset=val_dataset,
+            use_predictions=config.get("use_predictions", False),
+            adversarial_label=config["adversarial_label"],
+            adversarial_indices=adversarial_indices,
+            filter_by_prediction=config.get(
+                "filter_by_prediction", False
+            ),
+        )
 
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Perform model sanity checks.

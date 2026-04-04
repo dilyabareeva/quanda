@@ -26,18 +26,50 @@ class Benchmark(ABC):
     name: str
     eval_args: List = []
 
-    def __init__(self, *args, **kwargs):
-        """Initialize the base `Benchmark` class."""
-        self.model: torch.nn.Module
-        self.device: str = "cpu"
-        self.train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
-        self.val_dataset: Optional[
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
+        eval_dataset: torch.utils.data.Dataset,
+        checkpoints: List[str],
+        checkpoints_load_func: Callable[..., Any],
+        device: str = "cpu",
+        val_dataset: Optional[
             Union[torch.utils.data.Dataset, datasets.Dataset]
-        ] = None
-        self.eval_dataset: torch.utils.data.Dataset
-        self.checkpoints: List[str] = []
-        self.checkpoints_load_func: Callable[..., Any]  # TODO: Why mandatory?
-        self.use_predictions: bool = False
+        ] = None,
+        use_predictions: bool = False,
+    ):
+        """Initialize the base `Benchmark` class.
+
+        Parameters
+        ----------
+        model : torch.nn.Module
+            The model to evaluate.
+        train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
+            The training dataset.
+        eval_dataset : torch.utils.data.Dataset
+            The evaluation dataset.
+        checkpoints : List[str]
+            List of checkpoint paths.
+        checkpoints_load_func : Callable[..., Any]
+            Function to load model checkpoints.
+        device : str, optional
+            Device to use, by default "cpu".
+        val_dataset : Optional[Union[torch.utils.data.Dataset,
+            datasets.Dataset]], optional
+            The validation dataset, by default None.
+        use_predictions : bool, optional
+            Whether to use model predictions as targets, by default False.
+
+        """
+        self.model = model
+        self.train_dataset = train_dataset
+        self.eval_dataset = eval_dataset
+        self.checkpoints = checkpoints
+        self.checkpoints_load_func = checkpoints_load_func
+        self.device = device
+        self.val_dataset = val_dataset
+        self.use_predictions = use_predictions
 
     @classmethod
     def load_pretrained(
@@ -100,30 +132,27 @@ class Benchmark(ABC):
         device: str = "cpu",
     ) -> "Benchmark":
         """Initialize the benchmark from a dictionary."""
-        obj = cls()
-
-        obj.device = device
         cache_dir = config.get("bench_save_dir", "./tmp")
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=cache_dir
         )
-        obj.train_dataset = BenchConfigParser.parse_dataset_cfg(
+        train_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
-        obj.val_dataset = BenchConfigParser.parse_dataset_cfg(
+        val_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset", None),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
-        obj.eval_dataset = BenchConfigParser.parse_dataset_cfg(
+        eval_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
 
-        obj.model, obj.checkpoints, obj.checkpoints_load_func = (
+        model, checkpoints, checkpoints_load_func = (
             BenchConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
@@ -134,7 +163,59 @@ class Benchmark(ABC):
             )
         )
 
-        return obj
+        extra = cls._extra_kwargs_from_config(
+            config=config,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            metadata_dir=metadata_dir,
+            load_meta_from_disk=load_meta_from_disk,
+        )
+
+        return cls(
+            model=model,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            device=device,
+            val_dataset=val_dataset,
+            use_predictions=config.get("use_predictions", True),
+            **extra,
+        )
+
+    @classmethod
+    def _extra_kwargs_from_config(
+        cls,
+        config: dict,
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
+        eval_dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract subclass-specific kwargs from config.
+
+        Override in subclasses to provide additional constructor arguments.
+
+        Parameters
+        ----------
+        config : dict
+            The benchmark configuration dictionary.
+        train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
+            The parsed training dataset.
+        eval_dataset : torch.utils.data.Dataset
+            The parsed evaluation dataset.
+        metadata_dir : str
+            Path to the metadata directory.
+        load_meta_from_disk : bool
+            Whether metadata was loaded from disk.
+
+        Returns
+        -------
+        dict
+            Additional keyword arguments for the constructor.
+
+        """
+        return {}
 
     @classmethod
     def train(
@@ -274,6 +355,12 @@ class Benchmark(ABC):
         """
         results = {}
 
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )
+        
         train_dl = torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=batch_size,

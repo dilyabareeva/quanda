@@ -1,10 +1,10 @@
 """Shortcut Detection Benchmark."""
 
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional
 
-import lightning as L
 import torch
 from torch.utils.data import Subset
+import lightning as L
 
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.config_parser import BenchConfigParser
@@ -56,95 +56,85 @@ class ShortcutDetection(Benchmark):
     def __init__(
         self,
         *args,
+        shortcut_cls: int = 0,
+        filter_by_prediction: bool = False,
+        filter_by_class: bool = False,
+        filter_indices: Optional[List[int]] = None,
         **kwargs,
     ):
         """Initialize the benchmark object.
 
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: Union[torch.nn.Module, L.LightningModule]
-
-        self.train_dataset: SampleTransformationDataset
-        self.eval_dataset: SampleTransformationDataset
-        self.shortcut_cls: int
-        self.device: str
-
-        self.use_predictions: bool
-        self.filter_by_prediction: bool
-        self.filter_by_class: bool
-        self.filter_indices: Optional[List[int]]
-        self.checkpoints: List[str]
-        self.checkpoints_load_func: Callable[..., Any]
-
-    @classmethod
-    def from_config(
-        cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
-        offline: bool = False,
-        device: str = "cpu",
-    ):
-        """Initialize the benchmark from a dictionary.
-
         Parameters
         ----------
-        config : dict
-            Dictionary containing the configuration.
-        load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it,
-            default True.
-        offline : bool
-            If True, the model is not downloaded, default False.
-        device: str, optional
-            Device to use for the evaluation, by default "cpu".
+        shortcut_cls : int
+            The class index used as the shortcut target.
+        filter_by_prediction : bool, optional
+            Whether to filter eval samples by prediction, by default
+            False.
+        filter_by_class : bool, optional
+            Whether to filter eval samples by class, by default False.
+        filter_indices : Optional[List[int]], optional
+            Pre-computed indices for filtering eval samples, by default
+            None.
+        **kwargs
+            Arguments passed to the base Benchmark class.
 
         """
-        obj = super().from_config(config, load_meta_from_disk, offline, device)
+        super().__init__(*args, **kwargs)
+        self.shortcut_cls = shortcut_cls
+        self.filter_by_prediction = filter_by_prediction
+        self.filter_by_class = filter_by_class
+        self.filter_indices = filter_indices
 
-        if not isinstance(obj.eval_dataset, SampleTransformationDataset):
+    @classmethod
+    def _extra_kwargs_from_config(
+        cls,
+        config: dict,
+        train_dataset: torch.utils.data.Dataset,
+        eval_dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract shortcut detection kwargs from config."""
+        if not isinstance(eval_dataset, SampleTransformationDataset):
             raise ValueError(
                 "Shortcut detection evaluation requires a "
                 "SampleTransformationDataset as the evaluation dataset."
             )
-        if not isinstance(obj.train_dataset, SampleTransformationDataset):
+        if not isinstance(train_dataset, SampleTransformationDataset):
             raise ValueError(
                 "Shortcut detection evaluation requires a "
                 "SampleTransformationDataset as the training dataset."
             )
 
-        assert isinstance(obj, ShortcutDetection), (
-            "The object must be an instance of ShortcutDetection."
+        assert train_dataset.metadata.cls_idx is not None, (
+            "The training dataset must have a class index in its "
+            "metadata."
         )
 
-        assert obj.train_dataset.metadata.cls_idx is not None, (
-            "The training dataset must have a class index in its metadata."
-        )
-
-        obj.shortcut_cls = obj.train_dataset.metadata.cls_idx
-        obj.use_predictions = config.get("use_predictions", True)
-        obj.filter_by_prediction = config.get("filter_by_prediction", False)
-        obj.filter_by_class = config.get("filter_by_class", False)
-
-        cache_dir = config.get("bench_save_dir", "./tmp")
-        metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=cache_dir
-        )
         eval_ds_config = config["eval_dataset"]
         eval_indices = eval_ds_config["filter_indices"]
+        filter_indices = None
 
-        if DatasetSplit.exists(metadata_dir, eval_indices["split_filename"]) and load_meta_from_disk:
-            obj.filter_indices = DatasetSplit.load(
+        if (
+            DatasetSplit.exists(
+                metadata_dir, eval_indices["split_filename"]
+            )
+            and load_meta_from_disk
+        ):
+            filter_indices = DatasetSplit.load(
                 metadata_dir,
-                name=eval_indices["split_filename"]
+                name=eval_indices["split_filename"],
             )[eval_indices["split_name"]]
-        else:
-            obj.filter_indices = None
 
-        return obj
+        return {
+            "shortcut_cls": train_dataset.metadata.cls_idx,
+            "filter_by_prediction": config.get(
+                "filter_by_prediction", False
+            ),
+            "filter_by_class": config.get("filter_by_class", False),
+            "filter_indices": filter_indices,
+        }
 
     @classmethod
     def train(

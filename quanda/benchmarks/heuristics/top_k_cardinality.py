@@ -36,57 +36,35 @@ class TopKCardinality(Benchmark):
     def __init__(
         self,
         *args,
+        top_k: int = 5,
         **kwargs,
     ):
         """Initialize the Top-K Cardinality benchmark.
 
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: torch.nn.Module
-        self.device: str
-        self.train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
-        self.eval_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
-        self.use_predictions: bool
-        self.checkpoints: List[str]
-        self.checkpoints_load_func: Callable[..., Any]
-        self.top_k: int
-
-    @classmethod
-    def from_config(
-        cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
-        offline: bool = False,
-        device: str = "cpu",
-    ):
-        """Initialize the benchmark from a dictionary.
-
         Parameters
         ----------
-        config : dict
-            Dictionary containing the configuration.
-        load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it,
-            default True.
-        offline : bool
-            If True, the model is not downloaded, default False.
-        device: str, optional
-            Device to use for the evaluation, by default "cpu".
+        top_k : int, optional
+            Number of top attributed samples to consider, by default 5.
+        **kwargs
+            Arguments passed to the base Benchmark class.
 
         """
-        obj = super().from_config(config, load_meta_from_disk, offline, device)
+        super().__init__(*args, **kwargs)
+        self.top_k = top_k
 
-        assert isinstance(obj, TopKCardinality), (
-            "The object must be an instance of TopKCardinality."
-        )
-
-        obj.top_k = config["top_k"]
-        obj.use_predictions = config.get("use_predictions", True)
-        return obj
+    @classmethod
+    def _extra_kwargs_from_config(
+        cls,
+        config: dict,
+        train_dataset: Union[
+            torch.utils.data.Dataset, datasets.Dataset
+        ],
+        eval_dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract top_k from config."""
+        return {"top_k": config["top_k"]}
 
     def evaluate(
         self,

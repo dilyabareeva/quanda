@@ -38,64 +38,52 @@ class ModelRandomization(Benchmark):
     def __init__(
         self,
         *args,
+        correlation_fn: Callable = None,
+        model_id: str = "0",
+        cache_dir: str = "./tmp",
+        seed: int = 42,
         **kwargs,
     ):
         """Initialize the Model Randomization benchmark.
 
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: torch.nn.Module
-        self.model_id: str
-        self.cache_dir: str
-
-        self.train_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
-        self.use_predictions: bool
-        self.correlation_fn: Callable
-        self.seed: int
-        self.device: str
-
-        self.checkpoints: List[str]
-        self.checkpoints_load_func: Callable[..., Any]
-
-    @classmethod
-    def from_config(
-        cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
-        offline: bool = False,
-        device: str = "cpu",
-    ):
-        """Initialize the benchmark from a dictionary.
-
         Parameters
         ----------
-        config : dict
-            Dictionary containing the configuration.
-        load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it,
-            default True.
-        offline : bool
-            If True, the model is not downloaded, default False.
-        device: str, optional
-            Device to use for the evaluation, by default "cpu".
+        correlation_fn : Callable
+            Correlation function to use.
+        model_id : str, optional
+            Model identifier, by default "0".
+        cache_dir : str, optional
+            Cache directory, by default "./tmp".
+        seed : int, optional
+            Random seed, by default 42.
+        **kwargs
+            Arguments passed to the base Benchmark class.
 
         """
-        obj = super().from_config(config, load_meta_from_disk, offline, device)
+        super().__init__(*args, **kwargs)
+        self.correlation_fn = correlation_fn
+        self.model_id = model_id
+        self.cache_dir = cache_dir
+        self.seed = seed
 
-        assert isinstance(obj, ModelRandomization), (
-            "The object must be an instance of ModelRandomization."
-        )
-        obj.correlation_fn = correlation_functions[config["correlation_fn"]]
-        obj.model_id = config.get("model_id", "0")
-        obj.cache_dir = config.get("cache_dir", "./tmp")
-        obj.seed = config["seed"]
-        obj.use_predictions = config.get("use_predictions", True)
-        return obj
+    @classmethod
+    def _extra_kwargs_from_config(
+        cls,
+        config: dict,
+        train_dataset: torch.utils.data.Dataset,
+        eval_dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract model randomization kwargs from config."""
+        return {
+            "correlation_fn": correlation_functions[
+                config["correlation_fn"]
+            ],
+            "model_id": config.get("model_id", "0"),
+            "cache_dir": config.get("cache_dir", "./tmp"),
+            "seed": config["seed"],
+        }
 
     def evaluate(
         self,
