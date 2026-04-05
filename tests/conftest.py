@@ -631,7 +631,7 @@ def load_qnli_dataset():
 def load_mnist_unit_test_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/124bfe7-default_ClassDetection.yaml",
+        "tests/assets/mnist_local_bench/ccfe6ec-default_ClassDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -655,7 +655,7 @@ def load_mnist_linear_datamodeling_config(
 ):
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/8ade90f-default_LDS.yaml",
+        "tests/assets/mnist_local_bench/ccfe6ec-default_LDS.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -667,7 +667,7 @@ def load_mnist_linear_datamodeling_config(
 def load_mnist_mislabeling_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/124bfe7-default_MislabelingDetection.yaml",
+        "tests/assets/mnist_local_bench/ccfe6ec-default_MislabelingDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -678,7 +678,7 @@ def load_mnist_mislabeling_config():
 def load_mnist_subclass_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/124bfe7-default_SubclassDetection.yaml",
+        "tests/assets/mnist_local_bench/ccfe6ec-default_SubclassDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -689,7 +689,7 @@ def load_mnist_subclass_config():
 def load_mnist_shortcut_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/124bfe7-default_ShortcutDetection.yaml",
+        "tests/assets/mnist_local_bench/ccfe6ec-default_ShortcutDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -700,7 +700,7 @@ def load_mnist_shortcut_config():
 def load_mnist_mixed_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/124bfe7-default_MixedDatasets.yaml",
+        "tests/assets/mnist_local_bench/ccfe6ec-default_MixedDatasets.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)

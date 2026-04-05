@@ -13,7 +13,7 @@ model:
     scheduler_kwargs:
       last_epoch: -1
     lr: 0.01
-    max_epochs: 5
+    max_epochs: 10
     seed: 42
 train_dataset:
   dataset_str: ylecun/mnist
@@ -25,12 +25,15 @@ eval_dataset:
   dataset_split: test[:1%]
   transforms: mnist_transforms
   indices: all
+  filter_indices:
+    split_filename: mnist_eval_mixed_main_split.yaml
+    split_name: default
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
   project: quanda-bench
-id: 124bfe7-default_ClassDetection
-bench: ClassDetection
+id: ccfe6ec-default_MixedDatasets
+bench: MixedDatasets
 adversarial_label: 0
 bench_save_dir: tests/assets/mnist_local_bench
 log_dir: hydra_logs
@@ -41,10 +44,23 @@ model_id: '0'
 correlation_fn: kendall
 offline: true
 seed: 42
+device: auto
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
-- 124bfe7-default_ClassDetection
+- ccfe6ec-default_MixedDatasets
+adv_dataset:
+  single_class_dataset: true
+  label: 0
+  transforms: adversarial_transforms
+  dataset_str: quanda-bench-test/fashion_mnist_unit
+  indices:
+    split_filename: fashion_mnist_split.yaml
+    split_ratios:
+      train: 0.34
+      val: 0.33
+      test: 0.33
+    seed: 42
 cfg_output_dir: tests/assets/mnist_local_bench
-cfg_file_name: 124bfe7-default_ClassDetection.yaml
+cfg_file_name: ccfe6ec-default_MixedDatasets.yaml

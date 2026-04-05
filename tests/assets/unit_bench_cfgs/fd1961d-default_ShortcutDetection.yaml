@@ -58,6 +58,8 @@ logger:
   project: quanda-bench
 id: fd1961d-default_ShortcutDetection
 bench: ShortcutDetection
+filter_by_class: true
+filter_by_prediction: true
 adversarial_label: 0
 bench_save_dir: bench_out
 log_dir: hydra_logs

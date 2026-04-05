@@ -44,7 +44,7 @@ from quanda.utils.functions import cosine_similarity
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.18258880078792572,
+            0.31067201495170593,
         ),
         (
             "mnist",
@@ -134,7 +134,7 @@ def test_load(
             MixedDatasets,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.0036496350076049566,
+            0.0714285746216774,
         ),
         (
             "mnist-class",
@@ -144,7 +144,7 @@ def test_load(
             ClassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.9200000166893005,
+            0.9399999976158142,
         ),
         (
             "mnist-mislabeling",
@@ -174,7 +174,7 @@ def test_load(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.18258880078792572,
+            0.13973388075828552,
         ),
         (
             "mnist-shortcut-download",
@@ -184,7 +184,7 @@ def test_load(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.18258880078792572,
+            0.13973388075828552,
         ),
         (
             "mnist-subclass",
@@ -204,7 +204,7 @@ def test_load(
             LinearDatamodeling,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.1666666865348816,
+            -0.07333333790302277,
         ),
         (
             "mnist-top-k",
@@ -214,7 +214,7 @@ def test_load(
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.628,
+            0.602,
         ),
         (
             "mnist-rand",
@@ -224,7 +224,7 @@ def test_load(
             ModelRandomization,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.21110500395298004,
+            0.24761253595352173,
         ),
     ],
 )

@@ -421,7 +421,7 @@ class BenchConfigParser:
                     os.path.expanduser("~/.cache/huggingface/datasets"),
                 )
 
-            hf_dataset = _load_hf_dataset(
+            hf_dataset = load_dataset(
                 "ylecun/mnist" if dataset == "mnist" else dataset,
                 split=dataset_split,
                 cache_dir=cache_dir,
