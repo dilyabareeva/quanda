@@ -108,6 +108,7 @@ class LinearDatamodeling(Benchmark):
     def _train_subset_models(
         self,
         trainer: "Trainer",
+        ckpt_str: str,
         ckpt_dir: str,
         batch_size: int = 8,
         push_to_hub: bool = False,
@@ -152,7 +153,7 @@ class LinearDatamodeling(Benchmark):
             )
 
             if push_to_hub:
-                subset_model.push_to_hub(filename)
+                subset_model.push_to_hub(f"quanda-bench-test/{ckpt_str}{_get_i_subset_ckpt_postfix(i)}")
 
     @classmethod
     def train(
@@ -203,6 +204,7 @@ class LinearDatamodeling(Benchmark):
 
         obj._train_subset_models(
             trainer=trainer,
+            ckpt_str=config["ckpts"][-1],
             ckpt_dir=ckpt_dir,
             batch_size=batch_size,
         )
@@ -319,6 +321,7 @@ class LinearDatamodeling(Benchmark):
         obj._train_subset_models(
             trainer=trainer,
             ckpt_dir=ckpt_dir,
+            ckpt_str=config["ckpts"][-1],
             batch_size=batch_size,
             push_to_hub=True,
         )
