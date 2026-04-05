@@ -24,7 +24,9 @@ hydra:
     n_trials: 2
     n_jobs: 1
     params:
-      model.trainer.lr: choice(0.02, 0.01, 0.001)
+      model.trainer.lr: choice(0.01, 0.001)
+      #model.trainer.optimizer: choice("sgd", "adam")
+      model.trainer.max_epochs: choice(5, 10)
 
 
 id: "default"
@@ -39,6 +41,7 @@ model_id: "0"
 correlation_fn: "kendall"
 offline: true
 seed: 42
+device: "auto"
 
 m: 4
 alpha: 0.5
