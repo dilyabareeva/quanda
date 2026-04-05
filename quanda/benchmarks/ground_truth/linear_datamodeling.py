@@ -22,6 +22,11 @@ from quanda.utils.training import Trainer
 logger = logging.getLogger(__name__)
 
 
+def _get_i_subset_ckpt_postfix(i: int) -> str:
+    """Get checkpoint postfix for subset model i."""
+    return f"_lds_subset_{i}"
+    
+    
 class LinearDatamodeling(Benchmark):
     """Benchmark for the Linear Datamodeling Score metric.
 
@@ -100,6 +105,110 @@ class LinearDatamodeling(Benchmark):
         self.counterfactual_trainer = counterfactual_trainer
         self.trainer_fit_kwargs = trainer_fit_kwargs
 
+    def _train_subset_models(
+        self,
+        trainer: "Trainer",
+        ckpt_dir: str,
+        batch_size: int = 8,
+        push_to_hub: bool = False,
+    ):
+        """Train and save all subset models.
+
+        Parameters
+        ----------
+        trainer : Trainer
+            Trainer instance for training subset models.
+        ckpt_dir : str
+            Base checkpoint directory.
+        batch_size : int, optional
+            Batch size for training, by default 8.
+        push_to_hub : bool, optional
+            Whether to push models to HF Hub, by default False.
+
+        """
+        for i, filename in enumerate(self.subset_ckpt_filenames):
+            subset = torch.utils.data.Subset(
+                self.train_dataset, self.subset_ids[i]
+            )
+            subset_model = LinearDatamodelingMetric.train_subset_model(
+                model=self.model,
+                subset=subset,
+                trainer=trainer,
+                batch_size=batch_size,
+            )
+
+            local_ckpt_dir = (
+                f"{ckpt_dir}{_get_i_subset_ckpt_postfix(i)}"
+            )
+            os.makedirs(local_ckpt_dir, exist_ok=True)
+            if push_to_hub and len(os.listdir(local_ckpt_dir)) > 0:
+                warnings.warn(
+                    f"Directory {local_ckpt_dir} already exists "
+                    "and is not empty. Checkpoints will be "
+                    "overwritten."
+                )
+            subset_model.save_pretrained(
+                local_ckpt_dir, safe_serialization=True
+            )
+
+            if push_to_hub:
+                subset_model.push_to_hub(filename)
+
+    @classmethod
+    def train(
+        cls,
+        config: dict,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
+        device: str = "cpu",
+        batch_size: int = 8,
+    ) -> "LinearDatamodeling":
+        """Train main model and subset models.
+
+        Extends the base train method to also train and save
+        the counterfactual subset models required for LDS evaluation.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing the configuration.
+        logger : Optional[L.pytorch.loggers.logger.Logger], optional
+            Logger to be used for logging, by default None.
+        device : str, optional
+            Device to use for training, by default "cpu".
+        batch_size : int, optional
+            Batch size for training, by default 8.
+
+        Returns
+        -------
+        LinearDatamodeling
+            The trained benchmark instance.
+
+        """
+        obj = super().train(
+            config=config,
+            logger=logger,
+            device=device,
+            batch_size=batch_size,
+        )
+
+        trainer = BenchConfigParser.parse_trainer_cfg(
+            config["model"]["trainer"]
+        )
+
+        ckpt_dir = os.path.join(
+            config.get("bench_save_dir", "./tmp"),
+            "ckpt",
+            config["ckpts"][-1],
+        )
+
+        obj._train_subset_models(
+            trainer=trainer,
+            ckpt_dir=ckpt_dir,
+            batch_size=batch_size,
+        )
+
+        return obj
+
     @classmethod
     def _extra_kwargs_from_config(
         cls,
@@ -115,13 +224,11 @@ class LinearDatamodeling(Benchmark):
         seed = config["seed"]
 
         ckpt_dir = os.path.join(
-            config.get("bench_save_dir", "./tmp"), "ckpt"
+            config.get("bench_save_dir", "./tmp"), "ckpt", config["ckpts"][-1]
         )
-        ckpt_dir = BenchConfigParser.get_ckpt_folder(
-            config["model"], ckpt_dir, config["ckpts"][-1]
-        )
+
         subset_ckpt_filenames = [
-            os.path.join(ckpt_dir, f"lds_subset_{i}") for i in range(m)
+            f"{ckpt_dir}{_get_i_subset_ckpt_postfix(i)}" for i in range(m)
         ]
         counterfactual_trainer_cfg = config.get(
             "counterfactual_trainer",
@@ -206,39 +313,15 @@ class LinearDatamodeling(Benchmark):
         )
 
         ckpt_dir = os.path.join(
-            config.get("bench_save_dir", "./tmp"), "ckpt"
-        )
-        ckpt_dir = BenchConfigParser.get_ckpt_folder(
-            config["model"], ckpt_dir, config["ckpts"][-1]
+            config.get("bench_save_dir", "./tmp"), "ckpt", config["ckpts"][-1]
         )
 
-        for i, filename in enumerate(obj.subset_ckpt_filenames):
-            subset = torch.utils.data.Subset(
-                obj.train_dataset, obj.subset_ids[i]
-            )
-            subset_model = LinearDatamodelingMetric.train_subset_model(
-                model=obj.model,
-                subset=subset,
-                trainer=trainer,
-                batch_size=batch_size,
-            )
-
-            # Save locally
-            local_ckpt_dir = os.path.join(
-                ckpt_dir, f"lds_subset_{i}"
-            )
-            os.makedirs(local_ckpt_dir, exist_ok=True)
-            if len(os.listdir(local_ckpt_dir)) > 0:
-                warnings.warn(
-                    f"Directory {local_ckpt_dir} already exists "
-                    "and is not empty. Checkpoints will be "
-                    "overwritten."
-                )
-            subset_model.save_pretrained(
-                local_ckpt_dir, safe_serialization=True
-            )
-
-            subset_model.push_to_hub(filename)
+        obj._train_subset_models(
+            trainer=trainer,
+            ckpt_dir=ckpt_dir,
+            batch_size=batch_size,
+            push_to_hub=True,
+        )
 
         return obj
 

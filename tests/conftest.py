@@ -639,6 +639,17 @@ def load_mnist_unit_test_config():
 
 
 @pytest.fixture
+def load_mnist_unit_test_config_hf():
+    # load yaml file
+    with open(
+        "tests/assets/unit_bench_cfgs/fd1961d-default_ClassDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
 def load_mnist_linear_datamodeling_config(
     load_pretrained_models_lds, load_subset_indices_lds
 ):

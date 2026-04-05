@@ -277,10 +277,6 @@ class Benchmark(ABC):
 
         ckpt_dir = os.path.join(config["bench_save_dir"], "ckpt")
 
-        # TODO: add support for multiple checkpoints
-        ckpt_dir = BenchConfigParser.get_ckpt_folder(
-            config["model"], ckpt_dir, config["ckpts"][-1]
-        )
         os.makedirs(ckpt_dir, exist_ok=True)
         if len(os.listdir(ckpt_dir)) > 0:
             warnings.warn(

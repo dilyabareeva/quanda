@@ -119,7 +119,7 @@ class BenchConfigParser:
 
         def load_state_dict(model: torch.nn.Module, ckpt_str: str):
             ckpt = ckpt_str.split("/")[-1]
-            ckpt_dir = cls.get_ckpt_folder(model_cfg, checkpoint_path, ckpt)
+            ckpt_dir = os.path.join(checkpoint_path, ckpt)
             if os.path.exists(os.path.join(ckpt_dir, "config.json")):
                 pretrained_model_name_or_path=ckpt_dir
                 cache_dir = None
@@ -351,14 +351,6 @@ class BenchConfigParser:
             split = DatasetSplit.split(len(dataset), 42, split_ratios)
             split.save(metadata_dir, split_filename)
         return split
-
-    @classmethod
-    def get_ckpt_folder(
-        cls, model_cfg: dict, checkpoint_path: str, cfg_id: str
-    ) -> str:
-        """Get the checkpoint folder path."""
-        ckpt_postfix = model_cfg.get("ckpt_postfix", "")
-        return os.path.join(checkpoint_path, f"{cfg_id}_{ckpt_postfix}")
 
     @classmethod
     def process_dataset(

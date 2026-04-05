@@ -14,7 +14,7 @@ from quanda.benchmarks.config_parser import BenchConfigParser
     [
         (
             "mnist",
-            "load_mnist_unit_test_config",
+            "load_mnist_unit_test_config_hf",
             (1, 28, 28),
         ),
     ],
