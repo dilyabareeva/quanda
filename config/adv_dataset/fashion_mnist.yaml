@@ -4,6 +4,8 @@
   dataset_str: "zalando-datasets/fashion_mnist"
   indices:
     split_filename: "fashion_mnist_split.yaml"
-    val: 0.2
-    test: 0.2
+    split_ratios:
+      train: 0.6
+      val: 0.2
+      test: 0.2
     seed: 42

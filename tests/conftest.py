@@ -644,7 +644,7 @@ def load_mnist_linear_datamodeling_config(
 ):
     # load yaml file
     with open(
-        "tests/assets/mnist_test_suite_2/f1c529c-default_LDS.yaml",
+        "tests/assets/mnist_local_bench/124bfe7-default_LDS.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)

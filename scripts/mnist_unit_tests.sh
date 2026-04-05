@@ -20,7 +20,7 @@ bench_params=(
 )
 
 # Define the output directory
-cfg_output_dir="tests/assets/mnist_local_bench"
+cfg_output_dir="tests/assets/unit_bench_cfgs"
 
 # Get the current git commit tag
 commit_tag=$(git rev-parse --short HEAD)
@@ -45,8 +45,8 @@ for i in "${!bench_types[@]}"; do
     # Saving the results to a config file
     python scripts/opt_results_to_cfg.py bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name
     # Training the model
-    #python scripts/train_and_push_to_hub.py --config-name $cfg_file_name --config-dir $cfg_output_dir
-    python scripts/train.py --config-name $cfg_file_name --config-dir $cfg_output_dir
+    python scripts/train_and_push_to_hub.py --config-name $cfg_file_name --config-dir $cfg_output_dir
+    #python scripts/train.py --config-name $cfg_file_name --config-dir $cfg_output_dir
     echo "Finished running with parameters: $params"
     echo "--------------------------------------"
 done 

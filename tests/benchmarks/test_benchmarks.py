@@ -34,7 +34,7 @@ from quanda.utils.functions import cosine_similarity
             MixedDatasets,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.004159737378358841,
+            0.017241379246115685,
         ),
         (
             "mnist",
@@ -44,7 +44,7 @@ from quanda.utils.functions import cosine_similarity
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.1411769986152649,
+            0.18258880078792572,
         ),
         (
             "mnist",
@@ -64,7 +64,7 @@ from quanda.utils.functions import cosine_similarity
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.604,
+            0.62,
         ),
         (
             "mnist",
@@ -74,7 +74,7 @@ from quanda.utils.functions import cosine_similarity
             ClassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.9200000166893005,
+            0.9300000071525574,
         ),
         (
             "mnist",
@@ -84,7 +84,7 @@ from quanda.utils.functions import cosine_similarity
             SubclassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.23000000417232513,
+            0.2199999988079071,
         ),
     ],
 )

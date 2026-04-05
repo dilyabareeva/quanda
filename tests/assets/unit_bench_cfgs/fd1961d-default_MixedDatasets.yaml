@@ -1,0 +1,62 @@
+model:
+  module:
+    name: MnistTorch
+    args:
+      num_outputs: 10
+  trainer:
+    optimizer: adam
+    optimizer_kwargs:
+      weight_decay: 0.0
+    criterion: cross_entropy
+    criterion_kwargs: {}
+    scheduler: constant
+    scheduler_kwargs:
+      last_epoch: -1
+    lr: 0.01
+    max_epochs: 5
+    seed: 42
+train_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: train[:1%]
+  transforms: mnist_transforms
+  indices: all
+eval_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: test[:1%]
+  transforms: mnist_transforms
+  indices: all
+logger:
+  _target_: lightning.pytorch.loggers.wandb.WandbLogger
+  save_dir: hydra_logs/wandb/
+  project: quanda-bench
+id: fd1961d-default_MixedDatasets
+bench: MixedDatasets
+adversarial_label: 0
+bench_save_dir: bench_out
+log_dir: hydra_logs
+repo_id: quanda-bench-test
+cache_dir: tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
+offline: true
+seed: 42
+m: 4
+alpha: 0.5
+subset_ids: lds_subsets.yaml
+ckpts:
+- fd1961d-default_MixedDatasets
+adv_dataset:
+  single_class_dataset: true
+  label: 0
+  transforms: adversarial_transforms
+  dataset_str: quanda-bench-test/fashion_mnist_unit
+  indices:
+    split_filename: fashion_mnist_split.yaml
+    split_ratios:
+      train: 0.34
+      val: 0.33
+      test: 0.33
+    seed: 42
+cfg_output_dir: tests/assets/unit_bench_cfgs
+cfg_file_name: fd1961d-default_MixedDatasets.yaml
