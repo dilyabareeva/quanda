@@ -120,8 +120,6 @@ class BenchConfigParser:
         def load_state_dict(model: torch.nn.Module, ckpt_str: str):
             ckpt = ckpt_str.split("/")[-1]
             ckpt_dir = cls.get_ckpt_folder(model_cfg, checkpoint_path, ckpt)
-            if not os.path.exists(ckpt_dir):
-                os.makedirs(ckpt_dir, exist_ok=True)
             if os.path.exists(os.path.join(ckpt_dir, "config.json")):
                 pretrained_model_name_or_path=ckpt_dir
                 cache_dir = None
@@ -129,11 +127,16 @@ class BenchConfigParser:
                 pretrained_model_name_or_path=ckpt_str
                 cache_dir=ckpt_dir
 
-            pretrained_model = module_cls.from_pretrained(
-                pretrained_model_name_or_path=pretrained_model_name_or_path,
-                cache_dir=cache_dir,
-                local_files_only=load_model_from_disk,
-            )
+            try:
+                pretrained_model = module_cls.from_pretrained(
+                    pretrained_model_name_or_path=pretrained_model_name_or_path,
+                    cache_dir=cache_dir,
+                    local_files_only=load_model_from_disk,
+                )
+            except Exception as e:
+                raise ValueError(
+                    f"Error loading model from {pretrained_model_name_or_path}: {e}"
+                )
             model.load_state_dict(pretrained_model.state_dict())
             model.to(device)
             return model_cfg["trainer"]["lr"]

@@ -2,8 +2,10 @@
 
 import logging
 import os
+import warnings
 from typing import Callable, List, Optional
 
+from datasets import config
 import lightning as L
 import torch
 import yaml
@@ -112,11 +114,15 @@ class LinearDatamodeling(Benchmark):
         alpha = config.get("alpha", 0.5)
         seed = config["seed"]
 
+        ckpt_dir = os.path.join(
+            config.get("bench_save_dir", "./tmp"), "ckpt"
+        )
+        ckpt_dir = BenchConfigParser.get_ckpt_folder(
+            config["model"], ckpt_dir, config["ckpts"][-1]
+        )
         subset_ckpt_filenames = [
-            f"{config['repo_id']}/{config['ckpts'][-1]}_lds_subset_{i}"
-            for i in range(m)
+            os.path.join(ckpt_dir, f"lds_subset_{i}") for i in range(m)
         ]
-
         counterfactual_trainer_cfg = config.get(
             "counterfactual_trainer",
             config["model"].get("trainer", None),
@@ -199,6 +205,13 @@ class LinearDatamodeling(Benchmark):
             repo_type="dataset",
         )
 
+        ckpt_dir = os.path.join(
+            config.get("bench_save_dir", "./tmp"), "ckpt"
+        )
+        ckpt_dir = BenchConfigParser.get_ckpt_folder(
+            config["model"], ckpt_dir, config["ckpts"][-1]
+        )
+
         for i, filename in enumerate(obj.subset_ckpt_filenames):
             subset = torch.utils.data.Subset(
                 obj.train_dataset, obj.subset_ids[i]
@@ -208,6 +221,21 @@ class LinearDatamodeling(Benchmark):
                 subset=subset,
                 trainer=trainer,
                 batch_size=batch_size,
+            )
+
+            # Save locally
+            local_ckpt_dir = os.path.join(
+                ckpt_dir, f"lds_subset_{i}"
+            )
+            os.makedirs(local_ckpt_dir, exist_ok=True)
+            if len(os.listdir(local_ckpt_dir)) > 0:
+                warnings.warn(
+                    f"Directory {local_ckpt_dir} already exists "
+                    "and is not empty. Checkpoints will be "
+                    "overwritten."
+                )
+            subset_model.save_pretrained(
+                local_ckpt_dir, safe_serialization=True
             )
 
             subset_model.push_to_hub(filename)

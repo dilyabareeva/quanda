@@ -204,7 +204,7 @@ def test_load(
             LinearDatamodeling,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.1133333370089531,
+            0.1666666865348816,
         ),
         (
             "mnist-top-k",
