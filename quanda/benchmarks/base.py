@@ -419,13 +419,13 @@ class Benchmark(ABC):
                 select_idx *= pred_cls == labels
             select_indices.extend(select_idx)
 
-        self.filter_indices = torch.nonzero(
+        filter_indices = torch.nonzero(
             torch.tensor(select_indices), as_tuple=False
         )
-        self.save_filtered_indices(config)
+        self.save_filtered_indices(config, filter_indices)
 
-    def save_filtered_indices(self, config: dict):
-        """Persist ``self.filter_indices`` to the metadata directory.
+    def save_filtered_indices(self, config: dict, filter_indices: torch.Tensor):
+        """Persist ``filter_indices`` to the metadata directory.
 
         Reads the filter-indices filename from ``config['eval_dataset']
         ['filter_indices']`` or ``config['eval_filter_indices']`` and
@@ -435,16 +435,23 @@ class Benchmark(ABC):
         ----------
         config : dict
             Benchmark configuration dictionary.
+        filter_indices : torch.Tensor
+            Tensor containing the indices of the filtered samples.
 
         """
         cache_dir = config.get("bench_save_dir", "./tmp")
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=cache_dir
         )
-        filter_cfg = config.get("eval_dataset", {}).get(
-            "filter_indices"
-        ) or config.get("eval_filter_indices")
-        split = DatasetSplit({filter_cfg["split_name"]: self.filter_indices})
+        
+        eval_ds_cfg = config.get("eval_dataset", {})
+        if "filter_indices" not in eval_ds_cfg:
+            raise ValueError(
+                "Filter indices filename must be specified in config under "
+                "'eval_dataset.filter_indices' or 'eval_filter_indices'."
+            )
+        filter_cfg = eval_ds_cfg.get("filter_indices")
+        split = DatasetSplit({filter_cfg["split_name"]: filter_indices})
         split.save(metadata_dir, filter_cfg["split_filename"])
 
     def load_last_checkpoint(self):

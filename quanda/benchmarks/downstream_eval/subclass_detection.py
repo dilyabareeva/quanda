@@ -160,7 +160,6 @@ class SubclassDetection(Benchmark):
         super()._compute_and_save_filter_by_class_prediction(
             config=config, 
             batch_size=batch_size,
-            filter_by_class=False,
             filter_by_prediction=self.filter_by_prediction,
         )
         

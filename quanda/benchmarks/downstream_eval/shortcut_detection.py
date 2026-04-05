@@ -139,65 +139,6 @@ class ShortcutDetection(Benchmark):
             "filter_indices": filter_indices,
         }
 
-    @classmethod
-    def train(
-        cls,
-        config: dict,
-        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
-        device: str = "cpu",
-        batch_size: int = 8,
-    ):  # pragma: no cover
-        """Train a model using the provided config and push to HF hub."""
-        obj = super().train(
-            config,
-            logger=logger,
-            device=device,
-            batch_size=batch_size,
-        )
-
-        assert isinstance(obj, ShortcutDetection), "Not ShortcutDetection."
-
-        # locate indices of eval samples that are shortcuts
-
-        load_last_checkpoint(
-            model=obj.model,
-            checkpoints=obj.checkpoints,
-            checkpoints_load_func=obj.checkpoints_load_func,
-        )
-        ds_handler = get_dataset_handler(dataset=obj.eval_dataset)
-        expl_dl = ds_handler.create_dataloader(
-            dataset=obj.eval_dataset,
-            batch_size=batch_size,
-            shuffle=False,
-        )
-
-        select_indices: List[int] = []
-
-        for i, batch in enumerate(expl_dl):
-            inputs, labels = ds_handler.process_batch(
-                batch=batch,
-                device=obj.device,
-            )
-            model_inputs = ds_handler.get_model_inputs(inputs=inputs)
-            outputs = (
-                obj.model(**model_inputs)
-                if isinstance(model_inputs, dict)
-                else obj.model(model_inputs)
-            )
-            pred_cls = ds_handler.get_predictions(outputs=outputs)
-
-            select_idx = torch.tensor([True] * len(pred_cls)).to(inputs.device)
-            if obj.filter_by_class:
-                select_idx *= pred_cls == obj.shortcut_cls
-            if obj.filter_by_non_shortcut:
-                select_idx *= labels != obj.shortcut_cls
-            select_indices.extend(select_idx)
-
-        obj.filter_indices = torch.nonzero(torch.tensor(select_indices), as_tuple=False)
-        obj.save_filtered_indices(config)
-
-        return obj
-
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute accuracy on shortcut datapoints as a sanity check.
 
@@ -301,6 +242,7 @@ class ShortcutDetection(Benchmark):
             config=config,
             batch_size=batch_size,
             filter_by_class=self.filter_by_class,
+            filter_cls=self.shortcut_cls,
             shortcut_cls=self.shortcut_cls,
             filter_by_non_shortcut=self.filter_by_non_shortcut,
         )

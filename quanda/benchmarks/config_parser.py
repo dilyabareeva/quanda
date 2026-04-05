@@ -340,15 +340,22 @@ class BenchConfigParser:
                 loaded_meta = wrapper_cls.metadata_cls.load(
                     metadata_dir, meta_filename
                 )
-                dataset_len = len(dataset)
+                # Remap transform_indices to Subset positions.
                 if (
                     loaded_meta.transform_indices is not None
-                    and any(
-                        int(idx) >= dataset_len
-                        for idx in loaded_meta.transform_indices
+                    and isinstance(
+                        dataset, torch.utils.data.Subset
                     )
                 ):
-                    loaded_meta.transform_indices = None
+                    orig_to_sub = {
+                        int(v): i
+                        for i, v in enumerate(dataset.indices)
+                    }
+                    loaded_meta.transform_indices = [
+                        orig_to_sub[i]
+                        for i in loaded_meta.transform_indices
+                        if i in orig_to_sub
+                    ]
                 kwargs["metadata"] = loaded_meta
             else:
                 kwargs["metadata"] = wrapper_cls.metadata_cls(**metadata_args)
