@@ -473,6 +473,28 @@ class Benchmark(ABC):
         filter_cfg = eval_ds_cfg.get("filter_indices")
         split = DatasetSplit({filter_cfg["split_name"]: filter_indices})
         split.save(metadata_dir, filter_cfg["split_filename"])
+        
+        if self.eval_dataset.transform_indices is not None:
+            # only keep the filtered indices in the transformed dataset
+            filter_set = set(filter_indices.flatten().tolist())
+            self.eval_dataset.transform_indices = [
+                idx for idx in self.eval_dataset.transform_indices
+                if idx in filter_set
+            ]
+            self.eval_dataset.metadata.transform_indices = (
+                self.eval_dataset.transform_indices
+            )
+            # save new transform indices into metadata dir
+            wrapper_cfg = config.get("eval_dataset", {}).get(
+                "wrapper", {}
+            )
+            meta_filename = wrapper_cfg.get("metadata", {}).get(
+                "metadata_filename"
+            )
+            if meta_filename is not None:
+                self.eval_dataset.metadata.save(
+                    metadata_dir, meta_filename
+                )
 
     def load_last_checkpoint(self):
         """Load the last checkpoint into the model."""
