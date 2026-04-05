@@ -5,7 +5,7 @@ indices:
   split_filename: "mnist_train_unit_split.yaml"
   split_name: train
   split_ratios:
-    train: 0.6
+    train: 0.8
     val: 0.2
-    test: 0.2
+    test: 0.0
   seed: 42

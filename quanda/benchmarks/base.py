@@ -141,10 +141,30 @@ class Benchmark(ABC):
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
         )
+
+        # If val shares the same split file and dataset_split as
+        # train, reuse the split that train just generated instead
+        # of creating a new one.
+        val_cfg = config.get("val_dataset", None)
+        val_load_meta = load_meta_from_disk
+        if val_cfg is not None and not load_meta_from_disk:
+            train_cfg = config.get("train_dataset", {})
+            train_indices = train_cfg.get("indices", {})
+            val_indices = val_cfg.get("indices", {})
+            if (
+                isinstance(train_indices, dict)
+                and isinstance(val_indices, dict)
+                and train_indices.get("split_filename")
+                == val_indices.get("split_filename")
+                and train_cfg.get("dataset_split")
+                == val_cfg.get("dataset_split")
+            ):
+                val_load_meta = True
+
         val_dataset = BenchConfigParser.parse_dataset_cfg(
-            ds_config=config.get("val_dataset", None),
+            ds_config=val_cfg,
             metadata_dir=metadata_dir,
-            load_meta_from_disk=load_meta_from_disk,
+            load_meta_from_disk=val_load_meta,
         )
         eval_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),

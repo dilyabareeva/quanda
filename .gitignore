@@ -71,3 +71,4 @@ scripts/bench_out/*
 CLAUDE.md
 .vscode/
 quanda_benchmark_tutorial_cache/*
+logs/*
