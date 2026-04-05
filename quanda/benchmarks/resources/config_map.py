@@ -15,7 +15,7 @@ config_map: dict = {
     ).joinpath("b6912b6-default_ClassDetection.yaml"),
     "mnist_subclass_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("b6912b6-default_SubclassDetection.yaml"),
+    ).joinpath("88c491d-default_SubclassDetection.yaml"),
     "mnist_mixed_datasets": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("b6912b6-default_MixedDatasets.yaml"),
@@ -24,7 +24,7 @@ config_map: dict = {
     ).joinpath("b6912b6-default_MislabelingDetection.yaml"),
     "mnist_shortcut_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("11a2c90-default_ShortcutDetection.yaml"),
+    ).joinpath("88c491d-default_ShortcutDetection.yaml"),
     "mnist_class_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("b6912b6-default_ClassDetection.yaml"),

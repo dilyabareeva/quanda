@@ -57,6 +57,13 @@ class SubclassDetection(Benchmark):
         super().__init__(*args, **kwargs)
         self.class_to_group = class_to_group
         self.filter_by_prediction = filter_by_prediction
+
+        # Ensure all datasets use the same class_to_group mapping.
+        if class_to_group is not None:
+            for ds in (self.train_dataset, self.eval_dataset,
+                       self.val_dataset):
+                if isinstance(ds, LabelGroupingDataset):
+                    ds.class_to_group = class_to_group
     
     @classmethod
     def _extra_kwargs_from_config(

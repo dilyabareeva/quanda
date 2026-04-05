@@ -1,0 +1,90 @@
+model:
+  module:
+    name: MnistTorch
+    args:
+      num_outputs: 2
+  trainer:
+    optimizer: adam
+    optimizer_kwargs:
+      weight_decay: 0.0
+    criterion: cross_entropy
+    criterion_kwargs: {}
+    scheduler: constant
+    scheduler_kwargs:
+      last_epoch: -1
+    lr: 0.01
+    max_epochs: 5
+    seed: 42
+train_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: train
+  indices:
+    split_filename: mnist_train_unit_subclass_split.yaml
+    split_name: train
+    split_ratios:
+      train: 0.6
+      val: 0.2
+      test: 0.2
+    seed: 42
+  transforms: mnist_transforms
+  wrapper:
+    type: LabelGroupingDataset
+    metadata:
+      metadata_filename: mnist_train_unit_subclass.yaml
+      p: 1.0
+      n_groups: 2
+      class_to_group: random
+      seed: 42
+eval_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: test
+  transforms: mnist_transforms
+  indices: all
+  filter_indices:
+    split_filename: mnist_eval_subclass_split.yaml
+    split_name: default
+  wrapper:
+    type: LabelGroupingDataset
+    metadata:
+      metadata_filename: mnist_eval_unit_subclass.yaml
+      p: 1.0
+      n_groups: 2
+      class_to_group: random
+      seed: 42
+val_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: test
+  transforms: "mnist_transforms"
+  indices: "all"
+  wrapper:
+    type: "LabelGroupingDataset"
+    metadata:
+        metadata_filename: "mnist_val_unit_subclass.yaml"
+        p: 1.0
+        n_groups: 2
+        class_to_group: "random"
+        seed: 42
+logger:
+  _target_: lightning.pytorch.loggers.wandb.WandbLogger
+  save_dir: hydra_logs/wandb/
+  project: quanda-bench
+id: 88c491d-default_SubclassDetection
+bench: SubclassDetection
+adversarial_label: 0
+bench_save_dir: tests/assets/mnist_local_bench
+log_dir: hydra_logs
+repo_id: quanda-bench-test
+cache_dir: tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
+offline: true
+seed: 42
+device: auto
+m: 4
+alpha: 0.5
+subset_ids: lds_subsets.yaml
+ckpts:
+- 88c491d-default_SubclassDetection
+cfg_output_dir: quanda/benchmarks/resources/configs
+cfg_file_name: 88c491d-default_SubclassDetection.yaml

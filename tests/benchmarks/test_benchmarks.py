@@ -3,8 +3,10 @@
 import math
 import os
 
+from pre_commit import yaml
 import pytest
 from omegaconf import OmegaConf
+import torch
 
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.downstream_eval import (
@@ -19,7 +21,9 @@ from quanda.benchmarks.heuristics import (
     ModelRandomization,
     TopKCardinality,
 )
+from quanda.benchmarks.resources import config_map
 from quanda.explainers.wrappers import CaptumSimilarity
+from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import cosine_similarity
 
 @pytest.mark.benchmarks
@@ -506,3 +510,71 @@ def test_logger(
 
     logger = BenchConfigParser.parse_logger(config)
     logger.log_metrics({"test": 1})
+
+
+#@pytest.mark.production_bench
+@pytest.mark.parametrize(
+    "config_name",
+    [
+        ("mnist_shortcut_detection", ShortcutDetection),
+        ("mnist_mixed_datasets", MixedDatasets),
+    ],
+)
+def test_benchmark_filters(config_name, bench_cls, tmp_path):
+    """Verify filter_by_non_shortcut and filter_by_class in benchmark cfg work as expected on eval_dataset."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    batch_size = 8
+    bench_yaml = config_map[config_name]
+
+    # Load the benchmark configuration
+    with open(bench_yaml, "r") as f:
+        cfg = yaml.safe_load(f)
+            
+    filter_by_prediction = cfg.get("filter_by_prediction", False)
+
+    bench = bench_cls.load_pretrained(
+        bench_id=config_name,
+        cache_dir=str(tmp_path),
+        device=device,
+        offline=False,
+    )
+    bench.load_last_checkpoint()
+    
+    ds_handler = get_dataset_handler(dataset=bench.eval_dataset)
+    expl_dl = ds_handler.create_dataloader(
+        dataset=bench.eval_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+    )
+    
+    total, correct = 0, 0
+    for i, batch in enumerate(expl_dl):
+                
+        inputs, labels = ds_handler.process_batch(
+            batch=batch,
+            device=device,
+        )
+        correct_idx = torch.tensor([True] * len(inputs)).to(inputs.device)
+
+        if not filter_by_prediction:
+            correct += correct_idx.sum().item()
+            total += len(pred_cls)
+            continue
+        model_inputs = ds_handler.get_model_inputs(inputs=inputs)
+        outputs = (
+            bench.model(**model_inputs)
+            if isinstance(model_inputs, dict)
+            else bench.model(model_inputs)
+        )
+        pred_cls = ds_handler.get_predictions(outputs=outputs)
+        correct_idx *= pred_cls != labels
+            
+        correct += correct_idx.sum().item()
+        total += len(pred_cls)
+
+    pct = correct / total
+    assert pct == 1., (
+        f"Expected the filtered samples to match the criteria, "
+        f"but {total - correct:.0f}/{total} samples did not match "
+        f"(pct={pct:.4f})."
+    )

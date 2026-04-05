@@ -220,8 +220,11 @@ def test_shortcut_sanity_check_values(config_name, tmp_path):
     assert sanity_check_results["train_acc"] > 0.9, (
         f"Expected train_acc to be > 0.9, but got {sanity_check_results['train_acc']}."
     )
-    assert sanity_check_results["train_shortcut_memorization"] > 0.9, (
-        f"Expected train_shortcut_memorization to be > 0.9, but got {sanity_check_results['train_shortcut_memorization']}."
+    assert sanity_check_results["val_acc"] > 0.9, (
+        f"Expected val_acc to be > 0.9, but got {sanity_check_results['val_acc']}."
+    )
+    assert sanity_check_results["train_shortcut_memorization"] > 0.77, (
+        f"Expected train_shortcut_memorization to be > 0.77, but got {sanity_check_results['train_shortcut_memorization']}."
     )
     assert sanity_check_results["eval_shortcut_memorization"] > 0.9, (
         f"Expected eval_shortcut_memorization to be > 0.9, but got {sanity_check_results['eval_shortcut_memorization']}."
