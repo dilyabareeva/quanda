@@ -16,7 +16,7 @@ from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.resources.config_map import config_map
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
-from quanda.utils.common import class_accuracy, load_last_checkpoint
+from quanda.utils.common import DatasetSplit, class_accuracy, load_last_checkpoint
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 
 
@@ -269,13 +269,19 @@ class Benchmark(ABC):
         obj.model.train()
         obj.model.to(obj.device)
 
+        accelerator = "gpu" if "cuda" in obj.device else obj.device
         trainer.fit(
             model=obj.model,
             train_dataloaders=train_dl,
             val_dataloaders=val_dl,
+            accelerator=accelerator,
         )
 
-        ckpt_dir = os.path.join(config["bench_save_dir"], "ckpt")
+        ckpt_dir = os.path.join(
+            config.get("bench_save_dir", "./tmp"),
+            "ckpt",
+            config["ckpts"][-1],
+        )
 
         os.makedirs(ckpt_dir, exist_ok=True)
         if len(os.listdir(ckpt_dir)) > 0:
@@ -292,6 +298,8 @@ class Benchmark(ABC):
         )
         obj.model.save_pretrained(ckpt_dir, safe_serialization=True)
         obj.checkpoints = [ckpt_dir]
+
+        obj._compute_and_save_indices(config, batch_size)
 
         return obj
 
@@ -335,6 +343,119 @@ class Benchmark(ABC):
 
         return obj
 
+    def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
+        """Determine the indices of eval dataset, if needed. By default, all samples are kept.
+
+        Parameters
+        ----------
+        config : dict
+            Benchmark configuration dictionary (needed for save path).
+        batch_size : int, optional
+            Batch size for the inference pass, by default 8.
+
+        """
+        return
+        
+        
+    def _compute_and_save_filter_by_class_prediction(
+        self, 
+        config: dict, 
+        batch_size: int = 8,
+        filter_by_class: bool = False,
+        filter_cls: Optional[int] = None,
+        shortcut_cls: Optional[int] = None,
+        filter_by_non_shortcut: bool = False,
+        filter_by_prediction: bool = False,
+    ):
+        """Run inference on eval_dataset and save the filter correctly predicted indices.
+
+        Iterates over ``self.eval_dataset``, calls ``_compute_filter_mask``
+        on every batch, collects the selected indices, stores them in
+        ``self.filter_indices``, and persists them via
+        ``save_filtered_indices``.
+
+        Parameters
+        ----------
+        config : dict
+            Benchmark configuration dictionary (needed for save path).
+        batch_size : int, optional
+            Batch size for the inference pass, by default 8.
+
+        """
+        ds_handler = get_dataset_handler(dataset=self.eval_dataset)
+        expl_dl = ds_handler.create_dataloader(
+            dataset=self.eval_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+        )
+        if filter_by_class and filter_cls is None:
+            raise ValueError(
+                "filter_cls must be provided if filter_by_class is True."
+            )
+            
+        if filter_by_non_shortcut and shortcut_cls is None:
+            raise ValueError(
+                "shortcut_cls must be provided if filter_by_non_shortcut is True."
+            )
+
+        select_indices: list = []
+        for batch in expl_dl:
+            inputs, labels = ds_handler.process_batch(
+                batch=batch, device=self.device
+            )
+            model_inputs = ds_handler.get_model_inputs(inputs=inputs)
+            outputs = (
+                self.model(**model_inputs)
+                if isinstance(model_inputs, dict)
+                else self.model(model_inputs)
+            )
+            pred_cls = ds_handler.get_predictions(outputs=outputs)
+            select_idx = torch.tensor([True] * len(pred_cls)).to(inputs.device)
+            if filter_by_class:
+                select_idx *= labels != filter_cls
+            if filter_by_non_shortcut:
+                select_idx *= pred_cls == shortcut_cls
+            if filter_by_prediction:
+                select_idx *= pred_cls == labels
+            select_indices.extend(select_idx)
+
+        self.filter_indices = torch.nonzero(
+            torch.tensor(select_indices), as_tuple=False
+        )
+        self.save_filtered_indices(config)
+
+    def save_filtered_indices(self, config: dict):
+        """Persist ``self.filter_indices`` to the metadata directory.
+
+        Reads the filter-indices filename from ``config['eval_dataset']
+        ['filter_indices']`` or ``config['eval_filter_indices']`` and
+        saves a :class:`~quanda.utils.common.DatasetSplit` YAML file.
+
+        Parameters
+        ----------
+        config : dict
+            Benchmark configuration dictionary.
+
+        """
+        cache_dir = config.get("bench_save_dir", "./tmp")
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=cache_dir
+        )
+        filter_cfg = config.get("eval_dataset", {}).get(
+            "filter_indices"
+        ) or config.get("eval_filter_indices")
+        split = DatasetSplit({filter_cfg["split_name"]: self.filter_indices})
+        split.save(metadata_dir, filter_cfg["split_filename"])
+
+    def load_last_checkpoint(self):
+        """Load the last checkpoint into the model."""
+
+        load_last_checkpoint(
+            model=self.model,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
+        )
+        
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute training and validation accuracy of the model.
 
@@ -351,11 +472,7 @@ class Benchmark(ABC):
         """
         results = {}
 
-        load_last_checkpoint(
-            model=self.model,
-            checkpoints=self.checkpoints,
-            checkpoints_load_func=self.checkpoints_load_func,
-        )
+        self.load_last_checkpoint()
         
         train_dl = torch.utils.data.DataLoader(
             self.train_dataset,

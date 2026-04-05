@@ -57,7 +57,7 @@ class ShortcutDetection(Benchmark):
         self,
         *args,
         shortcut_cls: int = 0,
-        filter_by_prediction: bool = False,
+        filter_by_non_shortcut: bool = False,
         filter_by_class: bool = False,
         filter_indices: Optional[List[int]] = None,
         **kwargs,
@@ -68,11 +68,14 @@ class ShortcutDetection(Benchmark):
         ----------
         shortcut_cls : int
             The class index used as the shortcut target.
-        filter_by_prediction : bool, optional
-            Whether to filter eval samples by prediction, by default
-            False.
-        filter_by_class : bool, optional
-            Whether to filter eval samples by class, by default False.
+        filter_by_non_shortcut : bool
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the shortcut class
+            is predicted, by default True.
+        filter_by_class: bool
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the shortcut class
+            is not assigned as the class, by default True.
         filter_indices : Optional[List[int]], optional
             Pre-computed indices for filtering eval samples, by default
             None.
@@ -82,7 +85,7 @@ class ShortcutDetection(Benchmark):
         """
         super().__init__(*args, **kwargs)
         self.shortcut_cls = shortcut_cls
-        self.filter_by_prediction = filter_by_prediction
+        self.filter_by_non_shortcut = filter_by_non_shortcut
         self.filter_by_class = filter_by_class
         self.filter_indices = filter_indices
 
@@ -129,8 +132,8 @@ class ShortcutDetection(Benchmark):
 
         return {
             "shortcut_cls": train_dataset.metadata.cls_idx,
-            "filter_by_prediction": config.get(
-                "filter_by_prediction", False
+            "filter_by_non_shortcut": config.get(
+                "filter_by_non_shortcut", False
             ),
             "filter_by_class": config.get("filter_by_class", False),
             "filter_indices": filter_indices,
@@ -183,10 +186,10 @@ class ShortcutDetection(Benchmark):
             )
             pred_cls = ds_handler.get_predictions(outputs=outputs)
 
-            select_idx = torch.tensor([True] * len(pred_cls))
+            select_idx = torch.tensor([True] * len(pred_cls)).to(inputs.device)
             if obj.filter_by_class:
                 select_idx *= pred_cls == obj.shortcut_cls
-            if obj.filter_by_prediction:
+            if obj.filter_by_non_shortcut:
                 select_idx *= labels != obj.shortcut_cls
             select_indices.extend(select_idx)
 
@@ -194,16 +197,6 @@ class ShortcutDetection(Benchmark):
         obj.save_filtered_indices(config)
 
         return obj
-
-    def save_filtered_indices(self, config):
-        cache_dir = config.get("bench_save_dir", "./tmp")
-        metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=cache_dir
-        )
-        eval_ds_config = config["eval_dataset"]
-        eval_indices = eval_ds_config["filter_indices"]
-        split = DatasetSplit({eval_indices["split_name"]: self.filter_indices})
-        split.save(metadata_dir, eval_indices["split_filename"])
 
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute accuracy on shortcut datapoints as a sanity check.
@@ -233,10 +226,10 @@ class ShortcutDetection(Benchmark):
             shuffle=False,
         )
 
-        results["shortcut_memorization"] = class_accuracy(
+        results["train_shortcut_memorization"] = class_accuracy(
             self.model, train_dl, self.device
         )
-        results["eval_shortcut_classification"] = class_accuracy(
+        results["eval_shortcut_memorization"] = class_accuracy(
             self.model, eval_dl, single_class=self.shortcut_cls, device=self.device
         )
 
@@ -271,14 +264,6 @@ class ShortcutDetection(Benchmark):
             expl_kwargs=expl_kwargs,
         )
 
-        if self.filter_indices is not None:
-            filtered_dataset = torch.utils.data.Subset(
-                self.eval_dataset,
-                self.filter_indices,
-            )
-        else:
-            filtered_dataset = self.eval_dataset
-
         metric = ShortcutDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
@@ -286,12 +271,36 @@ class ShortcutDetection(Benchmark):
             train_dataset=self.train_dataset,
             shortcut_indices=self.train_dataset.transform_indices,
             shortcut_cls=self.shortcut_cls,
-            filter_by_prediction=self.filter_by_prediction,
+            filter_by_non_shortcut=self.filter_by_non_shortcut,
             filter_by_class=self.filter_by_class,
         )
         return self._evaluate_dataset(
-            eval_dataset=filtered_dataset,
+            eval_dataset=self.eval_dataset,
             explainer=explainer,
             metric=metric,
             batch_size=batch_size,
+        )
+
+    def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
+        """Run inference on eval_dataset and save the filter indices.
+
+        Iterates over ``self.eval_dataset``, calls ``_compute_filter_mask``
+        on every batch, collects the selected indices, stores them in
+        ``self.filter_indices``, and persists them via
+        ``save_filtered_indices``.
+
+        Parameters
+        ----------
+        config : dict
+            Benchmark configuration dictionary (needed for save path).
+        batch_size : int, optional
+            Batch size for the inference pass, by default 8.
+
+        """
+        super()._compute_and_save_filter_by_class_prediction(
+            config=config,
+            batch_size=batch_size,
+            filter_by_class=self.filter_by_class,
+            shortcut_cls=self.shortcut_cls,
+            filter_by_non_shortcut=self.filter_by_non_shortcut,
         )

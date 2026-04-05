@@ -47,7 +47,9 @@ class SubclassDetection(Benchmark):
         class_to_group : Optional[Dict[int, int]]
             Mapping from class index to group index.
         filter_by_prediction : bool, optional
-            Whether to filter by prediction, by default False.
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the correct superclass is predicted, by
+            default False.
         **kwargs
             Arguments passed to the base Benchmark class.
 
@@ -143,3 +145,23 @@ class SubclassDetection(Benchmark):
             metric=metric,
             batch_size=batch_size,
         )
+
+    def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
+        """Determine the indices of eval dataset, by labels and predictions. By default, all samples are kept.
+
+        Parameters
+        ----------
+        config : dict
+            Benchmark configuration dictionary (needed for save path).
+        batch_size : int, optional
+            Batch size for the inference pass, by default 8.
+
+        """
+        super()._compute_and_save_filter_by_class_prediction(
+            config=config, 
+            batch_size=batch_size,
+            filter_by_class=False,
+            filter_by_prediction=self.filter_by_prediction,
+        )
+        
+        

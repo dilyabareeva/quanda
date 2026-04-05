@@ -1,6 +1,7 @@
 """Configuration parser for benchmarks."""
 
 import copy
+import logging
 import os
 from typing import Any, Callable, List, Optional, Tuple, Union
 
@@ -269,22 +270,45 @@ class BenchConfigParser:
     ) -> torch.utils.data.Dataset:
         """Apply indices to the dataset based on configuration."""
         indices = copy.deepcopy(ds_config.get("indices", "all"))
-        if indices == "all":
-            return base_dataset
+        final_indices = torch.arange(len(base_dataset))
+        if indices != "all":
+            split_name = indices.get("split_name", "train")
+            split_filename = indices.get("split_filename", "DOESNT_EXIST")
+            split_ratios = indices.get(
+                "split_ratios", {"train": 1.0, "test": 0.0, "val": 0.0}
+            )
+            split = cls._load_split_if_exists_or_generate(
+                base_dataset,
+                load_meta_from_disk,
+                metadata_dir,
+                split_filename,
+                split_ratios=split_ratios,
+            )
+            final_indices = split[split_name]
 
-        split_name = indices.get("split_name", "train")
-        split_filename = indices.get("split_filename", "DOESNT_EXIST")
-        split_ratios = indices.get(
-            "split_ratios", {"train": 1.0, "test": 0.0, "val": 0.0}
+        filter_indices_cfg = ds_config.get("filter_indices", None)
+        if filter_indices_cfg is not None:
+            filter_filename = filter_indices_cfg.get(
+                "split_filename", "DOESNT_EXIST"
+            )
+            filter_split_name = filter_indices_cfg.get(
+                "split_name", "default"
+            )
+            if (
+                DatasetSplit.exists(metadata_dir, filter_filename)
+                and load_meta_from_disk
+            ):
+                filter_split = DatasetSplit.load(
+                    metadata_dir, filter_filename
+                )
+                filter_idx = filter_split[filter_split_name].flatten()
+                final_indices = final_indices[filter_idx]
+
+        base_dataset = torch.utils.data.Subset(
+            base_dataset, final_indices
         )
-        split = cls._load_split_if_exists_or_generate(
-            base_dataset,
-            load_meta_from_disk,
-            metadata_dir,
-            split_filename,
-            split_ratios=split_ratios,
-        )
-        return torch.utils.data.Subset(base_dataset, split[split_name])
+
+        return base_dataset
 
     @classmethod
     def _apply_wrapper(
@@ -313,9 +337,19 @@ class BenchConfigParser:
                 wrapper_cls.metadata_cls.exists(metadata_dir, meta_filename)
                 and load_meta_from_disk
             ):
-                kwargs["metadata"] = wrapper_cls.metadata_cls.load(
+                loaded_meta = wrapper_cls.metadata_cls.load(
                     metadata_dir, meta_filename
                 )
+                dataset_len = len(dataset)
+                if (
+                    loaded_meta.transform_indices is not None
+                    and any(
+                        int(idx) >= dataset_len
+                        for idx in loaded_meta.transform_indices
+                    )
+                ):
+                    loaded_meta.transform_indices = None
+                kwargs["metadata"] = loaded_meta
             else:
                 kwargs["metadata"] = wrapper_cls.metadata_cls(**metadata_args)
 
@@ -387,7 +421,7 @@ class BenchConfigParser:
                     os.path.expanduser("~/.cache/huggingface/datasets"),
                 )
 
-            hf_dataset = load_dataset(
+            hf_dataset = _load_hf_dataset(
                 "ylecun/mnist" if dataset == "mnist" else dataset,
                 split=dataset_split,
                 cache_dir=cache_dir,
