@@ -9,9 +9,4 @@ indices:
     test: 0.0
   seed: 42
 transforms: "mnist_transforms"
-wrapper:
-  type: "LabelFlippingDataset"
-  metadata:
-      metadata_filename: "mnist_train_unit_mislabeling.yaml"
-      p: 0.1
-      seed: 43
+

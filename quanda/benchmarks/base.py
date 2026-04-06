@@ -474,7 +474,7 @@ class Benchmark(ABC):
         split = DatasetSplit({filter_cfg["split_name"]: filter_indices})
         split.save(metadata_dir, filter_cfg["split_filename"])
         
-        if self.eval_dataset.transform_indices is not None:
+        if hasattr(self.eval_dataset, "transform_indices") and self.eval_dataset.transform_indices is not None:
             # only keep the filtered indices in the transformed dataset
             filter_set = set(filter_indices.flatten().tolist())
             self.eval_dataset.transform_indices = [
