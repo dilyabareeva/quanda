@@ -12,7 +12,6 @@ jobs:
         py:
           - "3.11"
           - "3.10"
-          - "3.9"
         os:
           - ubuntu-latest
     steps:
