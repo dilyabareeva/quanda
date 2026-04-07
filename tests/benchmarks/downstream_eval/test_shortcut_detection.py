@@ -117,7 +117,7 @@ def test_shortcut_transform_indices(config_name, tmp_path):
     ],
 )
 def test_shortcut_filters(config_name, tmp_path):
-    """Verify filter_by_non_shortcut and filter_by_class in benchmark cfg work as expected on eval_dataset."""
+    """Verify filter_by_non_shortcut and filter_by_shortcut_pred in benchmark cfg work as expected on eval_dataset."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8
     bench_yaml = config_map[config_name]
@@ -127,7 +127,7 @@ def test_shortcut_filters(config_name, tmp_path):
         cfg = yaml.safe_load(f)
             
     filter_by_non_shortcut = cfg.get("filter_by_non_shortcut", False)
-    filter_by_class = cfg.get("filter_by_class", False)
+    filter_by_shortcut_pred = cfg.get("filter_by_shortcut_pred", False)
     
     bench = ShortcutDetection.load_pretrained(
         bench_id=config_name,
@@ -153,12 +153,12 @@ def test_shortcut_filters(config_name, tmp_path):
         )
         correct_idx = torch.tensor([True] * len(inputs)).to(inputs.device)
 
-        if filter_by_class:
+        if filter_by_shortcut_pred:
             correct_idx *= labels != bench.shortcut_cls
             
         if not filter_by_non_shortcut:
             correct += correct_idx.sum().item()
-            total += len(pred_cls)
+            total += len(inputs)
             continue
         model_inputs = ds_handler.get_model_inputs(inputs=inputs)
         outputs = (
@@ -188,7 +188,7 @@ def test_shortcut_filters(config_name, tmp_path):
     ],
 )
 def test_shortcut_sanity_check_values(config_name, tmp_path):
-    """Verify filter_by_non_shortcut and filter_by_class in benchmark cfg work as expected on eval_dataset."""
+    """Verify filter_by_non_shortcut and filter_by_shortcut_pred in benchmark cfg work as expected on eval_dataset."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8
 
@@ -203,11 +203,14 @@ def test_shortcut_sanity_check_values(config_name, tmp_path):
         offline=False,
     )
 
-    indices_cfg = cfg["train_dataset"]["indices"]
-    split_name = indices_cfg["split_name"]
-    eval_ratio = indices_cfg["split_ratios"][split_name]
-    pre_filter_size = len(bench.train_dataset.dataset.dataset)
-    filtered_size = len(bench.train_dataset.dataset)
+    indices_cfg = cfg["eval_dataset"]["indices"]
+    if indices_cfg == "all":
+        eval_ratio = 1.0
+    else:# skip the test if no filtering is applied
+        split_name = indices_cfg["split_name"]
+        eval_ratio = indices_cfg["split_ratios"][split_name]
+    pre_filter_size = len(bench.eval_dataset.dataset.dataset)
+    filtered_size = len(bench.eval_dataset)
     actual_ratio = filtered_size / pre_filter_size
     
     assert( actual_ratio / eval_ratio) > 0.5, (
@@ -226,7 +229,7 @@ def test_shortcut_sanity_check_values(config_name, tmp_path):
     assert sanity_check_results["train_shortcut_memorization"] > 0.77, (
         f"Expected train_shortcut_memorization to be > 0.77, but got {sanity_check_results['train_shortcut_memorization']}."
     )
-    assert sanity_check_results["eval_shortcut_memorization"] > 0.9, (
-        f"Expected eval_shortcut_memorization to be > 0.9, but got {sanity_check_results['eval_shortcut_memorization']}."
+    assert sanity_check_results["eval_shortcut_memorization"] == 1.0, (
+        f"Expected eval_shortcut_memorization to be 1.0, but got {sanity_check_results['eval_shortcut_memorization']}."
     )
     

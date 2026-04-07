@@ -377,12 +377,11 @@ class Benchmark(ABC):
         return
         
         
-    def _compute_and_save_filter_by_class_prediction(
+    def _compute_and_save_filter_by_labels_and_prediction(
         self, 
         config: dict, 
         batch_size: int = 8,
-        filter_by_class: bool = False,
-        filter_cls: Optional[int] = None,
+        filter_by_shortcut_pred: bool = False,
         shortcut_cls: Optional[int] = None,
         filter_by_non_shortcut: bool = False,
         filter_by_prediction: bool = False,
@@ -408,9 +407,9 @@ class Benchmark(ABC):
             batch_size=batch_size,
             shuffle=False,
         )
-        if filter_by_class and filter_cls is None:
+        if filter_by_shortcut_pred and shortcut_cls is None:
             raise ValueError(
-                "filter_cls must be provided if filter_by_class is True."
+                "shortcut_cls must be provided if filter_by_shortcut_pred is True."
             )
             
         if filter_by_non_shortcut and shortcut_cls is None:
@@ -431,10 +430,10 @@ class Benchmark(ABC):
             )
             pred_cls = ds_handler.get_predictions(outputs=outputs)
             select_idx = torch.tensor([True] * len(pred_cls)).to(inputs.device)
-            if filter_by_class:
-                select_idx *= labels != filter_cls
-            if filter_by_non_shortcut:
+            if filter_by_shortcut_pred: 
                 select_idx *= pred_cls == shortcut_cls
+            if filter_by_non_shortcut:
+                select_idx *= labels != shortcut_cls
             if filter_by_prediction:
                 select_idx *= pred_cls == labels
             select_indices.extend(select_idx)
@@ -463,7 +462,7 @@ class Benchmark(ABC):
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=cache_dir
         )
-        
+
         eval_ds_cfg = config.get("eval_dataset", {})
         if "filter_indices" not in eval_ds_cfg:
             raise ValueError(
@@ -473,29 +472,7 @@ class Benchmark(ABC):
         filter_cfg = eval_ds_cfg.get("filter_indices")
         split = DatasetSplit({filter_cfg["split_name"]: filter_indices})
         split.save(metadata_dir, filter_cfg["split_filename"])
-        
-        if hasattr(self.eval_dataset, "transform_indices") and self.eval_dataset.transform_indices is not None:
-            # only keep the filtered indices in the transformed dataset
-            filter_set = set(filter_indices.flatten().tolist())
-            self.eval_dataset.transform_indices = [
-                idx for idx in self.eval_dataset.transform_indices
-                if idx in filter_set
-            ]
-            self.eval_dataset.metadata.transform_indices = (
-                self.eval_dataset.transform_indices
-            )
-            # save new transform indices into metadata dir
-            wrapper_cfg = config.get("eval_dataset", {}).get(
-                "wrapper", {}
-            )
-            meta_filename = wrapper_cfg.get("metadata", {}).get(
-                "metadata_filename"
-            )
-            if meta_filename is not None:
-                self.eval_dataset.metadata.save(
-                    metadata_dir, meta_filename
-                )
-
+            
     def load_last_checkpoint(self):
         """Load the last checkpoint into the model."""
 

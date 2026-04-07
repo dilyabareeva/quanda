@@ -374,7 +374,7 @@ def test_shortcut_detection_metric(
                 poisoned_cls,
                 checkpoints=checkpoint,
                 filter_by_prediction=filter_by_prediction,
-                filter_by_class=False,
+                filter_by_shortcut_pred=False,
             ).update(tda)
         return
 
@@ -385,7 +385,7 @@ def test_shortcut_detection_metric(
         poisoned_cls,
         checkpoints=checkpoint,
         filter_by_prediction=filter_by_prediction,
-        filter_by_class=False,
+        filter_by_shortcut_pred=False,
     )
     metric.update(
         tda,

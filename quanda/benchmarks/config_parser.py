@@ -69,7 +69,7 @@ class BenchConfigParser:
         wrapper = copy.deepcopy(ds_config.get("wrapper", None))
         if wrapper is not None:
             return cls._apply_wrapper(
-                dataset, wrapper, metadata_dir, load_meta_from_disk
+                dataset, ds_config, wrapper, metadata_dir, load_meta_from_disk
             )
         return dataset
 
@@ -286,6 +286,21 @@ class BenchConfigParser:
             )
             final_indices = split[split_name]
 
+        base_dataset = torch.utils.data.Subset(
+            base_dataset, final_indices
+        )
+
+        return base_dataset
+
+    @classmethod
+    def _apply_filter(
+        cls,
+        dataset: torch.utils.data.Dataset,
+        ds_config: dict,
+        metadata_dir: str,
+        load_meta_from_disk: bool = True,
+    ):
+        """Apply the filter to the dataset and save the indices."""
         filter_indices_cfg = ds_config.get("filter_indices", None)
         if filter_indices_cfg is not None:
             filter_filename = filter_indices_cfg.get(
@@ -301,19 +316,16 @@ class BenchConfigParser:
                 filter_split = DatasetSplit.load(
                     metadata_dir, filter_filename
                 )
-                filter_idx = filter_split[filter_split_name].flatten()
-                final_indices = final_indices[filter_idx]
-
-        base_dataset = torch.utils.data.Subset(
-            base_dataset, final_indices
-        )
-
-        return base_dataset
-
+                filter_indices = filter_split[filter_split_name].flatten()
+                dataset.apply_filter(filter_indices)
+                return dataset
+        return dataset
+                
     @classmethod
     def _apply_wrapper(
         cls,
         dataset: torch.utils.data.Dataset,
+        ds_config: dict,
         wrapper_cfg: dict,
         metadata_dir: str,
         load_meta_from_disk: bool,
@@ -351,9 +363,15 @@ class BenchConfigParser:
                 kwargs["dataset_transform"]
             )
         wrapped_dataset: TransformedDataset = wrapper_cls(dataset, **kwargs)
+        filtered_dataset = cls._apply_filter(
+            wrapped_dataset,
+            ds_config,
+            metadata_dir,
+            load_meta_from_disk,
+        )
         if not load_meta_from_disk:
-            wrapped_dataset.metadata.save(metadata_dir, meta_filename)
-        return wrapped_dataset
+            filtered_dataset.metadata.save(metadata_dir, meta_filename)
+        return filtered_dataset
 
     @classmethod
     def _load_split_if_exists_or_generate(
@@ -501,3 +519,16 @@ class BenchConfigParser:
         logger = instantiate(logger_cfg)
 
         return logger
+    
+    @classmethod
+    def save_metadata(cls, ds_config, metadata, metadata_dir):
+        """Save new metadata to disk."""
+            # save new transform indices into metadata dir
+        wrapper_cfg = ds_config.get("wrapper", {})
+        meta_filename = wrapper_cfg.get("metadata", {}).get(
+            "metadata_filename"
+        )
+        if meta_filename is not None:
+            metadata.save(
+                metadata_dir, meta_filename
+            )

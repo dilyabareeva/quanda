@@ -521,7 +521,7 @@ def test_logger(
     ],
 )
 def test_benchmark_filters(config_name, bench_cls, tmp_path):
-    """Verify filter_by_non_shortcut and filter_by_class in benchmark cfg work as expected on eval_dataset."""
+    """Verify filter_by_non_shortcut and filter_by_shortcut_pred in benchmark cfg work as expected on eval_dataset."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8
     bench_yaml = config_map[config_name]

@@ -61,7 +61,7 @@ def test_subclass_class_to_group(config_name, tmp_path):
     ],
 )
 def test_subclass_sanity_check_values(config_name, tmp_path):
-    """Verify filter_by_non_subclass and filter_by_class in benchmark cfg work as expected on eval_dataset."""
+    """Verify filter_by_non_subclass and filter_by_shortcut_pred in benchmark cfg work as expected on eval_dataset."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8
 

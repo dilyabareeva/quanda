@@ -58,7 +58,7 @@ class ShortcutDetection(Benchmark):
         *args,
         shortcut_cls: int = 0,
         filter_by_non_shortcut: bool = False,
-        filter_by_class: bool = False,
+        filter_by_shortcut_pred: bool = False,
         filter_indices: Optional[List[int]] = None,
         **kwargs,
     ):
@@ -71,11 +71,11 @@ class ShortcutDetection(Benchmark):
         filter_by_non_shortcut : bool
             Whether to filter the test samples to only calculate the metric on
             those samples, where the shortcut class
-            is predicted, by default True.
-        filter_by_class: bool
+            is not assigned as the class, by default True.
+        filter_by_shortcut_pred: bool
             Whether to filter the test samples to only calculate the metric on
             those samples, where the shortcut class
-            is not assigned as the class, by default True.
+            is predicted, by default True.
         filter_indices : Optional[List[int]], optional
             Pre-computed indices for filtering eval samples, by default
             None.
@@ -86,7 +86,7 @@ class ShortcutDetection(Benchmark):
         super().__init__(*args, **kwargs)
         self.shortcut_cls = shortcut_cls
         self.filter_by_non_shortcut = filter_by_non_shortcut
-        self.filter_by_class = filter_by_class
+        self.filter_by_shortcut_pred = filter_by_shortcut_pred
         self.filter_indices = filter_indices
 
     @classmethod
@@ -135,7 +135,7 @@ class ShortcutDetection(Benchmark):
             "filter_by_non_shortcut": config.get(
                 "filter_by_non_shortcut", False
             ),
-            "filter_by_class": config.get("filter_by_class", False),
+            "filter_by_shortcut_pred": config.get("filter_by_shortcut_pred", False),
             "filter_indices": filter_indices,
         }
 
@@ -213,7 +213,7 @@ class ShortcutDetection(Benchmark):
             shortcut_indices=self.train_dataset.transform_indices,
             shortcut_cls=self.shortcut_cls,
             filter_by_non_shortcut=self.filter_by_non_shortcut,
-            filter_by_class=self.filter_by_class,
+            filter_by_shortcut_pred=self.filter_by_shortcut_pred,
         )
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,
@@ -238,11 +238,10 @@ class ShortcutDetection(Benchmark):
             Batch size for the inference pass, by default 8.
 
         """
-        super()._compute_and_save_filter_by_class_prediction(
+        super()._compute_and_save_filter_by_labels_and_prediction(
             config=config,
             batch_size=batch_size,
-            filter_by_class=self.filter_by_class,
-            filter_cls=self.shortcut_cls,
+            filter_by_shortcut_pred=self.filter_by_shortcut_pred,
             shortcut_cls=self.shortcut_cls,
             filter_by_non_shortcut=self.filter_by_non_shortcut,
         )

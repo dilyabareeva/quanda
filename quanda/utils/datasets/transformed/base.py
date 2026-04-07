@@ -1,7 +1,7 @@
 """Base class for transformed datasets."""
 
 from abc import ABC
-from typing import Any, Callable, Optional
+from typing import Any, Callable, List, Optional
 
 import torch
 from torch.utils.data.dataset import Dataset
@@ -68,3 +68,23 @@ class TransformedDataset(Dataset, ABC):
             if (index in self.transform_indices)
             else (self.dataset_transform(x), y)
         )
+
+    def apply_filter(self, filter_indices: List[int]) -> None:
+        """Apply a filter to the dataset and update the transform indices."""
+        # Build a mapping from old index to new index
+        old_to_new = {
+            int(old): new for new, old in enumerate(filter_indices)
+        }
+        # Remap transform_indices to new positions
+        self.transform_indices = [
+            old_to_new[idx]
+            for idx in self.transform_indices
+            if idx in old_to_new
+        ]
+        # Update metadata
+        self.metadata.transform_indices = self.transform_indices
+        # Apply the subset
+        self.dataset = torch.utils.data.Subset(
+            self.dataset, filter_indices
+        )
+        
