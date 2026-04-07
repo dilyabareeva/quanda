@@ -25,26 +25,34 @@ def test_mislabeling_detection(
 ):
     config = request.getfixturevalue(config)
 
+    metadata_dir = BenchConfigParser.get_metadata_dir(
+        cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
+    )
+
     train_metadata = LabelFlippingMetadata(
         p=config["train_dataset"]["wrapper"]["metadata"]["p"],
         seed=config["train_dataset"]["wrapper"]["metadata"]["seed"],
     )
 
+    base_dataset = BenchConfigParser.process_dataset(
+        dataset=config["train_dataset"]["dataset_str"],
+        transform=None,
+        dataset_split=config["train_dataset"]["dataset_split"],
+    )
+    base_dataset = BenchConfigParser._apply_indices(
+        base_dataset,
+        config["train_dataset"],
+        metadata_dir,
+    )
+
     dataset = LabelFlippingDataset(
-        dataset=BenchConfigParser.process_dataset(
-            dataset=config["train_dataset"]["dataset_str"],
-            transform=None,
-            dataset_split=config["train_dataset"]["dataset_split"],
-        ),
+        dataset=base_dataset,
         metadata=train_metadata,
     )
     train_metadata.mislabeling_labels = (
         train_metadata.generate_mislabeling_labels(dataset)
     )
 
-    metadata_dir = BenchConfigParser.get_metadata_dir(
-        cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
-    )
     train_metadata_loaded = LabelFlippingMetadata.load(
         metadata_dir,
         config["train_dataset"]["wrapper"]["metadata"]["metadata_filename"],

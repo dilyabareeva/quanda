@@ -307,7 +307,7 @@ def test_mislabeling_detection_metric_si_warnings(
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, labels, poisoned_ids, poisoned_cls, explanations, filter_by_prediction, expected",
+    "test_id, model, checkpoint,dataset, labels, poisoned_ids, poisoned_cls, explanations, filter_by_non_shortcut, expected",
     [
         (
             "mnist",
@@ -356,7 +356,7 @@ def test_shortcut_detection_metric(
     poisoned_ids,
     poisoned_cls,
     explanations,
-    filter_by_prediction,
+    filter_by_non_shortcut,
     expected,
     request,
 ):
@@ -373,7 +373,7 @@ def test_shortcut_detection_metric(
                 poisoned_ids,
                 poisoned_cls,
                 checkpoints=checkpoint,
-                filter_by_prediction=filter_by_prediction,
+                filter_by_non_shortcut=filter_by_non_shortcut,
                 filter_by_shortcut_pred=False,
             ).update(tda)
         return
@@ -384,7 +384,7 @@ def test_shortcut_detection_metric(
         poisoned_ids,
         poisoned_cls,
         checkpoints=checkpoint,
-        filter_by_prediction=filter_by_prediction,
+        filter_by_non_shortcut=filter_by_non_shortcut,
         filter_by_shortcut_pred=False,
     )
     metric.update(

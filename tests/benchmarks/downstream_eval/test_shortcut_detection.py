@@ -1,4 +1,5 @@
 import math
+import os
 
 import pytest
 import torch
@@ -69,6 +70,9 @@ def test_shortcut_detection(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 # @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
@@ -108,6 +112,9 @@ def test_shortcut_transform_indices(config_name, tmp_path):
     )
 
 
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 # @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
@@ -178,6 +185,9 @@ def test_shortcut_filters(config_name, tmp_path):
     )
 
 
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 # @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",

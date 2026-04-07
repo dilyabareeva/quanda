@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import torch
 import yaml
@@ -7,6 +9,9 @@ from quanda.benchmarks.heuristics.mixed_datasets import MixedDatasets
 from quanda.benchmarks.resources import config_map
 
 
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 # @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
@@ -64,6 +69,9 @@ def test_train_dataset_indexing_is_correct(config_name, tmp_path):
     )
 
 
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 # @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",

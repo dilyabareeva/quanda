@@ -146,7 +146,7 @@ def test_quickstart(
 
     # START10
     with open(
-        "tests/assets/mnist_local_bench/124bfe7-default_TopKCardinality.yaml",
+        "tests/assets/mnist_local_bench/20fba38-default_TopKCardinality.yaml",
         "r",
     ) as f:
         top_k_config = yaml.safe_load(f)
@@ -175,7 +175,7 @@ def test_quickstart(
 
     # START14
     with open(
-        "tests/assets/mnist_local_bench/124bfe7-default_MislabelingDetection.yaml",
+        "tests/assets/mnist_local_bench/20fba38-default_MislabelingDetection.yaml",
         "r",
     ) as f:
         mislabel_config = yaml.safe_load(f)

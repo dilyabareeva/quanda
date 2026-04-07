@@ -10,12 +10,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
-from transformers import AutoTokenizer
 import yaml
 from kronfluence.task import Task  # type: ignore
 from torch.utils.data import Dataset, TensorDataset
 from torchvision.models import resnet18, vit_b_16
+from transformers import AutoTokenizer
 
+from quanda.benchmarks.resources import config_map
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
@@ -636,7 +637,7 @@ def load_mnist_unit_test_config():
 def load_mnist_unit_test_config_hf():
     # load yaml file
     with open(
-        "tests/assets/unit_bench_cfgs/fd1961d-default_ClassDetection.yaml",
+        config_map["mnist_class_detection_unit"],
         "r",
     ) as f:
         config = yaml.safe_load(f)

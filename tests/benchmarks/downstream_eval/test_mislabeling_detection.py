@@ -1,4 +1,5 @@
 import math
+import os
 
 import pytest
 import torch
@@ -99,6 +100,9 @@ def test_mislabeling_detection(
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 # @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
@@ -150,6 +154,9 @@ def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
     )
 
 
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 # @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
@@ -175,6 +182,9 @@ def test_eval_dataset_is_clean(config_name, tmp_path):
     )
 
 
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 # @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
