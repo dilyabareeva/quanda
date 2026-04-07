@@ -157,8 +157,8 @@ def test_quickstart(
         "cache_dir": cache_dir,
     }
     # END12
-
-    # START14
+    
+    # START13_2
     with open(
         "tests/assets/mnist_local_bench/20fba38-default_MislabelingDetection.yaml",
         "r",
@@ -169,6 +169,9 @@ def test_quickstart(
         mislabel_config,
         device="cpu",
     )
+    # END13_2
+
+    # START14
     score = mislabeling_detection.evaluate(
         explainer_cls=CaptumSimilarity,
         expl_kwargs=explainer_kwargs,

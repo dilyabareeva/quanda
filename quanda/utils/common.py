@@ -118,6 +118,9 @@ def class_accuracy(
     float
 
     """
+    if len(loader) == 0:
+        return 0.0
+    
     correct = 0
     total = 0
     for inputs, targets in loader:

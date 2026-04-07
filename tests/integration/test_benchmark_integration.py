@@ -25,8 +25,7 @@ from quanda.explainers.wrappers import (
 # END14_1
 
 
-@pytest.mark.skip(reason="Slow benchmark integration test")
-@pytest.mark.slow
+#@pytest.mark.slow
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "test_id",
@@ -54,6 +53,7 @@ def test_benchmark_integration(
 
     # START3
     device = "cuda" if torch.cuda.is_available() else "cpu"
+
     benchmark = ShortcutDetection.load_pretrained(
         bench_id="mnist_shortcut_detection",
         cache_dir=cache_dir,
@@ -70,19 +70,23 @@ def test_benchmark_integration(
     img.show(title="Shortcut Image")
     # END4
 
-    """
-    benchmark.shortcut_indices = benchmark.train_dataset.transform_indices[:4]
+    # Subset datasets for faster testing
+    n_train, n_eval = 50, 20
+    sc_idx = list(benchmark.train_dataset.transform_indices[:10])
+    other_idx = [
+        i
+        for i in range(len(benchmark.train_dataset))
+        if i not in set(sc_idx)
+    ][: n_train - len(sc_idx)]
+    benchmark.train_dataset.apply_filter(sorted(sc_idx + other_idx))
 
-    benchmark.train_dataset = torch.utils.data.Subset(
-        benchmark.train_dataset, list(range(4))
-    )
-    benchmark.val_dataset = torch.utils.data.Subset(
-        benchmark.val_dataset, list(range(4))
-    )
-    benchmark.eval_dataset = torch.utils.data.Subset(
-        benchmark.eval_dataset, list(range(4))
-    )
-    """
+    eval_sc_idx = list(benchmark.eval_dataset.transform_indices[:5])
+    eval_other = [
+        i
+        for i in range(len(benchmark.eval_dataset))
+        if i not in set(eval_sc_idx)
+    ][: n_eval - len(eval_sc_idx)]
+    benchmark.eval_dataset.apply_filter(sorted(eval_sc_idx + eval_other))
 
     # START5
     captum_similarity_args = {
@@ -109,6 +113,13 @@ def test_benchmark_integration(
     }
     # END6
 
+    # Override for faster testing
+    captum_influence_args["projection_dim"] = 2
+    captum_influence_args["hessian_dataset"] = torch.utils.data.Subset(
+        benchmark.train_dataset,
+        torch.randint(0, len(benchmark.train_dataset), (10,)),
+    )
+
     # START7
     captum_tracin_args = {
         "final_fc_layer": "fc_3",
@@ -126,6 +137,9 @@ def test_benchmark_integration(
     }
     # END8
 
+    # Override for faster testing
+    trak_args["proj_dim"] = 32
+
     # START9
     representer_points_args = {
         "model_id": "mnist_shortcut_detection",
@@ -136,6 +150,9 @@ def test_benchmark_integration(
         "classifier_layer": "fc_3",
     }
     # END9
+
+    # Override for faster testing
+    representer_points_args["epoch"] = 1
 
     # TODO: Add TracIn after the checkpoint loading issue is resolved
     # START10
@@ -152,51 +169,24 @@ def test_benchmark_integration(
             explainer_cls=cls, expl_kwargs=kwargs, batch_size=8
         )["score"]
     # END10
-
-    # START11
-    benchmark = MislabelingDetection.load_pretrained(
-        bench_id="mnist_mislabeling_detection_unit",
-        cache_dir=cache_dir,
-    )
-    # END11
-    print(type(benchmark))
-
-    # START13
-    with open(
-        "tests/assets/mnist_local_bench/124bfe7-default_MislabelingDetection.yaml",
-        "r",
-    ) as f:
-        config = yaml.safe_load(f)
-
-    benchmark = MislabelingDetection.from_config(
-        config,
-    )
-    representer_points_args = {
-        "model_id": "mnist_mislabeling_detection",
-        "cache_dir": os.path.join(cache_dir, "representer_points"),
-        "batch_size": 8,
-        "epoch": 100,
-        "features_layer": "relu_4",
-        "classifier_layer": "fc_3",
-    }
-    results = benchmark.evaluate(
-        explainer_cls=RepresenterPoints,
-        expl_kwargs=representer_points_args,
-    )
-    # END13
-
+    
     # START14_2
     with open(
-        "tests/assets/mnist_local_bench/124bfe7-default_SubclassDetection.yaml",
+        "tests/assets/mnist_local_bench/20fba38-default_SubclassDetection.yaml",
         "r",
     ) as f:
         subclass_config = yaml.safe_load(f)
+    # END14_2
 
+    # Override for faster testing
+    subclass_config["model"]["trainer"]["max_epochs"] = 2
+
+    # START14_3
     benchmark = SubclassDetection.train(
         subclass_config,
         device=device,
     )
-    # END14_2
+    # END14_3
 
     # START15
     results = benchmark.evaluate(

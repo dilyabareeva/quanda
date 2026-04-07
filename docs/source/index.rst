@@ -198,6 +198,7 @@ If you are using |quanda| for your scientific research, please also make sure to
 
 .. toctree::
    :caption: Usage
+   :maxdepth: 2
 
    quickstart
    tutorials

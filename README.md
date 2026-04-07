@@ -11,7 +11,7 @@
 </p>
 
 
-![py_versions](https://img.shields.io/pypi/pyversions/msmhelper?color=3A76A8)
+![py_versions](https://img.shields.io/pypi/pyversions/quanda?color=3A76A8)
 ![PyPI - Version](https://img.shields.io/pypi/v/quanda?color=EB9C38)
 ![mypy](https://img.shields.io/badge/mypy-checked-7EAF6E)
 ![ruff](https://img.shields.io/badge/ruff-checked-7D53BA)
@@ -65,6 +65,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 | TracIn                      | [Captum](https://github.com/pytorch/captum/tree/master)                                | [Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html) |
 | TRAK                        | [TRAK](https://github.com/MadryLab/trak)                                          | [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)             |
 | Representer Point Selection | [Representer Point Selection](https://github.com/chihkuanyeh/Representer_Point_Selection)                 | [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html) |
+| Kronfluence                 | [Kronfluence](https://github.com/pomonam/kronfluence)                                                      | [Grosse et al., 2023](https://arxiv.org/abs/2308.03296)                                                             |
 
 
 ### Metrics
@@ -149,7 +150,7 @@ To install the latest release of **quanda** use:
 pip install quanda
 ```
 
-**quanda** requires Python 3.7 or later. It is recommended to use a virtual environment to install the package.
+**quanda** requires Python 3.10 or 3.11. It is recommended to use a virtual environment to install the package.
 
 ### Basic Usage
 
@@ -247,9 +248,9 @@ print("Randomization metric output:", model_rand.compute())
 <!-- END4 -->
 </details>
 
-#### Using Pre-assembled Benchmarks
+#### Using Benchmarks
 
-The pre-assembled benchmarks allow us to streamline the evaluation process by downloading the necessary data and models, and running the evaluation in a single command. The following code demonstrates how to use the `mnist_subclass_detection` benchmark:
+**quanda** benchmarks allow us to streamline the evaluation process by downloading the necessary data and models, and running the evaluation in a single command. The following code demonstrates how to use the `mnist_subclass_detection` benchmark:
 
 <details>
 <summary><b>1. Import dependencies and library components</b></summary>
@@ -280,7 +281,7 @@ explainer_kwargs = {
 </details>
 
 <details>
-<summary><b>3. Load a pre-assembled benchmark and score an explainer</b></summary>
+<summary><b>3. Load a benchmark and score an explainer</b></summary>
 
 <!-- START7_1 -->
 ```python
@@ -304,70 +305,10 @@ print(f"Subclass Detection Score: {score}")
 
 </details>
 
-#### Assembling a benchmark from existing components
-
-Next, we demonstrate assembling a benchmark with assets that the user has prepared. As in the [Using Metrics](#using-metrics) section, we will assume that the user has already trained `model` on `train_set`, and a corresponding `eval_set` to be used for generating and evaluating explanations.
-
-<details>
-<summary><b>1. Import dependencies and library components</b></summary>
-
-<!-- START8 -->
-```python
-from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.benchmarks.heuristics import TopKCardinality
-```
-<!-- END8 -->
-</details>
-
-<details>
-<summary><b>2. Prepare arguments for the explainer object</b></summary>
-
-<!-- START9 -->
-```python
-DEVICE = "cpu"
-model.to(DEVICE)
-
-explainer_kwargs = {
-    "layers": "fc_2",
-    "model_id": "default_model_id",
-    "cache_dir": cache_dir,
-}
-```
-<!-- END9 -->
-</details>
-
-<details>
-<summary><b>3. Assemble the benchmark object and run the evaluation</b></summary>
-
-We now have everything we need, we can just assemble the benchmark and run it. This will encapsulate the process of instantiating the explainer, generating explanations and using the `TopKCardinalityMetric` to evaluate them.
-
-<!-- START10 -->
-```python
-with open(
-    "tests/assets/mnist_local_bench/20fba38-default_TopKCardinality.yaml",
-    "r",
-) as f:
-    top_k_config = yaml.safe_load(f)
-
-topk_cardinality = TopKCardinality.from_config(
-    top_k_config,
-)
-score = topk_cardinality.evaluate(
-    explainer_cls=CaptumSimilarity,
-    expl_kwargs=explainer_kwargs,
-    batch_size=batch_size,
-)["score"]
-print(f"Top K Cardinality Score: {score}")
-```
-<!-- END10 -->
-</details>
-
 #### Generating the benchmark object from scratch
 
-Some evaluation strategies require a controlled setup or a different strategy of using attributors to evaluate them. For example, the `MislabelingDetectionMetric` requires a dataset with known mislabeled examples. It computes the self-influence of training points to evaluate TDA methods. Therefore, it is fairly complicated to train a model on a mislabeled dataset, and then using the metric object or assembling a benchmark object to run the evaluation. While pre-assembled benchmarks allow to use pre-computed assets, **quanda** `Benchmark` objects provide the `generate` interface, which allows the user to prepare this setup from scratch.
-
-As in previous examples, we assume that `train_set` refers to  a vanilla training dataset, without any modifications for evaluation. Furthermore, we assume `model` refers to a torch `Module`, but in this example we do not require that `model` is trained. Finally, `n_classes` is the number of classes in the `train_set`.
-
+While we provide a number of benchmarks with pre-computed assets, **quanda** `Benchmark` objects also expose a `train` interface for preparing benchmarks from scratch. To train a benchmark, specify its components in a single YAML file (see `quanda/benchmarks/resources/configs`).
+ 
 <details>
 <summary><b>1. Import dependencies and library components</b></summary>
 
@@ -399,28 +340,11 @@ explainer_kwargs = {
 </details>
 
 <details>
-<summary><b>3. Prepare the trainer</b></summary>
+<summary><b>3. Train the model for the benchmark </b></summary>
 
-For mislabeling detection, we will train a model from scratch. **quanda** allows to use Lightning `Trainer` objects. If you want to use Lightning trainers, `model` needs to be an instance of a Lightning `LightningModule`. Alternatively, you can use an instance of `quanda.utils.training.BaseTrainer`. In this example, we use a very simple training setup via the `quanda.utils.training.Trainer` class.
+For mislabeling detection, we will train a model from scratch using a dataset with a portion of labels flipped.
 
 <!-- START13_2 -->
-```python
-trainer = Trainer(
-    max_epochs=100,
-    optimizer=torch.optim.SGD,
-    lr=0.01,
-    criterion=torch.nn.CrossEntropyLoss(),
-)
-```
-<!-- END13_2 -->
-</details>
-
-<details>
-<summary><b>4. Generate the benchmark object and run the evaluation</b></summary>
-
-We can now call the `generate` method to instantiate our `MislabelingDetection` object and directly start the evaluation process with it. The `generate` method takes care of model training using `trainer`, generation of explanations and their evaluation.
-
-<!-- START14 -->
 ```python
 with open(
     "tests/assets/mnist_local_bench/20fba38-default_MislabelingDetection.yaml",
@@ -432,6 +356,17 @@ mislabeling_detection = MislabelingDetection.train(
     mislabel_config,
     device="cpu",
 )
+```
+<!-- END13_2 -->
+</details>
+
+<details>
+<summary><b>4. Run the evaluation</b></summary>
+
+We can now call the `evaluate` method to directly start the evaluation process on the benchmark.
+
+<!-- START14 -->
+```python
 score = mislabeling_detection.evaluate(
     explainer_cls=CaptumSimilarity,
     expl_kwargs=explainer_kwargs,
@@ -444,6 +379,7 @@ print(f"Mislabeling Detection Score: {score}")
 
 
 More detailed examples can be found in the [tutorials](tutorials) folder.
+You can also use Hydra for benchmark training configuration, as shown in `scripts/train.py`.
 
 ### Custom Explainers
 
@@ -502,7 +438,7 @@ For detailed examples, we refer to the [existing](quanda/explainers/wrappers/cap
 
 ## ⚠️ Usage Tips and Caveats
 
-- **Controlled Setting Evaluation**: Many metrics require access to ground truth labels for datasets, such as the indices of the "shorcut samples" in the Shortcut Detection metric, or the mislabeling (noisy) label indices for the Mislabeling Detection Metric. However, users often may not have access to these labels. To address this, we recommend either using one of our pre-built benchmark suites (see [Benchmarks](#benchmarks) section) or generating (`generate` method) a custom benchmark for comparing explainers. Benchmarks provide a controlled environment for systematic evaluation.
+- **Controlled Setting Evaluation**: Many metrics require access to ground truth labels for datasets, such as the indices of the "shortcut samples" in the Shortcut Detection metric, or the mislabeling (noisy) label indices for the Mislabeling Detection Metric. However, users often may not have access to these labels. To address this, we recommend either using one of our pre-built benchmark suites (see [Benchmarks](#benchmarks) section) or generating (`train` method) a custom benchmark for comparing explainers. Benchmarks provide a controlled environment for systematic evaluation.
 
 - **Caching**: Many explainers in our library generate re-usable cache. The `cache_id` and `model_id` parameters passed to various class instances are used to store these intermediary results. Ensure each experiment is assigned a unique combination of these arguments. Failing to do so could lead to incorrect reuse of cached results. If you wish to avoid re-using cached results, you can set the `load_from_disk` parameter to `False`.
 
@@ -526,7 +462,7 @@ pip install quanda[tutorials]
 We welcome contributions to **quanda**! You could contribute by:
 - Opening an issue to report a bug or request a feature.
 - Submitting a pull request to fix a bug, add a new explainer wrapper, a new metric, or another feature.
-- 
+
 A detailed guide on how to contribute to **quanda** can be found [here](CONTRIBUTING.md).
 
 ## ✉️ Contact

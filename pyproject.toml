@@ -138,6 +138,7 @@ dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "pre-commit>=3.2.0",
     "mypy==1.16.1",
     "types-tqdm>=4.0.0",
+    "furo",
     "sphinx-rtd-theme>=1.0.0",
     "sphinx>=7.0.0",
     "numpydoc",
