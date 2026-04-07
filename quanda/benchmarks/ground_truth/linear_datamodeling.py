@@ -52,11 +52,11 @@ class LinearDatamodeling(Benchmark):
     def __init__(
         self,
         *args,
+        correlation_fn: Callable,
         m: int = 100,
         alpha: float = 0.5,
         cache_dir: str = "./tmp",
         model_id: str = "0",
-        correlation_fn: Callable = None,
         seed: int = 42,
         subset_ids: Optional[List[List[int]]] = None,
         subset_ckpt_filenames: Optional[List[str]] = None,
@@ -194,6 +194,7 @@ class LinearDatamodeling(Benchmark):
             device=device,
             batch_size=batch_size,
         )
+        assert isinstance(obj, LinearDatamodeling)
 
         trainer = BenchConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
@@ -289,9 +290,10 @@ class LinearDatamodeling(Benchmark):
         batch_size: int = 8,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
-        obj = cls.from_config(
+        bench_obj = cls.from_config(
             config, load_meta_from_disk=False, offline=True, device=device
         )
+        assert isinstance(bench_obj, LinearDatamodeling)
 
         # Parse trainer configuration
         trainer = BenchConfigParser.parse_trainer_cfg(
@@ -317,7 +319,7 @@ class LinearDatamodeling(Benchmark):
             config.get("bench_save_dir", "./tmp"), "ckpt", config["ckpts"][-1]
         )
 
-        obj._train_subset_models(
+        bench_obj._train_subset_models(
             trainer=trainer,
             ckpt_dir=ckpt_dir,
             ckpt_str=config["ckpts"][-1],
@@ -325,7 +327,7 @@ class LinearDatamodeling(Benchmark):
             push_to_hub=True,
         )
 
-        return obj
+        return bench_obj
 
     def evaluate(
         self,

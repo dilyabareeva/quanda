@@ -12,6 +12,7 @@ from quanda.metrics.downstream_eval.shortcut_detection import (
 from quanda.utils.common import (
     DatasetSplit,
     class_accuracy,
+    ds_len,
 )
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
@@ -137,7 +138,7 @@ class ShortcutDetection(Benchmark):
         else:
             split_name = indices_cfg["split_name"]
             eval_ratio = indices_cfg["split_ratios"][split_name]
-        raw_eval_dataset = eval_dataset
+        raw_eval_dataset: torch.utils.data.Dataset = eval_dataset
         while hasattr(raw_eval_dataset, "dataset"):
             raw_eval_dataset = raw_eval_dataset.dataset
 
@@ -150,7 +151,7 @@ class ShortcutDetection(Benchmark):
                 "filter_by_shortcut_pred", False
             ),
             "filter_indices": filter_indices,
-            "len_eval_pre_filter": int(len(raw_eval_dataset) * eval_ratio),
+            "len_eval_pre_filter": int(ds_len(raw_eval_dataset) * eval_ratio),
         }
 
     def sanity_check(self, batch_size: int = 32) -> dict:
@@ -169,6 +170,9 @@ class ShortcutDetection(Benchmark):
         """
         results = super().sanity_check(batch_size)
 
+        assert isinstance(self.train_dataset, SampleTransformationDataset)
+        assert isinstance(self.eval_dataset, SampleTransformationDataset)
+
         train_dl = torch.utils.data.DataLoader(
             Subset(self.train_dataset, self.train_dataset.transform_indices),
             batch_size=batch_size,
@@ -186,7 +190,7 @@ class ShortcutDetection(Benchmark):
         )
 
         results["eval_post_filter_ratio"] = (
-            len(self.eval_dataset) / self.len_eval_pre_filter
+            ds_len(self.eval_dataset) / self.len_eval_pre_filter
         )
         results["eval_shortcut_memorization"] = class_accuracy(
             self.model,
@@ -226,6 +230,7 @@ class ShortcutDetection(Benchmark):
             expl_kwargs=expl_kwargs,
         )
 
+        assert isinstance(self.train_dataset, SampleTransformationDataset)
         metric = ShortcutDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,

@@ -9,7 +9,7 @@ from torch.utils.data import Subset
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
-from quanda.utils.common import class_accuracy
+from quanda.utils.common import class_accuracy, ds_len
 
 logger = logging.getLogger(__name__)
 
@@ -131,19 +131,21 @@ class MixedDatasets(Benchmark):
         adv_val_dataset = split_datasets["val"]
         eval_dataset = split_datasets["test"]
 
-        train_dataset = torch.utils.data.ConcatDataset(
-            [adv_base_dataset, train_base_dataset]
+        train_dataset: torch.utils.data.Dataset = (
+            torch.utils.data.ConcatDataset(
+                [adv_base_dataset, train_base_dataset]
+            )
         )
         datasets_to_concat = [
             d for d in [adv_val_dataset, val_base_dataset] if d is not None
         ]
-        val_dataset = (
+        val_dataset: Optional[torch.utils.data.Dataset] = (
             None
             if not datasets_to_concat
             else torch.utils.data.ConcatDataset(datasets_to_concat)
         )
 
-        adversarial_indices = [1] * len(adv_base_dataset) + [0] * len(
+        adversarial_indices = [1] * ds_len(adv_base_dataset) + [0] * ds_len(
             train_base_dataset
         )
 
@@ -196,7 +198,7 @@ class MixedDatasets(Benchmark):
                 self.train_dataset,
                 [
                     i
-                    for i in range(len(self.train_dataset))
+                    for i in range(ds_len(self.train_dataset))
                     if self.adversarial_indices[i] != 0.0
                 ],
             ),

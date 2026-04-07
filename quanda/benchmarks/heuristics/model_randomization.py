@@ -38,7 +38,7 @@ class ModelRandomization(Benchmark):
     def __init__(
         self,
         *args,
-        correlation_fn: Callable = None,
+        correlation_fn: Callable,
         model_id: str = "0",
         cache_dir: str = "./tmp",
         seed: int = 42,

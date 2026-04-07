@@ -10,13 +10,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
+from transformers import AutoTokenizer
 import yaml
 from kronfluence.task import Task  # type: ignore
 from torch.utils.data import Dataset, TensorDataset
 from torchvision.models import resnet18, vit_b_16
-from transformers import (  # type: ignore
-    AutoTokenizer,
-)
 
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,

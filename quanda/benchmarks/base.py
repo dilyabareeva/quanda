@@ -22,6 +22,7 @@ from quanda.utils.common import (
     load_last_checkpoint,
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
+from quanda.utils.datasets.transformed.base import TransformedDataset
 
 
 class Benchmark(ABC):
@@ -456,15 +457,18 @@ class Benchmark(ABC):
                 select_idx *= pred_cls == labels
             select_indices.extend(select_idx)
 
-        filter_indices = torch.nonzero(
-            torch.tensor(select_indices), as_tuple=False
-        )
+        filter_indices = [
+            i for i in range(len(select_indices)) if select_indices[i] != 0
+        ]
         self.save_filtered_indices(config, filter_indices)
-        self.eval_dataset.apply_filter(filter_indices)
+        if isinstance(self.eval_dataset, TransformedDataset):
+            self.eval_dataset.apply_filter(filter_indices)
+        else:
+            self.eval_dataset = torch.utils.data.Subset(
+                self.eval_dataset, filter_indices
+            )
 
-    def save_filtered_indices(
-        self, config: dict, filter_indices: torch.Tensor
-    ):
+    def save_filtered_indices(self, config: dict, filter_indices: list):
         """Persist ``filter_indices`` to the metadata directory.
 
         Reads the filter-indices filename from ``config['eval_dataset']
@@ -491,7 +495,9 @@ class Benchmark(ABC):
                 "'eval_dataset.filter_indices' or 'eval_filter_indices'."
             )
         filter_cfg = eval_ds_cfg.get("filter_indices")
-        split = DatasetSplit({filter_cfg["split_name"]: filter_indices})
+        split = DatasetSplit(
+            {filter_cfg["split_name"]: torch.tensor(filter_indices)}
+        )
         split.save(metadata_dir, filter_cfg["split_filename"])
 
     def load_last_checkpoint(self):

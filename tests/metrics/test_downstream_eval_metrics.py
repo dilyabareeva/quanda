@@ -149,9 +149,9 @@ def test_identical_subclass_metrics(
     )
     if isinstance(expected_score, type):
         with pytest.raises(expected_score):
-            metric.update(test_labels=test_labels, explanations=tda)
+            metric.update(test_targets=test_labels, explanations=tda)
         return
-    metric.update(test_labels=test_labels, explanations=tda)
+    metric.update(test_targets=test_labels, explanations=tda)
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 

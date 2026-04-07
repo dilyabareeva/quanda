@@ -10,7 +10,7 @@ from huggingface_hub import snapshot_download
 
 from quanda.benchmarks.resources import pl_modules
 from quanda.benchmarks.resources.sample_transforms import sample_transforms
-from quanda.utils.common import DatasetSplit
+from quanda.utils.common import DatasetSplit, ds_len
 from quanda.utils.datasets.image_datasets import HFtoTV
 from quanda.utils.datasets.transformed import (
     TransformedDataset,
@@ -270,7 +270,7 @@ class BenchConfigParser:
     ) -> torch.utils.data.Dataset:
         """Apply indices to the dataset based on configuration."""
         indices = copy.deepcopy(ds_config.get("indices", "all"))
-        final_indices = torch.arange(len(base_dataset))
+        final_indices = list(range(ds_len(base_dataset)))
         if indices != "all":
             split_name = indices.get("split_name", "train")
             split_filename = indices.get("split_filename", "DOESNT_EXIST")
@@ -311,7 +311,10 @@ class BenchConfigParser:
             ):
                 filter_split = DatasetSplit.load(metadata_dir, filter_filename)
                 filter_indices = filter_split[filter_split_name].flatten()
-                dataset.apply_filter(filter_indices)
+                if isinstance(dataset, TransformedDataset):
+                    dataset.apply_filter(filter_indices)
+                else:
+                    dataset = torch.utils.data.Subset(dataset, filter_indices)
                 return dataset
         return dataset
 

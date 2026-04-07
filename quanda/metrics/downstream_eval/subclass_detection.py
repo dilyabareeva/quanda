@@ -71,9 +71,10 @@ class SubclassDetectionMetric(ClassDetectionMetric):
     def update(
         self,
         explanations: torch.Tensor,
-        test_labels: Union[List[int], torch.Tensor],
+        test_targets: Union[List[int], torch.Tensor],
         test_data: Optional[torch.Tensor] = None,
-        test_targets: Optional[torch.Tensor] = None,
+        test_superclass_targets: Optional[torch.Tensor] = None,
+        **kwargs,
     ):
         """Update the metric state with the provided explanations.
 
@@ -81,56 +82,58 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         ----------
         explanations : torch.Tensor
             Explanations of the test samples.
-        test_labels : torch.Tensor
-            Original labels of the test samples.
+        test_targets : Union[List[int], torch.Tensor]
+            Original subclass labels of the test samples.
         test_data: Optional[torch.Tensor]
             Test samples to used to generate the explanations.
             Only required if `filter_by_prediction` is True during
             initalization.
-        test_targets: Optional[torch.Tensor]
-            The true superclasses of the test samples. Only required if
-            `filter_by_prediction` is True during initalization.
+        test_superclass_targets: Optional[torch.Tensor]
+            The true superclasses of the test samples. Only required
+            if `filter_by_prediction` is True during initalization.
+        **kwargs
+             Additional keyword arguments.
 
         Raises
         ------
         ValueError
-            If `test_data` and `test_targets` are not provided when
-            `filter_by_prediction` is True.
+            If `test_data` and `test_superclass_targets` are not
+            provided when `filter_by_prediction` is True.
 
         """
         explanations = explanations.to(self.device)
 
         if (
-            test_data is None or test_targets is None
+            test_data is None or test_superclass_targets is None
         ) and self.filter_by_prediction:
             raise ValueError(
-                "test_data and test_targets must be provided if "
-                "filter_by_prediction is True"
+                "test_data and test_superclass_targets must be "
+                "provided if filter_by_prediction is True"
             )
 
-        if isinstance(test_labels, list):
-            test_labels = torch.tensor(test_labels)
-        test_labels = test_labels.to(self.device)
+        if isinstance(test_targets, list):
+            test_targets = torch.tensor(test_targets)
+        test_targets = test_targets.to(self.device)
 
         if test_data is not None:
             test_data = test_data.to(self.device)
-        if test_targets is not None:
-            if isinstance(test_targets, list):
-                test_targets = torch.tensor(test_targets)
-            test_targets = test_targets.to(self.device)
+        if test_superclass_targets is not None:
+            if isinstance(test_superclass_targets, list):
+                test_superclass_targets = torch.tensor(test_superclass_targets)
+            test_superclass_targets = test_superclass_targets.to(self.device)
 
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
         if self.filter_by_prediction:
             pred_cls = self.model(test_data).argmax(dim=1)
-            select_idx *= pred_cls == test_targets
+            select_idx *= pred_cls == test_superclass_targets
 
         explanations = explanations[select_idx]
-        test_labels = test_labels[select_idx].to(self.device)
+        test_targets = test_targets[select_idx].to(self.device)
 
         top_one_xpl_indices = explanations.argmax(dim=1)
         top_one_xpl_targets = torch.stack(
             [self.subclass_labels[int(i)] for i in top_one_xpl_indices]
         ).to(self.device)
 
-        score = (test_labels == top_one_xpl_targets) * 1.0
+        score = (test_targets == top_one_xpl_targets) * 1.0
         self.scores.append(score)
