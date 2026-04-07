@@ -46,6 +46,8 @@ class ClassDetection(Benchmark):
 
         Parameters
         ----------
+        *args
+            Positional arguments passed to the base class.
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the correct superclass is predicted, by
@@ -56,7 +58,7 @@ class ClassDetection(Benchmark):
         """
         super().__init__(*args, **kwargs)
         self.filter_by_prediction = filter_by_prediction
-        
+
     @classmethod
     def _extra_kwargs_from_config(
         cls,
@@ -70,7 +72,7 @@ class ClassDetection(Benchmark):
         return {
             "filter_by_prediction": config.get("filter_by_prediction", False),
         }
-        
+
     def evaluate(
         self,
         explainer_cls: type,

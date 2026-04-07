@@ -2,14 +2,25 @@
 
 from importlib.resources import files
 
+_unit = "tests/assets/unit_bench_cfgs"
+_prefix = "20fba38-default"
+
 config_map: dict = {
-    "mnist_top_k_cardinality_unit": "tests/assets/unit_bench_cfgs/20fba38-default_ClassDetection.yaml",
-    "mnist_subclass_detection_unit": "tests/assets/unit_bench_cfgs/20fba38-default_SubclassDetection.yaml",
-    "mnist_mixed_datasets_unit": "tests/assets/unit_bench_cfgs/20fba38-default_MixedDatasets.yaml",
-    "mnist_mislabeling_detection_unit": "tests/assets/unit_bench_cfgs/20fba38-default_MislabelingDetection.yaml",
-    "mnist_shortcut_detection_unit": "tests/assets/unit_bench_cfgs/20fba38-default_ShortcutDetection.yaml",
-    "mnist_class_detection_unit": "tests/assets/unit_bench_cfgs/20fba38-default_ClassDetection.yaml",
-    "mnist_model_randomization_unit": "tests/assets/unit_bench_cfgs/20fba38-default_ClassDetection.yaml",
+    "mnist_top_k_cardinality_unit": (f"{_unit}/{_prefix}_ClassDetection.yaml"),
+    "mnist_subclass_detection_unit": (
+        f"{_unit}/{_prefix}_SubclassDetection.yaml"
+    ),
+    "mnist_mixed_datasets_unit": (f"{_unit}/{_prefix}_MixedDatasets.yaml"),
+    "mnist_mislabeling_detection_unit": (
+        f"{_unit}/{_prefix}_MislabelingDetection.yaml"
+    ),
+    "mnist_shortcut_detection_unit": (
+        f"{_unit}/{_prefix}_ShortcutDetection.yaml"
+    ),
+    "mnist_class_detection_unit": (f"{_unit}/{_prefix}_ClassDetection.yaml"),
+    "mnist_model_randomization_unit": (
+        f"{_unit}/{_prefix}_ClassDetection.yaml"
+    ),
     "mnist_top_k_cardinality": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("63de7a5-default_ClassDetection.yaml"),

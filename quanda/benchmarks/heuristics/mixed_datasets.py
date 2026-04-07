@@ -60,6 +60,8 @@ class MixedDatasets(Benchmark):
 
         Parameters
         ----------
+        *args
+            Positional arguments passed to the base class.
         adversarial_label : int
             The label assigned to adversarial samples.
         adversarial_indices : Optional[List[int]]
@@ -268,7 +270,10 @@ class MixedDatasets(Benchmark):
         )
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
-        """Determine the indices of eval dataset, by labels and predictions. By default, all samples are kept.
+        """Determine the indices of eval dataset.
+
+        Filter by labels and predictions. By default,
+        all samples are kept.
 
         Parameters
         ----------

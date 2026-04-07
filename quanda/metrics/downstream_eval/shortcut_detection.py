@@ -120,8 +120,9 @@ class ShortcutDetectionMetric(Metric):
             Test samples for which the explanations were computed. Not optional
             if `filter_by_non_shortcut` is True.
         test_labels : torch.Tensor, optional
-            Labels of the test samples. Not optional if `filter_by_non_shortcut`
-            or `filter_by_shortcut_pred` is True.
+            Labels of the test samples. Not optional if
+            `filter_by_non_shortcut` or
+            `filter_by_shortcut_pred` is True.
 
         """
         explanations = explanations.to(self.device)

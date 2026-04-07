@@ -43,6 +43,8 @@ class TopKCardinality(Benchmark):
 
         Parameters
         ----------
+        *args
+            Positional arguments passed to the base Benchmark class.
         top_k : int, optional
             Number of top attributed samples to consider, by default 5.
         **kwargs

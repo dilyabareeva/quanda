@@ -190,10 +190,6 @@ def test_shortcut_sanity_check_values(config_name, tmp_path):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8
 
-    bench_yaml = config_map[config_name]
-    with open(bench_yaml, "r") as f:
-        cfg = yaml.safe_load(f)
-
     bench = ShortcutDetection.load_pretrained(
         bench_id=config_name,
         cache_dir=str(tmp_path),
@@ -215,6 +211,8 @@ def test_shortcut_sanity_check_values(config_name, tmp_path):
     assert sanity_check_results["eval_shortcut_memorization"] == 1.0, (
         f"Expected eval_shortcut_memorization to be 1.0, but got {sanity_check_results['eval_shortcut_memorization']}."
     )
-    assert sanity_check_results["eval_post_filter_ratio"] > 0.09, ( # TODO: retrain until this improves (
+    assert (
+        sanity_check_results["eval_post_filter_ratio"] > 0.09
+    ), (  # TODO: retrain until this improves (
         f"Expected eval_post_filter_ratio to be > 0.09, but got {sanity_check_results['eval_post_filter_ratio']}."
     )

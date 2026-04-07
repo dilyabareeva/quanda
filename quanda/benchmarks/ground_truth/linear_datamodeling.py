@@ -68,6 +68,8 @@ class LinearDatamodeling(Benchmark):
 
         Parameters
         ----------
+        *args
+            Positional arguments passed to the base class.
         m : int, optional
             Number of subsets, by default 100.
         alpha : float, optional
@@ -118,6 +120,8 @@ class LinearDatamodeling(Benchmark):
         ----------
         trainer : Trainer
             Trainer instance for training subset models.
+        ckpt_str : str
+            Checkpoint string identifier.
         ckpt_dir : str
             Base checkpoint directory.
         batch_size : int, optional

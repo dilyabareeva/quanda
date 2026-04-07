@@ -368,7 +368,9 @@ class Benchmark(ABC):
         return obj
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
-        """Determine the indices of eval dataset, if needed. By default, all samples are kept.
+        """Determine the indices of eval dataset, if needed.
+
+        By default, all samples are kept.
 
         Parameters
         ----------
@@ -389,7 +391,7 @@ class Benchmark(ABC):
         filter_by_non_shortcut: bool = False,
         filter_by_prediction: bool = False,
     ):
-        """Run inference on eval_dataset and save the filter correctly predicted indices.
+        """Run inference on eval_dataset and save filtered indices.
 
         Iterates over ``self.eval_dataset``, calls ``_compute_filter_mask``
         on every batch, collects the selected indices, stores them in
@@ -402,6 +404,17 @@ class Benchmark(ABC):
             Benchmark configuration dictionary (needed for save path).
         batch_size : int, optional
             Batch size for the inference pass, by default 8.
+        filter_by_shortcut_pred : bool, optional
+            Whether to filter by shortcut prediction,
+            by default False.
+        shortcut_cls : Optional[int], optional
+            The shortcut class index, by default None.
+        filter_by_non_shortcut : bool, optional
+            Whether to filter non-shortcut samples,
+            by default False.
+        filter_by_prediction : bool, optional
+            Whether to filter by correct prediction,
+            by default False.
 
         """
         ds_handler = get_dataset_handler(dataset=self.eval_dataset)
@@ -412,12 +425,14 @@ class Benchmark(ABC):
         )
         if filter_by_shortcut_pred and shortcut_cls is None:
             raise ValueError(
-                "shortcut_cls must be provided if filter_by_shortcut_pred is True."
+                "shortcut_cls must be provided if "
+                "filter_by_shortcut_pred is True."
             )
 
         if filter_by_non_shortcut and shortcut_cls is None:
             raise ValueError(
-                "shortcut_cls must be provided if filter_by_non_shortcut is True."
+                "shortcut_cls must be provided if "
+                "filter_by_non_shortcut is True."
             )
 
         select_indices: list = []

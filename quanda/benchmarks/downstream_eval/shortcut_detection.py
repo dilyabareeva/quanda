@@ -63,9 +63,12 @@ class ShortcutDetection(Benchmark):
 
         Parameters
         ----------
+        *args
+            Positional arguments passed to the base class.
         len_eval_pre_filter: int
-            Length of the evaluation dataset before filtering, needed to compute
-            the percentage of samples filtered.
+            Length of the evaluation dataset before
+            filtering, needed to compute the percentage
+            of samples filtered.
         shortcut_cls : int
             The class index used as the shortcut target.
         filter_by_non_shortcut : bool
@@ -131,13 +134,13 @@ class ShortcutDetection(Benchmark):
         indices_cfg = config["eval_dataset"]["indices"]
         if indices_cfg == "all":
             eval_ratio = 1.0
-        else: 
+        else:
             split_name = indices_cfg["split_name"]
             eval_ratio = indices_cfg["split_ratios"][split_name]
         raw_eval_dataset = eval_dataset
         while hasattr(raw_eval_dataset, "dataset"):
-            raw_eval_dataset = raw_eval_dataset.dataset           
-    
+            raw_eval_dataset = raw_eval_dataset.dataset
+
         return {
             "shortcut_cls": train_dataset.metadata.cls_idx,
             "filter_by_non_shortcut": config.get(

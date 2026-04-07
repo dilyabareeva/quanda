@@ -48,6 +48,8 @@ class ModelRandomization(Benchmark):
 
         Parameters
         ----------
+        *args
+            Positional arguments passed to the base class.
         correlation_fn : Callable
             Correlation function to use.
         model_id : str, optional

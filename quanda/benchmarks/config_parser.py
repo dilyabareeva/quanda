@@ -135,7 +135,8 @@ class BenchConfigParser:
                 )
             except Exception as e:
                 raise ValueError(
-                    f"Error loading model from {pretrained_model_name_or_path}: {e}"
+                    f"Error loading model from "
+                    f"{pretrained_model_name_or_path}: {e}"
                 )
             model.load_state_dict(pretrained_model.state_dict())
             model.to(device)

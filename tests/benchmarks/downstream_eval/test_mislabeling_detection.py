@@ -203,7 +203,9 @@ def test_mislabeling_sanity_check_values(config_name, tmp_path):
     assert sanity_check_results["val_acc"] > 0.85, (
         f"Expected val_acc > 0.85, got {sanity_check_results['val_acc']}."
     )
-    assert sanity_check_results["mislabeling_memorization"] > 0.01, (# TODO: improve this value 
+    assert (
+        sanity_check_results["mislabeling_memorization"] > 0.01
+    ), (  # TODO: improve this value
         f"Expected mislabeling_memorization > 0.5, "
         f"got {sanity_check_results['mislabeling_memorization']}."
     )

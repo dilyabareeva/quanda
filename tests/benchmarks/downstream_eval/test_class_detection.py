@@ -3,13 +3,10 @@ import os
 
 import pytest
 import torch
-import yaml
 
 from quanda.benchmarks.downstream_eval import ClassDetection
-from quanda.benchmarks.resources import config_map
 from quanda.explainers.wrappers import Kronfluence
 from quanda.utils.common import get_load_state_dict_func
-from quanda.utils.datasets.transformed import TransformedDataset
 
 
 @pytest.mark.benchmarks
@@ -183,6 +180,7 @@ def test_class_detection_kronfluence_qnli(
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
+
 
 # @pytest.mark.production_bench
 @pytest.mark.parametrize(

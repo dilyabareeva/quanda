@@ -44,6 +44,8 @@ class SubclassDetection(Benchmark):
 
         Parameters
         ----------
+        *args
+            Positional arguments passed to the base class.
         class_to_group : Optional[Dict[int, int]]
             Mapping from class index to group index.
         filter_by_prediction : bool, optional
@@ -155,7 +157,10 @@ class SubclassDetection(Benchmark):
         )
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
-        """Determine the indices of eval dataset, by labels and predictions. By default, all samples are kept.
+        """Determine the indices of eval dataset.
+
+        Filter by labels and predictions. By default,
+        all samples are kept.
 
         Parameters
         ----------
