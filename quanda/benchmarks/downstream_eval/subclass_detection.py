@@ -84,6 +84,7 @@ class SubclassDetection(Benchmark):
             raise ValueError(
                 "The train dataset must be a LabelGroupingDataset."
             )
+            
         return {
             "class_to_group": train_dataset.class_to_group,
             "filter_by_prediction": config.get("filter_by_prediction", False),

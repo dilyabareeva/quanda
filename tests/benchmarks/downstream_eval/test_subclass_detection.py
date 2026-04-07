@@ -79,16 +79,24 @@ def test_subclass_sanity_check_values(config_name, tmp_path):
         offline=False,
     )
 
-    indices_cfg = cfg["train_dataset"]["indices"]
-    split_name = indices_cfg["split_name"]
-    eval_ratio = indices_cfg["split_ratios"][split_name]
-    pre_filter_size = len(bench.train_dataset.dataset.dataset)
-    filtered_size = len(bench.train_dataset.dataset)
-    actual_ratio = filtered_size / pre_filter_size
+    bench_yaml = config_map[config_name]
+    with open(bench_yaml, "r") as f:
+        cfg = yaml.safe_load(f)
 
-    assert (actual_ratio / eval_ratio) > 0.5, (
-        f"Expected the filtered dataset to be close to the specified eval_ratio of {eval_ratio}, "
-        f"but got an actual ratio of {actual_ratio:.2f} (filtered size: {filtered_size}, pre-filter size: {pre_filter_size})."
+    indices_cfg = cfg["eval_dataset"]["indices"]
+    if indices_cfg == "all":
+        eval_ratio = 1.0
+    else:
+        split_name = indices_cfg["split_name"]
+        eval_ratio = indices_cfg["split_ratios"][split_name]
+    raw_eval_dataset: torch.utils.data.Dataset = bench.eval_dataset
+    while hasattr(raw_eval_dataset, "dataset"):
+        raw_eval_dataset = raw_eval_dataset.dataset
+   
+    assert (
+        len(bench.eval_dataset) / (len(raw_eval_dataset) * eval_ratio) > 0.5
+    ), (
+        f"Expected eval_post_filter_ratio to be > 0.5, but got {len(bench.eval_dataset) / (len(raw_eval_dataset) * eval_ratio)}."
     )
 
     sanity_check_results = bench.sanity_check(batch_size=batch_size)
