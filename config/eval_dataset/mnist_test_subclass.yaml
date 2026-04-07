@@ -8,7 +8,7 @@ filter_indices:
 wrapper:
   type: "LabelGroupingDataset"
   metadata:
-      metadata_filename: "mnist_eval_unit_subclass.yaml"
+      metadata_filename: "mnist_eval_subclass_split.yaml"
       p: 1.0
       n_groups: 2
       class_to_group: "random"

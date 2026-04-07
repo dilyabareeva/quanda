@@ -121,7 +121,7 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 
 [tool.setuptools]
-py-modules = []
+packages = ["quanda"]
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
