@@ -5,7 +5,6 @@ import os
 import warnings
 from typing import Callable, List, Optional
 
-from datasets import config
 import lightning as L
 import torch
 import yaml
@@ -25,8 +24,8 @@ logger = logging.getLogger(__name__)
 def _get_i_subset_ckpt_postfix(i: int) -> str:
     """Get checkpoint postfix for subset model i."""
     return f"_lds_subset_{i}"
-    
-    
+
+
 class LinearDatamodeling(Benchmark):
     """Benchmark for the Linear Datamodeling Score metric.
 
@@ -138,9 +137,7 @@ class LinearDatamodeling(Benchmark):
                 batch_size=batch_size,
             )
 
-            local_ckpt_dir = (
-                f"{ckpt_dir}{_get_i_subset_ckpt_postfix(i)}"
-            )
+            local_ckpt_dir = f"{ckpt_dir}{_get_i_subset_ckpt_postfix(i)}"
             os.makedirs(local_ckpt_dir, exist_ok=True)
             if push_to_hub and len(os.listdir(local_ckpt_dir)) > 0:
                 warnings.warn(
@@ -153,7 +150,9 @@ class LinearDatamodeling(Benchmark):
             )
 
             if push_to_hub:
-                subset_model.push_to_hub(f"quanda-bench-test/{ckpt_str}{_get_i_subset_ckpt_postfix(i)}")
+                subset_model.push_to_hub(
+                    f"quanda-bench-test/{ckpt_str}{_get_i_subset_ckpt_postfix(i)}"
+                )
 
     @classmethod
     def train(
@@ -268,17 +267,13 @@ class LinearDatamodeling(Benchmark):
             "alpha": alpha,
             "cache_dir": config.get("cache_dir", "./tmp"),
             "model_id": config.get("model_id", "0"),
-            "correlation_fn": correlation_functions[
-                config["correlation_fn"]
-            ],
+            "correlation_fn": correlation_functions[config["correlation_fn"]],
             "seed": seed,
             "subset_ids": subset_ids,
             "subset_ckpt_filenames": subset_ckpt_filenames,
             "counterfactual_trainer": counterfactual_trainer,
             # TODO: make trainer_fit_kwargs available to all benchmarks
-            "trainer_fit_kwargs": config.get(
-                "trainer_fit_kwargs", None
-            ),
+            "trainer_fit_kwargs": config.get("trainer_fit_kwargs", None),
         }
 
     @classmethod

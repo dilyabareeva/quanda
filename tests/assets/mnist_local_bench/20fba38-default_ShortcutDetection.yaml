@@ -97,3 +97,5 @@ ckpts:
 - 20fba38-default_ShortcutDetection
 cfg_output_dir: tests/assets/mnist_local_bench
 cfg_file_name: 20fba38-default_ShortcutDetection.yaml
+filter_by_shortcut_pred: True
+filter_by_non_shortcut: True

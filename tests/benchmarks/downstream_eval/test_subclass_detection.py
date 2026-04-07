@@ -1,5 +1,3 @@
-import math
-
 import pytest
 import torch
 import yaml
@@ -8,16 +6,12 @@ from quanda.benchmarks.downstream_eval import (
     SubclassDetection,
 )
 from quanda.benchmarks.resources import config_map
-from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.utils.datasets.dataset_handlers import get_dataset_handler
-from quanda.utils.functions import cosine_similarity
 
 
-#@pytest.mark.production_bench
+# @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
     [
-
         "mnist_subclass_detection",
     ],
 )
@@ -34,7 +28,7 @@ def test_subclass_class_to_group(config_name, tmp_path):
 
     datasets = [bench.train_dataset, bench.eval_dataset]
     class_to_group = {}
-    
+
     mismatches = []
     for ds in datasets:
         for idx in range(len(ds)):
@@ -53,7 +47,8 @@ def test_subclass_class_to_group(config_name, tmp_path):
         f"to different transformed labels: {mismatches[:10]}"
     )
 
-#@pytest.mark.production_bench
+
+# @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
     [
@@ -82,19 +77,17 @@ def test_subclass_sanity_check_values(config_name, tmp_path):
     pre_filter_size = len(bench.train_dataset.dataset.dataset)
     filtered_size = len(bench.train_dataset.dataset)
     actual_ratio = filtered_size / pre_filter_size
-    
-    assert( actual_ratio / eval_ratio) > 0.5, (
+
+    assert (actual_ratio / eval_ratio) > 0.5, (
         f"Expected the filtered dataset to be close to the specified eval_ratio of {eval_ratio}, "
         f"but got an actual ratio of {actual_ratio:.2f} (filtered size: {filtered_size}, pre-filter size: {pre_filter_size})."
     )
-    
+
     sanity_check_results = bench.sanity_check(batch_size=batch_size)
-    
+
     assert sanity_check_results["train_acc"] > 0.9, (
         f"Expected train_acc to be > 0.9, but got {sanity_check_results['train_acc']}."
     )
     assert sanity_check_results["val_acc"] > 0.9, (
         f"Expected val_acc to be > 0.9, but got {sanity_check_results['val_acc']}."
     )
-
-    

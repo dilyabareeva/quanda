@@ -3,10 +3,13 @@ import os
 
 import pytest
 import torch
+import yaml
 
 from quanda.benchmarks.downstream_eval import ClassDetection
+from quanda.benchmarks.resources import config_map
 from quanda.explainers.wrappers import Kronfluence
 from quanda.utils.common import get_load_state_dict_func
+from quanda.utils.datasets.transformed import TransformedDataset
 
 
 @pytest.mark.benchmarks
@@ -46,15 +49,15 @@ def test_class_detection_kronfluence_vision(
     # Save current model state as checkpoint
     checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
     torch.save(model.state_dict(), checkpoint_path)
-    
+
     dst_eval = ClassDetection(
-        train_dataset = dataset,
-        device = "cpu",
-        eval_dataset = dataset,
-        model = model,
-        checkpoints = [checkpoint_path],
-        checkpoints_load_func = get_load_state_dict_func("cpu"),
-        use_predictions = config.get("use_predictions", True),
+        train_dataset=dataset,
+        device="cpu",
+        eval_dataset=dataset,
+        model=model,
+        checkpoints=[checkpoint_path],
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        use_predictions=config.get("use_predictions", True),
     )
 
     expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
@@ -101,15 +104,15 @@ def test_class_detection_kronfluence_text(
     # Save current model state as checkpoint
     checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
     torch.save(model.state_dict(), checkpoint_path)
-    
+
     dst_eval = ClassDetection(
-        train_dataset = train_dataset,
-        eval_dataset = test_dataset,
-        model = model,
-        device = "cpu",
-        use_predictions = True,
-        checkpoints = [checkpoint_path],
-        checkpoints_load_func = get_load_state_dict_func("cpu"),
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        model=model,
+        device="cpu",
+        use_predictions=True,
+        checkpoints=[checkpoint_path],
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
     )
 
     dst_eval.checkpoints = [checkpoint_path]
@@ -180,3 +183,32 @@ def test_class_detection_kronfluence_qnli(
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+# @pytest.mark.production_bench
+@pytest.mark.parametrize(
+    "config_name",
+    [
+        "mnist_class_detection",
+    ],
+)
+def test_class_detection_sanity_check_values(config_name, tmp_path):
+    """Verify model fitness: train/val accuracy and mislabeling
+    memorization are within expected bounds."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    batch_size = 8
+
+    bench = ClassDetection.load_pretrained(
+        bench_id=config_name,
+        cache_dir=str(tmp_path),
+        device=device,
+        offline=False,
+    )
+
+    sanity_check_results = bench.sanity_check(batch_size=batch_size)
+
+    assert sanity_check_results["train_acc"] > 0.95, (
+        f"Expected train_acc > 0.85, got {sanity_check_results['train_acc']}."
+    )
+    assert sanity_check_results["val_acc"] > 0.95, (
+        f"Expected val_acc > 0.85, got {sanity_check_results['val_acc']}."
+    )

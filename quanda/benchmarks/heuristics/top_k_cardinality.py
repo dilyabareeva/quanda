@@ -1,7 +1,7 @@
 """Top-K Cardinality benchmark module."""
 
 import logging
-from typing import Any, Callable, List, Optional, Union
+from typing import Optional, Union
 
 import datasets  # type: ignore
 import torch
@@ -56,9 +56,7 @@ class TopKCardinality(Benchmark):
     def _extra_kwargs_from_config(
         cls,
         config: dict,
-        train_dataset: Union[
-            torch.utils.data.Dataset, datasets.Dataset
-        ],
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         metadata_dir: str,
         load_meta_from_disk: bool,

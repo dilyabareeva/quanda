@@ -16,7 +16,11 @@ from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.resources.config_map import config_map
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
-from quanda.utils.common import DatasetSplit, class_accuracy, load_last_checkpoint
+from quanda.utils.common import (
+    DatasetSplit,
+    class_accuracy,
+    load_last_checkpoint,
+)
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 
 
@@ -375,11 +379,10 @@ class Benchmark(ABC):
 
         """
         return
-        
-        
+
     def _compute_and_save_filter_by_labels_and_prediction(
-        self, 
-        config: dict, 
+        self,
+        config: dict,
         batch_size: int = 8,
         filter_by_shortcut_pred: bool = False,
         shortcut_cls: Optional[int] = None,
@@ -411,7 +414,7 @@ class Benchmark(ABC):
             raise ValueError(
                 "shortcut_cls must be provided if filter_by_shortcut_pred is True."
             )
-            
+
         if filter_by_non_shortcut and shortcut_cls is None:
             raise ValueError(
                 "shortcut_cls must be provided if filter_by_non_shortcut is True."
@@ -430,7 +433,7 @@ class Benchmark(ABC):
             )
             pred_cls = ds_handler.get_predictions(outputs=outputs)
             select_idx = torch.tensor([True] * len(pred_cls)).to(inputs.device)
-            if filter_by_shortcut_pred: 
+            if filter_by_shortcut_pred:
                 select_idx *= pred_cls == shortcut_cls
             if filter_by_non_shortcut:
                 select_idx *= labels != shortcut_cls
@@ -442,8 +445,11 @@ class Benchmark(ABC):
             torch.tensor(select_indices), as_tuple=False
         )
         self.save_filtered_indices(config, filter_indices)
+        self.eval_dataset.apply_filter(filter_indices)
 
-    def save_filtered_indices(self, config: dict, filter_indices: torch.Tensor):
+    def save_filtered_indices(
+        self, config: dict, filter_indices: torch.Tensor
+    ):
         """Persist ``filter_indices`` to the metadata directory.
 
         Reads the filter-indices filename from ``config['eval_dataset']
@@ -472,16 +478,15 @@ class Benchmark(ABC):
         filter_cfg = eval_ds_cfg.get("filter_indices")
         split = DatasetSplit({filter_cfg["split_name"]: filter_indices})
         split.save(metadata_dir, filter_cfg["split_filename"])
-            
+
     def load_last_checkpoint(self):
         """Load the last checkpoint into the model."""
-
         load_last_checkpoint(
             model=self.model,
             checkpoints=self.checkpoints,
             checkpoints_load_func=self.checkpoints_load_func,
         )
-        
+
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute training and validation accuracy of the model.
 
@@ -499,7 +504,7 @@ class Benchmark(ABC):
         results = {}
 
         self.load_last_checkpoint()
-        
+
         train_dl = torch.utils.data.DataLoader(
             self.train_dataset,
             batch_size=batch_size,

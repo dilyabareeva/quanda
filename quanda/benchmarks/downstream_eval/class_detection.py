@@ -3,6 +3,8 @@
 import logging
 from typing import Optional
 
+import torch
+
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval import ClassDetectionMetric
 
@@ -34,6 +36,41 @@ class ClassDetection(Benchmark):
     name: str = "Class Detection"
     eval_args = ["test_data", "test_targets", "explanations"]
 
+    def __init__(
+        self,
+        *args,
+        filter_by_prediction: bool = False,
+        **kwargs,
+    ):
+        """Initialize the Subclass Detection benchmark.
+
+        Parameters
+        ----------
+        filter_by_prediction : bool, optional
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the correct superclass is predicted, by
+            default False.
+        **kwargs
+            Arguments passed to the base Benchmark class.
+
+        """
+        super().__init__(*args, **kwargs)
+        self.filter_by_prediction = filter_by_prediction
+        
+    @classmethod
+    def _extra_kwargs_from_config(
+        cls,
+        config: dict,
+        train_dataset: torch.utils.data.Dataset,
+        eval_dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract class detection kwargs from config."""
+        return {
+            "filter_by_prediction": config.get("filter_by_prediction", False),
+        }
+        
     def evaluate(
         self,
         explainer_cls: type,

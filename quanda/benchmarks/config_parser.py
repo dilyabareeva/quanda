@@ -1,7 +1,6 @@
 """Configuration parser for benchmarks."""
 
 import copy
-import logging
 import os
 from typing import Any, Callable, List, Optional, Tuple, Union
 
@@ -122,11 +121,11 @@ class BenchConfigParser:
             ckpt = ckpt_str.split("/")[-1]
             ckpt_dir = os.path.join(checkpoint_path, ckpt)
             if os.path.exists(os.path.join(ckpt_dir, "config.json")):
-                pretrained_model_name_or_path=ckpt_dir
+                pretrained_model_name_or_path = ckpt_dir
                 cache_dir = None
             else:
-                pretrained_model_name_or_path=ckpt_str
-                cache_dir=ckpt_dir
+                pretrained_model_name_or_path = ckpt_str
+                cache_dir = ckpt_dir
 
             try:
                 pretrained_model = module_cls.from_pretrained(
@@ -286,9 +285,7 @@ class BenchConfigParser:
             )
             final_indices = split[split_name]
 
-        base_dataset = torch.utils.data.Subset(
-            base_dataset, final_indices
-        )
+        base_dataset = torch.utils.data.Subset(base_dataset, final_indices)
 
         return base_dataset
 
@@ -306,21 +303,17 @@ class BenchConfigParser:
             filter_filename = filter_indices_cfg.get(
                 "split_filename", "DOESNT_EXIST"
             )
-            filter_split_name = filter_indices_cfg.get(
-                "split_name", "default"
-            )
+            filter_split_name = filter_indices_cfg.get("split_name", "default")
             if (
                 DatasetSplit.exists(metadata_dir, filter_filename)
                 and load_meta_from_disk
             ):
-                filter_split = DatasetSplit.load(
-                    metadata_dir, filter_filename
-                )
+                filter_split = DatasetSplit.load(metadata_dir, filter_filename)
                 filter_indices = filter_split[filter_split_name].flatten()
                 dataset.apply_filter(filter_indices)
                 return dataset
         return dataset
-                
+
     @classmethod
     def _apply_wrapper(
         cls,
@@ -519,16 +512,14 @@ class BenchConfigParser:
         logger = instantiate(logger_cfg)
 
         return logger
-    
+
     @classmethod
     def save_metadata(cls, ds_config, metadata, metadata_dir):
         """Save new metadata to disk."""
-            # save new transform indices into metadata dir
+        # save new transform indices into metadata dir
         wrapper_cfg = ds_config.get("wrapper", {})
         meta_filename = wrapper_cfg.get("metadata", {}).get(
             "metadata_filename"
         )
         if meta_filename is not None:
-            metadata.save(
-                metadata_dir, meta_filename
-            )
+            metadata.save(metadata_dir, meta_filename)

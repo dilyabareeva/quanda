@@ -133,9 +133,7 @@ class MixedDatasets(Benchmark):
             [adv_base_dataset, train_base_dataset]
         )
         datasets_to_concat = [
-            d
-            for d in [adv_val_dataset, val_base_dataset]
-            if d is not None
+            d for d in [adv_val_dataset, val_base_dataset] if d is not None
         ]
         val_dataset = (
             None
@@ -143,9 +141,9 @@ class MixedDatasets(Benchmark):
             else torch.utils.data.ConcatDataset(datasets_to_concat)
         )
 
-        adversarial_indices = [1] * len(adv_base_dataset) + [
-            0
-        ] * len(train_base_dataset)
+        adversarial_indices = [1] * len(adv_base_dataset) + [0] * len(
+            train_base_dataset
+        )
 
         model, checkpoints, checkpoints_load_func = (
             BenchConfigParser.parse_model_cfg(
@@ -169,9 +167,7 @@ class MixedDatasets(Benchmark):
             use_predictions=config.get("use_predictions", False),
             adversarial_label=config["adversarial_label"],
             adversarial_indices=adversarial_indices,
-            filter_by_prediction=config.get(
-                "filter_by_prediction", False
-            ),
+            filter_by_prediction=config.get("filter_by_prediction", False),
         )
 
     def sanity_check(self, batch_size: int = 32) -> dict:
@@ -212,10 +208,10 @@ class MixedDatasets(Benchmark):
             shuffle=False,
         )
 
-        results["adversarial_memorization"] = class_accuracy(
+        results["train_adversarial_memorization"] = class_accuracy(
             self.model, train_dl, self.device
         )
-        results["eval_adversarial_classification"] = class_accuracy(
+        results["eval_adversarial_memorization"] = class_accuracy(
             self.model, eval_dl, self.device
         )
 
@@ -260,7 +256,7 @@ class MixedDatasets(Benchmark):
             train_dataset=self.train_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
             adversarial_indices=self.adversarial_indices,
-            filter_by_prediction=self.filter_by_prediction,
+            filter_by_prediction=False,  # the dataset is already filtered
             adversarial_label=self.adversarial_label,
         )
 
@@ -283,8 +279,7 @@ class MixedDatasets(Benchmark):
 
         """
         super()._compute_and_save_filter_by_labels_and_prediction(
-            config=config, 
+            config=config,
             batch_size=batch_size,
             filter_by_prediction=self.filter_by_prediction,
         )
-        

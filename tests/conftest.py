@@ -310,16 +310,12 @@ def load_mnist_test_labels_1():
 
 @pytest.fixture
 def load_mnist_explanations_similarity_1():
-    return torch.load(
-        "tests/assets/tda/mnist_SimilarityInfluence_tda.pt"
-    )
+    return torch.load("tests/assets/tda/mnist_SimilarityInfluence_tda.pt")
 
 
 @pytest.fixture
 def load_mnist_explanations_dot_similarity_1():
-    return torch.load(
-        "tests/assets/tda/mnist_SimilarityInfluence_dot_tda.pt"
-    )
+    return torch.load("tests/assets/tda/mnist_SimilarityInfluence_dot_tda.pt")
 
 
 @pytest.fixture

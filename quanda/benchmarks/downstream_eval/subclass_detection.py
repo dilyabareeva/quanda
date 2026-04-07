@@ -60,11 +60,14 @@ class SubclassDetection(Benchmark):
 
         # Ensure all datasets use the same class_to_group mapping.
         if class_to_group is not None:
-            for ds in (self.train_dataset, self.eval_dataset,
-                       self.val_dataset):
+            for ds in (
+                self.train_dataset,
+                self.eval_dataset,
+                self.val_dataset,
+            ):
                 if isinstance(ds, LabelGroupingDataset):
                     ds.class_to_group = class_to_group
-    
+
     @classmethod
     def _extra_kwargs_from_config(
         cls,
@@ -81,9 +84,7 @@ class SubclassDetection(Benchmark):
             )
         return {
             "class_to_group": train_dataset.class_to_group,
-            "filter_by_prediction": config.get(
-                "filter_by_prediction", False
-            ),
+            "filter_by_prediction": config.get("filter_by_prediction", False),
         }
 
     def evaluate(
@@ -165,9 +166,7 @@ class SubclassDetection(Benchmark):
 
         """
         super()._compute_and_save_filter_by_labels_and_prediction(
-            config=config, 
+            config=config,
             batch_size=batch_size,
             filter_by_prediction=self.filter_by_prediction,
         )
-        
-        

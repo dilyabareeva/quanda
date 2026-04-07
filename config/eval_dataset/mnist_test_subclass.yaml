@@ -3,7 +3,7 @@ dataset_split: test
 transforms: "mnist_transforms"
 indices: "all"
 filter_indices:
-  split_filename: "mnist_eval_subclass_split.yaml"
+  split_filename: "mnist_eval_subclass_filter.yaml"
   split_name: default
 wrapper:
   type: "LabelGroupingDataset"

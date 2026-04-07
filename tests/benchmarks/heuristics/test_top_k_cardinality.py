@@ -50,7 +50,7 @@ def test_top_k_cardinality_kronfluence_text(
         device="cpu",
         use_predictions=True,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
-        checkpoints = [checkpoint_path],
+        checkpoints=[checkpoint_path],
     )
     dst_eval.top_k = 5
 
@@ -101,7 +101,7 @@ def test_top_k_cardinality_kronfluence_qnli(
     # Save current model state as checkpoint
     checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
     torch.save(model.state_dict(), checkpoint_path)
-    
+
     dst_eval = TopKCardinality(
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
@@ -109,7 +109,7 @@ def test_top_k_cardinality_kronfluence_qnli(
         device="cpu",
         use_predictions=True,
         checkpoints_load_func=get_load_state_dict_func("cpu"),
-        checkpoints = [checkpoint_path]
+        checkpoints=[checkpoint_path],
     )
     dst_eval.top_k = 2
 

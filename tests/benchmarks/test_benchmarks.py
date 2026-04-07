@@ -1,12 +1,11 @@
 """Contains tests common to all benchmarks."""
 
-import math
 import os
 
-import yaml
 import pytest
-from omegaconf import OmegaConf
 import torch
+import yaml
+from omegaconf import OmegaConf
 
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.downstream_eval import (
@@ -25,6 +24,7 @@ from quanda.benchmarks.resources import config_map
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import cosine_similarity
+
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
@@ -123,7 +123,7 @@ def test_load(
         batch_size=8,
     )["score"]
 
-    #assert math.isclose(score, expected_score, abs_tol=0.00001)
+    # assert math.isclose(score, expected_score, abs_tol=0.00001)
     assert score is not None
 
 
@@ -513,11 +513,15 @@ def test_logger(
     logger.log_metrics({"test": 1})
 
 
+# @pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name,bench_cls",
     [
         ("mnist_shortcut_detection_unit", ShortcutDetection),
         ("mnist_mixed_datasets_unit", MixedDatasets),
+        ("mnist_subclass_detection", SubclassDetection),
+        ("mnist_mislabeling_detection", MislabelingDetection),
+        ("mnist_class_detection", ClassDetection),
     ],
 )
 def test_benchmark_filters(config_name, bench_cls, tmp_path):
@@ -529,7 +533,7 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
     # Load the benchmark configuration
     with open(bench_yaml, "r") as f:
         cfg = yaml.safe_load(f)
-            
+
     filter_by_prediction = cfg.get("filter_by_prediction", False)
 
     bench = bench_cls.load_pretrained(
@@ -539,17 +543,16 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
         offline=False,
     )
     bench.load_last_checkpoint()
-    
+
     ds_handler = get_dataset_handler(dataset=bench.eval_dataset)
     expl_dl = ds_handler.create_dataloader(
         dataset=bench.eval_dataset,
         batch_size=batch_size,
         shuffle=False,
     )
-    
+
     total, correct = 0, 0
     for i, batch in enumerate(expl_dl):
-                
         inputs, labels = ds_handler.process_batch(
             batch=batch,
             device=device,
@@ -568,12 +571,12 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
         )
         pred_cls = ds_handler.get_predictions(outputs=outputs)
         correct_idx *= pred_cls != labels
-            
+
         correct += correct_idx.sum().item()
         total += len(pred_cls)
 
     pct = correct / total
-    assert pct == 1., (
+    assert pct == 1.0, (
         f"Expected the filtered samples to match the criteria, "
         f"but {total - correct:.0f}/{total} samples did not match "
         f"(pct={pct:.4f})."

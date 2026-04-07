@@ -13,5 +13,5 @@ wrapper:
   type: "LabelFlippingDataset"
   metadata:
       metadata_filename: "mnist_train_unit_mislabeling.yaml"
-      p: 0.1
+      p: 0.2
       seed: 43

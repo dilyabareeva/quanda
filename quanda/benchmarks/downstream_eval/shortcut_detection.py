@@ -4,19 +4,15 @@ from typing import List, Optional
 
 import torch
 from torch.utils.data import Subset
-import lightning as L
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
 from quanda.utils.common import (
     DatasetSplit,
     class_accuracy,
-    load_last_checkpoint,
 )
-from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
 )
@@ -56,6 +52,7 @@ class ShortcutDetection(Benchmark):
     def __init__(
         self,
         *args,
+        len_eval_pre_filter: int,
         shortcut_cls: int = 0,
         filter_by_non_shortcut: bool = False,
         filter_by_shortcut_pred: bool = False,
@@ -66,6 +63,9 @@ class ShortcutDetection(Benchmark):
 
         Parameters
         ----------
+        len_eval_pre_filter: int
+            Length of the evaluation dataset before filtering, needed to compute
+            the percentage of samples filtered.
         shortcut_cls : int
             The class index used as the shortcut target.
         filter_by_non_shortcut : bool
@@ -88,6 +88,7 @@ class ShortcutDetection(Benchmark):
         self.filter_by_non_shortcut = filter_by_non_shortcut
         self.filter_by_shortcut_pred = filter_by_shortcut_pred
         self.filter_indices = filter_indices
+        self.len_eval_pre_filter = len_eval_pre_filter
 
     @classmethod
     def _extra_kwargs_from_config(
@@ -111,8 +112,7 @@ class ShortcutDetection(Benchmark):
             )
 
         assert train_dataset.metadata.cls_idx is not None, (
-            "The training dataset must have a class index in its "
-            "metadata."
+            "The training dataset must have a class index in its metadata."
         )
 
         eval_ds_config = config["eval_dataset"]
@@ -120,9 +120,7 @@ class ShortcutDetection(Benchmark):
         filter_indices = None
 
         if (
-            DatasetSplit.exists(
-                metadata_dir, eval_indices["split_filename"]
-            )
+            DatasetSplit.exists(metadata_dir, eval_indices["split_filename"])
             and load_meta_from_disk
         ):
             filter_indices = DatasetSplit.load(
@@ -130,13 +128,26 @@ class ShortcutDetection(Benchmark):
                 name=eval_indices["split_filename"],
             )[eval_indices["split_name"]]
 
+        indices_cfg = config["eval_dataset"]["indices"]
+        if indices_cfg == "all":
+            eval_ratio = 1.0
+        else: 
+            split_name = indices_cfg["split_name"]
+            eval_ratio = indices_cfg["split_ratios"][split_name]
+        raw_eval_dataset = eval_dataset
+        while hasattr(raw_eval_dataset, "dataset"):
+            raw_eval_dataset = raw_eval_dataset.dataset           
+    
         return {
             "shortcut_cls": train_dataset.metadata.cls_idx,
             "filter_by_non_shortcut": config.get(
                 "filter_by_non_shortcut", False
             ),
-            "filter_by_shortcut_pred": config.get("filter_by_shortcut_pred", False),
+            "filter_by_shortcut_pred": config.get(
+                "filter_by_shortcut_pred", False
+            ),
             "filter_indices": filter_indices,
+            "len_eval_pre_filter": int(len(raw_eval_dataset) * eval_ratio),
         }
 
     def sanity_check(self, batch_size: int = 32) -> dict:
@@ -170,8 +181,15 @@ class ShortcutDetection(Benchmark):
         results["train_shortcut_memorization"] = class_accuracy(
             self.model, train_dl, self.device
         )
+
+        results["eval_post_filter_ratio"] = (
+            len(self.eval_dataset) / self.len_eval_pre_filter
+        )
         results["eval_shortcut_memorization"] = class_accuracy(
-            self.model, eval_dl, single_class=self.shortcut_cls, device=self.device
+            self.model,
+            eval_dl,
+            single_class=self.shortcut_cls,
+            device=self.device,
         )
 
         return results

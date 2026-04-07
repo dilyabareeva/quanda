@@ -1,7 +1,7 @@
 """Model Randomization benchmark module."""
 
 import logging
-from typing import Any, Callable, List, Optional
+from typing import Callable, Optional
 
 import torch
 
@@ -77,9 +77,7 @@ class ModelRandomization(Benchmark):
     ) -> dict:
         """Extract model randomization kwargs from config."""
         return {
-            "correlation_fn": correlation_functions[
-                config["correlation_fn"]
-            ],
+            "correlation_fn": correlation_functions[config["correlation_fn"]],
             "model_id": config.get("model_id", "0"),
             "cache_dir": config.get("cache_dir", "./tmp"),
             "seed": config["seed"],

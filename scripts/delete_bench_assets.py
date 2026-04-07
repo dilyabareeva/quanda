@@ -1,6 +1,6 @@
 """Delete all HuggingFace Hub repos under quanda-bench-test."""
 
-from huggingface_hub import HfApi, list_models, list_datasets
+from huggingface_hub import HfApi, list_datasets, list_models
 
 NAMESPACE = "quanda-bench-test"
 

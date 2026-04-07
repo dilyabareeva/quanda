@@ -73,7 +73,7 @@ alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
 - e6d2f55-default_ShortcutDetection
-filter_by_class: true
+filter_by_shortcut_pred: true
 filter_by_prediction: true
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: e6d2f55-default_ShortcutDetection.yaml
