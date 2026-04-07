@@ -1,32 +1,17 @@
 import os
 
 import pytest
-
-# END8
-# START11
 import yaml
-
-# START1
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-# END1
-# START5
 from quanda.benchmarks.downstream_eval import (
     MislabelingDetection,
     SubclassDetection,
 )
-
-# END5
-# START8
 from quanda.benchmarks.heuristics import TopKCardinality
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.heuristics import ModelRandomizationMetric
-
-# END11
-
-# START13_1
-# END13_1
 
 
 @pytest.mark.skipif(

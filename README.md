@@ -187,17 +187,14 @@ We now create our explainer. The device to be used by the explainer and metrics 
 ```python
 DEVICE = "cpu"
 model.to(DEVICE)
-cache_dir = "quanda_benchmark_quickstart_cache"
 
 explainer_kwargs = {
     "layers": "fc_2",
     "model_id": "default_model_id",
-    "cache_dir": cache_dir
+    "cache_dir": cache_dir,
 }
 explainer = CaptumSimilarity(
-    model=model,
-    train_dataset=dataset,
-    **explainer_kwargs
+    model=model, train_dataset=dataset, **explainer_kwargs
 )
 ```
 <!-- END2 -->
@@ -213,7 +210,7 @@ The `ModelRandomizationMetric` needs to instantiate a new explainer to generate 
 explainer_kwargs = {
     "layers": "fc_2",
     "model_id": "randomized_model_id",
-    "cache_dir": cache_dir
+    "cache_dir": cache_dir,
 }
 model_rand = ModelRandomizationMetric(
     model=model,
@@ -240,12 +237,10 @@ test_loader = DataLoader(eval_set, batch_size=batch_size, shuffle=False)
 for test_data, _ in tqdm(test_loader):
     test_data = test_data.to(DEVICE)
     target = model(test_data).argmax(dim=-1)
-    tda = explainer.explain(
-        test_data=test_data,
-        targets=target
+    tda = explainer.explain(test_data=test_data, targets=target)
+    model_rand.update(
+        explanations=tda, test_data=test_data, test_targets=target
     )
-    model_rand.update(explanations=tda,
-                      test_data=test_data, test_targets=target)
 
 print("Randomization metric output:", model_rand.compute())
 ```
@@ -335,7 +330,7 @@ model.to(DEVICE)
 explainer_kwargs = {
     "layers": "fc_2",
     "model_id": "default_model_id",
-    "cache_dir": cache_dir
+    "cache_dir": cache_dir,
 }
 ```
 <!-- END9 -->
@@ -349,14 +344,13 @@ We now have everything we need, we can just assemble the benchmark and run it. T
 <!-- START10 -->
 ```python
 with open(
-    "tests/assets/mnist_local_bench/124bfe7-default_TopKCardinality.yaml",
+    "tests/assets/mnist_local_bench/20fba38-default_TopKCardinality.yaml",
     "r",
 ) as f:
     top_k_config = yaml.safe_load(f)
 
 topk_cardinality = TopKCardinality.from_config(
     top_k_config,
-
 )
 score = topk_cardinality.evaluate(
     explainer_cls=CaptumSimilarity,
@@ -398,7 +392,7 @@ model.to(DEVICE)
 explainer_kwargs = {
     "layers": "fc_2",
     "model_id": "top_k_model",
-    "cache_dir": cache_dir
+    "cache_dir": cache_dir,
 }
 ```
 <!-- END12 -->
@@ -429,7 +423,7 @@ We can now call the `generate` method to instantiate our `MislabelingDetection` 
 <!-- START14 -->
 ```python
 with open(
-    "tests/assets/mnist_local_bench/124bfe7-default_MislabelingDetection.yaml",
+    "tests/assets/mnist_local_bench/20fba38-default_MislabelingDetection.yaml",
     "r",
 ) as f:
     mislabel_config = yaml.safe_load(f)
