@@ -71,6 +71,6 @@ m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
-- e8f0516-default_MislabelingDetection
+- quanda-bench-test/e8f0516-default_MislabelingDetection
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: e8f0516-default_MislabelingDetection.yaml

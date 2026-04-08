@@ -77,6 +77,6 @@ m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
-- 20fba38-default_MislabelingDetection
+- quanda-bench-test/20fba38-default_MislabelingDetection
 cfg_output_dir: tests/assets/unit_bench_cfgs
 cfg_file_name: 20fba38-default_MislabelingDetection.yaml

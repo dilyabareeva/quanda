@@ -182,7 +182,6 @@ class Benchmark(ABC):
             BenchConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
-                repo_id=config["repo_id"],
                 ckpts=config["ckpts"],
                 load_model_from_disk=offline,
                 device=device,

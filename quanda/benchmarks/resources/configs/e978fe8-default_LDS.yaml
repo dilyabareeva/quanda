@@ -65,6 +65,6 @@ m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
-- e978fe8-default_LDS
+- quanda-bench-test/e978fe8-default_LDS
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: e978fe8-default_LDS.yaml

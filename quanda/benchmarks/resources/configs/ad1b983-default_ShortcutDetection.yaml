@@ -94,7 +94,7 @@ m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
-- ad1b983-default_ShortcutDetection
+- quanda-bench-test/ad1b983-default_ShortcutDetection
 filter_by_shortcut_pred: true
 filter_by_non_shortcut: true
 cfg_output_dir: quanda/benchmarks/resources/configs

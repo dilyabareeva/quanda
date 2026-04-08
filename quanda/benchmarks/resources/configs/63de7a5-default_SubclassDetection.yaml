@@ -92,6 +92,6 @@ m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
-- 63de7a5-default_SubclassDetection
+- quanda-bench-test/63de7a5-default_SubclassDetection
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: 63de7a5-default_SubclassDetection.yaml

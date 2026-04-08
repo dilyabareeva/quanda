@@ -76,7 +76,6 @@ def test_mislabeling_detection(
         BenchConfigParser.parse_model_cfg(
             config["model"],
             config["bench_save_dir"],
-            config["repo_id"],
             config["ckpts"],
             load_model_from_disk=True,
             device="cpu",

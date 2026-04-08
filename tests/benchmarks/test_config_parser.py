@@ -33,7 +33,6 @@ def test_load_ckpt_from_hf(
     model, ckpt, load_fn = BenchConfigParser.parse_model_cfg(
         config["model"],
         str(tmp_path),
-        config["repo_id"],
         config["ckpts"],
         False,
         "cpu",
@@ -44,7 +43,6 @@ def test_load_ckpt_from_hf(
     model, ckpt, load_fn = BenchConfigParser.parse_model_cfg(
         config["model"],
         str(tmp_path),
-        config["repo_id"],
         config["ckpts"],
         True,
         "cpu",

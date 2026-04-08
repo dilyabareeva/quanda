@@ -45,11 +45,10 @@ class BenchConfigParser:
         metadata_dir: str = ".tmp/meta",
     ):
         """Load metadata from the given configuration."""
-        meta_id = cfg.get("meta_id", f"{cfg['id']}_metadata")
-        repo_id = f"{cfg['repo_id']}/{meta_id}"
+        meta_id = cfg.get("meta_id", f"{cfg['repo_id']}/{cfg['id']}_metadata")
 
         return snapshot_download(
-            repo_id=repo_id, local_dir=metadata_dir, repo_type="dataset"
+            repo_id=meta_id, local_dir=metadata_dir, repo_type="dataset"
         )
 
     @classmethod
@@ -80,7 +79,6 @@ class BenchConfigParser:
         cls,
         model_cfg: dict,
         bench_save_dir: str,
-        repo_id: str,
         ckpts: List[str],
         load_model_from_disk: bool,
         device: str,
@@ -93,8 +91,6 @@ class BenchConfigParser:
             Model configuration dictionary
         bench_save_dir : str
             Path to checkpoint directory "ckpt".
-        repo_id : str
-            Repo ID Hugging Face
         ckpts: List[str]
             File names of checkpoints.
         load_model_from_disk : bool
@@ -115,7 +111,7 @@ class BenchConfigParser:
         module = module_cls(**module_cfg["args"])
 
         checkpoint_path = os.path.join(bench_save_dir, "ckpt")
-        ckpt_ids = [f"{repo_id}/{ckpt}" for ckpt in ckpts]
+        ckpt_ids = [f"{ckpt}" for ckpt in ckpts]
 
         if not hasattr(module_cls, "from_pretrained"):
             raise ValueError(f"Model class {module_cls} is not HF compatible.")

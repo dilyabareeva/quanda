@@ -160,7 +160,7 @@ class LinearDatamodeling(Benchmark):
 
             if push_to_hub:
                 subset_model.push_to_hub(
-                    f"{repo_id}/{ckpt_str}{_get_i_subset_ckpt_postfix(i)}"
+                    f"{ckpt_str}{_get_i_subset_ckpt_postfix(i)}"
                 )
 
     @classmethod
@@ -239,7 +239,7 @@ class LinearDatamodeling(Benchmark):
         repo_id = config["repo_id"]
 
         subset_ckpt_filenames = [
-            f"{repo_id}/{ckpt}{_get_i_subset_ckpt_postfix(i)}" for i in range(m)
+            f"{ckpt}{_get_i_subset_ckpt_postfix(i)}" for i in range(m)
         ]
         counterfactual_trainer_cfg = config.get(
             "counterfactual_trainer",

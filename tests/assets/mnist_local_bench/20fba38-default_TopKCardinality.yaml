@@ -65,6 +65,6 @@ m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
-- 20fba38-default_ClassDetection
+- quanda-bench-test/20fba38-default_ClassDetection
 cfg_output_dir: tests/assets/mnist_local_bench
 cfg_file_name: 20fba38-default_ClassDetection.yaml

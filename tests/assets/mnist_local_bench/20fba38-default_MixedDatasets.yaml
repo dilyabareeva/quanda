@@ -68,7 +68,7 @@ m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
-- 20fba38-default_MixedDatasets
+- quanda-bench-test/20fba38-default_MixedDatasets
 adv_dataset:
   single_class_dataset: true
   label: 0
