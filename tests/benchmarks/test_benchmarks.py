@@ -1,5 +1,6 @@
 """Contains tests common to all benchmarks."""
 
+import math
 import os
 
 import pytest
@@ -38,7 +39,7 @@ from quanda.utils.functions import cosine_similarity
             MixedDatasets,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.017241379246115685,
+            0.007874015718698502,
         ),
         (
             "mnist",
@@ -48,7 +49,7 @@ from quanda.utils.functions import cosine_similarity
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.31067201495170593,
+            0.051058314740657806,
         ),
         (
             "mnist",
@@ -58,7 +59,7 @@ from quanda.utils.functions import cosine_similarity
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.44353821873664856,
+            0.8569128513336182,
         ),
         (
             "mnist",
@@ -68,7 +69,7 @@ from quanda.utils.functions import cosine_similarity
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.62,
+            0.548,
         ),
         (
             "mnist",
@@ -78,7 +79,7 @@ from quanda.utils.functions import cosine_similarity
             ClassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.9300000071525574,
+            0.8100000023841858,
         ),
         (
             "mnist",
@@ -88,7 +89,7 @@ from quanda.utils.functions import cosine_similarity
             SubclassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.25,
+            0.12999999523162842,
         ),
     ],
 )
@@ -123,8 +124,7 @@ def test_load(
         batch_size=8,
     )["score"]
 
-    # assert math.isclose(score, expected_score, abs_tol=0.00001)
-    assert score is not None
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.benchmarks
@@ -139,7 +139,7 @@ def test_load(
             MixedDatasets,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.0714285746216774,
+            0.007874015718698502,
         ),
         (
             "mnist-class",
@@ -149,7 +149,7 @@ def test_load(
             ClassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.9399999976158142,
+            0.8100000023841858,
         ),
         (
             "mnist-mislabeling",
@@ -159,7 +159,7 @@ def test_load(
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.44353821873664856,
+            0.45566120743751526,
         ),
         (
             "mnist-mislabeling-download",
@@ -169,7 +169,7 @@ def test_load(
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.44353821873664856,
+            0.45566120743751526,
         ),
         (
             "mnist-shortcut",
@@ -179,7 +179,7 @@ def test_load(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.13973388075828552,
+            0.22792746126651764,
         ),
         (
             "mnist-shortcut-download",
@@ -189,7 +189,7 @@ def test_load(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.13973388075828552,
+            0.22792746126651764,
         ),
         (
             "mnist-subclass",
@@ -199,7 +199,7 @@ def test_load(
             SubclassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.20000000298023224,
+            0.18000000715255737,
         ),
         (
             "mnist-linear-datamodeling",
@@ -209,7 +209,7 @@ def test_load(
             LinearDatamodeling,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            -0.07333333790302277,
+            0.0833333432674408,
         ),
         (
             "mnist-top-k",
@@ -219,7 +219,7 @@ def test_load(
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.602,
+            0.548,
         ),
         (
             "mnist-rand",
@@ -229,7 +229,7 @@ def test_load(
             ModelRandomization,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.24761253595352173,
+            0.3090123236179352,
         ),
     ],
 )
@@ -266,7 +266,7 @@ def test_bench_from_config(
         batch_size=8,
     )["score"]
 
-    assert score is not None
+    assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
 @pytest.mark.tested

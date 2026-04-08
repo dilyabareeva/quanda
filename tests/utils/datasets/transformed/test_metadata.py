@@ -34,7 +34,7 @@ def test_mislabeling_detection(
         seed=config["train_dataset"]["wrapper"]["metadata"]["seed"],
     )
 
-    base_dataset = BenchConfigParser.process_dataset(
+    base_dataset = BenchConfigParser._parse_hf_dataset(
         dataset=config["train_dataset"]["dataset_str"],
         transform=None,
         dataset_split=config["train_dataset"]["dataset_split"],

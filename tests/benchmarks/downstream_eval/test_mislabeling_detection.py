@@ -58,7 +58,7 @@ def test_mislabeling_detection(
         seed=config["train_dataset"]["wrapper"]["metadata"]["seed"],
     )
     train_dataset = LabelFlippingDataset(
-        dataset=BenchConfigParser.process_dataset(
+        dataset=BenchConfigParser._parse_hf_dataset(
             dataset=config["train_dataset"]["dataset_str"],
             transform=sample_transforms[config["train_dataset"]["transforms"]],
             dataset_split=config["train_dataset"]["dataset_split"],
@@ -66,7 +66,7 @@ def test_mislabeling_detection(
         metadata=train_metadata,
     )
 
-    eval_dataset = BenchConfigParser.process_dataset(
+    eval_dataset = BenchConfigParser._parse_hf_dataset(
         dataset=config["eval_dataset"]["dataset_str"],
         transform=sample_transforms[config["eval_dataset"]["transforms"]],
         dataset_split=config["eval_dataset"]["dataset_split"],

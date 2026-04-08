@@ -5,6 +5,7 @@ import os
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 import torch
+import datasets as hf_datasets
 from datasets import load_dataset  # type: ignore
 from huggingface_hub import snapshot_download
 
@@ -16,6 +17,7 @@ from quanda.utils.datasets.transformed import (
     TransformedDataset,
     transform_wrappers,
 )
+from quanda.utils.tokenization import tokenize_dataset
 from quanda.utils.training import Trainer
 from quanda.utils.training.options import criteria, optimizers, schedulers
 
@@ -196,7 +198,7 @@ class BenchConfigParser:
     ) -> torch.utils.data.Dataset:
         """Load dataset based on configuration."""
         if "single_class_dataset" not in ds_config:
-            return cls._load_hf_dataset(
+            return cls._load_hf_dataset_from_config(
                 ds_config, metadata_dir, load_meta_from_disk, reuse_split
             )
         elif ds_config["single_class_dataset"]:
@@ -207,19 +209,21 @@ class BenchConfigParser:
             raise ValueError("Dataset configuration not recognized.")
 
     @classmethod
-    def _load_hf_dataset(
+    def _load_hf_dataset_from_config(
         cls,
         ds_config: dict,
         metadata_dir: str,
         load_meta_from_disk: bool = True,
         reuse_split: bool = False,
-    ) -> torch.utils.data.Dataset:
+    ) -> Union[torch.utils.data.Dataset, hf_datasets.Dataset]:
         """Load a HuggingFace dataset based on configuration."""
         transform = cls._get_transform(ds_config)
-        base_dataset = cls.process_dataset(
+        tokenizer_cfg = ds_config.get("tokenizer", None)
+        base_dataset = cls._parse_hf_dataset(
             dataset=ds_config["dataset_str"],
             transform=transform,
             dataset_split=ds_config.get("dataset_split", "train"),
+            tokenizer_cfg=tokenizer_cfg,
         )
         load_split = load_meta_from_disk or reuse_split
         return cls._apply_indices(
@@ -263,12 +267,13 @@ class BenchConfigParser:
     @classmethod
     def _apply_indices(
         cls,
-        base_dataset: torch.utils.data.Dataset,
+        base_dataset: Union[torch.utils.data.Dataset, hf_datasets.Dataset],
         ds_config: dict,
         metadata_dir: str,
         load_meta_from_disk: bool = True,
-    ) -> torch.utils.data.Dataset:
+    ) -> Union[torch.utils.data.Dataset, hf_datasets.Dataset]:
         """Apply indices to the dataset based on configuration."""
+
         indices = copy.deepcopy(ds_config.get("indices", "all"))
         final_indices = list(range(ds_len(base_dataset)))
         if indices != "all":
@@ -286,7 +291,12 @@ class BenchConfigParser:
             )
             final_indices = split[split_name]
 
-        base_dataset = torch.utils.data.Subset(base_dataset, final_indices)
+        if isinstance(base_dataset, hf_datasets.Dataset):
+            base_dataset = base_dataset.select(final_indices)
+        else:
+            base_dataset = torch.utils.data.Subset(
+                base_dataset, final_indices
+            )
 
         return base_dataset
 
@@ -393,13 +403,14 @@ class BenchConfigParser:
         return split
 
     @classmethod
-    def process_dataset(
+    def _parse_hf_dataset(
         cls,
         dataset: Union[str, torch.utils.data.Dataset],
         transform: Optional[Callable] = None,
         dataset_split: str = "train",
         cache_dir: Optional[str] = None,
-    ) -> torch.utils.data.Dataset:
+        tokenizer_cfg: Optional[dict] = None,
+    ) -> Union[torch.utils.data.Dataset, hf_datasets.Dataset]:
         """Return the dataset using the given parameters.
 
         Parameters
@@ -413,10 +424,14 @@ class BenchConfigParser:
             datasets.
         cache_dir : Optional[str], optional
             The cache directory, by default "~/.cache/huggingface/datasets".
+        tokenizer_cfg : Optional[dict], optional
+            Tokenizer configuration for text datasets. When provided,
+            the dataset is tokenized and returned as an HF Dataset
+            instead of being wrapped with HFtoTV.
 
         Returns
         -------
-        torch,utils.data.Dataset
+        Union[torch.utils.data.Dataset, datasets.Dataset]
             The dataset.
 
         """
@@ -426,6 +441,8 @@ class BenchConfigParser:
                 split=dataset_split,
                 cache_dir=cache_dir,
             )
+            if tokenizer_cfg is not None:
+                return tokenize_dataset(hf_dataset, tokenizer_cfg)
             return HFtoTV(hf_dataset, transform=transform)
         else:
             return dataset
@@ -511,13 +528,3 @@ class BenchConfigParser:
 
         return logger
 
-    @classmethod
-    def save_metadata(cls, ds_config, metadata, metadata_dir):
-        """Save new metadata to disk."""
-        # save new transform indices into metadata dir
-        wrapper_cfg = ds_config.get("wrapper", {})
-        meta_filename = wrapper_cfg.get("metadata", {}).get(
-            "metadata_filename"
-        )
-        if meta_filename is not None:
-            metadata.save(metadata_dir, meta_filename)

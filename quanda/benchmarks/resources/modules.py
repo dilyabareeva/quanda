@@ -2,6 +2,7 @@
 
 import torch
 from huggingface_hub import PyTorchModelHubMixin
+from transformers import AutoConfig, AutoModel  # type: ignore
 
 
 class LeNet(torch.nn.Module, PyTorchModelHubMixin):
@@ -36,6 +37,70 @@ class LeNet(torch.nn.Module, PyTorchModelHubMixin):
         return x
 
 
+class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
+    """BERT-based sequence classifier without final nonlinearity.
+
+    Uses a pretrained BERT encoder with a linear classification head.
+    The final tanh is removed to prevent output saturation, following
+    the setup in https://arxiv.org/pdf/2303.14186.
+    """
+
+    def __init__(
+        self,
+        pretrained_model_name: str = "google-bert/bert-base-cased",
+        num_labels: int = 2,
+    ):
+        """Initialize the BertClassifier.
+
+        Parameters
+        ----------
+        pretrained_model_name : str
+            HuggingFace model name or path for the BERT encoder.
+        num_labels : int
+            Number of output classes.
+
+        """
+        super().__init__()
+        self.pretrained_model_name = pretrained_model_name
+        self.num_labels = num_labels
+
+        config = AutoConfig.from_pretrained(pretrained_model_name)
+        self.bert = AutoModel.from_pretrained(
+            pretrained_model_name, config=config
+        )
+        self.dropout = torch.nn.Dropout(config.hidden_dropout_prob)
+        self.classifier = torch.nn.Linear(
+            config.hidden_size, num_labels
+        )
+
+    def forward(self, input_ids, attention_mask=None, token_type_ids=None):
+        """Forward pass.
+
+        Parameters
+        ----------
+        input_ids : torch.Tensor
+            Token IDs of shape ``(batch, seq_len)``.
+        attention_mask : torch.Tensor, optional
+            Attention mask of shape ``(batch, seq_len)``.
+        token_type_ids : torch.Tensor, optional
+            Token type IDs of shape ``(batch, seq_len)``.
+
+        Returns
+        -------
+        torch.Tensor
+            Logits of shape ``(batch, num_labels)``.
+
+        """
+        outputs = self.bert(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+        )
+        pooled = self.dropout(outputs.pooler_output)
+        return self.classifier(pooled)
+
+
 pl_modules = {
     "MnistTorch": LeNet,
+    "BertClassifier": BertClassifier,
 }

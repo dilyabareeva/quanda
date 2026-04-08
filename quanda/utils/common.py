@@ -120,14 +120,22 @@ def class_accuracy(
     """
     if len(loader) == 0:
         return 0.0
-    
+
     correct = 0
     total = 0
-    for inputs, targets in loader:
-        inputs, targets = inputs.to(device), targets.to(device)
+    for batch in loader:
+        if isinstance(batch, dict):
+            targets = batch.pop("labels").to(device)
+            inputs = {k: v.to(device) for k, v in batch.items()}
+            outputs = net(**inputs)
+            if hasattr(outputs, "logits"):
+                outputs = outputs.logits
+        else:
+            inputs, targets = batch
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = net(inputs)
         if single_class is not None:
             targets = single_class * torch.ones_like(targets)
-        outputs = net(inputs)
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()

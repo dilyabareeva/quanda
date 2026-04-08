@@ -3,28 +3,28 @@
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 bench_types=(
-    #"LDS"
+    "LDS"
     #"MislabelingDetection"
     #"ClassDetection"
     #"SubclassDetection"
-    "ShortcutDetection"
+    #"ShortcutDetection"
     #"MixedDatasets"
 )
 bench_params=(
-    #"train_dataset=mnist_train train_dataset.dataset_split='train' eval_dataset=mnist_test eval_dataset.dataset_split='test'"
+    "train_dataset=mnist_train train_dataset.dataset_split='train' eval_dataset=mnist_test eval_dataset.dataset_split='test'"
     #"train_dataset=mnist_train_mislabeling train_dataset.dataset_split='train' eval_dataset=mnist_test eval_dataset.dataset_split='test'"
     #"train_dataset=mnist_train train_dataset.dataset_split='train' eval_dataset=mnist_test eval_dataset.dataset_split='test'"
     #"model=mnist_lenet_subclass train_dataset=mnist_train_subclass train_dataset.dataset_split='train' eval_dataset=mnist_test_subclass eval_dataset.dataset_split='test' val_dataset=mnist_val_subclass"
-    "train_dataset=mnist_train_shortcut train_dataset.dataset_split='train' eval_dataset=mnist_test_shortcut eval_dataset.dataset_split='test' +filter_by_shortcut_pred=true +filter_by_non_shortcut=true val_dataset=mnist_val_shortcut "
+    #"train_dataset=mnist_train_shortcut train_dataset.dataset_split='train' eval_dataset=mnist_test_shortcut eval_dataset.dataset_split='test' +filter_by_shortcut_pred=true +filter_by_non_shortcut=true val_dataset=mnist_val_shortcut "
     #"train_dataset=mnist_train train_dataset.dataset_split='train' eval_dataset=mnist_test_mixed_main eval_dataset.dataset_split='test' +adv_dataset=fashion_mnist"
 )
 
 sweep_params=(
-    #""
+    ""
     #"model.trainer.max_epochs=5,20,50"
     #""
-   #""
-    "model.trainer.max_epochs=5,20,50 train_dataset.wrapper.metadata.p=0.1,0.25,0.5,0.75"
+    #""
+    #"model.trainer.max_epochs=100,500 train_dataset.wrapper.metadata.p=0.5,0.75,0.9"
     #""
 )
 

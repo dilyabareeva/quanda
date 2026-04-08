@@ -278,14 +278,18 @@ class Benchmark(ABC):
         if logger is not None:
             trainer.logger = logger
 
-        train_dl = torch.utils.data.DataLoader(
-            obj.train_dataset,
+        ds_handler = get_dataset_handler(dataset=obj.train_dataset)
+        train_dl = ds_handler.create_dataloader(
+            dataset=obj.train_dataset,
             batch_size=batch_size,
             shuffle=False,  # TODO: true
         )
         if obj.val_dataset is not None:
-            val_dl = torch.utils.data.DataLoader(
-                obj.val_dataset,
+            val_ds_handler = get_dataset_handler(
+                dataset=obj.val_dataset
+            )
+            val_dl = val_ds_handler.create_dataloader(
+                dataset=obj.val_dataset,
                 batch_size=batch_size,
                 shuffle=False,  # TODO: true
             )
@@ -525,14 +529,18 @@ class Benchmark(ABC):
 
         self.load_last_checkpoint()
 
-        train_dl = torch.utils.data.DataLoader(
-            self.train_dataset,
+        train_handler = get_dataset_handler(dataset=self.train_dataset)
+        train_dl = train_handler.create_dataloader(
+            dataset=self.train_dataset,
             batch_size=batch_size,
             shuffle=False,
         )
         if self.val_dataset is not None:
-            val_dl = torch.utils.data.DataLoader(
-                self.val_dataset,
+            val_handler = get_dataset_handler(
+                dataset=self.val_dataset
+            )
+            val_dl = val_handler.create_dataloader(
+                dataset=self.val_dataset,
                 batch_size=batch_size,
                 shuffle=False,
             )
