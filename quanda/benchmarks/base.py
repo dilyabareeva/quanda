@@ -352,19 +352,20 @@ class Benchmark(ABC):
         )
 
         # TODO: add support for multiple checkpoints
-        obj.model.push_to_hub(f"quanda-bench-test/{config['ckpts'][-1]}")
+        obj.model.push_to_hub(f"{config['ckpts'][-1]}")
 
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
         )
+        meta_id = config.get("meta_id", f"{config['repo_id']}/{config['id']}_metadata")
         create_repo(
-            repo_id=f"quanda-bench-test/{config['id']}_metadata",
+            repo_id=meta_id,
             repo_type="dataset",
             exist_ok=True,
         )
         upload_folder(
             folder_path=metadata_dir,
-            repo_id=f"quanda-bench-test/{config['id']}_metadata",
+            repo_id=meta_id,
             repo_type="dataset",
         )
 
