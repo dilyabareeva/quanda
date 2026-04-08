@@ -1,0 +1,4 @@
+dataset_str: uoft-cs/cifar10
+dataset_split: test
+transforms: "cifar10_transforms"
+indices: "all"

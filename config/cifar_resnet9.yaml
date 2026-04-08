@@ -1,0 +1,52 @@
+defaults:
+  - model: cifar_resnet9
+  - train_dataset: cifar10_train
+  - eval_dataset: cifar10_test
+  - val_dataset: cifar10_val
+  - model/trainer: cifar_resnet9
+  - logger: wandb
+  - override hydra/sweeper: optuna
+  - override hydra/sweeper/sampler: tpe
+  - _self_
+
+hydra:
+  sweep:
+    dir: "${log_dir}/${id}"
+    subdir: hydra_logs
+
+  sweeper:
+    sampler:
+      seed: 123
+    direction:
+      - maximize
+    study_name: "${cfg_file_name}"
+    storage: null
+    n_trials: 2
+    n_jobs: 1
+    params:
+      model.trainer.lr: choice(0.4, 0.1, 0.01)
+      model.trainer.optimizer: choice("sgd", "adam")
+      model.trainer.max_epochs: choice(12, 24)
+
+id: "default"
+bench: ClassDetection
+adversarial_label: 0
+bench_save_dir: "bench_out"
+log_dir: hydra_logs
+repo_id: "quanda-bench-cifar10"
+cache_dir: "tmp"
+top_k: 5
+model_id: "0"
+correlation_fn: "kendall"
+offline: true
+seed: 42
+device: "auto"
+
+m: 4
+alpha: 0.5
+
+subset_ids: lds_subsets.yaml
+
+ckpts:
+  - "${repo_id}/${id}"
+meta_id: "${repo_id}/${id}_metadata"
