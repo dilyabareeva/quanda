@@ -177,7 +177,12 @@ class ShortcutDetection(Benchmark):
             single_class=self.shortcut_cls,
             device=self.device,
         )
-
+        # .dataset is the Subset created by apply_filter;
+        # .dataset.dataset is the pre-filter eval split.
+        results["eval_post_filter_percentage"] = (
+            len(self.eval_dataset)
+            / len(self.eval_dataset.dataset.dataset)
+        )
         return results
 
     def evaluate(

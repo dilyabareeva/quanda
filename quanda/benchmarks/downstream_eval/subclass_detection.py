@@ -176,3 +176,28 @@ class SubclassDetection(Benchmark):
             batch_size=batch_size,
             filter_by_prediction=self.filter_by_prediction,
         )
+
+    def sanity_check(self, batch_size: int = 32) -> dict:
+        """Compute accuracy on shortcut datapoints as a sanity check.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            Batch size to be used for the evaluation, default to 32.
+
+        Returns
+        -------
+        dict
+            Dictionary containing the evaluation results.
+
+        """
+        results = super().sanity_check(batch_size)
+
+        # .dataset is the Subset created by apply_filter;
+        # .dataset.dataset is the pre-filter eval split.
+        results["eval_post_filter_percentage"] = (
+            len(self.eval_dataset)
+            / len(self.eval_dataset.dataset.dataset)
+        )
+        return results
+    

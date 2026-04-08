@@ -212,23 +212,6 @@ def test_shortcut_sanity_check_values(config_name, tmp_path):
     with open(bench_yaml, "r") as f:
         cfg = yaml.safe_load(f)
 
-    indices_cfg = cfg["eval_dataset"]["indices"]
-    if indices_cfg == "all":
-        eval_ratio = 1.0
-    else:
-        split_name = indices_cfg["split_name"]
-        eval_ratio = indices_cfg["split_ratios"][split_name]
-    raw_eval_dataset: torch.utils.data.Dataset = bench.eval_dataset
-    while hasattr(raw_eval_dataset, "dataset"):
-        raw_eval_dataset = raw_eval_dataset.dataset
-   
-    assert (
-        len(bench.eval_dataset) / (len(raw_eval_dataset) * eval_ratio) > 0.5
-    ), (
-        f"Expected eval_post_filter_ratio to be > 0.5, but got {len(bench.eval_dataset) / (len(raw_eval_dataset) * eval_ratio)}."
-    )
-
-         
     sanity_check_results = bench.sanity_check(batch_size=batch_size)
 
     assert sanity_check_results["train_acc"] > 0.9, (
@@ -242,4 +225,10 @@ def test_shortcut_sanity_check_values(config_name, tmp_path):
     )
     assert sanity_check_results["eval_shortcut_memorization"] == 1.0, (
         f"Expected eval_shortcut_memorization to be 1.0, but got {sanity_check_results['eval_shortcut_memorization']}."
+    )
+
+    assert (
+        sanity_check_results["eval_post_filter_percentage"] > 0.5
+    ), (  # TODO: retrain until this improves (
+        f"Expected eval_post_filter_percentage to be > 0.5, but got {sanity_check_results['eval_post_filter_percentage']}."
     )
