@@ -292,7 +292,7 @@ class LinearDatamodelingMetric(Metric):
         """
         subset_model = deepcopy(model)
         subset_loader = DataLoader(
-            subset, batch_size=batch_size, shuffle=False
+            subset, batch_size=batch_size, shuffle=True
         )
         trainer_fit_kwargs = trainer_fit_kwargs or {}
         if isinstance(trainer, L.Trainer):

@@ -34,7 +34,7 @@ def test_lds_sanity_check_subset_accuracy(config_name, tmp_path):
 
     sanity_results = bench.sanity_check(batch_size=batch_size)
 
-    subset_accs = sanity_results["subset_accs"]
+    subset_accs = [sanity_results[acc] for acc in sanity_results if acc.startswith("subset_acc_")]
     assert len(subset_accs) == bench.m, (
         f"Expected {bench.m} subset accuracies, "
         f"got {len(subset_accs)}."
@@ -97,6 +97,8 @@ def test_lds_metadata(
     tmp_path,
     request,
 ):
+    
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     bench = LinearDatamodeling.load_pretrained(
         bench_id=config_name,

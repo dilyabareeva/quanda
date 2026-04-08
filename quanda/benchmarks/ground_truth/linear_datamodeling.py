@@ -112,6 +112,7 @@ class LinearDatamodeling(Benchmark):
         trainer: "Trainer",
         ckpt_str: str,
         ckpt_dir: str,
+        repo_id: str,
         batch_size: int = 8,
         push_to_hub: bool = False,
     ):
@@ -125,6 +126,8 @@ class LinearDatamodeling(Benchmark):
             Checkpoint string identifier.
         ckpt_dir : str
             Base checkpoint directory.
+        repo_id : str
+            Repository identifier for saving checkpoints.
         batch_size : int, optional
             Batch size for training, by default 8.
         push_to_hub : bool, optional
@@ -156,7 +159,7 @@ class LinearDatamodeling(Benchmark):
 
             if push_to_hub:
                 subset_model.push_to_hub(
-                    f"quanda-bench-test/{ckpt_str}{_get_i_subset_ckpt_postfix(i)}"
+                    f"{repo_id}/{ckpt_str}{_get_i_subset_ckpt_postfix(i)}"
                 )
 
     @classmethod
@@ -208,6 +211,7 @@ class LinearDatamodeling(Benchmark):
         )
 
         obj._train_subset_models(
+            repo_id=config["repo_id"],
             trainer=trainer,
             ckpt_str=config["ckpts"][-1],
             ckpt_dir=ckpt_dir,
@@ -230,12 +234,11 @@ class LinearDatamodeling(Benchmark):
         alpha = config.get("alpha", 0.5)
         seed = config["seed"]
 
-        ckpt_dir = os.path.join(
-            config.get("bench_save_dir", "./tmp"), "ckpt", config["ckpts"][-1]
-        )
+        ckpt = config["ckpts"][-1]
+        repo_id = config["repo_id"]
 
         subset_ckpt_filenames = [
-            f"{ckpt_dir}{_get_i_subset_ckpt_postfix(i)}" for i in range(m)
+            f"{repo_id}/{ckpt}{_get_i_subset_ckpt_postfix(i)}" for i in range(m)
         ]
         counterfactual_trainer_cfg = config.get(
             "counterfactual_trainer",
@@ -291,36 +294,25 @@ class LinearDatamodeling(Benchmark):
         batch_size: int = 8,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
-        bench_obj = cls.from_config(
-            config, load_meta_from_disk=False, offline=True, device=device
+        obj = super().train_and_push_to_hub(
+            config=config,
+            logger=logger,
+            device=device,
+            batch_size=batch_size,
         )
-        assert isinstance(bench_obj, LinearDatamodeling)
+        assert isinstance(obj, LinearDatamodeling)
 
         # Parse trainer configuration
         trainer = BenchConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
         )
 
-        metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
-        )
-
-        create_repo(
-            repo_id=f"quanda-bench-test/{config['id']}_metadata",
-            repo_type="dataset",
-            exist_ok=True,
-        )
-        upload_folder(
-            folder_path=metadata_dir,
-            repo_id=f"quanda-bench-test/{config['id']}_metadata",
-            repo_type="dataset",
-        )
-
         ckpt_dir = os.path.join(
             config.get("bench_save_dir", "./tmp"), "ckpt", config["ckpts"][-1]
         )
 
-        bench_obj._train_subset_models(
+        obj._train_subset_models(
+            repo_id=config["repo_id"],
             trainer=trainer,
             ckpt_dir=ckpt_dir,
             ckpt_str=config["ckpts"][-1],
@@ -328,7 +320,7 @@ class LinearDatamodeling(Benchmark):
             push_to_hub=True,
         )
 
-        return bench_obj
+        return obj
 
     def sanity_check(self, batch_size: int = 32) -> dict:
         """Compute accuracy of main model and all subset checkpoints.
@@ -353,16 +345,13 @@ class LinearDatamodeling(Benchmark):
             shuffle=False,
         )
 
-        subset_accs = []
         for i, ckpt_path in enumerate(self.subset_ckpt_filenames):
             subset_model = self.model
             self.checkpoints_load_func(subset_model, ckpt_path)
             subset_model.eval()
             subset_model.to(self.device)
             acc = class_accuracy(subset_model, eval_dl, self.device)
-            subset_accs.append(acc)
-
-        results["subset_accs"] = subset_accs
+            results[f"subset_acc_{i}"] = acc
 
         return results
 
