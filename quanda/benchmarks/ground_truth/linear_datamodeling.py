@@ -17,6 +17,7 @@ from quanda.metrics.ground_truth.linear_datamodeling import (
 )
 from quanda.utils.functions import correlation_functions
 from quanda.utils.training import Trainer
+from quanda.utils.common import class_accuracy
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +165,7 @@ class LinearDatamodeling(Benchmark):
         config: dict,
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
-        batch_size: int = 8,
+        batch_size: int = 64,
     ) -> "LinearDatamodeling":
         """Train main model and subset models.
 
@@ -328,6 +329,42 @@ class LinearDatamodeling(Benchmark):
         )
 
         return bench_obj
+
+    def sanity_check(self, batch_size: int = 32) -> dict:
+        """Compute accuracy of main model and all subset checkpoints.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            Batch size to be used for the evaluation, defaults to 32.
+
+        Returns
+        -------
+        dict
+            Dictionary containing the sanity check results, including
+            per-subset checkpoint accuracies.
+
+        """
+        results = super().sanity_check(batch_size)
+
+        eval_dl = torch.utils.data.DataLoader(
+            self.eval_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        subset_accs = []
+        for i, ckpt_path in enumerate(self.subset_ckpt_filenames):
+            subset_model = self.model
+            self.checkpoints_load_func(subset_model, ckpt_path)
+            subset_model.eval()
+            subset_model.to(self.device)
+            acc = class_accuracy(subset_model, eval_dl, self.device)
+            subset_accs.append(acc)
+
+        results["subset_accs"] = subset_accs
+
+        return results
 
     def evaluate(
         self,
