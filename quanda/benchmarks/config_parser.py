@@ -56,13 +56,14 @@ class BenchConfigParser:
         ds_config: Optional[dict],
         metadata_dir: str = ".tmp/meta",
         load_meta_from_disk: bool = True,
+        reuse_split: bool = False,
     ):
         """Return the dataset using the given parameters."""
         if ds_config is None:
             return None
 
         dataset = cls._load_dataset_from_cfg(
-            ds_config, metadata_dir, load_meta_from_disk
+            ds_config, metadata_dir, load_meta_from_disk, reuse_split
         )
 
         wrapper = copy.deepcopy(ds_config.get("wrapper", None))
@@ -191,11 +192,12 @@ class BenchConfigParser:
         ds_config: dict,
         metadata_dir: str,
         load_meta_from_disk: bool = True,
+        reuse_split: bool = False,
     ) -> torch.utils.data.Dataset:
         """Load dataset based on configuration."""
         if "single_class_dataset" not in ds_config:
             return cls._load_hf_dataset(
-                ds_config, metadata_dir, load_meta_from_disk
+                ds_config, metadata_dir, load_meta_from_disk, reuse_split
             )
         elif ds_config["single_class_dataset"]:
             return cls._load_single_class_dataset(
@@ -210,6 +212,7 @@ class BenchConfigParser:
         ds_config: dict,
         metadata_dir: str,
         load_meta_from_disk: bool = True,
+        reuse_split: bool = False,
     ) -> torch.utils.data.Dataset:
         """Load a HuggingFace dataset based on configuration."""
         transform = cls._get_transform(ds_config)
@@ -218,8 +221,9 @@ class BenchConfigParser:
             transform=transform,
             dataset_split=ds_config.get("dataset_split", "train"),
         )
+        load_split = load_meta_from_disk or reuse_split
         return cls._apply_indices(
-            base_dataset, ds_config, metadata_dir, load_meta_from_disk
+            base_dataset, ds_config, metadata_dir, load_split
         )
 
     @classmethod
@@ -230,10 +234,6 @@ class BenchConfigParser:
         transform = cls._get_transform(ds_config)
         transform = transform if transform is not None else lambda x: x
 
-        cache_dir = cache_dir or os.getenv(
-            "HF_HOME",
-            os.path.expanduser("~/.cache/huggingface/datasets"),
-        )
         base_dataset = load_dataset(
             ds_config["dataset_str"],
             split=ds_config.get("dataset_split", "train"),
@@ -421,12 +421,6 @@ class BenchConfigParser:
 
         """
         if isinstance(dataset, str):
-            if cache_dir is None:
-                cache_dir = os.getenv(
-                    "HF_HOME",
-                    os.path.expanduser("~/.cache/huggingface/datasets"),
-                )
-
             hf_dataset = load_dataset(
                 "ylecun/mnist" if dataset == "mnist" else dataset,
                 split=dataset_split,

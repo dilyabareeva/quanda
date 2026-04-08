@@ -149,9 +149,9 @@ class Benchmark(ABC):
 
         # If val shares the same split file and dataset_split as
         # train, reuse the split that train just generated instead
-        # of creating a new one.
+        # of regenerating it.
         val_cfg = config.get("val_dataset", None)
-        val_load_meta = load_meta_from_disk
+        reuse_split = False
         if val_cfg is not None and not load_meta_from_disk:
             train_cfg = config.get("train_dataset", {})
             train_indices = train_cfg.get("indices", {})
@@ -164,12 +164,13 @@ class Benchmark(ABC):
                 and train_cfg.get("dataset_split")
                 == val_cfg.get("dataset_split")
             ):
-                val_load_meta = True
+                reuse_split = True
 
         val_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=val_cfg,
             metadata_dir=metadata_dir,
-            load_meta_from_disk=val_load_meta,
+            load_meta_from_disk=load_meta_from_disk,
+            reuse_split=reuse_split,
         )
         eval_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),
@@ -248,7 +249,7 @@ class Benchmark(ABC):
         config: dict,
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
-        batch_size: int = 8,
+        batch_size: int = 64,
     ) -> "Benchmark":
         """Train a model using the provided configuration.
 
@@ -334,7 +335,7 @@ class Benchmark(ABC):
         config: dict,
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
-        batch_size: int = 8,
+        batch_size: int = 64,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
         obj = cls.train(
@@ -349,8 +350,6 @@ class Benchmark(ABC):
 
         # TODO: add support for multiple checkpoints
         obj.model.push_to_hub(f"quanda-bench-test/{config['ckpts'][-1]}")
-
-        # TODO: push to hub for LDS models
 
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
