@@ -3,6 +3,7 @@
 import logging
 import os
 import warnings
+from copy import deepcopy
 from typing import Callable, List, Optional
 
 import lightning as L
@@ -291,7 +292,7 @@ class LinearDatamodeling(Benchmark):
         config: dict,
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
-        batch_size: int = 8,
+        batch_size: int = 64,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
         obj = super().train_and_push_to_hub(
@@ -346,7 +347,7 @@ class LinearDatamodeling(Benchmark):
         )
 
         for i, ckpt_path in enumerate(self.subset_ckpt_filenames):
-            subset_model = self.model
+            subset_model = deepcopy(self.model)
             self.checkpoints_load_func(subset_model, ckpt_path)
             subset_model.eval()
             subset_model.to(self.device)

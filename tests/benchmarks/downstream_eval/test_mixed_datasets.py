@@ -115,10 +115,10 @@ def test_mixed_datasets_sanity_check_values(config_name, tmp_path):
     )
 
     assert (
-        sanity_check_results["train_adversarial_memorization"] > 0.7
-    ), (  # TODO: improve
-        f"Expected train_adversarial_memorization to be > 0.7, but got {sanity_check_results['train_adversarial_memorization']}."
+        sanity_check_results["train_adversarial_memorization"] > 0.8
+    ), ( 
+        f"Expected train_adversarial_memorization to be > 0.8, but got {sanity_check_results['train_adversarial_memorization']}."
     )
-    assert sanity_check_results["eval_adversarial_memorization"] > 0.7, (
-        f"Expected eval_adversarial_memorization to be > 0.7, but got {sanity_check_results['eval_adversarial_memorization']}."
+    assert sanity_check_results["eval_adversarial_memorization"] > 0.8, (
+        f"Expected eval_adversarial_memorization to be > 0.8, but got {sanity_check_results['eval_adversarial_memorization']}."
     )

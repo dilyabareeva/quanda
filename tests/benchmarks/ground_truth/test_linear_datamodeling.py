@@ -118,7 +118,5 @@ def test_lds_metadata(
     subset_meta = f"{metadata_dir}/{cfg['subset_ids']}"
     with open(subset_meta, "r") as f:
         subset_ids = yaml.safe_load(f)
-        
-    bench_subset_ids = bench.subset_ids
 
-    assert subset_ids == bench_subset_ids
+    assert subset_ids == bench.subset_ids

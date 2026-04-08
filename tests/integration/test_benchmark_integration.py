@@ -154,7 +154,6 @@ def test_benchmark_integration(
     # Override for faster testing
     representer_points_args["epoch"] = 1
 
-    # TODO: Add TracIn after the checkpoint loading issue is resolved
     # START10
     attributors = {
         "captum_similarity": (CaptumSimilarity, captum_similarity_args),

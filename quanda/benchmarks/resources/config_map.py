@@ -23,23 +23,26 @@ config_map: dict = {
     ),
     "mnist_top_k_cardinality": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("63de7a5-default_ClassDetection.yaml"),
+    ).joinpath("ad1b983-default_ClassDetection.yaml"),
     "mnist_subclass_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("63de7a5-default_SubclassDetection.yaml"),
+    ).joinpath("ad1b983-default_SubclassDetection.yaml"),
     "mnist_mixed_datasets": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("63de7a5-default_MixedDatasets.yaml"),
+    ).joinpath("ad1b983-default_MixedDatasets.yaml"),
     "mnist_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("63de7a5-default_MislabelingDetection.yaml"),
+    ).joinpath("e8f0516-default_MislabelingDetection.yaml"),
     "mnist_shortcut_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("63de7a5-default_ShortcutDetection.yaml"),
+    ).joinpath("ad1b983-default_ShortcutDetection.yaml"),
     "mnist_class_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("63de7a5-default_ClassDetection.yaml"),
+    ).joinpath("ad1b983-default_ClassDetection.yaml"),
     "mnist_model_randomization": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("63de7a5-default_ClassDetection.yaml"),
+    ).joinpath("ad1b983-default_ClassDetection.yaml"),
+    "mnist_linear_datamodeling": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("e978fe8-default_LDS.yaml"),
 }

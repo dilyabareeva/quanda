@@ -267,6 +267,7 @@ class LinearDatamodelingMetric(Metric):
         trainer: Union[L.Trainer, BaseTrainer],
         batch_size: int = 32,
         trainer_fit_kwargs: Optional[dict] = None,
+        reinit: bool = True,
     ):
         """Train a model on a subset of the data.
 
@@ -283,6 +284,10 @@ class LinearDatamodelingMetric(Metric):
         trainer_fit_kwargs : Optional[dict], optional
             Additional keyword arguments for the trainer's fit method,
             by default None.
+        reinit : bool, optional
+            If True, reinitialize model weights before training
+            (train from scratch). Required for proper LDS evaluation.
+            By default True.
 
         Returns
         -------
@@ -291,25 +296,29 @@ class LinearDatamodelingMetric(Metric):
 
         """
         subset_model = deepcopy(model)
+        if reinit:
+            for module in subset_model.modules():
+                if hasattr(module, "reset_parameters"):
+                    module.reset_parameters()
         subset_loader = DataLoader(
             subset, batch_size=batch_size, shuffle=True
         )
         trainer_fit_kwargs = trainer_fit_kwargs or {}
         if isinstance(trainer, L.Trainer):
-            if not isinstance(model, L.LightningModule):
+            if not isinstance(subset_model, L.LightningModule):
                 raise ValueError(
                     "Model should be a LightningModule if Trainer is a "
                     "Lightning Trainer"
                 )
 
             trainer.fit(
-                model=model,
+                model=subset_model,
                 train_dataloaders=subset_loader,
                 **trainer_fit_kwargs,
             )
 
         elif isinstance(trainer, BaseTrainer):
-            if not isinstance(model, torch.nn.Module):
+            if not isinstance(subset_model, torch.nn.Module):
                 raise ValueError(
                     "Model should be a torch.nn.Module if Trainer is a "
                     "BaseTrainer"

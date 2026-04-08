@@ -702,6 +702,16 @@ def load_mnist_mixed_config():
     return config
 
 
+@pytest.fixture
+def load_mnist_lds_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_local_bench/20fba38-default_LDS.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
 def load_yaml(file_path):
     """Helper function to load a YAML file as a Python dictionary."""
     assert os.path.exists(file_path), f"Config file not found: {file_path}"
