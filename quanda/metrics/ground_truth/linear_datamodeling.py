@@ -300,9 +300,7 @@ class LinearDatamodelingMetric(Metric):
             for module in subset_model.modules():
                 if hasattr(module, "reset_parameters"):
                     module.reset_parameters()
-        subset_loader = DataLoader(
-            subset, batch_size=batch_size, shuffle=True
-        )
+        subset_loader = DataLoader(subset, batch_size=batch_size, shuffle=True)
         trainer_fit_kwargs = trainer_fit_kwargs or {}
         if isinstance(trainer, L.Trainer):
             if not isinstance(subset_model, L.LightningModule):

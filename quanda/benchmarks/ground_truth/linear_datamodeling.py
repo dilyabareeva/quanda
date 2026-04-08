@@ -9,16 +9,15 @@ from typing import Callable, List, Optional
 import lightning as L
 import torch
 import yaml
-from huggingface_hub import create_repo, upload_folder
 
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
+from quanda.utils.common import class_accuracy
 from quanda.utils.functions import correlation_functions
 from quanda.utils.training import Trainer
-from quanda.utils.common import class_accuracy
 
 logger = logging.getLogger(__name__)
 
@@ -236,7 +235,6 @@ class LinearDatamodeling(Benchmark):
         seed = config["seed"]
 
         ckpt = config["ckpts"][-1]
-        repo_id = config["repo_id"]
 
         subset_ckpt_filenames = [
             f"{ckpt}{_get_i_subset_ckpt_postfix(i)}" for i in range(m)

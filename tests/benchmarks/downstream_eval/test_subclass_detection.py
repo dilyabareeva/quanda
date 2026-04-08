@@ -2,12 +2,10 @@ import os
 
 import pytest
 import torch
-import yaml
 
 from quanda.benchmarks.downstream_eval import (
     SubclassDetection,
 )
-from quanda.benchmarks.resources import config_map
 
 
 @pytest.mark.skipif(
@@ -67,10 +65,6 @@ def test_subclass_sanity_check_values(config_name, tmp_path):
     """Verify filter_by_non_subclass and filter_by_shortcut_pred in benchmark cfg work as expected on eval_dataset."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8
-
-    bench_yaml = config_map[config_name]
-    with open(bench_yaml, "r") as f:
-        cfg = yaml.safe_load(f)
 
     bench = SubclassDetection.load_pretrained(
         bench_id=config_name,

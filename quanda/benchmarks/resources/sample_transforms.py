@@ -5,10 +5,10 @@ from PIL import Image
 
 
 def add_white_square_mnist(img):
-    """Add a white square to the center of the image."""
-    square_size = (8, 8)
+    """Add a white square to the top-left corner of the image."""
+    square_size = (12, 12)
     white_square = Image.new("L", square_size, 255)
-    img.paste(white_square, (15, 15))
+    img.paste(white_square, (0, 0))
     return img
 
 
@@ -55,4 +55,23 @@ sample_transforms = {
         ]
     ),
     "add_yellow_square": add_yellow_square,
+    "cifar10_transforms": transforms.Compose(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize(
+                (0.4914, 0.4822, 0.4465),
+                (0.2023, 0.1994, 0.2010),
+            ),
+        ]
+    ),
+    "cifar10_adversarial_transforms": transforms.Compose(
+        [
+            transforms.Resize((32, 32)),
+            transforms.ToTensor(),
+            transforms.Normalize(
+                (0.4914, 0.4822, 0.4465),
+                (0.2023, 0.1994, 0.2010),
+            ),
+        ]
+    ),
 }

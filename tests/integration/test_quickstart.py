@@ -157,7 +157,7 @@ def test_quickstart(
         "cache_dir": cache_dir,
     }
     # END12
-    
+
     # START13_2
     with open(
         "tests/assets/mnist_local_bench/20fba38-default_MislabelingDetection.yaml",

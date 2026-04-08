@@ -84,7 +84,7 @@ class SubclassDetection(Benchmark):
             raise ValueError(
                 "The train dataset must be a LabelGroupingDataset."
             )
-            
+
         return {
             "class_to_group": train_dataset.class_to_group,
             "filter_by_prediction": config.get("filter_by_prediction", False),
@@ -195,9 +195,10 @@ class SubclassDetection(Benchmark):
 
         # .dataset is the Subset created by apply_filter;
         # .dataset.dataset is the pre-filter eval split.
-        results["eval_post_filter_percentage"] = (
-            len(self.eval_dataset)
-            / len(self.eval_dataset.dataset.dataset)
-        )
+        if hasattr(self.eval_dataset, "dataset") and hasattr(
+            self.eval_dataset.dataset, "dataset"
+        ):
+            results["eval_post_filter_percentage"] = ds_len(
+                self.eval_dataset
+            ) / ds_len(self.eval_dataset.dataset.dataset)
         return results
-    

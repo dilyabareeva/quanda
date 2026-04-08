@@ -4,8 +4,8 @@ import copy
 import os
 from typing import Any, Callable, List, Optional, Tuple, Union
 
+import datasets as hf_datasets  # type: ignore
 import torch
-import datasets as hf_datasets
 from datasets import load_dataset  # type: ignore
 from huggingface_hub import snapshot_download
 
@@ -269,7 +269,6 @@ class BenchConfigParser:
         load_meta_from_disk: bool = True,
     ) -> Union[torch.utils.data.Dataset, hf_datasets.Dataset]:
         """Apply indices to the dataset based on configuration."""
-
         indices = copy.deepcopy(ds_config.get("indices", "all"))
         final_indices = list(range(ds_len(base_dataset)))
         if indices != "all":
@@ -290,9 +289,7 @@ class BenchConfigParser:
         if isinstance(base_dataset, hf_datasets.Dataset):
             base_dataset = base_dataset.select(final_indices)
         else:
-            base_dataset = torch.utils.data.Subset(
-                base_dataset, final_indices
-            )
+            base_dataset = torch.utils.data.Subset(base_dataset, final_indices)
 
         return base_dataset
 
@@ -523,4 +520,3 @@ class BenchConfigParser:
         logger = instantiate(logger_cfg)
 
         return logger
-

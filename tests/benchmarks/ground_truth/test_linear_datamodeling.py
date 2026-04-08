@@ -34,10 +34,13 @@ def test_lds_sanity_check_subset_accuracy(config_name, tmp_path):
 
     sanity_results = bench.sanity_check(batch_size=batch_size)
 
-    subset_accs = [sanity_results[acc] for acc in sanity_results if acc.startswith("subset_acc_")]
+    subset_accs = [
+        sanity_results[acc]
+        for acc in sanity_results
+        if acc.startswith("subset_acc_")
+    ]
     assert len(subset_accs) == bench.m, (
-        f"Expected {bench.m} subset accuracies, "
-        f"got {len(subset_accs)}."
+        f"Expected {bench.m} subset accuracies, got {len(subset_accs)}."
     )
     for i, acc in enumerate(subset_accs):
         assert acc > 0.9, (
@@ -97,7 +100,7 @@ def test_lds_metadata(
     tmp_path,
     request,
 ):
-    
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     bench = LinearDatamodeling.load_pretrained(
@@ -110,7 +113,7 @@ def test_lds_metadata(
     bench_yaml = config_map[config_name]
     with open(bench_yaml, "r") as f:
         cfg = yaml.safe_load(f)
-        
+
     metadata_dir = BenchConfigParser.get_metadata_dir(
         cfg=cfg, bench_save_dir=cfg.get("bench_save_dir", "./tmp")
     )

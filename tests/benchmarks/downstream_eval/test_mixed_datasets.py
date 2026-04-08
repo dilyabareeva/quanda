@@ -114,9 +114,7 @@ def test_mixed_datasets_sanity_check_values(config_name, tmp_path):
         f"Expected val_acc to be > 0.85, but got {sanity_check_results['val_acc']}."
     )
 
-    assert (
-        sanity_check_results["train_adversarial_memorization"] > 0.8
-    ), ( 
+    assert sanity_check_results["train_adversarial_memorization"] > 0.8, (
         f"Expected train_adversarial_memorization to be > 0.8, but got {sanity_check_results['train_adversarial_memorization']}."
     )
     assert sanity_check_results["eval_adversarial_memorization"] > 0.8, (

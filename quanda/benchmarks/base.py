@@ -284,9 +284,7 @@ class Benchmark(ABC):
             shuffle=False,  # TODO: true
         )
         if obj.val_dataset is not None:
-            val_ds_handler = get_dataset_handler(
-                dataset=obj.val_dataset
-            )
+            val_ds_handler = get_dataset_handler(dataset=obj.val_dataset)
             val_dl = val_ds_handler.create_dataloader(
                 dataset=obj.val_dataset,
                 batch_size=batch_size,
@@ -357,7 +355,9 @@ class Benchmark(ABC):
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
         )
-        meta_id = config.get("meta_id", f"{config['repo_id']}/{config['id']}_metadata")
+        meta_id = config.get(
+            "meta_id", f"{config['repo_id']}/{config['id']}_metadata"
+        )
         create_repo(
             repo_id=meta_id,
             repo_type="dataset",
@@ -536,9 +536,7 @@ class Benchmark(ABC):
             shuffle=False,
         )
         if self.val_dataset is not None:
-            val_handler = get_dataset_handler(
-                dataset=self.val_dataset
-            )
+            val_handler = get_dataset_handler(dataset=self.val_dataset)
             val_dl = val_handler.create_dataloader(
                 dataset=self.val_dataset,
                 batch_size=batch_size,

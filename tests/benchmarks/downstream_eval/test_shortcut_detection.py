@@ -206,11 +206,6 @@ def test_shortcut_sanity_check_values(config_name, tmp_path):
         device=device,
         offline=False,
     )
-    
-    
-    bench_yaml = config_map[config_name]
-    with open(bench_yaml, "r") as f:
-        cfg = yaml.safe_load(f)
 
     sanity_check_results = bench.sanity_check(batch_size=batch_size)
 

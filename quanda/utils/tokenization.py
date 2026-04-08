@@ -1,4 +1,6 @@
-import datasets as hf_datasets
+"""Utils for tokenization of HuggingFace datasets."""
+
+import datasets as hf_datasets  # type: ignore
 from transformers import AutoTokenizer
 
 
@@ -22,10 +24,7 @@ def tokenize_dataset(
         Tokenized dataset formatted as torch tensors.
 
     """
-
-    tokenizer = AutoTokenizer.from_pretrained(
-        tokenizer_cfg["name"]
-    )
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_cfg["name"])
     text_fields = tokenizer_cfg["text_fields"]
     max_length = tokenizer_cfg.get("max_length", 128)
     label_field = tokenizer_cfg.get("label_field", "label")

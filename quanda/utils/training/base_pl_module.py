@@ -87,9 +87,7 @@ class BasicLightningModule(L.LightningModule):
         """
         if isinstance(batch, dict):
             target = batch.pop("labels").to(self.device)
-            inputs = {
-                k: v.to(self.device) for k, v in batch.items()
-            }
+            inputs = {k: v.to(self.device) for k, v in batch.items()}
         else:
             inputs, target = batch
             inputs = inputs.to(self.device)

@@ -22,10 +22,10 @@ bench_params=(
 
 sweep_params=(
     #""
-    "model.trainer.max_epochs=50,100 train_dataset.wrapper.metadata.p=0.2"
+    "model.trainer.max_epochs=15,50,100 train_dataset.wrapper.metadata.p=0.1,0.2"
     #""
     #""
-    "model.trainer.max_epochs=50,100 train_dataset.wrapper.metadata.p=0.75"
+    "model.trainer.max_epochs=15,50,100 train_dataset.wrapper.metadata.p=0.5,0.75"
     #""
 )
 

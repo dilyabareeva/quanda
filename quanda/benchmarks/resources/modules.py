@@ -5,6 +5,86 @@ from huggingface_hub import PyTorchModelHubMixin
 from transformers import AutoConfig, AutoModel  # type: ignore
 
 
+class _Mul(torch.nn.Module):
+    """Multiply input by a constant weight."""
+
+    def __init__(self, weight):
+        """Initialize with scalar weight."""
+        super().__init__()
+        self.weight = weight
+
+    def forward(self, x):
+        """Forward pass."""
+        return x * self.weight
+
+
+class _Residual(torch.nn.Module):
+    """Residual connection wrapper."""
+
+    def __init__(self, module):
+        """Initialize with inner module."""
+        super().__init__()
+        self.module = module
+
+    def forward(self, x):
+        """Forward pass."""
+        return x + self.module(x)
+
+
+def _conv_bn(c_in, c_out, ks=3, stride=1, padding=1):
+    """Create a Conv2d-BatchNorm-ReLU block."""
+    return torch.nn.Sequential(
+        torch.nn.Conv2d(
+            c_in,
+            c_out,
+            kernel_size=ks,
+            stride=stride,
+            padding=padding,
+            bias=False,
+        ),
+        torch.nn.BatchNorm2d(c_out),
+        torch.nn.ReLU(inplace=True),
+    )
+
+
+class ResNet9(torch.nn.Module, PyTorchModelHubMixin):
+    """ResNet-9 for CIFAR-10 classification.
+
+    Adapted from https://github.com/MadryLab/trak.
+    """
+
+    def __init__(self, num_classes=10):
+        """Initialize the ResNet9 model."""
+        super().__init__()
+        self.model = torch.nn.Sequential(
+            _conv_bn(3, 64),
+            _conv_bn(64, 128, ks=5, stride=2, padding=2),
+            _Residual(
+                torch.nn.Sequential(
+                    _conv_bn(128, 128),
+                    _conv_bn(128, 128),
+                )
+            ),
+            _conv_bn(128, 256),
+            torch.nn.MaxPool2d(2),
+            _Residual(
+                torch.nn.Sequential(
+                    _conv_bn(256, 256),
+                    _conv_bn(256, 256),
+                )
+            ),
+            _conv_bn(256, 128, padding=0),
+            torch.nn.AdaptiveMaxPool2d((1, 1)),
+            torch.nn.Flatten(),
+            torch.nn.Linear(128, num_classes, bias=False),
+            _Mul(0.2),
+        )
+
+    def forward(self, x):
+        """Forward pass."""
+        return self.model(x)
+
+
 class LeNet(torch.nn.Module, PyTorchModelHubMixin):
     """A torch implementation of LeNet architecture.
 
@@ -69,9 +149,7 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
             pretrained_model_name, config=config
         )
         self.dropout = torch.nn.Dropout(config.hidden_dropout_prob)
-        self.classifier = torch.nn.Linear(
-            config.hidden_size, num_labels
-        )
+        self.classifier = torch.nn.Linear(config.hidden_size, num_labels)
 
     def forward(self, input_ids, attention_mask=None, token_type_ids=None):
         """Forward pass.
@@ -103,4 +181,5 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
 pl_modules = {
     "MnistTorch": LeNet,
     "BertClassifier": BertClassifier,
+    "ResNet9": ResNet9,
 }

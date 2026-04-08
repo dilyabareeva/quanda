@@ -7,7 +7,6 @@ import torchvision
 import yaml
 
 from quanda.benchmarks.downstream_eval import (
-    MislabelingDetection,
     ShortcutDetection,
     SubclassDetection,
 )
@@ -25,7 +24,7 @@ from quanda.explainers.wrappers import (
 # END14_1
 
 
-#@pytest.mark.slow
+# @pytest.mark.slow
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "test_id",
@@ -74,9 +73,7 @@ def test_benchmark_integration(
     n_train, n_eval = 50, 20
     sc_idx = list(benchmark.train_dataset.transform_indices[:10])
     other_idx = [
-        i
-        for i in range(len(benchmark.train_dataset))
-        if i not in set(sc_idx)
+        i for i in range(len(benchmark.train_dataset)) if i not in set(sc_idx)
     ][: n_train - len(sc_idx)]
     benchmark.train_dataset.apply_filter(sorted(sc_idx + other_idx))
 
@@ -168,7 +165,7 @@ def test_benchmark_integration(
             explainer_cls=cls, expl_kwargs=kwargs, batch_size=8
         )["score"]
     # END10
-    
+
     # START14_2
     with open(
         "tests/assets/mnist_local_bench/20fba38-default_SubclassDetection.yaml",

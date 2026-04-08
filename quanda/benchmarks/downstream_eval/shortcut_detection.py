@@ -87,7 +87,7 @@ class ShortcutDetection(Benchmark):
         self.filter_by_non_shortcut = filter_by_non_shortcut
         self.filter_by_shortcut_pred = filter_by_shortcut_pred
         self.filter_indices = filter_indices
-            
+
     @classmethod
     def _extra_kwargs_from_config(
         cls,
@@ -179,10 +179,12 @@ class ShortcutDetection(Benchmark):
         )
         # .dataset is the Subset created by apply_filter;
         # .dataset.dataset is the pre-filter eval split.
-        results["eval_post_filter_percentage"] = (
-            len(self.eval_dataset)
-            / len(self.eval_dataset.dataset.dataset)
-        )
+        if hasattr(self.eval_dataset, "dataset") and hasattr(
+            self.eval_dataset.dataset, "dataset"
+        ):
+            results["eval_post_filter_percentage"] = ds_len(
+                self.eval_dataset
+            ) / ds_len(self.eval_dataset.dataset.dataset)
         return results
 
     def evaluate(
