@@ -12,7 +12,6 @@ clean-format:
 	rm -r quanda.egg-info
 	rm -f .coverage.*
 	find . | grep -E "(__pycache__|\.pyc|\.pyo)" | xargs rm -rf
-	find . -type d -name '*cache' -exec rm -rf {} +
 	find . | grep -E "./checkpoints" | xargs rm -rf
 	find . | grep -E ".htmlcov" | xargs rm -rf
 	find . | grep -E ".lightning_logs" | xargs rm -rf
