@@ -308,6 +308,11 @@ def load_mnist_test_labels_1():
 
 
 @pytest.fixture
+def load_mnist_test_labels_1_list():
+    return torch.load("tests/assets/dataset/test_labels.pt").tolist()
+
+
+@pytest.fixture
 def load_mnist_explanations_similarity_1():
     return torch.load("tests/assets/tda/mnist_SimilarityInfluence_tda.pt")
 
@@ -778,3 +783,150 @@ def dummy_trainer():
         lr=0.1,
         criterion=torch.nn.CrossEntropyLoss(),
     )
+
+
+@pytest.fixture
+def two_field_dataset():
+    def _create(n=8):
+        return datasets.Dataset.from_dict(
+            {
+                "question": [f"What is {i}?" for i in range(n)],
+                "sentence": [f"Answer {i}" for i in range(n)],
+                "label": [i % 2 for i in range(n)],
+            }
+        )
+
+    return _create
+
+
+@pytest.fixture
+def single_field_dataset():
+    def _create():
+        return datasets.Dataset.from_dict(
+            {"text": ["Hello world", "Foo bar"], "label": [0, 1]}
+        )
+
+    return _create
+
+
+@pytest.fixture
+def custom_label_dataset():
+    def _create():
+        return datasets.Dataset.from_dict(
+            {"text": ["a", "b", "c"], "my_label": [0, 1, 2]}
+        )
+
+    return _create
+
+
+class _LogitsOutput:
+    """Wraps a tensor to expose a .logits attribute."""
+
+    def __init__(self, logits):
+        self.logits = logits
+
+
+class _ConstantModel(torch.nn.Module):
+    """Model that always predicts a fixed class."""
+
+    def __init__(self, predicted_class, num_classes):
+        super().__init__()
+        self.predicted_class = predicted_class
+        self.num_classes = num_classes
+
+    def forward(self, x):
+        bs = x.shape[0]
+        logits = torch.zeros(bs, self.num_classes)
+        logits[:, self.predicted_class] = 10.0
+        return logits
+
+
+class _ConstantDictModel(torch.nn.Module):
+    """Dict-input model that always predicts a class."""
+
+    def __init__(self, predicted_class, num_classes, wrap_logits):
+        super().__init__()
+        self.predicted_class = predicted_class
+        self.num_classes = num_classes
+        self.wrap_logits = wrap_logits
+
+    def forward(self, **kwargs):
+        first_val = next(iter(kwargs.values()))
+        bs = first_val.shape[0]
+        logits = torch.zeros(bs, self.num_classes)
+        logits[:, self.predicted_class] = 10.0
+        if self.wrap_logits:
+            return _LogitsOutput(logits)
+        return logits
+
+
+class _DictDataset(Dataset):
+    """Dataset that yields dict batches."""
+
+    def __init__(self, data_dict):
+        self.data = data_dict
+        self.n = len(next(iter(data_dict.values())))
+
+    def __len__(self):
+        return self.n
+
+    def __getitem__(self, idx):
+        return {k: v[idx] for k, v in self.data.items()}
+
+
+@pytest.fixture
+def constant_model():
+    """Factory: model always predicting a given class."""
+
+    def _create(predicted_class=0, num_classes=3):
+        model = _ConstantModel(predicted_class, num_classes)
+        model.eval()
+        return model
+
+    return _create
+
+
+@pytest.fixture
+def constant_dict_model():
+    """Factory: dict-input model predicting a class."""
+
+    def _create(
+        predicted_class=0,
+        num_classes=3,
+        wrap_logits=True,
+    ):
+        model = _ConstantDictModel(predicted_class, num_classes, wrap_logits)
+        model.eval()
+        return model
+
+    return _create
+
+
+@pytest.fixture
+def tuple_dataloader():
+    """Factory: DataLoader of (tensor, label) tuples."""
+
+    def _create(labels, n_features=4, batch_size=4):
+        n = len(labels)
+        x = torch.rand(n, n_features)
+        y = torch.tensor(labels, dtype=torch.long)
+        ds = TensorDataset(x, y)
+        return torch.utils.data.DataLoader(ds, batch_size=batch_size)
+
+    return _create
+
+
+@pytest.fixture
+def dict_dataloader():
+    """Factory: DataLoader yielding dict batches."""
+
+    def _create(labels, seq_length=8, batch_size=4):
+        n = len(labels)
+        data = {
+            "input_ids": torch.randint(0, 100, (n, seq_length)),
+            "labels": torch.tensor(labels, dtype=torch.long),
+        }
+        ds = _DictDataset(data)
+        return torch.utils.data.DataLoader(ds, batch_size=batch_size)
+
+    return _create

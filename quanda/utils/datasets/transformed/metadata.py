@@ -31,21 +31,6 @@ class DatasetMetadata(ABC):
         self.rng.manual_seed(self.seed)
         self.rang = random.Random(self.seed)
 
-    def __getstate__(self):
-        """Copy the object's state and remove the transient generators."""
-        state = self.__dict__.copy()
-        state.pop("rng", None)
-        state.pop("rang", None)
-        return state
-
-    def __setstate__(self, state):
-        """Restore the object's state."""
-        # Restore the state and reinitialize the random generators
-        self.__dict__.update(state)
-        self.rng = torch.Generator()
-        self.rng.manual_seed(self.seed)
-        self.rang = random.Random(self.seed)
-
     @classmethod
     def exists(cls, path: str, name: str) -> bool:
         """Check if metadata exists on disk."""

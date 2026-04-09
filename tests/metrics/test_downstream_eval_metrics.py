@@ -93,7 +93,7 @@ def test_identical_class_metrics(
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, subclass_labels, test_labels, batch_size, explanations, filter_by_prediction, expected_score",
+    "test_id, model, checkpoint,dataset, subclass_labels, test_labels, batch_size, explanations, filter_by_prediction, test_superclass_targets,expected_score",
     [
         (
             "mnist",
@@ -105,6 +105,7 @@ def test_identical_class_metrics(
             8,
             "load_mnist_explanations_similarity_1",
             False,
+            None,
             0.1,
         ),
         (
@@ -117,7 +118,34 @@ def test_identical_class_metrics(
             8,
             "load_mnist_explanations_similarity_1",
             True,
+            None,
             ValueError,
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_grouped_mnist_dataset",
+            "load_mnist_labels",
+            "load_mnist_test_labels_1",
+            8,
+            "load_mnist_explanations_similarity_1",
+            False,
+            "load_mnist_test_labels_1",
+            0.1,
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_grouped_mnist_dataset",
+            "load_mnist_labels",
+            "load_mnist_test_labels_1",
+            8,
+            "load_mnist_explanations_similarity_1",
+            False,
+            "load_mnist_test_labels_1_list",
+            0.1,
         ),
     ],
 )
@@ -131,6 +159,7 @@ def test_identical_subclass_metrics(
     batch_size,
     explanations,
     filter_by_prediction,
+    test_superclass_targets,
     expected_score,
     request,
 ):
@@ -140,6 +169,11 @@ def test_identical_subclass_metrics(
     subclass_labels = request.getfixturevalue(subclass_labels)
     dataset = request.getfixturevalue(dataset)
     tda = request.getfixturevalue(explanations)
+    if test_superclass_targets is not None:
+        test_superclass_targets = request.getfixturevalue(
+            test_superclass_targets
+        )
+
     metric = SubclassDetectionMetric(
         model=model,
         checkpoints=checkpoint,
@@ -151,7 +185,11 @@ def test_identical_subclass_metrics(
         with pytest.raises(expected_score):
             metric.update(test_targets=test_labels, explanations=tda)
         return
-    metric.update(test_targets=test_labels, explanations=tda)
+    metric.update(
+        test_targets=test_labels,
+        explanations=tda,
+        test_superclass_targets=test_superclass_targets,
+    )
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 

@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from quanda.utils.common import DatasetSplit, make_func
+from quanda.utils.common import DatasetSplit, class_accuracy, make_func
 
 
 @pytest.mark.utils
@@ -58,3 +58,107 @@ def test_train_test_val_split(
     all = torch.cat([train, test, val]).sort().values
 
     assert torch.eq(all, torch.arange(n_indices)).all()
+
+
+@pytest.mark.utils
+@pytest.mark.parametrize(
+    "test_id, model_type, labels, batch_size, single_class, expected",
+    [
+        (
+            "tuple_all_correct",
+            "tuple",
+            [0, 0, 0, 0],
+            4,
+            None,
+            1.0,
+        ),
+        (
+            "tuple_all_wrong",
+            "tuple",
+            [1, 1, 1, 1],
+            4,
+            None,
+            0.0,
+        ),
+        (
+            "tuple_half_correct",
+            "tuple",
+            [0, 0, 1, 1],
+            4,
+            None,
+            0.5,
+        ),
+        (
+            "dict_with_logits_attr",
+            "dict",
+            [0, 0, 0, 0],
+            4,
+            None,
+            1.0,
+        ),
+        (
+            "dict_raw_tensor_output",
+            "dict_raw",
+            [0, 0, 0, 0],
+            4,
+            None,
+            1.0,
+        ),
+        (
+            "dict_half_correct",
+            "dict",
+            [0, 0, 1, 1],
+            4,
+            None,
+            0.5,
+        ),
+        (
+            "empty_loader",
+            "tuple",
+            [],
+            1,
+            None,
+            0.0,
+        ),
+        (
+            "single_class_override",
+            "tuple",
+            [1, 1, 1, 1],
+            4,
+            0,
+            1.0,
+        ),
+        (
+            "multi_batch_accumulation",
+            "tuple",
+            [0, 0, 1, 1, 0, 0],
+            2,
+            None,
+            2.0 / 3.0,
+        ),
+    ],
+)
+def test_class_accuracy(
+    test_id,
+    model_type,
+    labels,
+    batch_size,
+    single_class,
+    expected,
+    constant_model,
+    constant_dict_model,
+    tuple_dataloader,
+    dict_dataloader,
+):
+    if model_type == "tuple":
+        model = constant_model(predicted_class=0)
+        loader = tuple_dataloader(labels, batch_size=batch_size)
+    elif model_type == "dict":
+        model = constant_dict_model(predicted_class=0, wrap_logits=True)
+        loader = dict_dataloader(labels, batch_size=batch_size)
+    else:
+        model = constant_dict_model(predicted_class=0, wrap_logits=False)
+        loader = dict_dataloader(labels, batch_size=batch_size)
+
+    result = class_accuracy(model, loader, single_class=single_class)
+    assert result == pytest.approx(expected)

@@ -258,14 +258,12 @@ def test_dataset_type_validation(
         (
             "shortcut_pred",
             "filter_by_shortcut_pred",
-            "shortcut_cls must be provided if "
-            "filter_by_shortcut_pred is True",
+            "shortcut_cls must be provided if filter_by_shortcut_pred is True",
         ),
         (
             "non_shortcut",
             "filter_by_non_shortcut",
-            "shortcut_cls must be provided if "
-            "filter_by_non_shortcut is True",
+            "shortcut_cls must be provided if filter_by_non_shortcut is True",
         ),
     ],
 )
