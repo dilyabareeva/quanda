@@ -15,3 +15,4 @@ scheduler_kwargs:
 lr: 1.0e-3
 max_epochs: 20
 seed: 42
+num_workers: 8

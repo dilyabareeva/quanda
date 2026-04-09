@@ -74,6 +74,7 @@ class DatasetHandler(ABC):
         dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         batch_size: int,
         shuffle: bool = False,
+        num_workers: int = 0,
     ) -> DataLoader:
         """Create a DataLoader for the dataset.
 
@@ -85,6 +86,8 @@ class DatasetHandler(ABC):
             Batch size.
         shuffle : bool, optional
             Whether to shuffle the dataset (default is False).
+        num_workers : int, optional
+            Number of workers for data loading, by default 0.
 
         Returns
         -------
@@ -158,6 +161,7 @@ class TorchDatasetHandler(DatasetHandler):
         dataset: torch.utils.data.Dataset,
         batch_size: int,
         shuffle: bool = False,
+        num_workers: int = 0,
     ) -> DataLoader:
         """Create a DataLoader for the dataset.
 
@@ -169,6 +173,8 @@ class TorchDatasetHandler(DatasetHandler):
             The batch size to use.
         shuffle : bool, optional
             Whether to shuffle the data, by default False.
+        num_workers : int, optional
+            Number of workers for data loading, by default 0.
 
         Returns
         -------
@@ -176,7 +182,12 @@ class TorchDatasetHandler(DatasetHandler):
             Configured DataLoader.
 
         """
-        return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+        return DataLoader(
+            dataset,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            num_workers=num_workers,
+        )
 
 
 class HuggingFaceDatasetHandler(DatasetHandler):
@@ -242,7 +253,11 @@ class HuggingFaceDatasetHandler(DatasetHandler):
         return outputs.logits.argmax(dim=-1)
 
     def create_dataloader(
-        self, dataset: datasets.Dataset, batch_size: int, shuffle: bool = False
+        self,
+        dataset: datasets.Dataset,
+        batch_size: int,
+        shuffle: bool = False,
+        num_workers: int = 0,
     ) -> DataLoader:
         """Create a DataLoader for the dataset.
 
@@ -254,6 +269,8 @@ class HuggingFaceDatasetHandler(DatasetHandler):
             The batch size to use.
         shuffle : bool, optional
             Whether to shuffle the data, by default False.
+        num_workers : int, optional
+            Number of workers for data loading, by default 0.
 
         Returns
         -------
@@ -266,6 +283,7 @@ class HuggingFaceDatasetHandler(DatasetHandler):
             batch_size=batch_size,
             collate_fn=default_data_collator,
             shuffle=shuffle,
+            num_workers=num_workers,
         )
 
 

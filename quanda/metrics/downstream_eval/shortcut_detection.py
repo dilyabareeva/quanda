@@ -146,10 +146,10 @@ class ShortcutDetectionMetric(Metric):
 
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
 
-        if self.filter_by_non_shortcut:
+        if self.filter_by_shortcut_pred:
             pred_cls = self.model(test_data).argmax(dim=1)
             select_idx *= pred_cls == self.shortcut_cls
-        if self.filter_by_shortcut_pred:
+        if self.filter_by_non_shortcut:
             select_idx *= test_labels != self.shortcut_cls
 
         explanations = explanations[select_idx]

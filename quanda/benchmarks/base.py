@@ -282,6 +282,7 @@ class Benchmark(ABC):
             dataset=obj.train_dataset,
             batch_size=batch_size,
             shuffle=False,  # TODO: true
+            num_workers=trainer.num_workers,
         )
         if obj.val_dataset is not None:
             val_ds_handler = get_dataset_handler(dataset=obj.val_dataset)
@@ -289,6 +290,7 @@ class Benchmark(ABC):
                 dataset=obj.val_dataset,
                 batch_size=batch_size,
                 shuffle=False,  # TODO: true
+                num_workers=trainer.num_workers,
             )
         else:
             val_dl = None

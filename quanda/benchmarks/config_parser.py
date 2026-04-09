@@ -180,6 +180,7 @@ class BenchConfigParser:
             "optimizer_kwargs": trainer_cfg.get("optimizer_kwargs", {}),
             "scheduler_kwargs": trainer_cfg.get("scheduler_kwargs", {}),
             "seed": trainer_cfg.get("seed", 42),
+            "num_workers": trainer_cfg.get("num_workers", 0),
         }
 
         return Trainer(**trainer_kwargs)

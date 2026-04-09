@@ -85,6 +85,7 @@ class Trainer(BaseTrainer):
         scheduler_kwargs: Optional[dict] = None,
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         seed: int = 27,
+        num_workers: int = 0,
     ):
         """Construct the Trainer class.
 
@@ -120,6 +121,7 @@ class Trainer(BaseTrainer):
         self.logger = logger
         self.optimizer_kwargs = optimizer_kwargs or {}
         self.scheduler_kwargs = scheduler_kwargs or {}
+        self.num_workers = num_workers
 
         seed_everything(seed, workers=True)
 

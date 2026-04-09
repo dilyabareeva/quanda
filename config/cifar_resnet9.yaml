@@ -6,7 +6,7 @@ defaults:
   - model/trainer: cifar_resnet9
   - logger: wandb
   - override hydra/sweeper: optuna
-  - override hydra/sweeper/sampler: tpe
+  - override hydra/sweeper/sampler: grid
   - _self_
 
 hydra:
@@ -15,13 +15,11 @@ hydra:
     subdir: hydra_logs
 
   sweeper:
-    sampler:
-      seed: 123
     direction:
       - maximize
     study_name: "${cfg_file_name}"
     storage: null
-    n_trials: 2
+    n_trials: 20
     n_jobs: 1
     params:
       model.trainer.lr: choice(0.4, 0.1, 0.01)
