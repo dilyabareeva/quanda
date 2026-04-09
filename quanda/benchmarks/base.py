@@ -135,11 +135,13 @@ class Benchmark(ABC):
         load_meta_from_disk: bool = True,
         offline: bool = False,
         device: str = "cpu",
+        metadata_suffix: str = "",
     ) -> "Benchmark":
         """Initialize the benchmark from a dictionary."""
         cache_dir = config.get("bench_save_dir", "./tmp")
         metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=cache_dir
+            cfg=config, bench_save_dir=cache_dir,
+            suffix=metadata_suffix,
         )
         train_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
@@ -268,7 +270,12 @@ class Benchmark(ABC):
         None
 
         """
-        obj = cls.from_config(config, load_meta_from_disk=False, device=device)
+        pid_suffix = f"_pid{os.getpid()}"
+        obj = cls.from_config(
+            config, load_meta_from_disk=False, device=device,
+            metadata_suffix=pid_suffix,
+        )
+        obj._pid_suffix = pid_suffix
 
         # Parse trainer configuration
         trainer = BenchConfigParser.parse_trainer_cfg(
@@ -315,7 +322,7 @@ class Benchmark(ABC):
         ckpt_dir = os.path.join(
             config.get("bench_save_dir", "./tmp"),
             "ckpt",
-            config["ckpts"][-1],
+            f"{config['ckpts'][-1]}{pid_suffix}",
         )
 
         os.makedirs(ckpt_dir, exist_ok=True)
@@ -360,8 +367,11 @@ class Benchmark(ABC):
         # TODO: add support for multiple checkpoints
         obj.model.push_to_hub(f"{config['ckpts'][-1]}")
 
+        pid_suffix = getattr(obj, "_pid_suffix", "")
         metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
+            cfg=config,
+            bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            suffix=pid_suffix,
         )
         meta_id = config.get(
             "meta_id", f"{config['repo_id']}/{config['id']}_metadata"
@@ -495,8 +505,10 @@ class Benchmark(ABC):
 
         """
         cache_dir = config.get("bench_save_dir", "./tmp")
+        pid_suffix = getattr(self, "_pid_suffix", "")
         metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=cache_dir
+            cfg=config, bench_save_dir=cache_dir,
+            suffix=pid_suffix,
         )
 
         eval_ds_cfg = config.get("eval_dataset", {})
