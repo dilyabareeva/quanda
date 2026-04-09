@@ -180,6 +180,9 @@ def test_benchmark_integration(
     subclass_config["model"]["trainer"]["max_epochs"] = 2
 
     # START14_3
+    subclass_config["bench_save_dir"] = os.path.join(
+        cache_dir, "subclass_detection_bench"
+    )
     benchmark = SubclassDetection.train(
         subclass_config,
         device=device,
