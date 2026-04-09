@@ -89,6 +89,35 @@ class MislabelingDetection(Benchmark):
 
         return results
 
+    def overall_obejctive(self, sanity_check_results: dict) -> float:
+        """Compute overall objective score based on sanity check results, 
+        for selecting optional hyperparameters of the benchmark.
+
+        Assigns extra weight to mislabeling_memorization.
+        
+        Parameters
+        ----------
+        sanity_check_results : dict
+            Dictionary containing the results from the sanity check.
+
+        Returns
+        -------
+        float
+            Overall objective score computed from the sanity check results.
+
+        """
+
+        train_acc = sanity_check_results.get("train_acc", 0)
+        val_acc = sanity_check_results.get("val_acc", 0)
+        mislabeling_memorization = sanity_check_results.get(
+            "mislabeling_memorization", 0
+        )
+        return (
+            0.1 * train_acc
+            + 0.2 * val_acc
+            + 0.7 * mislabeling_memorization
+        )
+        
     def evaluate(
         self,
         explainer_cls: type,

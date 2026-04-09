@@ -39,7 +39,7 @@ def main(cfg: DictConfig) -> Tuple[float]:
     scores = bench.sanity_check()
     print(f"Sanity check scores: {scores}")
     logger.log_metrics(scores)
-    return sum(list(scores.values()))
+    return bench.overall_obejctive(scores)
 
 
 if __name__ == "__main__":

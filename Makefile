@@ -9,6 +9,7 @@ clean-format:
 	ruff check --fix --select D --select E501 quanda
 	python -m mypy --check-untyped-defs --show-traceback quanda
 	rm -f .coverage
+	rm -r quanda.egg-info
 	rm -f .coverage.*
 	find . | grep -E "(__pycache__|\.pyc|\.pyo)" | xargs rm -rf
 	find . -type d -name '*cache' -exec rm -rf {} +

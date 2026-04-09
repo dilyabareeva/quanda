@@ -559,6 +559,27 @@ class Benchmark(ABC):
             )
 
         return results
+    
+    def overall_obejctive(self, sanity_check_results: dict) -> float:
+        """Compute overall objective score based on sanity check results, 
+        for selecting optional hyperparameters of the benchmark.
+        
+        By default, this method can be used to compute an overall score from the
+        sanity check results.
+
+        Parameters
+        ----------
+        sanity_check_results : dict
+            Dictionary containing the results from the sanity check.
+
+        Returns
+        -------
+        float
+            Overall objective score computed from the sanity check results.
+
+        """
+
+        return sum(sanity_check_results.values()) / len(sanity_check_results)
 
     def evaluate(
         self,
