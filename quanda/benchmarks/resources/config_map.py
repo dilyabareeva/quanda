@@ -32,10 +32,10 @@ config_map: dict = {
     ).joinpath("ad1b983-default_MixedDatasets.yaml"),
     "mnist_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("8ff9b5e-default_MislabelingDetection.yaml"),
+    ).joinpath("124627f-default_MislabelingDetection.yaml"),
     "mnist_shortcut_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("8ff9b5e-default_ShortcutDetection.yaml"),
+    ).joinpath("124627f-default_ShortcutDetection.yaml"),
     "mnist_class_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("ad1b983-default_ClassDetection.yaml"),

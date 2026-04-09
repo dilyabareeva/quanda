@@ -16,7 +16,7 @@ hydra:
     subdir: hydra_logs
 
   launcher:
-    n_jobs: 10
+    n_jobs: 16
 
   sweeper:
     direction:
@@ -24,11 +24,9 @@ hydra:
     study_name: "${cfg_file_name}"
     storage: null
     n_trials: 20
-    n_jobs: 10
+    n_jobs: 16
     params:
-      model.trainer.lr: choice(0.1, 0.01, 0.001)
       model.trainer.optimizer: choice("sgd", "adam")
-      model.trainer.max_epochs: choice(5, 10, 15)
 
 
 id: "default"

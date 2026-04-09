@@ -86,6 +86,7 @@ class MixedDatasets(Benchmark):
         load_meta_from_disk: bool = True,
         offline: bool = False,
         device: str = "cpu",
+        metadata_suffix: str = "",
     ):
         """Initialize the benchmark from a dictionary.
 
@@ -105,6 +106,7 @@ class MixedDatasets(Benchmark):
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config,
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
+            suffix=metadata_suffix,
         )
         train_base_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config["train_dataset"],

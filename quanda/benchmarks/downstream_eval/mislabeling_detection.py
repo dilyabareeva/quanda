@@ -114,7 +114,7 @@ class MislabelingDetection(Benchmark):
         )
         return (
             0.1 * (train_acc > 0.8)
-            + 0.2 * val_acc
+            + 0.2 * (val_acc > 0.8)
             + 0.7 * mislabeling_memorization
         )
         

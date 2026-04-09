@@ -3,7 +3,7 @@
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 bench_types=(
-    "ClassDetection"
+    #"ClassDetection"
     "MislabelingDetection"
     #"SubclassDetection"
     "ShortcutDetection"
@@ -11,7 +11,7 @@ bench_types=(
     #"LDS"
 )
 bench_params=(
-    "train_dataset=cifar10_train train_dataset.dataset_split='train' eval_dataset=cifar10_test eval_dataset.dataset_split='test'"
+    #"train_dataset=cifar10_train train_dataset.dataset_split='train' eval_dataset=cifar10_test eval_dataset.dataset_split='test'"
     "train_dataset=cifar10_train_mislabeling train_dataset.dataset_split='train' eval_dataset=cifar10_test eval_dataset.dataset_split='test'"
     #"model=cifar_resnet9_subclass train_dataset=cifar10_train_subclass train_dataset.dataset_split='train' eval_dataset=cifar10_test_subclass eval_dataset.dataset_split='test' val_dataset=cifar10_val_subclass"
     "train_dataset=cifar10_train_shortcut train_dataset.dataset_split='train' eval_dataset=cifar10_test_shortcut eval_dataset.dataset_split='test' +filter_by_shortcut_pred=true +filter_by_non_shortcut=true val_dataset=cifar10_val_shortcut"
@@ -20,7 +20,7 @@ bench_params=(
 )
 
 sweep_params=(
-    ""
+    #""
     "model.trainer.max_epochs=50,100 train_dataset.wrapper.metadata.p=0.2"
     #""
     "model.trainer.max_epochs=50,100 train_dataset.wrapper.metadata.p=0.75"

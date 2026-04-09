@@ -26,12 +26,19 @@ class BenchConfigParser:
     """Parser for benchmark configurations."""
 
     @classmethod
-    def get_metadata_dir(cls, cfg: dict, bench_save_dir: str = ".tmp"):
+    def get_metadata_dir(
+        cls,
+        cfg: dict,
+        bench_save_dir: str = ".tmp",
+        suffix: str = "",
+    ):
         """Parse metadata configuration and return the metadata directory."""
         base_metadata_dir = os.path.join(bench_save_dir, "metadata")
         # create metadata_dir if it doesn't exist
         os.makedirs(base_metadata_dir, exist_ok=True)
-        metadata_dir = os.path.join(base_metadata_dir, f"{cfg['id']}_metadata")
+        metadata_dir = os.path.join(
+            base_metadata_dir, f"{cfg['id']}_metadata{suffix}"
+        )
 
         # create metadata_dir if it doesn't exist
         os.makedirs(metadata_dir, exist_ok=True)

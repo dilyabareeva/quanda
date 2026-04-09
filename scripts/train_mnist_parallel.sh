@@ -22,10 +22,10 @@ bench_params=(
 
 sweep_params=(
     #""
-    "model.trainer.lr=0.01,0.001 model.trainer.optimizer=adam,sgd model.trainer.max_epochs=50,100,200 train_dataset.wrapper.metadata.p=0.1,0.2 hydra.sweeper.n_trials=24"
+    "model.trainer.lr=0.001,0.0001 model.trainer.optimizer=adam,sgd model.trainer.max_epochs=50,100,200 train_dataset.wrapper.metadata.p=0.1,0.2 hydra.sweeper.n_trials=24"
     #""
     #""
-    "model.trainer.lr=0.01,0.001 model.trainer.optimizer=adam,sgd model.trainer.max_epochs=100,200,500 train_dataset.wrapper.metadata.p=0.75,0.9 hydra.sweeper.n_trials=24"
+    "model.trainer.lr=0.01,0.001,0.0001 model.trainer.optimizer=adam,sgd model.trainer.max_epochs=5,50,100 train_dataset.wrapper.metadata.p=0.75,0.9,0.95 hydra.sweeper.n_trials=27"
     #""
 )
 

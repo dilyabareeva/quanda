@@ -224,6 +224,6 @@ def test_shortcut_sanity_check_values(config_name, tmp_path):
 
     assert (
         sanity_check_results["eval_post_filter_percentage"] > 0.5
-    ), (  # TODO: retrain until this improves (
+    ), ( 
         f"Expected eval_post_filter_percentage to be > 0.5, but got {sanity_check_results['eval_post_filter_percentage']}."
     )
