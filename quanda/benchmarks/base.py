@@ -75,6 +75,8 @@ class Benchmark(ABC):
         self.device = device
         self.val_dataset = val_dataset
         self.use_predictions = use_predictions
+        
+        self._pid_suffix: str = ""
 
     @classmethod
     def load_pretrained(
@@ -140,7 +142,8 @@ class Benchmark(ABC):
         """Initialize the benchmark from a dictionary."""
         cache_dir = config.get("bench_save_dir", "./tmp")
         metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=cache_dir,
+            cfg=config,
+            bench_save_dir=cache_dir,
             suffix=metadata_suffix,
         )
         train_dataset = BenchConfigParser.parse_dataset_cfg(
@@ -272,7 +275,9 @@ class Benchmark(ABC):
         """
         pid_suffix = f"_pid{os.getpid()}"
         obj = cls.from_config(
-            config, load_meta_from_disk=False, device=device,
+            config,
+            load_meta_from_disk=False,
+            device=device,
             metadata_suffix=pid_suffix,
         )
         obj._pid_suffix = pid_suffix
@@ -307,7 +312,9 @@ class Benchmark(ABC):
 
         if "cuda" in obj.device:
             accelerator = "gpu"
-            devices = int(obj.device.split(":")[-1]) if ":" in obj.device else 0
+            devices = (
+                int(obj.device.split(":")[-1]) if ":" in obj.device else 0
+            )
         else:
             accelerator = obj.device
             devices = 1
@@ -507,7 +514,8 @@ class Benchmark(ABC):
         cache_dir = config.get("bench_save_dir", "./tmp")
         pid_suffix = getattr(self, "_pid_suffix", "")
         metadata_dir = BenchConfigParser.get_metadata_dir(
-            cfg=config, bench_save_dir=cache_dir,
+            cfg=config,
+            bench_save_dir=cache_dir,
             suffix=pid_suffix,
         )
 
@@ -579,13 +587,14 @@ class Benchmark(ABC):
             )
 
         return results
-    
+
     def overall_obejctive(self, sanity_check_results: dict) -> float:
-        """Compute overall objective score based on sanity check results, 
-        for selecting optional hyperparameters of the benchmark.
-        
-        By default, this method can be used to compute an overall score from the
-        sanity check results.
+        """Compute overall objective score.
+
+        Based on sanity check results, for selecting optional
+        hyperparameters of the benchmark.
+        By default, this method can be used to compute an overall
+        score from the sanity check results.
 
         Parameters
         ----------
@@ -598,7 +607,6 @@ class Benchmark(ABC):
             Overall objective score computed from the sanity check results.
 
         """
-
         return sum(sanity_check_results.values()) / len(sanity_check_results)
 
     def evaluate(

@@ -1,7 +1,6 @@
 from typing import Tuple
 
 import hydra
-import torch
 from omegaconf import DictConfig
 
 from quanda.benchmarks import bench_dict

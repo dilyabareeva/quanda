@@ -222,8 +222,6 @@ def test_shortcut_sanity_check_values(config_name, tmp_path):
         f"Expected eval_shortcut_memorization to be 1.0, but got {sanity_check_results['eval_shortcut_memorization']}."
     )
 
-    assert (
-        sanity_check_results["eval_post_filter_percentage"] > 0.5
-    ), ( 
+    assert sanity_check_results["eval_post_filter_percentage"] > 0.5, (
         f"Expected eval_post_filter_percentage to be > 0.5, but got {sanity_check_results['eval_post_filter_percentage']}."
     )

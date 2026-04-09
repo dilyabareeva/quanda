@@ -41,6 +41,9 @@ class BaseTrainer(metaclass=abc.ABCMeta):
             Dataloader for the validation data, defaults to None.
         accelerator: str
             The accelerator to use for training, by default "cpu".
+        devices: int
+            The number of devices to use for training, by default 0 (i.e.
+            all available).
         seed: int
             Random seed.
         trainer_fit_kwargs: Optional[dict]
@@ -111,8 +114,11 @@ class Trainer(BaseTrainer):
             Logger to use during training, defaults to None
         seed : int, optional
             The seed for the projector, by default 27.
-        accelerator : str, optional
-            The accelerator to use for training, by default "cpu".
+        num_workers : int, optional
+            Number of workers to use for data loading, by default 0.
+        enable_progress_bar : bool, optional
+            Whether to enable the progress bar during training, by
+            default True.
 
         """
         self.optimizer = optimizer
@@ -155,6 +161,9 @@ class Trainer(BaseTrainer):
             Dataloader for the validation data, defaults to None.
         accelerator : str, optional
             The accelerator to use for training, by default "cpu".
+        devices : int, optional
+            The number of devices to use for training, by default 0 (i.e.
+            all available).
         seed: int
             Random seed.
         args : Any

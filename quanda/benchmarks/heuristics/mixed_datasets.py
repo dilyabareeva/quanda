@@ -101,6 +101,9 @@ class MixedDatasets(Benchmark):
             Whether to load the model in offline mode, by default False.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
+        metadata_suffix: str, optional
+            Suffix to add to the metadata directory name, by default "".
+            User to prevent assets clashing when multiprocessing.
 
         """
         metadata_dir = BenchConfigParser.get_metadata_dir(

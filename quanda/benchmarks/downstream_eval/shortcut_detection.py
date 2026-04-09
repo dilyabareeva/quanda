@@ -188,12 +188,14 @@ class ShortcutDetection(Benchmark):
         return results
 
     def overall_obejctive(self, sanity_check_results: dict) -> float:
-        """Compute overall objective score based on sanity check results, 
-        for selecting optional hyperparameters of the benchmark.
+        """Compute overall objective score.
 
-        Assigns extra weight to the eval_post_filter_percentage, as it 
-        is the most direct indicator of whether the model has learned the shortcut.
-        
+        Based on sanity check results, for selecting optional
+        hyperparameters of the benchmark.
+        Assigns extra weight to the eval_post_filter_percentage,
+        as it is the most direct indicator of whether the model
+        has learned the shortcut.
+
         Parameters
         ----------
         sanity_check_results : dict
@@ -205,7 +207,6 @@ class ShortcutDetection(Benchmark):
             Overall objective score computed from the sanity check results.
 
         """
-
         train_acc = sanity_check_results.get("train_acc", 0)
         val_acc = sanity_check_results.get("val_acc", 0)
         train_shortcut_memorization = sanity_check_results.get(
@@ -220,8 +221,7 @@ class ShortcutDetection(Benchmark):
             + 0.1 * train_shortcut_memorization
             + 0.6 * eval_post_filter_percentage
         )
-        
-    
+
     def evaluate(
         self,
         explainer_cls: type,

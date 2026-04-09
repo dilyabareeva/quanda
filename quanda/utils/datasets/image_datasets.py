@@ -2,7 +2,6 @@
 
 import torch
 
-
 _IMAGE_KEYS = ("image", "img", "pixel_values")
 
 
