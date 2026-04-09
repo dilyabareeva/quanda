@@ -129,6 +129,169 @@ def test_load(
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
+    "test_id, bench_id, bench_cls",
+    [
+        (
+            "mnist",
+            "mnist_mixed_datasets_unit",
+            MixedDatasets,
+        ),
+        (
+            "mnist",
+            "mnist_shortcut_detection_unit",
+            ShortcutDetection,
+        ),
+        (
+            "mnist",
+            "mnist_mislabeling_detection_unit",
+            MislabelingDetection,
+        ),
+        (
+            "mnist",
+            "mnist_top_k_cardinality_unit",
+            TopKCardinality,
+        ),
+        (
+            "mnist",
+            "mnist_class_detection_unit",
+            ClassDetection,
+        ),
+        (
+            "mnist",
+            "mnist_subclass_detection_unit",
+            SubclassDetection,
+        ),
+    ],
+)
+def test_overall_objective(
+    test_id,
+    bench_id,
+    bench_cls,
+    tmp_path,
+):
+    dst_eval = bench_cls.load_pretrained(
+        bench_id=bench_id,
+        cache_dir=str(tmp_path),
+        offline=False,
+        device="cpu",
+    )
+
+    results = dst_eval.sanity_check()
+    overall_objective = dst_eval.overall_objective(results)
+
+    assert isinstance(overall_objective, float)
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize(
+    "test_id, bench_id, bench_cls, dataset_attr, error_match",
+    [
+        (
+            "mislabeling_train",
+            "mnist_mislabeling_detection_unit",
+            MislabelingDetection,
+            "train_dataset",
+            "Training dataset in Mislabeling Metric should have "
+            "flipped labels",
+        ),
+        (
+            "subclass_train",
+            "mnist_subclass_detection_unit",
+            SubclassDetection,
+            "train_dataset",
+            "The train dataset must be a LabelGroupingDataset",
+        ),
+        (
+            "subclass_eval",
+            "mnist_subclass_detection_unit",
+            SubclassDetection,
+            "eval_dataset",
+            "The eval dataset must be a LabelGroupingDataset",
+        ),
+        (
+            "mixed_train",
+            "mnist_mixed_datasets_unit",
+            MixedDatasets,
+            "train_dataset",
+            "Training dataset must be a ConcatDataset",
+        ),
+    ],
+)
+def test_dataset_type_validation(
+    test_id,
+    bench_id,
+    bench_cls,
+    dataset_attr,
+    error_match,
+    tmp_path,
+):
+    dst_eval = bench_cls.load_pretrained(
+        bench_id=bench_id,
+        cache_dir=str(tmp_path),
+        offline=False,
+        device="cpu",
+    )
+
+    dummy_dataset = torch.utils.data.TensorDataset(
+        torch.randn(10, 1, 28, 28),
+        torch.randint(0, 10, (10,)),
+    )
+    setattr(dst_eval, dataset_attr, dummy_dataset)
+
+    with pytest.raises(ValueError, match=error_match):
+        dst_eval.evaluate(
+            explainer_cls=CaptumSimilarity,
+            expl_kwargs={
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+                "model_id": "test",
+                "cache_dir": str(tmp_path),
+            },
+            batch_size=8,
+        )
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize(
+    "test_id, filter_kwarg, error_match",
+    [
+        (
+            "shortcut_pred",
+            "filter_by_shortcut_pred",
+            "shortcut_cls must be provided if "
+            "filter_by_shortcut_pred is True",
+        ),
+        (
+            "non_shortcut",
+            "filter_by_non_shortcut",
+            "shortcut_cls must be provided if "
+            "filter_by_non_shortcut is True",
+        ),
+    ],
+)
+def test_filter_missing_shortcut_cls(
+    test_id,
+    filter_kwarg,
+    error_match,
+    tmp_path,
+):
+    dst_eval = ShortcutDetection.load_pretrained(
+        bench_id="mnist_shortcut_detection_unit",
+        cache_dir=str(tmp_path),
+        offline=False,
+        device="cpu",
+    )
+
+    with pytest.raises(ValueError, match=error_match):
+        dst_eval._compute_and_save_filter_by_labels_and_prediction(
+            config={},
+            shortcut_cls=None,
+            **{filter_kwarg: True},
+        )
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls, explainer_cls, expl_kwargs, expected_score",
     [
         (

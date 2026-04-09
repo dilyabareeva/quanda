@@ -27,7 +27,7 @@ def main(cfg: DictConfig) -> Tuple[float]:
     )
     scores = bench.sanity_check()
     logger.log_metrics(scores)
-    return bench.overall_obejctive(scores)
+    return bench.overall_objective(scores)
 
 
 if __name__ == "__main__":

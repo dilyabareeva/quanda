@@ -187,7 +187,7 @@ class ShortcutDetection(Benchmark):
             ) / ds_len(self.eval_dataset.dataset.dataset)
         return results
 
-    def overall_obejctive(self, sanity_check_results: dict) -> float:
+    def overall_objective(self, sanity_check_results: dict) -> float:
         """Compute overall objective score.
 
         Based on sanity check results, for selecting optional
