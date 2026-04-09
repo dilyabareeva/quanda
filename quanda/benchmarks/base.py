@@ -75,7 +75,7 @@ class Benchmark(ABC):
         self.device = device
         self.val_dataset = val_dataset
         self.use_predictions = use_predictions
-        
+
         self._pid_suffix: str = ""
 
     @classmethod
