@@ -115,7 +115,7 @@ def test_lds_metadata(
         cfg = yaml.safe_load(f)
 
     metadata_dir = BenchConfigParser.get_metadata_dir(
-        cfg=cfg, bench_save_dir=cfg.get("bench_save_dir", "./tmp")
+        cfg=cfg, bench_save_dir=str(tmp_path)
     )
 
     subset_meta = f"{metadata_dir}/{cfg['subset_ids']}"
