@@ -7,6 +7,7 @@ defaults:
   - logger: wandb
   - override hydra/sweeper: optuna
   - override hydra/sweeper/sampler: grid
+  - override hydra/launcher: joblib
   - _self_
 
 hydra:
@@ -14,13 +15,16 @@ hydra:
     dir: "${log_dir}/${id}"
     subdir: hydra_logs
 
+  launcher:
+    n_jobs: 10
+
   sweeper:
     direction:
       - maximize
     study_name: "${cfg_file_name}"
     storage: null
     n_trials: 20
-    n_jobs: 1
+    n_jobs: 10
     params:
       model.trainer.lr: choice(0.1, 0.01, 0.001)
       model.trainer.optimizer: choice("sgd", "adam")
@@ -39,7 +43,7 @@ model_id: "0"
 correlation_fn: "kendall"
 offline: true
 seed: 42
-device: "auto"
+device: "cuda:1"
 
 m: 4
 alpha: 0.5

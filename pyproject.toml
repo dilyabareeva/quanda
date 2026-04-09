@@ -150,6 +150,7 @@ dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "types-PyYAML>=5.0.0",
     "hydra-core>=1.1.0",
     "hydra-optuna-sweeper>=1.2.0",
+    "hydra-joblib-launcher>=1.2.0",
     "optuna>=2.10.0,<3.0.0",
 ]
 tutorials = [

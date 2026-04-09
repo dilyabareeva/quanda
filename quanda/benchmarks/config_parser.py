@@ -181,6 +181,9 @@ class BenchConfigParser:
             "scheduler_kwargs": trainer_cfg.get("scheduler_kwargs", {}),
             "seed": trainer_cfg.get("seed", 42),
             "num_workers": trainer_cfg.get("num_workers", 0),
+            "enable_progress_bar": trainer_cfg.get(
+                "enable_progress_bar", True
+            ),
         }
 
         return Trainer(**trainer_kwargs)

@@ -298,12 +298,18 @@ class Benchmark(ABC):
         obj.model.train()
         obj.model.to(obj.device)
 
-        accelerator = "gpu" if "cuda" in obj.device else obj.device
+        if "cuda" in obj.device:
+            accelerator = "gpu"
+            devices = int(obj.device.split(":")[-1]) if ":" in obj.device else 0
+        else:
+            accelerator = obj.device
+            devices = 1
         trainer.fit(
             model=obj.model,
             train_dataloaders=train_dl,
             val_dataloaders=val_dl,
             accelerator=accelerator,
+            devices=devices,
         )
 
         ckpt_dir = os.path.join(

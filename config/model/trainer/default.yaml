@@ -16,3 +16,4 @@ max_epochs: 5
 seed: 42
 
 num_workers: 8
+enable_progress_bar: false

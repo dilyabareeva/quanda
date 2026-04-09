@@ -23,6 +23,7 @@ class BaseTrainer(metaclass=abc.ABCMeta):
             torch.utils.data.dataloader.DataLoader
         ] = None,
         accelerator: str = "cpu",
+        devices: int = 0,
         seed: int = 42,
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
@@ -86,6 +87,7 @@ class Trainer(BaseTrainer):
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         seed: int = 27,
         num_workers: int = 0,
+        enable_progress_bar: bool = True,
     ):
         """Construct the Trainer class.
 
@@ -122,6 +124,7 @@ class Trainer(BaseTrainer):
         self.optimizer_kwargs = optimizer_kwargs or {}
         self.scheduler_kwargs = scheduler_kwargs or {}
         self.num_workers = num_workers
+        self.enable_progress_bar = enable_progress_bar
 
         seed_everything(seed, workers=True)
 
@@ -135,6 +138,7 @@ class Trainer(BaseTrainer):
             torch.utils.data.dataloader.DataLoader
         ] = None,
         accelerator: str = "cpu",
+        devices: int = 0,
         seed: int = 42,
         *args,
         **kwargs,
@@ -172,9 +176,10 @@ class Trainer(BaseTrainer):
 
         trainer = L.Trainer(
             max_epochs=self.max_epochs,
-            devices=1,
+            devices=[devices] if accelerator == "gpu" else 1,
             accelerator=accelerator,
             logger=self.logger,
+            enable_progress_bar=self.enable_progress_bar,
         )
         trainer.fit(module, train_dataloaders, val_dataloaders)
 
