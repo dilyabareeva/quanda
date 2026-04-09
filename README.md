@@ -186,7 +186,7 @@ We now create our explainer. The device to be used by the explainer and metrics 
 
 <!-- START2 -->
 ```python
-DEVICE = "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(DEVICE)
 
 explainer_kwargs = {
@@ -268,7 +268,7 @@ from quanda.benchmarks.downstream_eval import SubclassDetection
 
 <!-- START6 -->
 ```python
-DEVICE = "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(DEVICE)
 
 explainer_kwargs = {
@@ -327,7 +327,7 @@ from quanda.benchmarks.downstream_eval import MislabelingDetection
 
 <!-- START12 -->
 ```python
-DEVICE = "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(DEVICE)
 
 explainer_kwargs = {
@@ -352,9 +352,12 @@ with open(
 ) as f:
     mislabel_config = yaml.safe_load(f)
 
+mislabel_config["bench_save_dir"] = os.path.join(
+    cache_dir, "mislabeling_detection_bench"
+)
 mislabeling_detection = MislabelingDetection.train(
     mislabel_config,
-    device="cpu",
+    device=DEVICE,
 )
 ```
 <!-- END13_2 -->

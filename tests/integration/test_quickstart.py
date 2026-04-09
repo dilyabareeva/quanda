@@ -1,6 +1,7 @@
 import os
 
 import pytest
+import torch
 import yaml
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -47,7 +48,7 @@ def test_quickstart(
     )
 
     # START2
-    DEVICE = "cpu"
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(DEVICE)
 
     explainer_kwargs = {
@@ -92,7 +93,7 @@ def test_quickstart(
     # END4
 
     # START6
-    DEVICE = "cpu"
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(DEVICE)
 
     explainer_kwargs = {
@@ -119,7 +120,7 @@ def test_quickstart(
     # END7_2
 
     # START9
-    DEVICE = "cpu"
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(DEVICE)
 
     explainer_kwargs = {
@@ -148,7 +149,7 @@ def test_quickstart(
     # END10
 
     # START12
-    DEVICE = "cpu"
+    DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(DEVICE)
 
     explainer_kwargs = {
@@ -165,9 +166,12 @@ def test_quickstart(
     ) as f:
         mislabel_config = yaml.safe_load(f)
 
+    mislabel_config["bench_save_dir"] = os.path.join(
+        cache_dir, "mislabeling_detection_bench"
+    )
     mislabeling_detection = MislabelingDetection.train(
         mislabel_config,
-        device="cpu",
+        device=DEVICE,
     )
     # END13_2
 

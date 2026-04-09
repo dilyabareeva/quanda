@@ -112,9 +112,11 @@ def test_benchmark_integration(
 
     # Override for faster testing
     captum_influence_args["projection_dim"] = 2
+    captum_influence_args["arnoldi_dim"] = 5
+    captum_influence_args["arnoldi_tol"] = 1e-10
     captum_influence_args["hessian_dataset"] = torch.utils.data.Subset(
         benchmark.train_dataset,
-        torch.randint(0, len(benchmark.train_dataset), (10,)),
+        torch.randint(0, len(benchmark.train_dataset), (50,)),
     )
 
     # START7
