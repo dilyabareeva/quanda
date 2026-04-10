@@ -102,7 +102,7 @@ def test_mislabeling_detection(
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )
-# @pytest.mark.production_bench
+@pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
     [
@@ -156,7 +156,7 @@ def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )
-# @pytest.mark.production_bench
+@pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
     [
@@ -184,7 +184,7 @@ def test_eval_dataset_is_clean(config_name, tmp_path):
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )
-# @pytest.mark.production_bench
+@pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
     [
