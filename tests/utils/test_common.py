@@ -1,7 +1,12 @@
 import pytest
 import torch
 
-from quanda.utils.common import DatasetSplit, class_accuracy, make_func
+from quanda.utils.common import (
+    DatasetSplit,
+    class_accuracy,
+    get_targets,
+    make_func,
+)
 
 
 @pytest.mark.utils
@@ -162,3 +167,21 @@ def test_class_accuracy(
 
     result = class_accuracy(model, loader, single_class=single_class)
     assert result == pytest.approx(expected)
+
+
+@pytest.mark.utils
+@pytest.mark.parametrize(
+    "test_id, item, expected, error_match",
+    [
+        ("tuple_item", (torch.tensor([1.0]), 5), 5, None),
+        ("dict_with_labels", {"input_ids": torch.tensor([1]), "labels": 3}, 3, None),
+        ("dict_missing_labels", {"input_ids": torch.tensor([1])}, None, "missing required 'labels' key"),
+        ("unsupported_type", [1, 2, 3], None, "Unsupported dataset item type"),
+    ],
+)
+def test_get_targets(test_id, item, expected, error_match):
+    if error_match is not None:
+        with pytest.raises(ValueError, match=error_match):
+            get_targets(item)
+    else:
+        assert get_targets(item) == expected

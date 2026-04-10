@@ -75,6 +75,56 @@ def test_captum_tracincp(
 
 @pytest.mark.explainers
 @pytest.mark.parametrize(
+    "test_id, model, dataset, checkpoints, method_kwargs",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_checkpoints",
+            {
+                "batch_size": 1,
+                "sample_wise_grads_per_batch": False,
+                "loss_fn": torch.nn.CrossEntropyLoss(reduction="none"),
+            },
+        ),
+    ],
+)
+def test_captum_tracincp_self_influence(
+    test_id,
+    model,
+    dataset,
+    checkpoints,
+    method_kwargs,
+    request,
+    mocker,
+):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    checkpoints = request.getfixturevalue(checkpoints)[:2]
+    n_train = len(dataset)
+
+    mocker.patch.object(CaptumTracInCP, "_init_explainer")
+    explainer = CaptumTracInCP(
+        model=model,
+        train_dataset=dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        device="cpu",
+        **method_kwargs,
+    )
+    explainer.captum_explainer = mocker.MagicMock()
+    explainer.captum_explainer.self_influence.return_value = torch.randn(
+        n_train,
+    )
+    self_influence = explainer.self_influence()
+
+    explainer.captum_explainer.self_influence.assert_called_once()
+    assert self_influence.shape == (n_train,)
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
     "test_id, model, checkpoint,dataset, test_data, test_labels, checkpoints, method_kwargs",
     [
         (
@@ -203,3 +253,54 @@ def test_captum_tracincp_fast(
     assert torch.allclose(explanations, explanations_exp), (
         "Training data attributions are not as expected"
     )
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, checkpoints, method_kwargs",
+    [
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_checkpoints",
+            {
+                "batch_size": 1,
+                "loss_fn": torch.nn.CrossEntropyLoss(reduction="sum"),
+            },
+        ),
+    ],
+)
+def test_captum_tracincp_fast_self_influence(
+    test_id,
+    model,
+    dataset,
+    checkpoints,
+    method_kwargs,
+    request,
+    mocker,
+):
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    checkpoints = request.getfixturevalue(checkpoints)[:2]
+    final_fc_layer = model.fc_3
+    n_train = len(dataset)
+
+    mocker.patch.object(CaptumTracInCPFast, "_init_explainer")
+    explainer = CaptumTracInCPFast(
+        model=model,
+        final_fc_layer=final_fc_layer,
+        train_dataset=dataset,
+        checkpoints=checkpoints,
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        device="cpu",
+        **method_kwargs,
+    )
+    explainer.captum_explainer = mocker.MagicMock()
+    explainer.captum_explainer.self_influence.return_value = torch.randn(
+        n_train,
+    )
+    self_influence = explainer.self_influence()
+
+    explainer.captum_explainer.self_influence.assert_called_once()
+    assert self_influence.shape == (n_train,)
