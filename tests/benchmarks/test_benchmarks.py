@@ -161,6 +161,11 @@ def test_load(
             "mnist_subclass_detection_unit",
             SubclassDetection,
         ),
+        (
+            "mnist",
+            "mnist_linear_datamodeling_unit",
+            LinearDatamodeling,
+        ),
     ],
 )
 def test_overall_objective(
@@ -677,7 +682,7 @@ def test_logger(
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )
-# @pytest.mark.production_bench
+@pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name,bench_cls",
     [

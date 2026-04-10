@@ -11,7 +11,7 @@ from quanda.benchmarks.downstream_eval import (
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )
-# @pytest.mark.production_bench
+@pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
     [
@@ -54,7 +54,7 @@ def test_subclass_class_to_group(config_name, tmp_path):
 @pytest.mark.skipif(
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )
-# @pytest.mark.production_bench
+@pytest.mark.production_bench
 @pytest.mark.parametrize(
     "config_name",
     [

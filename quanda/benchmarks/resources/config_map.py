@@ -6,6 +6,7 @@ _unit = "tests/assets/unit_bench_cfgs"
 _prefix = "20fba38-default"
 
 config_map: dict = {
+    "mnist_linear_datamodeling_unit": (f"{_unit}/{_prefix}_LDS.yaml"),
     "mnist_top_k_cardinality_unit": (f"{_unit}/{_prefix}_ClassDetection.yaml"),
     "mnist_subclass_detection_unit": (
         f"{_unit}/{_prefix}_SubclassDetection.yaml"

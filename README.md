@@ -213,11 +213,14 @@ explainer_kwargs = {
     "model_id": "randomized_model_id",
     "cache_dir": cache_dir,
 }
+ckpt_path = os.path.join(cache_dir, "model_rand_ckpt.pth")
+torch.save(model.state_dict(), ckpt_path)
 model_rand = ModelRandomizationMetric(
     model=model,
     model_id="randomized_model_id",
     cache_dir=cache_dir,
     train_dataset=dataset,
+    checkpoints=ckpt_path,
     explainer_cls=CaptumSimilarity,
     expl_kwargs=explainer_kwargs,
     correlation_fn="spearman",

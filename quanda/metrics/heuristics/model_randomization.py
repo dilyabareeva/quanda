@@ -2,7 +2,7 @@
 
 import copy
 import os
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 import torch
 
@@ -35,9 +35,9 @@ class ModelRandomizationMetric(Metric):
         model_id: str,
         cache_dir: str,
         train_dataset: torch.utils.data.Dataset,
-        explainer_cls: type,
+        checkpoints: Union[str, List[str]],
+        explainer_cls: Type,
         expl_kwargs: Optional[dict] = None,
-        checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
@@ -54,17 +54,22 @@ class ModelRandomizationMetric(Metric):
             The cache directory.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train `model`.
-        explainer_cls : type
+        checkpoints : Union[str, List[str]]
+            Path to the model checkpoint file(s). Required because
+            model randomization needs to load and randomize
+            checkpoints.
+        explainer_cls : Type
             The class of the explainer to evaluate.
         expl_kwargs : Optional[dict], optional
-            Additional keyword arguments for the explainer, by default None.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
+            Additional keyword arguments for the explainer,
+            by default None.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            The correlation function to use, by default "spearman".
+            Function to load the model from the checkpoint file,
+            takes (model, checkpoint path) as two arguments,
+            by default None.
+        correlation_fn : Union[Callable, CorrelationFnLiterals],
+            optional. The correlation function to use,
+            by default "spearman".
             Can be "spearman", "kendall" or a callable.
         seed : int, optional
             The random seed, by default 42.
