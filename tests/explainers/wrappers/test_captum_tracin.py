@@ -116,11 +116,10 @@ def test_captum_tracincp_fast_rand_proj(
 
     n_test = len(test_data)
     n_train = len(dataset)
-    mock_influence = mocker.patch(
-        "captum.influence.TracInCPFastRandProj.influence",
-        return_value=torch.randn(n_test, n_train),
-    )
 
+    mocker.patch.object(
+        CaptumTracInCPFastRandProj, "_init_explainer"
+    )
     explainer = CaptumTracInCPFastRandProj(
         model=model,
         final_fc_layer=final_fc_layer,
@@ -130,9 +129,13 @@ def test_captum_tracincp_fast_rand_proj(
         device="cpu",
         **method_kwargs,
     )
+    explainer.captum_explainer = mocker.MagicMock()
+    explainer.captum_explainer.influence.return_value = torch.randn(
+        n_test, n_train
+    )
     explanations = explainer.explain(test_data, test_labels)
 
-    mock_influence.assert_called_once()
+    explainer.captum_explainer.influence.assert_called_once()
     assert explanations.shape == (n_test, n_train)
 
 
