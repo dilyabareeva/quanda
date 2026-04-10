@@ -117,9 +117,7 @@ def test_captum_tracincp_fast_rand_proj(
     n_test = len(test_data)
     n_train = len(dataset)
 
-    mocker.patch.object(
-        CaptumTracInCPFastRandProj, "_init_explainer"
-    )
+    mocker.patch.object(CaptumTracInCPFastRandProj, "_init_explainer")
     explainer = CaptumTracInCPFastRandProj(
         model=model,
         final_fc_layer=final_fc_layer,
