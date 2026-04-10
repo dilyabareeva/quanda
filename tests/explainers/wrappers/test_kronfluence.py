@@ -688,9 +688,9 @@ def test_kronfluence_causal_lm_self_influence(
     )
 
     self_influence_scores = explainer.self_influence()
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.explainers
@@ -729,9 +729,9 @@ def test_kronfluence_dummy_causal_lm_self_influence(
 
     self_influence_scores = explainer.self_influence()
 
-    assert self_influence_scores.shape == (
-        len(train_dataset),
-    ), "Self-influence scores have incorrect shape"
+    assert self_influence_scores.shape == (len(train_dataset),), (
+        "Self-influence scores have incorrect shape"
+    )
 
 
 @pytest.mark.explainers

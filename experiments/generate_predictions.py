@@ -112,7 +112,7 @@ def generate_predictions(model, tokenizer, prompt_dataset):
         # Replace newlines with spaces before printing
         predicted_part = predicted_part.replace("\n", " ")
 
-        print(f"Prompt   [{i+1}]: {prompt_text}")
+        print(f"Prompt   [{i + 1}]: {prompt_text}")
         print(f"Target      → {target}")
         print(f"Prediction  → {predicted_part} {match_symbol}")
         print("-" * 60)

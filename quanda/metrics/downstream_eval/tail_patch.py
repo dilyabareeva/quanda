@@ -120,9 +120,7 @@ class TailPatchMetric(Metric):
             target_clamped[target_clamped < 0] = 0
             token_logps = log_probs.gather(
                 2, target_clamped.unsqueeze(-1)
-            ).squeeze(
-                -1
-            )  # [B, T]
+            ).squeeze(-1)  # [B, T]
             # Mask out non-target or padding tokens
             mask = (target_ids != -100) & attention_mask.bool()
             token_logps = token_logps * mask

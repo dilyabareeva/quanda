@@ -9,13 +9,12 @@ from transformers import (  # type: ignore
     AutoConfig,
     AutoModelForSequenceClassification,
     PretrainedConfig,
-    PreTrainedModel
+    PreTrainedModel,
 )
 from transformers.modeling_outputs import (
     CausalLMOutput,
     CausalLMOutputWithCrossAttentions,
     SequenceClassifierOutput,
-    CausalLMOutputWithCrossAttentions
 )
 
 
@@ -361,16 +360,12 @@ class Block(nn.Module):
 @dataclass
 class GPTConfig:
     block_size: int = 1024
-    vocab_size: int = (
-        50304  # GPT-2 vocab_size of 50257, padded up to nearest multiple of 64 for efficiency
-    )
+    vocab_size: int = 50304  # GPT-2 vocab_size of 50257, padded up to nearest multiple of 64 for efficiency
     n_layer: int = 12
     n_head: int = 12
     n_embd: int = 768
     dropout: float = 0.0
-    bias: bool = (
-        True  # True: bias in Linears and LayerNorms, like GPT-2. False: a bit better and faster
-    )
+    bias: bool = True  # True: bias in Linears and LayerNorms, like GPT-2. False: a bit better and faster
 
 
 class GPT(nn.Module):
@@ -435,9 +430,9 @@ class GPT(nn.Module):
     def forward(self, idx, targets=None):
         device = idx.device
         b, t = idx.size()
-        assert (
-            t <= self.config.block_size
-        ), f"Cannot forward sequence of length {t}, block size is only {self.config.block_size}"
+        assert t <= self.config.block_size, (
+            f"Cannot forward sequence of length {t}, block size is only {self.config.block_size}"
+        )
         pos = torch.arange(0, t, dtype=torch.long, device=device)  # shape (t)
 
         # forward the GPT model itself
@@ -550,9 +545,9 @@ class GPT(nn.Module):
         ]
         # basically the openai checkpoints use a "Conv1D" module, but we only want to use a vanilla Linear
         # this means that we have to transpose these weights when we import them
-        assert len(sd_keys_hf) == len(
-            sd_keys
-        ), f"mismatched keys: {len(sd_keys_hf)} != {len(sd_keys)}"
+        assert len(sd_keys_hf) == len(sd_keys), (
+            f"mismatched keys: {len(sd_keys_hf)} != {len(sd_keys)}"
+        )
         for k in sd_keys_hf:
             if any(k.endswith(w) for w in transposed):
                 # special treatment for the Conv1D weights we need to transpose

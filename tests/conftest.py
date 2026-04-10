@@ -21,10 +21,8 @@ from torchvision.models import resnet18, vit_b_16
 from transformers import (
     AutoConfig,
     AutoModelForCausalLM,
-    AutoModelForSequenceClassification,
     AutoTokenizer,
 )
-from transformers.modeling_outputs import SequenceClassifierOutput
 
 from quanda.benchmarks.resources import config_map
 from quanda.utils.datasets.transformed.label_flipping import (
@@ -41,9 +39,9 @@ from tests.models import (
     NanoGPT,
     NanoGPTConfig,
     SequenceClassificationModel,
+    SimpleCausalLM,
     SimpleTextClassifier,
     TinyGPT2,
-    SimpleCausalLM,
 )
 
 # Copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
@@ -889,37 +887,6 @@ def get_glue_dataset(
     return ds
 
 
-class SequenceClassificationModel(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.config = AutoConfig.from_pretrained(
-            "gchhablani/bert-base-cased-finetuned-qnli",
-            num_labels=2,
-            finetuning_task="qnli",
-            cache_dir=None,
-            revision="main",
-            token=None,
-        )
-
-        self.model = AutoModelForSequenceClassification.from_pretrained(
-            "gchhablani/bert-base-cased-finetuned-qnli",
-            config=self.config,
-            cache_dir=None,
-            revision="main",
-            token=None,
-            ignore_mismatched_sizes=False,
-        )
-
-        self.model.eval()
-
-    def forward(self, input_ids, token_type_ids, attention_mask):
-        return self.model(
-            input_ids=input_ids,
-            token_type_ids=token_type_ids,
-            attention_mask=attention_mask,
-        )
-
-
 def get_dataset(split, inds=None):
     raw_datasets = datasets.load_dataset(
         "glue",
@@ -1562,9 +1529,7 @@ def load_fact_tracing_dataset(
 
         # Mask out prompt from loss
         label_ids = encoded["input_ids"].copy()
-        label_ids[:prompt_len] = [
-            -100
-        ] * prompt_len
+        label_ids[:prompt_len] = [-100] * prompt_len
 
         # Mask out padding tokens in labels
         for i in range(len(encoded["input_ids"])):
