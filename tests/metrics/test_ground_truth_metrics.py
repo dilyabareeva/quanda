@@ -2,7 +2,6 @@ import pytest
 import torch
 from lightning.pytorch import Trainer as LightningTrainer
 
-
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
@@ -13,7 +12,7 @@ from quanda.utils.training import Trainer
 
 @pytest.mark.ground_truth_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, method_kwargs",
+    "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, expected, method_kwargs",
     [
         (
             "mnist",
@@ -24,6 +23,7 @@ from quanda.utils.training import Trainer
             "load_mnist_test_labels_1",
             "torch_sgd_optimizer",
             "torch_cross_entropy_loss_object",
+            0.039999980479478836,
             {"layers": "relu_4", "similarity_metric": cosine_similarity},
         ),
     ],
@@ -37,7 +37,7 @@ def test_linear_datamodeling(
     test_labels,
     optimizer,
     criterion,
-    get_lds_score,
+    expected,
     method_kwargs,
     request,
     tmp_path,
@@ -91,9 +91,81 @@ def test_linear_datamodeling(
 
     score = metric.compute()["score"]
 
-    assert (
-        abs(score - get_lds_score) < 0.01
-    ), "LDS scores differ significantly."
+    assert abs(score - expected) < 0.01, "LDS scores differ significantly."
+
+
+@pytest.mark.ground_truth_metrics
+@pytest.mark.parametrize(
+    "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, "
+    "trainer, correlation, expected, method_kwargs",
+    [
+        (
+            "mnist_wrong_correlation",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            "torch_sgd_optimizer",
+            "torch_cross_entropy_loss_object",
+            "dummy_trainer",
+            "Wrong Type Correlation",
+            ValueError,
+            {"layers": "relu_4", "similarity_metric": cosine_similarity},
+        ),
+        (
+            "mnist_wrong_trainer",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            "torch_sgd_optimizer",
+            "torch_cross_entropy_loss_object",
+            None,
+            "spearman",
+            ValueError,
+            {"layers": "relu_4", "similarity_metric": cosine_similarity},
+        ),
+    ],
+)
+def test_linear_datamodeling_edge_cases(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_data,
+    test_labels,
+    optimizer,
+    criterion,
+    trainer,
+    correlation,
+    expected,
+    method_kwargs,
+    request,
+    tmp_path,
+):
+    model = request.getfixturevalue(model) if model else None
+    checkpoint = request.getfixturevalue(checkpoint)
+    dataset = request.getfixturevalue(dataset)
+    trainer = request.getfixturevalue(trainer) if trainer else None
+
+    with pytest.raises(expected):
+        LinearDatamodelingMetric(
+            model=model,
+            checkpoints=checkpoint,
+            train_dataset=dataset,
+            trainer=trainer,
+            alpha=0.5,
+            model_id="mnist_lds",
+            m=5,
+            seed=3,
+            correlation_fn=correlation,
+            cache_dir=str(tmp_path),
+            batch_size=1,
+        )
+
+    return
 
 
 @pytest.mark.ground_truth_metrics
@@ -161,13 +233,13 @@ def test_linear_datamodeling_extended(
         trainer=trainer,
         alpha=0.5,
         model_id="mnist_lds",
-        m=len(subset_indices),
+        m=len(pretrained_models),
         seed=3,
         correlation_fn="spearman",
-        cache_dir=str(tmp_path),
+        cache_dir="tests/assets/lds_checkpoints/",
         batch_size=1,
         subset_ids=subset_indices,
-        pretrained_models=pretrained_models,
+        subset_ckpt_filenames=pretrained_models,
     )
 
     metric.update(
@@ -182,21 +254,37 @@ def test_linear_datamodeling_extended(
 
 @pytest.mark.ground_truth_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint, dataset",
+    "test_id, model, checkpoint, dataset, trainer",
     [
         (
             "mnist",
             "load_mnist_model",
             "load_mnist_last_checkpoint",
             "load_mnist_dataset",
+            "lightning_trainer",
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            None,
+        ),
+        (
+            "mnist",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "base_trainer",
         ),
     ],
 )
-def test_linear_datamodeling_lightning(
+def test_linear_datamodeling_training(
     test_id,
     model,
     checkpoint,
     dataset,
+    trainer,
     request,
     tmp_path,
 ):
@@ -204,19 +292,58 @@ def test_linear_datamodeling_lightning(
     checkpoint = request.getfixturevalue(checkpoint)
     dataset = request.getfixturevalue(dataset)
 
-    lightning_trainer = LightningTrainer(
-        max_epochs=0,
-    )
+    if trainer == "lightning_trainer":
+        lightning_trainer = LightningTrainer(
+            max_epochs=0,
+        )
 
-    with pytest.raises(
-        ValueError,
-        match="Model should be a LightningModule if Trainer is a Lightning Trainer",
-    ):
-        LinearDatamodelingMetric(
+        with pytest.raises(
+            ValueError,
+            match="Model should be a LightningModule if Trainer is a Lightning Trainer",
+        ):
+            LinearDatamodelingMetric(
+                model=model,
+                checkpoints=checkpoint,
+                train_dataset=dataset,
+                trainer=lightning_trainer,
+                alpha=0.5,
+                model_id=f"{test_id}_lds",
+                m=5,
+                seed=3,
+                correlation_fn="spearman",
+                cache_dir=str(tmp_path),
+                batch_size=1,
+            )
+
+    elif trainer is None:
+        lightning_trainer = None
+
+        with pytest.raises(
+            ValueError, match="Invalid combination of argumetns"
+        ):
+            LinearDatamodelingMetric(
+                model=model,
+                checkpoints=checkpoint,
+                train_dataset=dataset,
+                trainer=lightning_trainer,
+                alpha=0.5,
+                model_id=f"{test_id}_lds",
+                m=5,
+                seed=3,
+            )
+
+    elif trainer == "base_trainer":
+        base_trainer = Trainer(
+            max_epochs=3,
+            optimizer=torch.optim.SGD,
+            lr=0.1,
+            criterion=torch.nn.CrossEntropyLoss(),
+        )
+        metric = LinearDatamodelingMetric(
             model=model,
             checkpoints=checkpoint,
             train_dataset=dataset,
-            trainer=lightning_trainer,
+            trainer=base_trainer,
             alpha=0.5,
             model_id=f"{test_id}_lds",
             m=5,
@@ -224,4 +351,8 @@ def test_linear_datamodeling_lightning(
             correlation_fn="spearman",
             cache_dir=str(tmp_path),
             batch_size=1,
+        )
+
+        assert isinstance(metric, LinearDatamodelingMetric), (
+            "Metric should be an instance of LinearDatamodelingMetric."
         )

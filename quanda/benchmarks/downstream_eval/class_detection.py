@@ -1,7 +1,7 @@
 """Class Detection benchmark."""
 
 import logging
-from typing import Callable, List, Optional, Union, Any
+from typing import Optional
 
 import torch
 
@@ -34,97 +34,44 @@ class ClassDetection(Benchmark):
 
     # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     name: str = "Class Detection"
-    eval_args = ["test_targets", "explanations"]
+    eval_args = ["test_data", "test_targets", "explanations"]
 
     def __init__(
         self,
         *args,
+        filter_by_prediction: bool = False,
         **kwargs,
     ):
-        """Initialize the Class Detection benchmark.
-
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: torch.nn.Module
-
-        self.train_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
-        self.use_predictions: bool
-
-    @classmethod
-    def assemble(
-        cls,
-        model: torch.nn.Module,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        dataset_transform: Optional[Callable] = None,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        checkpoint_paths: Optional[List[str]] = None,
-        *args,
-        **kwargs,
-    ):
-        """Assembles the benchmark from existing components.
+        """Initialize the Subclass Detection benchmark.
 
         Parameters
         ----------
-        model : torch.nn.Module
-            The model used to generate attributions.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed,
-            it should be a HuggingFace dataset name.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        dataset_transform : Optional[Callable], optional
-            The transform to be applied to the dataset, by default None.
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by
-            default True.
-        dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default
-            "train".
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        ClassDetection
-            The benchmark instance.
+        *args
+            Positional arguments passed to the base class.
+        filter_by_prediction : bool, optional
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the correct superclass is predicted, by
+            default False.
+        **kwargs
+            Arguments passed to the base Benchmark class.
 
         """
-        obj = cls()
-        obj._assemble_common(
-            model=model,
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions,
-        )
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
-        )
+        super().__init__(*args, **kwargs)
+        self.filter_by_prediction = filter_by_prediction
 
-        return obj
-
-    generate = assemble
+    @classmethod
+    def _extra_kwargs_from_config(
+        cls,
+        config: dict,
+        train_dataset: torch.utils.data.Dataset,
+        eval_dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract class detection kwargs from config."""
+        return {
+            "filter_by_prediction": config.get("filter_by_prediction", False),
+        }
 
     def evaluate(
         self,

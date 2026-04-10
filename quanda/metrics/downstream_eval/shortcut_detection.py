@@ -1,6 +1,6 @@
 """Shortcut Detection Metric."""
 
-from typing import List, Optional, Union, Callable, Any
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 from torcheval.metrics.functional import binary_auprc
@@ -12,7 +12,7 @@ from quanda.utils.common import ds_len
 class ShortcutDetectionMetric(Metric):
     """Metric for the shortcut detection evaluation task.
 
-    Attributions of a  model with a shortcut is checked against the ground
+    Attributions of a model with a shortcut is checked against the ground
     truth of shortcut samples. This strategy is inspired by Koh et al. (2017).
 
     References
@@ -31,8 +31,8 @@ class ShortcutDetectionMetric(Metric):
         shortcut_cls: int,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        filter_by_prediction: bool = False,
-        filter_by_class: bool = False,
+        filter_by_non_shortcut: bool = True,
+        filter_by_shortcut_pred: bool = True,
     ):
         """Initialize the Shortcut Detection metric.
 
@@ -54,14 +54,14 @@ class ShortcutDetectionMetric(Metric):
         checkpoints_load_func : Optional[Callable[..., Any]], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
-        filter_by_prediction : bool, optional
-            Whether to filter the test samples to only calculate the metric on
-            those samples, where the shortcut class
-            is predicted, by default True.
-        filter_by_class: bool, optional
+        filter_by_non_shortcut : bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the shortcut class
             is not assigned as the class, by default True.
+        filter_by_shortcut_pred: bool, optional
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the shortcut class
+            is predicted, by default True.
 
         Raises
         ------
@@ -90,8 +90,8 @@ class ShortcutDetectionMetric(Metric):
         self.shortcut_cls = shortcut_cls
         self._validate_shortcut_labels()
 
-        self.filter_by_prediction = filter_by_prediction
-        self.filter_by_class = filter_by_class
+        self.filter_by_non_shortcut = filter_by_non_shortcut
+        self.filter_by_shortcut_pred = filter_by_shortcut_pred
 
     def _validate_shortcut_labels(self):
         """Validate the adversarial labels in the training dataset."""
@@ -99,10 +99,10 @@ class ShortcutDetectionMetric(Metric):
             [self.train_dataset[int(i)][1] for i in self.shortcut_indices],
             device=self.device,
         )
-        assert torch.all(
-            shortcut_labels == self.shortcut_cls
-        ), f"shortcut indices don't have the correct class.\
+        assert torch.all(shortcut_labels == self.shortcut_cls), (
+            f"shortcut indices don't have the correct class.\
             Expected only {self.shortcut_cls}, got {set(shortcut_labels)}."
+        )
 
     def update(
         self,
@@ -118,24 +118,25 @@ class ShortcutDetectionMetric(Metric):
             Explanations to be evaluated.
         test_data : Union[List, torch.Tensor], optional
             Test samples for which the explanations were computed. Not optional
-            if `filter_by_prediction` is True.
+            if `filter_by_non_shortcut` is True.
         test_labels : torch.Tensor, optional
-            Labels of the test samples. Not optional if `filter_by_prediction`
-            or `filter_by_class` is True.
+            Labels of the test samples. Not optional if
+            `filter_by_non_shortcut` or
+            `filter_by_shortcut_pred` is True.
 
         """
         explanations = explanations.to(self.device)
 
-        if test_data is None and self.filter_by_prediction:
+        if test_data is None and self.filter_by_non_shortcut:
             raise ValueError(
-                "test_data must be provided if filter_by_prediction is True"
+                "test_data must be provided if filter_by_non_shortcut is True"
             )
         if test_labels is None and (
-            self.filter_by_prediction or self.filter_by_class
+            self.filter_by_non_shortcut or self.filter_by_shortcut_pred
         ):
             raise ValueError(
-                "test_labels must be provided if filter_by_prediction or "
-                "filter_by_class is True"
+                "test_labels must be provided if filter_by_non_shortcut or "
+                "filter_by_shortcut_pred is True"
             )
 
         if test_data is not None:
@@ -145,10 +146,10 @@ class ShortcutDetectionMetric(Metric):
 
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
 
-        if self.filter_by_prediction:
+        if self.filter_by_shortcut_pred:
             pred_cls = self.model(test_data).argmax(dim=1)
             select_idx *= pred_cls == self.shortcut_cls
-        if self.filter_by_class:
+        if self.filter_by_non_shortcut:
             select_idx *= test_labels != self.shortcut_cls
 
         explanations = explanations[select_idx]

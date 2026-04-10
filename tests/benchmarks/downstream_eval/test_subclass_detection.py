@@ -1,322 +1,89 @@
-import math
-from functools import reduce
+import os
 
-import lightning as L
 import pytest
 import torch
 
-from quanda.benchmarks.downstream_eval.subclass_detection import (
+from quanda.benchmarks.downstream_eval import (
     SubclassDetection,
 )
-from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
-from quanda.utils.functions.similarities import cosine_similarity
-from quanda.utils.training.trainer import Trainer
 
 
-@pytest.mark.benchmarks
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
+# @pytest.mark.production_bench
 @pytest.mark.parametrize(
-    "test_id, init_method, model, checkpoint, optimizer, lr, criterion, max_epochs, dataset, n_classes, n_groups, seed, "
-    "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
+    "config_name",
     [
-        (
-            "mnist",
-            "generate",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            {i: i % 2 for i in range(10)},
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            False,
-            None,
-            1.0,
-        ),
-        (
-            "mnist",
-            "assemble",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            {i: i % 2 for i in range(10)},
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            False,
-            None,
-            1.0,
-        ),
+        "mnist_subclass_detection",
     ],
 )
-def test_subclass_detection(
-    test_id,
-    init_method,
-    model,
-    checkpoint,
-    optimizer,
-    lr,
-    criterion,
-    max_epochs,
-    dataset,
-    n_classes,
-    n_groups,
-    seed,
-    class_to_group,
-    batch_size,
-    explainer_cls,
-    expl_kwargs,
-    use_pred,
-    load_path,
-    expected_score,
-    tmp_path,
-    request,
-):
-    model = request.getfixturevalue(model)
-    checkpoint = request.getfixturevalue(checkpoint)
-    optimizer = request.getfixturevalue(optimizer)
-    criterion = request.getfixturevalue(criterion)
-    dataset = request.getfixturevalue(dataset)
-
-    if init_method == "generate":
-        trainer = Trainer(
-            max_epochs=max_epochs,
-            optimizer=optimizer,
-            lr=lr,
-            criterion=criterion,
-        )
-
-        dst_eval = SubclassDetection.generate(
-            model=model,
-            trainer=trainer,
-            base_dataset=dataset,
-            eval_dataset=dataset,
-            n_classes=n_classes,
-            n_groups=n_groups,
-            class_to_group=class_to_group,
-            trainer_fit_kwargs={"max_epochs": max_epochs},
-            seed=seed,
-            batch_size=batch_size,
-            cache_dir=str(tmp_path),
-            device="cpu",
-        )
-
-    elif init_method == "assemble":
-        dst_eval = SubclassDetection.assemble(
-            model=model,
-            checkpoints=checkpoint,
-            base_dataset=dataset,
-            eval_dataset=dataset,
-            n_classes=n_classes,
-            class_to_group=class_to_group,
-        )
-    else:
-        raise ValueError(f"Invalid init_method: {init_method}")
-
-    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    score = dst_eval.evaluate(
-        explainer_cls=explainer_cls,
-        expl_kwargs=expl_kwargs,
-        batch_size=batch_size,
-    )["score"]
-
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
-
-
-@pytest.mark.benchmarks
-@pytest.mark.parametrize(
-    "test_id, pl_module, max_epochs, dataset, n_classes, n_groups, seed, "
-    "class_to_group, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
-    [
-        (
-            "mnist",
-            "load_mnist_pl_module",
-            3,
-            "load_mnist_dataset",
-            10,
-            2,
-            27,
-            {i: i % 2 for i in range(10)},
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "model.fc_2",
-                "similarity_metric": cosine_similarity,
-            },
-            False,
-            None,
-            1.0,
-        ),
-    ],
-)
-def test_subclass_detection_generate_lightning_model(
-    test_id,
-    pl_module,
-    max_epochs,
-    dataset,
-    n_classes,
-    n_groups,
-    seed,
-    class_to_group,
-    batch_size,
-    explainer_cls,
-    expl_kwargs,
-    use_pred,
-    load_path,
-    expected_score,
-    tmp_path,
-    request,
-):
-    pl_module = request.getfixturevalue(pl_module)
-    dataset = request.getfixturevalue(dataset)
-
-    trainer = L.Trainer(max_epochs=max_epochs)
-
-    dst_eval = SubclassDetection.generate(
-        model=pl_module,
-        trainer=trainer,
-        base_dataset=dataset,
-        eval_dataset=dataset,
-        n_classes=n_classes,
-        n_groups=n_groups,
-        class_to_group=class_to_group,
-        trainer_fit_kwargs={},
-        seed=seed,
+def test_subclass_class_to_group(config_name, tmp_path):
+    """Verify subclass-transformed eval samples stay unchanged
+    after re-applying the sample transform."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    bench = SubclassDetection.load_pretrained(
+        bench_id=config_name,
         cache_dir=str(tmp_path),
-        batch_size=batch_size,
+        device=device,
+        offline=False,
     )
 
-    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    score = dst_eval.evaluate(
-        explainer_cls=explainer_cls,
-        expl_kwargs=expl_kwargs,
-        batch_size=batch_size,
-    )["score"]
+    datasets = [bench.train_dataset, bench.eval_dataset]
+    class_to_group = {}
 
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
+    mismatches = []
+    for ds in datasets:
+        for idx in range(len(ds)):
+            raw_label = ds.get_original_label(idx)
+            _, label = ds[idx]
+            if raw_label in class_to_group:
+                if class_to_group[raw_label] != label:
+                    mismatches.append(
+                        (idx, raw_label, class_to_group[raw_label], label)
+                    )
+            else:
+                class_to_group[raw_label] = label
+
+    assert not mismatches, (
+        f"Found {len(mismatches)} samples where raw label mapped "
+        f"to different transformed labels: {mismatches[:10]}"
+    )
 
 
-@pytest.mark.benchmarks
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
+# @pytest.mark.production_bench
 @pytest.mark.parametrize(
-    "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, expected_score",
+    "config_name",
     [
-        (
-            "mnist",
-            "mnist_subclass_detection_benchmark",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "model.fc_2",
-                "similarity_metric": cosine_similarity,
-                "load_from_disk": True,
-            },
-            "compute",
-        ),
+        "mnist_subclass_detection",
     ],
 )
-def test_subclass_detection_download(
-    test_id,
-    benchmark,
-    batch_size,
-    explainer_cls,
-    expl_kwargs,
-    expected_score,
-    tmp_path,
-    request,
-):
-    dst_eval = request.getfixturevalue(benchmark)
+def test_subclass_sanity_check_values(config_name, tmp_path):
+    """Verify filter_by_non_subclass and filter_by_shortcut_pred in benchmark cfg work as expected on eval_dataset."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    batch_size = 8
 
-    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.base_dataset = torch.utils.data.Subset(
-        dst_eval.base_dataset, list(range(16))
+    bench = SubclassDetection.load_pretrained(
+        bench_id=config_name,
+        cache_dir=str(tmp_path),
+        device=device,
+        offline=False,
     )
-    dst_eval.grouped_dataset = torch.utils.data.Subset(
-        dst_eval.grouped_dataset, list(range(16))
+
+    sanity_check_results = bench.sanity_check(batch_size=batch_size)
+
+    assert sanity_check_results["train_acc"] > 0.9, (
+        f"Expected train_acc to be > 0.9, but got {sanity_check_results['train_acc']}."
     )
-    dst_eval.eval_dataset = torch.utils.data.Subset(
-        dst_eval.eval_dataset, list(range(16))
+    assert sanity_check_results["val_acc"] > 0.9, (
+        f"Expected val_acc to be > 0.9, but got {sanity_check_results['val_acc']}."
     )
-    score = dst_eval.evaluate(
-        explainer_cls=explainer_cls,
-        expl_kwargs=expl_kwargs,
-        batch_size=batch_size,
-    )["score"]
-    if expected_score == "compute":
-        activation = []
 
-        def hook(model, input, output):
-            activation.append(output.detach())
-
-        exp_layer = reduce(
-            getattr, expl_kwargs["layers"].split("."), dst_eval.model
-        )
-        exp_layer.register_forward_hook(hook)
-        train_ld = torch.utils.data.DataLoader(
-            dst_eval.grouped_dataset, batch_size=16, shuffle=False
-        )
-        test_ld = torch.utils.data.DataLoader(
-            dst_eval.eval_dataset, batch_size=16, shuffle=False
-        )
-        for x, y in iter(train_ld):
-            x = x.to(dst_eval.device)
-            dst_eval.model(x)
-        act_train = activation[0]
-        activation = []
-        y_train = torch.tensor([y for x, y in dst_eval.base_dataset])
-        for x, y in iter(test_ld):
-            x = x.to(dst_eval.device)
-            y_test = y.to(dst_eval.device)
-            dst_eval.model(x)
-        act_test = activation[0]
-        act_test = torch.nn.functional.normalize(act_test, dim=-1)
-        act_train = torch.nn.functional.normalize(act_train, dim=-1)
-        IP = torch.matmul(act_test, act_train.T)
-        max_attr_indices = IP.argmax(dim=-1)
-        expected_score = (
-            torch.sum((y_train[max_attr_indices] == y_test) * 1.0)
-            / act_test.shape[0]
-        )
-
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
-
-
-@pytest.mark.benchmarks
-@pytest.mark.parametrize(
-    "test_id, benchmark, batch_size",
-    [
-        (
-            "mnist",
-            "mnist_subclass_detection_benchmark",
-            8,
-        ),
-    ],
-)
-def test_subclass_detection_download_sanity_checks(
-    test_id, benchmark, batch_size, request
-):
-    dst_eval = request.getfixturevalue(benchmark)
-    assertions = [
-        dst_eval.grouped_dataset[i][1]
-        == dst_eval.class_to_group[dst_eval.base_dataset[i][1]]
-        for i in range(len(dst_eval.grouped_dataset))
-    ]
-    assert all(assertions)
+    assert (
+        sanity_check_results["eval_post_filter_percentage"] > 0.5
+    ), (  # TODO: retrain until this improves (
+        f"Expected eval_post_filter_percentage to be > 0.5, but got {sanity_check_results['eval_post_filter_percentage']}."
+    )

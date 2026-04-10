@@ -1,6 +1,6 @@
 """Module to move a dataset to a device."""
 
-from typing import Sized, Union
+from typing import Sized
 
 import torch
 
@@ -11,7 +11,7 @@ class OnDeviceDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         dataset: torch.utils.data.Dataset,
-        device: Union[str, torch.device],
+        device: str,
     ):
         """Construct the OnDeviceDataset class.
 
@@ -19,7 +19,7 @@ class OnDeviceDataset(torch.utils.data.Dataset):
         ----------
         dataset : torch.utils.data.Dataset
             The dataset to move to the device.
-        device : Union[str, torch.device]
+        device : str
             The device to move the dataset to.
 
         """

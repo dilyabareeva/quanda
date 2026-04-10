@@ -1,12 +1,15 @@
 """Common utility functions for the Quanda package."""
 
 import functools
+import os
+from abc import ABC
 from contextlib import contextmanager
+from dataclasses import dataclass
 from functools import reduce
-from typing import Any, Callable, List, Mapping, Optional, Sized, Union
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sized, Union
 
-import torch.utils
-import torch.utils.data
+import torch
+import yaml
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
@@ -95,6 +98,7 @@ def class_accuracy(
     net: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
     device: Union[str, torch.device] = "cpu",
+    single_class: Optional[int] = None,
 ):
     """Return accuracy on a dataset given by the data loader.
 
@@ -106,17 +110,32 @@ def class_accuracy(
         The data loader to evaluate the model on.
     device : Union[str, torch.device], optional
         The device to evaluate the model on, by default "cpu".
+    single_class : Optional[int], optional
+        If provided, all targets will be set to this class, by default None.
 
     Returns
     -------
     float
 
     """
+    if len(loader) == 0:
+        return 0.0
+
     correct = 0
     total = 0
-    for inputs, targets in loader:
-        inputs, targets = inputs.to(device), targets.to(device)
-        outputs = net(inputs)
+    for batch in loader:
+        if isinstance(batch, dict):
+            targets = batch.pop("labels").to(device)
+            inputs = {k: v.to(device) for k, v in batch.items()}
+            outputs = net(**inputs)
+            if hasattr(outputs, "logits"):
+                outputs = outputs.logits
+        else:
+            inputs, targets = batch
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = net(inputs)
+        if single_class is not None:
+            targets = single_class * torch.ones_like(targets)
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
@@ -214,8 +233,8 @@ def default_tensor_type(device: Union[str, torch.device]):
     float_tensor = torch.FloatTensor([0.0])
     original_tensor_type = float_tensor.type()
 
-    tensor = float_tensor.to(device)
-    new_tensor_type = tensor.type()
+    new_float_tensor = float_tensor.to(device)
+    new_tensor_type = new_float_tensor.type()
 
     # Set the new tensor type
     torch.set_default_tensor_type(new_tensor_type)
@@ -252,6 +271,7 @@ def map_location_context(device: Union[str, torch.device]):
     # Custom function that wraps torch.load with a fixed map_location
     def load_with_map_location(f, *args, **kwargs):
         kwargs["map_location"] = device
+        kwargs.setdefault("weights_only", True)
         return original_load(f, *args, **kwargs)
 
     # Temporarily replace torch.load with our custom version
@@ -308,6 +328,61 @@ def process_targets(
     return targets
 
 
+def get_targets(item: Union[tuple, dict]) -> int:
+    """Extract targets from dataset item.
+
+    Parameters
+    ----------
+    item : Union[tuple, dict]
+        Dataset item which can be either a tuple (data, target) or a dict
+        with 'labels' key.
+
+    Returns
+    -------
+    int
+        The target value.
+
+    """
+    if isinstance(item, tuple):
+        return item[1]
+    elif isinstance(item, dict):
+        if "labels" in item:
+            return item["labels"]
+        else:
+            raise ValueError(
+                f"Dataset item missing required 'labels' key: {item}."
+            )
+    else:
+        raise ValueError(
+            f"Unsupported dataset item type: {type(item)}. "
+            "Expected tuple (data, target) or dict with 'labels' key."
+        )
+
+
+def move_ds_item_to_device(
+    data: Union[torch.Tensor, Dict[str, torch.Tensor]],
+    device: Union[str, torch.device],
+) -> Union[torch.Tensor, Dict[str, torch.Tensor]]:
+    """Move test data to the device.
+
+    Parameters
+    ----------
+    data : Union[torch.Tensor, Dict[str, torch.Tensor]]
+        The data to process.
+    device: Union[str, torch.device]
+        The device to use.
+
+    Returns
+    -------
+    Union[torch.Tensor, Dict[str, torch.Tensor]]
+        The data on the specified device.
+
+    """
+    if isinstance(data, dict):
+        return {k: v.to(device) for k, v in data.items()}
+    return data.to(device)
+
+
 def load_last_checkpoint(
     model: torch.nn.Module,
     checkpoints: List[str],
@@ -329,3 +404,100 @@ def load_last_checkpoint(
     if len(checkpoints) == 0:
         return
     checkpoints_load_func(model, checkpoints[-1])
+
+
+@dataclass
+class DatasetSplit(ABC):
+    """Class to store dynamically named splits (e.g., train, val, test)."""
+
+    splits: Dict[str, torch.Tensor]
+
+    def __getitem__(self, key):
+        """Get the indices for the specified key."""
+        if key not in self.splits:
+            raise KeyError(f"Key '{key}' not found in splits.")
+        return self.splits[key]
+
+    def __init__(
+        self,
+        splits: Dict[str, torch.Tensor],
+    ):
+        """Create a DatasetSplit from a dictionary of indices.
+
+        Parameters
+        ----------
+        splits : Dict[str, torch.Tensor]
+            A list of indices for the split.
+
+        Returns
+        -------
+            DatasetSplit: An object with a single split named 'default'.
+
+        """
+        if not splits:
+            raise ValueError("splits cannot be empty.")
+        self.splits = splits
+
+    @classmethod
+    def split(
+        cls, n_indices: int, seed: int, split_ratios: Dict[str, float]
+    ) -> "DatasetSplit":
+        """Split the indices into named sets based on split_ratios.
+
+        Parameters
+        ----------
+        n_indices : int
+            Total number of indices to split.
+        seed : int
+            Random seed for reproducibility.
+        split_ratios : Dict[str, float]
+            A dictionary where keys are split names (e.g., 'train', 'val',
+            'test') and values are the ratios for each split.
+
+        Returns
+        -------
+            DatasetSplit: An object with keys corresponding to split_ratios.
+
+        """
+        if not split_ratios:
+            raise ValueError("split_ratios cannot be empty.")
+
+        total_ratio = sum(split_ratios.values())
+        if total_ratio > 1.0:
+            raise ValueError("Sum of split ratios must not exceed 1.0")
+
+        torch.manual_seed(seed)
+        indices = torch.randperm(n_indices)
+
+        split_indices = {}
+        start = 0
+        for i, (name, ratio) in enumerate(split_ratios.items()):
+            end = start + int(ratio * n_indices)
+            split_indices[name] = indices[start:end]
+            start = end
+
+        return cls(splits=split_indices)
+
+    @classmethod
+    def load(cls, path: str, name: str) -> "DatasetSplit":
+        """Load the split from disk."""
+        with open(os.path.join(path, name), "r") as f:
+            data = yaml.safe_load(f)
+            splits = {k: torch.tensor(v) for k, v in data.items()}
+            return cls(splits=splits)
+
+    def save(self, path: str, name: str) -> None:
+        """Save the split to disk."""
+        os.makedirs(path, exist_ok=True)
+        data = {k: v.tolist() for k, v in self.splits.items()}
+        with open(os.path.join(path, name), "w") as f:
+            yaml.safe_dump(data, f)
+
+    def to_dict(self) -> Dict[str, torch.Tensor]:
+        """Convert splits to dictionary."""
+        return self.splits
+
+    @staticmethod
+    def exists(path: str, name: str) -> bool:
+        """Check if split file exists."""
+        return os.path.exists(os.path.join(path, name))

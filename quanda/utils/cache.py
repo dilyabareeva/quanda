@@ -5,7 +5,6 @@ import os
 from typing import Any, Optional, Union
 
 import torch
-from torch import Tensor
 
 
 class Cache:
@@ -33,7 +32,7 @@ class BatchedCachedExplanations:
     def __init__(
         self,
         cache_dir: str,
-        device: Optional[Union[str, torch.device]] = None,
+        device: Optional[str] = None,
     ):
         """Load and save batched explanations.
 
@@ -41,7 +40,7 @@ class BatchedCachedExplanations:
         ----------
         cache_dir: str
             Directory containing the cached explanations.
-        device: Optional[Union[str, torch.device]]
+        device: Optional[str]
             Device to load the explanations on.
 
         """
@@ -118,7 +117,7 @@ class ExplanationsCache(Cache):
     @staticmethod
     def save(
         path: str,
-        exp_tensors: Tensor,
+        exp_tensors: torch.Tensor,
         num_id: Union[str, int],
     ) -> None:
         """Save the explanations to the given path.
@@ -127,7 +126,7 @@ class ExplanationsCache(Cache):
         ----------
         path: str
             Path to save the explanations.
-        exp_tensors: Tensor
+        exp_tensors: torch.Tensor
            Explanations to save.
         num_id: Union[str, int]
             Number identifier for the explanations.
@@ -143,7 +142,7 @@ class ExplanationsCache(Cache):
     @staticmethod
     def load(
         path: str,
-        device: Optional[Union[str, torch.device]] = None,
+        device: Optional[str] = None,
     ) -> BatchedCachedExplanations:
         """Load the explanations from the given path.
 
@@ -151,7 +150,7 @@ class ExplanationsCache(Cache):
         ----------
         path: str
             Path to load the explanations.
-        device: Optional[Union[str, torch.device]]
+        device: Optional[str]
             Device to load the explanations on.
 
         Returns

@@ -1,6 +1,6 @@
 """Utility functions for explainer classes."""
 
-from typing import Any, List, Optional, Union, Callable
+from typing import Any, Callable, List, Optional, Union
 
 import torch
 

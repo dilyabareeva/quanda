@@ -1,0 +1,53 @@
+defaults:
+  - model: mnist_lenet_base
+  - train_dataset: mnist_train_unit
+  - eval_dataset: mnist_test_unit
+  - val_dataset: mnist_val
+  - model/trainer: default
+  - logger: wandb
+  - override hydra/sweeper: optuna
+  - override hydra/sweeper/sampler: grid
+  - override hydra/launcher: joblib
+  - _self_
+
+hydra:
+  sweep:
+    dir: "${log_dir}/${id}"
+    subdir: hydra_logs
+
+  launcher:
+    n_jobs: 16
+
+  sweeper:
+    direction:
+      - maximize
+    study_name: "${cfg_file_name}"
+    storage: null
+    n_trials: 20
+    n_jobs: 16
+    params:
+      model.trainer.optimizer: choice("sgd", "adam")
+
+
+id: "default"
+bench: ClassDetection
+adversarial_label: 0
+bench_save_dir: "bench_out"
+log_dir: hydra_logs
+repo_id: "quanda-bench-test"
+cache_dir: "tmp"
+top_k: 5
+model_id: "0"
+correlation_fn: "kendall"
+offline: true
+seed: 42
+device: "cuda:1"
+
+m: 4
+alpha: 0.5
+
+subset_ids: lds_subsets.yaml
+
+ckpts:
+  - "${repo_id}/${id}"
+meta_id: "${repo_id}/${id}_metadata"

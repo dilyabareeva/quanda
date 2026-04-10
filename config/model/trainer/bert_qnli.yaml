@@ -1,0 +1,18 @@
+# Trainer configuration for BERT QNLI
+# Following https://arxiv.org/pdf/2303.14186:
+# SGD, 20 epochs, lr=1e-3, no weight decay
+optimizer: "sgd"
+optimizer_kwargs:
+  weight_decay: 0.0
+
+criterion: "cross_entropy"
+criterion_kwargs: {}
+
+scheduler: "constant"
+scheduler_kwargs:
+  last_epoch: -1
+
+lr: 1.0e-3
+max_epochs: 20
+seed: 42
+num_workers: 8

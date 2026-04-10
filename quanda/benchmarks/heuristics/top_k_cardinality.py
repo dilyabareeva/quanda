@@ -1,10 +1,10 @@
 """Top-K Cardinality benchmark module."""
 
 import logging
-from typing import Callable, List, Optional, Union, Any
+from typing import Optional, Union
 
+import datasets  # type: ignore
 import torch
-import torch.utils
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.heuristics import TopKCardinalityMetric
@@ -36,98 +36,35 @@ class TopKCardinality(Benchmark):
     def __init__(
         self,
         *args,
+        top_k: int = 5,
         **kwargs,
     ):
         """Initialize the Top-K Cardinality benchmark.
 
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: torch.nn.Module
-
-        self.train_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
-        self.use_predictions: bool
-        self.top_k: int
-
-    @classmethod
-    def assemble(
-        cls,
-        model: torch.nn.Module,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        dataset_transform: Optional[Callable] = None,
-        top_k: int = 1,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        checkpoint_paths: Optional[List[str]] = None,
-        *args,
-        **kwargs,
-    ):
-        """Assembles the benchmark from existing components.
-
         Parameters
         ----------
-        model : torch.nn.Module
-            The model to be evaluated.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train the model.
-        eval_dataset : torch.utils.data.Dataset
-            The dataset to be used for the evaluation.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        dataset_transform : Optional[Callable], optional
-            The transform to be applied to the dataset, by default None.
+        *args
+            Positional arguments passed to the base Benchmark class.
         top_k : int, optional
-            The number of top-k samples to consider, by default 1.
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by
-            default True.
-        dataset_split : str, optional
-            The dataset split, by default "train", only used for HuggingFace
-            datasets.
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        TopKCardinality
-            The benchmark instance.
+            Number of top attributed samples to consider, by default 5.
+        **kwargs
+            Arguments passed to the base Benchmark class.
 
         """
-        obj = cls()
-        obj._assemble_common(
-            model=model,
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions,
-        )
+        super().__init__(*args, **kwargs)
+        self.top_k = top_k
 
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
-        )
-        obj.top_k = top_k
-        obj._checkpoint_paths = checkpoint_paths
-
-        return obj
-
-    generate = assemble
+    @classmethod
+    def _extra_kwargs_from_config(
+        cls,
+        config: dict,
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
+        eval_dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract top_k from config."""
+        return {"top_k": config["top_k"]}
 
     def evaluate(
         self,

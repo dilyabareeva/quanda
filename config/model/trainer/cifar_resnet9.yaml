@@ -1,0 +1,18 @@
+# Trainer configuration for ResNet9 on CIFAR-10
+# Adapted from https://github.com/MadryLab/trak
+optimizer: "sgd"
+optimizer_kwargs:
+  momentum: 0.9
+  weight_decay: 5.0e-4
+
+criterion: "cross_entropy"
+criterion_kwargs: {}
+
+scheduler: "cosine"
+scheduler_kwargs:
+  T_max: 24
+
+lr: 0.4
+max_epochs: 24
+seed: 42
+num_workers: 8

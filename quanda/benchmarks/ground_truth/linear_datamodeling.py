@@ -1,24 +1,30 @@
 """Benchmark for the Linear Datamodeling Score metric."""
 
 import logging
-from typing import Callable, Optional, Union, List, Any
+import os
+import warnings
+from copy import deepcopy
+from typing import Callable, List, Optional
 
 import lightning as L
 import torch
+import yaml
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.resources import (
-    load_module_from_bench_state,
-    sample_transforms,
-)
-from quanda.benchmarks.resources.modules import bench_load_state_dict
+from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
-from quanda.utils.functions import CorrelationFnLiterals
-from quanda.utils.training import BaseTrainer
+from quanda.utils.common import class_accuracy
+from quanda.utils.functions import correlation_functions
+from quanda.utils.training import Trainer
 
 logger = logging.getLogger(__name__)
+
+
+def _get_i_subset_ckpt_postfix(i: int) -> str:
+    """Get checkpoint postfix for subset model i."""
+    return f"_lds_subset_{i}"
 
 
 class LinearDatamodeling(Benchmark):
@@ -27,7 +33,7 @@ class LinearDatamodeling(Benchmark):
     The LDS measures how well a data attribution method can predict the effect
     of retraining a model on different subsets of the training data. It
     computes the correlation between the model’s output when retrained on
-    subsets of the data and the attribution method's predictions of those
+    subsets of the data and the attribution method’s predictions of those
     outputs.
 
     References
@@ -35,7 +41,7 @@ class LinearDatamodeling(Benchmark):
     1) Sung Min Park, Kristian Georgiev, Andrew Ilyas, Guillaume Leclerc,
     and Aleksander Mądry. (2023). "TRAK: attributing model behavior at scale".
     In Proceedings of the 40th International Conference on Machine Learning"
-    (ICML'23), Vol. 202. JMLR.org, Article 1128, (27074–27113).
+    (ICML’23), Vol. 202. JMLR.org, Article 1128, (27074–27113).
 
     2) https://github.com/MadryLab/trak/
 
@@ -47,198 +53,306 @@ class LinearDatamodeling(Benchmark):
     def __init__(
         self,
         *args,
+        correlation_fn: Callable,
+        m: int = 100,
+        alpha: float = 0.5,
+        cache_dir: str = "./tmp",
+        model_id: str = "0",
+        seed: int = 42,
+        subset_ids: Optional[List[List[int]]] = None,
+        subset_ckpt_filenames: Optional[List[str]] = None,
+        counterfactual_trainer: Optional[Trainer] = None,
+        trainer_fit_kwargs: Optional[dict] = None,
         **kwargs,
     ):
         """Initialize the `LinearDatamodeling` benchmark.
 
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: Union[torch.nn.Module, L.LightningModule]
-
-        self.train_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
-        self.dataset_transform: Optional[Callable]
-        self.m: int
-        self.alpha: float
-        self.trainer: Union[L.Trainer, BaseTrainer]
-        self.trainer_fit_kwargs: Optional[dict]
-        self.cache_dir: str
-        self.model_id: str
-
-        self.use_predictions: bool
-        self.correlation_fn: Union[Callable, CorrelationFnLiterals]
-        self.seed: int
-        self.subset_ids: Optional[List[List[int]]]
-        self.pretrained_models: Optional[List[torch.nn.Module]]
-
-    @classmethod
-    def download(cls, name: str, cache_dir: str, device: str, *args, **kwargs):
-        """Download a precomputed benchmark.
-
-        Load precomputed benchmark components from a file and creates an
-        instance from the state dictionary.
-
         Parameters
         ----------
-        name : str
-            Name of the benchmark to be loaded.
-        cache_dir : str
-            Directory to store the downloaded benchmark components.
-        device : str
-            Device to load the model on.
-        args : Any
-            Variable length argument list.
-        kwargs : Any
-            Arbitrary keyword arguments.
-
-        """
-        obj = cls()
-        bench_state = obj._get_bench_state(
-            name, cache_dir, device, *args, **kwargs
-        )
-
-        eval_dataset = obj._build_eval_dataset(
-            dataset_str=bench_state["dataset_str"],
-            eval_indices=bench_state["eval_test_indices"],
-            transform=sample_transforms[bench_state["dataset_transform"]],
-            dataset_split=bench_state["test_split_name"],
-        )
-        dataset_transform = sample_transforms[bench_state["dataset_transform"]]
-        module = load_module_from_bench_state(bench_state, device)
-
-        return obj.assemble(
-            model=module,
-            checkpoints=bench_state["checkpoints_binary"],
-            checkpoints_load_func=bench_load_state_dict,
-            train_dataset=bench_state["dataset_str"],
-            eval_dataset=eval_dataset,
-            m=bench_state["m"],
-            cache_dir=bench_state["cache_dir"],
-            model_id=bench_state["model_id"],
-            alpha=bench_state["alpha"],
-            trainer=bench_state["trainer"],
-            trainer_fit_kwargs=bench_state["trainer_fit_kwargs"],
-            correlation_fn=bench_state["correlation_fn"],
-            seed=bench_state["seed"],
-            use_predictions=bench_state["use_predictions"],
-            subset_ids=bench_state["subset_ids"],
-            pretrained_models=bench_state["pretrained_models"],
-            dataset_transform=dataset_transform,
-        )
-
-    @classmethod
-    def assemble(
-        cls,
-        model: torch.nn.Module,
-        train_dataset: Union[str, torch.utils.data.Dataset],
-        eval_dataset: torch.utils.data.Dataset,
-        trainer: Union[L.Trainer, BaseTrainer],
-        cache_dir: str,
-        model_id: str,
-        m: int = 100,
-        alpha: float = 0.5,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        trainer_fit_kwargs: Optional[dict] = None,
-        dataset_transform: Optional[Callable] = None,
-        correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
-        seed: int = 42,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        subset_ids: Optional[List[List[int]]] = None,
-        pretrained_models: Optional[List[torch.nn.Module]] = None,
-        *args,
-        **kwargs,
-    ):
-        """Assembles the benchmark from existing components.
-
-        Parameters
-        ----------
-        model : torch.nn.Module
-            The model used to generate attributions.
-        train_dataset : Union[str, torch.utils.data.Dataset]
-            The training dataset used to train `model`. If a string is passed,
-            it should be a HuggingFace dataset name.
-        eval_dataset : torch.utils.data.Dataset
-            The evaluation dataset to be used for the benchmark.
-        trainer : Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the models on different subsets.
-            Can be a Lightning Trainer or a `BaseTrainer`.
-        cache_dir : str
-            Directory to be used for caching. This directory will be used to
-            save checkpoints of models trained on different subsets of the
-            training data.
-        model_id : str
-            Identifier for the model, to be used in naming cached checkpoints.
+        *args
+            Positional arguments passed to the base class.
         m : int, optional
-            Number of subsets to be used for training the models, by default
-            100.
+            Number of subsets, by default 100.
         alpha : float, optional
-            Percentage of datapoints to be used for training the models, by
-            default 0.5.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        trainer_fit_kwargs : Optional[dict], optional
-            Additional keyword arguments to be passed to the `fit` method of
-            the trainer, by default None.
-        dataset_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None.
-        correlation_fn : Union[Callable, CorrelationFnLiterals], optional
-            Correlation function to be used for the evaluation.
+            Fraction of training data per subset, by default 0.5.
+        cache_dir : str, optional
+            Cache directory, by default "./tmp".
+        model_id : str, optional
+            Model identifier, by default "0".
+        correlation_fn : Callable
+            Correlation function to use.
         seed : int, optional
-            Seed to be used for the evaluation, by default 42.
-        use_predictions : bool, optional
-            Whether to use model predictions or the true test labels for the
-            evaluation, defaults to False.
-        dataset_split : str, optional
-            The dataset split to use, by default "train". Only used if
-            `train_dataset` is a string.
-        subset_ids : Optional[List[List[int]]], optional
-            A list of pre-defined subset indices, by default None.
-        pretrained_models : Optional[List[torch.nn.Module]], optional
-            A list of pre-trained models for each subset, by default None.
-        args : Any
-            Additional arguments.
-        kwargs : Any
-            Additional keyword arguments.
+            Random seed, by default 42.
+        subset_ids : Optional[List[List[int]]]
+            Pre-computed subset indices.
+        subset_ckpt_filenames : Optional[List[str]]
+            Checkpoint filenames for subset models.
+        counterfactual_trainer : Optional[Trainer]
+            Trainer for counterfactual models.
+        trainer_fit_kwargs : Optional[dict]
+            Additional kwargs for trainer.fit().
+        **kwargs
+            Arguments passed to the base Benchmark class.
 
         """
-        obj = cls()
-        obj._assemble_common(
-            model=model,
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions,
+        super().__init__(*args, **kwargs)
+        self.m = m
+        self.alpha = alpha
+        self.cache_dir = cache_dir
+        self.model_id = model_id
+        self.correlation_fn = correlation_fn
+        self.seed = seed
+        self.subset_ids = subset_ids or []
+        self.subset_ckpt_filenames = subset_ckpt_filenames or []
+        self.counterfactual_trainer = counterfactual_trainer
+        self.trainer_fit_kwargs = trainer_fit_kwargs
+
+    def _train_subset_models(
+        self,
+        trainer: "Trainer",
+        ckpt_str: str,
+        ckpt_dir: str,
+        repo_id: str,
+        batch_size: int = 8,
+        push_to_hub: bool = False,
+    ):
+        """Train and save all subset models.
+
+        Parameters
+        ----------
+        trainer : Trainer
+            Trainer instance for training subset models.
+        ckpt_str : str
+            Checkpoint string identifier.
+        ckpt_dir : str
+            Base checkpoint directory.
+        repo_id : str
+            Repository identifier for saving checkpoints.
+        batch_size : int, optional
+            Batch size for training, by default 8.
+        push_to_hub : bool, optional
+            Whether to push models to HF Hub, by default False.
+
+        """
+        for i, filename in enumerate(self.subset_ckpt_filenames):
+            subset = torch.utils.data.Subset(
+                self.train_dataset, self.subset_ids[i]
+            )
+            subset_model = LinearDatamodelingMetric.train_subset_model(
+                model=self.model,
+                subset=subset,
+                trainer=trainer,
+                batch_size=batch_size,
+            )
+
+            local_ckpt_dir = f"{ckpt_dir}{_get_i_subset_ckpt_postfix(i)}"
+            os.makedirs(local_ckpt_dir, exist_ok=True)
+            if push_to_hub and len(os.listdir(local_ckpt_dir)) > 0:
+                warnings.warn(
+                    f"Directory {local_ckpt_dir} already exists "
+                    "and is not empty. Checkpoints will be "
+                    "overwritten."
+                )
+            subset_model.save_pretrained(
+                local_ckpt_dir, safe_serialization=True
+            )
+
+            if push_to_hub:
+                subset_model.push_to_hub(
+                    f"{ckpt_str}{_get_i_subset_ckpt_postfix(i)}"
+                )
+
+    @classmethod
+    def train(
+        cls,
+        config: dict,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
+        device: str = "cpu",
+        batch_size: int = 64,
+    ) -> "LinearDatamodeling":
+        """Train main model and subset models.
+
+        Extends the base train method to also train and save
+        the counterfactual subset models required for LDS evaluation.
+
+        Parameters
+        ----------
+        config : dict
+            Dictionary containing the configuration.
+        logger : Optional[L.pytorch.loggers.logger.Logger], optional
+            Logger to be used for logging, by default None.
+        device : str, optional
+            Device to use for training, by default "cpu".
+        batch_size : int, optional
+            Batch size for training, by default 8.
+
+        Returns
+        -------
+        LinearDatamodeling
+            The trained benchmark instance.
+
+        """
+        obj = super().train(
+            config=config,
+            logger=logger,
+            device=device,
+            batch_size=batch_size,
         )
-        obj.subset_ids = subset_ids
-        obj.pretrained_models = pretrained_models
-        obj.correlation_fn = correlation_fn
-        obj.trainer = trainer
-        obj.m = m
-        obj.alpha = alpha
-        obj.trainer_fit_kwargs = trainer_fit_kwargs
-        obj.seed = seed
-        obj.cache_dir = cache_dir
-        obj.model_id = model_id
-        obj.train_dataset = obj._process_dataset(
-            train_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
+        assert isinstance(obj, LinearDatamodeling)
+
+        trainer = BenchConfigParser.parse_trainer_cfg(
+            config["model"]["trainer"]
         )
-        # this sets the function to the default value
-        obj.checkpoints_load_func = None
+
+        ckpt_dir = os.path.join(
+            config.get("bench_save_dir", "./tmp"),
+            "ckpt",
+            config["ckpts"][-1],
+        )
+
+        obj._train_subset_models(
+            repo_id=config["repo_id"],
+            trainer=trainer,
+            ckpt_str=config["ckpts"][-1],
+            ckpt_dir=ckpt_dir,
+            batch_size=batch_size,
+        )
 
         return obj
 
-    generate = assemble
+    @classmethod
+    def _extra_kwargs_from_config(
+        cls,
+        config: dict,
+        train_dataset: torch.utils.data.Dataset,
+        eval_dataset: torch.utils.data.Dataset,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract linear datamodeling kwargs from config."""
+        m = config.get("m", 100)
+        alpha = config.get("alpha", 0.5)
+        seed = config["seed"]
+
+        ckpt = config["ckpts"][-1]
+
+        subset_ckpt_filenames = [
+            f"{ckpt}{_get_i_subset_ckpt_postfix(i)}" for i in range(m)
+        ]
+        counterfactual_trainer_cfg = config.get(
+            "counterfactual_trainer",
+            config["model"].get("trainer", None),
+        )
+        if counterfactual_trainer_cfg is None:
+            raise ValueError(
+                "Either ‘trainer’ or ‘model.trainer’ should be set."
+            )
+        counterfactual_trainer = BenchConfigParser.parse_trainer_cfg(
+            counterfactual_trainer_cfg
+        )
+
+        os.makedirs(metadata_dir, exist_ok=True)
+
+        generator = torch.Generator()
+        generator.manual_seed(seed)
+
+        subset_meta = f"{metadata_dir}/{config['subset_ids']}"
+        if os.path.exists(subset_meta) and load_meta_from_disk:
+            with open(subset_meta, "r") as f:
+                subset_ids = yaml.safe_load(f)
+        else:
+            subset_ids = LinearDatamodelingMetric.generate_subsets(
+                dataset=train_dataset,
+                alpha=alpha,
+                m=m,
+                generator=generator,
+            )
+            with open(subset_meta, "w") as f:
+                f.write(f"{subset_ids}")
+
+        return {
+            "m": m,
+            "alpha": alpha,
+            "cache_dir": config.get("cache_dir", "./tmp"),
+            "model_id": config.get("model_id", "0"),
+            "correlation_fn": correlation_functions[config["correlation_fn"]],
+            "seed": seed,
+            "subset_ids": subset_ids,
+            "subset_ckpt_filenames": subset_ckpt_filenames,
+            "counterfactual_trainer": counterfactual_trainer,
+            # TODO: make trainer_fit_kwargs available to all benchmarks
+            "trainer_fit_kwargs": config.get("trainer_fit_kwargs", None),
+        }
+
+    @classmethod
+    def train_and_push_to_hub(
+        cls,
+        config: dict,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
+        device: str = "cpu",
+        batch_size: int = 64,
+    ):  # pragma: no cover
+        """Train a model using the provided config and push to HF hub."""
+        obj = super().train_and_push_to_hub(
+            config=config,
+            logger=logger,
+            device=device,
+            batch_size=batch_size,
+        )
+        assert isinstance(obj, LinearDatamodeling)
+
+        # Parse trainer configuration
+        trainer = BenchConfigParser.parse_trainer_cfg(
+            config["model"]["trainer"]
+        )
+
+        ckpt_dir = os.path.join(
+            config.get("bench_save_dir", "./tmp"), "ckpt", config["ckpts"][-1]
+        )
+
+        obj._train_subset_models(
+            repo_id=config["repo_id"],
+            trainer=trainer,
+            ckpt_dir=ckpt_dir,
+            ckpt_str=config["ckpts"][-1],
+            batch_size=batch_size,
+            push_to_hub=True,
+        )
+
+        return obj
+
+    def sanity_check(self, batch_size: int = 32) -> dict:
+        """Compute accuracy of main model and all subset checkpoints.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            Batch size to be used for the evaluation, defaults to 32.
+
+        Returns
+        -------
+        dict
+            Dictionary containing the sanity check results, including
+            per-subset checkpoint accuracies.
+
+        """
+        results = super().sanity_check(batch_size)
+
+        eval_dl = torch.utils.data.DataLoader(
+            self.eval_dataset,
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        for i, ckpt_path in enumerate(self.subset_ckpt_filenames):
+            subset_model = deepcopy(self.model)
+            self.checkpoints_load_func(subset_model, ckpt_path)
+            subset_model.eval()
+            subset_model.to(self.device)
+            acc = class_accuracy(subset_model, eval_dl, self.device)
+            results[f"subset_acc_{i}"] = acc
+
+        return results
 
     def evaluate(
         self,
@@ -272,18 +386,18 @@ class LinearDatamodeling(Benchmark):
         metric = LinearDatamodelingMetric(
             model=self.model,
             checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
             train_dataset=self.train_dataset,
             alpha=self.alpha,
             m=self.m,
-            trainer=self.trainer,
-            trainer_fit_kwargs=self.trainer_fit_kwargs,
             cache_dir=self.cache_dir,
             model_id=self.model_id,
             correlation_fn=self.correlation_fn,
             seed=self.seed,
             batch_size=batch_size,
             subset_ids=self.subset_ids,
-            pretrained_models=self.pretrained_models,
+            subset_ckpt_filenames=self.subset_ckpt_filenames,
+            # TODO: implement pretrained_models in LDS metric
         )
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,

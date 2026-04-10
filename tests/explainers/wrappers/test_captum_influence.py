@@ -91,9 +91,9 @@ def test_captum_similarity_explain(
     )
 
     explanations = explainer.explain(test_data)
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -135,9 +135,9 @@ def test_captum_similarity_self_influence(
     )
 
     self_influence = explainer.self_influence()
-    assert self_influence.shape[0] == len(
-        dataset
-    ), "Self influence attributions are not as expected"
+    assert self_influence.shape[0] == len(dataset), (
+        "Self influence attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -181,9 +181,9 @@ def test_captum_similarity_explain_functional(
         device="cpu",
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -256,9 +256,9 @@ def test_captum_arnoldi(
     explanations_captum = explainer_captum.influence(
         inputs=(test_data, test_labels)
     )
-    assert torch.allclose(
-        explanations, explanations_captum
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_captum), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -346,9 +346,9 @@ def test_captum_arnoldi_explain_functional(
         hessian_dataset=hessian_dataset,
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -399,9 +399,9 @@ def test_captum_arnoldi_self_influence(
         loss_fn=torch.nn.CrossEntropyLoss(reduction="none"),
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -458,9 +458,9 @@ def test_captum_tracincp(
     )
     explanations_exp = explainer.explain(test_data, test_lables)
 
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -520,9 +520,9 @@ def test_captum_tracincp_explain_functional(
         device="cpu",
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -571,9 +571,9 @@ def test_captum_tracincp_self_influence(
         device="cpu",
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -637,9 +637,9 @@ def test_captum_tracincp_fast(
     )
     explanations_exp = explainer.explain(test_data, test_labels)
 
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -702,9 +702,9 @@ def test_captum_tracincp_fast_explain_functional(
         final_fc_layer=final_fc_layer,
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations_simple, explanations_exp_simple
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations_simple, explanations_exp_simple), (
+        "Training data attributions are not as expected"
+    )
 
     explainer_captum_complex = TracInCPFast(
         model=model,
@@ -729,9 +729,9 @@ def test_captum_tracincp_fast_explain_functional(
         device="cpu",
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations_complex, explanations_exp_complex
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations_complex, explanations_exp_complex), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -780,9 +780,9 @@ def test_captum_tracincp_fast_self_influence(
         outer_loop_by_checkpoints=True,
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -848,9 +848,9 @@ def test_captum_tracincp_fast_rand_proj(
     )
     explanations_exp = explainer.explain(test_data, test_labels)
 
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -917,9 +917,9 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
         final_fc_layer=final_fc_layer,
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations_simple, explanations_exp_simple
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations_simple, explanations_exp_simple), (
+        "Training data attributions are not as expected"
+    )
 
     explainer_captum_complex = TracInCPFastRandProj(
         model=model,
@@ -944,9 +944,9 @@ def test_captum_tracincp_fast_rand_proj_explain_functional(
         device="cpu",
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations_complex, explanations_exp_complex
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations_complex, explanations_exp_complex), (
+        "Training data attributions are not as expected"
+    )
 
 
 @pytest.mark.explainers
@@ -1003,6 +1003,6 @@ def test_captum_tracincp_fast_rand_proj_self_influence(
         outer_loop_by_checkpoints=True,
         **method_kwargs,
     )
-    assert torch.allclose(
-        explanations, explanations_exp
-    ), "Training data attributions are not as expected"
+    assert torch.allclose(explanations, explanations_exp), (
+        "Training data attributions are not as expected"
+    )

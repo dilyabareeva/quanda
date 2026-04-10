@@ -1,0 +1,4 @@
+module:
+  name: ResNet9
+  args:
+    num_classes: 10

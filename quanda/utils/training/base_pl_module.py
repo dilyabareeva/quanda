@@ -64,16 +64,35 @@ class BasicLightningModule(L.LightningModule):
 
         Parameters
         ----------
-        inputs : torch.Tensor
-            Input to the model.
+        inputs : Union[torch.Tensor, Dict[str, torch.Tensor]]
+            Input to the model. Can be a tensor or a dict of tensors
+            (e.g. for HuggingFace transformer models).
 
         Returns
         -------
-        torch.Tensor
+        Any
             Output of the model.
 
         """
+        if isinstance(inputs, dict):
+            return self.model(**inputs)
         return self.model(inputs)
+
+    def _unpack_batch(self, batch):
+        """Unpack a batch into inputs and targets.
+
+        Supports both tuple batches ``(inputs, target)`` from
+        PyTorch datasets and dict batches from HuggingFace datasets.
+
+        """
+        if isinstance(batch, dict):
+            target = batch.pop("labels").to(self.device)
+            inputs = {k: v.to(self.device) for k, v in batch.items()}
+        else:
+            inputs, target = batch
+            inputs = inputs.to(self.device)
+            target = target.to(self.device)
+        return inputs, target
 
     def training_step(self, batch, batch_idx):
         """One training step.
@@ -91,9 +110,10 @@ class BasicLightningModule(L.LightningModule):
             Loss for the batch.
 
         """
-        inputs, target = batch
-        inputs, target = inputs.to(self.device), target.to(self.device)
+        inputs, target = self._unpack_batch(batch)
         output = self(inputs)
+        if hasattr(output, "logits"):
+            output = output.logits
         loss = self.criterion(output, target)
         return loss
 
@@ -113,9 +133,10 @@ class BasicLightningModule(L.LightningModule):
             Loss for the batch.
 
         """
-        inputs, target = batch
-        inputs, target = inputs.to(self.device), target.to(self.device)
+        inputs, target = self._unpack_batch(batch)
         output = self(inputs)
+        if hasattr(output, "logits"):
+            output = output.logits
         loss = self.criterion(output, target)
         return loss
 

@@ -1,0 +1,18 @@
+dataset_str: "SetFit/qnli"
+dataset_split: train
+transforms: null
+tokenizer:
+  name: "google-bert/bert-base-cased"
+  text_fields:
+    - "text1"
+    - "text2"
+  max_length: 128
+  label_field: "label"
+indices:
+  split_filename: "qnli_train_split.yaml"
+  split_name: val
+  split_ratios:
+    train: 0.9
+    val: 0.1
+    test: 0.0
+  seed: 42

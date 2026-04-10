@@ -56,8 +56,19 @@ cover/
 
 # Lightning
 lightning_logs/
-checkpoints/
+hydra_logs/
+outputs/
 
 # quanda
 cache/
 /.env
+
+assets/demo/*
+bench_out/*
+fig_1_images/*
+tutorials/*
+scripts/bench_out/*
+CLAUDE.md
+.vscode/
+quanda_benchmark_tutorial_cache/*
+logs/*

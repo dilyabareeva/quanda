@@ -1,6 +1,5 @@
 import glob
 import os
-import os.path
 import random
 from typing import Callable, Dict, List, Optional
 

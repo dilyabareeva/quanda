@@ -8,7 +8,7 @@ authors = [
 description = "Toolkit for quantitative evaluation of data attribution methods in PyTorch."
 license = { file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.9,<3.12"
+requires-python = ">=3.10,<3.12"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -18,17 +18,21 @@ keywords = ["interpretability", "xai", "machine learning", "deep learning"]
 
 dependencies = [
     "numpy>=1.19.5",
-    "torch>=1.13.1,<=2.2.1",
+    "torch>=2.6.0",
     "lightning>=1.4.0",
     "torchmetrics>=1.4.0",
     "tqdm>=4.0.0",
     "traker>=0.3.2",
     "annoy>=1.17.0",
-    "datasets>=2.0.0",
+    "datasets>=4.8.4",
     "torcheval>=0.0.6",
     "torchvision>=0.10.0",
     "kronfluence>=1.0.1",
     "transformers>=4.44.0",
+    "PyYAML>=5.0.0",
+    "captum==0.8.0",
+    "Pillow>=10.0.0",
+    "pyarrow>=18.0.0",
 ]
 
 
@@ -85,8 +89,8 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-ignore = ["E203", "PT006"]
-extend-select = ["PT", "C901"]
+ignore = ["E203", "PT006", "F403"]
+extend-select = ["PT", "C901", "I"]
 exclude = [
     "build/",
     "dist/",
@@ -117,7 +121,7 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 
 [tool.setuptools]
-py-modules = []
+packages = ["quanda"]
 
 [tool.semantic_release]
 version_toml = ["pyproject.toml:project.version"]
@@ -132,14 +136,22 @@ dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
     "pytest-cov>=4.0.0",
     "pytest-mock==3.10.0",
     "pre-commit>=3.2.0",
-    "mypy==1.9.0",
+    "mypy==1.16.1",
     "types-tqdm>=4.0.0",
+    "furo",
     "sphinx-rtd-theme>=1.0.0",
     "sphinx>=7.0.0",
     "numpydoc",
+    "tensorboard",
+    "wandb>=0.12.10",
     "torchvision>=0.10.0",
     "types-Pillow>=8.3.0",
     "ruff>=0.7.0",
+    "types-PyYAML>=5.0.0",
+    "hydra-core>=1.1.0",
+    "hydra-optuna-sweeper>=1.2.0",
+    "hydra-joblib-launcher>=1.2.0",
+    "optuna>=2.10.0,<3.0.0",
 ]
 tutorials = [
     "torchvision>=0.10.0",

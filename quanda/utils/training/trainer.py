@@ -8,7 +8,7 @@ import lightning as L
 import torch
 from lightning import seed_everything
 
-from quanda.utils.training import BasicLightningModule
+from quanda.utils.training.base_pl_module import BasicLightningModule
 
 
 class BaseTrainer(metaclass=abc.ABCMeta):
@@ -23,6 +23,8 @@ class BaseTrainer(metaclass=abc.ABCMeta):
             torch.utils.data.dataloader.DataLoader
         ] = None,
         accelerator: str = "cpu",
+        devices: int = 0,
+        seed: int = 42,
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
@@ -39,6 +41,11 @@ class BaseTrainer(metaclass=abc.ABCMeta):
             Dataloader for the validation data, defaults to None.
         accelerator: str
             The accelerator to use for training, by default "cpu".
+        devices: int
+            The number of devices to use for training, by default 0 (i.e.
+            all available).
+        seed: int
+            Random seed.
         trainer_fit_kwargs: Optional[dict]
             Additional keyword arguments to pass to the trainer's fit method,
             defaults to None.
@@ -80,8 +87,10 @@ class Trainer(BaseTrainer):
         scheduler: Optional[Callable] = None,
         optimizer_kwargs: Optional[dict] = None,
         scheduler_kwargs: Optional[dict] = None,
+        logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         seed: int = 27,
-        accelerator: str = "cpu",
+        num_workers: int = 0,
+        enable_progress_bar: bool = True,
     ):
         """Construct the Trainer class.
 
@@ -101,10 +110,15 @@ class Trainer(BaseTrainer):
             Keyword arguments for the optimizer, defaults to None
         scheduler_kwargs : Optional[dict], optional
             Keyword arguments for the scheduler, defaults to None
+        logger : Optional[Callable], optional
+            Logger to use during training, defaults to None
         seed : int, optional
             The seed for the projector, by default 27.
-        accelerator : str, optional
-            The accelerator to use for training, by default "cpu".
+        num_workers : int, optional
+            Number of workers to use for data loading, by default 0.
+        enable_progress_bar : bool, optional
+            Whether to enable the progress bar during training, by
+            default True.
 
         """
         self.optimizer = optimizer
@@ -112,8 +126,11 @@ class Trainer(BaseTrainer):
         self.max_epochs = max_epochs
         self.criterion = criterion
         self.scheduler = scheduler
+        self.logger = logger
         self.optimizer_kwargs = optimizer_kwargs or {}
         self.scheduler_kwargs = scheduler_kwargs or {}
+        self.num_workers = num_workers
+        self.enable_progress_bar = enable_progress_bar
 
         seed_everything(seed, workers=True)
 
@@ -127,6 +144,8 @@ class Trainer(BaseTrainer):
             torch.utils.data.dataloader.DataLoader
         ] = None,
         accelerator: str = "cpu",
+        devices: int = 0,
+        seed: int = 42,
         *args,
         **kwargs,
     ):
@@ -142,12 +161,18 @@ class Trainer(BaseTrainer):
             Dataloader for the validation data, defaults to None.
         accelerator : str, optional
             The accelerator to use for training, by default "cpu".
+        devices : int, optional
+            The number of devices to use for training, by default 0 (i.e.
+            all available).
+        seed: int
+            Random seed.
         args : Any
             Additional arguments to pass to the fit method.
         kwargs : Any
             Additional keyword arguments to pass to the fit method.
 
         """
+        seed_everything(seed, workers=True)
         module = BasicLightningModule(
             model=model,
             optimizer=self.optimizer,
@@ -159,7 +184,11 @@ class Trainer(BaseTrainer):
         )
 
         trainer = L.Trainer(
-            max_epochs=self.max_epochs, devices=1, accelerator=accelerator
+            max_epochs=self.max_epochs,
+            devices=[devices] if accelerator == "gpu" else 1,
+            accelerator=accelerator,
+            logger=self.logger,
+            enable_progress_bar=self.enable_progress_bar,
         )
         trainer.fit(module, train_dataloaders, val_dataloaders)
 

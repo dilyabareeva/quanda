@@ -1,0 +1,11 @@
+single_class_dataset: true
+label: 0
+transforms: "cifar10_adversarial_transforms"
+dataset_str: "ufldl-stanford/svhn"
+indices:
+  split_filename: "svhn_split.yaml"
+  split_ratios:
+    train: 0.8
+    val: 0.1
+    test: 0.1
+  seed: 42

@@ -1,20 +1,22 @@
 """Shortcut Detection Benchmark."""
 
-import os
-import warnings
-from typing import Callable, List, Optional, Union, Any
+from typing import List, Optional
 
-import lightning as L
 import torch
+from torch.utils.data import Subset
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
+from quanda.utils.common import (
+    DatasetSplit,
+    class_accuracy,
+    ds_len,
+)
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
 )
-from quanda.utils.training.trainer import BaseTrainer
 
 
 class ShortcutDetection(Benchmark):
@@ -51,294 +53,174 @@ class ShortcutDetection(Benchmark):
     def __init__(
         self,
         *args,
+        shortcut_cls: int = 0,
+        filter_by_non_shortcut: bool = False,
+        filter_by_shortcut_pred: bool = False,
+        filter_indices: Optional[List[int]] = None,
         **kwargs,
     ):
         """Initialize the benchmark object.
 
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
-
-        self.model: Union[torch.nn.Module, L.LightningModule]
-
-        self.base_dataset: torch.utils.data.Dataset
-        self.eval_dataset: torch.utils.data.Dataset
-        self.shortcut_dataset: SampleTransformationDataset
-        self.dataset_transform: Optional[Callable]
-        self.shortcut_indices: Union[List[int], torch.Tensor]
-        self.shortcut_cls: int
-        self.shortcut_train_dl: torch.utils.data.DataLoader
-        self.shortcut_val_dl: Optional[torch.utils.data.DataLoader]
-        self.original_train_dl: torch.utils.data.DataLoader
-        self.p: float
-        self.sample_fn: Callable
-        self.n_classes: int
-        self.use_predictions: bool
-        self.filter_by_prediction: bool
-        self.filter_by_class: bool
-
-    @classmethod
-    def generate(
-        cls,
-        model: Union[torch.nn.Module, L.LightningModule],
-        base_dataset: Union[str, torch.utils.data.Dataset],
-        n_classes: int,
-        eval_dataset: torch.utils.data.Dataset,
-        shortcut_cls: int,
-        trainer: Union[L.Trainer, BaseTrainer],
-        sample_fn: Callable,
-        cache_dir: str,
-        filter_by_prediction: bool = True,
-        filter_by_class: bool = False,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        dataset_transform: Optional[Callable] = None,
-        val_dataset: Optional[torch.utils.data.Dataset] = None,
-        p: float = 0.3,
-        trainer_fit_kwargs: Optional[dict] = None,
-        seed: int = 27,
-        batch_size: int = 8,
-        *args,
-        **kwargs,
-    ):
-        """Generate the benchmark from scratch, with the specified parameters.
-
         Parameters
         ----------
-        model : Union[torch.nn.Module, L.LightningModule]
-            Model to be evaluated.
-        base_dataset : Union[str, torch.utils.data.Dataset]
-            The vanilla training dataset to be used for the benchmark.
-            If a string is passed, it should be a HuggingFace dataset.
-        n_classes : int
-            Number of classes in the dataset.
-        eval_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
+        *args
+            Positional arguments passed to the base class.
         shortcut_cls : int
-            The class to add triggers to.
-        trainer : Union[L.Trainer, BaseTrainer]
-            Trainer to be used for training the model.
-        sample_fn : Callable
-            Function to add triggers to samples of the dataset.
-        cache_dir : str
-            Directory to store the generated benchmark components.
-        filter_by_prediction : bool, optional
+            The class index used as the shortcut target.
+        filter_by_non_shortcut : bool
+            Whether to filter the test samples to only calculate the metric on
+            those samples, where the shortcut class
+            is not assigned as the class, by default True.
+        filter_by_shortcut_pred: bool
             Whether to filter the test samples to only calculate the metric on
             those samples, where the shortcut class
             is predicted, by default True.
-        filter_by_class: bool, optional
-            Whether to filter the test samples to only calculate the metric on
-            those samples, where the shortcut class
-            is not assigned as the class, by default False.
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by
-            default True.
-        dataset_split : str, optional
-            Split used for HuggingFace datasets, by default "train".
-        dataset_transform : Optional[Callable], optional
-            Default transform of the dataset, by default None.
-        val_dataset : Optional[torch.utils.data.Dataset], optional
-            Validation dataset to use during training, by default None.
-        p : float, optional
-            The probability of poisoning with the trigger per sample, by
-            default 0.3.
-        trainer_fit_kwargs : Optional[dict], optional
-            Keyword arguments to supply the trainer, by default None.
-        seed : int, optional
-            seed for reproducibility, by default 27.
-        batch_size : int, optional
-            Batch size to use during training, by default 8.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
-
-        Returns
-        -------
-        ShortcutDetection
-            An instance of the ShortcutDetection benchmark.
+        filter_indices : Optional[List[int]], optional
+            Pre-computed indices for filtering eval samples, by default
+            None.
+        **kwargs
+            Arguments passed to the base Benchmark class.
 
         """
-        obj = cls()
-
-        save_dir = os.path.join(cache_dir, "model_shortcut_detection.pth")
-        base_dataset = obj._process_dataset(
-            base_dataset, transform=None, dataset_split=dataset_split
-        )
-        shortcut_dataset = SampleTransformationDataset(
-            dataset=base_dataset,
-            p=p,
-            dataset_transform=dataset_transform,
-            cls_idx=shortcut_cls,
-            n_classes=n_classes,
-            sample_fn=sample_fn,
-            seed=seed,
-        )
-        shortcut_indices = shortcut_dataset.transform_indices
-
-        obj = obj.assemble(
-            model=model,
-            base_dataset=base_dataset,
-            n_classes=n_classes,
-            eval_dataset=eval_dataset,
-            sample_fn=sample_fn,
-            shortcut_cls=shortcut_cls,
-            shortcut_indices=shortcut_indices,
-            shortcut_dataset=shortcut_dataset,
-            checkpoints=[save_dir],
-            checkpoints_load_func=None,
-            filter_by_prediction=filter_by_prediction,
-            filter_by_class=filter_by_class,
-            use_predictions=use_predictions,
-            dataset_split=dataset_split,
-            dataset_transform=dataset_transform,
-            checkpoint_paths=None,
-        )
-
-        if val_dataset:
-            val_dataset = SampleTransformationDataset(
-                dataset=val_dataset,
-                dataset_transform=obj.dataset_transform,
-                p=obj.p,
-                cls_idx=shortcut_cls,
-                sample_fn=sample_fn,
-                n_classes=obj.n_classes,
-            )
-
-        obj.model = obj._train_model(
-            model=model,
-            trainer=trainer,
-            train_dataset=obj.shortcut_dataset,
-            val_dataset=val_dataset,
-            save_dir=save_dir,
-            trainer_fit_kwargs=trainer_fit_kwargs,
-            batch_size=batch_size,
-        )
-
-        return obj
+        super().__init__(*args, **kwargs)
+        self.shortcut_cls = shortcut_cls
+        self.filter_by_non_shortcut = filter_by_non_shortcut
+        self.filter_by_shortcut_pred = filter_by_shortcut_pred
+        self.filter_indices = filter_indices
 
     @classmethod
-    def assemble(
+    def _extra_kwargs_from_config(
         cls,
-        model: Union[torch.nn.Module, L.LightningModule],
-        base_dataset: Union[str, torch.utils.data.Dataset],
-        n_classes: int,
+        config: dict,
+        train_dataset: torch.utils.data.Dataset,
         eval_dataset: torch.utils.data.Dataset,
-        sample_fn: Callable,
-        shortcut_cls: int,
-        shortcut_indices: List[int],
-        shortcut_dataset: Optional[SampleTransformationDataset] = None,
-        checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
-        filter_by_prediction: bool = True,
-        filter_by_class: bool = False,
-        use_predictions: bool = True,
-        dataset_split: str = "train",
-        dataset_transform: Optional[Callable] = None,
-        checkpoint_paths: Optional[List[str]] = None,
-        *args,
-        **kwargs,
-    ):
-        """Assembles the benchmark from existing components.
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> dict:
+        """Extract shortcut detection kwargs from config."""
+        if not isinstance(eval_dataset, SampleTransformationDataset):
+            raise ValueError(
+                "Shortcut detection evaluation requires a "
+                "SampleTransformationDataset as the evaluation dataset."
+            )
+        if not isinstance(train_dataset, SampleTransformationDataset):
+            raise ValueError(
+                "Shortcut detection evaluation requires a "
+                "SampleTransformationDataset as the training dataset."
+            )
+
+        assert train_dataset.metadata.cls_idx is not None, (
+            "The training dataset must have a class index in its metadata."
+        )
+
+        eval_ds_config = config["eval_dataset"]
+        eval_indices = eval_ds_config["filter_indices"]
+        filter_indices = None
+
+        if (
+            DatasetSplit.exists(metadata_dir, eval_indices["split_filename"])
+            and load_meta_from_disk
+        ):
+            filter_indices = DatasetSplit.load(
+                metadata_dir,
+                name=eval_indices["split_filename"],
+            )[eval_indices["split_name"]]
+
+        return {
+            "shortcut_cls": train_dataset.metadata.cls_idx,
+            "filter_by_non_shortcut": config.get(
+                "filter_by_non_shortcut", False
+            ),
+            "filter_by_shortcut_pred": config.get(
+                "filter_by_shortcut_pred", False
+            ),
+            "filter_indices": filter_indices,
+        }
+
+    def sanity_check(self, batch_size: int = 32) -> dict:
+        """Compute accuracy on shortcut datapoints as a sanity check.
 
         Parameters
         ----------
-        model : Union[torch.nn.Module, L.LightningModule]
-            Model to be used for the benchmark. This model should be trained on
-            the mislabeled dataset.
-        base_dataset : Union[str, torch.utils.data.Dataset]
-            Training dataset to be used for the benchmark. If a string is
-            passed, it should be a HuggingFace dataset.
-        n_classes : int
-            Number of classes in the dataset.
-        eval_dataset : torch.utils.data.Dataset
-            Dataset to be used for the evaluation.
-        sample_fn : Callable
-            Function to add triggers to samples of the dataset.
-        shortcut_cls : int
-            The class to use.
-        shortcut_indices : List[int]
-            Binary list of indices to poison.
-        shortcut_dataset : Optional[SampleTransformationDataset], optional
-            Dataset with the shortcut, by default None.
-        checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
-        filter_by_prediction : bool, optional
-            Whether to filter the test samples to only calculate the metric on
-            those samples, where the shortcut class
-            is predicted, by default True
-        filter_by_class: bool, optional
-            Whether to filter the test samples to only calculate the metric on
-            those samples, where the shortcut class
-            is not assigned as the class, by default False
-        use_predictions : bool, optional
-            Whether to use the model's predictions for the evaluation, by
-            default True.
-        dataset_split : str, optional
-            The dataset split, only used for HuggingFace datasets, by default
-            "train".
-        dataset_transform : Optional[Callable], optional
-            Transform to be applied to the dataset, by default None.
-        checkpoint_paths : Optional[List[str]], optional
-            List of paths to the checkpoints. This parameter is only used for
-            downloaded benchmarks, by default None.
-        args: Any
-            Additional arguments.
-        kwargs: Any
-            Additional keyword arguments.
+        batch_size : int, optional
+            Batch size to be used for the evaluation, default to 32.
 
         Returns
         -------
-        ShortcutDetection
-            The benchmark instance.
+        dict
+            Dictionary containing the evaluation results.
 
         """
-        obj = cls()
-        obj._assemble_common(
-            model=model,
-            eval_dataset=eval_dataset,
-            checkpoints=checkpoints,
-            checkpoints_load_func=checkpoints_load_func,
-            use_predictions=use_predictions,
-        )
-        obj.base_dataset = obj._process_dataset(
-            base_dataset,
-            transform=dataset_transform,
-            dataset_split=dataset_split,
-        )
-        obj.dataset_transform = dataset_transform
-        obj.n_classes = n_classes
-        obj.filter_by_prediction = filter_by_prediction
-        obj.filter_by_class = filter_by_class
+        results = super().sanity_check(batch_size)
 
-        if shortcut_dataset is not None:
-            warnings.warn(
-                "shortcut_dataset is not None. Ignoring other shortcut "
-                "parameters."
-            )
-            obj.shortcut_dataset = shortcut_dataset
-        else:
-            obj.shortcut_dataset = SampleTransformationDataset(
-                dataset=obj._process_dataset(
-                    base_dataset, transform=None, dataset_split=dataset_split
-                ),
-                cls_idx=shortcut_cls,
-                dataset_transform=dataset_transform,
-                sample_fn=sample_fn,
-                n_classes=n_classes,
-                transform_indices=shortcut_indices,
-            )
-        obj.shortcut_cls = shortcut_cls
-        obj.shortcut_indices = obj.shortcut_dataset.transform_indices
-        obj.sample_fn = sample_fn
-        obj._checkpoint_paths = checkpoint_paths
+        assert isinstance(self.train_dataset, SampleTransformationDataset)
+        assert isinstance(self.eval_dataset, SampleTransformationDataset)
 
-        return obj
+        train_dl = torch.utils.data.DataLoader(
+            Subset(self.train_dataset, self.train_dataset.transform_indices),
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        eval_dl = torch.utils.data.DataLoader(
+            Subset(self.eval_dataset, self.eval_dataset.transform_indices),
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+        results["train_shortcut_memorization"] = class_accuracy(
+            self.model, train_dl, self.device
+        )
+        results["eval_shortcut_memorization"] = class_accuracy(
+            self.model,
+            eval_dl,
+            single_class=self.shortcut_cls,
+            device=self.device,
+        )
+        # .dataset is the Subset created by apply_filter;
+        # .dataset.dataset is the pre-filter eval split.
+        if hasattr(self.eval_dataset, "dataset") and hasattr(
+            self.eval_dataset.dataset, "dataset"
+        ):
+            results["eval_post_filter_percentage"] = ds_len(
+                self.eval_dataset
+            ) / ds_len(self.eval_dataset.dataset.dataset)
+        return results
+
+    def overall_objective(self, sanity_check_results: dict) -> float:
+        """Compute overall objective score.
+
+        Based on sanity check results, for selecting optional
+        hyperparameters of the benchmark.
+        Assigns extra weight to the eval_post_filter_percentage,
+        as it is the most direct indicator of whether the model
+        has learned the shortcut.
+
+        Parameters
+        ----------
+        sanity_check_results : dict
+            Dictionary containing the results from the sanity check.
+
+        Returns
+        -------
+        float
+            Overall objective score computed from the sanity check results.
+
+        """
+        train_acc = sanity_check_results.get("train_acc", 0)
+        val_acc = sanity_check_results.get("val_acc", 0)
+        train_shortcut_memorization = sanity_check_results.get(
+            "train_shortcut_memorization", 0
+        )
+        eval_post_filter_percentage = sanity_check_results.get(
+            "eval_post_filter_percentage", 0
+        )
+        return (
+            0.1 * train_acc
+            + 0.2 * val_acc
+            + 0.1 * train_shortcut_memorization
+            + 0.6 * eval_post_filter_percentage
+        )
 
     def evaluate(
         self,
@@ -364,32 +246,49 @@ class ShortcutDetection(Benchmark):
 
         """
         explainer = self._prepare_explainer(
-            dataset=self.shortcut_dataset,
+            dataset=self.train_dataset,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
         )
 
-        shortcut_expl_ds = SampleTransformationDataset(
-            dataset=self.eval_dataset,
-            dataset_transform=self.dataset_transform,
-            n_classes=self.n_classes,
-            sample_fn=self.sample_fn,
-            p=1.0,
-        )
-
+        assert isinstance(self.train_dataset, SampleTransformationDataset)
         metric = ShortcutDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
             checkpoints_load_func=self.checkpoints_load_func,
-            train_dataset=self.shortcut_dataset,
-            shortcut_indices=self.shortcut_indices,
+            train_dataset=self.train_dataset,
+            shortcut_indices=self.train_dataset.transform_indices,
             shortcut_cls=self.shortcut_cls,
-            filter_by_prediction=self.filter_by_prediction,
-            filter_by_class=self.filter_by_class,
+            filter_by_non_shortcut=self.filter_by_non_shortcut,
+            filter_by_shortcut_pred=self.filter_by_shortcut_pred,
         )
         return self._evaluate_dataset(
-            eval_dataset=shortcut_expl_ds,
+            eval_dataset=self.eval_dataset,
             explainer=explainer,
             metric=metric,
             batch_size=batch_size,
+        )
+
+    def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
+        """Run inference on eval_dataset and save the filter indices.
+
+        Iterates over ``self.eval_dataset``, calls ``_compute_filter_mask``
+        on every batch, collects the selected indices, stores them in
+        ``self.filter_indices``, and persists them via
+        ``save_filtered_indices``.
+
+        Parameters
+        ----------
+        config : dict
+            Benchmark configuration dictionary (needed for save path).
+        batch_size : int, optional
+            Batch size for the inference pass, by default 8.
+
+        """
+        super()._compute_and_save_filter_by_labels_and_prediction(
+            config=config,
+            batch_size=batch_size,
+            filter_by_shortcut_pred=self.filter_by_shortcut_pred,
+            shortcut_cls=self.shortcut_cls,
+            filter_by_non_shortcut=self.filter_by_non_shortcut,
         )

@@ -551,7 +551,7 @@ class CaptumArnoldi(CaptumInfluence):
         hessian_inverse_tol: float = 1e-4,
         projection_on_cpu: bool = True,
         show_progress: bool = False,
-        device: Union[str, torch.device] = "cpu",
+        device: str = "cpu",
         **explainer_kwargs: Any,
     ):
         """Initialize CaptumArnoldi explainer.
@@ -635,7 +635,7 @@ class CaptumArnoldi(CaptumInfluence):
             inverse Hessian, to cpu, to save gpu memory. Defaults to True.
         show_progress : bool, optional
             Whether to display a progress bar. Defaults to False.
-        device : Union[str, torch.device], optional
+        device : str, optional
             Device to run the computation on. Defaults to "cpu".
         **explainer_kwargs : Any
             Additional keyword arguments passed to the explainer.
@@ -833,7 +833,7 @@ class CaptumTracInCP(CaptumInfluence):
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         sample_wise_grads_per_batch: bool = False,
-        device: Union[str, torch.device] = "cpu",
+        device: str = "cpu",
         **explainer_kwargs: Any,
     ):
         """Initialize the `CaptumTracInCP` explainer.
@@ -870,7 +870,7 @@ class CaptumTracInCP(CaptumInfluence):
             If set to True, the loss function must use a reduction method (f.e.
             reduction='sum').
             Defaults to False.
-        device : Union[str, torch.device], optional
+        device : str, optional
             Device to run the computation on. Defaults to "cpu".
         **explainer_kwargs : Any
             Additional keyword arguments passed to the explainer.
@@ -1063,7 +1063,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         batch_size: int = 1,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         vectorize: bool = False,
-        device: Union[str, torch.device] = "cpu",
+        device: str = "cpu",
         **explainer_kwargs: Any,
     ):
         """Initialize the `CaptumTracInCPFast` explainer.
@@ -1094,7 +1094,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         vectorize : bool, optional
             Whether to use experimental vectorize functionality for
             `torch.autograd.functional.jacobian`. Defaults to False.
-        device : Union[str, torch.device], optional
+        device : str, optional
             Device to run the computation on. Defaults to "cpu".
         **explainer_kwargs : Any
             Additional keyword arguments passed to the explainer.
@@ -1285,7 +1285,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         nearest_neighbors: Optional[NearestNeighbors] = None,
         projection_dim: Optional[int] = None,
         seed: int = 0,
-        device: Union[str, torch.device] = "cpu",
+        device: str = "cpu",
         **explainer_kwargs: Any,
     ):
         """Initialize the `CaptumTracInCPFastRandProj` explainer.
@@ -1342,7 +1342,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
             5 of the TracIn paper (Reference 1).
         seed : int, optional
             Random seed for reproducibility. Defaults to 0.
-        device : Union[str, torch.device], optional
+        device : str, optional
             Device to run the computation on. Defaults to "cpu".
         **explainer_kwargs : Any
             Additional keyword arguments passed to the explainer.

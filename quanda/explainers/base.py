@@ -1,11 +1,11 @@
 """Base class for explainers."""
 
 from abc import ABC, abstractmethod
-from typing import List, Union, Optional, Callable, Any
+from typing import Any, Callable, List, Optional, Union
 
+import datasets  # type: ignore
 import lightning as L
 import torch
-from datasets import Dataset, DatasetDict  # type: ignore
 
 from quanda.utils.common import (
     cache_result,
@@ -29,7 +29,7 @@ class Explainer(ABC):
     def __init__(
         self,
         model: Union[torch.nn.Module, L.LightningModule],
-        train_dataset: torch.utils.data.Dataset,
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -41,7 +41,7 @@ class Explainer(ABC):
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
             The model to be used for the influence computation.
-        train_dataset : torch.utils.data.Dataset
+        train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
             Training dataset to be used for the influence computation.
         task: TaskLiterals, optional
             Task type of the model. Defaults to "image_classification".
@@ -62,14 +62,14 @@ class Explainer(ABC):
                 f"Supported tasks: {self.accepted_tasks}"
             )
 
-        self.device: Union[str, torch.device]
+        self.device: str
         self.model = model
 
         # if model has device attribute, use it, otherwise use the default
         if next(model.parameters(), None) is not None:
-            self.device = next(model.parameters()).device
+            self.device = str(next(model.parameters()).device)
         else:
-            self.device = torch.device("cpu")
+            self.device = "cpu"
 
         if checkpoints_load_func is None:
             self.checkpoints_load_func = get_load_state_dict_func(self.device)
@@ -83,11 +83,12 @@ class Explainer(ABC):
                 checkpoints if isinstance(checkpoints, List) else [checkpoints]
             )
 
-        # if dataset return samples not on device, move them to device
-        # TODO: fix this
-        if isinstance(train_dataset, (Dataset, DatasetDict)):
-            pass
-        elif train_dataset[0][0].device != self.device:
+        # If dataset return samples not on device, move them to device
+        # TODO: Check if this is required for datasets.Dataset as well
+        if (
+            isinstance(train_dataset, torch.utils.data.Dataset)
+            and train_dataset[0][0].device != self.device
+        ):
             train_dataset = OnDeviceDataset(train_dataset, self.device)
 
         self.train_dataset = train_dataset

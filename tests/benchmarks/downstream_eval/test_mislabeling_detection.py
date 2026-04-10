@@ -1,355 +1,218 @@
 import math
-from functools import reduce
+import os
 
-import lightning as L
 import pytest
 import torch
 
-from quanda.benchmarks.downstream_eval.mislabeling_detection import (
-    MislabelingDetection,
-)
-from quanda.explainers.global_ranking.aggregators import SumAggregator
-from quanda.explainers.wrappers.captum_influence import CaptumSimilarity
-from quanda.utils.functions.similarities import (
-    cosine_similarity,
-    dot_product_similarity,
-)
-from quanda.utils.training.trainer import Trainer
+from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.downstream_eval import MislabelingDetection
+from quanda.benchmarks.resources.sample_transforms import sample_transforms
+from quanda.explainers.wrappers import CaptumSimilarity
+from quanda.utils.datasets.transformed import LabelFlippingDataset
+from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
+from quanda.utils.functions import cosine_similarity
 
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, init_method, model, checkpoint, optimizer, lr, criterion, max_epochs, dataset, n_classes, p, seed, "
-    "global_method, mislabeling_labels, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
+    "test_id, config, global_method, load_from_disk,"
+    "explainer_cls, expl_kwargs, expected_score",
     [
         (
             "mnist",
-            "generate",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            1.0,
-            27,
+            "load_mnist_mislabeling_config",
             "self-influence",
-            "mnist_seed_27_mislabeling_labels",
-            8,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
             False,
-            None,
-            0.4921875,
-        ),
-        (
-            "mnist",
-            "assemble",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            1.0,
-            27,
-            SumAggregator,
-            "mnist_seed_27_mislabeling_labels",
-            8,
             CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            False,
-            None,
-            0.0,
-        ),
-        (
-            "mnist",
-            "assemble",
-            "load_mnist_model",
-            "load_mnist_last_checkpoint",
-            "torch_sgd_optimizer",
-            0.01,
-            "torch_cross_entropy_loss_object",
-            3,
-            "load_mnist_dataset",
-            10,
-            1.0,
-            27,
-            SumAggregator,
-            "mnist_seed_27_mislabeling_labels",
-            8,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            True,
-            None,
-            0.0,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            0.44353821873664856,
         ),
     ],
 )
 def test_mislabeling_detection(
     test_id,
-    init_method,
-    model,
-    checkpoint,
-    optimizer,
-    lr,
-    criterion,
-    max_epochs,
-    dataset,
-    n_classes,
-    p,
-    seed,
-    batch_size,
+    config,
     global_method,
-    mislabeling_labels,
+    load_from_disk,
     explainer_cls,
     expl_kwargs,
-    use_pred,
-    load_path,
     expected_score,
     tmp_path,
     request,
 ):
-    model = request.getfixturevalue(model)
-    checkpoint = request.getfixturevalue(checkpoint)
-    optimizer = request.getfixturevalue(optimizer)
-    criterion = request.getfixturevalue(criterion)
-    dataset = request.getfixturevalue(dataset)
-    mislabeling_labels = request.getfixturevalue(mislabeling_labels)
+    config = request.getfixturevalue(config)
 
     expl_kwargs = {
         **expl_kwargs,
         "model_id": "test",
         "cache_dir": str(tmp_path),
     }
-    if init_method == "generate":
-        trainer = Trainer(
-            max_epochs=max_epochs,
-            optimizer=optimizer,
-            lr=lr,
-            criterion=criterion,
-        )
 
-        dst_eval = MislabelingDetection.generate(
-            model=model,
-            trainer=trainer,
-            base_dataset=dataset,
-            eval_dataset=dataset,
-            n_classes=n_classes,
-            p=p,
-            global_method=global_method,
-            trainer_fit_kwargs={"max_epochs": max_epochs},
-            seed=seed,
-            batch_size=batch_size,
-            cache_dir=str(tmp_path),
+    config["cache_dir"] = str(tmp_path)
+
+    train_metadata = LabelFlippingMetadata(
+        p=config["train_dataset"]["wrapper"]["metadata"]["p"],
+        seed=config["train_dataset"]["wrapper"]["metadata"]["seed"],
+    )
+    train_dataset = LabelFlippingDataset(
+        dataset=BenchConfigParser._parse_hf_dataset(
+            dataset=config["train_dataset"]["dataset_str"],
+            transform=sample_transforms[config["train_dataset"]["transforms"]],
+            dataset_split=config["train_dataset"]["dataset_split"],
+        ),
+        metadata=train_metadata,
+    )
+
+    eval_dataset = BenchConfigParser._parse_hf_dataset(
+        dataset=config["eval_dataset"]["dataset_str"],
+        transform=sample_transforms[config["eval_dataset"]["transforms"]],
+        dataset_split=config["eval_dataset"]["dataset_split"],
+    )
+
+    model, checkpoints, checkpoints_load_func = (
+        BenchConfigParser.parse_model_cfg(
+            config["model"],
+            config["bench_save_dir"],
+            config["ckpts"],
+            load_model_from_disk=True,
             device="cpu",
         )
-
-    elif init_method == "assemble":
-        dst_eval = MislabelingDetection.assemble(
-            model=model,
-            checkpoints=checkpoint,
-            base_dataset=dataset,
-            eval_dataset=dataset,
-            n_classes=n_classes,
-            p=p,
-            mislabeling_labels=mislabeling_labels,
-            global_method=global_method,
-            batch_size=batch_size,
-        )
-    else:
-        raise ValueError(f"Invalid init_method: {init_method}")
-
-    score = dst_eval.evaluate(
-        explainer_cls=explainer_cls,
-        expl_kwargs=expl_kwargs,
-        batch_size=batch_size,
-    )["score"]
-
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
-
-
-@pytest.mark.benchmarks
-@pytest.mark.parametrize(
-    "test_id, pl_module, max_epochs, dataset, n_classes, p, seed, "
-    "global_method, batch_size, explainer_cls, expl_kwargs, use_pred, load_path, expected_score",
-    [
-        (
-            "mnist",
-            "load_mnist_pl_module",
-            3,
-            "load_mnist_dataset",
-            10,
-            1.0,
-            27,
-            "self-influence",
-            8,
-            CaptumSimilarity,
-            {"layers": "model.fc_2", "similarity_metric": cosine_similarity},
-            False,
-            None,
-            0.4921875,
-        ),
-    ],
-)
-def test_mislabeling_detection_generate_from_pl_module(
-    test_id,
-    pl_module,
-    max_epochs,
-    dataset,
-    n_classes,
-    p,
-    seed,
-    batch_size,
-    global_method,
-    explainer_cls,
-    expl_kwargs,
-    use_pred,
-    load_path,
-    expected_score,
-    tmp_path,
-    request,
-):
-    pl_module = request.getfixturevalue(pl_module)
-    dataset = request.getfixturevalue(dataset)
-    expl_kwargs = {
-        **expl_kwargs,
-        "model_id": "test",
-        "cache_dir": str(tmp_path),
-    }
-    trainer = L.Trainer(max_epochs=max_epochs)
-
-    dst_eval = MislabelingDetection.generate(
-        model=pl_module,
-        trainer=trainer,
-        base_dataset=dataset,
-        n_classes=n_classes,
-        eval_dataset=dataset,
-        p=p,
-        global_method=global_method,
-        class_to_group="random",
-        trainer_fit_kwargs={},
-        seed=seed,
-        batch_size=batch_size,
-        cache_dir=str(tmp_path),
+    )
+    dst_eval = MislabelingDetection(
+        train_dataset=train_dataset,
         device="cpu",
+        eval_dataset=eval_dataset,
+        model=model,
+        checkpoints=checkpoints,
+        checkpoints_load_func=checkpoints_load_func,
     )
 
-    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
-        batch_size=batch_size,
+        batch_size=8,
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 
 
-@pytest.mark.benchmarks
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
+# @pytest.mark.production_bench
 @pytest.mark.parametrize(
-    "test_id, benchmark, batch_size, explainer_cls, expl_kwargs, expected_score",
+    "config_name",
     [
-        (
-            "mnist",
-            "mnist_mislabeling_detection_benchmark",
-            8,
-            CaptumSimilarity,
-            {
-                "layers": "model.fc_2",
-                "similarity_metric": dot_product_similarity,
-                "load_from_disk": True,
-            },
-            "compute",
-        ),
+        "mnist_mislabeling_detection",
     ],
 )
-def test_mislabeling_detection_download(
-    test_id,
-    benchmark,
-    batch_size,
-    explainer_cls,
-    expl_kwargs,
-    expected_score,
-    tmp_path,
-    request,
-):
-    dst_eval = request.getfixturevalue(benchmark)
+def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
+    """Verify that label flipping in the train dataset is applied
+    correctly: transformed indices have flipped labels and
+    non-transformed indices keep their original labels."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
-    dst_eval.base_dataset = torch.utils.data.Subset(
-        dst_eval.base_dataset, list(range(16))
+    bench = MislabelingDetection.load_pretrained(
+        bench_id=config_name,
+        cache_dir=str(tmp_path),
+        device=device,
+        offline=False,
     )
-    dst_eval.mislabeling_dataset = torch.utils.data.Subset(
-        dst_eval.mislabeling_dataset, list(range(16))
+
+    train_ds = bench.train_dataset
+    assert isinstance(train_ds, LabelFlippingDataset), (
+        "Expected train_dataset to be a LabelFlippingDataset, "
+        f"got {type(train_ds).__name__}."
     )
-    dst_eval.mislabeling_labels = {
-        key: val
-        for key, val in dst_eval.mislabeling_labels.items()
-        if key in list(range(16))
-    }
-    dst_eval.mislabeling_indices = [
-        key for key in dst_eval.mislabeling_labels.keys()
-    ]
 
-    score = dst_eval.evaluate(
-        explainer_cls=explainer_cls,
-        expl_kwargs=expl_kwargs,
-        batch_size=batch_size,
-    )["score"]
-    if expected_score == "compute":
-        activation = []
+    base_ds = train_ds.dataset
+    transform_indices = set(train_ds.transform_indices)
 
-        def hook(model, input, output):
-            activation.append(output.detach())
+    flipped_mismatches = []
+    clean_mismatches = []
+    for idx in range(len(train_ds)):
+        _, train_label = train_ds[idx]
+        _, base_label = base_ds[idx]
+        if idx in transform_indices:
+            if train_label == base_label:
+                flipped_mismatches.append(idx)
+        else:
+            if train_label != base_label:
+                clean_mismatches.append(idx)
 
-        exp_layer = reduce(
-            getattr, expl_kwargs["layers"].split("."), dst_eval.model
-        )
-        exp_layer.register_forward_hook(hook)
-        train_ld = torch.utils.data.DataLoader(
-            dst_eval.mislabeling_dataset, batch_size=16, shuffle=False
-        )
-        for x, y in iter(train_ld):
-            x = x.to(dst_eval.device)
-            dst_eval.model(x)
-        act_train = activation[0]
-        activation = []
-        IP = torch.matmul(act_train, act_train.T)
-        global_ranking = IP.diag().argsort()
-        detection_curve = torch.tensor(
-            [
-                1.0 if i.item() in dst_eval.mislabeling_labels.keys() else 0.0
-                for i in global_ranking
-            ]
-        )
-        expected_score = torch.trapezoid(
-            torch.cumsum(detection_curve, dim=0)
-        ) / (len(dst_eval.mislabeling_indices) * 16)
-    assert math.isclose(score, expected_score, abs_tol=0.0001)
+    assert not flipped_mismatches, (
+        f"{len(flipped_mismatches)} samples at transform_indices "
+        f"still have their original label (expected flipped)."
+    )
+    assert not clean_mismatches, (
+        f"{len(clean_mismatches)} non-transformed samples have a "
+        f"different label than the base dataset (expected unchanged)."
+    )
 
 
-@pytest.mark.benchmarks
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
+# @pytest.mark.production_bench
 @pytest.mark.parametrize(
-    "test_id, benchmark",
+    "config_name",
     [
-        (
-            "mnist",
-            "mnist_mislabeling_detection_benchmark",
-        ),
+        "mnist_mislabeling_detection",
     ],
 )
-def test_mislabeling_detection_download_sanity_checks(
-    test_id, benchmark, tmp_path, request
-):
-    dst_eval = request.getfixturevalue(benchmark)
-    assertions = []
-    for ind, label in list(dst_eval.mislabeling_labels.items())[0:500]:
-        assertions.append(
-            (dst_eval.base_dataset[ind][1] != label)
-            and (dst_eval.mislabeling_dataset[ind][1] == label)
-        )
-    assert all(assertions)
+def test_eval_dataset_is_clean(config_name, tmp_path):
+    """Verify the eval dataset is NOT a LabelFlippingDataset,
+    i.e. it contains no mislabeled samples."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    bench = MislabelingDetection.load_pretrained(
+        bench_id=config_name,
+        cache_dir=str(tmp_path),
+        device=device,
+        offline=False,
+    )
+
+    assert not isinstance(bench.eval_dataset, LabelFlippingDataset), (
+        "Eval dataset should be clean (no label flipping), "
+        f"but got {type(bench.eval_dataset).__name__}."
+    )
+
+
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
+# @pytest.mark.production_bench
+@pytest.mark.parametrize(
+    "config_name",
+    [
+        "mnist_mislabeling_detection",
+    ],
+)
+def test_mislabeling_sanity_check_values(config_name, tmp_path):
+    """Verify model fitness: train/val accuracy and mislabeling
+    memorization are within expected bounds."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    batch_size = 8
+
+    bench = MislabelingDetection.load_pretrained(
+        bench_id=config_name,
+        cache_dir=str(tmp_path),
+        device=device,
+        offline=False,
+    )
+
+    sanity_check_results = bench.sanity_check(batch_size=batch_size)
+
+    assert sanity_check_results["train_acc"] > 0.85, (
+        f"Expected train_acc > 0.85, got {sanity_check_results['train_acc']}."
+    )
+    assert sanity_check_results["val_acc"] > 0.85, (
+        f"Expected val_acc > 0.85, got {sanity_check_results['val_acc']}."
+    )
+    assert sanity_check_results["mislabeling_memorization"] > 0.4, (
+        f"Expected mislabeling_memorization > 0.4, "
+        f"got {sanity_check_results['mislabeling_memorization']}."
+    )

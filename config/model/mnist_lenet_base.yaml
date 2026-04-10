@@ -1,0 +1,4 @@
+module:
+  name: MnistTorch
+  args:
+    num_outputs: 10

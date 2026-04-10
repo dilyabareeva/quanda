@@ -10,34 +10,26 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision
+import yaml
 from kronfluence.task import Task  # type: ignore
 from torch.utils.data import Dataset, TensorDataset
-from transformers import (
-    AutoConfig,
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-)
-from torchvision.models import vit_b_16, resnet18
+from torchvision.models import resnet18, vit_b_16
+from transformers import AutoTokenizer
 
-from quanda.benchmarks.downstream_eval import (
-    ClassDetection,
-    MislabelingDetection,
-    ShortcutDetection,
-    SubclassDetection,
-)
-from quanda.benchmarks.heuristics import (
-    MixedDatasets,
-    ModelRandomization,
-    TopKCardinality,
-)
+from quanda.benchmarks.resources import config_map
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
 from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
+from quanda.utils.training import Trainer
 from quanda.utils.training.base_pl_module import BasicLightningModule
-from tests.models import LeNet
+from tests.models import (
+    LeNet,
+    SequenceClassificationModel,
+    SimpleTextClassifier,
+)
 
 # Copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
 GLUE_TASK_TO_KEYS = {
@@ -118,7 +110,7 @@ def range_ranking():
 @pytest.fixture
 def mnist_seed_27_mislabeling_labels():
     with open(
-        "tests/assets/mnist_test_suite_1/mnist_seed_27_poisoned_labels.json",
+        "tests/assets/dataset/mnist_seed_27_poisoned_labels.json",
         "r",
     ) as f:
         return json.load(f)
@@ -247,12 +239,14 @@ def load_grouped_mnist_dataset():
     dataset = TestTensorDataset(
         torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
     )
-    return LabelGroupingDataset(
-        dataset,
-        n_classes=10,
+    metadata = LabelGroupingDataset.metadata_cls(
+        seed=27,
         n_groups=2,
         class_to_group="random",
-        seed=27,
+    )
+    return LabelGroupingDataset(
+        dataset,
+        metadata=metadata,
     )
 
 
@@ -267,11 +261,13 @@ def load_mislabeling_mnist_dataset():
     dataset = TestTensorDataset(
         torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
     )
-    return LabelFlippingDataset(
-        dataset,
-        n_classes=10,
+    metadata = LabelFlippingDataset.metadata_cls(
         p=1.0,
         seed=27,
+    )
+    return LabelFlippingDataset(
+        dataset,
+        metadata=metadata,
     )
 
 
@@ -295,44 +291,35 @@ def load_mnist_dataloader():
 
 @pytest.fixture
 def load_mnist_test_samples_1():
-    return torch.load("tests/assets/mnist_test_suite_1/test_dataset.pt")
+    return torch.load("tests/assets/dataset/test_dataset.pt")
 
 
 @pytest.fixture
 def load_mnist_test_samples_batches():
     return [
-        torch.load("tests/assets/mnist_test_suite_1/test_dataset.pt"),
-        torch.load("tests/assets/mnist_test_suite_1/test_dataset_2.pt"),
+        torch.load("tests/assets/dataset/test_dataset.pt"),
+        torch.load("tests/assets/dataset/test_dataset_2.pt"),
     ]
 
 
 @pytest.fixture
 def load_mnist_test_labels_1():
-    return torch.load("tests/assets/mnist_test_suite_1/test_labels.pt")
+    return torch.load("tests/assets/dataset/test_labels.pt")
+
+
+@pytest.fixture
+def load_mnist_test_labels_1_list():
+    return torch.load("tests/assets/dataset/test_labels.pt").tolist()
 
 
 @pytest.fixture
 def load_mnist_explanations_similarity_1():
-    return torch.load(
-        "tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_tda.pt"
-    )
+    return torch.load("tests/assets/tda/mnist_SimilarityInfluence_tda.pt")
 
 
 @pytest.fixture
 def load_mnist_explanations_dot_similarity_1():
-    return torch.load(
-        "tests/assets/mnist_test_suite_1/mnist_SimilarityInfluence_dot_tda.pt"
-    )
-
-
-@pytest.fixture
-def load_mnist_explanations_trak_1():
-    return torch.load("tests/assets/mnist_test_suite_1/mnist_TRAK_tda.pt")
-
-
-@pytest.fixture
-def load_mnist_explanations_trak_si_1():
-    return torch.load("tests/assets/mnist_test_suite_1/mnist_TRAK_tda_si.pt")
+    return torch.load("tests/assets/tda/mnist_SimilarityInfluence_dot_tda.pt")
 
 
 @pytest.fixture
@@ -384,117 +371,19 @@ def mnist_white_square_transformation():
     return add_white_square
 
 
-@pytest.fixture(scope="session")
-def mnist_class_detection_benchmark(tmp_path_factory):
-    dst_eval = ClassDetection.download(
-        name="mnist_class_detection",
-        cache_dir=str(
-            tmp_path_factory.mktemp("mnist_class_detection_benchmark")
-        ),
-        device="cpu",
-    )
-    return dst_eval
-
-
-@pytest.fixture(scope="session")
-def mnist_subclass_detection_benchmark(tmp_path_factory):
-    dst_eval = SubclassDetection.download(
-        name="mnist_subclass_detection",
-        cache_dir=str(
-            tmp_path_factory.mktemp("mnist_subclass_detection_benchmark")
-        ),
-        device="cpu",
-    )
-    return dst_eval
-
-
-@pytest.fixture(scope="session")
-def mnist_mislabeling_detection_benchmark(tmp_path_factory):
-    dst_eval = MislabelingDetection.download(
-        name="mnist_mislabeling_detection",
-        cache_dir=str(
-            tmp_path_factory.mktemp("mnist_mislabeling_detection_benchmark")
-        ),
-        device="cpu",
-    )
-    return dst_eval
-
-
-@pytest.fixture(scope="session")
-def mnist_shortcut_detection_benchmark(tmp_path_factory):
-    dst_eval = ShortcutDetection.download(
-        name="mnist_shortcut_detection",
-        cache_dir=str(
-            tmp_path_factory.mktemp("mnist_shortcut_detection_benchmark")
-        ),
-        device="cpu",
-    )
-    return dst_eval
-
-
-@pytest.fixture(scope="session")
-def mnist_mixed_datasets_benchmark(tmp_path_factory):
-    dst_eval = MixedDatasets.download(
-        name="mnist_mixed_datasets",
-        cache_dir=str(
-            tmp_path_factory.mktemp("mnist_mixed_datasets_benchmark")
-        ),
-        device="cpu",
-    )
-    return dst_eval
-
-
-@pytest.fixture(scope="session")
-def mnist_model_randomization_benchmark(tmp_path_factory):
-    dst_eval = ModelRandomization.download(
-        name="mnist_class_detection",
-        cache_dir=str(
-            tmp_path_factory.mktemp("mnist_class_detection_benchmark")
-        ),
-        device="cpu",
-    )
-    return dst_eval
-
-
-@pytest.fixture(scope="session")
-def mnist_top_k_cardinality_benchmark(tmp_path_factory):
-    dst_eval = TopKCardinality.download(
-        name="mnist_class_detection",
-        cache_dir=str(
-            tmp_path_factory.mktemp("mnist_class_detection_benchmark")
-        ),
-        device="cpu",
-    )
-    return dst_eval
-
-
-@pytest.fixture
-def get_lds_score():
-    with open("tests/assets/lds_score.json", "r") as f:
-        score_data = json.load(f)
-    return score_data["lds_score"]
-
-
 @pytest.fixture
 def load_subset_indices_lds():
-    indices_path = "tests/assets/lds_checkpoints/subset_indices.pt"
-    return torch.load(indices_path)
+    return "subset_indices.yaml"
 
 
 @pytest.fixture
 def load_pretrained_models_lds():
-    model_paths = [
+    return [
         "tests/assets/lds_checkpoints/model_subset_0.pt",
         "tests/assets/lds_checkpoints/model_subset_1.pt",
         "tests/assets/lds_checkpoints/model_subset_2.pt",
         "tests/assets/lds_checkpoints/model_subset_3.pt",
     ]
-    models = []
-    for path in model_paths:
-        model = LeNet()
-        model.load_state_dict(torch.load(path, map_location="cpu"))
-        models.append(model)
-    return models
 
 
 @pytest.fixture
@@ -673,41 +562,6 @@ def get_glue_dataset(
     return ds
 
 
-class SequenceClassificationModel(nn.Module):
-    """
-    Wrapper for HuggingFace sequence classification models.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.config = AutoConfig.from_pretrained(
-            "gchhablani/bert-base-cased-finetuned-qnli",
-            num_labels=2,
-            finetuning_task="qnli",
-            cache_dir=None,
-            revision="main",
-            token=None,
-        )
-
-        self.model = AutoModelForSequenceClassification.from_pretrained(
-            "gchhablani/bert-base-cased-finetuned-qnli",
-            config=self.config,
-            cache_dir=None,
-            revision="main",
-            token=None,
-            ignore_mismatched_sizes=False,
-        )
-
-        self.model.eval()
-
-    def forward(self, input_ids, token_type_ids, attention_mask):
-        return self.model(
-            input_ids=input_ids,
-            token_type_ids=token_type_ids,
-            attention_mask=attention_mask,
-        )
-
-
 def get_dataset(split, inds=None):
     raw_datasets = datasets.load_dataset(
         "glue",
@@ -759,15 +613,320 @@ def get_dataset(split, inds=None):
 
 
 @pytest.fixture
-def qnli_model():
+def load_qnli_model():
     model = SequenceClassificationModel()
     return model
 
 
 @pytest.fixture
-def qnli_dataset():
+def load_qnli_dataset():
     ds_train = get_dataset("train")
     ds_train = ds_train.select(range(QNLI_TRAIN_SET_SIZE))
     ds_val = get_dataset("validation")
     ds_val = ds_val.select(range(QNLI_VAL_SET_SIZE))
     return ds_train, ds_val
+
+
+@pytest.fixture
+def load_mnist_unit_test_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_local_bench/20fba38-default_ClassDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_unit_test_config_hf():
+    # load yaml file
+    with open(
+        config_map["mnist_class_detection_unit"],
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_linear_datamodeling_config(
+    load_pretrained_models_lds, load_subset_indices_lds
+):
+    # load yaml file
+    with open(
+        "tests/assets/mnist_local_bench/20fba38-default_LDS.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+
+    return config
+
+
+@pytest.fixture
+def load_mnist_mislabeling_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_local_bench/20fba38-default_MislabelingDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_subclass_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_local_bench/20fba38-default_SubclassDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_shortcut_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_local_bench/20fba38-default_ShortcutDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_mixed_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_local_bench/20fba38-default_MixedDatasets.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+@pytest.fixture
+def load_mnist_lds_config():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_local_bench/20fba38-default_LDS.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    return config
+
+
+def load_yaml(file_path):
+    """Helper function to load a YAML file as a Python dictionary."""
+    assert os.path.exists(file_path), f"Config file not found: {file_path}"
+    with open(file_path, "r") as f:
+        return yaml.safe_load(f)  # Load YAML as Python dict
+
+
+@pytest.fixture
+def load_wandb_config():
+    """Load WandB config from wandb.yaml as a Python dict."""
+    dict = load_yaml("config/logger/wandb.yaml")
+    dict["offline"] = True
+    return dict
+
+
+@pytest.fixture
+def load_tensorboard_config():
+    """Load TensorBoard config from tensorboard.yaml as a Python dict."""
+    return load_yaml("config/logger/tensorboard.yaml")
+
+
+@pytest.fixture
+def load_simple_classifier():
+    return SimpleTextClassifier()
+
+
+@pytest.fixture
+def load_text_dataset():
+    def create_dummy_data(size, is_train=True):
+        seq_length = 10
+
+        if is_train:
+            base_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            input_ids = [base_ids for _ in range(size)]
+            labels = [i % 2 for i in range(size)]
+        else:
+            input_ids = [[10, 9, 8, 7, 6, 5, 4, 3, 2, 1] for _ in range(size)]
+            labels = [0, 1, 0, 1, 0][:size]
+
+        attention_mask = [[1] * seq_length for _ in range(size)]
+        token_type_ids = [[0] * seq_length for _ in range(size)]
+
+        data = {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "token_type_ids": token_type_ids,
+            "labels": labels,
+        }
+
+        return datasets.Dataset.from_dict(data)
+
+    ds_train = create_dummy_data(20, is_train=True)
+    ds_val = create_dummy_data(5, is_train=False)
+
+    return ds_train, ds_val
+
+
+@pytest.fixture
+def dummy_trainer():
+    return Trainer(
+        max_epochs=3,
+        optimizer=torch.optim.SGD,
+        lr=0.1,
+        criterion=torch.nn.CrossEntropyLoss(),
+    )
+
+
+@pytest.fixture
+def two_field_dataset():
+    def _create(n=8):
+        return datasets.Dataset.from_dict(
+            {
+                "question": [f"What is {i}?" for i in range(n)],
+                "sentence": [f"Answer {i}" for i in range(n)],
+                "label": [i % 2 for i in range(n)],
+            }
+        )
+
+    return _create
+
+
+@pytest.fixture
+def single_field_dataset():
+    def _create():
+        return datasets.Dataset.from_dict(
+            {"text": ["Hello world", "Foo bar"], "label": [0, 1]}
+        )
+
+    return _create
+
+
+@pytest.fixture
+def custom_label_dataset():
+    def _create():
+        return datasets.Dataset.from_dict(
+            {"text": ["a", "b", "c"], "my_label": [0, 1, 2]}
+        )
+
+    return _create
+
+
+class _LogitsOutput:
+    """Wraps a tensor to expose a .logits attribute."""
+
+    def __init__(self, logits):
+        self.logits = logits
+
+
+class _ConstantModel(torch.nn.Module):
+    """Model that always predicts a fixed class."""
+
+    def __init__(self, predicted_class, num_classes):
+        super().__init__()
+        self.predicted_class = predicted_class
+        self.num_classes = num_classes
+
+    def forward(self, x):
+        bs = x.shape[0]
+        logits = torch.zeros(bs, self.num_classes)
+        logits[:, self.predicted_class] = 10.0
+        return logits
+
+
+class _ConstantDictModel(torch.nn.Module):
+    """Dict-input model that always predicts a class."""
+
+    def __init__(self, predicted_class, num_classes, wrap_logits):
+        super().__init__()
+        self.predicted_class = predicted_class
+        self.num_classes = num_classes
+        self.wrap_logits = wrap_logits
+
+    def forward(self, **kwargs):
+        first_val = next(iter(kwargs.values()))
+        bs = first_val.shape[0]
+        logits = torch.zeros(bs, self.num_classes)
+        logits[:, self.predicted_class] = 10.0
+        if self.wrap_logits:
+            return _LogitsOutput(logits)
+        return logits
+
+
+class _DictDataset(Dataset):
+    """Dataset that yields dict batches."""
+
+    def __init__(self, data_dict):
+        self.data = data_dict
+        self.n = len(next(iter(data_dict.values())))
+
+    def __len__(self):
+        return self.n
+
+    def __getitem__(self, idx):
+        return {k: v[idx] for k, v in self.data.items()}
+
+
+@pytest.fixture
+def constant_model():
+    """Factory: model always predicting a given class."""
+
+    def _create(predicted_class=0, num_classes=3):
+        model = _ConstantModel(predicted_class, num_classes)
+        model.eval()
+        return model
+
+    return _create
+
+
+@pytest.fixture
+def constant_dict_model():
+    """Factory: dict-input model predicting a class."""
+
+    def _create(
+        predicted_class=0,
+        num_classes=3,
+        wrap_logits=True,
+    ):
+        model = _ConstantDictModel(predicted_class, num_classes, wrap_logits)
+        model.eval()
+        return model
+
+    return _create
+
+
+@pytest.fixture
+def tuple_dataloader():
+    """Factory: DataLoader of (tensor, label) tuples."""
+
+    def _create(labels, n_features=4, batch_size=4):
+        n = len(labels)
+        x = torch.rand(n, n_features)
+        y = torch.tensor(labels, dtype=torch.long)
+        ds = TensorDataset(x, y)
+        return torch.utils.data.DataLoader(ds, batch_size=batch_size)
+
+    return _create
+
+
+@pytest.fixture
+def dict_dataloader():
+    """Factory: DataLoader yielding dict batches."""
+
+    def _create(labels, seq_length=8, batch_size=4):
+        n = len(labels)
+        data = {
+            "input_ids": torch.randint(0, 100, (n, seq_length)),
+            "labels": torch.tensor(labels, dtype=torch.long),
+        }
+        ds = _DictDataset(data)
+        return torch.utils.data.DataLoader(ds, batch_size=batch_size)
+
+    return _create

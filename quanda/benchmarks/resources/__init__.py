@@ -1,15 +1,10 @@
 """Benchmark resources for Quanda."""
 
-from quanda.benchmarks.resources.benchmark_urls import benchmark_urls
-from quanda.benchmarks.resources.modules import (
-    load_module_from_bench_state,
-    pl_modules,
-)
-from quanda.benchmarks.resources.sample_transforms import sample_transforms
+from quanda.benchmarks.resources.config_map import config_map
+from quanda.benchmarks.resources.modules import pl_modules
 
 __all__ = [
-    "benchmark_urls",
+    "config_map",
     "sample_transforms",
     "pl_modules",
-    "load_module_from_bench_state",
 ]
