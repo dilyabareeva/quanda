@@ -1356,6 +1356,16 @@ def causal_lm_test_entailment_labels():
     return entailment_labels
 
 
+def _build_entailment_matrix(num_queries, num_evidence, evidence_map):
+    """Build a binary entailment matrix from an evidence map."""
+    entailment_labels = torch.zeros(
+        (num_queries, num_evidence), dtype=torch.long
+    )
+    for j, query_idx in enumerate(evidence_map):
+        entailment_labels[query_idx, j] = 1
+    return entailment_labels
+
+
 @pytest.fixture
 def load_fact_tracing_dataset_nanogpt(
     dataset_name="quanda-bench-test/trex-subset-benchmark",
@@ -1466,15 +1476,9 @@ def load_fact_tracing_dataset_nanogpt(
     )
 
     # Create entailment matrix
-    num_queries = len(prompt_dataset)
-    num_evidence = len(evidence_dataset)
-    entailment_labels = torch.zeros(
-        (num_queries, num_evidence), dtype=torch.long
+    entailment_labels = _build_entailment_matrix(
+        len(prompt_dataset), len(evidence_dataset), evidence_map
     )
-    for i in range(num_queries):
-        for j in range(num_evidence):
-            if evidence_map[j] == i:
-                entailment_labels[i, j] = 1
 
     return prompt_dataset, evidence_dataset, entailment_labels
 
@@ -1593,15 +1597,9 @@ def load_fact_tracing_dataset(
     )
 
     # Create entailment matrix
-    num_queries = len(prompt_dataset)
-    num_evidence = len(evidence_dataset)
-    entailment_labels = torch.zeros(
-        (num_queries, num_evidence), dtype=torch.long
+    entailment_labels = _build_entailment_matrix(
+        len(prompt_dataset), len(evidence_dataset), evidence_map
     )
-    for i in range(num_queries):
-        for j in range(num_evidence):
-            if evidence_map[j] == i:
-                entailment_labels[i, j] = 1
 
     return prompt_dataset, evidence_dataset, entailment_labels
 
