@@ -120,7 +120,6 @@ Currently, the following markers are available to filter tests:
 -  heuristic_metrics: Heuristic metrics
 -  ground_truth_metrics: Ground Truth metrics
 -  benchmarks: Benchmark modules
--  aggregators: Aggregator modules
 -  global_ranking: global_ranking modules
 -  self_influence: self_influence methods of explainers
 
