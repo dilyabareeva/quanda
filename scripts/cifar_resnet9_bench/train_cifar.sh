@@ -7,6 +7,11 @@ CONFIG_MAP_PREFIX="cifar"
 
 benchmarks=(
     ClassDetection
+    SubclassDetection
+    MixedDatasets
+    ShortcutDetection
+    MislabelingDetection
+    LDS
 )
 
-source "$(dirname "$0")/../train.sh"
+source "$(dirname "$0")/../train.sh" "$@"

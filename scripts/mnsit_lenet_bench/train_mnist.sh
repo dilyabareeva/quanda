@@ -10,4 +10,4 @@ benchmarks=(
     MixedDatasets
 )
 
-source "$(dirname "$0")/../train.sh"
+source "$(dirname "$0")/../train.sh" "$@"

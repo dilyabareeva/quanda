@@ -2,6 +2,7 @@ single_class_dataset: true
 label: 0
 transforms: "cifar10_adversarial_transforms"
 dataset_str: "ufldl-stanford/svhn"
+dataset_config: "cropped_digits"
 indices:
   split_filename: "svhn_split.yaml"
   split_ratios:
