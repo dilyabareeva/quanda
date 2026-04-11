@@ -5,7 +5,7 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 
 
-@hydra.main(version_base=None, config_path="../config", config_name="default")
+@hydra.main(version_base=None, config_path="../config", config_name="mnist_lenet")
 def opt_results_to_cfg(cfg: DictConfig) -> Tuple[float]:
     logs_dir = f"{cfg.log_dir}/{cfg.id}"
     cfg.cfg_file_name = f"{cfg.cfg_file_name}.yaml"

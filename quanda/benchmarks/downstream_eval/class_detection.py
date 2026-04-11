@@ -50,7 +50,7 @@ class ClassDetection(Benchmark):
             Positional arguments passed to the base class.
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on
-            those samples, where the correct superclass is predicted, by
+            those samples, where the correct class is predicted, by
             default False.
         **kwargs
             Arguments passed to the base Benchmark class.
@@ -108,6 +108,7 @@ class ClassDetection(Benchmark):
             checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
+            filter_by_prediction=self.filter_by_prediction,
         )
 
         return self._evaluate_dataset(
