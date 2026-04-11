@@ -1,8 +1,8 @@
 defaults:
   - model: cifar_resnet9_base
-  - train_dataset: cifar_train_unit
-  - eval_dataset: cifar_test_unit
-  - val_dataset: cifar_val
+  - train_dataset: cifar10_train_unit
+  - eval_dataset: cifar10_test_unit
+  - val_dataset: cifar10_val
   - model/trainer: default
   - logger: wandb
   - override hydra/sweeper: optuna
@@ -16,7 +16,7 @@ hydra:
     subdir: hydra_logs
 
   launcher:
-    n_jobs: 16
+    n_jobs: 10
 
   sweeper:
     direction:
@@ -24,11 +24,11 @@ hydra:
     study_name: "${cfg_file_name}"
     storage: null
     n_trials: 20
-    n_jobs: 16
+    n_jobs: 10
     params:
-      model.trainer.lr: choice(0.02, 0.01, 0.001)
-      model.trainer.optimizer: choice("sgd", "adam")
-      model.trainer.max_epochs: choice(5, 10, 15)
+      model.trainer.lr: choice(0.1, 0.2, 0.4)
+      model.trainer.optimizer: choice("sgd")
+      model.trainer.max_epochs: choice(12, 24, 36)
 
 id: "default"
 bench: ClassDetection
