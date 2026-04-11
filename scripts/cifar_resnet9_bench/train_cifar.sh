@@ -2,12 +2,11 @@
 
 source "$(dirname "$0")/bench_defs.sh"
 
-CONFIG_NAME="mnist_lenet"
-CONFIG_MAP_PREFIX="mnist"
+CONFIG_NAME="cifar_resnet9"
+CONFIG_MAP_PREFIX="cifar"
 
 benchmarks=(
-    SubclassDetection
-    MixedDatasets
+    ClassDetection
 )
 
 source "$(dirname "$0")/../train.sh"
