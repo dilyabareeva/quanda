@@ -56,12 +56,29 @@ def test_subclass_class_to_group(config_name, tmp_path):
 )
 @pytest.mark.production_bench
 @pytest.mark.parametrize(
-    "config_name",
+    "config_name,expected_thresholds",
     [
-        "mnist_subclass_detection",
+        (
+            "mnist_subclass_detection",
+            {
+                "train_acc": 0.9,
+                "val_acc": 0.9,
+                "eval_post_filter_percentage": 0.5,
+            },
+        ),
+        (
+            "cifar_subclass_detection",
+            {
+                "train_acc": 0.9,
+                "val_acc": 0.9,
+                "eval_post_filter_percentage": 0.5,
+            },
+        ),
     ],
 )
-def test_subclass_sanity_check_values(config_name, tmp_path):
+def test_subclass_sanity_check_values(
+    config_name, expected_thresholds, tmp_path
+):
     """Verify filter_by_non_subclass and filter_by_shortcut_pred in benchmark cfg work as expected on eval_dataset."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8
@@ -75,15 +92,8 @@ def test_subclass_sanity_check_values(config_name, tmp_path):
 
     sanity_check_results = bench.sanity_check(batch_size=batch_size)
 
-    assert sanity_check_results["train_acc"] > 0.9, (
-        f"Expected train_acc to be > 0.9, but got {sanity_check_results['train_acc']}."
-    )
-    assert sanity_check_results["val_acc"] > 0.9, (
-        f"Expected val_acc to be > 0.9, but got {sanity_check_results['val_acc']}."
-    )
-
-    assert (
-        sanity_check_results["eval_post_filter_percentage"] > 0.5
-    ), (  # TODO: retrain until this improves (
-        f"Expected eval_post_filter_percentage to be > 0.5, but got {sanity_check_results['eval_post_filter_percentage']}."
-    )
+    for key, threshold in expected_thresholds.items():
+        assert sanity_check_results[key] > threshold, (
+            f"Expected {key} > {threshold}, "
+            f"got {sanity_check_results[key]}."
+        )

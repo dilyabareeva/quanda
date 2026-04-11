@@ -187,12 +187,21 @@ def test_class_detection_kronfluence_qnli(
 )
 @pytest.mark.production_bench
 @pytest.mark.parametrize(
-    "config_name",
+    "config_name,expected_thresholds",
     [
-        "mnist_class_detection",
+        (
+            "mnist_class_detection",
+            {"train_acc": 0.95, "val_acc": 0.95},
+        ),
+        (
+            "cifar_class_detection",
+            {"train_acc": 0.95, "val_acc": 0.95},
+        ),
     ],
 )
-def test_class_detection_sanity_check_values(config_name, tmp_path):
+def test_class_detection_sanity_check_values(
+    config_name, expected_thresholds, tmp_path
+):
     """Verify model fitness: train/val accuracy and mislabeling
     memorization are within expected bounds."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -207,9 +216,8 @@ def test_class_detection_sanity_check_values(config_name, tmp_path):
 
     sanity_check_results = bench.sanity_check(batch_size=batch_size)
 
-    assert sanity_check_results["train_acc"] > 0.95, (
-        f"Expected train_acc > 0.85, got {sanity_check_results['train_acc']}."
-    )
-    assert sanity_check_results["val_acc"] > 0.95, (
-        f"Expected val_acc > 0.85, got {sanity_check_results['val_acc']}."
-    )
+    for key, threshold in expected_thresholds.items():
+        assert sanity_check_results[key] > threshold, (
+            f"Expected {key} > {threshold}, "
+            f"got {sanity_check_results[key]}."
+        )

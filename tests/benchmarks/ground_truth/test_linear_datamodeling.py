@@ -14,13 +14,16 @@ from quanda.benchmarks.resources import config_map
     "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
 )
 @pytest.mark.parametrize(
-    "config_name",
+    "config_name,subset_acc_threshold",
     [
-        "mnist_linear_datamodeling",
+        ("mnist_linear_datamodeling", 0.9),
+        ("cifar_linear_datamodeling", 0.9),
     ],
 )
-def test_lds_sanity_check_subset_accuracy(config_name, tmp_path):
-    """Verify that all subset checkpoints achieve > 90% accuracy
+def test_lds_sanity_check_subset_accuracy(
+    config_name, subset_acc_threshold, tmp_path
+):
+    """Verify that all subset checkpoints achieve > threshold accuracy
     on the eval dataset."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8
@@ -43,9 +46,9 @@ def test_lds_sanity_check_subset_accuracy(config_name, tmp_path):
         f"Expected {bench.m} subset accuracies, got {len(subset_accs)}."
     )
     for i, acc in enumerate(subset_accs):
-        assert acc > 0.9, (
+        assert acc > subset_acc_threshold, (
             f"Subset checkpoint {i} accuracy {acc:.4f} "
-            f"is below the 0.9 threshold."
+            f"is below the {subset_acc_threshold} threshold."
         )
 
 
@@ -56,6 +59,7 @@ def test_lds_sanity_check_subset_accuracy(config_name, tmp_path):
     "config_name",
     [
         "mnist_linear_datamodeling",
+        "cifar_linear_datamodeling",
     ],
 )
 def test_lds_subset_checkpoints_are_different(config_name, tmp_path):
@@ -93,6 +97,7 @@ def test_lds_subset_checkpoints_are_different(config_name, tmp_path):
     "config_name",
     [
         "mnist_linear_datamodeling",
+        "cifar_linear_datamodeling",
     ],
 )
 def test_lds_metadata(
