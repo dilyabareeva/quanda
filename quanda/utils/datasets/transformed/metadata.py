@@ -9,7 +9,9 @@ from typing import Dict, List, Literal, Optional, Type, TypeVar, Union
 import torch
 import yaml
 from omegaconf import DictConfig, ListConfig, OmegaConf
-
+from quanda.utils.datasets.dataset_handlers import (
+            get_dataset_handler,
+)
 from quanda.utils.common import ds_len
 
 # Define a type variable bound to DatasetMetadata
@@ -157,8 +159,10 @@ class LabelFlippingMetadata(DatasetMetadata):
             return self.mislabeling_labels
         if self.transform_indices is None:
             self.transform_indices = super().generate_indices(dataset)
+
+        handler = get_dataset_handler(dataset)
         self.mislabeling_labels = {
-            i: self._poison(dataset[i][1])
+            i: self._poison(handler.get_label(dataset[i]))
             for i in range(len(dataset))
             if i in self.transform_indices
         }

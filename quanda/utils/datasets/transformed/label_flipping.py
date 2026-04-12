@@ -4,6 +4,10 @@ from typing import Callable, Optional
 
 from torch.utils.data import Dataset
 
+from quanda.utils.datasets.dataset_handlers import (
+    HuggingFaceDatasetHandler,
+    get_dataset_handler,
+)
 from quanda.utils.datasets.transformed.base import TransformedDataset
 from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
 
@@ -36,6 +40,7 @@ class LabelFlippingDataset(TransformedDataset):
             dataset_transform=dataset_transform,
             metadata=metadata,
         )
+        self.handler = get_dataset_handler(dataset)
         metadata.transform_indices = (
             metadata.transform_indices or metadata.generate_indices(dataset)
         )
@@ -61,7 +66,12 @@ class LabelFlippingDataset(TransformedDataset):
             transform_indices.
 
         """
-        sample, label = super().__getitem__(idx)
+        item = self.dataset[idx]
         if idx in self.transform_indices:
-            label = self.mislabeling_labels[idx]
-        return sample, label
+            item = self.handler.with_label(
+                item, self.mislabeling_labels[idx]
+            )
+        if isinstance(self.handler, HuggingFaceDatasetHandler):
+            return item
+        sample, label = item
+        return self.dataset_transform(sample), label

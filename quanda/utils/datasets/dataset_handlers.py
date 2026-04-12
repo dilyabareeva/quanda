@@ -98,8 +98,53 @@ class DatasetHandler(ABC):
         pass
 
 
+    @abstractmethod
+    def get_label(self, item: Any) -> Any:
+        """Extract the label from a single dataset item.
+
+        Parameters
+        ----------
+        item : Any
+            A single item as returned by ``dataset[i]``.
+
+        Returns
+        -------
+        Any
+            The label associated with the item.
+
+        """
+        pass
+
+    @abstractmethod
+    def with_label(self, item: Any, label: Any) -> Any:
+        """Return a copy of ``item`` with its label replaced.
+
+        Parameters
+        ----------
+        item : Any
+            A single item as returned by ``dataset[i]``.
+        label : Any
+            The replacement label.
+
+        Returns
+        -------
+        Any
+            Item with the label replaced, matching the input item's format.
+
+        """
+        pass
+
+
 class TorchDatasetHandler(DatasetHandler):
     """Handler for PyTorch datasets."""
+
+    def get_label(self, item: Tuple[Any, Any]) -> Any:
+        """Extract the label from a ``(sample, label)`` tuple."""
+        return item[1]
+
+    def with_label(self, item: Tuple[Any, Any], label: Any) -> Tuple[Any, Any]:
+        """Return a ``(sample, label)`` tuple with the label replaced."""
+        return item[0], label
 
     def process_batch(
         self,
@@ -193,6 +238,18 @@ class TorchDatasetHandler(DatasetHandler):
 
 class HuggingFaceDatasetHandler(DatasetHandler):
     """Handler for HuggingFace datasets."""
+
+    def get_label(self, item: Dict[str, Any]) -> Any:
+        """Extract the label from a HuggingFace dict item."""
+        return item["labels"]
+
+    def with_label(
+        self, item: Dict[str, Any], label: Any
+    ) -> Dict[str, Any]:
+        """Return a HuggingFace dict item with ``labels`` replaced."""
+        new_item = dict(item)
+        new_item["labels"] = label
+        return new_item
 
     def process_batch(
         self, batch: Dict[str, torch.Tensor], device: Union[str, torch.device]
