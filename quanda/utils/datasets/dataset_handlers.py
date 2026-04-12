@@ -248,7 +248,13 @@ class HuggingFaceDatasetHandler(DatasetHandler):
     ) -> Dict[str, Any]:
         """Return a HuggingFace dict item with ``labels`` replaced."""
         new_item = dict(item)
-        new_item["labels"] = label
+        existing = item.get("labels")
+        if isinstance(existing, torch.Tensor):
+            new_item["labels"] = torch.tensor(
+                label, dtype=existing.dtype, device=existing.device
+            )
+        else:
+            new_item["labels"] = label
         return new_item
 
     def process_batch(
@@ -362,6 +368,9 @@ def get_dataset_handler(
         A handler instance suited for the dataset.
 
     """
+    inner = getattr(dataset, "dataset", None)
+    if inner is not None and not isinstance(dataset, datasets.Dataset):
+        return get_dataset_handler(inner)
     if isinstance(dataset, datasets.Dataset):
         if "labels" not in dataset.features:
             raise ValueError(
