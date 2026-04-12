@@ -1,8 +1,8 @@
 model:
   module:
-    name: MnistTorch
+    name: ResNet9
     args:
-      num_outputs: 10
+      num_classes: 10
   trainer:
     optimizer: sgd
     optimizer_kwargs:
@@ -13,14 +13,16 @@ model:
     scheduler_kwargs:
       last_epoch: -1
     lr: 0.1
-    max_epochs: 15
+    max_epochs: 96
     seed: 42
+    num_workers: 8
+    enable_progress_bar: false
 train_dataset:
-  dataset_str: ylecun/mnist
+  dataset_str: uoft-cs/cifar10
   dataset_split: train
-  transforms: mnist_transforms
+  transforms: cifar10_transforms
   indices:
-    split_filename: mnist_train_split.yaml
+    split_filename: cifar10_train_split.yaml
     split_name: train
     split_ratios:
       train: 0.8
@@ -28,19 +30,19 @@ train_dataset:
       test: 0.0
     seed: 42
 eval_dataset:
-  dataset_str: ylecun/mnist
+  dataset_str: uoft-cs/cifar10
   dataset_split: test
-  transforms: mnist_transforms
+  transforms: cifar10_transforms
   indices: all
   filter_indices:
-    split_filename: mnist_eval_mixed_main_filter.yaml
+    split_filename: cifar10_eval_mixed_main_filter.yaml
     split_name: default
 val_dataset:
-  dataset_str: ylecun/mnist
+  dataset_str: uoft-cs/cifar10
   dataset_split: train
-  transforms: mnist_transforms
+  transforms: cifar10_transforms
   indices:
-    split_filename: mnist_train_split.yaml
+    split_filename: cifar10_train_split.yaml
     split_name: val
     split_ratios:
       train: 0.8
@@ -51,7 +53,7 @@ logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
   project: quanda-bench
-id: ad1b983-default_MixedDatasets
+id: bdb919e-default_MixedDatasets
 bench: MixedDatasets
 adversarial_label: 0
 bench_save_dir: bench_out
@@ -63,24 +65,26 @@ model_id: '0'
 correlation_fn: kendall
 offline: true
 seed: 42
-device: auto
+device: cuda:0
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpts:
-- quanda-bench-test/ad1b983-default_MixedDatasets
+- quanda-bench-test/bdb919e-default_MixedDatasets
+meta_id: quanda-bench-test/bdb919e-default_MixedDatasets_metadata
 adv_dataset:
   single_class_dataset: true
   label: 0
-  transforms: adversarial_transforms
-  dataset_str: zalando-datasets/fashion_mnist
+  transforms: cifar10_adversarial_transforms
+  dataset_str: ufldl-stanford/svhn
+  dataset_config: cropped_digits
   indices:
-    split_filename: fashion_mnist_split.yaml
+    split_filename: svhn_split.yaml
     split_ratios:
-      train: 0.8
-      val: 0.1
-      test: 0.1
+      train: 0.16
+      val: 0.02
+      test: 0.02
     seed: 42
-cfg_output_dir: quanda/benchmarks/resources/configs
-cfg_file_name: ad1b983-default_MixedDatasets.yaml
 filter_by_prediction: true
+cfg_output_dir: quanda/benchmarks/resources/configs
+cfg_file_name: bdb919e-default_MixedDatasets.yaml

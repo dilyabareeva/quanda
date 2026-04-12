@@ -8,9 +8,13 @@ optimizer_kwargs:
 criterion: "cross_entropy"
 criterion_kwargs: {}
 
-scheduler: "cosine"
+scheduler: "one_cycle"
 scheduler_kwargs:
-  T_max: 24
+  interval: "step"
+  max_lr: ${lr}
+  anneal_strategy: "linear"
+  pct_start: 0.2
+  div_factor: 1.0e+6 
 
 lr: 0.4
 max_epochs: 24

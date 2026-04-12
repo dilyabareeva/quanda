@@ -90,50 +90,53 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 <table>
   <thead>
     <tr>
-      <th>Benchmark</th>
-      <th>Modality</th>
-      <th>Model</th>
       <th>Metric</th>
       <th>Type</th>
+      <th>Modality</th>
+      <th>Benchmarks (Dataset / Model)</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>mnist_top_k_cardinality</td>
-      <td rowspan="7">Vision</td> <!-- Merged vertically for "Modality" -->
-      <td rowspan="7">MNIST</td> <!-- Merged vertically for "Model" -->
       <td><a href="quanda/metrics/heuristics/top_k_cardinality.py">TopKCardinalityMetric</a></td>
       <td>Heuristic</td>
+      <td rowspan="8">Vision</td>
+      <td>mnist_top_k_cardinality (MNIST / LeNet), cifar_top_k_cardinality (CIFAR-10 / ResNet-9)</td>
     </tr>
     <tr>
-      <td>mnist_mixed_datasets</td>
+      <td><a href="quanda/metrics/heuristics/model_randomization.py">ModelRandomizationMetric</a></td>
+      <td>Heuristic</td>
+      <td>cifar_model_randomization (CIFAR-10 / ResNet-9)</td>
+    </tr>
+    <tr>
       <td><a href="quanda/metrics/heuristics/mixed_datasets.py">MixedDatasetsMetric</a></td>
       <td>Heuristic</td>
+      <td>mnist_mixed_datasets (MNIST / LeNet), cifar_mixed_datasets (CIFAR-10 / ResNet-9)</td>
     </tr>
     <tr>
-      <td>mnist_class_detection</td>
       <td><a href="quanda/metrics/downstream_eval/class_detection.py">ClassDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
+      <td>mnist_class_detection (MNIST / LeNet), cifar_class_detection (CIFAR-10 / ResNet-9)</td>
     </tr>
     <tr>
-      <td>mnist_subclass_detection</td>
       <td><a href="quanda/metrics/downstream_eval/subclass_detection.py">SubclassDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
+      <td>mnist_subclass_detection (MNIST / LeNet), cifar_subclass_detection (CIFAR-10 / ResNet-9)</td>
     </tr>
     <tr>
-      <td>mnist_mislabeling_detection</td>
       <td><a href="quanda/metrics/downstream_eval/mislabeling_detection.py">MislabelingDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
+      <td>mnist_mislabeling_detection (MNIST / LeNet), cifar_mislabeling_detection (CIFAR-10 / ResNet-9)</td>
     </tr>
     <tr>
-      <td>mnist_shortcut_detection</td>
       <td><a href="quanda/metrics/downstream_eval/shortcut_detection.py">ShortcutDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
+      <td>mnist_shortcut_detection (MNIST / LeNet), cifar_shortcut_detection (CIFAR-10 / ResNet-9)</td>
     </tr>
     <tr>
-      <td>mnist_linear_datamodeling_score</td>
       <td><a href="quanda/metrics/ground_truth/linear_datamodeling.py">LinearDatamodelingMetric</a></td>
       <td>Ground Truth</td>
+      <td>mnist_linear_datamodeling_score (MNIST / LeNet), cifar_linear_datamodeling (CIFAR-10 / ResNet-9)</td>
     </tr>
   </tbody>
 </table>

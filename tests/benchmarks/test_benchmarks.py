@@ -500,6 +500,16 @@ def test_bench_from_config(
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             None,
         ),
+        (
+            "mnist-one-cycle",
+            "load_mnist_unit_test_config_one_cycle",
+            True,
+            True,
+            ClassDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            None,
+        ),
     ],
 )
 def test_train_from_config(
@@ -739,7 +749,7 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
             else bench.model(model_inputs)
         )
         pred_cls = ds_handler.get_predictions(outputs=outputs)
-        correct_idx *= pred_cls != labels
+        correct_idx *= pred_cls == labels
 
         correct += correct_idx.sum().item()
         total += len(pred_cls)

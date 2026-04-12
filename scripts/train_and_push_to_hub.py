@@ -14,7 +14,7 @@ from quanda.benchmarks.heuristics import *
 @hydra.main(
     version_base=None,
     config_path="../quanda/benchmarks/resources/configs",
-    config_name="default",
+    config_name="mnist_lenet",
 )
 def main(cfg: DictConfig) -> Tuple[float]:
     device = "cuda" if torch.cuda.is_available() else "cpu"

@@ -46,4 +46,28 @@ config_map: dict = {
     "mnist_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("e978fe8-default_LDS.yaml"),
+    "cifar_class_detection": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("bdb919e-default_ClassDetection.yaml"),
+    "cifar_top_k_cardinality": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("bdb919e-default_ClassDetection.yaml"),
+    "cifar_model_randomization": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("bdb919e-default_ClassDetection.yaml"),
+    "cifar_subclass_detection": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("bdb919e-default_SubclassDetection.yaml"),
+    "cifar_mixed_datasets": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("bdb919e-default_MixedDatasets.yaml"),
+    "cifar_shortcut_detection": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("bdb919e-default_ShortcutDetection.yaml"),
+    "cifar_mislabeling_detection": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("bdb919e-default_MislabelingDetection.yaml"),
+    "cifar_linear_datamodeling": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("bdb919e-default_LDS.yaml"),
 }

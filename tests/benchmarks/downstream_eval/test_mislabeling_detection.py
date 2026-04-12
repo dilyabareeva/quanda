@@ -186,12 +186,29 @@ def test_eval_dataset_is_clean(config_name, tmp_path):
 )
 @pytest.mark.production_bench
 @pytest.mark.parametrize(
-    "config_name",
+    "config_name,expected_thresholds",
     [
-        "mnist_mislabeling_detection",
+        (
+            "mnist_mislabeling_detection",
+            {
+                "train_acc": 0.85,
+                "val_acc": 0.85,
+                "mislabeling_memorization": 0.4,
+            },
+        ),
+        (
+            "cifar_mislabeling_detection",
+            {
+                "train_acc": 0.85,
+                "val_acc": 0.8,
+                "mislabeling_memorization": 0.4,
+            },
+        ),
     ],
 )
-def test_mislabeling_sanity_check_values(config_name, tmp_path):
+def test_mislabeling_sanity_check_values(
+    config_name, expected_thresholds, tmp_path
+):
     """Verify model fitness: train/val accuracy and mislabeling
     memorization are within expected bounds."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -206,13 +223,7 @@ def test_mislabeling_sanity_check_values(config_name, tmp_path):
 
     sanity_check_results = bench.sanity_check(batch_size=batch_size)
 
-    assert sanity_check_results["train_acc"] > 0.85, (
-        f"Expected train_acc > 0.85, got {sanity_check_results['train_acc']}."
-    )
-    assert sanity_check_results["val_acc"] > 0.85, (
-        f"Expected val_acc > 0.85, got {sanity_check_results['val_acc']}."
-    )
-    assert sanity_check_results["mislabeling_memorization"] > 0.4, (
-        f"Expected mislabeling_memorization > 0.4, "
-        f"got {sanity_check_results['mislabeling_memorization']}."
-    )
+    for key, threshold in expected_thresholds.items():
+        assert sanity_check_results[key] > threshold, (
+            f"Expected {key} > {threshold}, got {sanity_check_results[key]}."
+        )

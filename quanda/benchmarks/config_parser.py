@@ -231,6 +231,7 @@ class BenchConfigParser:
             transform=transform,
             dataset_split=ds_config.get("dataset_split", "train"),
             tokenizer_cfg=tokenizer_cfg,
+            dataset_config=ds_config.get("dataset_config", None),
         )
         load_split = load_meta_from_disk or reuse_split
         return cls._apply_indices(
@@ -247,6 +248,7 @@ class BenchConfigParser:
 
         base_dataset = load_dataset(
             ds_config["dataset_str"],
+            name=ds_config.get("dataset_config", None),
             split=ds_config.get("dataset_split", "train"),
             cache_dir=cache_dir,
         )
@@ -414,6 +416,7 @@ class BenchConfigParser:
         dataset_split: str = "train",
         cache_dir: Optional[str] = None,
         tokenizer_cfg: Optional[dict] = None,
+        dataset_config: Optional[str] = None,
     ) -> Union[torch.utils.data.Dataset, hf_datasets.Dataset]:
         """Return the dataset using the given parameters.
 
@@ -432,6 +435,8 @@ class BenchConfigParser:
             Tokenizer configuration for text datasets. When provided,
             the dataset is tokenized and returned as an HF Dataset
             instead of being wrapped with HFtoTV.
+        dataset_config : Optional[str], optional
+            The dataset configuration/subset name, by default None.
 
         Returns
         -------
@@ -442,6 +447,7 @@ class BenchConfigParser:
         if isinstance(dataset, str):
             hf_dataset = load_dataset(
                 "ylecun/mnist" if dataset == "mnist" else dataset,
+                name=dataset_config,
                 split=dataset_split,
                 cache_dir=cache_dir,
             )

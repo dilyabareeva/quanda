@@ -738,7 +738,7 @@ class Benchmark(ABC):
             }
 
             if hasattr(self, "class_to_group"):
-                data_unit["test_targets"] = torch.tensor(
+                data_unit["test_superclass_targets"] = torch.tensor(
                     [self.class_to_group[i.item()] for i in labels],
                     device=labels.device,
                 )

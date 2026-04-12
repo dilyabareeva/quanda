@@ -160,13 +160,26 @@ class BasicLightningModule(L.LightningModule):
                 "optimizer must be an instance of torch.optim.Optimizer"
             )
         if self.scheduler is not None:
-            scheduler = self.scheduler(optimizer, **self.scheduler_kwargs)
+            kwargs = dict(self.scheduler_kwargs)
+            interval = kwargs.pop("interval", "epoch")
+            if self.scheduler is torch.optim.lr_scheduler.OneCycleLR:
+                kwargs.setdefault(
+                    "total_steps",
+                    self.trainer.estimated_stepping_batches,
+                )
+            scheduler = self.scheduler(optimizer, **kwargs)
             if not isinstance(scheduler, torch.optim.lr_scheduler.LRScheduler):
                 raise ValueError(
                     "scheduler must be an instance of "
                     "torch.optim.lr_scheduler.LRScheduler"
                 )
-            return {"optimizer": optimizer, "lr_scheduler": scheduler}
+            return {
+                "optimizer": optimizer,
+                "lr_scheduler": {
+                    "scheduler": scheduler,
+                    "interval": interval,
+                },
+            }
         return optimizer
 
     def on_save_checkpoint(self, checkpoint):

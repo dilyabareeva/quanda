@@ -74,12 +74,31 @@ def test_train_dataset_indexing_is_correct(config_name, tmp_path):
 )
 @pytest.mark.production_bench
 @pytest.mark.parametrize(
-    "config_name",
+    "config_name,expected_thresholds",
     [
-        "mnist_mixed_datasets",
+        (
+            "mnist_mixed_datasets",
+            {
+                "train_acc": 0.85,
+                "val_acc": 0.85,
+                "train_adversarial_memorization": 0.8,
+                "eval_adversarial_memorization": 0.8,
+            },
+        ),
+        (
+            "cifar_mixed_datasets",
+            {
+                "train_acc": 0.85,
+                "val_acc": 0.84,
+                "train_adversarial_memorization": 0.75,
+                "eval_adversarial_memorization": 0.74,
+            },
+        ),
     ],
 )
-def test_mixed_datasets_sanity_check_values(config_name, tmp_path):
+def test_mixed_datasets_sanity_check_values(
+    config_name, expected_thresholds, tmp_path
+):
     """Verify filter_by_non_subclass and filter_by_shortcut_pred in benchmark cfg work as expected on eval_dataset."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
     batch_size = 8
@@ -107,16 +126,7 @@ def test_mixed_datasets_sanity_check_values(config_name, tmp_path):
 
     sanity_check_results = bench.sanity_check(batch_size=batch_size)
 
-    assert sanity_check_results["train_acc"] > 0.85, (
-        f"Expected train_acc to be > 0.85, but got {sanity_check_results['train_acc']}."
-    )
-    assert sanity_check_results["val_acc"] > 0.85, (
-        f"Expected val_acc to be > 0.85, but got {sanity_check_results['val_acc']}."
-    )
-
-    assert sanity_check_results["train_adversarial_memorization"] > 0.8, (
-        f"Expected train_adversarial_memorization to be > 0.8, but got {sanity_check_results['train_adversarial_memorization']}."
-    )
-    assert sanity_check_results["eval_adversarial_memorization"] > 0.8, (
-        f"Expected eval_adversarial_memorization to be > 0.8, but got {sanity_check_results['eval_adversarial_memorization']}."
-    )
+    for key, threshold in expected_thresholds.items():
+        assert sanity_check_results[key] > threshold, (
+            f"Expected {key} > {threshold}, got {sanity_check_results[key]}."
+        )

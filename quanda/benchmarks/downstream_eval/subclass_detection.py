@@ -31,7 +31,13 @@ class SubclassDetection(Benchmark):
     """
 
     name: str = "Subclass Detection"
-    eval_args = ["test_labels", "explanations", "test_data", "test_targets"]
+    eval_args = [
+        "test_labels",
+        "explanations",
+        "test_data",
+        "test_targets",
+        "test_superclass_targets",
+    ]
 
     def __init__(
         self,
@@ -150,8 +156,9 @@ class SubclassDetection(Benchmark):
             filter_by_prediction=self.filter_by_prediction,
         )
 
+        # using the pre class-to-group dataset for evaluation
         return self._evaluate_dataset(
-            eval_dataset=self.eval_dataset,
+            eval_dataset=self.eval_dataset.dataset,
             explainer=explainer,
             metric=metric,
             batch_size=batch_size,

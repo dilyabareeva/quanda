@@ -11,5 +11,5 @@ wrapper:
       metadata_filename: "cifar10_eval_subclass_split.yaml"
       p: 1.0
       n_groups: 2
-      class_to_group: "random"
+      class_to_group: {0: 1, 1: 1, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 1, 9: 1}
       seed: 42
