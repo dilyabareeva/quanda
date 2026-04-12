@@ -63,6 +63,8 @@ outputs/
 cache/
 /.env
 bin/*
+docs/source/**
+
 
 assets/demo/*
 bench_out/*

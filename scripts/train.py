@@ -10,7 +10,9 @@ from quanda.benchmarks.ground_truth import *
 from quanda.benchmarks.heuristics import *
 
 
-@hydra.main(version_base=None, config_path="../config", config_name="mnist_lenet")
+@hydra.main(
+    version_base=None, config_path="../config", config_name="mnist_lenet"
+)
 def main(cfg: DictConfig) -> Tuple[float]:
     device = cfg.device
     bench_cls = bench_dict[cfg.bench]

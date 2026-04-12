@@ -100,8 +100,7 @@ class ClassDetectionMetric(Metric):
 
         if (test_data is None) and self.filter_by_prediction:
             raise ValueError(
-                "test_data and grouped_labels must be provided if "
-                "filter_by_prediction is True"
+                "test_data must be provided if filter_by_prediction is True"
             )
 
         test_targets = test_targets.to(self.device)

@@ -232,11 +232,9 @@ def test_shortcut_sanity_check_values(
 
     for key, threshold in expected_thresholds.items():
         assert sanity_check_results[key] > threshold, (
-            f"Expected {key} > {threshold}, "
-            f"got {sanity_check_results[key]}."
+            f"Expected {key} > {threshold}, got {sanity_check_results[key]}."
         )
     for key, value in expected_exact.items():
         assert sanity_check_results[key] == value, (
-            f"Expected {key} == {value}, "
-            f"got {sanity_check_results[key]}."
+            f"Expected {key} == {value}, got {sanity_check_results[key]}."
         )

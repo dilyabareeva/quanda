@@ -94,6 +94,5 @@ def test_subclass_sanity_check_values(
 
     for key, threshold in expected_thresholds.items():
         assert sanity_check_results[key] > threshold, (
-            f"Expected {key} > {threshold}, "
-            f"got {sanity_check_results[key]}."
+            f"Expected {key} > {threshold}, got {sanity_check_results[key]}."
         )

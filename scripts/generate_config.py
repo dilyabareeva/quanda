@@ -4,7 +4,9 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 
 
-@hydra.main(version_base=None, config_path="../config", config_name="mnist_lenet")
+@hydra.main(
+    version_base=None, config_path="../config", config_name="mnist_lenet"
+)
 def main(cfg: DictConfig) -> None:
     cfg.id = f"{cfg.id}"
     cfg.cfg_file_name = f"{cfg.cfg_file_name}.yaml"
