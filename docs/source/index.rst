@@ -151,32 +151,38 @@ In this section, we list the evaluation criteria that are currently available in
 
 Benchmarks
 ----------
-|quanda| comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The benchmarks currently use the MNIST dataset to conduct evaluations. The following benchmarks are available:
+|quanda| comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The benchmarks currently use the MNIST (LeNet) and CIFAR-10 (ResNet-9) datasets to conduct evaluations. The following benchmarks are available:
 
 .. list-table::
   :header-rows: 1
 
-  * - Name
-    - Metric
+  * - Metric
     - Type
-  * - mnist_top_k_cardinality
-    - `TopKCardinalityMetric <docs_api/quanda.metrics.heuristics.top_k_cardinality.html>`_
+    - Benchmarks (Dataset / Model)
+  * - `TopKCardinalityMetric <docs_api/quanda.metrics.heuristics.top_k_cardinality.html>`_
     - Heuristic
-  * - mnist_mixed_datasets
-    - `MixedDatasetMetric <docs_api/quanda.metrics.heuristics.mixed_datasets.html>`_
+    - mnist_top_k_cardinality (MNIST / LeNet), cifar_top_k_cardinality (CIFAR-10 / ResNet-9)
+  * - `ModelRandomizationMetric <docs_api/quanda.metrics.heuristics.model_randomization.html>`_
     - Heuristic
-  * - mnist_class_detection
-    - `ClassDetectionMetric <docs_api/quanda.metrics.downstream_eval.class_detection.html>`_
+    - cifar_model_randomization (CIFAR-10 / ResNet-9)
+  * - `MixedDatasetMetric <docs_api/quanda.metrics.heuristics.mixed_datasets.html>`_
+    - Heuristic
+    - mnist_mixed_datasets (MNIST / LeNet), cifar_mixed_datasets (CIFAR-10 / ResNet-9)
+  * - `ClassDetectionMetric <docs_api/quanda.metrics.downstream_eval.class_detection.html>`_
     - Downstream Task Evaluator
-  * - mnist_subclass_detection
-    - `SubclassDetectionMetric <docs_api/quanda.metrics.downstream_eval.subclass_detection.html>`_
+    - mnist_class_detection (MNIST / LeNet), cifar_class_detection (CIFAR-10 / ResNet-9)
+  * - `SubclassDetectionMetric <docs_api/quanda.metrics.downstream_eval.subclass_detection.html>`_
     - Downstream Task Evaluator
-  * - mnist_mislabeling_detection
-    - `MislabelingDetectionMetric <docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html>`_
+    - mnist_subclass_detection (MNIST / LeNet), cifar_subclass_detection (CIFAR-10 / ResNet-9)
+  * - `MislabelingDetectionMetric <docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html>`_
     - Downstream Task Evaluator
-  * - mnist_linear_datamodeling_score
-    - `LinearDatamodelingMetric <docs_api/quanda.metrics.ground_truth.linear_datamodeling.html>`_
+    - mnist_mislabeling_detection (MNIST / LeNet), cifar_mislabeling_detection (CIFAR-10 / ResNet-9)
+  * - `ShortcutDetectionMetric <docs_api/quanda.metrics.downstream_eval.shortcut_detection.html>`_
+    - Downstream Task Evaluator
+    - cifar_shortcut_detection (CIFAR-10 / ResNet-9)
+  * - `LinearDatamodelingMetric <docs_api/quanda.metrics.ground_truth.linear_datamodeling.html>`_
     - Ground Truth
+    - mnist_linear_datamodeling_score (MNIST / LeNet), cifar_linear_datamodeling (CIFAR-10 / ResNet-9)
 
 Citation
 --------
