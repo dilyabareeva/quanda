@@ -296,6 +296,7 @@ class LinearDatamodelingMetric(Metric):
 
         """
         subset_model = deepcopy(model)
+        subset_model.train()
         if reinit:
             for module in subset_model.modules():
                 if hasattr(module, "reset_parameters") and callable(

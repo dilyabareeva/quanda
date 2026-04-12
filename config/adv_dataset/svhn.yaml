@@ -6,7 +6,7 @@ dataset_config: "cropped_digits"
 indices:
   split_filename: "svhn_split.yaml"
   split_ratios:
-    train: 0.8
-    val: 0.1
-    test: 0.1
+    train: 0.08
+    val: 0.02
+    test: 0.02
   seed: 42

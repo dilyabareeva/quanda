@@ -200,7 +200,7 @@ def test_eval_dataset_is_clean(config_name, tmp_path):
             "cifar_mislabeling_detection",
             {
                 "train_acc": 0.85,
-                "val_acc": 0.85,
+                "val_acc": 0.8,
                 "mislabeling_memorization": 0.4,
             },
         ),

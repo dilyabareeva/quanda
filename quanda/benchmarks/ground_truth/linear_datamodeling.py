@@ -49,6 +49,7 @@ class LinearDatamodeling(Benchmark):
 
     name: str = "Linear Datamodeling Score"
     eval_args: list = ["explanations", "test_data", "test_targets"]
+    _push_subsets_during_train: bool = False
 
     def __init__(
         self,
@@ -216,6 +217,7 @@ class LinearDatamodeling(Benchmark):
             ckpt_str=config["ckpts"][-1],
             ckpt_dir=ckpt_dir,
             batch_size=batch_size,
+            push_to_hub=cls._push_subsets_during_train,
         )
 
         return obj
@@ -293,32 +295,17 @@ class LinearDatamodeling(Benchmark):
         batch_size: int = 64,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
-        obj = super().train_and_push_to_hub(
-            config=config,
-            logger=logger,
-            device=device,
-            batch_size=batch_size,
-        )
+        cls._push_subsets_during_train = True
+        try:
+            obj = super().train_and_push_to_hub(
+                config=config,
+                logger=logger,
+                device=device,
+                batch_size=batch_size,
+            )
+        finally:
+            cls._push_subsets_during_train = False
         assert isinstance(obj, LinearDatamodeling)
-
-        # Parse trainer configuration
-        trainer = BenchConfigParser.parse_trainer_cfg(
-            config["model"]["trainer"]
-        )
-
-        ckpt_dir = os.path.join(
-            config.get("bench_save_dir", "./tmp"), "ckpt", config["ckpts"][-1]
-        )
-
-        obj._train_subset_models(
-            repo_id=config["repo_id"],
-            trainer=trainer,
-            ckpt_dir=ckpt_dir,
-            ckpt_str=config["ckpts"][-1],
-            batch_size=batch_size,
-            push_to_hub=True,
-        )
-
         return obj
 
     def sanity_check(self, batch_size: int = 32) -> dict:

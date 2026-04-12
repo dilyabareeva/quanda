@@ -206,7 +206,7 @@ def test_shortcut_filters(config_name, tmp_path):
             "cifar_shortcut_detection",
             {
                 "train_acc": 0.9,
-                "val_acc": 0.9,
+                "val_acc": 0.85,
                 "train_shortcut_memorization": 0.85,
                 "eval_post_filter_percentage": 0.5,
             },

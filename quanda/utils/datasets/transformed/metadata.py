@@ -8,6 +8,7 @@ from typing import Dict, List, Literal, Optional, Type, TypeVar, Union
 
 import torch
 import yaml
+from omegaconf import DictConfig, ListConfig, OmegaConf
 
 from quanda.utils.common import ds_len
 
@@ -44,9 +45,12 @@ class DatasetMetadata(ABC):
         data_dict = self.__dict__.copy()
         data_dict.pop("rng")
         data_dict.pop("rang")
+        for k, v in list(data_dict.items()):
+            if isinstance(v, (DictConfig, ListConfig)):
+                data_dict[k] = OmegaConf.to_container(v, resolve=True)
 
         with open(metadata_path, "w") as f:
-            yaml.dump(data_dict, f)
+            yaml.safe_dump(data_dict, f)
 
     @classmethod
     def load(cls: Type[T], path: str, name: str) -> T:

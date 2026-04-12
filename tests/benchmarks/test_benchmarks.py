@@ -739,7 +739,7 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
             else bench.model(model_inputs)
         )
         pred_cls = ds_handler.get_predictions(outputs=outputs)
-        correct_idx *= pred_cls != labels
+        correct_idx *= pred_cls == labels
 
         correct += correct_idx.sum().item()
         total += len(pred_cls)

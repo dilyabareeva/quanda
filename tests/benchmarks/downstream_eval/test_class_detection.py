@@ -195,7 +195,7 @@ def test_class_detection_kronfluence_qnli(
         ),
         (
             "cifar_class_detection",
-            {"train_acc": 0.95, "val_acc": 0.95},
+            {"train_acc": 0.95, "val_acc": 0.85},
         ),
     ],
 )

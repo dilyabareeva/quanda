@@ -48,26 +48,26 @@ config_map: dict = {
     ).joinpath("e978fe8-default_LDS.yaml"),
     "cifar_class_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("4a39c97-default_ClassDetection.yaml"),
+    ).joinpath("bdb919e-default_ClassDetection.yaml"),
     "cifar_top_k_cardinality": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("4a39c97-default_ClassDetection.yaml"),
+    ).joinpath("bdb919e-default_ClassDetection.yaml"),
     "cifar_model_randomization": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("4a39c97-default_ClassDetection.yaml"),
+    ).joinpath("bdb919e-default_ClassDetection.yaml"),
     "cifar_subclass_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("4a39c97-default_SubclassDetection.yaml"),
+    ).joinpath("bdb919e-default_SubclassDetection.yaml"),
     "cifar_mixed_datasets": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("4a39c97-default_MixedDatasets.yaml"),
+    ).joinpath("bdb919e-default_MixedDatasets.yaml"),
     "cifar_shortcut_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("4a39c97-default_ShortcutDetection.yaml"),
+    ).joinpath("bdb919e-default_ShortcutDetection.yaml"),
     "cifar_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("4a39c97-default_MislabelingDetection.yaml"),
+    ).joinpath("bdb919e-default_MislabelingDetection.yaml"),
     "cifar_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("4a39c97-default_LDS.yaml"),
+    ).joinpath("bdb919e-default_LDS.yaml"),
 }
