@@ -639,6 +639,22 @@ def load_mnist_unit_test_config():
 
 
 @pytest.fixture
+def load_mnist_unit_test_config_one_cycle():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_local_bench/20fba38-default_ClassDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    config["model"]["trainer"]["scheduler"] = "one_cycle"
+    config["model"]["trainer"]["scheduler_kwargs"] = {
+        "max_lr": 0.02,
+        "interval": "step",
+    }
+    return config
+
+
+@pytest.fixture
 def load_mnist_unit_test_config_hf():
     # load yaml file
     with open(

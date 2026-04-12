@@ -500,6 +500,16 @@ def test_bench_from_config(
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             None,
         ),
+        (
+            "mnist-one-cycle",
+            "load_mnist_unit_test_config_one_cycle",
+            True,
+            True,
+            ClassDetection,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            None,
+        ),
     ],
 )
 def test_train_from_config(
