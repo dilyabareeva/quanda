@@ -104,5 +104,5 @@ def test_pl_module_invalid_scheduler_raises(
         criterion=criterion,
         scheduler=scheduler,
     )
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="scheduler must be an instance"):
         pl_module.configure_optimizers()
