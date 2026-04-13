@@ -1,5 +1,7 @@
 """Base class for all benchmarks."""
 
+import hashlib
+import json
 import os
 import warnings
 from abc import ABC
@@ -9,13 +11,19 @@ import datasets  # type: ignore
 import lightning as L
 import torch
 import yaml
-from huggingface_hub import PyTorchModelHubMixin, create_repo, upload_folder
+from huggingface_hub import (
+    PyTorchModelHubMixin,
+    create_repo,
+    snapshot_download,
+    upload_folder,
+)
 from tqdm import tqdm
 
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.resources.config_map import config_map
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
+from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
 from quanda.utils.common import (
     DatasetSplit,
     class_accuracy,
@@ -23,6 +31,24 @@ from quanda.utils.common import (
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.base import TransformedDataset
+
+
+def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
+    """Stable short hash of sorted expl_kwargs for explanation repo IDs."""
+    payload = json.dumps(expl_kwargs or {}, sort_keys=True, default=str)
+    return hashlib.sha1(payload.encode()).hexdigest()[:10]
+
+
+def default_explanations_id(
+    config: dict, explainer_cls: type, expl_kwargs: Optional[dict]
+) -> str:
+    """Build the default HF repo_id for cached explanations."""
+    repo = config.get("repo_id", "quanda-bench-test")
+    bench_id = config["id"]
+    return (
+        f"{repo}/{bench_id}__{explainer_cls.__name__}"
+        f"__{_hash_expl_kwargs(expl_kwargs)}_explanations"
+    )
 
 
 class Benchmark(ABC):
@@ -77,6 +103,11 @@ class Benchmark(ABC):
         self.use_predictions = use_predictions
 
         self._pid_suffix: str = ""
+        self._precomputed_explanations: Optional[BatchedCachedExplanations] = (
+            None
+        )
+        self._explanations_dir: Optional[str] = None
+        self._explanations_id: Optional[str] = None
 
     @classmethod
     def load_pretrained(
@@ -658,6 +689,11 @@ class Benchmark(ABC):
         self.model.eval()
         self.model.to(self.device)
 
+        # When precomputed explanations are loaded the explainer itself
+        # is not invoked — _evaluate_dataset reads the cache instead.
+        if self._precomputed_explanations is not None:
+            return None
+
         expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(
             model=self.model,
@@ -667,6 +703,176 @@ class Benchmark(ABC):
             **expl_kwargs,
         )
         return explainer
+
+    def load_precomputed_explanations(
+        self,
+        explanations_id: Optional[str] = None,
+        explainer_cls: Optional[type] = None,
+        expl_kwargs: Optional[dict] = None,
+        config: Optional[dict] = None,
+        cache_dir: str = "./tmp",
+    ) -> str:
+        """Download cached explanations from HF and stage them for evaluate.
+
+        Either pass ``explanations_id`` directly, or pass
+        ``explainer_cls``/``expl_kwargs``/``config`` to derive the default
+        id. After this call, ``evaluate`` skips ``explainer.explain`` and
+        reads cached tensors batch-by-batch.
+        """
+        if explanations_id is None:
+            if explainer_cls is None or config is None:
+                raise ValueError(
+                    "Provide explanations_id or "
+                    "(explainer_cls, config) to derive it."
+                )
+            explanations_id = default_explanations_id(
+                config, explainer_cls, expl_kwargs
+            )
+
+        local_dir = os.path.join(
+            cache_dir, "explanations", explanations_id.replace("/", "__")
+        )
+        os.makedirs(local_dir, exist_ok=True)
+        snapshot_download(
+            repo_id=explanations_id,
+            local_dir=local_dir,
+            repo_type="dataset",
+        )
+        self._precomputed_explanations = ExplanationsCache.load(
+            path=local_dir, device=self.device
+        )
+        return local_dir
+
+    @classmethod
+    def explain(
+        cls,
+        config: dict,
+        explainer_cls: type,
+        expl_kwargs: Optional[dict] = None,
+        batch_size: int = 8,
+        explanations_id: Optional[str] = None,
+        cache_dir: Optional[str] = None,
+        device: str = "cpu",
+    ) -> "Benchmark":
+        """Compute and persist explanations for ``eval_dataset`` to disk.
+
+        Mirrors :meth:`train` but produces per-batch explanation tensors
+        plus an ``explanations_config.yaml`` describing how the cache
+        was generated. Returns the benchmark instance with
+        ``self._explanations_dir`` and ``self._explanations_id`` set.
+        """
+        obj = cls.from_config(config, device=device)
+        if explanations_id is None:
+            explanations_id = default_explanations_id(
+                config, explainer_cls, expl_kwargs
+            )
+
+        save_dir = cache_dir or os.path.join(
+            config.get("bench_save_dir", "./tmp"),
+            "explanations",
+            explanations_id.replace("/", "__"),
+        )
+        os.makedirs(save_dir, exist_ok=True)
+
+        explainer = obj._prepare_explainer(
+            dataset=obj.train_dataset,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
+        )
+
+        ds_handler = get_dataset_handler(dataset=obj.eval_dataset)
+        expl_dl = ds_handler.create_dataloader(
+            dataset=obj.eval_dataset,
+            batch_size=batch_size,
+        )
+
+        pbar = tqdm(expl_dl)
+        n_batches = len(expl_dl)
+        for i, batch in enumerate(pbar):
+            pbar.set_description(
+                f"Computing explanations, batch {i + 1}/{n_batches}"
+            )
+            inputs, labels = ds_handler.process_batch(
+                batch=batch, device=obj.device
+            )
+            if obj.use_predictions:
+                with torch.no_grad():
+                    model_inputs = ds_handler.get_model_inputs(inputs=inputs)
+                    outputs = (
+                        obj.model(**model_inputs)
+                        if isinstance(model_inputs, dict)
+                        else obj.model(model_inputs)
+                    )
+                    targets = ds_handler.get_predictions(outputs=outputs)
+            else:
+                targets = labels
+
+            explanations = explainer.explain(test_data=inputs, targets=targets)
+            ExplanationsCache.save(save_dir, explanations, num_id=i)
+
+        # Repr non-serializable kwargs (e.g. callables) so YAML can dump.
+        safe_kwargs = {
+            k: (
+                v
+                if isinstance(v, (str, int, float, bool, type(None)))
+                else repr(v)
+            )
+            for k, v in (expl_kwargs or {}).items()
+        }
+        meta = {
+            "explanations_id": explanations_id,
+            "bench_id": config.get("id"),
+            "bench": config.get("bench"),
+            "explainer_cls": explainer_cls.__name__,
+            "expl_kwargs": safe_kwargs,
+            "expl_kwargs_hash": _hash_expl_kwargs(expl_kwargs),
+            "batch_size": batch_size,
+            "use_predictions": obj.use_predictions,
+            "n_batches": n_batches,
+        }
+        with open(
+            os.path.join(save_dir, "explanations_config.yaml"), "w"
+        ) as f:
+            yaml.safe_dump(meta, f)
+
+        obj._explanations_dir = save_dir
+        obj._explanations_id = explanations_id
+        return obj
+
+    @classmethod
+    def explain_and_push_to_hub(
+        cls,
+        config: dict,
+        explainer_cls: type,
+        expl_kwargs: Optional[dict] = None,
+        batch_size: int = 8,
+        explanations_id: Optional[str] = None,
+        cache_dir: Optional[str] = None,
+        device: str = "cpu",
+    ):  # pragma: no cover
+        """Compute explanations then upload them as a HF dataset repo."""
+        obj = cls.explain(
+            config=config,
+            explainer_cls=explainer_cls,
+            expl_kwargs=expl_kwargs,
+            batch_size=batch_size,
+            explanations_id=explanations_id,
+            cache_dir=cache_dir,
+            device=device,
+        )
+        assert obj._explanations_id is not None
+        assert obj._explanations_dir is not None
+        create_repo(
+            repo_id=obj._explanations_id,
+            repo_type="dataset",
+            exist_ok=True,
+        )
+        upload_folder(
+            folder_path=obj._explanations_dir,
+            repo_id=obj._explanations_id,
+            repo_type="dataset",
+        )
+        return obj
 
     def _evaluate_dataset(
         self,
@@ -725,10 +931,15 @@ class Benchmark(ABC):
             else:
                 targets = labels
 
-            explanations = explainer.explain(
-                test_data=inputs,
-                targets=targets,
-            )
+            if self._precomputed_explanations is not None:
+                explanations = self._precomputed_explanations[i].to(
+                    self.device
+                )
+            else:
+                explanations = explainer.explain(
+                    test_data=inputs,
+                    targets=targets,
+                )
 
             data_unit = {
                 "test_data": inputs,
