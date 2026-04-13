@@ -1,0 +1,94 @@
+model:
+  module:
+    name: BertClassifier
+    args:
+      pretrained_model_name: google-bert/bert-base-cased
+      num_labels: 2
+  trainer:
+    optimizer: sgd
+    optimizer_kwargs:
+      weight_decay: 0.0
+    criterion: cross_entropy
+    criterion_kwargs: {}
+    scheduler: constant
+    scheduler_kwargs:
+      last_epoch: -1
+    lr: 0.001
+    max_epochs: 20
+    seed: 42
+    num_workers: 8
+train_dataset:
+  dataset_str: SetFit/qnli
+  dataset_split: train
+  transforms: null
+  tokenizer:
+    name: google-bert/bert-base-cased
+    text_fields:
+    - text1
+    - text2
+    max_length: 128
+    label_field: label
+  indices:
+    split_filename: qnli_train_split.yaml
+    split_name: train
+    split_ratios:
+      train: 0.9
+      val: 0.1
+      test: 0.0
+    seed: 42
+eval_dataset:
+  dataset_str: SetFit/qnli
+  dataset_split: validation
+  transforms: null
+  tokenizer:
+    name: google-bert/bert-base-cased
+    text_fields:
+    - text1
+    - text2
+    max_length: 128
+    label_field: label
+  indices: all
+val_dataset:
+  dataset_str: SetFit/qnli
+  dataset_split: train
+  transforms: null
+  tokenizer:
+    name: google-bert/bert-base-cased
+    text_fields:
+    - text1
+    - text2
+    max_length: 128
+    label_field: label
+  indices:
+    split_filename: qnli_train_split.yaml
+    split_name: val
+    split_ratios:
+      train: 0.9
+      val: 0.1
+      test: 0.0
+    seed: 42
+logger:
+  _target_: lightning.pytorch.loggers.wandb.WandbLogger
+  save_dir: hydra_logs/wandb/
+  project: quanda-bench
+id: 584a930-default_LDS
+bench: LDS
+bench_save_dir: bench_out
+log_dir: hydra_logs
+repo_id: quanda-bench-test
+cache_dir: tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
+offline: true
+seed: 42
+device: cuda:0
+use_predictions: true
+m: 4
+alpha: 0.5
+subset_ids: lds_subsets.yaml
+ckpts:
+- quanda-bench-test/584a930-default_LDS
+cfg_file_name: 584a930-default_LDS.yaml
+cfg_output_dir: quanda/benchmarks/resources/configs
+meta_id: quanda-bench-test/584a930-default_LDS_metadata

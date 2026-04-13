@@ -18,6 +18,7 @@ from quanda.benchmarks.resources import config_map
     [
         ("mnist_linear_datamodeling", 0.9),
         ("cifar_linear_datamodeling", 0.7),
+        ("qnli_linear_datamodeling", 0.8),
     ],
 )
 def test_lds_sanity_check_subset_accuracy(
