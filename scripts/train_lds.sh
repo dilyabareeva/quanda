@@ -10,12 +10,14 @@
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 PARALLEL=true
+N_LDS_PARALLEL=16
 HF_PUSH_SLEEP=60
 TRAIN_ONLY=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --parallel) PARALLEL=$2; shift 2 ;;
+        --n-lds-parallel) N_LDS_PARALLEL=$2; shift 2 ;;
         --hf-push-sleep) HF_PUSH_SLEEP=$2; shift 2 ;;
         --train-only) TRAIN_ONLY=$2; shift 2 ;;
         *) shift ;;
@@ -58,6 +60,9 @@ run_bench() {
 
     for i in $(seq 0 $((M - 1))); do
         if [ "$PARALLEL" = true ]; then
+            while [ "$(jobs -rp | wc -l)" -ge "$N_LDS_PARALLEL" ]; do
+                wait -n
+            done
             python scripts/train_lds_subset.py \
                 --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
                 > "logs/${id}_subset_${i}.log" 2>&1 &
