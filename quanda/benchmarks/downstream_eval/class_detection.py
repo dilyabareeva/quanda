@@ -78,6 +78,11 @@ class ClassDetection(Benchmark):
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
+        max_eval_n: Optional[int] = 1000,
+        eval_seed: int = 42,
+        cache_dir: Optional[str] = None,
+        use_cached_expl: bool = False,
+        use_hf_expl: bool = False,
     ):
         """Evaluate the benchmark using a given explanation method.
 
@@ -97,10 +102,19 @@ class ClassDetection(Benchmark):
             Dictionary containing the metric score.
 
         """
-        explainer = self._prepare_explainer(
-            dataset=self.train_dataset,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
+        precomputed = self._resolve_precomputed_explanations(
+            cache_dir=cache_dir,
+            use_cached_expl=use_cached_expl,
+            use_hf_expl=use_hf_expl,
+        )
+        explainer = (
+            None
+            if precomputed is not None
+            else self._prepare_explainer(
+                dataset=self.train_dataset,
+                explainer_cls=explainer_cls,
+                expl_kwargs=expl_kwargs,
+            )
         )
 
         metric = ClassDetectionMetric(
@@ -116,4 +130,7 @@ class ClassDetection(Benchmark):
             explainer=explainer,
             metric=metric,
             batch_size=batch_size,
+            max_eval_n=max_eval_n,
+            eval_seed=eval_seed,
+            precomputed_explanations=precomputed,
         )

@@ -11,8 +11,8 @@ from torch.utils.data import Subset
 from quanda.benchmarks.base import (
     Benchmark,
     _hash_expl_kwargs,
-    default_explanations_id,
 )
+from quanda.benchmarks.base import default_explanations_id
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.cache import ExplanationsCache
 from quanda.utils.common import class_accuracy
@@ -132,6 +132,9 @@ class MislabelingDetection(Benchmark):
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
+        cache_dir: Optional[str] = None,
+        use_cached_expl: bool = False,
+        use_hf_expl: bool = False,
     ):
         """Evaluate the given data attributor.
 
@@ -162,11 +165,16 @@ class MislabelingDetection(Benchmark):
                 "labels."
             )
 
+        precomputed = self._resolve_precomputed_explanations(
+            cache_dir=cache_dir,
+            use_cached_expl=use_cached_expl,
+            use_hf_expl=use_hf_expl,
+        )
         precomputed_si: Optional[torch.Tensor] = None
-        if self._precomputed_explanations is not None:
-            precomputed_si = self._precomputed_explanations[
-                SELF_INFLUENCE_KEY
-            ].to(self.device).flatten()
+        if precomputed is not None:
+            precomputed_si = (
+                precomputed[SELF_INFLUENCE_KEY].to(self.device).flatten()
+            )
 
         metric = MislabelingDetectionMetric(
             model=self.model,

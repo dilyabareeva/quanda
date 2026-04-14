@@ -16,3 +16,6 @@ cache_dir: ./tmp_bench
 results_dir: ./eval_results
 device: cpu
 batch_size: 32
+
+max_eval_n: 1000
+eval_seed: 42

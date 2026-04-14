@@ -47,21 +47,32 @@ def main(cfg: DictConfig) -> float:
     bench_cls = bench_dict[BENCH_CLASS[bench_id]]
 
     print(f"[run] {tag}")
+    max_eval_n = cfg.get("max_eval_n", 1000)
+    eval_seed = cfg.get("eval_seed", 42)
+    expl_save_dir = os.path.join(cfg.cache_dir, "explanations", tag)
     bench_cls.explain(
         config=bench_cfg,
         explainer_cls=expl_cls,
         expl_kwargs=expl_kwargs,
         batch_size=cfg.batch_size,
-        cache_dir=os.path.join(cfg.cache_dir, "explanations", tag),
+        cache_dir=expl_save_dir,
         device=cfg.device,
+        max_eval_n=max_eval_n,
+        eval_seed=eval_seed,
     )
     bench = bench_cls.load_pretrained(
-        bench_id=bench_id, cache_dir=cfg.cache_dir, device=cfg.device
+        bench_id=bench_id,
+        cache_dir=cfg.cache_dir,
+        device=cfg.device,
     )
     score = bench.evaluate(
         explainer_cls=expl_cls,
         expl_kwargs=expl_kwargs,
         batch_size=cfg.batch_size,
+        max_eval_n=max_eval_n,
+        eval_seed=eval_seed,
+        cache_dir=expl_save_dir,
+        use_cached_expl=True,
     )
 
     os.makedirs(cfg.results_dir, exist_ok=True)

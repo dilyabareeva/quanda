@@ -14,6 +14,8 @@ CACHE_DIR="${CACHE_DIR:-./tmp_bench}"
 RESULTS_DIR="${RESULTS_DIR:-./eval_results}"
 DEVICE="${DEVICE:-cpu}"
 BATCH_SIZE="${BATCH_SIZE:-32}"
+MAX_EVAL_N="${MAX_EVAL_N:-1000}"
+EVAL_SEED="${EVAL_SEED:-42}"
 EXTRA_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -23,6 +25,8 @@ while [[ $# -gt 0 ]]; do
         --results-dir) RESULTS_DIR=$2; shift 2 ;;
         --device) DEVICE=$2; shift 2 ;;
         --batch-size) BATCH_SIZE=$2; shift 2 ;;
+        --max-eval-n) MAX_EVAL_N=$2; shift 2 ;;
+        --eval-seed) EVAL_SEED=$2; shift 2 ;;
         *) EXTRA_ARGS+=("$1"); shift ;;
     esac
 done
@@ -38,6 +42,7 @@ run_eval() {
         bench="$bench" explainer="$method" \
         cache_dir="$CACHE_DIR" results_dir="$RESULTS_DIR" \
         device="$DEVICE" batch_size="$BATCH_SIZE" \
+        max_eval_n="$MAX_EVAL_N" eval_seed="$EVAL_SEED" \
         $sweep $multirun "${EXTRA_ARGS[@]}"
 }
 

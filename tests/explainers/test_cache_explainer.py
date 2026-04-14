@@ -2,7 +2,7 @@
 
 import math
 import os
-from unittest.mock import patch
+from unittest import mock
 
 import pytest
 import torch
@@ -10,8 +10,8 @@ import yaml
 
 from quanda.benchmarks.base import (
     _hash_expl_kwargs,
-    default_explanations_id,
 )
+from quanda.benchmarks.base import default_explanations_id
 from quanda.benchmarks.downstream_eval import ClassDetection
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
@@ -29,9 +29,13 @@ def test_hash_expl_kwargs_is_order_invariant():
 
 def test_default_explanations_id_format():
     cfg = {"id": "bench-x", "repo_id": "owner"}
-    out = default_explanations_id(cfg, CaptumSimilarity, {"k": 1})
+    out = default_explanations_id(
+        cfg, CaptumSimilarity, {"k": 1}, max_eval_n=1000, eval_seed=42
+    )
     h = _hash_expl_kwargs({"k": 1})
-    assert out == f"owner/bench-x__CaptumSimilarity__{h}_explanations"
+    assert out == (
+        f"owner/bench-x__CaptumSimilarity__{h}__n1000_s42_explanations"
+    )
 
     cfg2 = {"id": "bench-y"}
     assert default_explanations_id(cfg2, CaptumSimilarity, None).startswith(
@@ -54,23 +58,6 @@ def test_batched_cache_indexed_by_num_id(tmp_path):
     ExplanationsCache.save(path, torch.zeros(2, 3), num_id="alpha")
     bc2 = BatchedCachedExplanations(cache_dir=path, device="cpu")
     assert "alpha" in bc2.keys()
-
-
-def test_load_precomputed_explanations_validates_inputs(
-    load_mnist_model, load_mnist_dataset, tmp_path
-):
-    ckpt = os.path.join(str(tmp_path), "ckpt.pt")
-    torch.save(load_mnist_model.state_dict(), ckpt)
-    bench = ClassDetection(
-        train_dataset=load_mnist_dataset,
-        eval_dataset=load_mnist_dataset,
-        model=load_mnist_model,
-        checkpoints=[ckpt],
-        checkpoints_load_func=None,
-        device="cpu",
-    )
-    with pytest.raises(ValueError, match="Provide explanations_id"):
-        bench.load_precomputed_explanations()
 
 
 @pytest.mark.benchmarks
@@ -124,22 +111,58 @@ def test_benchmark_explain_and_precomputed_evaluate_match(
     assert len(pt_files) == meta["n_batches"]
 
     fresh = ClassDetection.from_config(
-        config=config, load_meta_from_disk=True, offline=True
-    )
-    with patch(
-        "quanda.benchmarks.base.snapshot_download",
-        lambda **kw: kw["local_dir"],
-    ):
-        fresh.load_precomputed_explanations(
-            explanations_id=explanations_id,
-            cache_dir=cache_root,
-        )
-    assert isinstance(
-        fresh._precomputed_explanations, BatchedCachedExplanations
+        config=config,
+        load_meta_from_disk=True,
+        offline=True,
     )
     cached_score = fresh.evaluate(
         explainer_cls=CaptumSimilarity,
         expl_kwargs=expl_kwargs,
         batch_size=8,
+        cache_dir=explanations_dir,
+        use_cached_expl=True,
     )["score"]
     assert math.isclose(cached_score, baseline, abs_tol=1e-6)
+
+    # No-op when both flags are False: runs the explainer and matches too.
+    noop_score = fresh.evaluate(
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs=expl_kwargs,
+        batch_size=8,
+    )["score"]
+    assert math.isclose(noop_score, baseline, abs_tol=1e-6)
+
+    # Missing cache_dir when flags are set should raise.
+    with pytest.raises(ValueError):
+        fresh.evaluate(
+            explainer_cls=CaptumSimilarity,
+            expl_kwargs=expl_kwargs,
+            batch_size=8,
+            use_cached_expl=True,
+        )
+
+    # use_hf_expl: mock snapshot_download to populate the target dir from
+    # the existing local cache, then verify the load path matches.
+    hf_dir = str(tmp_path / "hf_cache" / "owner__test_explanations")
+
+    def fake_snapshot_download(repo_id, local_dir, repo_type):
+        assert repo_id == "owner/test_explanations"
+        assert repo_type == "dataset"
+        os.makedirs(local_dir, exist_ok=True)
+        for name in os.listdir(explanations_dir):
+            with open(os.path.join(explanations_dir, name), "rb") as src:
+                with open(os.path.join(local_dir, name), "wb") as dst:
+                    dst.write(src.read())
+
+    with mock.patch(
+        "quanda.benchmarks.base.snapshot_download",
+        side_effect=fake_snapshot_download,
+    ):
+        hf_score = fresh.evaluate(
+            explainer_cls=CaptumSimilarity,
+            expl_kwargs=expl_kwargs,
+            batch_size=8,
+            cache_dir=hf_dir,
+            use_hf_expl=True,
+        )["score"]
+    assert math.isclose(hf_score, baseline, abs_tol=1e-6)
