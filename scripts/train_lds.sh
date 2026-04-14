@@ -58,6 +58,7 @@ run_bench() {
     local M bench_save_dir
     M=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['m'])")
     bench_save_dir=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml')).get('bench_save_dir', './tmp'))")
+    ckpt_basename=$(python -c "import yaml, os; print(os.path.basename(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['ckpts'][-1]))")
 
     # Hydrate non-pid metadata dir from HF Hub so parallel workers and
     # push_subset find subset_ids without hitting the pid-suffixed path.
@@ -69,6 +70,8 @@ LinearDatamodeling.load_pretrained(
     offline=False,
 )
 "
+
+    mkdir -p "logs/${id}"
 
     for i in $(seq 0 $((M - 1))); do
         if [ "$PARALLEL" = true ]; then
@@ -86,12 +89,21 @@ LinearDatamodeling.load_pretrained(
     done
     wait
 
+    missing_subsets=()
     for i in $(seq 0 $((M - 1))); do
+        subset_dir="${bench_save_dir}/ckpt/${ckpt_basename}_lds_subset_${i}"
+        if [ ! -d "$subset_dir" ]; then
+            missing_subsets+=("$i")
+            continue
+        fi
         python scripts/train_lds_subset.py \
             --config-path "${cfg_output_dir}/${id}.yaml" \
             --idx "$i" --push-only
         sleep "$HF_PUSH_SLEEP"
     done
+    if [ "${#missing_subsets[@]}" -gt 0 ]; then
+        echo "WARNING: skipped push for missing subset ckpts: ${missing_subsets[*]}" >&2
+    fi
 }
 
 bench="LDS"

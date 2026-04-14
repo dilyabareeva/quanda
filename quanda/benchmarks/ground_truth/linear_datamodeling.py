@@ -318,6 +318,12 @@ class LinearDatamodeling(Benchmark):
         local_ckpt_dir = f"{ckpt_dir}{_get_i_subset_ckpt_postfix(idx)}"
         repo_id = _get_i_subset_ckpt_name(ckpt_str, idx)
 
+        if not os.path.isdir(local_ckpt_dir):
+            raise FileNotFoundError(
+                f"Subset checkpoint dir missing: {local_ckpt_dir}. "
+                f"Train subset {idx} before pushing."
+            )
+
         api = HfApi()
         api.create_repo(repo_id=repo_id, exist_ok=True)
         api.upload_folder(folder_path=local_ckpt_dir, repo_id=repo_id)
