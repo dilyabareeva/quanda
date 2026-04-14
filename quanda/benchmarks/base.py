@@ -389,7 +389,7 @@ class Benchmark(ABC):
         ckpt_dir = os.path.join(
             config.get("bench_save_dir", "./tmp"),
             "ckpt",
-            f"{config['ckpts'][-1]}{pid_suffix}",
+            f"{config['ckpts'][-1].split('/')[-1]}{pid_suffix}",
         )
 
         os.makedirs(ckpt_dir, exist_ok=True)
