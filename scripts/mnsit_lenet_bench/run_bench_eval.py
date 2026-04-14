@@ -11,7 +11,7 @@ from hydra.utils import get_class, instantiate
 from omegaconf import DictConfig, OmegaConf
 
 from quanda.benchmarks import bench_dict
-from quanda.benchmarks.base import _hash_expl_kwargs
+from quanda.benchmarks.base import default_explanations_id
 from quanda.benchmarks.resources.config_map import config_map
 
 BENCH_CLASS = {
@@ -34,21 +34,29 @@ def main(cfg: DictConfig) -> float:
     expl_cls = get_class(cfg.explainer.cls)
     expl_kwargs = instantiate(cfg.explainer.kwargs, _convert_="all")
 
-    tag = f"{bench_id}__{cfg.explainer.name}__{_hash_expl_kwargs(expl_kwargs)}"
-    expl_kwargs.setdefault("model_id", tag)
-    expl_kwargs.setdefault(
-        "cache_dir", os.path.join(cfg.cache_dir, "explainers")
-    )
-
     with open(str(config_map[bench_id])) as f:
         bench_cfg = yaml.safe_load(f)
     bench_cfg["bench_save_dir"] = cfg.cache_dir
 
     bench_cls = bench_dict[BENCH_CLASS[bench_id]]
 
-    print(f"[run] {tag}")
     max_eval_n = cfg.get("max_eval_n", 1000)
     eval_seed = cfg.get("eval_seed", 42)
+
+    explanations_id = default_explanations_id(
+        bench_cfg,
+        expl_cls,
+        expl_kwargs,
+        max_eval_n=max_eval_n,
+        eval_seed=eval_seed,
+    )
+    tag = explanations_id.replace("/", "__")
+    expl_kwargs.setdefault("model_id", tag)
+    expl_kwargs.setdefault(
+        "cache_dir", os.path.join(cfg.cache_dir, "explainers")
+    )
+
+    print(f"[run] {tag}")
     expl_save_dir = os.path.join(cfg.cache_dir, "explanations", tag)
     bench_cls.explain(
         config=bench_cfg,
