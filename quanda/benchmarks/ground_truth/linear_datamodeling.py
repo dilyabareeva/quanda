@@ -398,7 +398,6 @@ class LinearDatamodeling(Benchmark):
             batch_size=batch_size,
             subset_ids=self.subset_ids,
             subset_ckpt_filenames=self.subset_ckpt_filenames,
-            # TODO: implement pretrained_models in LDS metric
         )
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,

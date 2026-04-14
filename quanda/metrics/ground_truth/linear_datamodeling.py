@@ -152,13 +152,20 @@ class LinearDatamodelingMetric(Metric):
         if subset_ckpt_filenames is None:
             self.subset_ckpt_filenames = self.train_subset_models()
         else:
-            # TODO: validate that the checkpoints exist
             self.subset_ckpt_filenames = subset_ckpt_filenames
 
     @classmethod
     def _validate_parameters(
-        cls, correlation_fn, subset_ids, pretrained_models, trainer
+        cls, correlation_fn, subset_ids, subset_ckpt_filenames, trainer
     ):
+        if subset_ckpt_filenames is not None:
+            missing = [
+                p for p in subset_ckpt_filenames if not os.path.exists(p)
+            ]
+            if missing:
+                raise FileNotFoundError(
+                    f"Subset checkpoint files not found: {missing}"
+                )
         if not (
             (
                 isinstance(correlation_fn, str)
@@ -173,13 +180,13 @@ class LinearDatamodelingMetric(Metric):
             )
         if (
             trainer is None
-            and pretrained_models is None
+            and subset_ckpt_filenames is None
             and subset_ids is None
         ):
             raise ValueError(
-                "Invalid combination of argumetns."
+                "Invalid combination of arguments. "
                 "Either trainer should be given, "
-                "or both pretrained_models and subset_ids"
+                "or both subset_ckpt_filenames and subset_ids "
                 "should be specified."
             )
 
