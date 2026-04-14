@@ -275,6 +275,7 @@ class LinearDatamodelingMetric(Metric):
         batch_size: int = 32,
         trainer_fit_kwargs: Optional[dict] = None,
         reinit: bool = True,
+        device: Optional[str] = None,
     ):
         """Train a model on a subset of the data.
 
@@ -331,10 +332,20 @@ class LinearDatamodelingMetric(Metric):
                     "Model should be a torch.nn.Module if Trainer is a "
                     "BaseTrainer"
                 )
+            fit_kwargs = dict(trainer_fit_kwargs)
+            if device is not None and "accelerator" not in fit_kwargs:
+                if "cuda" in device:
+                    fit_kwargs["accelerator"] = "gpu"
+                    fit_kwargs["devices"] = (
+                        int(device.split(":")[-1]) if ":" in device else 0
+                    )
+                else:
+                    fit_kwargs["accelerator"] = device
+                    fit_kwargs["devices"] = 1
             trainer.fit(
                 model=subset_model,
                 train_dataloaders=subset_loader,
-                **trainer_fit_kwargs,
+                **fit_kwargs,
             )
         else:
             raise ValueError(

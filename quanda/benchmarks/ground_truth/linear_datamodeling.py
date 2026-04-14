@@ -122,6 +122,7 @@ class LinearDatamodeling(Benchmark):
         ckpt_dir: str,
         batch_size: int = 8,
         push_to_hub: bool = False,
+        device: Optional[str] = None,
     ):
         """Train and save a single subset model by index."""
         subset = torch.utils.data.Subset(
@@ -132,6 +133,7 @@ class LinearDatamodeling(Benchmark):
             subset=subset,
             trainer=trainer,
             batch_size=batch_size,
+            device=device if device is not None else self.device,
         )
 
         local_ckpt_dir = f"{ckpt_dir}{_get_i_subset_ckpt_postfix(i)}"
@@ -290,6 +292,7 @@ class LinearDatamodeling(Benchmark):
             ckpt_dir=ckpt_dir,
             batch_size=batch_size,
             push_to_hub=push_to_hub,
+            device=device,
         )
         return obj
 
