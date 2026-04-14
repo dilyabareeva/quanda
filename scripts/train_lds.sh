@@ -55,8 +55,20 @@ run_bench() {
         python scripts/train_and_push_to_hub.py --config-name "$config_name" --config-dir $cfg_output_dir +skip_subsets=true
     fi
 
-    local M
+    local M bench_save_dir
     M=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['m'])")
+    bench_save_dir=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml')).get('bench_save_dir', './tmp'))")
+
+    # Hydrate non-pid metadata dir from HF Hub so parallel workers and
+    # push_subset find subset_ids without hitting the pid-suffixed path.
+    python -c "
+from quanda.benchmarks.ground_truth import LinearDatamodeling
+LinearDatamodeling.load_pretrained(
+    bench_id='${cfg_output_dir}/${id}.yaml',
+    cache_dir='${bench_save_dir}',
+    offline=False,
+)
+"
 
     for i in $(seq 0 $((M - 1))); do
         if [ "$PARALLEL" = true ]; then
@@ -65,11 +77,11 @@ run_bench() {
             done
             python scripts/train_lds_subset.py \
                 --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
-                > "logs/${id}_subset_${i}.log" 2>&1 &
+                > "logs/${id}/subset_${i}.log" 2>&1 &
         else
             python scripts/train_lds_subset.py \
                 --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
-                > "logs/${id}_subset_${i}.log" 2>&1
+                > "logs/${id}/subset_${i}.log" 2>&1
         fi
     done
     wait

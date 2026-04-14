@@ -247,6 +247,7 @@ class LinearDatamodeling(Benchmark):
         device: str = "cpu",
         batch_size: int = 64,
         push_to_hub: bool = False,
+        load_meta_from_disk: bool = True,
     ) -> "LinearDatamodeling":
         """Train and save a single subset model by index.
 
@@ -271,7 +272,7 @@ class LinearDatamodeling(Benchmark):
         """
         obj = cls.from_config(
             config,
-            load_meta_from_disk=True,
+            load_meta_from_disk=load_meta_from_disk,
             offline=True,
             device=device,
         )
