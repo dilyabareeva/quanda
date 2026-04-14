@@ -166,7 +166,9 @@ class Benchmark(ABC):
             The benchmark instance.
 
         """
-        bench_yaml = config_map[bench_id]
+        bench_yaml = (
+            bench_id if os.path.isfile(bench_id) else config_map[bench_id]
+        )
 
         # Load the benchmark configuration
         with open(bench_yaml, "r") as f:
