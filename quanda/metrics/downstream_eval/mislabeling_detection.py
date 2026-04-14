@@ -46,10 +46,11 @@ class MislabelingDetectionMetric(Metric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         mislabeling_indices: List[int],
-        explainer_cls: type,
+        explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        precomputed_self_influence: Optional[torch.Tensor] = None,
     ):
         """Initialize the Mislabeling Detection metric.
 
@@ -86,19 +87,25 @@ class MislabelingDetectionMetric(Metric):
 
         if expl_kwargs is None:
             expl_kwargs = {}
-        self.explainer = (
-            None
-            if explainer_cls is None
-            else explainer_cls(
-                model=model,
-                checkpoints=checkpoints,
-                train_dataset=train_dataset,
-                checkpoints_load_func=checkpoints_load_func,
-                **expl_kwargs,
+        if precomputed_self_influence is not None:
+            self.explainer = None
+        else:
+            self.explainer = (
+                None
+                if explainer_cls is None
+                else explainer_cls(
+                    model=model,
+                    checkpoints=checkpoints,
+                    train_dataset=train_dataset,
+                    checkpoints_load_func=checkpoints_load_func,
+                    **expl_kwargs,
+                )
             )
-        )
 
-        self.global_ranker = SelfInfluenceRanking(explainer=self.explainer)
+        self.global_ranker = SelfInfluenceRanking(
+            explainer=self.explainer,
+            self_influence=precomputed_self_influence,
+        )
         self.mislabeling_indices = mislabeling_indices
 
     def update(

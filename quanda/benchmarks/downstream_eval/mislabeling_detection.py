@@ -1,17 +1,26 @@
 """Benchmark for noisy label detection."""
 
 import logging
+import os
 from typing import Optional
 
 import torch
+import yaml
 from torch.utils.data import Subset
 
-from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.base import (
+    Benchmark,
+    _hash_expl_kwargs,
+    default_explanations_id,
+)
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
+from quanda.utils.cache import ExplanationsCache
 from quanda.utils.common import class_accuracy
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
+
+SELF_INFLUENCE_KEY = "self_influence"
 
 logger = logging.getLogger(__name__)
 
@@ -153,14 +162,90 @@ class MislabelingDetection(Benchmark):
                 "labels."
             )
 
+        precomputed_si: Optional[torch.Tensor] = None
+        if self._precomputed_explanations is not None:
+            precomputed_si = self._precomputed_explanations[
+                SELF_INFLUENCE_KEY
+            ].to(self.device).flatten()
+
         metric = MislabelingDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
             checkpoints_load_func=self.checkpoints_load_func,
             train_dataset=self.train_dataset,
             mislabeling_indices=self.train_dataset.transform_indices,
+            explainer_cls=explainer_cls if precomputed_si is None else None,
+            expl_kwargs=expl_kwargs,
+            precomputed_self_influence=precomputed_si,
+        )
+
+        return metric.compute()
+
+    @classmethod
+    def explain(
+        cls,
+        config: dict,
+        explainer_cls: type,
+        expl_kwargs: Optional[dict] = None,
+        batch_size: int = 8,
+        explanations_id: Optional[str] = None,
+        cache_dir: Optional[str] = None,
+        device: str = "cpu",
+    ) -> "MislabelingDetection":
+        """Compute and persist self-influence scores to disk.
+
+        Mislabeling detection is driven by training-data self-influence
+        rather than per-eval-batch attributions, so the cached artifact
+        is a single 1D tensor stored as ``self_influence.pt``.
+        """
+        obj = cls.from_config(config, device=device)
+        if explanations_id is None:
+            explanations_id = default_explanations_id(
+                config, explainer_cls, expl_kwargs
+            )
+
+        save_dir = cache_dir or os.path.join(
+            config.get("bench_save_dir", "./tmp"),
+            "explanations",
+            explanations_id.replace("/", "__"),
+        )
+        os.makedirs(save_dir, exist_ok=True)
+
+        explainer = obj._prepare_explainer(
+            dataset=obj.train_dataset,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
         )
 
-        return metric.compute()
+        self_influence = explainer.self_influence(batch_size=batch_size)
+        ExplanationsCache.save(
+            save_dir, self_influence, num_id=SELF_INFLUENCE_KEY
+        )
+
+        safe_kwargs = {
+            k: (
+                v
+                if isinstance(v, (str, int, float, bool, type(None)))
+                else repr(v)
+            )
+            for k, v in (expl_kwargs or {}).items()
+        }
+        meta = {
+            "explanations_id": explanations_id,
+            "bench_id": config.get("id"),
+            "bench": config.get("bench"),
+            "explainer_cls": explainer_cls.__name__,
+            "expl_kwargs": safe_kwargs,
+            "expl_kwargs_hash": _hash_expl_kwargs(expl_kwargs),
+            "batch_size": batch_size,
+            "use_predictions": obj.use_predictions,
+            "artifact": SELF_INFLUENCE_KEY,
+        }
+        with open(
+            os.path.join(save_dir, "explanations_config.yaml"), "w"
+        ) as f:
+            yaml.safe_dump(meta, f)
+
+        obj._explanations_dir = save_dir
+        obj._explanations_id = explanations_id
+        return obj
