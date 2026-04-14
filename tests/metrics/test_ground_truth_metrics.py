@@ -319,7 +319,7 @@ def test_linear_datamodeling_training(
         lightning_trainer = None
 
         with pytest.raises(
-            ValueError, match="Invalid combination of argumetns"
+            ValueError, match="Invalid combination of arguments"
         ):
             LinearDatamodelingMetric(
                 model=model,
