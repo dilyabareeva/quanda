@@ -158,14 +158,6 @@ class LinearDatamodelingMetric(Metric):
     def _validate_parameters(
         cls, correlation_fn, subset_ids, subset_ckpt_filenames, trainer
     ):
-        if subset_ckpt_filenames is not None:
-            missing = [
-                p for p in subset_ckpt_filenames if not os.path.exists(p)
-            ]
-            if missing:
-                raise FileNotFoundError(
-                    f"Subset checkpoint files not found: {missing}"
-                )
         if not (
             (
                 isinstance(correlation_fn, str)
