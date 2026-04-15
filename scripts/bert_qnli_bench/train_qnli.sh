@@ -8,7 +8,6 @@ CONFIG_MAP_PREFIX="qnli"
 benchmarks=(
     ClassDetection
     MislabelingDetection
-    LDS
 )
 
 source "$(dirname "$0")/../train.sh" "$@"
