@@ -15,6 +15,7 @@ class SelfInfluenceRanking:
     def __init__(
         self,
         explainer: Optional[Explainer] = None,
+        self_influence: Optional[torch.Tensor] = None,
     ):
         """Initialize the `SelfInfluenceRanking` class.
 
@@ -27,6 +28,10 @@ class SelfInfluenceRanking:
         explainer : Optional[Explainer], optional
             `Explainer` object to use for self-influence computation, by
             default None
+        self_influence : Optional[torch.Tensor], optional
+            Precomputed self-influence values for the training samples. If
+            provided, the explainer will not be used and the metric will use
+            these values directly for the global ranking. By default None.
 
         Raises
         ------
@@ -34,12 +39,14 @@ class SelfInfluenceRanking:
             If `explainer` is not provided.
 
         """
-        if explainer is None:
+        if explainer is None and self_influence is None:
             raise ValueError(
-                "An explainer of type BaseExplainer is required for a metric "
-                "with global method 'self-influence'."
+                "An explainer of type BaseExplainer or a precomputed "
+                "self_influence tensor is required for a metric with "
+                "global method 'self-influence'."
             )
         self.explainer = explainer
+        self._self_influence = self_influence
 
     def get_self_influence(self):
         """Compute self-influences using `self.explainer`.
@@ -50,7 +57,15 @@ class SelfInfluenceRanking:
             A 1D tensor containing the self-influence scores.
 
         """
-        return self.explainer.self_influence()
+        if self._self_influence is not None:
+            return self._self_influence
+        elif self.explainer is not None:
+            return self.explainer.self_influence()
+        else:
+            raise ValueError(
+                "Cannot compute self-influence: no explainer or "
+                "precomputed self-influence values provided."
+            )
 
     @lru_cache(maxsize=1)
     def get_global_rank(self):

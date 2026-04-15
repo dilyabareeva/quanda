@@ -1,0 +1,31 @@
+{
+  "methods": [
+    "representer_points",
+    "arnoldi",
+    "tracincpfast",
+    "trak",
+    "random"
+  ],
+  "benches": [
+    "mnist_subclass_detection",
+    "mnist_mislabeling_detection",
+    "mnist_shortcut_detection",
+    "mnist_top_k_cardinality",
+    "mnist_mixed_datasets"
+  ],
+  "method_labels": {
+    "representer_points": "ReprPoints",
+    "arnoldi": "ArnoldiInf",
+    "tracincpfast": "TracInCP",
+    "trak": "TRAK-1",
+    "random": "Random"
+  },
+  "bench_labels": {
+    "mnist_subclass_detection": "Subclass\nDetection",
+    "mnist_mislabeling_detection": "Mislabeling\nDetection",
+    "mnist_shortcut_detection": "Shortcut\nDetection",
+    "mnist_top_k_cardinality": "Top-K\nCardinality",
+    "mnist_mixed_datasets": "Mixed Dataset\nSeparation"
+  },
+  "colors": ["#EB9C38", "#83BA59", "#EA4E38", "#7D53BA", "#90918B", "#EB9C38"]
+}

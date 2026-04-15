@@ -44,7 +44,7 @@ offline: true
 seed: 42
 device: "cuda:1"
 
-m: 4
+m: 100
 alpha: 0.5
 
 subset_ids: lds_subsets.yaml

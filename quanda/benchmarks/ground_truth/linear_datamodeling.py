@@ -27,6 +27,11 @@ def _get_i_subset_ckpt_postfix(i: int) -> str:
     return f"_lds_subset_{i}"
 
 
+def _get_i_subset_ckpt_name(ckpt_str: str, i: int) -> str:
+    """Get full checkpoint name for subset model i."""
+    return f"{ckpt_str}{_get_i_subset_ckpt_postfix(i)}"
+
+
 class LinearDatamodeling(Benchmark):
     """Benchmark for the Linear Datamodeling Score metric.
 
@@ -50,6 +55,7 @@ class LinearDatamodeling(Benchmark):
     name: str = "Linear Datamodeling Score"
     eval_args: list = ["explanations", "test_data", "test_targets"]
     _push_subsets_during_train: bool = False
+    _lds_skip_subsets: bool = False
 
     def __init__(
         self,
@@ -108,60 +114,59 @@ class LinearDatamodeling(Benchmark):
         self.counterfactual_trainer = counterfactual_trainer
         self.trainer_fit_kwargs = trainer_fit_kwargs
 
+    def _train_subset_model_by_idx(
+        self,
+        i: int,
+        trainer: "Trainer",
+        ckpt_str: str,
+        ckpt_dir: str,
+        batch_size: int = 8,
+        push_to_hub: bool = False,
+        device: Optional[str] = None,
+    ):
+        """Train and save a single subset model by index."""
+        subset = torch.utils.data.Subset(
+            self.train_dataset, self.subset_ids[i]
+        )
+        subset_model = LinearDatamodelingMetric.train_subset_model(
+            model=self.model,
+            subset=subset,
+            trainer=trainer,
+            batch_size=batch_size,
+            device=device if device is not None else self.device,
+        )
+
+        local_ckpt_dir = f"{ckpt_dir}{_get_i_subset_ckpt_postfix(i)}"
+        os.makedirs(local_ckpt_dir, exist_ok=True)
+        if push_to_hub and len(os.listdir(local_ckpt_dir)) > 0:
+            warnings.warn(
+                f"Directory {local_ckpt_dir} already exists "
+                "and is not empty. Checkpoints will be "
+                "overwritten."
+            )
+        subset_model.save_pretrained(local_ckpt_dir, safe_serialization=True)
+
+        if push_to_hub:
+            subset_model.push_to_hub(_get_i_subset_ckpt_name(ckpt_str, i))
+
     def _train_subset_models(
         self,
         trainer: "Trainer",
         ckpt_str: str,
         ckpt_dir: str,
-        repo_id: str,
         batch_size: int = 8,
         push_to_hub: bool = False,
     ):
-        """Train and save all subset models.
-
-        Parameters
-        ----------
-        trainer : Trainer
-            Trainer instance for training subset models.
-        ckpt_str : str
-            Checkpoint string identifier.
-        ckpt_dir : str
-            Base checkpoint directory.
-        repo_id : str
-            Repository identifier for saving checkpoints.
-        batch_size : int, optional
-            Batch size for training, by default 8.
-        push_to_hub : bool, optional
-            Whether to push models to HF Hub, by default False.
-
-        """
-        for i, filename in enumerate(self.subset_ckpt_filenames):
-            subset = torch.utils.data.Subset(
-                self.train_dataset, self.subset_ids[i]
-            )
-            subset_model = LinearDatamodelingMetric.train_subset_model(
-                model=self.model,
-                subset=subset,
+        """Train and save all subset models."""
+        for i in range(len(self.subset_ckpt_filenames)):
+            self._train_subset_model_by_idx(
+                i=i,
                 trainer=trainer,
+                ckpt_str=ckpt_str,
+                ckpt_dir=ckpt_dir,
                 batch_size=batch_size,
+                push_to_hub=push_to_hub,
             )
-
-            local_ckpt_dir = f"{ckpt_dir}{_get_i_subset_ckpt_postfix(i)}"
-            os.makedirs(local_ckpt_dir, exist_ok=True)
-            if push_to_hub and len(os.listdir(local_ckpt_dir)) > 0:
-                warnings.warn(
-                    f"Directory {local_ckpt_dir} already exists "
-                    "and is not empty. Checkpoints will be "
-                    "overwritten."
-                )
-            subset_model.save_pretrained(
-                local_ckpt_dir, safe_serialization=True
-            )
-
-            if push_to_hub:
-                subset_model.push_to_hub(
-                    f"{ckpt_str}{_get_i_subset_ckpt_postfix(i)}"
-                )
 
     @classmethod
     def train(
@@ -170,6 +175,7 @@ class LinearDatamodeling(Benchmark):
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 64,
+        skip_subsets: bool = False,
     ) -> "LinearDatamodeling":
         """Train main model and subset models.
 
@@ -186,6 +192,10 @@ class LinearDatamodeling(Benchmark):
             Device to use for training, by default "cpu".
         batch_size : int, optional
             Batch size for training, by default 8.
+        skip_subsets : bool, optional
+            If True, skip the subset training loop. Used when subsets
+            are trained out-of-band (e.g. one-by-one in parallel
+            workers via :meth:`train_subset`).
 
         Returns
         -------
@@ -201,6 +211,9 @@ class LinearDatamodeling(Benchmark):
         )
         assert isinstance(obj, LinearDatamodeling)
 
+        if skip_subsets or cls._lds_skip_subsets:
+            return obj
+
         trainer = BenchConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
         )
@@ -208,11 +221,10 @@ class LinearDatamodeling(Benchmark):
         ckpt_dir = os.path.join(
             config.get("bench_save_dir", "./tmp"),
             "ckpt",
-            config["ckpts"][-1],
+            config["ckpts"][-1].split("/")[-1],
         )
 
         obj._train_subset_models(
-            repo_id=config["repo_id"],
             trainer=trainer,
             ckpt_str=config["ckpts"][-1],
             ckpt_dir=ckpt_dir,
@@ -221,6 +233,100 @@ class LinearDatamodeling(Benchmark):
         )
 
         return obj
+
+    @classmethod
+    def train_subset(
+        cls,
+        config: dict,
+        idx: int,
+        device: str = "cpu",
+        batch_size: int = 64,
+        push_to_hub: bool = False,
+        load_meta_from_disk: bool = True,
+    ) -> "LinearDatamodeling":
+        """Train and save a single subset model by index.
+
+        Builds the benchmark from existing on-disk metadata (the main
+        model and subset_ids must already be available — typically
+        produced by a prior call to :meth:`train` with
+        ``skip_subsets=True``), then trains subset ``idx`` only.
+
+        Parameters
+        ----------
+        config : dict
+            Benchmark configuration dictionary.
+        idx : int
+            Subset index in ``[0, m)``.
+        device : str, optional
+            Device to train on.
+        batch_size : int, optional
+            Batch size.
+        push_to_hub : bool, optional
+            If True, push the resulting subset checkpoint to HF Hub.
+        load_meta_from_disk : bool, optional
+            Whether to load existing metadata (subset_ids, etc.) from disk.
+            If False, will regenerate metadata from the main model and
+            which may lead to different subset splits if the generation is
+            not deterministic (e.g. if the seed is not fixed). By default True.
+
+        """
+        obj = cls.from_config(
+            config,
+            load_meta_from_disk=load_meta_from_disk,
+            offline=True,
+            device=device,
+        )
+        assert isinstance(obj, LinearDatamodeling)
+
+        trainer = BenchConfigParser.parse_trainer_cfg(
+            config["model"]["trainer"]
+        )
+        ckpt_dir = os.path.join(
+            config.get("bench_save_dir", "./tmp"),
+            "ckpt",
+            config["ckpts"][-1].split("/")[-1],
+        )
+        obj._train_subset_model_by_idx(
+            i=idx,
+            trainer=trainer,
+            ckpt_str=config["ckpts"][-1],
+            ckpt_dir=ckpt_dir,
+            batch_size=batch_size,
+            push_to_hub=push_to_hub,
+            device=device,
+        )
+        return obj
+
+    @classmethod
+    def push_subset(
+        cls,
+        config: dict,
+        idx: int,
+    ) -> None:
+        """Push an already-trained subset checkpoint to HF Hub.
+
+        Used to serialize Hub uploads after parallel local training.
+        """
+        from huggingface_hub import HfApi  # local import; optional dep path
+
+        ckpt_str = config["ckpts"][-1]
+        ckpt_dir = os.path.join(
+            config.get("bench_save_dir", "./tmp"),
+            "ckpt",
+            ckpt_str.split("/")[-1],
+        )
+        local_ckpt_dir = f"{ckpt_dir}{_get_i_subset_ckpt_postfix(idx)}"
+        repo_id = _get_i_subset_ckpt_name(ckpt_str, idx)
+
+        if not os.path.isdir(local_ckpt_dir):
+            raise FileNotFoundError(
+                f"Subset checkpoint dir missing: {local_ckpt_dir}. "
+                f"Train subset {idx} before pushing."
+            )
+
+        api = HfApi()
+        api.create_repo(repo_id=repo_id, exist_ok=True)
+        api.upload_folder(folder_path=local_ckpt_dir, repo_id=repo_id)
 
     @classmethod
     def _extra_kwargs_from_config(
@@ -239,7 +345,7 @@ class LinearDatamodeling(Benchmark):
         ckpt = config["ckpts"][-1]
 
         subset_ckpt_filenames = [
-            f"{ckpt}{_get_i_subset_ckpt_postfix(i)}" for i in range(m)
+            _get_i_subset_ckpt_name(ckpt, i) for i in range(m)
         ]
         counterfactual_trainer_cfg = config.get(
             "counterfactual_trainer",
@@ -295,7 +401,9 @@ class LinearDatamodeling(Benchmark):
         batch_size: int = 64,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
-        cls._push_subsets_during_train = True
+        skip_subsets = bool(config.get("skip_subsets", False))
+        cls._push_subsets_during_train = not skip_subsets
+        cls._lds_skip_subsets = skip_subsets
         try:
             obj = super().train_and_push_to_hub(
                 config=config,
@@ -305,6 +413,7 @@ class LinearDatamodeling(Benchmark):
             )
         finally:
             cls._push_subsets_during_train = False
+            cls._lds_skip_subsets = False
         assert isinstance(obj, LinearDatamodeling)
         return obj
 
@@ -346,6 +455,11 @@ class LinearDatamodeling(Benchmark):
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
+        max_eval_n: Optional[int] = 1000,
+        eval_seed: int = 42,
+        cache_dir: Optional[str] = None,
+        use_cached_expl: bool = False,
+        use_hf_expl: bool = False,
     ):
         """Evaluate the given data attributor.
 
@@ -357,6 +471,20 @@ class LinearDatamodeling(Benchmark):
             Additional keyword arguments for the explainer, by default None.
         batch_size : int, optional
             Batch size to be used for the evaluation, defaults to 8
+        max_eval_n: Optional[int], optional
+            Maximum number of evaluation samples to use. If None, uses the
+            entire evaluation dataset. By default 1000.
+        eval_seed: int, optional
+            Random seed for evaluation sampling, by default 42.
+        cache_dir: Optional[str], optional
+            Directory where cached explanations are stored. Required if
+            `use_cached_expl` or `use_hf_expl` is True. By default None.
+        use_cached_expl: bool, optional
+            Whether to use cached explanations, by default False.
+        use_hf_expl: bool, optional
+            Whether to use Hugging Face cached explanations, by default False.
+            If use_cached_expl is also True, will prioritize local cache over
+            HF cache.
 
         Returns
         -------
@@ -364,10 +492,19 @@ class LinearDatamodeling(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-        explainer = self._prepare_explainer(
-            dataset=self.train_dataset,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
+        precomputed = self._resolve_precomputed_explanations(
+            cache_dir=cache_dir,
+            use_cached_expl=use_cached_expl,
+            use_hf_expl=use_hf_expl,
+        )
+        explainer = (
+            None
+            if precomputed is not None
+            else self._prepare_explainer(
+                dataset=self.train_dataset,
+                explainer_cls=explainer_cls,
+                expl_kwargs=expl_kwargs,
+            )
         )
 
         metric = LinearDatamodelingMetric(
@@ -384,11 +521,13 @@ class LinearDatamodeling(Benchmark):
             batch_size=batch_size,
             subset_ids=self.subset_ids,
             subset_ckpt_filenames=self.subset_ckpt_filenames,
-            # TODO: implement pretrained_models in LDS metric
         )
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,
             explainer=explainer,
             metric=metric,
             batch_size=batch_size,
+            max_eval_n=max_eval_n,
+            eval_seed=eval_seed,
+            precomputed_explanations=precomputed,
         )

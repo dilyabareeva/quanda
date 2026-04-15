@@ -1,0 +1,113 @@
+#!/bin/bash
+# Shared LDS benchmark training logic.
+# Dataset-specific scripts should set the following before sourcing this file:
+#   - CONFIG_NAME:        Hydra config name (e.g. "mnist_lenet", "cifar_resnet9")
+#   - CONFIG_MAP_PREFIX:  Prefix for config_map.py keys (e.g. "mnist", "cifar")
+# and source their own bench_defs.sh (BENCH_PARAMS / BENCH_SWEEP).
+#
+# The number of subsets `m` is read from the dataset config.
+
+export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
+
+PARALLEL=true
+N_LDS_PARALLEL=16
+HF_PUSH_SLEEP=60
+TRAIN_ONLY=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --parallel) PARALLEL=$2; shift 2 ;;
+        --n-lds-parallel) N_LDS_PARALLEL=$2; shift 2 ;;
+        --hf-push-sleep) HF_PUSH_SLEEP=$2; shift 2 ;;
+        --train-only) TRAIN_ONLY=$2; shift 2 ;;
+        *) shift ;;
+    esac
+done
+
+cfg_output_dir="quanda/benchmarks/resources/configs"
+commit_tag=$(git rev-parse --short HEAD)
+mkdir -p logs
+
+declare -A BENCH_CONFIG_MAP_KEY
+BENCH_CONFIG_MAP_KEY[LDS]="${CONFIG_MAP_PREFIX}_linear_datamodeling"
+
+get_config_name_from_map() {
+    local key=$1
+    python -c "
+from quanda.benchmarks.resources.config_map import config_map
+import os
+path = str(config_map['$key'])
+print(os.path.splitext(os.path.basename(path))[0])
+"
+}
+
+run_bench() {
+    local bench=$1 params=$2 sweep=$3 id=$4
+    if [ "$TRAIN_ONLY" = false ]; then
+        python scripts/generate_config.py --config-name "$CONFIG_NAME" hydra.run.dir="hydra_logs" bench=LDS $params id=$id +cfg_file_name=$id +cfg_output_dir=$cfg_output_dir
+        python scripts/train.py --config-name "$CONFIG_NAME" bench=LDS $params $sweep m=1 id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id --multirun
+        python scripts/opt_results_to_cfg.py --config-name "$CONFIG_NAME" bench=LDS $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id
+        python scripts/train_and_push_to_hub.py --config-name $id --config-dir $cfg_output_dir +skip_subsets=true
+    else
+        local config_name
+        config_name=$(get_config_name_from_map "${BENCH_CONFIG_MAP_KEY[$bench]}")
+        id=$config_name
+        python scripts/train_and_push_to_hub.py --config-name "$config_name" --config-dir $cfg_output_dir +skip_subsets=true
+    fi
+
+    local M bench_save_dir
+    M=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['m'])")
+    bench_save_dir=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml')).get('bench_save_dir', './tmp'))")
+    ckpt_basename=$(python -c "import yaml, os; print(os.path.basename(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['ckpts'][-1]))")
+
+    # Hydrate non-pid metadata dir from HF Hub so parallel workers and
+    # push_subset find subset_ids without hitting the pid-suffixed path.
+    python -c "
+from quanda.benchmarks.ground_truth import LinearDatamodeling
+LinearDatamodeling.load_pretrained(
+    bench_id='${cfg_output_dir}/${id}.yaml',
+    cache_dir='${bench_save_dir}',
+    offline=False,
+)
+"
+
+    mkdir -p "logs/${id}"
+
+    for i in $(seq 0 $((M - 1))); do
+        if [ "$PARALLEL" = true ]; then
+            while [ "$(jobs -rp | wc -l)" -ge "$N_LDS_PARALLEL" ]; do
+                wait -n
+            done
+            python scripts/train_lds_subset.py \
+                --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
+                > "logs/${id}/subset_${i}.log" 2>&1 &
+        else
+            python scripts/train_lds_subset.py \
+                --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
+                > "logs/${id}/subset_${i}.log" 2>&1
+        fi
+    done
+    wait
+
+    missing_subsets=()
+    for i in $(seq 0 $((M - 1))); do
+        subset_dir="${bench_save_dir}/ckpt/${ckpt_basename}_lds_subset_${i}"
+        if [ ! -d "$subset_dir" ]; then
+            missing_subsets+=("$i")
+            continue
+        fi
+        python scripts/train_lds_subset.py \
+            --config-path "${cfg_output_dir}/${id}.yaml" \
+            --idx "$i" --push-only
+        sleep "$HF_PUSH_SLEEP"
+    done
+    if [ "${#missing_subsets[@]}" -gt 0 ]; then
+        echo "WARNING: skipped push for missing subset ckpts: ${missing_subsets[*]}" >&2
+    fi
+}
+
+bench="LDS"
+params="${BENCH_PARAMS[$bench]}"
+sweep="${BENCH_SWEEP[$bench]}"
+id="${commit_tag}-default_${bench}"
+run_bench "$bench" "$params" "$sweep" "$id" > "logs/${bench}.log" 2>&1 < /dev/null

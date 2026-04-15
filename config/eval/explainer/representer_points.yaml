@@ -1,0 +1,8 @@
+name: representer_points
+cls: quanda.explainers.wrappers.RepresenterPoints
+kwargs:
+  features_layer: relu_4
+  classifier_layer: fc_3
+  batch_size: 64
+  load_from_disk: true
+  show_progress: false

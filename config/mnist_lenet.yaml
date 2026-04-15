@@ -26,9 +26,7 @@ hydra:
     n_trials: 20
     n_jobs: 16
     params:
-      model.trainer.lr: choice(0.02, 0.01, 0.001)
-      model.trainer.optimizer: choice("sgd", "adam")
-      model.trainer.max_epochs: choice(5, 10, 15)
+      model.trainer.lr: choice(0.01, 0.001)
 
 id: "default"
 bench: ClassDetection
@@ -44,7 +42,7 @@ offline: true
 seed: 42
 device: "cuda:1"
 
-m: 4
+m: 100
 alpha: 0.5
 
 subset_ids: lds_subsets.yaml

@@ -1,0 +1,9 @@
+name: similarity
+cls: quanda.explainers.wrappers.CaptumSimilarity
+kwargs:
+  layers: fc_2
+  similarity_metric:
+    _target_: hydra.utils.get_method
+    path: quanda.utils.functions.cosine_similarity
+  load_from_disk: true
+  batch_size: 64

@@ -1,0 +1,7 @@
+name: tracincpfast
+cls: quanda.explainers.wrappers.CaptumTracInCPFast
+kwargs:
+  loss_fn:
+    _target_: torch.nn.CrossEntropyLoss
+    reduction: mean
+  batch_size: 256
