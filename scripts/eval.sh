@@ -2,7 +2,6 @@
 # Shared benchmark evaluation logic.
 # Dataset-specific scripts should set the following before sourcing this file:
 #   - EVAL_CONFIG_NAME: Hydra config name (e.g. "mnist_lenet") from config/eval/
-#   - RUN_SCRIPT:       path to run_bench_eval.py
 #   - benchmarks:       array of benchmark ids (config_map keys)
 #   - methods:          array of explainer group names (config/eval/explainer/*.yaml)
 # and source their own eval_defs.sh (EXPL_SWEEP).
@@ -37,7 +36,7 @@ run_eval() {
     local bench=$1 method=$2 sweep=$3
     local multirun=""
     [ -n "$sweep" ] && multirun="--multirun"
-    python "$RUN_SCRIPT" \
+    python scripts/run_bench_eval.py \
         --config-name "$EVAL_CONFIG_NAME" \
         bench="$bench" explainer="$method" \
         cache_dir="$CACHE_DIR" results_dir="$RESULTS_DIR" \

@@ -3,7 +3,6 @@
 source "$(dirname "$0")/eval_defs.sh"
 
 EVAL_CONFIG_NAME="mnist_lenet"
-RUN_SCRIPT="$(dirname "$0")/run_bench_eval.py"
 
 benchmarks=(
     mnist_class_detection
