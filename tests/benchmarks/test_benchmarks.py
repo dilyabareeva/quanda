@@ -701,6 +701,8 @@ def test_logger(
         ("mnist_subclass_detection", SubclassDetection),
         ("mnist_mislabeling_detection", MislabelingDetection),
         ("mnist_class_detection", ClassDetection),
+        ("qnli_mislabeling_detection", MislabelingDetection),
+        ("qnli_class_detection", ClassDetection),
     ],
 )
 def test_benchmark_filters(config_name, bench_cls, tmp_path):

@@ -337,6 +337,7 @@ def test_download_explanations_uses_snapshot(tmp_path, monkeypatch):
     "config_name",
     [
         "mnist_mislabeling_detection",
+        "qnli_mislabeling_detection",
     ],
 )
 def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
@@ -391,6 +392,7 @@ def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
     "config_name",
     [
         "mnist_mislabeling_detection",
+        "qnli_mislabeling_detection",
     ],
 )
 def test_eval_dataset_is_clean(config_name, tmp_path):
