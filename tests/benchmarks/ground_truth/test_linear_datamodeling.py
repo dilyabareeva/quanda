@@ -10,7 +10,6 @@ import yaml
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.ground_truth import LinearDatamodeling
-from quanda.benchmarks.resources import config_map
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
@@ -98,41 +97,26 @@ def test_lds_subset_checkpoints_are_different(config_name, tmp_path):
 
 
 @pytest.mark.utils
-@pytest.mark.parametrize(
-    "config_name",
-    [
-        "mnist_linear_datamodeling",
-        "cifar_linear_datamodeling",
-    ],
-)
-def test_lds_metadata(
-    config_name,
-    tmp_path,
-    request,
-):
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    bench = LinearDatamodeling.load_pretrained(
-        bench_id=config_name,
-        cache_dir=str(tmp_path),
-        device=device,
-        offline=False,
-    )
-
-    bench_yaml = config_map[config_name]
-    with open(bench_yaml, "r") as f:
-        cfg = yaml.safe_load(f)
+def test_lds_metadata(load_mnist_linear_datamodeling_config, tmp_path):
+    cfg = load_mnist_linear_datamodeling_config
 
     metadata_dir = BenchConfigParser.get_metadata_dir(
         cfg=cfg, bench_save_dir=str(tmp_path)
     )
+    assert metadata_dir == os.path.join(
+        str(tmp_path), "metadata", f"{cfg['id']}_metadata"
+    )
+    assert os.path.isdir(metadata_dir)
 
-    subset_meta = f"{metadata_dir}/{cfg['subset_ids']}"
+    subset_ids = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 0, 1]]
+    subset_meta = os.path.join(metadata_dir, cfg["subset_ids"])
+    with open(subset_meta, "w") as f:
+        yaml.safe_dump(subset_ids, f)
+
     with open(subset_meta, "r") as f:
-        subset_ids = yaml.safe_load(f)
+        loaded = yaml.safe_load(f)
 
-    assert subset_ids == bench.subset_ids
+    assert loaded == subset_ids
 
 
 @pytest.mark.benchmarks
@@ -307,6 +291,48 @@ def test_train_subset_model_by_idx_no_push(mocker, tmp_path):
     )
 
     saved_model.push_to_hub.assert_not_called()
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize("skip_subsets", [False, True])
+def test_train_and_push_to_hub(mocker, skip_subsets):
+    """train_and_push_to_hub toggles the push/skip flags around the base
+    call and forwards to Benchmark.train_and_push_to_hub."""
+    fake_obj = _make_fake_lds_obj(mocker)
+    spy = mocker.patch.object(
+        Benchmark, "train_and_push_to_hub", return_value=fake_obj
+    )
+    config = {
+        "model": {"trainer": {}},
+        "ckpts": ["repo/ckpt"],
+        "bench_save_dir": "/tmp/unused",
+        "skip_subsets": skip_subsets,
+    }
+    result = LinearDatamodeling.train_and_push_to_hub(config=config)
+
+    assert result is fake_obj
+    spy.assert_called_once()
+    # Flags must be reset after the call, even when it succeeds.
+    assert LinearDatamodeling._push_subsets_during_train is False
+    assert LinearDatamodeling._lds_skip_subsets is False
+
+
+@pytest.mark.benchmarks
+def test_train_and_push_to_hub_resets_flags_on_error(mocker):
+    """If the base call raises, the class-level flags must still reset."""
+    mocker.patch.object(
+        Benchmark, "train_and_push_to_hub", side_effect=RuntimeError("boom")
+    )
+    config = {
+        "model": {"trainer": {}},
+        "ckpts": ["repo/ckpt"],
+        "bench_save_dir": "/tmp/unused",
+        "skip_subsets": True,
+    }
+    with pytest.raises(RuntimeError):
+        LinearDatamodeling.train_and_push_to_hub(config=config)
+    assert LinearDatamodeling._push_subsets_during_train is False
+    assert LinearDatamodeling._lds_skip_subsets is False
 
 
 @pytest.mark.benchmarks

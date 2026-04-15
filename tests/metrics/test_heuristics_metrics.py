@@ -310,7 +310,8 @@ def test_top_k_cardinality_metrics(
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, explanations, adversarial_indices, expected_score",
+    "test_id, model, checkpoint,dataset, explanations, adversarial_indices, "
+    "filter_by_prediction, pass_test_inputs, expected_score",
     [
         (
             "mnist_1",
@@ -319,7 +320,20 @@ def test_top_k_cardinality_metrics(
             "load_mnist_dataset",
             "load_mnist_explanations_similarity_1",
             "load_mnist_adversarial_indices",
+            False,
+            False,
             0.4699999690055847,
+        ),
+        (
+            "mnist_filter_by_prediction",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_adversarial_indices",
+            True,
+            True,
+            None,
         ),
     ],
 )
@@ -330,6 +344,8 @@ def test_mixed_datasets_metric(
     dataset,
     explanations,
     adversarial_indices,
+    filter_by_prediction,
+    pass_test_inputs,
     expected_score,
     request,
 ):
@@ -346,13 +362,29 @@ def test_mixed_datasets_metric(
         checkpoints=checkpoint,
         train_dataset=dataset,
         adversarial_indices=adversarial_indices,
+        filter_by_prediction=filter_by_prediction,
     )
 
+    if filter_by_prediction and not pass_test_inputs:
+        with pytest.raises(ValueError, match="test_data"):
+            metric.update(explanations=explanations)
+        return
+
+    update_kwargs = {"explanations": explanations}
+    if pass_test_inputs:
+        test_data = request.getfixturevalue("load_mnist_test_samples_1")
+        test_labels = request.getfixturevalue("load_mnist_test_labels_1")
+        update_kwargs["test_data"] = test_data
+        update_kwargs["test_labels"] = test_labels
+
     # Update the metric with the provided explanations
-    metric.update(explanations=explanations)
+    metric.update(**update_kwargs)
 
     # Compute the score
     score = metric.compute()["score"]
 
-    # Validate that the computed score matches the expected score within tolerance
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
+    if expected_score is None:
+        assert isinstance(score, float)
+    else:
+        # Validate that the computed score matches expected within tolerance
+        assert math.isclose(score, expected_score, abs_tol=0.00001)
