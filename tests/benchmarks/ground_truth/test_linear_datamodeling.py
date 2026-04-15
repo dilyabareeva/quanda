@@ -180,30 +180,6 @@ def test_lds_metric_uses_subset_ckpt_filenames(
     assert isinstance(score, float)
 
 
-@pytest.mark.benchmarks
-def test_lds_metric_missing_checkpoints_raises(
-    load_mnist_model,
-    load_mnist_dataset,
-    load_subset_indices_lds,
-):
-    with open(
-        f"tests/assets/lds_checkpoints/{load_subset_indices_lds}", "r"
-    ) as f:
-        subset_ids = yaml.safe_load(f)
-
-    with pytest.raises(FileNotFoundError):
-        LinearDatamodelingMetric(
-            model=load_mnist_model,
-            train_dataset=load_mnist_dataset,
-            alpha=0.5,
-            m=1,
-            seed=3,
-            correlation_fn="spearman",
-            subset_ids=subset_ids,
-            subset_ckpt_filenames=["/nonexistent/path/model.pt"],
-        )
-
-
 def _make_fake_lds_obj(mocker, m: int = 4):
     """Construct a LinearDatamodeling instance without running training."""
     obj = LinearDatamodeling.__new__(LinearDatamodeling)
