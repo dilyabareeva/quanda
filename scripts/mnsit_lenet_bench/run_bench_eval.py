@@ -27,7 +27,9 @@ BENCH_CLASS = {
 
 
 @hydra.main(
-    version_base=None, config_path="../../config/eval", config_name="mnist_lenet"
+    version_base=None,
+    config_path="../../config/eval",
+    config_name="mnist_lenet",
 )
 def main(cfg: DictConfig) -> float:
     bench_id = cfg.bench
@@ -99,8 +101,10 @@ def main(cfg: DictConfig) -> float:
             indent=2,
             default=str,
         )
-    scalar = score if isinstance(score, (int, float)) else (
-        next(iter(score.values())) if isinstance(score, dict) else 0.0
+    scalar = (
+        score
+        if isinstance(score, (int, float))
+        else (next(iter(score.values())) if isinstance(score, dict) else 0.0)
     )
 
     return float(scalar)

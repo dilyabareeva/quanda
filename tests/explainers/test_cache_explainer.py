@@ -10,8 +10,8 @@ import yaml
 
 from quanda.benchmarks.base import (
     _hash_expl_kwargs,
+    default_explanations_id,
 )
-from quanda.benchmarks.base import default_explanations_id
 from quanda.benchmarks.downstream_eval import ClassDetection
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
@@ -133,7 +133,7 @@ def test_benchmark_explain_and_precomputed_evaluate_match(
     assert math.isclose(noop_score, baseline, abs_tol=1e-6)
 
     # Missing cache_dir when flags are set should raise.
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, "cache_dir must be provided"):
         fresh.evaluate(
             explainer_cls=CaptumSimilarity,
             expl_kwargs=expl_kwargs,

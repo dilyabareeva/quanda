@@ -36,7 +36,9 @@ def main() -> None:
         LinearDatamodeling.push_subset(config=config, idx=args.idx)
         return
 
-    device = config.get("device", "cuda" if torch.cuda.is_available() else "cpu")
+    device = config.get(
+        "device", "cuda" if torch.cuda.is_available() else "cpu"
+    )
     LinearDatamodeling.train_subset(
         config=config,
         idx=args.idx,

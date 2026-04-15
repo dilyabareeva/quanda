@@ -76,6 +76,10 @@ class MislabelingDetectionMetric(Metric):
             It should have `explainer.self_influence()` implemented.
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer class.
+        precomputed_self_influence : Optional[torch.Tensor], optional
+            Precomputed self-influence values for the training samples. If
+            provided, the explainer will not be used and the metric will use
+            these values directly for the global ranking. By default None.
 
         """
         super().__init__(

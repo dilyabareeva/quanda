@@ -39,18 +39,19 @@ def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
     payload = json.dumps(expl_kwargs or {}, sort_keys=True, default=str)
     return hashlib.sha1(payload.encode()).hexdigest()[:10]
 
+
 def _subsample_eval_dataset(
-    eval_dataset: Optional[torch.utils.data.Dataset],
+    eval_dataset: torch.utils.data.Dataset,
     max_eval_n: Optional[int],
     seed: int,
-) -> Optional[torch.utils.data.Dataset]:
+) -> torch.utils.data.Dataset:
     """Deterministically subsample the eval dataset.
 
     Subsampling is reproducible across platforms because it uses Python's
     ``random.Random(seed).sample`` over ``range(N)`` and stores the indices
     in sorted order.
     """
-    if eval_dataset is None or max_eval_n is None:
+    if max_eval_n is None:
         return eval_dataset
     n = len(eval_dataset)  # type: ignore[arg-type]
     if max_eval_n >= n:
@@ -707,9 +708,7 @@ class Benchmark(ABC):
                 "use_hf_expl is True."
             )
         if use_cached_expl and os.path.exists(cache_dir):
-            return ExplanationsCache.load(
-                path=cache_dir, device=self.device
-            )
+            return ExplanationsCache.load(path=cache_dir, device=self.device)
         if use_hf_expl:
             base = os.path.basename(cache_dir.rstrip("/"))
             explanations_id = (
@@ -723,9 +722,7 @@ class Benchmark(ABC):
                 local_dir=cache_dir,
                 repo_type="dataset",
             )
-            return ExplanationsCache.load(
-                path=cache_dir, device=self.device
-            )
+            return ExplanationsCache.load(path=cache_dir, device=self.device)
         return None
 
     def save_metadata(self):
@@ -974,6 +971,15 @@ class Benchmark(ABC):
             Metric to compute
         batch_size : int
             Batch size for evaluation
+        max_eval_n: Optional[int], optional
+            Maximum number of evaluation samples to use. If None, uses the
+            entire evaluation dataset. By default 1000.
+        eval_seed: int, optional
+            Random seed for evaluation sampling, by default 42.
+        precomputed_explanations : Optional[BatchedCachedExplanations],
+            optional
+            If provided, these explanations will be used instead of computing
+            them on the fly. By default None.
 
         Returns
         -------

@@ -20,7 +20,7 @@ def main(cfg: DictConfig) -> Tuple[float]:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     bench_cls = bench_dict[cfg.bench]
     logger = BenchConfigParser.parse_logger(cfg)
-    bench = bench_cls.train_and_push_to_hub(
+    bench_cls.train_and_push_to_hub(
         cfg,
         logger=logger,
         device=device,

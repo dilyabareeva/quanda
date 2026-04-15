@@ -28,6 +28,10 @@ class SelfInfluenceRanking:
         explainer : Optional[Explainer], optional
             `Explainer` object to use for self-influence computation, by
             default None
+        self_influence : Optional[torch.Tensor], optional
+            Precomputed self-influence values for the training samples. If
+            provided, the explainer will not be used and the metric will use
+            these values directly for the global ranking. By default None.
 
         Raises
         ------
@@ -55,7 +59,13 @@ class SelfInfluenceRanking:
         """
         if self._self_influence is not None:
             return self._self_influence
-        return self.explainer.self_influence()
+        elif self.explainer is not None:
+            return self.explainer.self_influence()
+        else:
+            raise ValueError(
+                "Cannot compute self-influence: no explainer or "
+                "precomputed self-influence values provided."
+            )
 
     @lru_cache(maxsize=1)
     def get_global_rank(self):

@@ -11,8 +11,8 @@ from torch.utils.data import Subset
 from quanda.benchmarks.base import (
     Benchmark,
     _hash_expl_kwargs,
+    default_explanations_id,
 )
-from quanda.benchmarks.base import default_explanations_id
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.cache import ExplanationsCache
 from quanda.utils.common import class_accuracy
@@ -132,6 +132,8 @@ class MislabelingDetection(Benchmark):
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
+        max_eval_n: Optional[int] = 1000,
+        eval_seed: int = 42,
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
@@ -145,7 +147,24 @@ class MislabelingDetection(Benchmark):
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None.
         batch_size : int, optional
-            Batch size to be used for the evaluation, defaults to 8.
+            Ignored for this benchmark since mislabeling detection is driven by
+            training-data self-influence rather than per-eval-batch attributions.
+        max_eval_n: Optional[int], optional
+            Ignored for this benchmark since mislabeling detection is driven by
+            training-data self-influence rather than per-eval-batch attributions.
+        eval_seed: int, optional
+            Ignored for this benchmark since mislabeling detection is driven by
+            training-data self-influence rather than per-eval-batch attributions.
+        cache_dir: Optional[str], optional
+            Ignored for this benchmark since mislabeling detection is driven by
+            training-data self-influence rather than per-eval-batch attributions.
+        use_cached_expl: bool, optional
+            Ignored for this benchmark since mislabeling detection is driven by
+            training-data self-influence rather than per-eval-batch attributions.
+        use_hf_expl: bool, optional
+            Ignored for this benchmark since mislabeling detection is driven by
+            training-data self-influence rather than per-eval-batch attributions.
+            HF cache.
 
         Returns
         -------

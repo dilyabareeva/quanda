@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 from matplotlib import rcParams
 
-
 DEFAULT_COLORS = [
     "#EB9C38",
     "#83BA59",

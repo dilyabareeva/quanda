@@ -296,6 +296,9 @@ class LinearDatamodelingMetric(Metric):
             If True, reinitialize model weights before training
             (train from scratch). Required for proper LDS evaluation.
             By default True.
+        device : Optional[str], optional
+            Device to train the model on, by default None. If None, uses
+            cuda if available, otherwise cpu.
 
         Returns
         -------

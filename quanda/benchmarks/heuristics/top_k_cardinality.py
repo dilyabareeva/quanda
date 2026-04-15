@@ -88,6 +88,20 @@ class TopKCardinality(Benchmark):
             Keyword arguments for the explainer, by default None.
         batch_size: int, optional
             Batch size for the evaluation, by default 8.
+        max_eval_n: Optional[int], optional
+            Maximum number of evaluation samples to use. If None, uses the
+            entire evaluation dataset. By default 1000.
+        eval_seed: int, optional
+            Random seed for evaluation sampling, by default 42.
+        cache_dir: Optional[str], optional
+            Directory where cached explanations are stored. Required if
+            `use_cached_expl` or `use_hf_expl` is True. By default None.
+        use_cached_expl: bool, optional
+            Whether to use cached explanations, by default False.
+        use_hf_expl: bool, optional
+            Whether to use Hugging Face cached explanations, by default False.
+            If use_cached_expl is also True, will prioritize local cache over
+            HF cache.
 
         Returns
         -------

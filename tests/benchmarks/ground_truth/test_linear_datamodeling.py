@@ -10,9 +10,6 @@ import yaml
 from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.ground_truth import LinearDatamodeling
-from quanda.benchmarks.ground_truth import (
-    linear_datamodeling as lds_module,
-)
 from quanda.benchmarks.resources import config_map
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
@@ -175,9 +172,7 @@ def test_lds_metric_uses_subset_ckpt_filenames(
 
     assert metric.subset_ckpt_filenames == load_pretrained_models_lds
 
-    explanations = torch.randn(
-        test_data.shape[0], len(load_mnist_dataset)
-    )
+    explanations = torch.randn(test_data.shape[0], len(load_mnist_dataset))
     metric.update(
         test_data=test_data,
         explanations=explanations,
@@ -219,9 +214,7 @@ def _make_fake_lds_obj(mocker, m: int = 4):
     obj.model = mocker.MagicMock()
     obj.device = "cpu"
     obj.subset_ids = [[0, 1, 2] for _ in range(m)]
-    obj.subset_ckpt_filenames = [
-        f"repo/ckpt_lds_subset_{i}" for i in range(m)
-    ]
+    obj.subset_ckpt_filenames = [f"repo/ckpt_lds_subset_{i}" for i in range(m)]
     return obj
 
 
@@ -231,9 +224,7 @@ def test_train_skip_subsets_skips_subset_loop(mocker):
     skipped."""
     fake_obj = _make_fake_lds_obj(mocker)
     mocker.patch.object(Benchmark, "train", return_value=fake_obj)
-    spy = mocker.patch.object(
-        LinearDatamodeling, "_train_subset_models"
-    )
+    spy = mocker.patch.object(LinearDatamodeling, "_train_subset_models")
 
     config = {"model": {"trainer": {}}, "ckpts": ["repo/ckpt"]}
     result = LinearDatamodeling.train(config=config, skip_subsets=True)
@@ -250,9 +241,7 @@ def test_train_without_skip_runs_subset_loop(mocker):
     mocker.patch.object(
         BenchConfigParser, "parse_trainer_cfg", return_value=mocker.MagicMock()
     )
-    spy = mocker.patch.object(
-        LinearDatamodeling, "_train_subset_models"
-    )
+    spy = mocker.patch.object(LinearDatamodeling, "_train_subset_models")
 
     config = {
         "model": {"trainer": {}},
@@ -275,9 +264,7 @@ def test_train_subset_delegates_to_single_idx(mocker):
     mocker.patch.object(
         BenchConfigParser, "parse_trainer_cfg", return_value=mocker.MagicMock()
     )
-    spy = mocker.patch.object(
-        LinearDatamodeling, "_train_subset_model_by_idx"
-    )
+    spy = mocker.patch.object(LinearDatamodeling, "_train_subset_model_by_idx")
 
     config = {
         "model": {"trainer": {}},
@@ -322,9 +309,7 @@ def test_train_subset_model_by_idx_saves_ckpt(mocker, tmp_path):
     saved_model.save_pretrained.assert_called_once_with(
         expected_dir, safe_serialization=True
     )
-    saved_model.push_to_hub.assert_called_once_with(
-        "repo/ckpt_lds_subset_1"
-    )
+    saved_model.push_to_hub.assert_called_once_with("repo/ckpt_lds_subset_1")
 
 
 @pytest.mark.benchmarks
@@ -358,9 +343,7 @@ def test_push_subset_uploads_to_hub(mocker, tmp_path):
     ckpt_dir.mkdir(parents=True)
 
     fake_api = mocker.MagicMock()
-    mocker.patch(
-        "huggingface_hub.HfApi", return_value=fake_api
-    )
+    mocker.patch("huggingface_hub.HfApi", return_value=fake_api)
 
     config = {
         "ckpts": ["repo-ckpt"],
@@ -396,15 +379,17 @@ def test_train_lds_subset_script_trains(mocker, tmp_path, monkeypatch):
         "argv",
         [
             "train_lds_subset.py",
-            "--config-path", str(cfg_path),
-            "--idx", "5",
-            "--device", "cpu",
-            "--batch-size", "16",
+            "--config-path",
+            str(cfg_path),
+            "--idx",
+            "5",
+            "--device",
+            "cpu",
+            "--batch-size",
+            "16",
         ],
     )
-    runpy.run_path(
-        "scripts/train_lds_subset.py", run_name="__main__"
-    )
+    runpy.run_path("scripts/train_lds_subset.py", run_name="__main__")
 
     push_spy.assert_not_called()
     train_spy.assert_called_once()
@@ -428,14 +413,14 @@ def test_train_lds_subset_script_push_only(mocker, tmp_path, monkeypatch):
         "argv",
         [
             "train_lds_subset.py",
-            "--config-path", str(cfg_path),
-            "--idx", "7",
+            "--config-path",
+            str(cfg_path),
+            "--idx",
+            "7",
             "--push-only",
         ],
     )
-    runpy.run_path(
-        "scripts/train_lds_subset.py", run_name="__main__"
-    )
+    runpy.run_path("scripts/train_lds_subset.py", run_name="__main__")
 
     train_spy.assert_not_called()
     push_spy.assert_called_once()
@@ -450,11 +435,11 @@ def test_train_lds_subset_script_missing_config(tmp_path, monkeypatch):
         "argv",
         [
             "train_lds_subset.py",
-            "--config-path", str(tmp_path / "nope.yaml"),
-            "--idx", "0",
+            "--config-path",
+            str(tmp_path / "nope.yaml"),
+            "--idx",
+            "0",
         ],
     )
     with pytest.raises(FileNotFoundError):
-        runpy.run_path(
-            "scripts/train_lds_subset.py", run_name="__main__"
-        )
+        runpy.run_path("scripts/train_lds_subset.py", run_name="__main__")

@@ -144,14 +144,10 @@ class LinearDatamodeling(Benchmark):
                 "and is not empty. Checkpoints will be "
                 "overwritten."
             )
-        subset_model.save_pretrained(
-            local_ckpt_dir, safe_serialization=True
-        )
+        subset_model.save_pretrained(local_ckpt_dir, safe_serialization=True)
 
         if push_to_hub:
-            subset_model.push_to_hub(
-                _get_i_subset_ckpt_name(ckpt_str, i)
-            )
+            subset_model.push_to_hub(_get_i_subset_ckpt_name(ckpt_str, i))
 
     def _train_subset_models(
         self,
@@ -207,7 +203,6 @@ class LinearDatamodeling(Benchmark):
             The trained benchmark instance.
 
         """
-
         obj = super().train(
             config=config,
             logger=logger,
@@ -268,6 +263,11 @@ class LinearDatamodeling(Benchmark):
             Batch size.
         push_to_hub : bool, optional
             If True, push the resulting subset checkpoint to HF Hub.
+        load_meta_from_disk : bool, optional
+            Whether to load existing metadata (subset_ids, etc.) from disk.
+            If False, will regenerate metadata from the main model and
+            which may lead to different subset splits if the generation is
+            not deterministic (e.g. if the seed is not fixed). By default True.
 
         """
         obj = cls.from_config(
@@ -471,6 +471,20 @@ class LinearDatamodeling(Benchmark):
             Additional keyword arguments for the explainer, by default None.
         batch_size : int, optional
             Batch size to be used for the evaluation, defaults to 8
+        max_eval_n: Optional[int], optional
+            Maximum number of evaluation samples to use. If None, uses the
+            entire evaluation dataset. By default 1000.
+        eval_seed: int, optional
+            Random seed for evaluation sampling, by default 42.
+        cache_dir: Optional[str], optional
+            Directory where cached explanations are stored. Required if
+            `use_cached_expl` or `use_hf_expl` is True. By default None.
+        use_cached_expl: bool, optional
+            Whether to use cached explanations, by default False.
+        use_hf_expl: bool, optional
+            Whether to use Hugging Face cached explanations, by default False.
+            If use_cached_expl is also True, will prioritize local cache over
+            HF cache.
 
         Returns
         -------
