@@ -6,16 +6,16 @@ from typing import Optional
 
 import torch
 import yaml
-from torch.utils.data import Subset
 
 from quanda.benchmarks.base import (
     Benchmark,
     _hash_expl_kwargs,
+    _subsample_dataset,
     default_explanations_id,
 )
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.cache import ExplanationsCache
-from quanda.utils.common import class_accuracy
+from quanda.utils.common import class_accuracy, ds_len
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
@@ -87,7 +87,7 @@ class MislabelingDetection(Benchmark):
             "labels."
         )
         train_dl = torch.utils.data.DataLoader(
-            Subset(self.train_dataset, self.train_dataset.transform_indices),
+            self.train_dataset.filtered(self.train_dataset.transform_indices),
             batch_size=batch_size,
             shuffle=False,
         )
@@ -132,7 +132,7 @@ class MislabelingDetection(Benchmark):
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
-        max_eval_n: Optional[int] = 1000,
+        max_eval_n: Optional[int] = None,
         eval_seed: int = 42,
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
@@ -147,24 +147,25 @@ class MislabelingDetection(Benchmark):
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer, by default None.
         batch_size : int, optional
-            Ignored for this benchmark since mislabeling detection is driven by
-            training-data self-influence rather than per-eval-batch attributions.
+            Ignored for this benchmark; self-influence is driven by
+            training-data, not per-eval-batch attributions.
         max_eval_n: Optional[int], optional
-            Ignored for this benchmark since mislabeling detection is driven by
-            training-data self-influence rather than per-eval-batch attributions.
+            Maximum number of train samples to use when computing
+            self-influence (mislabeling detection has no separate eval
+            loop, so this caps the train-dataset subsample). ``None``
+            uses the full train dataset.
         eval_seed: int, optional
-            Ignored for this benchmark since mislabeling detection is driven by
-            training-data self-influence rather than per-eval-batch attributions.
+            Seed for the deterministic train-dataset subsample driven by
+            ``max_eval_n``.
         cache_dir: Optional[str], optional
-            Ignored for this benchmark since mislabeling detection is driven by
-            training-data self-influence rather than per-eval-batch attributions.
+            Directory containing a precomputed self-influence cache,
+            written by :meth:`explain`.
         use_cached_expl: bool, optional
-            Ignored for this benchmark since mislabeling detection is driven by
-            training-data self-influence rather than per-eval-batch attributions.
+            If True, load self-influence from ``cache_dir`` instead of
+            recomputing it.
         use_hf_expl: bool, optional
-            Ignored for this benchmark since mislabeling detection is driven by
-            training-data self-influence rather than per-eval-batch attributions.
-            HF cache.
+            If True, download a precomputed self-influence cache from
+            HF into ``cache_dir`` and load it.
 
         Returns
         -------
@@ -184,6 +185,15 @@ class MislabelingDetection(Benchmark):
                 "labels."
             )
 
+        train_dataset = _subsample_dataset(
+            self.train_dataset, max_n=max_eval_n, seed=eval_seed
+        )
+        if not isinstance(train_dataset, LabelFlippingDataset):
+            raise TypeError(
+                "Subsampled training dataset should still be a "
+                f"LabelFlippingDataset, got {type(train_dataset).__name__}."
+            )
+
         precomputed = self._resolve_precomputed_explanations(
             cache_dir=cache_dir,
             use_cached_expl=use_cached_expl,
@@ -194,13 +204,21 @@ class MislabelingDetection(Benchmark):
             precomputed_si = (
                 precomputed[SELF_INFLUENCE_KEY].to(self.device).flatten()
             )
+            if precomputed_si.numel() != ds_len(train_dataset):
+                raise ValueError(
+                    "Precomputed self-influence length "
+                    f"({precomputed_si.numel()}) does not match the "
+                    f"(possibly subsampled) train dataset length "
+                    f"({len(train_dataset)}). Check that max_eval_n / "
+                    "eval_seed match those used in `explain`."
+                )
 
         metric = MislabelingDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,
             checkpoints_load_func=self.checkpoints_load_func,
-            train_dataset=self.train_dataset,
-            mislabeling_indices=self.train_dataset.transform_indices,
+            train_dataset=train_dataset,
+            mislabeling_indices=train_dataset.transform_indices,
             explainer_cls=explainer_cls if precomputed_si is None else None,
             expl_kwargs=expl_kwargs,
             precomputed_self_influence=precomputed_si,
@@ -218,17 +236,26 @@ class MislabelingDetection(Benchmark):
         explanations_id: Optional[str] = None,
         cache_dir: Optional[str] = None,
         device: str = "cpu",
+        max_eval_n: Optional[int] = None,
+        eval_seed: int = 42,
     ) -> "MislabelingDetection":
         """Compute and persist self-influence scores to disk.
 
         Mislabeling detection is driven by training-data self-influence
         rather than per-eval-batch attributions, so the cached artifact
-        is a single 1D tensor stored as ``self_influence.pt``.
+        is a single 1D tensor stored as ``self_influence.pt``. For
+        consistency with other benchmarks, ``max_eval_n``/``eval_seed``
+        here parameterize the train-dataset subsample over which
+        self-influence is computed.
         """
         obj = cls.from_config(config, device=device)
         if explanations_id is None:
             explanations_id = default_explanations_id(
-                config, explainer_cls, expl_kwargs
+                config,
+                explainer_cls,
+                expl_kwargs,
+                max_eval_n=max_eval_n,
+                eval_seed=eval_seed,
             )
 
         save_dir = cache_dir or os.path.join(
@@ -238,8 +265,21 @@ class MislabelingDetection(Benchmark):
         )
         os.makedirs(save_dir, exist_ok=True)
 
+        if not isinstance(obj, cls):
+            raise TypeError(
+                f"from_config returned {type(obj).__name__}, expected "
+                f"{cls.__name__}."
+            )
+        if not isinstance(obj.train_dataset, LabelFlippingDataset):
+            raise TypeError(
+                "Training dataset in Mislabeling Metric should have "
+                f"flipped labels, got {type(obj.train_dataset).__name__}."
+            )
+        train_dataset = _subsample_dataset(
+            obj.train_dataset, max_n=max_eval_n, seed=eval_seed
+        )
         explainer = obj._prepare_explainer(
-            dataset=obj.train_dataset,
+            dataset=train_dataset,
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
         )
@@ -267,6 +307,8 @@ class MislabelingDetection(Benchmark):
             "batch_size": batch_size,
             "use_predictions": obj.use_predictions,
             "artifact": SELF_INFLUENCE_KEY,
+            "max_eval_n": max_eval_n,
+            "eval_seed": eval_seed,
         }
         with open(
             os.path.join(save_dir, "explanations_config.yaml"), "w"

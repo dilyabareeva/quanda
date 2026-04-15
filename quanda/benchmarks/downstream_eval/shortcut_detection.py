@@ -3,7 +3,6 @@
 from typing import List, Optional
 
 import torch
-from torch.utils.data import Subset
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval.shortcut_detection import (
@@ -157,13 +156,13 @@ class ShortcutDetection(Benchmark):
         assert isinstance(self.eval_dataset, SampleTransformationDataset)
 
         train_dl = torch.utils.data.DataLoader(
-            Subset(self.train_dataset, self.train_dataset.transform_indices),
+            self.train_dataset.filtered(self.train_dataset.transform_indices),
             batch_size=batch_size,
             shuffle=False,
         )
 
         eval_dl = torch.utils.data.DataLoader(
-            Subset(self.eval_dataset, self.eval_dataset.transform_indices),
+            self.eval_dataset.filtered(self.eval_dataset.transform_indices),
             batch_size=batch_size,
             shuffle=False,
         )

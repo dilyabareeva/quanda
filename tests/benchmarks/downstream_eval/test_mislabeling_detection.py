@@ -4,10 +4,16 @@ import os
 import pytest
 import torch
 
+from quanda.benchmarks.base import _subsample_dataset
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.benchmarks.downstream_eval import MislabelingDetection
+from quanda.benchmarks.downstream_eval.mislabeling_detection import (
+    SELF_INFLUENCE_KEY,
+)
 from quanda.benchmarks.resources.sample_transforms import sample_transforms
 from quanda.explainers.wrappers import CaptumSimilarity
+from quanda.metrics.downstream_eval import MislabelingDetectionMetric
+from quanda.utils.cache import ExplanationsCache
 from quanda.utils.datasets.transformed import LabelFlippingDataset
 from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
 from quanda.utils.functions import cosine_similarity
@@ -16,7 +22,8 @@ from quanda.utils.functions import cosine_similarity
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, config, global_method, load_from_disk,"
-    "explainer_cls, expl_kwargs, expected_score",
+    "explainer_cls, expl_kwargs, max_eval_n, eval_seed,"
+    "mock_self_influence, use_cached_expl, expected_score",
     [
         (
             "mnist",
@@ -28,7 +35,27 @@ from quanda.utils.functions import cosine_similarity
                 "layers": "fc_2",
                 "similarity_metric": cosine_similarity,
             },
+            None,
+            42,
+            False,
+            False,
             0.44353821873664856,
+        ),
+        (
+            "mnist_subset_cached_mocked",
+            "load_mnist_mislabeling_config",
+            "self-influence",
+            False,
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            50,
+            42,
+            True,
+            True,
+            None,
         ),
     ],
 )
@@ -39,9 +66,14 @@ def test_mislabeling_detection(
     load_from_disk,
     explainer_cls,
     expl_kwargs,
+    max_eval_n,
+    eval_seed,
+    mock_self_influence,
+    use_cached_expl,
     expected_score,
     tmp_path,
     request,
+    monkeypatch,
 ):
     config = request.getfixturevalue(config)
 
@@ -90,11 +122,58 @@ def test_mislabeling_detection(
         checkpoints_load_func=checkpoints_load_func,
     )
 
+    cache_dir = None
+    if mock_self_influence:
+        # Replace the explainer's self_influence with a deterministic stub
+        # so the test doesn't depend on real attribution computation.
+        def fake_self_influence(self, batch_size=8):
+            return torch.arange(len(self.train_dataset), dtype=torch.float32)
+
+        monkeypatch.setattr(
+            CaptumSimilarity, "self_influence", fake_self_influence
+        )
+
+    if use_cached_expl:
+        # Pre-write the cache exactly as MislabelingDetection.explain would,
+        # so evaluate(use_cached_expl=True) loads it from disk.
+        cache_dir = str(tmp_path / "expl_cache")
+        os.makedirs(cache_dir, exist_ok=True)
+        train_subset = _subsample_dataset(
+            train_dataset, max_n=max_eval_n, seed=eval_seed
+        )
+        precomputed_si = torch.arange(len(train_subset), dtype=torch.float32)
+        ExplanationsCache.save(
+            cache_dir, precomputed_si, num_id=SELF_INFLUENCE_KEY
+        )
+
     score = dst_eval.evaluate(
         explainer_cls=explainer_cls,
         expl_kwargs=expl_kwargs,
         batch_size=8,
+        max_eval_n=max_eval_n,
+        eval_seed=eval_seed,
+        cache_dir=cache_dir,
+        use_cached_expl=use_cached_expl,
     )["score"]
+
+    if expected_score is None:
+        # No hardcoded reference: assert equivalence with a direct
+        # MislabelingDetectionMetric call using the same precomputed
+        # tensor + remapped indices. This pins down the cache-load +
+        # subset-remap path without depending on a magic number.
+        train_subset = _subsample_dataset(
+            train_dataset, max_n=max_eval_n, seed=eval_seed
+        )
+        reference_si = torch.arange(len(train_subset), dtype=torch.float32)
+        reference_metric = MislabelingDetectionMetric(
+            model=model,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            train_dataset=train_subset,
+            mislabeling_indices=train_subset.transform_indices,
+            precomputed_self_influence=reference_si,
+        )
+        expected_score = reference_metric.compute()["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
 

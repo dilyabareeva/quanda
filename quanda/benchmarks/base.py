@@ -40,24 +40,28 @@ def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
     return hashlib.sha1(payload.encode()).hexdigest()[:10]
 
 
-def _subsample_eval_dataset(
-    eval_dataset: torch.utils.data.Dataset,
-    max_eval_n: Optional[int],
+def _subsample_dataset(
+    dataset: torch.utils.data.Dataset,
+    max_n: Optional[int],
     seed: int,
 ) -> torch.utils.data.Dataset:
-    """Deterministically subsample the eval dataset.
+    """Deterministically subsample a dataset.
 
     Subsampling is reproducible across platforms because it uses Python's
     ``random.Random(seed).sample`` over ``range(N)`` and stores the indices
-    in sorted order.
+    in sorted order. For datasets that expose ``filtered`` (e.g.
+    ``TransformedDataset``), that is used instead of ``Subset`` so the
+    subset preserves the original type and remaps any transform indices.
     """
-    if max_eval_n is None:
-        return eval_dataset
-    n = len(eval_dataset)  # type: ignore[arg-type]
-    if max_eval_n >= n:
-        return eval_dataset
-    indices = sorted(random.Random(seed).sample(range(n), max_eval_n))
-    return torch.utils.data.Subset(eval_dataset, indices)
+    if max_n is None:
+        return dataset
+    n = len(dataset)  # type: ignore[arg-type]
+    if max_n >= n:
+        return dataset
+    indices = sorted(random.Random(seed).sample(range(n), max_n))
+    if hasattr(dataset, "filtered"):
+        return dataset.filtered(indices)
+    return torch.utils.data.Subset(dataset, indices)
 
 
 def default_explanations_id(
@@ -71,7 +75,9 @@ def default_explanations_id(
 
     ``max_eval_n`` and ``eval_seed`` are encoded in the id so that cached
     explanations stay coupled to the exact eval-dataset subsample they
-    were computed on.
+    were computed on. For benchmarks driven by training-data
+    self-influence (e.g. MislabelingDetection), these same parameters
+    describe the train-dataset subsample instead.
     """
     repo = config.get("repo_id", "quanda-bench-test")
     bench_id = config["id"]
@@ -912,8 +918,8 @@ class Benchmark(ABC):
         If ``precomputed_explanations`` is provided, batch ``i`` is read from
         the cache; otherwise ``explainer.explain`` is called.
         """
-        eval_dataset = _subsample_eval_dataset(
-            eval_dataset, max_eval_n=max_eval_n, seed=eval_seed
+        eval_dataset = _subsample_dataset(
+            eval_dataset, max_n=max_eval_n, seed=eval_seed
         )
         ds_handler = get_dataset_handler(dataset=eval_dataset)
         expl_dl = ds_handler.create_dataloader(
