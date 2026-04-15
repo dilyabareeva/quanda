@@ -26,10 +26,9 @@ hydra:
     n_trials: 20
     n_jobs: 3
     params:
-      model.trainer.lr: choice(1.0e-3, 5.0e-4, 1.0e-4)
-      model.trainer.max_epochs: choice(10, 20)
+      model.trainer.max_epochs: choice(20, 30)
 
-id: "default"
+id: "bert_qnli"
 bench: LDS
 bench_save_dir: "bench_out"
 log_dir: hydra_logs

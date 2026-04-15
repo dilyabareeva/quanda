@@ -59,7 +59,7 @@ run_bench() {
 for bench in "${benchmarks[@]}"; do
     params="${BENCH_PARAMS[$bench]}"
     sweep="${BENCH_SWEEP[$bench]}"
-    id="${commit_tag}-default_${bench}"
+    id="${commit_tag}-${CONFIG_NAME}_${bench}"
     if [ "$PARALLEL" = true ]; then
         run_bench "$bench" "$params" "$sweep" "$id" > "logs/${bench}.log" 2>&1 &
     else

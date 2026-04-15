@@ -191,6 +191,7 @@ class BenchConfigParser:
             "enable_progress_bar": trainer_cfg.get(
                 "enable_progress_bar", True
             ),
+            "gradient_clip_val": trainer_cfg.get("gradient_clip_val", None),
         }
 
         return Trainer(**trainer_kwargs)

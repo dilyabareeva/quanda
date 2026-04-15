@@ -9,10 +9,10 @@ tokenizer:
   max_length: 128
   label_field: "label"
 indices:
-  split_filename: "qnli_train_split.yaml"
+  split_filename: "qnli_train_50k_split.yaml"
   split_name: val
   split_ratios:
-    train: 0.9
+    train: 0.47736
     val: 0.1
     test: 0.0
   seed: 42

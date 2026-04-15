@@ -3,7 +3,7 @@
   transforms: "adversarial_transforms"
   dataset_str: "quanda-bench-test/fashion_mnist_unit"
   indices:
-    split_filename: "fashion_mnist_split.yaml"
+    split_filename: "fashion_mnist_unit_split.yaml"
     split_ratios:
       train: 0.34
       val: 0.33

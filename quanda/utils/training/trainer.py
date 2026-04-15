@@ -91,6 +91,7 @@ class Trainer(BaseTrainer):
         seed: int = 27,
         num_workers: int = 0,
         enable_progress_bar: bool = True,
+        gradient_clip_val: Optional[float] = None,
     ):
         """Construct the Trainer class.
 
@@ -131,6 +132,7 @@ class Trainer(BaseTrainer):
         self.scheduler_kwargs = scheduler_kwargs or {}
         self.num_workers = num_workers
         self.enable_progress_bar = enable_progress_bar
+        self.gradient_clip_val = gradient_clip_val
 
         seed_everything(seed, workers=True)
 
@@ -189,6 +191,7 @@ class Trainer(BaseTrainer):
             accelerator=accelerator,
             logger=self.logger,
             enable_progress_bar=self.enable_progress_bar,
+            gradient_clip_val=self.gradient_clip_val,
         )
         trainer.fit(module, train_dataloaders, val_dataloaders)
 
