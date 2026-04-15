@@ -1,0 +1,114 @@
+"""Evaluate an explainer on a pretrained MNIST benchmark (Hydra entry)."""
+
+from __future__ import annotations
+
+import json
+import os
+
+import hydra
+import yaml
+from hydra.utils import get_class, instantiate
+from omegaconf import DictConfig, OmegaConf
+
+from quanda.benchmarks import bench_dict
+from quanda.benchmarks.base import default_explanations_id
+from quanda.benchmarks.resources.config_map import config_map
+
+BENCH_CLASS = {
+    "mnist_class_detection": "ClassDetection",
+    "mnist_subclass_detection": "SubclassDetection",
+    "mnist_mislabeling_detection": "MislabelingDetection",
+    "mnist_shortcut_detection": "ShortcutDetection",
+    "mnist_mixed_datasets": "MixedDatasets",
+    "mnist_top_k_cardinality": "TopKCardinality",
+    "mnist_model_randomization": "ModelRandomization",
+    "mnist_linear_datamodeling": "LDS",
+}
+
+
+@hydra.main(
+    version_base=None,
+    config_path="../../config/eval",
+    config_name="mnist_lenet",
+)
+def main(cfg: DictConfig) -> float:
+    bench_id = cfg.bench
+    expl_cls = get_class(cfg.explainer.cls)
+    expl_kwargs = instantiate(cfg.explainer.kwargs, _convert_="all")
+
+    with open(str(config_map[bench_id])) as f:
+        bench_cfg = yaml.safe_load(f)
+    bench_cfg["bench_save_dir"] = cfg.cache_dir
+
+    bench_cls = bench_dict[BENCH_CLASS[bench_id]]
+
+    max_eval_n = cfg.get("max_eval_n", 1000)
+    eval_seed = cfg.get("eval_seed", 42)
+
+    explanations_id = default_explanations_id(
+        bench_cfg,
+        expl_cls,
+        expl_kwargs,
+        max_eval_n=max_eval_n,
+        eval_seed=eval_seed,
+    )
+    tag = explanations_id.replace("/", "__")
+    expl_kwargs.setdefault("model_id", tag)
+    expl_kwargs.setdefault(
+        "cache_dir", os.path.join(cfg.cache_dir, "explainers")
+    )
+
+    print(f"[run] {tag}")
+    expl_save_dir = os.path.join(cfg.cache_dir, "explanations", tag)
+    bench_cls.explain(
+        config=bench_cfg,
+        explainer_cls=expl_cls,
+        expl_kwargs=expl_kwargs,
+        batch_size=cfg.batch_size,
+        cache_dir=expl_save_dir,
+        device=cfg.device,
+        max_eval_n=max_eval_n,
+        eval_seed=eval_seed,
+    )
+    bench = bench_cls.load_pretrained(
+        bench_id=bench_id,
+        cache_dir=cfg.cache_dir,
+        device=cfg.device,
+    )
+    score = bench.evaluate(
+        explainer_cls=expl_cls,
+        expl_kwargs=expl_kwargs,
+        batch_size=cfg.batch_size,
+        max_eval_n=max_eval_n,
+        eval_seed=eval_seed,
+        cache_dir=expl_save_dir,
+        use_cached_expl=True,
+    )
+
+    os.makedirs(cfg.results_dir, exist_ok=True)
+    out = os.path.join(cfg.results_dir, f"{tag}.json")
+    resolved = OmegaConf.to_container(cfg, resolve=True)
+    with open(out, "w") as f:
+        json.dump(
+            {
+                "bench_id": bench_id,
+                "method": cfg.explainer.name,
+                "expl_kwargs": {k: repr(v) for k, v in expl_kwargs.items()},
+                "score": score,
+                "resolved": resolved,
+            },
+            f,
+            indent=2,
+            default=str,
+        )
+    scalar = (
+        score
+        if isinstance(score, (int, float))
+        else (next(iter(score.values())) if isinstance(score, dict) else 0.0)
+    )
+
+    return float(scalar)
+
+
+if __name__ == "__main__":
+    main()

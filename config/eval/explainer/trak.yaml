@@ -1,0 +1,7 @@
+name: trak
+cls: quanda.explainers.wrappers.TRAK
+kwargs:
+  projector: cuda
+  proj_dim: 2048
+  batch_size: 64
+  load_from_disk: true

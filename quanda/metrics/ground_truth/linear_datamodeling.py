@@ -152,12 +152,11 @@ class LinearDatamodelingMetric(Metric):
         if subset_ckpt_filenames is None:
             self.subset_ckpt_filenames = self.train_subset_models()
         else:
-            # TODO: validate that the checkpoints exist
             self.subset_ckpt_filenames = subset_ckpt_filenames
 
     @classmethod
     def _validate_parameters(
-        cls, correlation_fn, subset_ids, pretrained_models, trainer
+        cls, correlation_fn, subset_ids, subset_ckpt_filenames, trainer
     ):
         if not (
             (
@@ -173,13 +172,13 @@ class LinearDatamodelingMetric(Metric):
             )
         if (
             trainer is None
-            and pretrained_models is None
+            and subset_ckpt_filenames is None
             and subset_ids is None
         ):
             raise ValueError(
-                "Invalid combination of argumetns."
+                "Invalid combination of arguments. "
                 "Either trainer should be given, "
-                "or both pretrained_models and subset_ids"
+                "or both subset_ckpt_filenames and subset_ids "
                 "should be specified."
             )
 
@@ -268,6 +267,7 @@ class LinearDatamodelingMetric(Metric):
         batch_size: int = 32,
         trainer_fit_kwargs: Optional[dict] = None,
         reinit: bool = True,
+        device: Optional[str] = None,
     ):
         """Train a model on a subset of the data.
 
@@ -288,6 +288,9 @@ class LinearDatamodelingMetric(Metric):
             If True, reinitialize model weights before training
             (train from scratch). Required for proper LDS evaluation.
             By default True.
+        device : Optional[str], optional
+            Device to train the model on, by default None. If None, uses
+            cuda if available, otherwise cpu.
 
         Returns
         -------
@@ -324,10 +327,20 @@ class LinearDatamodelingMetric(Metric):
                     "Model should be a torch.nn.Module if Trainer is a "
                     "BaseTrainer"
                 )
+            fit_kwargs = dict(trainer_fit_kwargs)
+            if device is not None and "accelerator" not in fit_kwargs:
+                if "cuda" in device:
+                    fit_kwargs["accelerator"] = "gpu"
+                    fit_kwargs["devices"] = (
+                        int(device.split(":")[-1]) if ":" in device else 0
+                    )
+                else:
+                    fit_kwargs["accelerator"] = device
+                    fit_kwargs["devices"] = 1
             trainer.fit(
                 model=subset_model,
                 train_dataloaders=subset_loader,
-                **trainer_fit_kwargs,
+                **fit_kwargs,
             )
         else:
             raise ValueError(

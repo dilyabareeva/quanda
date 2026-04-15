@@ -49,18 +49,41 @@ class BatchedCachedExplanations:
         self.device = device
 
         self.av_filesearch = os.path.join(cache_dir, "*.pt")
-        self.files = glob.glob(self.av_filesearch)
+        files = glob.glob(self.av_filesearch)
+
+        # Index files by their num_id (filename stem). Numeric stems
+        # are stored as ints so int lookups (e.g. batch index) work.
+        self._by_id: dict = {}
+        for fl in files:
+            stem = os.path.splitext(os.path.basename(fl))[0]
+            key: Union[int, str] = (
+                int(stem) if stem.lstrip("-").isdigit() else stem
+            )
+            self._by_id[key] = fl
+
+        self.files = [
+            self._by_id[k]
+            for k in sorted(
+                self._by_id.keys(),
+                key=lambda x: (isinstance(x, str), x),
+            )
+        ]
         self.batch_size = torch.load(
             self.files[0], map_location=self.device, weights_only=True
         ).shape[0]
 
-    def __getitem__(self, idx: int) -> torch.Tensor:
-        """Get the explanation at the specified index.
+    def keys(self):
+        """Return the num_ids available in the cache."""
+        return list(self._by_id.keys())
+
+    def __getitem__(self, num_id: Union[int, str]) -> torch.Tensor:
+        """Load the explanation tensor saved with the given ``num_id``.
 
         Parameters
         ----------
-        idx: int
-            Index of the explanation.
+        num_id: Union[int, str]
+            Identifier the tensor was saved under via
+            :meth:`ExplanationsCache.save`.
 
         Returns
         -------
@@ -68,11 +91,12 @@ class BatchedCachedExplanations:
             The explanation at the specified index.
 
         """
-        assert idx < len(self.files), "Layer index is out of bounds!"
-        fl = self.files[idx]
-        xpl = torch.load(fl, map_location=self.device, weights_only=True)
-
-        return xpl
+        if num_id not in self._by_id:
+            raise KeyError(
+                f"num_id {num_id!r} not found in cache {self.cache_dir}."
+            )
+        fl = self._by_id[num_id]
+        return torch.load(fl, map_location=self.device, weights_only=True)
 
     def __len__(self) -> int:
         """Get the number of explanations in the cache.

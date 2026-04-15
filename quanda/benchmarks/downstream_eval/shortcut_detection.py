@@ -3,7 +3,6 @@
 from typing import List, Optional
 
 import torch
-from torch.utils.data import Subset
 
 from quanda.benchmarks.base import Benchmark
 from quanda.metrics.downstream_eval.shortcut_detection import (
@@ -157,13 +156,13 @@ class ShortcutDetection(Benchmark):
         assert isinstance(self.eval_dataset, SampleTransformationDataset)
 
         train_dl = torch.utils.data.DataLoader(
-            Subset(self.train_dataset, self.train_dataset.transform_indices),
+            self.train_dataset.filtered(self.train_dataset.transform_indices),
             batch_size=batch_size,
             shuffle=False,
         )
 
         eval_dl = torch.utils.data.DataLoader(
-            Subset(self.eval_dataset, self.eval_dataset.transform_indices),
+            self.eval_dataset.filtered(self.eval_dataset.transform_indices),
             batch_size=batch_size,
             shuffle=False,
         )
@@ -227,6 +226,11 @@ class ShortcutDetection(Benchmark):
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
+        max_eval_n: Optional[int] = 1000,
+        eval_seed: int = 42,
+        cache_dir: Optional[str] = None,
+        use_cached_expl: bool = False,
+        use_hf_expl: bool = False,
     ):
         """Evaluate the given data attributor.
 
@@ -238,6 +242,20 @@ class ShortcutDetection(Benchmark):
             Additional keyword arguments for the explainer, by default None.
         batch_size : int, optional
             Batch size to be used for the evaluation, default to 8.
+        max_eval_n: Optional[int], optional
+            Maximum number of evaluation samples to use. If None, uses the
+            entire evaluation dataset. By default 1000.
+        eval_seed: int, optional
+            Random seed for evaluation sampling, by default 42.
+        cache_dir: Optional[str], optional
+            Directory where cached explanations are stored. Required if
+            `use_cached_expl` or `use_hf_expl` is True. By default None.
+        use_cached_expl: bool, optional
+            Whether to use cached explanations, by default False.
+        use_hf_expl: bool, optional
+            Whether to use Hugging Face cached explanations, by default False.
+            If use_cached_expl is also True, will prioritize local cache over
+            HF cache.
 
         Returns
         -------
@@ -245,10 +263,19 @@ class ShortcutDetection(Benchmark):
             Dictionary containing the evaluation results.
 
         """
-        explainer = self._prepare_explainer(
-            dataset=self.train_dataset,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
+        precomputed = self._resolve_precomputed_explanations(
+            cache_dir=cache_dir,
+            use_cached_expl=use_cached_expl,
+            use_hf_expl=use_hf_expl,
+        )
+        explainer = (
+            None
+            if precomputed is not None
+            else self._prepare_explainer(
+                dataset=self.train_dataset,
+                explainer_cls=explainer_cls,
+                expl_kwargs=expl_kwargs,
+            )
         )
 
         assert isinstance(self.train_dataset, SampleTransformationDataset)
@@ -267,6 +294,9 @@ class ShortcutDetection(Benchmark):
             explainer=explainer,
             metric=metric,
             batch_size=batch_size,
+            max_eval_n=max_eval_n,
+            eval_seed=eval_seed,
+            precomputed_explanations=precomputed,
         )
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):

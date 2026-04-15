@@ -1,6 +1,6 @@
 """Dataset wrapper for label flipping transformation."""
 
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 
 from torch.utils.data import Dataset
 
@@ -50,6 +50,19 @@ class LabelFlippingDataset(TransformedDataset):
             or metadata.generate_mislabeling_labels(dataset)
         )
         self.metadata.validate(dataset)
+
+    def apply_filter(self, filter_indices: List[int]) -> None:
+        """Apply a filter and remap mislabeling labels to new positions."""
+        old_to_new = {int(old): new for new, old in enumerate(filter_indices)}
+        remapped_labels = {
+            old_to_new[idx]: label
+            for idx, label in self.mislabeling_labels.items()
+            if idx in old_to_new
+        }
+        super().apply_filter(filter_indices)
+        self.mislabeling_labels = remapped_labels
+        assert isinstance(self.metadata, LabelFlippingMetadata)
+        self.metadata.mislabeling_labels = remapped_labels
 
     def __getitem__(self, idx: int):
         """Get a sample by index.

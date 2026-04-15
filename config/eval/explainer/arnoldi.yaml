@@ -1,0 +1,11 @@
+name: arnoldi
+cls: quanda.explainers.wrappers.CaptumArnoldi
+kwargs:
+  loss_fn:
+    _target_: torch.nn.CrossEntropyLoss
+    reduction: none
+  projection_dim: 50
+  arnoldi_dim: 100
+  batch_size: 256
+  layers:
+    - fc_3

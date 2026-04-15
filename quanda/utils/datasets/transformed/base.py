@@ -1,5 +1,6 @@
 """Base class for transformed datasets."""
 
+import copy
 from abc import ABC
 from typing import Any, Callable, List, Optional
 
@@ -83,3 +84,11 @@ class TransformedDataset(Dataset, ABC):
         self.metadata.transform_indices = self.transform_indices
         # Apply the subset
         self.dataset = torch.utils.data.Subset(self.dataset, filter_indices)
+
+    def filtered(self, filter_indices: List[int]) -> "TransformedDataset":
+        """Return a new filtered dataset without mutating this one."""
+        new = copy.copy(self)
+        new.metadata = copy.copy(self.metadata)
+        new.transform_indices = list(self.transform_indices)
+        new.apply_filter(filter_indices)
+        return new

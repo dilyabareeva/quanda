@@ -45,7 +45,7 @@ config_map: dict = {
     ).joinpath("ad1b983-default_ClassDetection.yaml"),
     "mnist_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("e978fe8-default_LDS.yaml"),
+    ).joinpath("0b3b2bb-default_LDS.yaml"),
     "cifar_class_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("bdb919e-default_ClassDetection.yaml"),
@@ -69,7 +69,7 @@ config_map: dict = {
     ).joinpath("bdb919e-default_MislabelingDetection.yaml"),
     "cifar_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("bdb919e-default_LDS.yaml"),
+    ).joinpath("a701608-default_LDS.yaml"),
     "qnli_class_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("584a930-default_ClassDetection.yaml"),
