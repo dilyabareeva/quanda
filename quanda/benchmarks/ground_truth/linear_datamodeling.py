@@ -343,9 +343,14 @@ class LinearDatamodeling(Benchmark):
         seed = config["seed"]
 
         ckpt = config["ckpts"][-1]
+        local_ckpt_dir = os.path.join(
+            config.get("bench_save_dir", "./tmp"),
+            "ckpt",
+            ckpt.split("/")[-1],
+        )
 
         subset_ckpt_filenames = [
-            _get_i_subset_ckpt_name(ckpt, i) for i in range(m)
+            _get_i_subset_ckpt_name(local_ckpt_dir, i) for i in range(m)
         ]
         counterfactual_trainer_cfg = config.get(
             "counterfactual_trainer",

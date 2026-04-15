@@ -133,7 +133,7 @@ def test_benchmark_explain_and_precomputed_evaluate_match(
     assert math.isclose(noop_score, baseline, abs_tol=1e-6)
 
     # Missing cache_dir when flags are set should raise.
-    with pytest.raises(ValueError, "cache_dir must be provided"):
+    with pytest.raises(ValueError, match="cache_dir must be provided"):
         fresh.evaluate(
             explainer_cls=CaptumSimilarity,
             expl_kwargs=expl_kwargs,
