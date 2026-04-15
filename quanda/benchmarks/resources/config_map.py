@@ -69,5 +69,5 @@ config_map: dict = {
     ).joinpath("bdb919e-default_MislabelingDetection.yaml"),
     "cifar_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("bdb919e-default_LDS.yaml"),
+    ).joinpath("a701608-default_LDS.yaml"),
 }

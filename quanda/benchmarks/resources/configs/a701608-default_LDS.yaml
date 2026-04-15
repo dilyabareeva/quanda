@@ -1,0 +1,73 @@
+model:
+  module:
+    name: ResNet9
+    args:
+      num_classes: 10
+  trainer:
+    optimizer: adam
+    optimizer_kwargs:
+      weight_decay: 0.0
+    criterion: cross_entropy
+    criterion_kwargs: {}
+    scheduler: constant
+    scheduler_kwargs:
+      last_epoch: -1
+    lr: 0.001
+    max_epochs: 5
+    seed: 42
+    num_workers: 8
+    enable_progress_bar: false
+train_dataset:
+  dataset_str: uoft-cs/cifar10
+  dataset_split: train
+  transforms: cifar10_transforms
+  indices:
+    split_filename: cifar10_train_split.yaml
+    split_name: train
+    split_ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42
+eval_dataset:
+  dataset_str: uoft-cs/cifar10
+  dataset_split: test
+  transforms: cifar10_transforms
+  indices: all
+val_dataset:
+  dataset_str: uoft-cs/cifar10
+  dataset_split: train
+  transforms: cifar10_transforms
+  indices:
+    split_filename: cifar10_train_split.yaml
+    split_name: val
+    split_ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42
+logger:
+  _target_: lightning.pytorch.loggers.wandb.WandbLogger
+  save_dir: hydra_logs/wandb/
+  project: quanda-bench
+id: a701608-default_LDS
+bench: LDS
+adversarial_label: 0
+bench_save_dir: bench_out
+log_dir: hydra_logs
+repo_id: quanda-bench-test
+cache_dir: tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
+offline: true
+seed: 42
+device: cuda:1
+m: 100
+alpha: 0.5
+subset_ids: lds_subsets.yaml
+ckpts:
+- quanda-bench-test/a701608-default_LDS
+meta_id: quanda-bench-test/a701608-default_LDS_metadata
+cfg_file_name: a701608-default_LDS.yaml
+cfg_output_dir: quanda/benchmarks/resources/configs
