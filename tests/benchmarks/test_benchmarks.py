@@ -738,11 +738,12 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
             batch=batch,
             device=device,
         )
-        correct_idx = torch.tensor([True] * len(inputs)).to(inputs.device)
+        batch_len = len(labels)
+        correct_idx = torch.tensor([True] * batch_len).to(labels.device)
 
         if not filter_by_prediction:
             correct += correct_idx.sum().item()
-            total += len(inputs)
+            total += batch_len
             continue
         model_inputs = ds_handler.get_model_inputs(inputs=inputs)
         outputs = (

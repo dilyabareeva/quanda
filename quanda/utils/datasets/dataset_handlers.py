@@ -314,7 +314,8 @@ class HuggingFaceDatasetHandler(DatasetHandler):
             The extracted predictions.
 
         """
-        return outputs.logits.argmax(dim=-1)
+        logits = outputs.logits if hasattr(outputs, "logits") else outputs
+        return logits.argmax(dim=-1)
 
     def create_dataloader(
         self,
@@ -370,6 +371,11 @@ def get_dataset_handler(
     """
     inner = getattr(dataset, "dataset", None)
     if inner is not None and not isinstance(dataset, datasets.Dataset):
+        if (
+            isinstance(inner, datasets.Dataset)
+            and "labels" not in inner.features
+        ):
+            return TorchDatasetHandler()
         return get_dataset_handler(inner)
     if isinstance(dataset, datasets.Dataset):
         if "labels" not in dataset.features:

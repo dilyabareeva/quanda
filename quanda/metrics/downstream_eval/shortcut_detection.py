@@ -125,6 +125,10 @@ class ShortcutDetectionMetric(Metric):
             `filter_by_shortcut_pred` is True.
 
         """
+        self.device = str(next(self.model.parameters()).device)
+        self.binary_shortcut_indices = self.binary_shortcut_indices.to(
+            self.device
+        )
         explanations = explanations.to(self.device)
 
         if test_data is None and self.filter_by_non_shortcut:

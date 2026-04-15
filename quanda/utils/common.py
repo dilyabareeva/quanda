@@ -487,11 +487,14 @@ class DatasetSplit(ABC):
             return cls(splits=splits)
 
     def save(self, path: str, name: str) -> None:
-        """Save the split to disk."""
+        """Save the split to disk atomically."""
         os.makedirs(path, exist_ok=True)
         data = {k: v.tolist() for k, v in self.splits.items()}
-        with open(os.path.join(path, name), "w") as f:
+        final_path = os.path.join(path, name)
+        tmp_path = f"{final_path}.tmp.{os.getpid()}"
+        with open(tmp_path, "w") as f:
             yaml.safe_dump(data, f)
+        os.replace(tmp_path, final_path)
 
     def to_dict(self) -> Dict[str, torch.Tensor]:
         """Convert splits to dictionary."""
