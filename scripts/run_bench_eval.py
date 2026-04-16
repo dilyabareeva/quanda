@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import os
 
@@ -28,7 +29,7 @@ BENCH_CLASS = {
 
 @hydra.main(
     version_base=None,
-    config_path="../../config/eval",
+    config_path="../config/eval",
     config_name="mnist_lenet",
 )
 def main(cfg: DictConfig) -> float:
@@ -53,23 +54,33 @@ def main(cfg: DictConfig) -> float:
         eval_seed=eval_seed,
     )
     tag = explanations_id.replace("/", "__")
-    expl_kwargs.setdefault("model_id", tag)
-    expl_kwargs.setdefault(
-        "cache_dir", os.path.join(cfg.cache_dir, "explainers")
-    )
+    expl_params = inspect.signature(expl_cls).parameters
+    if "model_id" in expl_params:
+        expl_kwargs.setdefault("model_id", tag)
+    if "cache_dir" in expl_params:
+        expl_kwargs.setdefault(
+            "cache_dir",
+            os.path.join(
+                cfg.cache_dir, "explainers", cfg.explainer.name, tag
+            ),
+        )
 
     print(f"[run] {tag}")
     expl_save_dir = os.path.join(cfg.cache_dir, "explanations", tag)
-    bench_cls.explain(
-        config=bench_cfg,
-        explainer_cls=expl_cls,
-        expl_kwargs=expl_kwargs,
-        batch_size=cfg.batch_size,
-        cache_dir=expl_save_dir,
-        device=cfg.device,
-        max_eval_n=max_eval_n,
-        eval_seed=eval_seed,
-    )
+    expl_meta = os.path.join(expl_save_dir, "explanations_config.yaml")
+    if os.path.exists(expl_meta):
+        print(f"[run] reusing cached explanations at {expl_save_dir}")
+    else:
+        bench_cls.explain(
+            config=bench_cfg,
+            explainer_cls=expl_cls,
+            expl_kwargs=expl_kwargs,
+            batch_size=cfg.batch_size,
+            cache_dir=expl_save_dir,
+            device=cfg.device,
+            max_eval_n=max_eval_n,
+            eval_seed=eval_seed,
+        )
     bench = bench_cls.load_pretrained(
         bench_id=bench_id,
         cache_dir=cfg.cache_dir,

@@ -8,7 +8,7 @@
 
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
-PARALLEL=false
+PARALLEL=true
 CACHE_DIR="${CACHE_DIR:-./tmp_bench}"
 RESULTS_DIR="${RESULTS_DIR:-./eval_results}"
 DEVICE="${DEVICE:-cpu}"
