@@ -74,7 +74,7 @@ class ClassDetection(Benchmark):
         }
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
-        """Filter eval dataset by prediction correctness and persist indices."""
+        """Filter eval dataset by prediction correctness and save indices."""
         super()._compute_and_save_filter_by_labels_and_prediction(
             config=config,
             batch_size=batch_size,

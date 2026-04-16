@@ -526,9 +526,7 @@ class Benchmark(ABC):
             create_repo(repo_id=repo_id, exist_ok=True)
             for i, snapshot_dir in enumerate(obj.checkpoints, start=1):
                 revision = f"epoch_{i}"
-                create_branch(
-                    repo_id=repo_id, branch=revision, exist_ok=True
-                )
+                create_branch(repo_id=repo_id, branch=revision, exist_ok=True)
                 upload_folder(
                     folder_path=snapshot_dir,
                     repo_id=repo_id,
@@ -1112,6 +1110,7 @@ class Benchmark(ABC):
                     [self.class_to_group[i.item()] for i in labels],
                     device=labels.device,
                 )
+                data_unit["test_targets"] = labels
                 if not self.use_predictions:
                     data_unit["targets"] = data_unit["grouped_labels"]
 

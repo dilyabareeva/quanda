@@ -81,9 +81,7 @@ class LabelFlippingDataset(TransformedDataset):
         """
         item = self.dataset[idx]
         if idx in self.transform_indices:
-            item = self.handler.with_label(
-                item, self.mislabeling_labels[idx]
-            )
+            item = self.handler.with_label(item, self.mislabeling_labels[idx])
         if isinstance(self.handler, HuggingFaceDatasetHandler):
             return item
         sample, label = item

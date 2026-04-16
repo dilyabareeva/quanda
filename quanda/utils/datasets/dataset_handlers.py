@@ -97,7 +97,6 @@ class DatasetHandler(ABC):
         """
         pass
 
-
     @abstractmethod
     def get_label(self, item: Any) -> Any:
         """Extract the label from a single dataset item.
@@ -243,9 +242,7 @@ class HuggingFaceDatasetHandler(DatasetHandler):
         """Extract the label from a HuggingFace dict item."""
         return item["labels"]
 
-    def with_label(
-        self, item: Dict[str, Any], label: Any
-    ) -> Dict[str, Any]:
+    def with_label(self, item: Dict[str, Any], label: Any) -> Dict[str, Any]:
         """Return a HuggingFace dict item with ``labels`` replaced."""
         new_item = dict(item)
         existing = item.get("labels")

@@ -60,9 +60,7 @@ def main(cfg: DictConfig) -> float:
     if "cache_dir" in expl_params:
         expl_kwargs.setdefault(
             "cache_dir",
-            os.path.join(
-                cfg.cache_dir, "explainers", cfg.explainer.name, tag
-            ),
+            os.path.join(cfg.cache_dir, "explainers", cfg.explainer.name, tag),
         )
 
     print(f"[run] {tag}")

@@ -47,6 +47,8 @@ class BaseTrainer(metaclass=abc.ABCMeta):
             all available).
         seed: int
             Random seed.
+        callbacks: Optional[List[L.Callback]]
+            Lightning callbacks to attach to the trainer, defaults to None.
         trainer_fit_kwargs: Optional[dict]
             Additional keyword arguments to pass to the trainer's fit method,
             defaults to None.
@@ -121,6 +123,9 @@ class Trainer(BaseTrainer):
         enable_progress_bar : bool, optional
             Whether to enable the progress bar during training, by
             default True.
+        gradient_clip_val : Optional[float], optional
+            Value to use for gradient clipping, by default None
+            (i.e. no gradient clipping).
 
         """
         self.optimizer = optimizer
@@ -170,6 +175,8 @@ class Trainer(BaseTrainer):
             all available).
         seed: int
             Random seed.
+        callbacks : Optional[List[L.Callback]]
+            Lightning callbacks to attach to the trainer, defaults to None.
         args : Any
             Additional arguments to pass to the fit method.
         kwargs : Any

@@ -9,10 +9,11 @@ from typing import Dict, List, Literal, Optional, Type, TypeVar, Union
 import torch
 import yaml
 from omegaconf import DictConfig, ListConfig, OmegaConf
-from quanda.utils.datasets.dataset_handlers import (
-            get_dataset_handler,
-)
+
 from quanda.utils.common import ds_len
+from quanda.utils.datasets.dataset_handlers import (
+    get_dataset_handler,
+)
 
 # Define a type variable bound to DatasetMetadata
 T = TypeVar("T", bound="DatasetMetadata")
