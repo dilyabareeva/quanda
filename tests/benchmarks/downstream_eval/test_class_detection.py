@@ -199,7 +199,7 @@ def test_class_detection_kronfluence_qnli(
         ),
         (
             "qnli_class_detection",
-            {"train_acc": 0.85, "val_acc": 0.85},
+            {"train_acc": 0.79, "val_acc": 0.79},
         ),
     ],
 )

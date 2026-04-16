@@ -20,6 +20,6 @@ wrapper:
   type: "LabelFlippingDataset"
   metadata:
       metadata_filename: "qnli_train_mislabeling_transform_indices.yaml"
-      p: 0.1
+      p: 0.02
       seed: 43
       n_classes: 2

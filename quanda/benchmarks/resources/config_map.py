@@ -72,16 +72,16 @@ config_map: dict = {
     ).joinpath("a701608-default_LDS.yaml"),
     "qnli_class_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("584a930-default_ClassDetection.yaml"),
+    ).joinpath("eaea7be-bert_qnli_ClassDetection.yaml"),
     "qnli_top_k_cardinality": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("584a930-default_ClassDetection.yaml"),
+    ).joinpath("eaea7be-bert_qnli_ClassDetection.yaml"),
     "qnli_model_randomization": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("584a930-default_ClassDetection.yaml"),
+    ).joinpath("eaea7be-bert_qnli_ClassDetection.yaml"),
     "qnli_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("584a930-default_MislabelingDetection.yaml"),
+    ).joinpath("6d2fd20-bert_qnli_MislabelingDetection.yaml"),
     "qnli_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("584a930-default_LDS.yaml"),

@@ -23,7 +23,7 @@ hydra:
       - maximize
     study_name: "${cfg_file_name}"
     storage: null
-    n_trials: 20
+    n_trials: 2
     n_jobs: 3
     params:
       model.trainer.max_epochs: choice(20, 30)
@@ -42,7 +42,7 @@ seed: 42
 device: "auto"
 use_predictions: true
 
-m: 30
+m: 100
 alpha: 0.5
 
 subset_ids: lds_subsets.yaml

@@ -19,3 +19,5 @@ batch_size: 32
 
 max_eval_n: 1000
 eval_seed: 42
+
+final_fc_layer: fc_3
