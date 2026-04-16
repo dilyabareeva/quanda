@@ -39,14 +39,17 @@ def test_train_dataset_indexing_is_correct(config_name, tmp_path):
         offline=False,
     )
 
+    splits_cfg = cfg.get("splits", {})
     full_adv_dataset = BenchConfigParser.parse_dataset_cfg(
         ds_config=cfg["adv_dataset"],
         metadata_dir=metadata_dir,
+        splits_cfg=splits_cfg,
     )
     split_datasets = BenchConfigParser.split_dataset(
         dataset=full_adv_dataset,
         ds_config=cfg["adv_dataset"],
         metadata_dir=metadata_dir,
+        splits_cfg=splits_cfg,
     )
     adv_base_dataset = split_datasets["train"]
 

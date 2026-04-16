@@ -39,7 +39,7 @@ for i in "${!bench_types[@]}"; do
     echo "Config file name: $cfg_file_name"
     echo "Running with parameters: $params"
     echo "Saving output to: $cfg_output_dir/$cfg_file_name"
-    python scripts/generate_config.py hydra.run.dir="hydra_logs" bench=$bench $params id=$id +cfg_file_name=$cfg_file_name +cfg_output_dir=$cfg_output_dir num_checkpoints=1
+    python scripts/generate_config.py hydra.run.dir="hydra_logs" bench=$bench $params id=$id +cfg_file_name=$cfg_file_name bench_save_dir="tests/assets/mnist_local_bench" +cfg_output_dir=$cfg_output_dir num_checkpoints=1
     # Training the model
     python scripts/train.py bench=$bench bench_save_dir="tests/assets/mnist_local_bench" --config-name $cfg_file_name --config-dir $cfg_output_dir
     echo "Finished running with parameters: $params"

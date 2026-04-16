@@ -488,34 +488,45 @@ class Benchmark(ABC):
         batch_size: int = 64,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
-        obj = cls.train(
-            config,
-            logger=logger,
-            device=device,
-            batch_size=batch_size,
-        )
-        assert isinstance(obj.model, PyTorchModelHubMixin), (
-            "Model must inherit from PyTorchModelHubMixin."
-        )
-
-        repo_id = config["ckpt"]
-        num_checkpoints = int(config.get("num_checkpoints", 1))
-        if num_checkpoints <= 1:
-            obj.model.push_to_hub(repo_id)
+        skip_main_train = bool(config.get("skip_main_train", False))
+        if skip_main_train:
+            obj = cls.from_config(
+                config,
+                load_meta_from_disk=False,
+                device=device,
+            )
+            obj._compute_and_save_indices(config, batch_size)
         else:
-            # Push each local snapshot dir to a separate revision of the
-            # same repo. Loaders can fetch them via
-            # `from_pretrained(..., revision="epoch_<i>")` (see
-            # config_parser.parse_model_cfg).
-            create_repo(repo_id=repo_id, exist_ok=True)
-            for i, snapshot_dir in enumerate(obj.checkpoints, start=1):
-                revision = f"epoch_{i}"
-                create_branch(repo_id=repo_id, branch=revision, exist_ok=True)
-                upload_folder(
-                    folder_path=snapshot_dir,
-                    repo_id=repo_id,
-                    revision=revision,
-                )
+            obj = cls.train(
+                config,
+                logger=logger,
+                device=device,
+                batch_size=batch_size,
+            )
+            assert isinstance(obj.model, PyTorchModelHubMixin), (
+                "Model must inherit from PyTorchModelHubMixin."
+            )
+
+            repo_id = config["ckpt"]
+            num_checkpoints = int(config.get("num_checkpoints", 1))
+            if num_checkpoints <= 1:
+                obj.model.push_to_hub(repo_id)
+            else:
+                # Push each local snapshot dir to a separate revision of
+                # the same repo. Loaders can fetch them via
+                # `from_pretrained(..., revision="epoch_<i>")` (see
+                # config_parser.parse_model_cfg).
+                create_repo(repo_id=repo_id, exist_ok=True)
+                for i, snapshot_dir in enumerate(obj.checkpoints, start=1):
+                    revision = f"epoch_{i}"
+                    create_branch(
+                        repo_id=repo_id, branch=revision, exist_ok=True
+                    )
+                    upload_folder(
+                        folder_path=snapshot_dir,
+                        repo_id=repo_id,
+                        revision=revision,
+                    )
 
         pid_suffix = getattr(obj, "_pid_suffix", "")
         metadata_dir = BenchConfigParser.get_metadata_dir(

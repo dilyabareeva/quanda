@@ -3,7 +3,7 @@
 from importlib.resources import files
 
 _unit = "tests/assets/unit_bench_cfgs"
-_prefix = "4bcff01-default"
+_prefix = "3d2d93d-default"
 
 config_map: dict = {
     "mnist_linear_datamodeling_unit": (f"{_unit}/{_prefix}_LDS.yaml"),
@@ -84,5 +84,5 @@ config_map: dict = {
     ).joinpath("6d2fd20-bert_qnli_MislabelingDetection.yaml"),
     "qnli_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("584a930-default_LDS.yaml"),
+    ).joinpath("1ea9143-bert_qnli_LDS.yaml"),
 }

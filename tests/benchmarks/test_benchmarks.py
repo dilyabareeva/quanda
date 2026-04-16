@@ -39,7 +39,7 @@ from quanda.utils.functions import cosine_similarity
             MixedDatasets,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.007874015718698502,
+            0.004689957946538925,
         ),
         (
             "mnist",
@@ -49,7 +49,7 @@ from quanda.utils.functions import cosine_similarity
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.051058314740657806,
+            0.1663675308227539,
         ),
         (
             "mnist",
@@ -59,7 +59,7 @@ from quanda.utils.functions import cosine_similarity
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.8569128513336182,
+            0.49223580956459045,
         ),
         (
             "mnist",
@@ -69,7 +69,7 @@ from quanda.utils.functions import cosine_similarity
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.548,
+            0.558,
         ),
         (
             "mnist",
@@ -79,7 +79,7 @@ from quanda.utils.functions import cosine_similarity
             ClassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.8100000023841858,
+            0.38999998569488525,
         ),
         (
             "mnist",
@@ -89,7 +89,7 @@ from quanda.utils.functions import cosine_similarity
             SubclassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.12999999523162842,
+            0.699999988079071,
         ),
     ],
 )
@@ -305,7 +305,7 @@ def test_filter_missing_shortcut_cls(
             MixedDatasets,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.007874015718698502,
+            0.00496224220842123,
         ),
         (
             "mnist-class",
@@ -315,7 +315,7 @@ def test_filter_missing_shortcut_cls(
             ClassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.8100000023841858,
+            0.38999998569488525,
         ),
         (
             "mnist-mislabeling",
@@ -325,7 +325,7 @@ def test_filter_missing_shortcut_cls(
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.45566120743751526,
+            0.49223580956459045,
         ),
         (
             "mnist-mislabeling-download",
@@ -335,7 +335,7 @@ def test_filter_missing_shortcut_cls(
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.45566120743751526,
+            0.49223580956459045,
         ),
         (
             "mnist-shortcut",
@@ -345,7 +345,7 @@ def test_filter_missing_shortcut_cls(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.22792746126651764,
+            0.1663675308227539,
         ),
         (
             "mnist-shortcut-download",
@@ -355,7 +355,7 @@ def test_filter_missing_shortcut_cls(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.22792746126651764,
+            0.1663675308227539,
         ),
         (
             "mnist-subclass",
@@ -365,7 +365,7 @@ def test_filter_missing_shortcut_cls(
             SubclassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.18000000715255737,
+            0.699999988079071,
         ),
         (
             "mnist-linear-datamodeling",
@@ -375,7 +375,7 @@ def test_filter_missing_shortcut_cls(
             LinearDatamodeling,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.0833333432674408,
+            0.2120000123977661,
         ),
         (
             "mnist-top-k",
@@ -385,7 +385,7 @@ def test_filter_missing_shortcut_cls(
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.548,
+            0.558,
         ),
         (
             "mnist-rand",
@@ -395,7 +395,7 @@ def test_filter_missing_shortcut_cls(
             ModelRandomization,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.3090123236179352,
+            0.36709094047546387,
         ),
     ],
 )

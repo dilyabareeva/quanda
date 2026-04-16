@@ -36,7 +36,7 @@ from quanda.utils.functions import cosine_similarity
             42,
             False,
             False,
-            0.45566120743751526,
+            0.49223580956459045,
         ),
         (
             "mnist_subset_cached_mocked",
