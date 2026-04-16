@@ -20,14 +20,6 @@ model:
 train_dataset:
   dataset_str: uoft-cs/cifar10
   dataset_split: train
-  indices:
-    split_filename: cifar10_train_shortcut_split.yaml
-    split_name: train
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
   transforms: none
   wrapper:
     type: SampleTransformationDataset
@@ -38,11 +30,12 @@ train_dataset:
       seed: 42
     sample_fn: add_yellow_square
     dataset_transform: cifar10_transforms
+  split_ref: cifar10_train_shortcut
+  split_name: train
 eval_dataset:
   dataset_str: uoft-cs/cifar10
   dataset_split: test
   transforms: none
-  indices: all
   filter_indices:
     split_filename: cifar10_eval_shortcut_filter.yaml
     split_name: default
@@ -58,14 +51,6 @@ val_dataset:
   dataset_str: uoft-cs/cifar10
   dataset_split: train
   transforms: none
-  indices:
-    split_filename: cifar10_train_shortcut_split.yaml
-    split_name: val
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
   wrapper:
     type: SampleTransformationDataset
     metadata:
@@ -75,6 +60,8 @@ val_dataset:
       seed: 42
     sample_fn: add_yellow_square
     dataset_transform: cifar10_transforms
+  split_ref: cifar10_train_shortcut
+  split_name: val
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
@@ -102,3 +89,11 @@ filter_by_shortcut_pred: true
 filter_by_non_shortcut: true
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: bdb919e-default_ShortcutDetection.yaml
+splits:
+  cifar10_train_shortcut:
+    filename: cifar10_train_shortcut_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42

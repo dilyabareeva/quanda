@@ -52,3 +52,25 @@ subset_ids: lds_subsets.yaml
 ckpt: "${repo_id}/${id}"
 num_checkpoints: 5
 meta_id: "${repo_id}/${id}_metadata"
+
+splits:
+  cifar10_train:
+    filename: cifar10_train_split.yaml
+    ratios: {train: 0.8, val: 0.2, test: 0.0}
+    seed: 42
+  cifar10_train_subclass:
+    filename: cifar10_train_subclass_split.yaml
+    ratios: {train: 0.8, val: 0.2, test: 0.0}
+    seed: 42
+  cifar10_train_shortcut:
+    filename: cifar10_train_shortcut_split.yaml
+    ratios: {train: 0.8, val: 0.2, test: 0.0}
+    seed: 42
+  cifar10_train_mislabeling:
+    filename: cifar10_train_mislabeling_split.yaml
+    ratios: {train: 0.8, val: 0.2, test: 0.0}
+    seed: 42
+  svhn:
+    filename: svhn_split.yaml
+    ratios: {train: 0.16, val: 0.02, test: 0.02}
+    seed: 42

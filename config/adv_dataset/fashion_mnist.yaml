@@ -1,11 +1,6 @@
-  single_class_dataset: true
-  label: 0
-  transforms: "adversarial_transforms"
-  dataset_str: "zalando-datasets/fashion_mnist"
-  indices:
-    split_filename: "fashion_mnist_split.yaml"
-    split_ratios:
-      train: 0.8
-      val: 0.1
-      test: 0.1
-    seed: 42
+single_class_dataset: true
+label: 0
+transforms: adversarial_transforms
+dataset_str: zalando-datasets/fashion_mnist
+split_ref: fashion_mnist
+split_name: train

@@ -30,14 +30,6 @@ train_dataset:
     - text2
     max_length: 128
     label_field: label
-  indices:
-    split_filename: qnli_train_mislabeling_50k_split.yaml
-    split_name: train
-    split_ratios:
-      train: 0.47736
-      val: 0.1
-      test: 0.0
-    seed: 42
   wrapper:
     type: LabelFlippingDataset
     metadata:
@@ -45,6 +37,8 @@ train_dataset:
       p: 0.02
       seed: 43
       n_classes: 2
+  split_ref: qnli_train_mislabeling_50k
+  split_name: train
 eval_dataset:
   dataset_str: SetFit/qnli
   dataset_split: validation
@@ -56,7 +50,6 @@ eval_dataset:
     - text2
     max_length: 128
     label_field: label
-  indices: all
 val_dataset:
   dataset_str: SetFit/qnli
   dataset_split: train
@@ -68,14 +61,8 @@ val_dataset:
     - text2
     max_length: 128
     label_field: label
-  indices:
-    split_filename: qnli_train_mislabeling_50k_split.yaml
-    split_name: val
-    split_ratios:
-      train: 0.47736
-      val: 0.1
-      test: 0.0
-    seed: 42
+  split_ref: qnli_train_mislabeling_50k
+  split_name: val
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
@@ -101,3 +88,11 @@ num_checkpoints: 5
 meta_id: quanda-bench-test/6d2fd20-bert_qnli_MislabelingDetection_metadata
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: 6d2fd20-bert_qnli_MislabelingDetection.yaml
+splits:
+  qnli_train_mislabeling_50k:
+    filename: qnli_train_mislabeling_50k_split.yaml
+    ratios:
+      train: 0.47736
+      val: 0.1
+      test: 0.0
+    seed: 42

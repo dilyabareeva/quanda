@@ -353,7 +353,7 @@ For mislabeling detection, we will train a model from scratch using a dataset wi
 <!-- START13_2 -->
 ```python
 with open(
-    "tests/assets/mnist_local_bench/20fba38-default_MislabelingDetection.yaml",
+    "tests/assets/mnist_local_bench/4bcff01-default_MislabelingDetection.yaml",
     "r",
 ) as f:
     mislabel_config = yaml.safe_load(f)

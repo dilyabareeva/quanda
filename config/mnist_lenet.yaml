@@ -50,3 +50,29 @@ subset_ids: lds_subsets.yaml
 ckpt: "${repo_id}/${id}"
 num_checkpoints: 5
 meta_id: "${repo_id}/${id}_metadata"
+
+splits:
+  mnist_train:
+    filename: mnist_train_split.yaml
+    ratios: {train: 0.8, val: 0.2, test: 0.0}
+    seed: 42
+  mnist_train_subclass:
+    filename: mnist_train_subclass_split.yaml
+    ratios: {train: 0.8, val: 0.2, test: 0.0}
+    seed: 42
+  mnist_train_shortcut:
+    filename: mnist_train_shortcut_split.yaml
+    ratios: {train: 0.8, val: 0.2, test: 0.0}
+    seed: 42
+  mnist_train_mislabeling:
+    filename: mnist_train_mislabeling_split.yaml
+    ratios: {train: 0.8, val: 0.2, test: 0.0}
+    seed: 42
+  fashion_mnist:
+    filename: fashion_mnist_split.yaml
+    ratios: {train: 0.16, val: 0.02, test: 0.02}
+    seed: 42
+  fashion_mnist_unit:
+    filename: fashion_mnist_unit_split.yaml
+    ratios: {train: 0.6, val: 0.2, test: 0.2}
+    seed: 42

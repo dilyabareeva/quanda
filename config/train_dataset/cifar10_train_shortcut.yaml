@@ -1,20 +1,14 @@
 dataset_str: uoft-cs/cifar10
 dataset_split: train
-indices:
-  split_filename: "cifar10_train_shortcut_split.yaml"
-  split_name: train
-  split_ratios:
-    train: 0.8
-    val: 0.2
-    test: 0.
-  seed: 42
 transforms: none
 wrapper:
-  type: "SampleTransformationDataset"
+  type: SampleTransformationDataset
   metadata:
-      metadata_filename: "cifar10_train_shortcut_transform_indices.yaml"
-      p: 0.5
-      cls_idx: 0
-      seed: 42
-  sample_fn: "add_yellow_square"
-  dataset_transform: "cifar10_transforms"
+    metadata_filename: cifar10_train_shortcut_transform_indices.yaml
+    p: 0.5
+    cls_idx: 0
+    seed: 42
+  sample_fn: add_yellow_square
+  dataset_transform: cifar10_transforms
+split_ref: cifar10_train_shortcut
+split_name: train

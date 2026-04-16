@@ -19,19 +19,12 @@ train_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train
   transforms: mnist_transforms
-  indices:
-    split_filename: mnist_train_split.yaml
-    split_name: train
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
+  split_ref: mnist_train
+  split_name: train
 eval_dataset:
   dataset_str: ylecun/mnist
   dataset_split: test
   transforms: mnist_transforms
-  indices: all
   filter_indices:
     split_filename: mnist_eval_mixed_main_filter.yaml
     split_name: default
@@ -39,14 +32,8 @@ val_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train
   transforms: mnist_transforms
-  indices:
-    split_filename: mnist_train_split.yaml
-    split_name: val
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
+  split_ref: mnist_train
+  split_name: val
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
@@ -71,16 +58,26 @@ adv_dataset:
   label: 0
   transforms: adversarial_transforms
   dataset_str: zalando-datasets/fashion_mnist
-  indices:
-    split_filename: fashion_mnist_split.yaml
-    split_ratios:
-      train: 0.8
-      val: 0.1
-      test: 0.1
-    seed: 42
+  split_ref: fashion_mnist
+  split_name: train
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: ad1b983-default_MixedDatasets.yaml
 filter_by_prediction: true
 ckpt: quanda-bench-test/ad1b983-default_MixedDatasets
 num_checkpoints: 5
 device: cuda:1
+splits:
+  mnist_train:
+    filename: mnist_train_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42
+  fashion_mnist:
+    filename: fashion_mnist_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.1
+      test: 0.1
+    seed: 42
