@@ -1,0 +1,14 @@
+class_to_group:
+  0: 0
+  1: 1
+  2: 0
+  3: 0
+  4: 0
+  5: 1
+  6: 0
+  7: 0
+  8: 0
+  9: 1
+n_classes: 10
+n_groups: 2
+seed: 42

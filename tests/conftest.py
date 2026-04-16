@@ -23,6 +23,7 @@ from quanda.utils.datasets.transformed.label_flipping import (
 from quanda.utils.datasets.transformed.label_grouping import (
     LabelGroupingDataset,
 )
+from quanda.utils.datasets.transformed.metadata import ClassMapping
 from quanda.utils.training import Trainer
 from quanda.utils.training.base_pl_module import BasicLightningModule
 from tests.models import (
@@ -239,14 +240,21 @@ def load_grouped_mnist_dataset():
     dataset = TestTensorDataset(
         torch.tensor(x_batch).float(), torch.tensor(y_batch).long()
     )
-    metadata = LabelGroupingDataset.metadata_cls(
-        seed=27,
+    metadata = LabelGroupingDataset.metadata_cls(seed=27)
+    mapping = ClassMapping(
+        class_to_group=ClassMapping._generate(
+            n_classes=10, n_groups=2, seed=27
+        ),
+        n_classes=10,
         n_groups=2,
-        class_to_group="random",
+        seed=27,
     )
     return LabelGroupingDataset(
         dataset,
         metadata=metadata,
+        class_to_group=mapping.class_to_group,
+        n_classes=mapping.n_classes,
+        n_groups=mapping.n_groups,
     )
 
 
@@ -631,7 +639,7 @@ def load_qnli_dataset():
 def load_mnist_unit_test_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/20fba38-default_ClassDetection.yaml",
+        "tests/assets/mnist_local_bench/83edb41-default_ClassDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -642,7 +650,7 @@ def load_mnist_unit_test_config():
 def load_mnist_unit_test_config_one_cycle():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/20fba38-default_ClassDetection.yaml",
+        "tests/assets/mnist_local_bench/83edb41-default_ClassDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -671,7 +679,7 @@ def load_mnist_linear_datamodeling_config(
 ):
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/20fba38-default_LDS.yaml",
+        "tests/assets/mnist_local_bench/83edb41-default_LDS.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -683,7 +691,7 @@ def load_mnist_linear_datamodeling_config(
 def load_mnist_mislabeling_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/20fba38-default_MislabelingDetection.yaml",
+        "tests/assets/mnist_local_bench/83edb41-default_MislabelingDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -694,7 +702,7 @@ def load_mnist_mislabeling_config():
 def load_mnist_subclass_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/20fba38-default_SubclassDetection.yaml",
+        "tests/assets/mnist_local_bench/83edb41-default_SubclassDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -705,7 +713,7 @@ def load_mnist_subclass_config():
 def load_mnist_shortcut_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/20fba38-default_ShortcutDetection.yaml",
+        "tests/assets/mnist_local_bench/83edb41-default_ShortcutDetection.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -716,7 +724,7 @@ def load_mnist_shortcut_config():
 def load_mnist_mixed_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/20fba38-default_MixedDatasets.yaml",
+        "tests/assets/mnist_local_bench/83edb41-default_MixedDatasets.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
@@ -727,7 +735,7 @@ def load_mnist_mixed_config():
 def load_mnist_lds_config():
     # load yaml file
     with open(
-        "tests/assets/mnist_local_bench/20fba38-default_LDS.yaml",
+        "tests/assets/mnist_local_bench/83edb41-default_LDS.yaml",
         "r",
     ) as f:
         config = yaml.safe_load(f)
