@@ -763,3 +763,60 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
         f"but {total - correct:.0f}/{total} samples did not match "
         f"(pct={pct:.4f})."
     )
+
+
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
+@pytest.mark.production_bench
+@pytest.mark.parametrize(
+    "config_name,bench_cls",
+    [
+        ("mnist_shortcut_detection_unit", ShortcutDetection),
+        ("mnist_mixed_datasets_unit", MixedDatasets),
+        ("mnist_subclass_detection", SubclassDetection),
+        ("mnist_mislabeling_detection", MislabelingDetection),
+        ("mnist_class_detection", ClassDetection),
+        ("cifar_shortcut_detection", ShortcutDetection),
+        ("cifar_mixed_datasets", MixedDatasets),
+        ("cifar_subclass_detection", SubclassDetection),
+        ("cifar_mislabeling_detection", MislabelingDetection),
+        ("cifar_class_detection", ClassDetection),
+    ],
+)
+def test_benchmark_checkpoints(config_name, bench_cls, tmp_path):
+    """Verify num_checkpoints matches config and each checkpoint is distinct."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    bench_yaml = config_map[config_name]
+
+    with open(bench_yaml, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    expected_num_checkpoints = int(cfg.get("num_checkpoints", 1))
+
+    bench = bench_cls.load_pretrained(
+        bench_id=config_name,
+        cache_dir=str(tmp_path),
+        device=device,
+        offline=False,
+    )
+
+    assert len(bench.checkpoints) == expected_num_checkpoints, (
+        f"Expected {expected_num_checkpoints} checkpoints, "
+        f"got {len(bench.checkpoints)}."
+    )
+
+    fingerprints = []
+    for ckpt in bench.checkpoints:
+        bench.checkpoints_load_func(bench.model, ckpt)
+        fp = torch.cat(
+            [p.detach().flatten().cpu() for p in bench.model.parameters()]
+        ).clone()
+        fingerprints.append(fp)
+
+    for i in range(len(fingerprints)):
+        for j in range(i + 1, len(fingerprints)):
+            assert not torch.equal(fingerprints[i], fingerprints[j]), (
+                f"Checkpoints {bench.checkpoints[i]} and "
+                f"{bench.checkpoints[j]} have identical weights."
+            )

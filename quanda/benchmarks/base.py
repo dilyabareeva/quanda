@@ -611,6 +611,13 @@ class Benchmark(ABC):
             batch_size=batch_size,
             shuffle=False,
         )
+        if not (
+            filter_by_shortcut_pred
+            or filter_by_non_shortcut
+            or filter_by_prediction
+        ):
+            return
+
         if filter_by_shortcut_pred and shortcut_cls is None:
             raise ValueError(
                 "shortcut_cls must be provided if "
