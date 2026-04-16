@@ -35,7 +35,6 @@ class SubclassDetection(Benchmark):
         "test_labels",
         "explanations",
         "test_data",
-        "test_targets",
         "test_superclass_targets",
     ]
 

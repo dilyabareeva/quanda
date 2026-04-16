@@ -71,7 +71,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
     def update(
         self,
         explanations: torch.Tensor,
-        test_targets: Union[List[int], torch.Tensor],
+        test_labels: Union[List[int], torch.Tensor],
         test_data: Optional[torch.Tensor] = None,
         test_superclass_targets: Optional[torch.Tensor] = None,
         **kwargs,
@@ -82,7 +82,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         ----------
         explanations : torch.Tensor
             Explanations of the test samples.
-        test_targets : Union[List[int], torch.Tensor]
+        test_labels : Union[List[int], torch.Tensor]
             Original subclass labels of the test samples.
         test_data: Optional[torch.Tensor]
             Test samples to used to generate the explanations.
@@ -111,9 +111,9 @@ class SubclassDetectionMetric(ClassDetectionMetric):
                 "provided if filter_by_prediction is True"
             )
 
-        if isinstance(test_targets, list):
-            test_targets = torch.tensor(test_targets)
-        test_targets = test_targets.to(self.device)
+        if isinstance(test_labels, list):
+            test_labels = torch.tensor(test_labels)
+        test_labels = test_labels.to(self.device)
 
         if test_data is not None:
             test_data = test_data.to(self.device)
@@ -130,12 +130,12 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             select_idx *= pred_cls == test_superclass_targets
 
         explanations = explanations[select_idx]
-        test_targets = test_targets[select_idx].to(self.device)
+        test_labels = test_labels[select_idx].to(self.device)
 
         top_one_xpl_indices = explanations.argmax(dim=1)
         top_one_xpl_targets = torch.stack(
             [self.subclass_labels[int(i)] for i in top_one_xpl_indices]
         ).to(self.device)
 
-        score = (test_targets == top_one_xpl_targets) * 1.0
+        score = (test_labels == top_one_xpl_targets) * 1.0
         self.scores.append(score)
