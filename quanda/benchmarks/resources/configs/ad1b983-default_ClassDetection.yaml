@@ -68,3 +68,4 @@ cfg_file_name: ad1b983-default_ClassDetection.yaml
 ckpt: quanda-bench-test/ad1b983-default_ClassDetection
 num_checkpoints: 5
 device: cuda:0
+filter_by_prediction: false

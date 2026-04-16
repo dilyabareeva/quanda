@@ -69,6 +69,6 @@ subset_ids: lds_subsets.yaml
 ckpt: quanda-bench-test/bdb919e-default_ClassDetection
 num_checkpoints: 5
 meta_id: quanda-bench-test/bdb919e-default_ClassDetection_metadata
-filter_by_prediction: true
+filter_by_prediction: false
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: bdb919e-default_ClassDetection.yaml
