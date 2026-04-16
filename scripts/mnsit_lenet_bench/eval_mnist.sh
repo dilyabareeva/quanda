@@ -10,9 +10,9 @@ benchmarks=(
     mnist_mislabeling_detection
     mnist_shortcut_detection
     mnist_mixed_datasets
-    mnist_top_k_cardinality
-    mnist_model_randomization
     mnist_linear_datamodeling
+    #mnist_top_k_cardinality
+    #mnist_model_randomization
 )
 
 methods=(

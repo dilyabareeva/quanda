@@ -65,7 +65,7 @@ cache/
 bin/*
 docs/source/**
 eval_results/*
-tmp_bench/*
+mnist_eval_bench/*
 
 assets/demo/*
 bench_out/*
