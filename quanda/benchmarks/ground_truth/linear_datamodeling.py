@@ -2,6 +2,7 @@
 
 import logging
 import os
+import random
 import warnings
 from copy import deepcopy
 from typing import Callable, List, Optional
@@ -221,12 +222,12 @@ class LinearDatamodeling(Benchmark):
         ckpt_dir = os.path.join(
             config.get("bench_save_dir", "./tmp"),
             "ckpt",
-            config["ckpts"][-1].split("/")[-1],
+            config["ckpt"].split("/")[-1],
         )
 
         obj._train_subset_models(
             trainer=trainer,
-            ckpt_str=config["ckpts"][-1],
+            ckpt_str=config["ckpt"],
             ckpt_dir=ckpt_dir,
             batch_size=batch_size,
             push_to_hub=cls._push_subsets_during_train,
@@ -284,12 +285,12 @@ class LinearDatamodeling(Benchmark):
         ckpt_dir = os.path.join(
             config.get("bench_save_dir", "./tmp"),
             "ckpt",
-            config["ckpts"][-1].split("/")[-1],
+            config["ckpt"].split("/")[-1],
         )
         obj._train_subset_model_by_idx(
             i=idx,
             trainer=trainer,
-            ckpt_str=config["ckpts"][-1],
+            ckpt_str=config["ckpt"],
             ckpt_dir=ckpt_dir,
             batch_size=batch_size,
             push_to_hub=push_to_hub,
@@ -309,7 +310,7 @@ class LinearDatamodeling(Benchmark):
         """
         from huggingface_hub import HfApi  # local import; optional dep path
 
-        ckpt_str = config["ckpts"][-1]
+        ckpt_str = config["ckpt"]
         ckpt_dir = os.path.join(
             config.get("bench_save_dir", "./tmp"),
             "ckpt",
@@ -342,7 +343,7 @@ class LinearDatamodeling(Benchmark):
         alpha = config.get("alpha", 0.5)
         seed = config["seed"]
 
-        ckpt = config["ckpts"][-1]
+        ckpt = config["ckpt"]
 
         subset_ckpt_filenames = [
             _get_i_subset_ckpt_name(ckpt, i) for i in range(m)
@@ -440,7 +441,11 @@ class LinearDatamodeling(Benchmark):
             shuffle=False,
         )
 
-        for i, ckpt_path in enumerate(self.subset_ckpt_filenames):
+        sampled = random.sample(
+            list(enumerate(self.subset_ckpt_filenames)),
+            k=min(3, len(self.subset_ckpt_filenames)),
+        )
+        for i, ckpt_path in sampled:
             subset_model = deepcopy(self.model)
             self.checkpoints_load_func(subset_model, ckpt_path)
             subset_model.eval()

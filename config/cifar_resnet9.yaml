@@ -49,6 +49,6 @@ alpha: 0.5
 
 subset_ids: lds_subsets.yaml
 
-ckpts:
-  - "${repo_id}/${id}"
+ckpt: "${repo_id}/${id}"
+num_checkpoints: 5
 meta_id: "${repo_id}/${id}_metadata"

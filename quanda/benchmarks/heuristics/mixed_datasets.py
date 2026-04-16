@@ -6,7 +6,7 @@ from typing import List, Optional
 import torch
 from torch.utils.data import Subset
 
-from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.base import Benchmark, _resolve_ckpts
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
 from quanda.utils.common import class_accuracy, ds_len
@@ -158,7 +158,7 @@ class MixedDatasets(Benchmark):
             BenchConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
-                ckpts=config["ckpts"],
+                ckpts=_resolve_ckpts(config),
                 load_model_from_disk=offline,
                 device=device,
             )

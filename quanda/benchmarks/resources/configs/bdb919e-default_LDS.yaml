@@ -66,8 +66,8 @@ device: cuda:1
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/bdb919e-default_LDS
+ckpt: quanda-bench-test/bdb919e-default_LDS
+num_checkpoints: 5
 meta_id: quanda-bench-test/bdb919e-default_LDS_metadata
 cfg_file_name: bdb919e-default_LDS.yaml
 cfg_output_dir: quanda/benchmarks/resources/configs

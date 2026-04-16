@@ -64,7 +64,7 @@ device: auto
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/ad1b983-default_ClassDetection
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: ad1b983-default_ClassDetection.yaml
+ckpt: quanda-bench-test/ad1b983-default_ClassDetection
+num_checkpoints: 5

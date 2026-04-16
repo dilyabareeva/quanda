@@ -67,8 +67,6 @@ device: auto
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/20fba38-default_MixedDatasets
 adv_dataset:
   single_class_dataset: true
   label: 0
@@ -83,3 +81,5 @@ adv_dataset:
     seed: 42
 cfg_file_name: 20fba38-default_MixedDatasets.yaml
 cfg_output_dir: tests/assets/unit_bench_cfgs
+ckpt: quanda-bench-test/20fba38-default_MixedDatasets
+num_checkpoints: 1

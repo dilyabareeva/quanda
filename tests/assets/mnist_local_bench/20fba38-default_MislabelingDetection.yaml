@@ -70,7 +70,7 @@ device: auto
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/20fba38-default_MislabelingDetection
 cfg_output_dir: tests/assets/mnist_local_bench
 cfg_file_name: 20fba38-default_MislabelingDetection.yaml
+ckpt: quanda-bench-test/20fba38-default_MislabelingDetection
+num_checkpoints: 1

@@ -72,8 +72,8 @@ device: cuda:1
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/bdb919e-default_MislabelingDetection
+ckpt: quanda-bench-test/bdb919e-default_MislabelingDetection
+num_checkpoints: 5
 meta_id: quanda-bench-test/bdb919e-default_MislabelingDetection_metadata
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: bdb919e-default_MislabelingDetection.yaml

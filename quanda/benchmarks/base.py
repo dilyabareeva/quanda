@@ -14,6 +14,7 @@ import torch
 import yaml
 from huggingface_hub import (
     PyTorchModelHubMixin,
+    create_branch,
     create_repo,
     snapshot_download,
     upload_folder,
@@ -53,6 +54,38 @@ def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
         expl_kwargs or {}, sort_keys=True, default=_stable_repr
     )
     return hashlib.sha1(payload.encode()).hexdigest()[:10]
+
+
+class _EpochSnapshotCallback(L.Callback):
+    """Snapshot ``pl_module.model`` to disk at a fixed set of epochs.
+
+    Used by ``Benchmark.train`` to capture intermediate checkpoints in a
+    single training run when ``num_checkpoints > 1``.
+    """
+
+    def __init__(self, snapshot_epochs: List[int], snapshot_dirs: List[str]):
+        super().__init__()
+        self._epoch_to_dir = dict(zip(snapshot_epochs, snapshot_dirs))
+
+    def on_train_epoch_end(self, trainer, pl_module):
+        target = self._epoch_to_dir.get(trainer.current_epoch)
+        if target is None:
+            return
+        os.makedirs(target, exist_ok=True)
+        pl_module.model.save_pretrained(target, safe_serialization=True)
+
+
+def _resolve_ckpts(config: dict) -> List[str]:
+    """Expand ``config['ckpt']`` + ``num_checkpoints`` into a ckpt list.
+
+    Returns a single-entry list when ``num_checkpoints <= 1`` and a
+    list of ``<repo>@epoch_<i>`` revision-suffixed entries otherwise.
+    """
+    repo_id = config["ckpt"]
+    n = int(config.get("num_checkpoints", 1))
+    if n <= 1:
+        return [repo_id]
+    return [f"{repo_id}@epoch_{i + 1}" for i in range(n)]
 
 
 def _subsample_dataset(
@@ -271,7 +304,7 @@ class Benchmark(ABC):
             BenchConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
-                ckpts=config["ckpts"],
+                ckpts=_resolve_ckpts(config),
                 load_model_from_disk=offline,
                 device=device,
             )
@@ -402,20 +435,12 @@ class Benchmark(ABC):
         else:
             accelerator = obj.device
             devices = 1
-        trainer.fit(
-            model=obj.model,
-            train_dataloaders=train_dl,
-            val_dataloaders=val_dl,
-            accelerator=accelerator,
-            devices=devices,
-        )
 
         ckpt_dir = os.path.join(
             config.get("bench_save_dir", "./tmp"),
             "ckpt",
-            f"{config['ckpts'][-1].split('/')[-1]}{pid_suffix}",
+            f"{config['ckpt'].split('/')[-1]}{pid_suffix}",
         )
-
         os.makedirs(ckpt_dir, exist_ok=True)
         if len(os.listdir(ckpt_dir)) > 0:
             warnings.warn(
@@ -423,14 +448,48 @@ class Benchmark(ABC):
                 "Checkpoints will be overwritten."
             )
 
+        num_checkpoints = int(config.get("num_checkpoints", 1))
+        snapshot_dirs: List[str] = []
+        callbacks: Optional[List[L.Callback]] = None
+        if num_checkpoints > 1:
+            max_epochs = config["model"]["trainer"]["max_epochs"]
+            snapshot_epochs = sorted(
+                {
+                    min(
+                        max_epochs - 1,
+                        int((i + 1) * max_epochs / num_checkpoints) - 1,
+                    )
+                    for i in range(num_checkpoints)
+                }
+            )
+            snapshot_dirs = [
+                os.path.join(ckpt_dir, f"epoch_{i + 1}")
+                for i in range(len(snapshot_epochs))
+            ]
+            callbacks = [
+                _EpochSnapshotCallback(snapshot_epochs, snapshot_dirs)
+            ]
+
+        trainer.fit(
+            model=obj.model,
+            train_dataloaders=train_dl,
+            val_dataloaders=val_dl,
+            accelerator=accelerator,
+            devices=devices,
+            callbacks=callbacks,
+        )
+
         obj.model.to(obj.device)
         obj.model.eval()
 
         assert isinstance(obj.model, PyTorchModelHubMixin), (
             "Model must inherit from PyTorchModelHubMixin."
         )
-        obj.model.save_pretrained(ckpt_dir, safe_serialization=True)
-        obj.checkpoints = [ckpt_dir]
+        if snapshot_dirs:
+            obj.checkpoints = snapshot_dirs
+        else:
+            obj.model.save_pretrained(ckpt_dir, safe_serialization=True)
+            obj.checkpoints = [ckpt_dir]
 
         obj._compute_and_save_indices(config, batch_size)
 
@@ -455,8 +514,26 @@ class Benchmark(ABC):
             "Model must inherit from PyTorchModelHubMixin."
         )
 
-        # TODO: add support for multiple checkpoints
-        obj.model.push_to_hub(f"{config['ckpts'][-1]}")
+        repo_id = config["ckpt"]
+        num_checkpoints = int(config.get("num_checkpoints", 1))
+        if num_checkpoints <= 1:
+            obj.model.push_to_hub(repo_id)
+        else:
+            # Push each local snapshot dir to a separate revision of the
+            # same repo. Loaders can fetch them via
+            # `from_pretrained(..., revision="epoch_<i>")` (see
+            # config_parser.parse_model_cfg).
+            create_repo(repo_id=repo_id, exist_ok=True)
+            for i, snapshot_dir in enumerate(obj.checkpoints, start=1):
+                revision = f"epoch_{i}"
+                create_branch(
+                    repo_id=repo_id, branch=revision, exist_ok=True
+                )
+                upload_folder(
+                    folder_path=snapshot_dir,
+                    repo_id=repo_id,
+                    revision=revision,
+                )
 
         pid_suffix = getattr(obj, "_pid_suffix", "")
         metadata_dir = BenchConfigParser.get_metadata_dir(

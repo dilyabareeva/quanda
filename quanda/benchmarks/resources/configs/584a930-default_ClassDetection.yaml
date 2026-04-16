@@ -87,9 +87,9 @@ use_predictions: true
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/584a930-default_ClassDetection
 filter_by_prediction: true
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: 584a930-default_ClassDetection.yaml
+ckpt: quanda-bench-test/584a930-default_ClassDetection
+num_checkpoints: 5
 meta_id: quanda-bench-test/584a930-default_ClassDetection_metadata

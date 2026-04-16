@@ -87,8 +87,8 @@ use_predictions: true
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/584a930-default_LDS
 cfg_file_name: 584a930-default_LDS.yaml
 cfg_output_dir: quanda/benchmarks/resources/configs
+ckpt: quanda-bench-test/584a930-default_LDS
+num_checkpoints: 5
 meta_id: quanda-bench-test/584a930-default_LDS_metadata

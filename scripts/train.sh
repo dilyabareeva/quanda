@@ -9,7 +9,7 @@
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 PARALLEL=true
-TRAIN_ONLY=false
+TRAIN_ONLY=true
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -45,14 +45,17 @@ print(os.path.splitext(os.path.basename(path))[0])
 run_bench() {
     local bench=$1 params=$2 sweep=$3 id=$4
     if [ "$TRAIN_ONLY" = false ]; then
+        # Hyperparameter search uses a single checkpoint per trial; only the
+        # final train_and_push_to_hub call honors `num_checkpoints` from the
+        # persisted config.
         python scripts/generate_config.py --config-name "$CONFIG_NAME" hydra.run.dir="hydra_logs" bench="$bench" $params id=$id +cfg_file_name=$id +cfg_output_dir=$cfg_output_dir
-        python scripts/train.py --config-name "$CONFIG_NAME" bench="$bench" $params $sweep id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id --multirun
+        python scripts/train.py --config-name "$CONFIG_NAME" bench="$bench" $params $sweep id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id num_checkpoints=1 +skip_subsets=true --multirun
         python scripts/opt_results_to_cfg.py --config-name "$CONFIG_NAME" bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id
-        python scripts/train_and_push_to_hub.py --config-name $id --config-dir $cfg_output_dir
+        python scripts/train_and_push_to_hub.py --config-name $id --config-dir $cfg_output_dir +skip_subsets=true
     else
         local config_name
         config_name=$(get_config_name_from_map "${BENCH_CONFIG_MAP_KEY[$bench]}")
-        python scripts/train_and_push_to_hub.py --config-name "$config_name" --config-dir $cfg_output_dir
+        python scripts/train_and_push_to_hub.py --config-name "$config_name" --config-dir $cfg_output_dir +skip_subsets=true
     fi
 }
 

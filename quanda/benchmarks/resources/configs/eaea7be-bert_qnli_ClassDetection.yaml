@@ -5,7 +5,7 @@ model:
       pretrained_model_name: google-bert/bert-base-cased
       num_labels: 2
   trainer:
-    optimizer: sgd
+    optimizer: adamw
     optimizer_kwargs:
       weight_decay: 0.0
     criterion: cross_entropy
@@ -13,8 +13,8 @@ model:
     scheduler: linear
     scheduler_kwargs:
       start_factor: 1.0
-      end_factor: 0.0
-    lr: 0.001
+      end_factor: 0.1
+    lr: 2.0e-05
     max_epochs: 20
     seed: 42
     num_workers: 8
@@ -89,8 +89,8 @@ use_predictions: true
 m: 30
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/eaea7be-bert_qnli_ClassDetection
+ckpt: quanda-bench-test/eaea7be-bert_qnli_ClassDetection
+num_checkpoints: 5
 meta_id: quanda-bench-test/eaea7be-bert_qnli_ClassDetection_metadata
 filter_by_prediction: false
 cfg_output_dir: quanda/benchmarks/resources/configs

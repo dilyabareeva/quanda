@@ -124,20 +124,31 @@ class BenchConfigParser:
             raise ValueError(f"Model class {module_cls} is not HF compatible.")
 
         def load_state_dict(model: torch.nn.Module, ckpt_str: str):
-            ckpt = ckpt_str.split("/")[-1]
-            ckpt_dir = os.path.join(checkpoint_path, ckpt)
+            # Support `<repo>@<revision>` syntax used to address per-epoch
+            # snapshots pushed by `train_and_push_to_hub`.
+            if "@" in ckpt_str:
+                repo_str, revision = ckpt_str.rsplit("@", 1)
+            else:
+                repo_str, revision = ckpt_str, None
+            ckpt = repo_str.split("/")[-1]
+            local_dir_name = ckpt if revision is None else f"{ckpt}@{revision}"
+            ckpt_dir = os.path.join(checkpoint_path, local_dir_name)
             if os.path.exists(os.path.join(ckpt_dir, "config.json")):
                 pretrained_model_name_or_path = ckpt_dir
                 cache_dir = None
             else:
-                pretrained_model_name_or_path = ckpt_str
+                pretrained_model_name_or_path = repo_str
                 cache_dir = ckpt_dir
 
+            from_pretrained_kwargs = {}
+            if revision is not None:
+                from_pretrained_kwargs["revision"] = revision
             try:
                 pretrained_model = module_cls.from_pretrained(
                     pretrained_model_name_or_path=pretrained_model_name_or_path,
                     cache_dir=cache_dir,
                     local_files_only=load_model_from_disk,
+                    **from_pretrained_kwargs,
                 )
             except Exception as e:
                 raise ValueError(

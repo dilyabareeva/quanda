@@ -69,8 +69,8 @@ device: cuda:0
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/bdb919e-default_MixedDatasets
+ckpt: quanda-bench-test/bdb919e-default_MixedDatasets
+num_checkpoints: 5
 meta_id: quanda-bench-test/bdb919e-default_MixedDatasets_metadata
 adv_dataset:
   single_class_dataset: true

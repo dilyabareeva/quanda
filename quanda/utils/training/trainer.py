@@ -2,7 +2,7 @@
 
 import abc
 from abc import abstractmethod
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 
 import lightning as L
 import torch
@@ -25,6 +25,7 @@ class BaseTrainer(metaclass=abc.ABCMeta):
         accelerator: str = "cpu",
         devices: int = 0,
         seed: int = 42,
+        callbacks: Optional[List[L.Callback]] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
@@ -148,6 +149,7 @@ class Trainer(BaseTrainer):
         accelerator: str = "cpu",
         devices: int = 0,
         seed: int = 42,
+        callbacks: Optional[List[L.Callback]] = None,
         *args,
         **kwargs,
     ):
@@ -192,6 +194,7 @@ class Trainer(BaseTrainer):
             logger=self.logger,
             enable_progress_bar=self.enable_progress_bar,
             gradient_clip_val=self.gradient_clip_val,
+            callbacks=callbacks,
         )
         trainer.fit(module, train_dataloaders, val_dataloaders)
 

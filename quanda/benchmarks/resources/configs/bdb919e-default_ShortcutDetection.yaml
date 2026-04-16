@@ -95,8 +95,8 @@ device: cuda:1
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/bdb919e-default_ShortcutDetection
+ckpt: quanda-bench-test/bdb919e-default_ShortcutDetection
+num_checkpoints: 5
 meta_id: quanda-bench-test/bdb919e-default_ShortcutDetection_metadata
 filter_by_shortcut_pred: true
 filter_by_non_shortcut: true

@@ -103,8 +103,8 @@ device: cuda:0
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/bdb919e-default_SubclassDetection
+ckpt: quanda-bench-test/bdb919e-default_SubclassDetection
+num_checkpoints: 5
 meta_id: quanda-bench-test/bdb919e-default_SubclassDetection_metadata
 filter_by_prediction: true
 cfg_output_dir: quanda/benchmarks/resources/configs

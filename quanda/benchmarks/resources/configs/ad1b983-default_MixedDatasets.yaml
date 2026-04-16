@@ -67,8 +67,6 @@ device: auto
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/ad1b983-default_MixedDatasets
 adv_dataset:
   single_class_dataset: true
   label: 0
@@ -84,3 +82,5 @@ adv_dataset:
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: ad1b983-default_MixedDatasets.yaml
 filter_by_prediction: true
+ckpt: quanda-bench-test/ad1b983-default_MixedDatasets
+num_checkpoints: 5

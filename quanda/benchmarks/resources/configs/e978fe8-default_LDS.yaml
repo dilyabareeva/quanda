@@ -64,7 +64,7 @@ device: auto
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/e978fe8-default_LDS
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: e978fe8-default_LDS.yaml
+ckpt: quanda-bench-test/e978fe8-default_LDS
+num_checkpoints: 5

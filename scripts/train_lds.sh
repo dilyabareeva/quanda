@@ -45,7 +45,7 @@ run_bench() {
     local bench=$1 params=$2 sweep=$3 id=$4
     if [ "$TRAIN_ONLY" = false ]; then
         python scripts/generate_config.py --config-name "$CONFIG_NAME" hydra.run.dir="hydra_logs" bench=LDS $params id=$id +cfg_file_name=$id +cfg_output_dir=$cfg_output_dir
-        python scripts/train.py --config-name "$CONFIG_NAME" bench=LDS $params $sweep m=1 id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id --multirun
+        python scripts/train.py --config-name "$CONFIG_NAME" bench=LDS $params $sweep m=1 id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id num_checkpoints=1 --multirun
         python scripts/opt_results_to_cfg.py --config-name "$CONFIG_NAME" bench=LDS $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id
         python scripts/train_and_push_to_hub.py --config-name $id --config-dir $cfg_output_dir +skip_subsets=true
     else
@@ -58,7 +58,7 @@ run_bench() {
     local M bench_save_dir
     M=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['m'])")
     bench_save_dir=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml')).get('bench_save_dir', './tmp'))")
-    ckpt_basename=$(python -c "import yaml, os; print(os.path.basename(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['ckpts'][-1]))")
+    ckpt_basename=$(python -c "import yaml, os; print(os.path.basename(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['ckpt']))")
 
     # Hydrate non-pid metadata dir from HF Hub so parallel workers and
     # push_subset find subset_ids without hitting the pid-suffixed path.
