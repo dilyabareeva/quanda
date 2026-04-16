@@ -6,7 +6,7 @@ CONFIG_NAME="bert_qnli"
 CONFIG_MAP_PREFIX="qnli"
 
 benchmarks=(
-    #ClassDetection
+    ClassDetection
     MislabelingDetection
 )
 

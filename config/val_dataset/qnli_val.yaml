@@ -8,5 +8,5 @@ tokenizer:
   - text2
   max_length: 128
   label_field: label
-split_ref: qnli_train_mislabeling_50k
+split_ref: qnli_train_50k
 split_name: val
