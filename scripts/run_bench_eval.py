@@ -34,6 +34,7 @@ BENCH_CLASS = {
 )
 def main(cfg: DictConfig) -> float:
     bench_id = cfg.bench
+    os.makedirs(cfg.cache_dir, exist_ok=True)
     expl_cls = get_class(cfg.explainer.cls)
     expl_kwargs = instantiate(cfg.explainer.kwargs, _convert_="all")
 
