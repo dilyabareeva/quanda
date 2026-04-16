@@ -34,9 +34,24 @@ from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.base import TransformedDataset
 
 
+def _stable_repr(obj: Any) -> str:
+    """Process-stable string form of ``obj`` for hashing/serialization.
+
+    ``str()`` / ``repr()`` embed ``id(obj)`` for callables and arbitrary
+    instances, so the default ``json.dumps(..., default=str)`` produces a
+    different payload on every Python process and breaks cache reuse.
+    """
+    if callable(obj) and hasattr(obj, "__qualname__"):
+        module = getattr(obj, "__module__", "") or ""
+        return f"{module}.{obj.__qualname__}" if module else obj.__qualname__
+    return str(obj)
+
+
 def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
     """Stable short hash of sorted expl_kwargs for explanation repo IDs."""
-    payload = json.dumps(expl_kwargs or {}, sort_keys=True, default=str)
+    payload = json.dumps(
+        expl_kwargs or {}, sort_keys=True, default=_stable_repr
+    )
     return hashlib.sha1(payload.encode()).hexdigest()[:10]
 
 
@@ -545,7 +560,7 @@ class Benchmark(ABC):
                 else self.model(model_inputs)
             )
             pred_cls = ds_handler.get_predictions(outputs=outputs)
-            select_idx = torch.tensor([True] * len(pred_cls)).to(inputs.device)
+            select_idx = torch.tensor([True] * len(pred_cls)).to(self.device)
             if filter_by_shortcut_pred:
                 select_idx *= pred_cls == shortcut_cls
             if filter_by_non_shortcut:
@@ -841,7 +856,7 @@ class Benchmark(ABC):
             k: (
                 v
                 if isinstance(v, (str, int, float, bool, type(None)))
-                else repr(v)
+                else _stable_repr(v)
             )
             for k, v in (expl_kwargs or {}).items()
         }

@@ -10,6 +10,7 @@ import yaml
 
 from quanda.benchmarks.base import (
     _hash_expl_kwargs,
+    _stable_repr,
     default_explanations_id,
 )
 from quanda.benchmarks.downstream_eval import ClassDetection
@@ -25,6 +26,25 @@ def test_hash_expl_kwargs_is_order_invariant():
     assert a == b
     assert a != c
     assert _hash_expl_kwargs(None) == _hash_expl_kwargs({})
+
+
+def test_hash_expl_kwargs_is_stable_for_callables():
+    """Callables must hash by module.qualname, not ``id(obj)``."""
+    rep = _stable_repr(cosine_similarity)
+    assert "at 0x" not in rep
+    assert rep == (
+        f"{cosine_similarity.__module__}.{cosine_similarity.__qualname__}"
+    )
+    # Two distinct function objects with the same qualname must hash equally.
+    h1 = _hash_expl_kwargs({"f": cosine_similarity})
+
+    def _wrap(*a, **kw):
+        return cosine_similarity(*a, **kw)
+
+    _wrap.__module__ = cosine_similarity.__module__
+    _wrap.__qualname__ = cosine_similarity.__qualname__
+    h2 = _hash_expl_kwargs({"f": _wrap})
+    assert h1 == h2
 
 
 def test_default_explanations_id_format():
