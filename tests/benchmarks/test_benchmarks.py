@@ -777,6 +777,7 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
         ("mnist_subclass_detection", SubclassDetection),
         ("mnist_mislabeling_detection", MislabelingDetection),
         ("mnist_class_detection", ClassDetection),
+        ("mnist_linear_datamodeling", LinearDatamodeling),
         ("cifar_shortcut_detection", ShortcutDetection),
         ("cifar_mixed_datasets", MixedDatasets),
         ("cifar_subclass_detection", SubclassDetection),
@@ -792,6 +793,7 @@ def test_benchmark_checkpoints(config_name, bench_cls, tmp_path):
     with open(bench_yaml, "r") as f:
         cfg = yaml.safe_load(f)
 
+    cfg["m"] = 5
     expected_num_checkpoints = int(cfg.get("num_checkpoints", 1))
 
     bench = bench_cls.load_pretrained(
