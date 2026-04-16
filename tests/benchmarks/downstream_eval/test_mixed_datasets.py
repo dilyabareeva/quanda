@@ -114,7 +114,8 @@ def test_mixed_datasets_sanity_check_values(
         offline=False,
     )
 
-    eval_ratio = cfg["adv_dataset"]["indices"]["split_ratios"]["val"]
+    adv_split_ref = cfg["adv_dataset"]["split_ref"]
+    eval_ratio = cfg["splits"][adv_split_ref]["ratios"]["val"]
     pre_filter_size = len(bench.eval_dataset.dataset.dataset)
     filtered_size = len(bench.eval_dataset)
     actual_ratio = filtered_size / pre_filter_size

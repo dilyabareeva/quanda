@@ -5,9 +5,9 @@ from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
 from quanda.utils.datasets.transformed.label_grouping import (
-    ClassToGroupLiterals,
     LabelGroupingDataset,
 )
+from quanda.utils.datasets.transformed.metadata import ClassMapping
 from quanda.utils.datasets.transformed.sample import (
     SampleTransformationDataset,
 )
@@ -24,5 +24,5 @@ __all__ = [
     "SampleTransformationDataset",
     "LabelFlippingDataset",
     "LabelGroupingDataset",
-    "ClassToGroupLiterals",
+    "ClassMapping",
 ]

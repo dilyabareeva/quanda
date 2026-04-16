@@ -3,7 +3,7 @@
 from importlib.resources import files
 
 _unit = "tests/assets/unit_bench_cfgs"
-_prefix = "20fba38-default"
+_prefix = "4bcff01-default"
 
 config_map: dict = {
     "mnist_linear_datamodeling_unit": (f"{_unit}/{_prefix}_LDS.yaml"),

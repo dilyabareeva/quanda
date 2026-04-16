@@ -263,41 +263,25 @@ class Benchmark(ABC):
             bench_save_dir=cache_dir,
             suffix=metadata_suffix,
         )
+        splits_cfg = config.get("splits", {})
         train_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
+            splits_cfg=splits_cfg,
         )
 
-        # If val shares the same split file and dataset_split as
-        # train, reuse the split that train just generated instead
-        # of regenerating it.
-        val_cfg = config.get("val_dataset", None)
-        reuse_split = False
-        if val_cfg is not None and not load_meta_from_disk:
-            train_cfg = config.get("train_dataset", {})
-            train_indices = train_cfg.get("indices", {})
-            val_indices = val_cfg.get("indices", {})
-            if (
-                isinstance(train_indices, dict)
-                and isinstance(val_indices, dict)
-                and train_indices.get("split_filename")
-                == val_indices.get("split_filename")
-                and train_cfg.get("dataset_split")
-                == val_cfg.get("dataset_split")
-            ):
-                reuse_split = True
-
         val_dataset = BenchConfigParser.parse_dataset_cfg(
-            ds_config=val_cfg,
+            ds_config=config.get("val_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
-            reuse_split=reuse_split,
+            splits_cfg=splits_cfg,
         )
         eval_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
+            splits_cfg=splits_cfg,
         )
 
         model, checkpoints, checkpoints_load_func = (
