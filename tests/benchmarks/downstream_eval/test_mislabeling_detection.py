@@ -361,12 +361,13 @@ def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
 
     base_ds = train_ds.dataset
     transform_indices = set(train_ds.transform_indices)
+    handler = train_ds.handler
 
     flipped_mismatches = []
     clean_mismatches = []
     for idx in range(len(train_ds)):
-        _, train_label = train_ds[idx]
-        _, base_label = base_ds[idx]
+        train_label = handler.get_label(train_ds[idx])
+        base_label = handler.get_label(base_ds[idx])
         if idx in transform_indices:
             if train_label == base_label:
                 flipped_mismatches.append(idx)
