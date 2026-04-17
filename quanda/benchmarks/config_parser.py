@@ -165,7 +165,7 @@ class BenchConfigParser:
                 pretrained_model = module_cls.from_pretrained(
                     pretrained_model_name_or_path=pretrained_model_name_or_path,
                     cache_dir=cache_dir,
-                    local_files_only=load_model_from_disk,
+                    #local_files_only=load_model_from_disk, TODO: this is danger zone
                     **from_pretrained_kwargs,
                 )
             except Exception as e:

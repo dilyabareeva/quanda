@@ -377,7 +377,7 @@ class LinearDatamodeling(Benchmark):
                 generator=generator,
             )
             with open(subset_meta, "w") as f:
-                f.write(f"{subset_ids}")
+                yaml.safe_dump(subset_ids, f)
 
         return {
             "m": m,

@@ -35,6 +35,16 @@ From: pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel
     SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0 \
         $HOME/.local/bin/uv pip install --no-cache-dir ".[dev]"
 
+    # `.[dev]` can pull a newer torch (cu13) that mismatches the base
+    # image's nvcc 12.4. Re-pin to the cu124 wheel before building fast-jl.
+    $HOME/.local/bin/uv pip install --no-cache-dir --force-reinstall \
+        --index-url https://download.pytorch.org/whl/cu124 \
+        torch==2.6.0 torchvision==0.21.0
+
+    # traker[fast] builds fast-jl against the base image's torch + nvcc;
+    # --no-build-isolation is required so it sees the env's torch.
+    $HOME/.local/bin/uv pip install --no-cache-dir --no-build-isolation "traker[fast]"
+
 %environment
     export PATH=/opt/venv/bin:$HOME/.local/bin:$PATH
 
