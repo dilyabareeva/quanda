@@ -61,6 +61,7 @@ logger:
   save_dir: hydra_logs/wandb/
   project: quanda-bench
 id: 1ea9143-bert_qnli_LDS
+explanations_group: bert_qnli_base
 bench: LDS
 bench_save_dir: /data/cluster/users/bareeva/quanda_output
 log_dir: hydra_logs

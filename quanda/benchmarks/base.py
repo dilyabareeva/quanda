@@ -72,11 +72,18 @@ def default_explanations_id(
     were computed on. For benchmarks driven by training-data
     self-influence (e.g. MislabelingDetection), these same parameters
     describe the train-dataset subsample instead.
+
+    If ``config['explanations_group']`` is set, it replaces ``config['id']``
+    as the identity segment so multiple benchmarks that share the same
+    model + train/eval datasets (e.g. qnli ClassDetection and LDS) can
+    reuse a single cached explanations artifact. Only opt in when the
+    grouped benchmarks truly share those inputs — a mismatch will be
+    silent.
     """
     repo = config.get("repo_id", "quanda-bench-test")
-    bench_id = config["id"]
+    group = config.get("explanations_group", config["id"])
     return (
-        f"{repo}/{bench_id}__{explainer_cls.__name__}"
+        f"{repo}/{group}__{explainer_cls.__name__}"
         f"__{_hash_expl_kwargs(expl_kwargs)}"
         f"__n{max_eval_n}_s{eval_seed}_explanations"
     )

@@ -61,6 +61,7 @@ logger:
   save_dir: hydra_logs/wandb/
   project: quanda-bench
 id: eaea7be-bert_qnli_ClassDetection
+explanations_group: bert_qnli_base
 bench: ClassDetection
 bench_save_dir: bench_out
 log_dir: hydra_logs
