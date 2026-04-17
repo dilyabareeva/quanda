@@ -71,3 +71,30 @@ def test_label_flipping_dataset(
         for i in labels.keys():
             assertions.append(labels[i] == expected[str(i)])
         assert all(assertions)
+
+
+@pytest.mark.utils
+def test_label_flipping_dataset_hf(load_text_dataset):
+    """Covers the HuggingFaceDatasetHandler branch in __getitem__."""
+    ds_train, _ = load_text_dataset
+
+    metadata = LabelFlippingDataset.metadata_cls(
+        n_classes=2,
+        seed=27,
+    )
+    metadata.transform_indices = [0, 1]
+    metadata.mislabeling_labels = {0: 1, 1: 0}
+
+    flipped_dataset = LabelFlippingDataset(
+        dataset=ds_train,
+        metadata=metadata,
+    )
+
+    item0 = flipped_dataset[0]
+    item1 = flipped_dataset[1]
+    item_untouched = flipped_dataset[2]
+
+    assert isinstance(item0, dict)
+    assert item0["labels"] == 1
+    assert item1["labels"] == 0
+    assert item_untouched["labels"] == ds_train[2]["labels"]
