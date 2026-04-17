@@ -4,7 +4,7 @@ import os
 import pytest
 import torch
 
-from quanda.benchmarks.base import Benchmark, _subsample_dataset
+from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.downstream_eval import MislabelingDetection
 from quanda.benchmarks.downstream_eval.mislabeling_detection import (
     SELF_INFLUENCE_KEY,
@@ -12,6 +12,7 @@ from quanda.benchmarks.downstream_eval.mislabeling_detection import (
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.cache import ExplanationsCache
+from quanda.utils.common import _subsample_dataset
 from quanda.utils.datasets.transformed import LabelFlippingDataset
 from quanda.utils.functions import cosine_similarity
 

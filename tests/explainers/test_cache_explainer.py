@@ -10,12 +10,12 @@ import yaml
 
 from quanda.benchmarks.base import (
     _hash_expl_kwargs,
-    _stable_repr,
     default_explanations_id,
 )
 from quanda.benchmarks.downstream_eval import ClassDetection
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
+from quanda.utils.common import _stable_repr
 from quanda.utils.functions import cosine_similarity
 
 

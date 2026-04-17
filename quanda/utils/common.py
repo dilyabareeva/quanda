@@ -504,3 +504,40 @@ class DatasetSplit(ABC):
     def exists(path: str, name: str) -> bool:
         """Check if split file exists."""
         return os.path.exists(os.path.join(path, name))
+
+
+def _stable_repr(obj: Any) -> str:
+    """Process-stable string form of ``obj`` for hashing/serialization.
+
+    ``str()`` / ``repr()`` embed ``id(obj)`` for callables and arbitrary
+    instances, so the default ``json.dumps(..., default=str)`` produces a
+    different payload on every Python process and breaks cache reuse.
+    """
+    if callable(obj) and hasattr(obj, "__qualname__"):
+        module = getattr(obj, "__module__", "") or ""
+        return f"{module}.{obj.__qualname__}" if module else obj.__qualname__
+    return str(obj)
+
+
+def _subsample_dataset(
+    dataset: torch.utils.data.Dataset,
+    max_n: Optional[int],
+    seed: int,
+) -> torch.utils.data.Dataset:
+    """Deterministically subsample a dataset.
+
+    Subsampling is reproducible across platforms because it uses Python's
+    ``random.Random(seed).sample`` over ``range(N)`` and stores the indices
+    in sorted order. For datasets that expose ``filtered`` (e.g.
+    ``TransformedDataset``), that is used instead of ``Subset`` so the
+    subset preserves the original type and remaps any transform indices.
+    """
+    if max_n is None:
+        return dataset
+    n = len(dataset)  # type: ignore[arg-type]
+    if max_n >= n:
+        return dataset
+    indices = sorted(random.Random(seed).sample(range(n), max_n))
+    if hasattr(dataset, "filtered"):
+        return dataset.filtered(indices)
+    return torch.utils.data.Subset(dataset, indices)

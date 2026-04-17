@@ -208,3 +208,22 @@ class Trainer(BaseTrainer):
         model.load_state_dict(module.model.state_dict())
 
         return model
+
+
+class _EpochSnapshotCallback(L.Callback):
+    """Snapshot ``pl_module.model`` to disk at a fixed set of epochs.
+
+    Used by ``Benchmark.train`` to capture intermediate checkpoints in a
+    single training run when ``num_checkpoints > 1``.
+    """
+
+    def __init__(self, snapshot_epochs: List[int], snapshot_dirs: List[str]):
+        super().__init__()
+        self._epoch_to_dir = dict(zip(snapshot_epochs, snapshot_dirs))
+
+    def on_train_epoch_end(self, trainer, pl_module):
+        target = self._epoch_to_dir.get(trainer.current_epoch)
+        if target is None:
+            return
+        os.makedirs(target, exist_ok=True)
+        pl_module.model.save_pretrained(target, safe_serialization=True)

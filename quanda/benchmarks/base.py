@@ -3,7 +3,6 @@
 import hashlib
 import json
 import os
-import random
 import warnings
 from abc import ABC
 from typing import Any, Callable, List, Optional, Union
@@ -31,21 +30,10 @@ from quanda.utils.common import (
     class_accuracy,
     load_last_checkpoint,
 )
+from quanda.utils.common import _stable_repr, _subsample_dataset
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.base import TransformedDataset
-
-
-def _stable_repr(obj: Any) -> str:
-    """Process-stable string form of ``obj`` for hashing/serialization.
-
-    ``str()`` / ``repr()`` embed ``id(obj)`` for callables and arbitrary
-    instances, so the default ``json.dumps(..., default=str)`` produces a
-    different payload on every Python process and breaks cache reuse.
-    """
-    if callable(obj) and hasattr(obj, "__qualname__"):
-        module = getattr(obj, "__module__", "") or ""
-        return f"{module}.{obj.__qualname__}" if module else obj.__qualname__
-    return str(obj)
+from quanda.utils.training.trainer import _EpochSnapshotCallback
 
 
 def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
@@ -54,25 +42,6 @@ def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
         expl_kwargs or {}, sort_keys=True, default=_stable_repr
     )
     return hashlib.sha1(payload.encode()).hexdigest()[:10]
-
-
-class _EpochSnapshotCallback(L.Callback):
-    """Snapshot ``pl_module.model`` to disk at a fixed set of epochs.
-
-    Used by ``Benchmark.train`` to capture intermediate checkpoints in a
-    single training run when ``num_checkpoints > 1``.
-    """
-
-    def __init__(self, snapshot_epochs: List[int], snapshot_dirs: List[str]):
-        super().__init__()
-        self._epoch_to_dir = dict(zip(snapshot_epochs, snapshot_dirs))
-
-    def on_train_epoch_end(self, trainer, pl_module):
-        target = self._epoch_to_dir.get(trainer.current_epoch)
-        if target is None:
-            return
-        os.makedirs(target, exist_ok=True)
-        pl_module.model.save_pretrained(target, safe_serialization=True)
 
 
 def _resolve_ckpts(config: dict) -> List[str]:
@@ -86,30 +55,6 @@ def _resolve_ckpts(config: dict) -> List[str]:
     if n <= 1:
         return [repo_id]
     return [f"{repo_id}@epoch_{i + 1}" for i in range(n)]
-
-
-def _subsample_dataset(
-    dataset: torch.utils.data.Dataset,
-    max_n: Optional[int],
-    seed: int,
-) -> torch.utils.data.Dataset:
-    """Deterministically subsample a dataset.
-
-    Subsampling is reproducible across platforms because it uses Python's
-    ``random.Random(seed).sample`` over ``range(N)`` and stores the indices
-    in sorted order. For datasets that expose ``filtered`` (e.g.
-    ``TransformedDataset``), that is used instead of ``Subset`` so the
-    subset preserves the original type and remaps any transform indices.
-    """
-    if max_n is None:
-        return dataset
-    n = len(dataset)  # type: ignore[arg-type]
-    if max_n >= n:
-        return dataset
-    indices = sorted(random.Random(seed).sample(range(n), max_n))
-    if hasattr(dataset, "filtered"):
-        return dataset.filtered(indices)
-    return torch.utils.data.Subset(dataset, indices)
 
 
 def default_explanations_id(
