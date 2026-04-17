@@ -49,8 +49,8 @@ def main(cfg: DictConfig) -> float:
 
     bench_cls = bench_dict[BENCH_CLASS[bench_id]]
 
-    max_eval_n = cfg.get("max_eval_n", 1000)
-    eval_seed = cfg.get("eval_seed", 42)
+    max_eval_n = cfg.bench_eval[bench_id].max_eval_n
+    eval_seed = cfg.bench_eval[bench_id].eval_seed
 
     explanations_id = default_explanations_id(
         bench_cfg,

@@ -11,8 +11,8 @@ benchmarks=(
     #mnist_shortcut_detection
     #mnist_mixed_datasets
     #mnist_linear_datamodeling
-    mnist_top_k_cardinality
-    #mnist_model_randomization
+    #mnist_top_k_cardinality
+    mnist_model_randomization
 )
 
 methods=(
