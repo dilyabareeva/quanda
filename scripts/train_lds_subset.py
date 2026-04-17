@@ -33,7 +33,7 @@ def main() -> None:
         config = yaml.safe_load(f)
 
     if args.device:
-        config["device"] = args.device    
+        config["device"] = args.device
     if args.push_only:
         LinearDatamodeling.push_subset(config=config, idx=args.idx)
         return

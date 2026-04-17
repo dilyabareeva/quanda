@@ -20,5 +20,4 @@ clean-format:
 	find . -path ./.venv -prune -o -type d -name ".tmp" -print -exec rm -rf {} +
 	find . -path ./.venv -prune -o -type d -name ".tox" -print -exec rm -rf {} +
 	find . -path ./.venv -prune -o -type d -name ".build" -print -exec rm -rf {} +
-	find . -path ./.venv -prune -o -type d -name ".cache" -print -exec rm -rf {} +
 	find . -path ./.venv -prune -o -name '*~' -print -exec rm -f {} +

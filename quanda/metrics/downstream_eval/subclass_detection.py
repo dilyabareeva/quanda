@@ -103,27 +103,20 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         """
         explanations = explanations.to(self.device)
 
-        if (
-            test_data is None or test_superclass_targets is None
-        ) and self.filter_by_prediction:
-            raise ValueError(
-                "test_data and test_superclass_targets must be "
-                "provided if filter_by_prediction is True"
-            )
-
         if isinstance(test_targets, list):
             test_targets = torch.tensor(test_targets)
         test_targets = test_targets.to(self.device)
 
-        if test_data is not None:
-            test_data = test_data.to(self.device)
-        if test_superclass_targets is not None:
+        select_idx = torch.tensor([True] * len(explanations)).to(self.device)
+        if self.filter_by_prediction:
+            if test_data is None or test_superclass_targets is None:
+                raise ValueError(
+                    "test_data and test_superclass_targets must be "
+                    "provided if filter_by_prediction is True"
+                )
             if isinstance(test_superclass_targets, list):
                 test_superclass_targets = torch.tensor(test_superclass_targets)
             test_superclass_targets = test_superclass_targets.to(self.device)
-
-        select_idx = torch.tensor([True] * len(explanations)).to(self.device)
-        if self.filter_by_prediction:
             model_device = next(self.model.parameters()).device
             pred_cls = self.model(test_data.to(model_device)).argmax(dim=1)
             pred_cls = pred_cls.to(self.device)
