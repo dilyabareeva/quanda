@@ -11,7 +11,7 @@ bench_types=(
     "MixedDatasets"
 )
 bench_params=(
-    "train_dataset=mnist_train train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test eval_dataset.dataset_split='test[:1%]' val_dataset.dataset_split='train[:1%]'"
+    "train_dataset=mnist_train train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test eval_dataset.dataset_split='test[:1%]' val_dataset.dataset_split='train[:1%]' m=5"
     "train_dataset=mnist_train_mislabeling train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test eval_dataset.dataset_split='test[:1%]' val_dataset=mnist_val_mislabeling val_dataset.dataset_split='train[:1%]'"
     "train_dataset=mnist_train train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test eval_dataset.dataset_split='test[:1%]' val_dataset.dataset_split='train[:1%]'"
     "model=mnist_lenet_subclass train_dataset=mnist_train_subclass train_dataset.dataset_split='train[:1%]' eval_dataset=mnist_test_subclass eval_dataset.dataset_split='test[:1%]' val_dataset=mnist_val_subclass val_dataset.dataset_split='train[:1%]'"
@@ -39,13 +39,17 @@ for i in "${!bench_types[@]}"; do
     echo "Config file name: $cfg_file_name"
     echo "Running with parameters: $params"
     echo "Saving output to: $cfg_output_dir/$cfg_file_name"
-    python scripts/generate_config.py hydra.run.dir="hydra_logs" $params id=$id +cfg_file_name=$cfg_file_name +cfg_output_dir=$cfg_output_dir
-    # Hyperparameter sweep
-    python scripts/train.py bench="$bench" bench_save_dir="tests/assets/mnist_local_bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name --multirun
-    # Saving the results to a config file
-    python scripts/opt_results_to_cfg.py bench="$bench" bench_save_dir="tests/assets/mnist_local_bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$cfg_file_name
+    python scripts/generate_config.py hydra.run.dir="hydra_logs" bench=$bench $params id=$id +cfg_file_name=$cfg_file_name bench_save_dir="tests/assets/mnist_local_bench" +cfg_output_dir=$cfg_output_dir num_checkpoints=1
     # Training the model
-    python scripts/train.py bench_save_dir="tests/assets/mnist_local_bench" --config-name $cfg_file_name --config-dir $cfg_output_dir
+    python scripts/train.py bench=$bench bench_save_dir="tests/assets/mnist_local_bench" --config-name $cfg_file_name --config-dir $cfg_output_dir
     echo "Finished running with parameters: $params"
     echo "--------------------------------------"
-done 
+done
+
+# Strip the _pid<PID> suffix from folders left behind by benchmark runs
+find "$cfg_output_dir" -depth -type d -name '*_pid*' | while read -r dir; do
+    new=$(echo "$dir" | sed -E 's/_pid[0-9]+//')
+    if [ "$dir" != "$new" ] && [ ! -e "$new" ]; then
+        mv "$dir" "$new"
+    fi
+done

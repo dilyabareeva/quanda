@@ -23,6 +23,7 @@ from quanda.metrics.ground_truth.linear_datamodeling import (
     [
         ("mnist_linear_datamodeling", 0.9),
         ("cifar_linear_datamodeling", 0.7),
+        ("qnli_linear_datamodeling", 0.8),
     ],
 )
 def test_lds_sanity_check_subset_accuracy(
@@ -184,7 +185,7 @@ def test_train_skip_subsets_skips_subset_loop(mocker):
     mocker.patch.object(Benchmark, "train", return_value=fake_obj)
     spy = mocker.patch.object(LinearDatamodeling, "_train_subset_models")
 
-    config = {"model": {"trainer": {}}, "ckpts": ["repo/ckpt"]}
+    config = {"model": {"trainer": {}}, "ckpt": "repo/ckpt"}
     result = LinearDatamodeling.train(config=config, skip_subsets=True)
 
     assert result is fake_obj
@@ -203,7 +204,7 @@ def test_train_without_skip_runs_subset_loop(mocker):
 
     config = {
         "model": {"trainer": {}},
-        "ckpts": ["repo/ckpt"],
+        "ckpt": "repo/ckpt",
         "bench_save_dir": "/tmp/unused",
         "repo_id": "repo",
     }
@@ -226,7 +227,7 @@ def test_train_subset_delegates_to_single_idx(mocker):
 
     config = {
         "model": {"trainer": {}},
-        "ckpts": ["repo/ckpt"],
+        "ckpt": "repo/ckpt",
         "bench_save_dir": "/tmp/unused",
     }
     LinearDatamodeling.train_subset(
@@ -304,7 +305,7 @@ def test_train_and_push_to_hub(mocker, skip_subsets):
     )
     config = {
         "model": {"trainer": {}},
-        "ckpts": ["repo/ckpt"],
+        "ckpt": "repo/ckpt",
         "bench_save_dir": "/tmp/unused",
         "skip_subsets": skip_subsets,
     }
@@ -325,7 +326,7 @@ def test_train_and_push_to_hub_resets_flags_on_error(mocker):
     )
     config = {
         "model": {"trainer": {}},
-        "ckpts": ["repo/ckpt"],
+        "ckpt": "repo/ckpt",
         "bench_save_dir": "/tmp/unused",
         "skip_subsets": True,
     }
@@ -346,7 +347,7 @@ def test_push_subset_uploads_to_hub(mocker, tmp_path):
     mocker.patch("huggingface_hub.HfApi", return_value=fake_api)
 
     config = {
-        "ckpts": ["repo-ckpt"],
+        "ckpt": "repo-ckpt",
         "bench_save_dir": str(tmp_path),
     }
     LinearDatamodeling.push_subset(config=config, idx=2)
@@ -361,7 +362,7 @@ def test_push_subset_uploads_to_hub(mocker, tmp_path):
 
 def _write_minimal_lds_cfg(path):
     with open(path, "w") as f:
-        yaml.safe_dump({"ckpts": ["repo/ckpt"]}, f)
+        yaml.safe_dump({"ckpt": "repo/ckpt"}, f)
 
 
 @pytest.mark.benchmarks

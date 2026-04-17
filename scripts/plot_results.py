@@ -6,6 +6,7 @@ import argparse
 import glob
 import json
 import os
+import re
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -73,7 +74,11 @@ def main():
     ap.add_argument("--results-dir", default="./eval_results")
     ap.add_argument(
         "--config",
-        default=None,
+        default=os.path.join(
+            os.path.dirname(__file__),
+            "mnsit_lenet_bench",
+            "mnist_plot_config.json",
+        ),
         help=(
             "JSON config with keys: methods, benches, method_labels, "
             "bench_labels, colors. If omitted, methods/benches are "
@@ -88,7 +93,8 @@ def main():
 
     if args.config:
         with open(args.config) as f:
-            cfg = json.load(f)
+            text = re.sub(r"(?m)^\s*//.*$|//[^\n\"]*$", "", f.read())
+        cfg = json.loads(text)
     else:
         cfg = {}
 
@@ -101,10 +107,16 @@ def main():
 
     method_labels = cfg.get("method_labels", {})
     bench_labels = cfg.get("bench_labels", {})
-    colors = cfg.get("colors", DEFAULT_COLORS)
+    colors_cfg = cfg.get("colors", DEFAULT_COLORS)
+    if isinstance(colors_cfg, dict):
+        colors = [
+            colors_cfg.get(m, DEFAULT_COLORS[i % len(DEFAULT_COLORS)])
+            for i, m in enumerate(methods)
+        ]
+    else:
+        colors = colors_cfg
 
     df = load_scores(args.results_dir, methods, benches)
-    df = df.rank(axis=0, method="max", ascending=True)
     df = df.reindex(index=methods, columns=benches)
     df = df.rename(
         index={m: method_labels.get(m, m) for m in methods},
@@ -130,7 +142,7 @@ def main():
     bar_padding = 0.03
     x_indices = np.arange(n_metrics)
 
-    for y in range(1, n_explainers + 1)[::-1]:
+    for y in (25, 50, 75, 100):
         plt.axhline(
             y=y, linewidth=0.3, zorder=0, color="gray", linestyle="dashed"
         )
@@ -139,21 +151,22 @@ def main():
         values = df[metric].values
         sorted_idx = np.argsort(values)[::-1]
         sorted_values = values[sorted_idx]
+        top = sorted_values[0]
+        pct = 100.0 * sorted_values / top if top else sorted_values * 0.0
         x_positions = x_indices[j] + np.arange(n_explainers) * (
             bar_width + bar_padding
         )
         ax.bar(
             x_positions,
-            sorted_values,
+            pct,
             width=bar_width,
             color=[colors[i % len(colors)] for i in sorted_idx],
             edgecolor="none",
             label=metric,
         )
 
-    yticks = list(range(1, n_explainers + 1))
-    ax.set_yticks(yticks)
-    ax.set_yticklabels(yticks[::-1])
+    ax.set_yticks([0, 25, 50, 75, 100])
+    ax.set_yticklabels(["0%", "25%", "50%", "75%", "100%"])
     ax.tick_params(axis="y", size=3, width=0.5)
 
     ax.set_xticks(
@@ -162,7 +175,7 @@ def main():
     ax.set_xticklabels(metrics, rotation=45, ha="center", fontsize=7)
     ax.tick_params(axis="x", pad=0, size=3, width=0.5)
 
-    ax.set_ylabel("Rank", fontsize=7)
+    ax.set_ylabel("% of top", fontsize=7)
     ax.tick_params(axis="y", labelsize=6)
     for spine in ax.spines.values():
         spine.set_linewidth(0.3)

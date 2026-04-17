@@ -306,6 +306,14 @@ class RepresenterPoints(Explainer):
                     ),
                     weights_only=True,
                 )
+                if self.coefficients.shape[0] != self.samples.shape[0]:
+                    logger.info(
+                        "Cached representer coefficients have "
+                        f"{self.coefficients.shape[0]} rows but current "
+                        f"training set has {self.samples.shape[0]}. "
+                        "Retraining."
+                    )
+                    self.train()
             except FileNotFoundError:
                 self.train()
         else:

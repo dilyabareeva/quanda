@@ -1,0 +1,52 @@
+Bootstrap: docker
+From: pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel
+
+%files
+    pyproject.toml /opt/quanda/pyproject.toml
+    README.md /opt/quanda/README.md
+
+%post
+    # Install system dependencies
+    apt-get update && apt-get install -y \
+        git \
+        wget \
+        curl \
+        build-essential \
+        gcc \
+        g++ \
+        && rm -rf /var/lib/apt/lists/*
+
+    # Install uv
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    . $HOME/.local/bin/env
+
+    # Create virtual environment with uv using Python 3.11
+    # (quanda requires >=3.10,<3.12; 3.11 matches tox type env)
+    $HOME/.local/bin/uv venv /opt/venv --python 3.11
+    . /opt/venv/bin/activate
+
+    # Stub out the package tree so ``pip install .[dev]`` resolves without
+    # needing the real source (which is bind-mounted at runtime).
+    mkdir -p /opt/quanda/quanda
+    touch /opt/quanda/quanda/__init__.py
+
+    cd /opt/quanda
+    # setuptools-scm needs a version when building outside a git tree.
+    SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0 \
+        $HOME/.local/bin/uv pip install --no-cache-dir ".[dev]"
+
+%environment
+    export PATH=/opt/venv/bin:$HOME/.local/bin:$PATH
+
+    # Prevent Python from using ~/.local packages
+    export PYTHONNOUSERSITE=1
+
+    # Make the bind-mounted source tree importable as ``quanda``
+    export PYTHONPATH=/workspace:$PYTHONPATH
+
+    # Cache locations
+    export HF_HOME=~/.cache/huggingface
+    export PIP_CACHE_DIR=~/.cache/pip
+
+%runscript
+    exec python "$@"

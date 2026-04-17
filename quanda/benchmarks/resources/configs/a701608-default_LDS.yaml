@@ -21,31 +21,18 @@ train_dataset:
   dataset_str: uoft-cs/cifar10
   dataset_split: train
   transforms: cifar10_transforms
-  indices:
-    split_filename: cifar10_train_split.yaml
-    split_name: train
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
+  split_ref: cifar10_train
+  split_name: train
 eval_dataset:
   dataset_str: uoft-cs/cifar10
   dataset_split: test
   transforms: cifar10_transforms
-  indices: all
 val_dataset:
   dataset_str: uoft-cs/cifar10
   dataset_split: train
   transforms: cifar10_transforms
-  indices:
-    split_filename: cifar10_train_split.yaml
-    split_name: val
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
+  split_ref: cifar10_train
+  split_name: val
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
@@ -62,12 +49,20 @@ model_id: '0'
 correlation_fn: kendall
 offline: true
 seed: 42
-device: cuda:1
+device: cuda:0
 m: 100
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/a701608-default_LDS
+ckpt: quanda-bench-test/a701608-default_LDS
+num_checkpoints: 5
 meta_id: quanda-bench-test/a701608-default_LDS_metadata
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: a701608-default_LDS.yaml
+splits:
+  cifar10_train:
+    filename: cifar10_train_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42

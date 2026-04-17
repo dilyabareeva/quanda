@@ -39,7 +39,7 @@ from quanda.utils.functions import cosine_similarity
             MixedDatasets,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.007874015718698502,
+            0.004689957946538925,
         ),
         (
             "mnist",
@@ -49,7 +49,7 @@ from quanda.utils.functions import cosine_similarity
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.051058314740657806,
+            0.1663675308227539,
         ),
         (
             "mnist",
@@ -59,7 +59,7 @@ from quanda.utils.functions import cosine_similarity
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.8569128513336182,
+            0.49223580956459045,
         ),
         (
             "mnist",
@@ -69,7 +69,7 @@ from quanda.utils.functions import cosine_similarity
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.548,
+            0.558,
         ),
         (
             "mnist",
@@ -79,7 +79,7 @@ from quanda.utils.functions import cosine_similarity
             ClassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.8100000023841858,
+            0.38999998569488525,
         ),
         (
             "mnist",
@@ -89,7 +89,7 @@ from quanda.utils.functions import cosine_similarity
             SubclassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.12999999523162842,
+            0.699999988079071,
         ),
     ],
 )
@@ -305,7 +305,7 @@ def test_filter_missing_shortcut_cls(
             MixedDatasets,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.007874015718698502,
+            0.00496224220842123,
         ),
         (
             "mnist-class",
@@ -315,7 +315,7 @@ def test_filter_missing_shortcut_cls(
             ClassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.8100000023841858,
+            0.38999998569488525,
         ),
         (
             "mnist-mislabeling",
@@ -325,7 +325,7 @@ def test_filter_missing_shortcut_cls(
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.45566120743751526,
+            0.49223580956459045,
         ),
         (
             "mnist-mislabeling-download",
@@ -335,7 +335,7 @@ def test_filter_missing_shortcut_cls(
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.45566120743751526,
+            0.49223580956459045,
         ),
         (
             "mnist-shortcut",
@@ -345,7 +345,7 @@ def test_filter_missing_shortcut_cls(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.22792746126651764,
+            0.1663675308227539,
         ),
         (
             "mnist-shortcut-download",
@@ -355,7 +355,7 @@ def test_filter_missing_shortcut_cls(
             ShortcutDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.22792746126651764,
+            0.1663675308227539,
         ),
         (
             "mnist-subclass",
@@ -365,7 +365,7 @@ def test_filter_missing_shortcut_cls(
             SubclassDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.18000000715255737,
+            0.699999988079071,
         ),
         (
             "mnist-linear-datamodeling",
@@ -375,7 +375,7 @@ def test_filter_missing_shortcut_cls(
             LinearDatamodeling,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.0833333432674408,
+            0.2120000123977661,
         ),
         (
             "mnist-top-k",
@@ -385,7 +385,7 @@ def test_filter_missing_shortcut_cls(
             TopKCardinality,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.548,
+            0.558,
         ),
         (
             "mnist-rand",
@@ -395,7 +395,7 @@ def test_filter_missing_shortcut_cls(
             ModelRandomization,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.3090123236179352,
+            0.36709094047546387,
         ),
     ],
 )
@@ -557,6 +557,122 @@ def test_train_from_config(
 
 
 @pytest.mark.benchmarks
+def test_train_snapshot_dirs(
+    load_mnist_unit_test_config_num_ckpts_2,
+    tmp_path,
+    monkeypatch,
+):
+    """Cover the snapshot_dirs branch of train() without real training."""
+    config = load_mnist_unit_test_config_num_ckpts_2
+    config["bench_save_dir"] = str(tmp_path)
+
+    monkeypatch.setattr("lightning.Trainer.fit", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ClassDetection,
+        "_compute_and_save_indices",
+        lambda self, config, batch_size=8: None,
+    )
+
+    bench = ClassDetection.train(config=config)
+
+    expected_num = int(config["num_checkpoints"])
+    assert len(bench.checkpoints) == expected_num
+    for ckpt_dir in bench.checkpoints:
+        assert "epoch_" in ckpt_dir
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize(
+    "test_id, extra_config, expect_error",
+    [
+        ("shortcut_pred", {"filter_by_shortcut_pred": True}, False),
+        ("non_shortcut", {"filter_by_non_shortcut": True}, False),
+        ("missing_filter_indices_cfg", None, True),
+    ],
+)
+def test_save_filtered_indices(
+    test_id,
+    extra_config,
+    expect_error,
+    load_mnist_shortcut_config,
+    tmp_path,
+):
+    """Cover save_filtered_indices happy path and missing-config raise."""
+    config = load_mnist_shortcut_config
+    config["bench_save_dir"] = str(tmp_path)
+    if extra_config:
+        config.update(extra_config)
+
+    bench = ShortcutDetection.from_config(
+        config=config,
+        load_meta_from_disk=True,
+        offline=True,
+    )
+
+    if expect_error:
+        bad_config = {
+            "bench_save_dir": str(tmp_path),
+            "id": config["id"],
+            "eval_dataset": {},
+        }
+        with pytest.raises(ValueError, match="Filter indices filename"):
+            bench.save_filtered_indices(bad_config, [0, 1, 2])
+        return
+
+    bench._compute_and_save_indices(config, batch_size=8)
+
+    split_filename = config["eval_dataset"]["filter_indices"]["split_filename"]
+    metadata_dir = BenchConfigParser.get_metadata_dir(
+        cfg=config,
+        bench_save_dir=str(tmp_path),
+    )
+    assert os.path.exists(os.path.join(metadata_dir, split_filename))
+
+
+@pytest.mark.benchmarks
+def test_filter_by_prediction_branches(
+    load_mnist_shortcut_config,
+    tmp_path,
+):
+    """Cover filter_by_prediction=True for both TransformedDataset and
+    plain-Dataset eval datasets in one setup pass."""
+    config = load_mnist_shortcut_config
+    config["bench_save_dir"] = str(tmp_path)
+
+    bench = ShortcutDetection.from_config(
+        config=config,
+        load_meta_from_disk=True,
+        offline=True,
+    )
+
+    bench._compute_and_save_filter_by_labels_and_prediction(
+        config=config,
+        batch_size=8,
+        filter_by_prediction=True,
+    )
+
+    split_filename = config["eval_dataset"]["filter_indices"]["split_filename"]
+    metadata_dir = BenchConfigParser.get_metadata_dir(
+        cfg=config,
+        bench_save_dir=str(tmp_path),
+    )
+    assert os.path.exists(os.path.join(metadata_dir, split_filename))
+
+    bench.eval_dataset = torch.utils.data.TensorDataset(
+        torch.randn(10, 1, 28, 28),
+        torch.randint(0, 10, (10,)),
+    )
+
+    bench._compute_and_save_filter_by_labels_and_prediction(
+        config=config,
+        batch_size=8,
+        filter_by_prediction=True,
+    )
+
+    assert isinstance(bench.eval_dataset, torch.utils.data.Subset)
+
+
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls",
     [
@@ -701,6 +817,8 @@ def test_logger(
         ("mnist_subclass_detection", SubclassDetection),
         ("mnist_mislabeling_detection", MislabelingDetection),
         ("mnist_class_detection", ClassDetection),
+        ("qnli_mislabeling_detection", MislabelingDetection),
+        ("qnli_class_detection", ClassDetection),
     ],
 )
 def test_benchmark_filters(config_name, bench_cls, tmp_path):
@@ -736,11 +854,12 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
             batch=batch,
             device=device,
         )
-        correct_idx = torch.tensor([True] * len(inputs)).to(inputs.device)
+        batch_len = len(labels)
+        correct_idx = torch.tensor([True] * batch_len).to(labels.device)
 
         if not filter_by_prediction:
             correct += correct_idx.sum().item()
-            total += len(inputs)
+            total += batch_len
             continue
         model_inputs = ds_handler.get_model_inputs(inputs=inputs)
         outputs = (
@@ -760,3 +879,64 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
         f"but {total - correct:.0f}/{total} samples did not match "
         f"(pct={pct:.4f})."
     )
+
+
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
+@pytest.mark.production_bench
+@pytest.mark.parametrize(
+    "config_name,bench_cls",
+    [
+        ("mnist_shortcut_detection_unit", ShortcutDetection),
+        ("mnist_mixed_datasets_unit", MixedDatasets),
+        ("mnist_subclass_detection", SubclassDetection),
+        ("mnist_mislabeling_detection", MislabelingDetection),
+        ("mnist_class_detection", ClassDetection),
+        ("mnist_linear_datamodeling", LinearDatamodeling),
+        ("cifar_shortcut_detection", ShortcutDetection),
+        ("cifar_mixed_datasets", MixedDatasets),
+        ("cifar_subclass_detection", SubclassDetection),
+        ("cifar_mislabeling_detection", MislabelingDetection),
+        ("cifar_class_detection", ClassDetection),
+        ("qnli_class_detection", ClassDetection),
+        ("qnli_mislabeling_detection", MislabelingDetection),
+    ],
+)
+def test_benchmark_checkpoints(config_name, bench_cls, tmp_path):
+    """Verify num_checkpoints matches config and each checkpoint is distinct."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    bench_yaml = config_map[config_name]
+
+    with open(bench_yaml, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    cfg["m"] = 5
+    expected_num_checkpoints = int(cfg.get("num_checkpoints", 1))
+
+    bench = bench_cls.load_pretrained(
+        bench_id=config_name,
+        cache_dir=str(tmp_path),
+        device=device,
+        offline=False,
+    )
+
+    assert len(bench.checkpoints) == expected_num_checkpoints, (
+        f"Expected {expected_num_checkpoints} checkpoints, "
+        f"got {len(bench.checkpoints)}."
+    )
+
+    fingerprints = []
+    for ckpt in bench.checkpoints:
+        bench.checkpoints_load_func(bench.model, ckpt)
+        fp = torch.cat(
+            [p.detach().flatten().cpu() for p in bench.model.parameters()]
+        ).clone()
+        fingerprints.append(fp)
+
+    for i in range(len(fingerprints)):
+        for j in range(i + 1, len(fingerprints)):
+            assert not torch.equal(fingerprints[i], fingerprints[j]), (
+                f"Checkpoints {bench.checkpoints[i]} and "
+                f"{bench.checkpoints[j]} have identical weights."
+            )

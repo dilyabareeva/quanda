@@ -7,6 +7,7 @@ defaults:
   - logger: wandb
   - override hydra/sweeper: optuna
   - override hydra/sweeper/sampler: grid
+  - override hydra/launcher: joblib
   - _self_
 
 hydra:
@@ -14,18 +15,20 @@ hydra:
     dir: "${log_dir}/${id}"
     subdir: hydra_logs
 
+  launcher:
+    n_jobs: 3
+
   sweeper:
     direction:
       - maximize
     study_name: "${cfg_file_name}"
     storage: null
-    n_trials: 20
-    n_jobs: 1
+    n_trials: 2
+    n_jobs: 3
     params:
-      model.trainer.lr: choice(1.0e-3, 5.0e-4, 1.0e-4)
-      model.trainer.max_epochs: choice(10, 20)
+      model.trainer.max_epochs: choice(20, 30)
 
-id: "default"
+id: "bert_qnli"
 bench: LDS
 bench_save_dir: "bench_out"
 log_dir: hydra_logs
@@ -39,10 +42,21 @@ seed: 42
 device: "auto"
 use_predictions: true
 
-m: 30
+m: 100
 alpha: 0.5
 
 subset_ids: lds_subsets.yaml
 
-ckpts:
-  - "${id}"
+ckpt: "${repo_id}/${id}"
+num_checkpoints: 5
+meta_id: "${repo_id}/${id}_metadata"
+
+splits:
+  qnli_train_50k:
+    filename: qnli_train_50k_split.yaml
+    ratios: {train: 0.47736, val: 0.1, test: 0.0}
+    seed: 42
+  qnli_train_mislabeling_50k:
+    filename: qnli_train_mislabeling_50k_split.yaml
+    ratios: {train: 0.47736, val: 0.1, test: 0.0}
+    seed: 42

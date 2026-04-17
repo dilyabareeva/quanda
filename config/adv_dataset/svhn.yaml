@@ -1,12 +1,7 @@
 single_class_dataset: true
 label: 0
-transforms: "cifar10_adversarial_transforms"
-dataset_str: "ufldl-stanford/svhn"
-dataset_config: "cropped_digits"
-indices:
-  split_filename: "svhn_split.yaml"
-  split_ratios:
-    train: 0.08
-    val: 0.02
-    test: 0.02
-  seed: 42
+transforms: cifar10_adversarial_transforms
+dataset_str: ufldl-stanford/svhn
+dataset_config: cropped_digits
+split_ref: svhn
+split_name: train

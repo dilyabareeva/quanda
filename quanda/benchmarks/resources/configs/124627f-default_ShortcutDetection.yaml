@@ -20,14 +20,6 @@ model:
 train_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train
-  indices:
-    split_filename: mnist_train_shortcut_split.yaml
-    split_name: train
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
   transforms: none
   wrapper:
     type: SampleTransformationDataset
@@ -38,11 +30,12 @@ train_dataset:
       seed: 42
     sample_fn: add_white_square_mnist
     dataset_transform: mnist_transforms
+  split_ref: mnist_train_shortcut
+  split_name: train
 eval_dataset:
   dataset_str: ylecun/mnist
   dataset_split: test
   transforms: none
-  indices: all
   filter_indices:
     split_filename: mnist_eval_shortcut_filter.yaml
     split_name: default
@@ -58,14 +51,6 @@ val_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train
   transforms: none
-  indices:
-    split_filename: mnist_train_shortcut_split.yaml
-    split_name: val
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
   wrapper:
     type: SampleTransformationDataset
     metadata:
@@ -75,6 +60,8 @@ val_dataset:
       seed: 42
     sample_fn: add_white_square_mnist
     dataset_transform: mnist_transforms
+  split_ref: mnist_train_shortcut
+  split_name: val
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
@@ -95,10 +82,18 @@ device: cuda:1
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/124627f-default_ShortcutDetection
+ckpt: quanda-bench-test/124627f-default_ShortcutDetection
+num_checkpoints: 5
 meta_id: quanda-bench-test/124627f-default_ShortcutDetection_metadata
 filter_by_shortcut_pred: true
 filter_by_non_shortcut: true
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: 124627f-default_ShortcutDetection.yaml
+splits:
+  mnist_train_shortcut:
+    filename: mnist_train_shortcut_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42

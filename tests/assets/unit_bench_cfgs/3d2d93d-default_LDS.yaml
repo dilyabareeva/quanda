@@ -1,0 +1,103 @@
+model:
+  module:
+    name: MnistTorch
+    args:
+      num_outputs: 10
+  trainer:
+    optimizer: adam
+    optimizer_kwargs:
+      weight_decay: 0.0
+    criterion: cross_entropy
+    criterion_kwargs: {}
+    scheduler: constant
+    scheduler_kwargs:
+      last_epoch: -1
+    lr: 0.001
+    max_epochs: 5
+    seed: 42
+    num_workers: 8
+    enable_progress_bar: false
+train_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: train[:1%]
+  transforms: mnist_transforms
+  split_ref: mnist_train
+  split_name: train
+eval_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: test[:1%]
+  transforms: mnist_transforms
+val_dataset:
+  dataset_str: ylecun/mnist
+  dataset_split: train[:1%]
+  transforms: mnist_transforms
+  split_ref: mnist_train
+  split_name: val
+logger:
+  _target_: lightning.pytorch.loggers.wandb.WandbLogger
+  save_dir: hydra_logs/wandb/
+  project: quanda-bench
+id: 3d2d93d-default_LDS
+bench: LDS
+adversarial_label: 0
+bench_save_dir: bench_out
+log_dir: hydra_logs
+repo_id: quanda-bench-test
+cache_dir: tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
+offline: true
+seed: 42
+device: cuda:1
+m: 5
+alpha: 0.5
+subset_ids: lds_subsets.yaml
+ckpt: quanda-bench-test/3d2d93d-default_LDS
+num_checkpoints: 1
+meta_id: quanda-bench-test/3d2d93d-default_LDS_metadata
+splits:
+  mnist_train:
+    filename: mnist_train_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42
+  mnist_train_subclass:
+    filename: mnist_train_subclass_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42
+  mnist_train_shortcut:
+    filename: mnist_train_shortcut_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42
+  mnist_train_mislabeling:
+    filename: mnist_train_mislabeling_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42
+  fashion_mnist:
+    filename: fashion_mnist_split.yaml
+    ratios:
+      train: 0.16
+      val: 0.02
+      test: 0.02
+    seed: 42
+  fashion_mnist_unit:
+    filename: fashion_mnist_unit_split.yaml
+    ratios:
+      train: 0.6
+      val: 0.2
+      test: 0.2
+    seed: 42
+cfg_file_name: 3d2d93d-default_LDS.yaml
+cfg_output_dir: tests/assets/unit_bench_cfgs

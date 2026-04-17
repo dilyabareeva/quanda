@@ -81,7 +81,7 @@ class ModelRandomization(Benchmark):
         return {
             "correlation_fn": correlation_functions[config["correlation_fn"]],
             "model_id": config.get("model_id", "0"),
-            "cache_dir": config.get("cache_dir", "./tmp"),
+            "cache_dir": config.get("bench_save_dir", "./tmp"),
             "seed": config["seed"],
         }
 

@@ -368,7 +368,8 @@ class LinearDatamodelingMetric(Metric):
             subset_model, self.subset_ckpt_filenames[idx]
         )
 
-        subset_model.to(self.device)
+        model_device = next(self.model.parameters()).device
+        subset_model.to(model_device)
         return subset_model
 
     def update(

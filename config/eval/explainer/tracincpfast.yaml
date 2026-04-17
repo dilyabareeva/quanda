@@ -1,6 +1,7 @@
 name: tracincpfast
 cls: quanda.explainers.wrappers.CaptumTracInCPFast
 kwargs:
+  final_fc_layer: ${final_fc_layer}
   loss_fn:
     _target_: torch.nn.CrossEntropyLoss
     reduction: mean

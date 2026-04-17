@@ -43,6 +43,7 @@ def test_mislabeling_detection(
         base_dataset,
         config["train_dataset"],
         metadata_dir,
+        splits_cfg=config.get("splits", {}),
     )
 
     dataset = LabelFlippingDataset(

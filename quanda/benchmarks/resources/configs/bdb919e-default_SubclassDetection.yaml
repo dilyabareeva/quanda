@@ -20,28 +20,24 @@ model:
 train_dataset:
   dataset_str: uoft-cs/cifar10
   dataset_split: train
-  indices:
-    split_filename: cifar10_train_subclass_split.yaml
-    split_name: train
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
   transforms: cifar10_transforms
   wrapper:
     type: LabelGroupingDataset
     metadata:
       metadata_filename: cifar10_train_subclass_transform_indices.yaml
       p: 1.0
-      n_groups: 2
-      class_to_group: random
       seed: 42
+    class_to_group:
+      ctg_filename: bdb919e-default_SubclassDetection_class_to_group.yaml
+      n_classes: 10
+      n_groups: 2
+      seed: 42
+  split_ref: cifar10_train_subclass
+  split_name: train
 eval_dataset:
   dataset_str: uoft-cs/cifar10
   dataset_split: test
   transforms: cifar10_transforms
-  indices: all
   filter_indices:
     split_filename: cifar10_eval_subclass_filter.yaml
     split_name: default
@@ -50,39 +46,35 @@ eval_dataset:
     metadata:
       metadata_filename: cifar10_eval_subclass_split.yaml
       p: 1.0
-      n_groups: 2
-      class_to_group:
-        0: 1
-        1: 1
-        2: 0
-        3: 0
-        4: 0
-        5: 0
-        6: 0
-        7: 0
-        8: 1
-        9: 1
       seed: 42
+    class_to_group:
+      0: 1
+      1: 1
+      2: 0
+      3: 0
+      4: 0
+      5: 0
+      6: 0
+      7: 0
+      8: 1
+      9: 1
 val_dataset:
   dataset_str: uoft-cs/cifar10
   dataset_split: train
   transforms: cifar10_transforms
-  indices:
-    split_filename: cifar10_train_subclass_split.yaml
-    split_name: val
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
   wrapper:
     type: LabelGroupingDataset
     metadata:
       metadata_filename: cifar10_val_subclass.yaml
       p: 1.0
-      n_groups: 2
-      class_to_group: random
       seed: 42
+    class_to_group:
+      ctg_filename: bdb919e-default_SubclassDetection_class_to_group.yaml
+      n_classes: 10
+      n_groups: 2
+      seed: 42
+  split_ref: cifar10_train_subclass
+  split_name: val
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
@@ -103,9 +95,17 @@ device: cuda:0
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/bdb919e-default_SubclassDetection
+ckpt: quanda-bench-test/bdb919e-default_SubclassDetection
+num_checkpoints: 5
 meta_id: quanda-bench-test/bdb919e-default_SubclassDetection_metadata
 filter_by_prediction: true
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: bdb919e-default_SubclassDetection.yaml
+splits:
+  cifar10_train_subclass:
+    filename: cifar10_train_subclass_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42

@@ -32,7 +32,7 @@ class DatasetHandler(ABC):
             and labels is a tensor.
 
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_model_inputs(self, inputs: Any) -> Any:
@@ -49,7 +49,7 @@ class DatasetHandler(ABC):
             Model-ready inputs.
 
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_predictions(self, outputs: Any) -> torch.Tensor:
@@ -66,7 +66,7 @@ class DatasetHandler(ABC):
             The extracted predictions.
 
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def create_dataloader(
@@ -95,11 +95,55 @@ class DatasetHandler(ABC):
             Configured DataLoader.
 
         """
-        pass
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_label(self, item: Any) -> Any:
+        """Extract the label from a single dataset item.
+
+        Parameters
+        ----------
+        item : Any
+            A single item as returned by ``dataset[i]``.
+
+        Returns
+        -------
+        Any
+            The label associated with the item.
+
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def with_label(self, item: Any, label: Any) -> Any:
+        """Return a copy of ``item`` with its label replaced.
+
+        Parameters
+        ----------
+        item : Any
+            A single item as returned by ``dataset[i]``.
+        label : Any
+            The replacement label.
+
+        Returns
+        -------
+        Any
+            Item with the label replaced, matching the input item's format.
+
+        """
+        raise NotImplementedError
 
 
 class TorchDatasetHandler(DatasetHandler):
     """Handler for PyTorch datasets."""
+
+    def get_label(self, item: Tuple[Any, Any]) -> Any:
+        """Extract the label from a ``(sample, label)`` tuple."""
+        return item[1]
+
+    def with_label(self, item: Tuple[Any, Any], label: Any) -> Tuple[Any, Any]:
+        """Return a ``(sample, label)`` tuple with the label replaced."""
+        return item[0], label
 
     def process_batch(
         self,
@@ -194,6 +238,22 @@ class TorchDatasetHandler(DatasetHandler):
 class HuggingFaceDatasetHandler(DatasetHandler):
     """Handler for HuggingFace datasets."""
 
+    def get_label(self, item: Dict[str, Any]) -> Any:
+        """Extract the label from a HuggingFace dict item."""
+        return item["labels"]
+
+    def with_label(self, item: Dict[str, Any], label: Any) -> Dict[str, Any]:
+        """Return a HuggingFace dict item with ``labels`` replaced."""
+        new_item = dict(item)
+        existing = item.get("labels")
+        if isinstance(existing, torch.Tensor):
+            new_item["labels"] = torch.tensor(
+                label, dtype=existing.dtype, device=existing.device
+            )
+        else:
+            new_item["labels"] = label
+        return new_item
+
     def process_batch(
         self, batch: Dict[str, torch.Tensor], device: Union[str, torch.device]
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
@@ -251,7 +311,8 @@ class HuggingFaceDatasetHandler(DatasetHandler):
             The extracted predictions.
 
         """
-        return outputs.logits.argmax(dim=-1)
+        logits = outputs.logits if hasattr(outputs, "logits") else outputs
+        return logits.argmax(dim=-1)
 
     def create_dataloader(
         self,
@@ -305,6 +366,14 @@ def get_dataset_handler(
         A handler instance suited for the dataset.
 
     """
+    inner = getattr(dataset, "dataset", None)
+    if inner is not None and not isinstance(dataset, datasets.Dataset):
+        if (
+            isinstance(inner, datasets.Dataset)
+            and "labels" not in inner.features
+        ):
+            return TorchDatasetHandler()
+        return get_dataset_handler(inner)
     if isinstance(dataset, datasets.Dataset):
         if "labels" not in dataset.features:
             raise ValueError(

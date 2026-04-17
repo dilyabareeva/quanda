@@ -1,4 +1,7 @@
+import os
+
 import pytest
+import torch
 
 from quanda.explainers.wrappers import RepresenterPoints
 
@@ -20,6 +23,7 @@ from quanda.explainers.wrappers import RepresenterPoints
                 "features_layer": "relu_4",
                 "classifier_layer": "fc_3",
                 "show_progress": False,
+                "epoch": 5,
             },
         ),
     ],
@@ -72,6 +76,7 @@ def test_representer_points_explain(
                 "features_layer": "relu_4",
                 "classifier_layer": "fc_3",
                 "show_progress": False,
+                "epoch": 5,
             },
         ),
     ],
@@ -104,3 +109,42 @@ def test_representer_points_self_influence(
     assert self_influence[7] == explainer.coefficients[7][train_labels[7]], (
         "Self-influence is not as expected"
     )
+
+
+@pytest.mark.explainers
+def test_representer_points_cached_shape_mismatch_retrains(
+    load_mnist_model,
+    load_mnist_last_checkpoint,
+    load_mnist_dataset,
+    tmp_path,
+    monkeypatch,
+):
+    """Pre-seed a cached weights file with mismatched shape to
+    exercise the retraining branch without running full training."""
+    model_id = "0"
+    weights_path = os.path.join(tmp_path, f"{model_id}_repr_weights.pt")
+    bogus_coefficients = torch.zeros(3, 10)
+    torch.save(bogus_coefficients, weights_path)
+
+    call_count = {"n": 0}
+
+    def fake_train(self):
+        call_count["n"] += 1
+        self.coefficients = torch.zeros(len(load_mnist_dataset), 10)
+
+    monkeypatch.setattr(RepresenterPoints, "train", fake_train)
+
+    explainer = RepresenterPoints(
+        model=load_mnist_model,
+        checkpoints=load_mnist_last_checkpoint,
+        cache_dir=str(tmp_path),
+        train_dataset=load_mnist_dataset,
+        model_id=model_id,
+        batch_size=8,
+        features_layer="relu_4",
+        classifier_layer="fc_3",
+        show_progress=False,
+    )
+
+    assert call_count["n"] == 1
+    assert explainer.coefficients.shape[0] == len(load_mnist_dataset)

@@ -1,0 +1,91 @@
+model:
+  module:
+    name: BertClassifier
+    args:
+      pretrained_model_name: google-bert/bert-base-cased
+      num_labels: 2
+  trainer:
+    optimizer: sgd
+    optimizer_kwargs:
+      weight_decay: 0.0
+    criterion: cross_entropy
+    criterion_kwargs: {}
+    scheduler: linear
+    scheduler_kwargs:
+      start_factor: 1.0
+      end_factor: 0.0
+    lr: 0.001
+    max_epochs: 20
+    seed: 42
+    num_workers: 8
+    gradient_clip_val: 1.0
+train_dataset:
+  dataset_str: SetFit/qnli
+  dataset_split: train
+  transforms: null
+  tokenizer:
+    name: google-bert/bert-base-cased
+    text_fields:
+    - text1
+    - text2
+    max_length: 128
+    label_field: label
+  split_ref: qnli_train_50k
+  split_name: train
+eval_dataset:
+  dataset_str: SetFit/qnli
+  dataset_split: validation
+  transforms: null
+  tokenizer:
+    name: google-bert/bert-base-cased
+    text_fields:
+    - text1
+    - text2
+    max_length: 128
+    label_field: label
+val_dataset:
+  dataset_str: SetFit/qnli
+  dataset_split: train
+  transforms: null
+  tokenizer:
+    name: google-bert/bert-base-cased
+    text_fields:
+    - text1
+    - text2
+    max_length: 128
+    label_field: label
+  split_ref: qnli_train_50k
+  split_name: val
+logger:
+  _target_: lightning.pytorch.loggers.wandb.WandbLogger
+  save_dir: hydra_logs/wandb/
+  project: quanda-bench
+id: 1ea9143-bert_qnli_LDS
+bench: LDS
+bench_save_dir: /data/cluster/users/bareeva/quanda_output
+log_dir: hydra_logs
+repo_id: quanda-bench-test
+cache_dir: tmp
+top_k: 5
+model_id: '0'
+correlation_fn: kendall
+offline: true
+seed: 42
+device: cuda:0
+use_predictions: true
+m: 100
+alpha: 0.5
+subset_ids: lds_subsets.yaml
+ckpt: quanda-bench-test/eaea7be-bert_qnli_ClassDetection
+num_checkpoints: 5
+meta_id: quanda-bench-test/1ea9143-bert_qnli_LDS_metadata
+splits:
+  qnli_train_50k:
+    filename: qnli_train_50k_split.yaml
+    ratios:
+      train: 0.47736
+      val: 0.1
+      test: 0.0
+    seed: 42
+cfg_file_name: 1ea9143-bert_qnli_LDS.yaml
+cfg_output_dir: quanda/benchmarks/resources/configs

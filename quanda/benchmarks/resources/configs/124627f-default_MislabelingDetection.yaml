@@ -20,14 +20,6 @@ model:
 train_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train
-  indices:
-    split_filename: mnist_train_mislabeling_split.yaml
-    split_name: train
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
   transforms: mnist_transforms
   wrapper:
     type: LabelFlippingDataset
@@ -35,23 +27,18 @@ train_dataset:
       metadata_filename: mnist_train_mislabeling_transform_indices.yaml
       p: 0.1
       seed: 43
+  split_ref: mnist_train_mislabeling
+  split_name: train
 eval_dataset:
   dataset_str: ylecun/mnist
   dataset_split: test
   transforms: mnist_transforms
-  indices: all
 val_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train
   transforms: mnist_transforms
-  indices:
-    split_filename: mnist_train_split.yaml
-    split_name: val
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
+  split_ref: mnist_train
+  split_name: val
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
@@ -72,8 +59,23 @@ device: cuda:1
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/124627f-default_MislabelingDetection
+ckpt: quanda-bench-test/124627f-default_MislabelingDetection
+num_checkpoints: 5
 meta_id: quanda-bench-test/124627f-default_MislabelingDetection_metadata
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: 124627f-default_MislabelingDetection.yaml
+splits:
+  mnist_train_mislabeling:
+    filename: mnist_train_mislabeling_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42
+  mnist_train:
+    filename: mnist_train_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42

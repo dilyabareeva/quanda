@@ -2,20 +2,19 @@
 # Shared benchmark evaluation logic.
 # Dataset-specific scripts should set the following before sourcing this file:
 #   - EVAL_CONFIG_NAME: Hydra config name (e.g. "mnist_lenet") from config/eval/
-#   - RUN_SCRIPT:       path to run_bench_eval.py
 #   - benchmarks:       array of benchmark ids (config_map keys)
 #   - methods:          array of explainer group names (config/eval/explainer/*.yaml)
 # and source their own eval_defs.sh (EXPL_SWEEP).
 
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
-PARALLEL=false
-CACHE_DIR="${CACHE_DIR:-./tmp_bench}"
-RESULTS_DIR="${RESULTS_DIR:-./eval_results}"
-DEVICE="${DEVICE:-cpu}"
-BATCH_SIZE="${BATCH_SIZE:-32}"
-MAX_EVAL_N="${MAX_EVAL_N:-1000}"
-EVAL_SEED="${EVAL_SEED:-42}"
+PARALLEL=true
+CACHE_DIR="${CACHE_DIR:-}"
+RESULTS_DIR="${RESULTS_DIR:-}"
+DEVICE="${DEVICE:-}"
+BATCH_SIZE="${BATCH_SIZE:-}"
+MAX_EVAL_N="${MAX_EVAL_N:-}"
+EVAL_SEED="${EVAL_SEED:-}"
 EXTRA_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -31,18 +30,24 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-mkdir -p "$CACHE_DIR" "$RESULTS_DIR" logs
+mkdir -p logs
+[ -n "$CACHE_DIR" ] && mkdir -p "$CACHE_DIR"
+[ -n "$RESULTS_DIR" ] && mkdir -p "$RESULTS_DIR"
 
 run_eval() {
     local bench=$1 method=$2 sweep=$3
     local multirun=""
     [ -n "$sweep" ] && multirun="--multirun"
-    python "$RUN_SCRIPT" \
+    local overrides=(bench="$bench" explainer="$method")
+    [ -n "$CACHE_DIR" ] && overrides+=(cache_dir="$CACHE_DIR")
+    [ -n "$RESULTS_DIR" ] && overrides+=(results_dir="$RESULTS_DIR")
+    [ -n "$DEVICE" ] && overrides+=(device="$DEVICE")
+    [ -n "$BATCH_SIZE" ] && overrides+=(batch_size="$BATCH_SIZE")
+    [ -n "$MAX_EVAL_N" ] && overrides+=(max_eval_n="$MAX_EVAL_N")
+    [ -n "$EVAL_SEED" ] && overrides+=(eval_seed="$EVAL_SEED")
+    python scripts/run_bench_eval.py \
         --config-name "$EVAL_CONFIG_NAME" \
-        bench="$bench" explainer="$method" \
-        cache_dir="$CACHE_DIR" results_dir="$RESULTS_DIR" \
-        device="$DEVICE" batch_size="$BATCH_SIZE" \
-        max_eval_n="$MAX_EVAL_N" eval_seed="$EVAL_SEED" \
+        "${overrides[@]}" \
         $sweep $multirun "${EXTRA_ARGS[@]}"
 }
 

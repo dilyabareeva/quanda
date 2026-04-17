@@ -8,3 +8,4 @@ omit =
 ignore_errors = True
 exclude_also =
     raise NotImplementedError
+    ^\s*pass\s*$

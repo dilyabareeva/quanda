@@ -3,7 +3,6 @@
 import hashlib
 import json
 import os
-import random
 import warnings
 from abc import ABC
 from typing import Any, Callable, List, Optional, Union
@@ -14,6 +13,7 @@ import torch
 import yaml
 from huggingface_hub import (
     PyTorchModelHubMixin,
+    create_branch,
     create_repo,
     snapshot_download,
     upload_folder,
@@ -27,41 +27,35 @@ from quanda.metrics import Metric
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
 from quanda.utils.common import (
     DatasetSplit,
+    _stable_repr,
+    _subsample_dataset,
     class_accuracy,
     load_last_checkpoint,
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.base import TransformedDataset
+from quanda.utils.training.trainer import _EpochSnapshotCallback
 
 
 def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
     """Stable short hash of sorted expl_kwargs for explanation repo IDs."""
-    payload = json.dumps(expl_kwargs or {}, sort_keys=True, default=str)
+    payload = json.dumps(
+        expl_kwargs or {}, sort_keys=True, default=_stable_repr
+    )
     return hashlib.sha1(payload.encode()).hexdigest()[:10]
 
 
-def _subsample_dataset(
-    dataset: torch.utils.data.Dataset,
-    max_n: Optional[int],
-    seed: int,
-) -> torch.utils.data.Dataset:
-    """Deterministically subsample a dataset.
+def _resolve_ckpts(config: dict) -> List[str]:
+    """Expand ``config['ckpt']`` + ``num_checkpoints`` into a ckpt list.
 
-    Subsampling is reproducible across platforms because it uses Python's
-    ``random.Random(seed).sample`` over ``range(N)`` and stores the indices
-    in sorted order. For datasets that expose ``filtered`` (e.g.
-    ``TransformedDataset``), that is used instead of ``Subset`` so the
-    subset preserves the original type and remaps any transform indices.
+    Returns a single-entry list when ``num_checkpoints <= 1`` and a
+    list of ``<repo>@epoch_<i>`` revision-suffixed entries otherwise.
     """
-    if max_n is None:
-        return dataset
-    n = len(dataset)  # type: ignore[arg-type]
-    if max_n >= n:
-        return dataset
-    indices = sorted(random.Random(seed).sample(range(n), max_n))
-    if hasattr(dataset, "filtered"):
-        return dataset.filtered(indices)
-    return torch.utils.data.Subset(dataset, indices)
+    repo_id = config["ckpt"]
+    n = int(config.get("num_checkpoints", 1))
+    if n <= 1:
+        return [repo_id]
+    return [f"{repo_id}@epoch_{i + 1}" for i in range(n)]
 
 
 def default_explanations_id(
@@ -215,48 +209,32 @@ class Benchmark(ABC):
             bench_save_dir=cache_dir,
             suffix=metadata_suffix,
         )
+        splits_cfg = config.get("splits", {})
         train_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
+            splits_cfg=splits_cfg,
         )
 
-        # If val shares the same split file and dataset_split as
-        # train, reuse the split that train just generated instead
-        # of regenerating it.
-        val_cfg = config.get("val_dataset", None)
-        reuse_split = False
-        if val_cfg is not None and not load_meta_from_disk:
-            train_cfg = config.get("train_dataset", {})
-            train_indices = train_cfg.get("indices", {})
-            val_indices = val_cfg.get("indices", {})
-            if (
-                isinstance(train_indices, dict)
-                and isinstance(val_indices, dict)
-                and train_indices.get("split_filename")
-                == val_indices.get("split_filename")
-                and train_cfg.get("dataset_split")
-                == val_cfg.get("dataset_split")
-            ):
-                reuse_split = True
-
         val_dataset = BenchConfigParser.parse_dataset_cfg(
-            ds_config=val_cfg,
+            ds_config=config.get("val_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
-            reuse_split=reuse_split,
+            splits_cfg=splits_cfg,
         )
         eval_dataset = BenchConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
+            splits_cfg=splits_cfg,
         )
 
         model, checkpoints, checkpoints_load_func = (
             BenchConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
-                ckpts=config["ckpts"],
+                ckpts=_resolve_ckpts(config),
                 load_model_from_disk=offline,
                 device=device,
             )
@@ -387,20 +365,12 @@ class Benchmark(ABC):
         else:
             accelerator = obj.device
             devices = 1
-        trainer.fit(
-            model=obj.model,
-            train_dataloaders=train_dl,
-            val_dataloaders=val_dl,
-            accelerator=accelerator,
-            devices=devices,
-        )
 
         ckpt_dir = os.path.join(
             config.get("bench_save_dir", "./tmp"),
             "ckpt",
-            f"{config['ckpts'][-1].split('/')[-1]}{pid_suffix}",
+            f"{config['ckpt'].split('/')[-1]}{pid_suffix}",
         )
-
         os.makedirs(ckpt_dir, exist_ok=True)
         if len(os.listdir(ckpt_dir)) > 0:
             warnings.warn(
@@ -408,14 +378,48 @@ class Benchmark(ABC):
                 "Checkpoints will be overwritten."
             )
 
+        num_checkpoints = int(config.get("num_checkpoints", 1))
+        snapshot_dirs: List[str] = []
+        callbacks: Optional[List[L.Callback]] = None
+        if num_checkpoints > 1:
+            max_epochs = config["model"]["trainer"]["max_epochs"]
+            snapshot_epochs = sorted(
+                {
+                    min(
+                        max_epochs - 1,
+                        int((i + 1) * max_epochs / num_checkpoints) - 1,
+                    )
+                    for i in range(num_checkpoints)
+                }
+            )
+            snapshot_dirs = [
+                os.path.join(ckpt_dir, f"epoch_{i + 1}")
+                for i in range(len(snapshot_epochs))
+            ]
+            callbacks = [
+                _EpochSnapshotCallback(snapshot_epochs, snapshot_dirs)
+            ]
+
+        trainer.fit(
+            model=obj.model,
+            train_dataloaders=train_dl,
+            val_dataloaders=val_dl,
+            accelerator=accelerator,
+            devices=devices,
+            callbacks=callbacks,
+        )
+
         obj.model.to(obj.device)
         obj.model.eval()
 
         assert isinstance(obj.model, PyTorchModelHubMixin), (
             "Model must inherit from PyTorchModelHubMixin."
         )
-        obj.model.save_pretrained(ckpt_dir, safe_serialization=True)
-        obj.checkpoints = [ckpt_dir]
+        if snapshot_dirs:
+            obj.checkpoints = snapshot_dirs
+        else:
+            obj.model.save_pretrained(ckpt_dir, safe_serialization=True)
+            obj.checkpoints = [ckpt_dir]
 
         obj._compute_and_save_indices(config, batch_size)
 
@@ -430,18 +434,41 @@ class Benchmark(ABC):
         batch_size: int = 64,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
-        obj = cls.train(
-            config,
-            logger=logger,
-            device=device,
-            batch_size=batch_size,
-        )
-        assert isinstance(obj.model, PyTorchModelHubMixin), (
-            "Model must inherit from PyTorchModelHubMixin."
-        )
+        skip_main_train = bool(config.get("skip_main_train", False))
+        if skip_main_train:
+            obj = cls.from_config(
+                config,
+                load_meta_from_disk=False,
+                device=device,
+            )
+            obj._compute_and_save_indices(config, batch_size)
+        else:
+            obj = cls.train(
+                config,
+                logger=logger,
+                device=device,
+                batch_size=batch_size,
+            )
+            assert isinstance(obj.model, PyTorchModelHubMixin), (
+                "Model must inherit from PyTorchModelHubMixin."
+            )
 
-        # TODO: add support for multiple checkpoints
-        obj.model.push_to_hub(f"{config['ckpts'][-1]}")
+            repo_id = config["ckpt"]
+            num_checkpoints = int(config.get("num_checkpoints", 1))
+            if num_checkpoints <= 1:
+                obj.model.push_to_hub(repo_id)
+            else:
+                create_repo(repo_id=repo_id, exist_ok=True)
+                for i, snapshot_dir in enumerate(obj.checkpoints, start=1):
+                    revision = f"epoch_{i}"
+                    create_branch(
+                        repo_id=repo_id, branch=revision, exist_ok=True
+                    )
+                    upload_folder(
+                        folder_path=snapshot_dir,
+                        repo_id=repo_id,
+                        revision=revision,
+                    )
 
         pid_suffix = getattr(obj, "_pid_suffix", "")
         metadata_dir = BenchConfigParser.get_metadata_dir(
@@ -521,6 +548,13 @@ class Benchmark(ABC):
             batch_size=batch_size,
             shuffle=False,
         )
+        if not (
+            filter_by_shortcut_pred
+            or filter_by_non_shortcut
+            or filter_by_prediction
+        ):
+            return
+
         if filter_by_shortcut_pred and shortcut_cls is None:
             raise ValueError(
                 "shortcut_cls must be provided if "
@@ -545,7 +579,7 @@ class Benchmark(ABC):
                 else self.model(model_inputs)
             )
             pred_cls = ds_handler.get_predictions(outputs=outputs)
-            select_idx = torch.tensor([True] * len(pred_cls)).to(inputs.device)
+            select_idx = torch.tensor([True] * len(pred_cls)).to(self.device)
             if filter_by_shortcut_pred:
                 select_idx *= pred_cls == shortcut_cls
             if filter_by_non_shortcut:
@@ -841,7 +875,7 @@ class Benchmark(ABC):
             k: (
                 v
                 if isinstance(v, (str, int, float, bool, type(None)))
-                else repr(v)
+                else _stable_repr(v)
             )
             for k, v in (expl_kwargs or {}).items()
         }
@@ -1020,6 +1054,7 @@ class Benchmark(ABC):
                     [self.class_to_group[i.item()] for i in labels],
                     device=labels.device,
                 )
+                data_unit["test_targets"] = labels
                 if not self.use_predictions:
                     data_unit["targets"] = data_unit["grouped_labels"]
 

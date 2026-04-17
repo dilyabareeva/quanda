@@ -27,5 +27,12 @@
     "mnist_top_k_cardinality": "Top-K\nCardinality",
     "mnist_mixed_datasets": "Mixed Dataset\nSeparation"
   },
-  "colors": ["#EB9C38", "#83BA59", "#EA4E38", "#7D53BA", "#90918B", "#EB9C38"]
+  "colors": {
+    "representer_points": "#EB9C38", 
+    "arnoldi":            "#83BA59", 
+    "tracincpfast":       "#EA4E38", 
+    "trak":               "#7D53BA", 
+    "random":             "#90918B", 
+    "similarity":         "#3B8FB5" 
+  }
 }

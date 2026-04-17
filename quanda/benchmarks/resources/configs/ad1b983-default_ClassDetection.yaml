@@ -19,31 +19,18 @@ train_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train
   transforms: mnist_transforms
-  indices:
-    split_filename: mnist_train_split.yaml
-    split_name: train
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
+  split_ref: mnist_train
+  split_name: train
 eval_dataset:
   dataset_str: ylecun/mnist
   dataset_split: test
   transforms: mnist_transforms
-  indices: all
 val_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train
   transforms: mnist_transforms
-  indices:
-    split_filename: mnist_train_split.yaml
-    split_name: val
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
+  split_ref: mnist_train
+  split_name: val
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
@@ -60,11 +47,20 @@ model_id: '0'
 correlation_fn: kendall
 offline: true
 seed: 42
-device: auto
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/ad1b983-default_ClassDetection
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: ad1b983-default_ClassDetection.yaml
+ckpt: quanda-bench-test/ad1b983-default_ClassDetection
+num_checkpoints: 5
+device: cuda:0
+filter_by_prediction: false
+splits:
+  mnist_train:
+    filename: mnist_train_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42

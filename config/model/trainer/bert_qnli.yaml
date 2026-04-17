@@ -1,6 +1,7 @@
 # Trainer configuration for BERT QNLI
 # Following https://arxiv.org/pdf/2303.14186:
-# SGD, 20 epochs, lr=1e-3, no weight decay
+# SGD, 20 epochs, lr=1e-3, no weight decay.
+# Linear LR decay + grad clipping follow the HF run_glue.py defaults.
 optimizer: "sgd"
 optimizer_kwargs:
   weight_decay: 0.0
@@ -8,11 +9,13 @@ optimizer_kwargs:
 criterion: "cross_entropy"
 criterion_kwargs: {}
 
-scheduler: "constant"
+scheduler: "linear"
 scheduler_kwargs:
-  last_epoch: -1
+  start_factor: 1.0
+  end_factor: 0.0
 
-lr: 1.0e-3
+lr: 0.001
 max_epochs: 20
 seed: 42
 num_workers: 8
+gradient_clip_val: 1.0

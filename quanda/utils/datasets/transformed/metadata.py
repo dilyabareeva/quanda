@@ -4,13 +4,16 @@ import os
 import random
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Literal, Optional, Type, TypeVar, Union
+from typing import Dict, List, Optional, Type, TypeVar
 
 import torch
 import yaml
 from omegaconf import DictConfig, ListConfig, OmegaConf
 
 from quanda.utils.common import ds_len
+from quanda.utils.datasets.dataset_handlers import (
+    get_dataset_handler,
+)
 
 # Define a type variable bound to DatasetMetadata
 T = TypeVar("T", bound="DatasetMetadata")
@@ -157,8 +160,10 @@ class LabelFlippingMetadata(DatasetMetadata):
             return self.mislabeling_labels
         if self.transform_indices is None:
             self.transform_indices = super().generate_indices(dataset)
+
+        handler = get_dataset_handler(dataset)
         self.mislabeling_labels = {
-            i: self._poison(dataset[i][1])
+            i: self._poison(handler.get_label(dataset[i]))
             for i in range(len(dataset))
             if i in self.transform_indices
         }
@@ -183,35 +188,118 @@ class LabelFlippingMetadata(DatasetMetadata):
 
 @dataclass
 class LabelGroupingMetadata(DatasetMetadata):
-    """Metadata for grouping classes."""
+    """Per-dataset metadata for LabelGroupingDataset.
 
-    n_classes: int = 10
-    n_groups: int = 2
-    class_to_group: Union[Literal["random"], Dict[int, int]] = "random"
+    The class-to-group mapping itself lives in :class:`ClassMapping`, which
+    is a shared artifact across train/val/eval datasets. This metadata only
+    carries the dataset-specific transform indices.
+    """
 
     def generate_indices(self, dataset: torch.utils.data.Dataset) -> List[int]:
         """Generate indices for transformation."""
         return super().generate_indices(dataset)
 
-    def generate_class_mapping(self) -> Dict[int, int]:
-        """Generate a mapping from class to group."""
-        self.class_to_group = {
-            i: int(
-                torch.randint(self.n_groups, (1,), generator=self.rng).item()
-            )
-            for i in range(self.n_classes)
-        }
-        return self.class_to_group
-
     def validate(self, dataset: torch.utils.data.Dataset):
         """Validate the metadata."""
         super().validate(dataset)
-        if (
-            isinstance(self.class_to_group, dict)
-            and len(self.class_to_group) != self.n_classes
-        ):
-            raise ValueError(
-                f"Length of class_to_group dictionary ("
-                f"{len(self.class_to_group)}"
-                f") does not match number of classes ({self.n_classes})"
+
+
+@dataclass
+class ClassMapping:
+    """Shared class-to-group mapping for :class:`LabelGroupingDataset`.
+
+    Serialized as a standalone artifact so that multiple datasets (train,
+    val, eval) can reference the same mapping by filename. Resolved from a
+    config spec that is either a direct mapping (a ``Dict[int, int]``) or a
+    file-backed reference specifying ``ctg_filename``, ``n_classes``,
+    ``n_groups`` and an optional ``seed``.
+    """
+
+    class_to_group: Dict[int, int]
+    n_classes: int
+    n_groups: int
+    seed: int = 42
+
+    @classmethod
+    def exists(cls, path: str, name: str) -> bool:
+        """Check if a mapping file exists on disk."""
+        return os.path.exists(os.path.join(path, name))
+
+    def save(self, path: str, name: str) -> None:
+        """Save the mapping to disk as YAML."""
+        os.makedirs(path, exist_ok=True)
+        with open(os.path.join(path, name), "w") as f:
+            yaml.safe_dump(
+                {
+                    "class_to_group": self.class_to_group,
+                    "n_classes": self.n_classes,
+                    "n_groups": self.n_groups,
+                    "seed": self.seed,
+                },
+                f,
             )
+
+    @classmethod
+    def load(cls, path: str, name: str) -> "ClassMapping":
+        """Load a mapping from disk."""
+        with open(os.path.join(path, name), "r") as f:
+            data = yaml.safe_load(f)
+        return cls(
+            class_to_group={
+                int(k): int(v) for k, v in data["class_to_group"].items()
+            },
+            n_classes=int(data["n_classes"]),
+            n_groups=int(data["n_groups"]),
+            seed=int(data.get("seed", 42)),
+        )
+
+    @classmethod
+    def _generate(
+        cls, n_classes: int, n_groups: int, seed: int
+    ) -> Dict[int, int]:
+        rng = torch.Generator()
+        rng.manual_seed(seed)
+        return {
+            i: int(torch.randint(n_groups, (1,), generator=rng).item())
+            for i in range(n_classes)
+        }
+
+    @classmethod
+    def resolve(
+        cls,
+        spec: dict,
+        metadata_dir: str,
+        load_meta_from_disk: bool,
+    ) -> "ClassMapping":
+        """Resolve a ``class_to_group`` config spec to a ``ClassMapping``.
+
+        Spec forms:
+          - ``{0: g0, 1: g1, ...}`` — direct mapping (integer keys).
+          - ``{ctg_filename, n_classes, n_groups, seed?}`` — file-backed;
+            load if exists, otherwise generate from ``seed`` and save.
+        """
+        if spec and all(isinstance(k, int) for k in spec.keys()):
+            mapping = {int(k): int(v) for k, v in spec.items()}
+            return cls(
+                class_to_group=mapping,
+                n_classes=len(mapping),
+                n_groups=len(set(mapping.values())),
+            )
+
+        ctg_filename = spec["ctg_filename"]
+        n_classes = int(spec["n_classes"])
+        n_groups = int(spec["n_groups"])
+        seed = int(spec.get("seed", 42))
+
+        if cls.exists(metadata_dir, ctg_filename) and load_meta_from_disk:
+            return cls.load(metadata_dir, ctg_filename)
+
+        mapping = cls._generate(n_classes, n_groups, seed)
+        instance = cls(
+            class_to_group=mapping,
+            n_classes=n_classes,
+            n_groups=n_groups,
+            seed=seed,
+        )
+        instance.save(metadata_dir, ctg_filename)
+        return instance

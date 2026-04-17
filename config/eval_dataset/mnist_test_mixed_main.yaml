@@ -1,7 +1,6 @@
 dataset_str: ylecun/mnist
 dataset_split: test
-transforms: "mnist_transforms"
-indices: "all"
+transforms: mnist_transforms
 filter_indices:
-  split_filename: "mnist_eval_mixed_main_filter.yaml"
+  split_filename: mnist_eval_mixed_main_filter.yaml
   split_name: default

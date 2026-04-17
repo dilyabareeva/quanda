@@ -148,6 +148,8 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
         self.bert = AutoModel.from_pretrained(
             pretrained_model_name, config=config
         )
+        if getattr(self.bert, "pooler", None) is not None:
+            self.bert.pooler.activation = torch.nn.Identity()
         self.dropout = torch.nn.Dropout(config.hidden_dropout_prob)
         self.classifier = torch.nn.Linear(config.hidden_size, num_labels)
 

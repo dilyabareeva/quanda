@@ -5,6 +5,7 @@ from torch.optim import SGD, Adam, AdamW, RMSprop
 from torch.optim.lr_scheduler import (
     ConstantLR,
     CosineAnnealingLR,
+    LinearLR,
     OneCycleLR,
     ReduceLROnPlateau,
     StepLR,
@@ -36,4 +37,5 @@ schedulers = {
     "reduce_on_plateau": ReduceLROnPlateau,
     "one_cycle": OneCycleLR,
     "constant": ConstantLR,
+    "linear": LinearLR,
 }

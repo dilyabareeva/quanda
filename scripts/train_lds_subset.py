@@ -32,11 +32,13 @@ def main() -> None:
     with open(args.config_path, "r") as f:
         config = yaml.safe_load(f)
 
+    if args.device:
+        config["device"] = args.device
     if args.push_only:
         LinearDatamodeling.push_subset(config=config, idx=args.idx)
         return
 
-    device = config.get(
+    device = args.device or config.get(
         "device", "cuda" if torch.cuda.is_available() else "cpu"
     )
     LinearDatamodeling.train_subset(

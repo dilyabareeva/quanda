@@ -1,11 +1,10 @@
-dataset_str: "SetFit/qnli"
+dataset_str: SetFit/qnli
 dataset_split: validation
 transforms: null
 tokenizer:
-  name: "google-bert/bert-base-cased"
+  name: google-bert/bert-base-cased
   text_fields:
-    - "text1"
-    - "text2"
+  - text1
+  - text2
   max_length: 128
-  label_field: "label"
-indices: "all"
+  label_field: label

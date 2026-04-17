@@ -17,6 +17,7 @@ from quanda.utils.datasets.transformed import (
     TransformedDataset,
     transform_wrappers,
 )
+from quanda.utils.datasets.transformed.metadata import ClassMapping
 from quanda.utils.tokenization import tokenize_dataset
 from quanda.utils.training import Trainer
 from quanda.utils.training.options import criteria, optimizers, schedulers
@@ -64,14 +65,31 @@ class BenchConfigParser:
         ds_config: Optional[dict],
         metadata_dir: str = ".tmp/meta",
         load_meta_from_disk: bool = True,
-        reuse_split: bool = False,
+        splits_cfg: Optional[dict] = None,
     ):
-        """Return the dataset using the given parameters."""
+        """Return the dataset using the given parameters.
+
+        Parameters
+        ----------
+        ds_config : Optional[dict]
+            Dataset configuration dictionary.
+        metadata_dir : str
+            Directory used for on-disk split and wrapper metadata.
+        load_meta_from_disk : bool
+            If True, load pre-existing split/wrapper metadata from disk
+            instead of regenerating.
+        splits_cfg : Optional[dict]
+            Top-level ``splits:`` registry mapping split names to their
+            recipes (``{filename, ratios, seed}``). Datasets reference an
+            entry via ``split_ref``.
+
+        """
         if ds_config is None:
             return None
 
+        splits_cfg = splits_cfg or {}
         dataset = cls._load_dataset_from_cfg(
-            ds_config, metadata_dir, load_meta_from_disk, reuse_split
+            ds_config, metadata_dir, load_meta_from_disk, splits_cfg
         )
 
         wrapper = copy.deepcopy(ds_config.get("wrapper", None))
@@ -124,20 +142,31 @@ class BenchConfigParser:
             raise ValueError(f"Model class {module_cls} is not HF compatible.")
 
         def load_state_dict(model: torch.nn.Module, ckpt_str: str):
-            ckpt = ckpt_str.split("/")[-1]
-            ckpt_dir = os.path.join(checkpoint_path, ckpt)
+            # Support `<repo>@<revision>` syntax used to address per-epoch
+            # snapshots pushed by `train_and_push_to_hub`.
+            if "@" in ckpt_str:
+                repo_str, revision = ckpt_str.rsplit("@", 1)
+            else:
+                repo_str, revision = ckpt_str, None
+            ckpt = repo_str.split("/")[-1]
+            local_dir_name = ckpt if revision is None else f"{ckpt}@{revision}"
+            ckpt_dir = os.path.join(checkpoint_path, local_dir_name)
             if os.path.exists(os.path.join(ckpt_dir, "config.json")):
                 pretrained_model_name_or_path = ckpt_dir
                 cache_dir = None
             else:
-                pretrained_model_name_or_path = ckpt_str
+                pretrained_model_name_or_path = repo_str
                 cache_dir = ckpt_dir
 
+            from_pretrained_kwargs = {}
+            if revision is not None:
+                from_pretrained_kwargs["revision"] = revision
             try:
                 pretrained_model = module_cls.from_pretrained(
                     pretrained_model_name_or_path=pretrained_model_name_or_path,
                     cache_dir=cache_dir,
                     local_files_only=load_model_from_disk,
+                    **from_pretrained_kwargs,
                 )
             except Exception as e:
                 raise ValueError(
@@ -191,6 +220,7 @@ class BenchConfigParser:
             "enable_progress_bar": trainer_cfg.get(
                 "enable_progress_bar", True
             ),
+            "gradient_clip_val": trainer_cfg.get("gradient_clip_val", None),
         }
 
         return Trainer(**trainer_kwargs)
@@ -201,12 +231,12 @@ class BenchConfigParser:
         ds_config: dict,
         metadata_dir: str,
         load_meta_from_disk: bool = True,
-        reuse_split: bool = False,
+        splits_cfg: Optional[dict] = None,
     ) -> torch.utils.data.Dataset:
         """Load dataset based on configuration."""
         if "single_class_dataset" not in ds_config:
             return cls._load_hf_dataset_from_config(
-                ds_config, metadata_dir, load_meta_from_disk, reuse_split
+                ds_config, metadata_dir, load_meta_from_disk, splits_cfg
             )
         elif ds_config["single_class_dataset"]:
             return cls._load_single_class_dataset(
@@ -221,7 +251,7 @@ class BenchConfigParser:
         ds_config: dict,
         metadata_dir: str,
         load_meta_from_disk: bool = True,
-        reuse_split: bool = False,
+        splits_cfg: Optional[dict] = None,
     ) -> Union[torch.utils.data.Dataset, hf_datasets.Dataset]:
         """Load a HuggingFace dataset based on configuration."""
         transform = cls._get_transform(ds_config)
@@ -233,9 +263,12 @@ class BenchConfigParser:
             tokenizer_cfg=tokenizer_cfg,
             dataset_config=ds_config.get("dataset_config", None),
         )
-        load_split = load_meta_from_disk or reuse_split
         return cls._apply_indices(
-            base_dataset, ds_config, metadata_dir, load_split
+            base_dataset,
+            ds_config,
+            metadata_dir,
+            load_meta_from_disk,
+            splits_cfg or {},
         )
 
     @classmethod
@@ -280,22 +313,20 @@ class BenchConfigParser:
         ds_config: dict,
         metadata_dir: str,
         load_meta_from_disk: bool = True,
+        splits_cfg: Optional[dict] = None,
     ) -> Union[torch.utils.data.Dataset, hf_datasets.Dataset]:
         """Apply indices to the dataset based on configuration."""
-        indices = copy.deepcopy(ds_config.get("indices", "all"))
-        final_indices = list(range(ds_len(base_dataset)))
-        if indices != "all":
-            split_name = indices.get("split_name", "train")
-            split_filename = indices.get("split_filename", "DOESNT_EXIST")
-            split_ratios = indices.get(
-                "split_ratios", {"train": 1.0, "test": 0.0, "val": 0.0}
-            )
+        split_ref = ds_config.get("split_ref")
+        final_indices: List[int] = list(range(ds_len(base_dataset)))
+        if split_ref is not None:
+            split_recipe = cls._resolve_split_recipe(split_ref, splits_cfg)
+            split_name = ds_config.get("split_name", "train")
             split = cls._load_split_if_exists_or_generate(
                 base_dataset,
                 load_meta_from_disk,
                 metadata_dir,
-                split_filename,
-                split_ratios=split_ratios,
+                split_recipe["filename"],
+                split_ratios=split_recipe["ratios"],
             )
             final_indices = split[split_name]
 
@@ -305,6 +336,23 @@ class BenchConfigParser:
             base_dataset = torch.utils.data.Subset(base_dataset, final_indices)
 
         return base_dataset
+
+    @staticmethod
+    def _resolve_split_recipe(
+        split_ref: str, splits_cfg: Optional[dict]
+    ) -> dict:
+        """Look up a split recipe by name in the top-level splits registry."""
+        if not splits_cfg or split_ref not in splits_cfg:
+            raise KeyError(
+                f"split_ref '{split_ref}' not found in top-level "
+                f"'splits:' section of the config."
+            )
+        recipe = copy.deepcopy(splits_cfg[split_ref])
+        if "filename" not in recipe or "ratios" not in recipe:
+            raise ValueError(
+                f"splits['{split_ref}'] must define 'filename' and 'ratios'."
+            )
+        return recipe
 
     @classmethod
     def _apply_filter(
@@ -368,6 +416,16 @@ class BenchConfigParser:
                 kwargs["metadata"] = loaded_meta
             else:
                 kwargs["metadata"] = wrapper_cls.metadata_cls(**metadata_args)
+
+        if "class_to_group" in kwargs:
+            mapping = ClassMapping.resolve(
+                kwargs.pop("class_to_group"),
+                metadata_dir,
+                load_meta_from_disk,
+            )
+            kwargs["class_to_group"] = mapping.class_to_group
+            kwargs["n_classes"] = mapping.n_classes
+            kwargs["n_groups"] = mapping.n_groups
 
         if "sample_fn" in kwargs:
             kwargs["sample_fn"] = sample_transforms.get(kwargs["sample_fn"])
@@ -464,6 +522,7 @@ class BenchConfigParser:
         ds_config: dict,
         metadata_dir: str,
         load_meta_from_disk: bool = True,
+        splits_cfg: Optional[dict] = None,
     ):
         """Split the dataset using the given parameters.
 
@@ -477,28 +536,26 @@ class BenchConfigParser:
             Directory to store the metadata.
         load_meta_from_disk: bool
             Whether to load metadata from disk.
+        splits_cfg: Optional[dict]
+            Top-level splits registry (name -> recipe).
 
         Returns
         -------
-        Tuple[torch.utils.data.Dataset, torch.utils.data.Dataset,
-        torch.utils.data.Dataset]
-            The train, val, test datasets.
+        Dict[str, Optional[torch.utils.data.Dataset]]
+            The ``train``, ``val``, ``test`` datasets (``None`` when empty).
 
         """
-        indices = ds_config.get("indices", "all")
-        if indices == "all":
+        split_ref = ds_config.get("split_ref")
+        if split_ref is None:
             return {"train": dataset, "val": None, "test": None}
 
-        split_filename = indices.get("split_filename", "DOESNT_EXIST")
-        split_ratios = indices.get(
-            "split_ratios", {"train": 1.0, "test": 0.0, "val": 0.0}
-        )
+        recipe = cls._resolve_split_recipe(split_ref, splits_cfg or {})
         splits = cls._load_split_if_exists_or_generate(
             dataset,
             load_meta_from_disk,
             metadata_dir,
-            split_filename,
-            split_ratios=split_ratios,
+            recipe["filename"],
+            split_ratios=recipe["ratios"],
         ).splits
 
         return {

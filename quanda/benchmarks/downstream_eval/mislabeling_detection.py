@@ -10,12 +10,11 @@ import yaml
 from quanda.benchmarks.base import (
     Benchmark,
     _hash_expl_kwargs,
-    _subsample_dataset,
     default_explanations_id,
 )
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.cache import ExplanationsCache
-from quanda.utils.common import class_accuracy, ds_len
+from quanda.utils.common import _subsample_dataset, class_accuracy, ds_len
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )

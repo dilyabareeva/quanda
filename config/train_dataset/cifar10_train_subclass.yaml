@@ -1,19 +1,16 @@
 dataset_str: uoft-cs/cifar10
 dataset_split: train
-indices:
-  split_filename: "cifar10_train_subclass_split.yaml"
-  split_name: train
-  split_ratios:
-    train: 0.8
-    val: 0.2
-    test: 0.
-  seed: 42
-transforms: "cifar10_transforms"
+transforms: cifar10_transforms
 wrapper:
-  type: "LabelGroupingDataset"
+  type: LabelGroupingDataset
   metadata:
-      metadata_filename: "cifar10_train_subclass_transform_indices.yaml"
-      p: 1.0
-      n_groups: 2
-      class_to_group: "random"
-      seed: 42
+    metadata_filename: cifar10_train_subclass_transform_indices.yaml
+    p: 1.0
+    seed: 42
+  class_to_group:
+    ctg_filename: ${id}_class_to_group.yaml
+    n_classes: 10
+    n_groups: 2
+    seed: 42
+split_ref: cifar10_train_subclass
+split_name: train

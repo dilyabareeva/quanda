@@ -4,7 +4,7 @@ import os
 import pytest
 import torch
 
-from quanda.benchmarks.base import Benchmark, _subsample_dataset
+from quanda.benchmarks.base import Benchmark
 from quanda.benchmarks.downstream_eval import MislabelingDetection
 from quanda.benchmarks.downstream_eval.mislabeling_detection import (
     SELF_INFLUENCE_KEY,
@@ -12,6 +12,7 @@ from quanda.benchmarks.downstream_eval.mislabeling_detection import (
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.cache import ExplanationsCache
+from quanda.utils.common import _subsample_dataset
 from quanda.utils.datasets.transformed import LabelFlippingDataset
 from quanda.utils.functions import cosine_similarity
 
@@ -36,7 +37,7 @@ from quanda.utils.functions import cosine_similarity
             42,
             False,
             False,
-            0.45566120743751526,
+            0.49223580956459045,
         ),
         (
             "mnist_subset_cached_mocked",
@@ -337,6 +338,7 @@ def test_download_explanations_uses_snapshot(tmp_path, monkeypatch):
     "config_name",
     [
         "mnist_mislabeling_detection",
+        "qnli_mislabeling_detection",
     ],
 )
 def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
@@ -360,12 +362,13 @@ def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
 
     base_ds = train_ds.dataset
     transform_indices = set(train_ds.transform_indices)
+    handler = train_ds.handler
 
     flipped_mismatches = []
     clean_mismatches = []
     for idx in range(len(train_ds)):
-        _, train_label = train_ds[idx]
-        _, base_label = base_ds[idx]
+        train_label = handler.get_label(train_ds[idx])
+        base_label = handler.get_label(base_ds[idx])
         if idx in transform_indices:
             if train_label == base_label:
                 flipped_mismatches.append(idx)
@@ -391,6 +394,7 @@ def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
     "config_name",
     [
         "mnist_mislabeling_detection",
+        "qnli_mislabeling_detection",
     ],
 )
 def test_eval_dataset_is_clean(config_name, tmp_path):
@@ -432,6 +436,14 @@ def test_eval_dataset_is_clean(config_name, tmp_path):
                 "train_acc": 0.85,
                 "val_acc": 0.8,
                 "mislabeling_memorization": 0.4,
+            },
+        ),
+        (
+            "qnli_mislabeling_detection",
+            {
+                "train_acc": 0.85,
+                "val_acc": 0.85,
+                "mislabeling_memorization": 0.99,
             },
         ),
     ],

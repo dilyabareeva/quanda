@@ -32,10 +32,9 @@ class SubclassDetection(Benchmark):
 
     name: str = "Subclass Detection"
     eval_args = [
-        "test_labels",
+        "test_targets",
         "explanations",
         "test_data",
-        "test_targets",
         "test_superclass_targets",
     ]
 

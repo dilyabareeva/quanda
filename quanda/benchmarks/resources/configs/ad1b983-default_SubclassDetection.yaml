@@ -18,28 +18,24 @@ model:
 train_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train
-  indices:
-    split_filename: mnist_train_subclass_split.yaml
-    split_name: train
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
   transforms: mnist_transforms
   wrapper:
     type: LabelGroupingDataset
     metadata:
       metadata_filename: mnist_train_subclass_transform_indices.yaml
       p: 1.0
-      n_groups: 2
-      class_to_group: random
       seed: 42
+    class_to_group:
+      ctg_filename: ad1b983-default_SubclassDetection_class_to_group.yaml
+      n_classes: 10
+      n_groups: 2
+      seed: 42
+  split_ref: mnist_train_subclass
+  split_name: train
 eval_dataset:
   dataset_str: ylecun/mnist
   dataset_split: test
   transforms: mnist_transforms
-  indices: all
   filter_indices:
     split_filename: mnist_eval_subclass_filter.yaml
     split_name: default
@@ -48,29 +44,29 @@ eval_dataset:
     metadata:
       metadata_filename: mnist_eval_subclass_split.yaml
       p: 1.0
+      seed: 42
+    class_to_group:
+      ctg_filename: ad1b983-default_SubclassDetection_class_to_group.yaml
+      n_classes: 10
       n_groups: 2
-      class_to_group: random
       seed: 42
 val_dataset:
   dataset_str: ylecun/mnist
   dataset_split: train
   transforms: mnist_transforms
-  indices:
-    split_filename: mnist_train_subclass_split.yaml
-    split_name: val
-    split_ratios:
-      train: 0.8
-      val: 0.2
-      test: 0.0
-    seed: 42
   wrapper:
     type: LabelGroupingDataset
     metadata:
       metadata_filename: mnist_val_unit_subclass.yaml
       p: 1.0
-      n_groups: 2
-      class_to_group: random
       seed: 42
+    class_to_group:
+      ctg_filename: ad1b983-default_SubclassDetection_class_to_group.yaml
+      n_classes: 10
+      n_groups: 2
+      seed: 42
+  split_ref: mnist_train_subclass
+  split_name: val
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
@@ -87,12 +83,20 @@ model_id: '0'
 correlation_fn: kendall
 offline: true
 seed: 42
-device: auto
+device: cuda:0
 m: 4
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpts:
-- quanda-bench-test/ad1b983-default_SubclassDetection
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: ad1b983-default_SubclassDetection.yaml
 filter_by_prediction: true
+ckpt: quanda-bench-test/ad1b983-default_SubclassDetection
+num_checkpoints: 5
+splits:
+  mnist_train_subclass:
+    filename: mnist_train_subclass_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.2
+      test: 0.0
+    seed: 42

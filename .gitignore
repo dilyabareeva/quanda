@@ -65,7 +65,7 @@ cache/
 bin/*
 docs/source/**
 eval_results/*
-tmp_bench/*
+eval_bench/**
 
 assets/demo/*
 bench_out/*
@@ -76,3 +76,4 @@ CLAUDE.md
 .vscode/
 quanda_benchmark_tutorial_cache/*
 logs/*
+scripts/*/bar_rank.png

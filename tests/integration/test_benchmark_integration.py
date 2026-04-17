@@ -170,7 +170,7 @@ def test_benchmark_integration(
 
     # START14_2
     with open(
-        "tests/assets/mnist_local_bench/20fba38-default_SubclassDetection.yaml",
+        "tests/assets/mnist_local_bench/83edb41-default_SubclassDetection.yaml",
         "r",
     ) as f:
         subclass_config = yaml.safe_load(f)

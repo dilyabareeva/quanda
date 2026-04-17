@@ -1,8 +1,9 @@
 """Module for training PyTorch models using Lightning."""
 
 import abc
+import os
 from abc import abstractmethod
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 
 import lightning as L
 import torch
@@ -25,6 +26,7 @@ class BaseTrainer(metaclass=abc.ABCMeta):
         accelerator: str = "cpu",
         devices: int = 0,
         seed: int = 42,
+        callbacks: Optional[List[L.Callback]] = None,
         trainer_fit_kwargs: Optional[dict] = None,
         *args,
         **kwargs,
@@ -46,6 +48,8 @@ class BaseTrainer(metaclass=abc.ABCMeta):
             all available).
         seed: int
             Random seed.
+        callbacks: Optional[List[L.Callback]]
+            Lightning callbacks to attach to the trainer, defaults to None.
         trainer_fit_kwargs: Optional[dict]
             Additional keyword arguments to pass to the trainer's fit method,
             defaults to None.
@@ -91,6 +95,7 @@ class Trainer(BaseTrainer):
         seed: int = 27,
         num_workers: int = 0,
         enable_progress_bar: bool = True,
+        gradient_clip_val: Optional[float] = None,
     ):
         """Construct the Trainer class.
 
@@ -119,6 +124,9 @@ class Trainer(BaseTrainer):
         enable_progress_bar : bool, optional
             Whether to enable the progress bar during training, by
             default True.
+        gradient_clip_val : Optional[float], optional
+            Value to use for gradient clipping, by default None
+            (i.e. no gradient clipping).
 
         """
         self.optimizer = optimizer
@@ -131,6 +139,7 @@ class Trainer(BaseTrainer):
         self.scheduler_kwargs = scheduler_kwargs or {}
         self.num_workers = num_workers
         self.enable_progress_bar = enable_progress_bar
+        self.gradient_clip_val = gradient_clip_val
 
         seed_everything(seed, workers=True)
 
@@ -146,6 +155,7 @@ class Trainer(BaseTrainer):
         accelerator: str = "cpu",
         devices: int = 0,
         seed: int = 42,
+        callbacks: Optional[List[L.Callback]] = None,
         *args,
         **kwargs,
     ):
@@ -166,6 +176,8 @@ class Trainer(BaseTrainer):
             all available).
         seed: int
             Random seed.
+        callbacks : Optional[List[L.Callback]]
+            Lightning callbacks to attach to the trainer, defaults to None.
         args : Any
             Additional arguments to pass to the fit method.
         kwargs : Any
@@ -189,9 +201,30 @@ class Trainer(BaseTrainer):
             accelerator=accelerator,
             logger=self.logger,
             enable_progress_bar=self.enable_progress_bar,
+            gradient_clip_val=self.gradient_clip_val,
+            callbacks=callbacks,
         )
         trainer.fit(module, train_dataloaders, val_dataloaders)
 
         model.load_state_dict(module.model.state_dict())
 
         return model
+
+
+class _EpochSnapshotCallback(L.Callback):
+    """Snapshot ``pl_module.model`` to disk at a fixed set of epochs.
+
+    Used by ``Benchmark.train`` to capture intermediate checkpoints in a
+    single training run when ``num_checkpoints > 1``.
+    """
+
+    def __init__(self, snapshot_epochs: List[int], snapshot_dirs: List[str]):
+        super().__init__()
+        self._epoch_to_dir = dict(zip(snapshot_epochs, snapshot_dirs))
+
+    def on_train_epoch_end(self, trainer, pl_module):
+        target = self._epoch_to_dir.get(trainer.current_epoch)
+        if target is None:
+            return
+        os.makedirs(target, exist_ok=True)
+        pl_module.model.save_pretrained(target, safe_serialization=True)
