@@ -27,10 +27,11 @@ from quanda.metrics import Metric
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
 from quanda.utils.common import (
     DatasetSplit,
+    _stable_repr,
+    _subsample_dataset,
     class_accuracy,
     load_last_checkpoint,
 )
-from quanda.utils.common import _stable_repr, _subsample_dataset
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.base import TransformedDataset
 from quanda.utils.training.trainer import _EpochSnapshotCallback
@@ -457,7 +458,6 @@ class Benchmark(ABC):
             if num_checkpoints <= 1:
                 obj.model.push_to_hub(repo_id)
             else:
-
                 create_repo(repo_id=repo_id, exist_ok=True)
                 for i, snapshot_dir in enumerate(obj.checkpoints, start=1):
                     revision = f"epoch_{i}"
