@@ -382,7 +382,7 @@ class LinearDatamodeling(Benchmark):
         return {
             "m": m,
             "alpha": alpha,
-            "cache_dir": config.get("cache_dir", "./tmp"),
+            "cache_dir": config.get("bench_save_dir", "./tmp"),
             "model_id": config.get("model_id", "0"),
             "correlation_fn": correlation_functions[config["correlation_fn"]],
             "seed": seed,
