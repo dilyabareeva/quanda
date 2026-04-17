@@ -783,6 +783,8 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
         ("cifar_subclass_detection", SubclassDetection),
         ("cifar_mislabeling_detection", MislabelingDetection),
         ("cifar_class_detection", ClassDetection),
+        ("qnli_class_detection", ClassDetection),
+        ("qnli_mislabeling_detection", MislabelingDetection),
     ],
 )
 def test_benchmark_checkpoints(config_name, bench_cls, tmp_path):
