@@ -32,7 +32,7 @@ class DatasetHandler(ABC):
             and labels is a tensor.
 
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_model_inputs(self, inputs: Any) -> Any:
@@ -49,7 +49,7 @@ class DatasetHandler(ABC):
             Model-ready inputs.
 
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_predictions(self, outputs: Any) -> torch.Tensor:
@@ -66,7 +66,7 @@ class DatasetHandler(ABC):
             The extracted predictions.
 
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def create_dataloader(
@@ -95,7 +95,7 @@ class DatasetHandler(ABC):
             Configured DataLoader.
 
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def get_label(self, item: Any) -> Any:
@@ -112,7 +112,7 @@ class DatasetHandler(ABC):
             The label associated with the item.
 
         """
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def with_label(self, item: Any, label: Any) -> Any:
@@ -131,7 +131,7 @@ class DatasetHandler(ABC):
             Item with the label replaced, matching the input item's format.
 
         """
-        pass
+        raise NotImplementedError
 
 
 class TorchDatasetHandler(DatasetHandler):

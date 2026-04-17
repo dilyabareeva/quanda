@@ -93,7 +93,7 @@ def test_identical_class_metrics(
 
 @pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
-    "test_id, model, checkpoint,dataset, subclass_labels, test_labels, batch_size, explanations, filter_by_prediction, test_superclass_targets,expected_score",
+    "test_id, model, checkpoint,dataset, subclass_labels, test_labels, batch_size, explanations, filter_by_prediction, test_superclass_targets, test_data, expected_score",
     [
         (
             "mnist",
@@ -105,6 +105,7 @@ def test_identical_class_metrics(
             8,
             "load_mnist_explanations_similarity_1",
             False,
+            None,
             None,
             0.1,
         ),
@@ -119,6 +120,7 @@ def test_identical_class_metrics(
             "load_mnist_explanations_similarity_1",
             True,
             None,
+            None,
             ValueError,
         ),
         (
@@ -132,6 +134,7 @@ def test_identical_class_metrics(
             "load_mnist_explanations_similarity_1",
             False,
             "load_mnist_test_labels_1",
+            None,
             0.1,
         ),
         (
@@ -145,7 +148,36 @@ def test_identical_class_metrics(
             "load_mnist_explanations_similarity_1",
             False,
             "load_mnist_test_labels_1_list",
+            None,
             0.1,
+        ),
+        (
+            "mnist_filter_pred_tensor",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_grouped_mnist_dataset",
+            "load_mnist_labels",
+            "load_mnist_test_labels_1",
+            8,
+            "load_mnist_explanations_similarity_1",
+            True,
+            "load_mnist_test_labels_1",
+            "load_mnist_test_samples_1",
+            None,
+        ),
+        (
+            "mnist_filter_pred_list",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_grouped_mnist_dataset",
+            "load_mnist_labels",
+            "load_mnist_test_labels_1",
+            8,
+            "load_mnist_explanations_similarity_1",
+            True,
+            "load_mnist_test_labels_1_list",
+            "load_mnist_test_samples_1",
+            None,
         ),
     ],
 )
@@ -160,6 +192,7 @@ def test_identical_subclass_metrics(
     explanations,
     filter_by_prediction,
     test_superclass_targets,
+    test_data,
     expected_score,
     request,
 ):
@@ -173,6 +206,8 @@ def test_identical_subclass_metrics(
         test_superclass_targets = request.getfixturevalue(
             test_superclass_targets
         )
+    if test_data is not None:
+        test_data = request.getfixturevalue(test_data)
 
     metric = SubclassDetectionMetric(
         model=model,
@@ -188,10 +223,14 @@ def test_identical_subclass_metrics(
     metric.update(
         test_targets=test_labels,
         explanations=tda,
+        test_data=test_data,
         test_superclass_targets=test_superclass_targets,
     )
     score = metric.compute()["score"]
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
+    if expected_score is not None:
+        assert math.isclose(score, expected_score, abs_tol=0.00001)
+    else:
+        assert isinstance(score, float)
 
 
 @pytest.mark.downstream_eval_metrics

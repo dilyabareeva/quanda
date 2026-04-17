@@ -1,6 +1,7 @@
 """Module for training PyTorch models using Lightning."""
 
 import abc
+import os
 from abc import abstractmethod
 from typing import Callable, List, Optional
 

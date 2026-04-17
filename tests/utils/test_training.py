@@ -1,10 +1,12 @@
 import copy
+import os
+from types import SimpleNamespace
 
 import pytest
 import torch
 
 from quanda.utils.training.base_pl_module import BasicLightningModule
-from quanda.utils.training.trainer import Trainer
+from quanda.utils.training.trainer import Trainer, _EpochSnapshotCallback
 
 
 @pytest.mark.utils
@@ -106,3 +108,39 @@ def test_pl_module_invalid_scheduler_raises(
     )
     with pytest.raises(ValueError, match="scheduler must be an instance"):
         pl_module.configure_optimizers()
+
+
+class _SnapshotModel:
+    """Stand-in for a Hub-compatible model; records ``save_pretrained`` calls."""
+
+    def __init__(self):
+        self.save_calls = []
+
+    def save_pretrained(self, path, safe_serialization=True):
+        self.save_calls.append((path, safe_serialization))
+        os.makedirs(path, exist_ok=True)
+        with open(os.path.join(path, "marker.txt"), "w") as f:
+            f.write("saved")
+
+
+@pytest.mark.utils
+def test_epoch_snapshot_callback_saves_at_configured_epochs(tmp_path):
+    snapshot_epochs = [0, 2]
+    snapshot_dirs = [
+        str(tmp_path / "epoch_1"),
+        str(tmp_path / "epoch_2"),
+    ]
+    callback = _EpochSnapshotCallback(snapshot_epochs, snapshot_dirs)
+
+    model = _SnapshotModel()
+    pl_module = SimpleNamespace(model=model)
+
+    for epoch in range(4):
+        callback.on_train_epoch_end(
+            trainer=SimpleNamespace(current_epoch=epoch),
+            pl_module=pl_module,
+        )
+
+    assert [call[0] for call in model.save_calls] == snapshot_dirs
+    for d in snapshot_dirs:
+        assert os.path.exists(os.path.join(d, "marker.txt"))

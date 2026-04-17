@@ -457,10 +457,7 @@ class Benchmark(ABC):
             if num_checkpoints <= 1:
                 obj.model.push_to_hub(repo_id)
             else:
-                # Push each local snapshot dir to a separate revision of
-                # the same repo. Loaders can fetch them via
-                # `from_pretrained(..., revision="epoch_<i>")` (see
-                # config_parser.parse_model_cfg).
+
                 create_repo(repo_id=repo_id, exist_ok=True)
                 for i, snapshot_dir in enumerate(obj.checkpoints, start=1):
                     revision = f"epoch_{i}"

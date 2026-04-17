@@ -558,6 +558,54 @@ def test_train_from_config(
 
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
+    "test_id, extra_config, expect_error",
+    [
+        ("shortcut_pred", {"filter_by_shortcut_pred": True}, False),
+        ("non_shortcut", {"filter_by_non_shortcut": True}, False),
+        ("missing_filter_indices_cfg", None, True),
+    ],
+)
+def test_save_filtered_indices(
+    test_id,
+    extra_config,
+    expect_error,
+    load_mnist_shortcut_config,
+    tmp_path,
+):
+    """Cover save_filtered_indices happy path and missing-config raise."""
+    config = load_mnist_shortcut_config
+    config["bench_save_dir"] = str(tmp_path)
+    if extra_config:
+        config.update(extra_config)
+
+    bench = ShortcutDetection.from_config(
+        config=config,
+        load_meta_from_disk=True,
+        offline=True,
+    )
+
+    if expect_error:
+        bad_config = {
+            "bench_save_dir": str(tmp_path),
+            "id": config["id"],
+            "eval_dataset": {},
+        }
+        with pytest.raises(ValueError, match="Filter indices filename"):
+            bench.save_filtered_indices(bad_config, [0, 1, 2])
+        return
+
+    bench._compute_and_save_indices(config, batch_size=8)
+
+    split_filename = config["eval_dataset"]["filter_indices"]["split_filename"]
+    metadata_dir = BenchConfigParser.get_metadata_dir(
+        cfg=config,
+        bench_save_dir=str(tmp_path),
+    )
+    assert os.path.exists(os.path.join(metadata_dir, split_filename))
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize(
     "test_id, config, load_from_disk, offline, bench_cls",
     [
         (
