@@ -20,6 +20,7 @@ COMMAND="${1:-echo 'No command specified. Pass a script path as argument to sbat
 mkdir -p log "${LOCAL_JOB_DIR}/cache" "${LOCAL_JOB_DIR}/eval_results"
 
 apptainer exec --nv \
+    --env HF_HOME=/data/cluster/users/bareeva/.hf_cache \
     --bind ${PWD}:/workspace \
     --bind ${LOCAL_JOB_DIR}:/scratch \
     --bind /data/cluster/users/bareeva:/data/cluster/users/bareeva \

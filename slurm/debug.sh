@@ -6,6 +6,7 @@ set -euo pipefail
 export CUDA_VISIBLE_DEVICES=3
 
 apptainer shell --nv \
+    --env HF_HOME=/data/cluster/users/bareeva/.hf_cache \
     --bind "$(pwd):/workspace" \
     --bind /data/cluster/users/bareeva:/data/cluster/users/bareeva \
     --pwd /workspace \

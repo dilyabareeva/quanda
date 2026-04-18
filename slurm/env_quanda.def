@@ -55,7 +55,7 @@ From: pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel
     export PYTHONPATH=/workspace:$PYTHONPATH
 
     # Cache locations
-    export HF_HOME=~/.cache/huggingface
+    export HF_HOME=/data/cluster/users/bareeva/.hf_cache
     export PIP_CACHE_DIR=~/.cache/pip
 
 %runscript
