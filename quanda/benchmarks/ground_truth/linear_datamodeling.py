@@ -177,6 +177,7 @@ class LinearDatamodeling(Benchmark):
         device: str = "cpu",
         batch_size: int = 64,
         skip_subsets: bool = False,
+        load_meta_from_disk: bool = False,
     ) -> "LinearDatamodeling":
         """Train main model and subset models.
 
@@ -197,6 +198,9 @@ class LinearDatamodeling(Benchmark):
             If True, skip the subset training loop. Used when subsets
             are trained out-of-band (e.g. one-by-one in parallel
             workers via :meth:`train_subset`).
+        load_meta_from_disk : bool, optional
+            If True, reuse existing metadata (splits, subset_ids, etc.)
+            from the cache instead of regenerating. By default False.
 
         Returns
         -------
@@ -209,6 +213,7 @@ class LinearDatamodeling(Benchmark):
             logger=logger,
             device=device,
             batch_size=batch_size,
+            load_meta_from_disk=load_meta_from_disk,
         )
         assert isinstance(obj, LinearDatamodeling)
 

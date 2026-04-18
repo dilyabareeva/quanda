@@ -52,20 +52,14 @@ print(os.path.splitext(os.path.basename(path))[0])
 run_bench() {
     local bench=$1 params=$2 sweep=$3 id=$4
     if [ "$SKIP_MAIN_TRAIN" = true ]; then
-        local config_name
-        config_name=$(get_config_name_from_map "${BENCH_CONFIG_MAP_KEY[$bench]}")
-        id=$config_name
-        python scripts/train_and_push_to_hub.py --config-name "$config_name" --config-dir $cfg_output_dir +skip_subsets=true +skip_main_train=true
+        python scripts/train_and_push_to_hub.py --config-name "$id" --config-dir $cfg_output_dir +skip_subsets=true +skip_main_train=true
     elif [ "$TRAIN_ONLY" = false ]; then
         python scripts/generate_config.py --config-name "$CONFIG_NAME" hydra.run.dir="hydra_logs" bench=LDS $params id=$id +cfg_file_name=$id +cfg_output_dir=$cfg_output_dir
         python scripts/train.py --config-name "$CONFIG_NAME" bench=LDS $params $sweep m=1 id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id num_checkpoints=1 --multirun
         python scripts/opt_results_to_cfg.py --config-name "$CONFIG_NAME" bench=LDS $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id
         python scripts/train_and_push_to_hub.py --config-name $id --config-dir $cfg_output_dir +skip_subsets=true
     else
-        local config_name
-        config_name=$(get_config_name_from_map "${BENCH_CONFIG_MAP_KEY[$bench]}")
-        id=$config_name
-        python scripts/train_and_push_to_hub.py --config-name "$config_name" --config-dir $cfg_output_dir +skip_subsets=true
+        python scripts/train_and_push_to_hub.py --config-name "$id" --config-dir $cfg_output_dir +skip_subsets=true
     fi
 
     local M bench_save_dir
@@ -135,5 +129,9 @@ LinearDatamodeling.load_pretrained(
 bench="LDS"
 params="${BENCH_PARAMS[$bench]}"
 sweep="${BENCH_SWEEP[$bench]}"
-id="${commit_tag}-${CONFIG_NAME}_${bench}"
+if [ "$SKIP_MAIN_TRAIN" = true ] || [ "$TRAIN_ONLY" = true ]; then
+    id=$(get_config_name_from_map "${BENCH_CONFIG_MAP_KEY[$bench]}")
+else
+    id="${commit_tag}-${CONFIG_NAME}_${bench}"
+fi
 run_bench "$bench" "$params" "$sweep" "$id" > "logs/${id}.log" 2>&1 < /dev/null

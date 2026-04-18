@@ -5,7 +5,7 @@ model:
       pretrained_model_name: google-bert/bert-base-cased
       num_labels: 2
   trainer:
-    optimizer: sgd
+    optimizer: adamw
     optimizer_kwargs:
       weight_decay: 0.0
     criterion: cross_entropy
@@ -13,9 +13,9 @@ model:
     scheduler: linear
     scheduler_kwargs:
       start_factor: 1.0
-      end_factor: 0.0
-    lr: 0.001
-    max_epochs: 40
+      end_factor: 0.1
+    lr: 2.0e-05
+    max_epochs: 20
     seed: 42
     num_workers: 8
     gradient_clip_val: 1.0
@@ -90,4 +90,4 @@ splits:
     seed: 42
 cfg_file_name: 1ea9143-bert_qnli_LDS.yaml
 cfg_output_dir: quanda/benchmarks/resources/configs
-batch_size: 64
+batch_size: 128
