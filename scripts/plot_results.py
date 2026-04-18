@@ -71,7 +71,7 @@ def _discover(results_dir: str) -> tuple[list[str], list[str]]:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--results-dir", default="./eval_results")
+    ap.add_argument("--results-dir", default="/data2/bareeva/Projects/quanda/cluster_output/eval_results/mnist")
     ap.add_argument(
         "--config",
         default=os.path.join(
@@ -149,18 +149,20 @@ def main():
 
     for j, metric in enumerate(metrics):
         values = df[metric].values
-        sorted_idx = np.argsort(values)[::-1]
-        sorted_values = values[sorted_idx]
-        top = sorted_values[0]
+        valid = ~np.isnan(values)
+        sorted_idx = np.argsort(values[valid])[::-1]
+        sorted_values = values[valid][sorted_idx]
+        orig_idx = np.flatnonzero(valid)[sorted_idx]
+        top = sorted_values[0] if sorted_values.size else 0.0
         pct = 100.0 * sorted_values / top if top else sorted_values * 0.0
-        x_positions = x_indices[j] + np.arange(n_explainers) * (
+        x_positions = x_indices[j] + np.arange(len(sorted_values)) * (
             bar_width + bar_padding
         )
         ax.bar(
             x_positions,
             pct,
             width=bar_width,
-            color=[colors[i % len(colors)] for i in sorted_idx],
+            color=[colors[i % len(colors)] for i in orig_idx],
             edgecolor="none",
             label=metric,
         )

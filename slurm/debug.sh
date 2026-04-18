@@ -2,8 +2,7 @@
 # Drop into an interactive shell inside the quanda container.
 set -euo pipefail
 
-# visible device: cuda:2
-export CUDA_VISIBLE_DEVICES=3
+export CUDA_VISIBLE_DEVICES=0,1
 
 apptainer shell --nv \
     --env HF_HOME=/data/cluster/users/bareeva/.hf_cache \

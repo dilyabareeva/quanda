@@ -77,7 +77,7 @@ use_predictions: true
 m: 100
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpt: quanda-bench-test/eaea7be-bert_qnli_ClassDetection
+ckpt: quanda-bench-test/1ea9143-bert_qnli_LDS
 num_checkpoints: 5
 meta_id: quanda-bench-test/1ea9143-bert_qnli_LDS_metadata
 splits:
@@ -90,4 +90,4 @@ splits:
     seed: 42
 cfg_file_name: 1ea9143-bert_qnli_LDS.yaml
 cfg_output_dir: quanda/benchmarks/resources/configs
-batch_size: 128
+batch_size: 64

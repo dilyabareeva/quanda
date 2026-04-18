@@ -6,10 +6,10 @@ CONFIG_NAME="bert_qnli"
 CONFIG_MAP_PREFIX="qnli"
 
 source "$(dirname "$0")/../train_lds.sh" \
-    --n-lds-parallel 10 \
+    --n-lds-parallel 6 \
     --hf-push-sleep 60 \
     --skip-main-train true \
     --gpu-split true \
     --start 0 \
-    --end 1 \
+    --end 69 \
     --train-only true \
