@@ -26,7 +26,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-mkdir -p logs
+LOG_DIR="logs_${EVAL_CONFIG_NAME}"
+mkdir -p "$LOG_DIR"
 [ -n "$CACHE_DIR" ] && mkdir -p "$CACHE_DIR"
 [ -n "$RESULTS_DIR" ] && mkdir -p "$RESULTS_DIR"
 
@@ -48,7 +49,7 @@ run_eval() {
 for bench in "${benchmarks[@]}"; do
     for method in "${methods[@]}"; do
         sweep="${EXPL_SWEEP[$method]}"
-        log="logs/${bench}__${method}.log"
+        log="${LOG_DIR}/${bench}__${method}.log"
         if [ "$PARALLEL" = true ]; then
             run_eval "$bench" "$method" "$sweep" > "$log" 2>&1 &
         else
