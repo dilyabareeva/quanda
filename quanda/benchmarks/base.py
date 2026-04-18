@@ -151,6 +151,7 @@ class Benchmark(ABC):
         cache_dir: str,
         device: str = "cpu",
         offline: bool = False,
+        load_fresh: bool = False,
     ):
         """Load a precomputed benchmark.
 
@@ -166,7 +167,13 @@ class Benchmark(ABC):
         device : str, optional
             Device to load the model on, by default "cpu".
         offline : bool, optional
-            Whether to load the benchmark in offline mode, by default False.
+            If True, no HTTP request is issued to the Hub; all assets
+            (metadata, model) must already be present under
+            ``cache_dir``. By default False.
+        load_fresh : bool, optional
+            If True, re-download metadata and model from the Hub,
+            overwriting the local cache. Incompatible with
+            ``offline=True``. By default False.
 
         Returns
         -------
@@ -174,6 +181,12 @@ class Benchmark(ABC):
             The benchmark instance.
 
         """
+        if offline and load_fresh:
+            raise ValueError(
+                "offline=True and load_fresh=True are incompatible: "
+                "cannot refresh the cache without network access."
+            )
+
         bench_yaml = (
             bench_id if os.path.isfile(bench_id) else config_map[bench_id]
         )
@@ -190,11 +203,14 @@ class Benchmark(ABC):
         BenchConfigParser.load_metadata(
             cfg,
             metadata_dir,
+            offline=offline,
+            load_fresh=load_fresh,
         )
         obj = cls.from_config(
             cfg,
             load_meta_from_disk=True,
             offline=offline,
+            load_fresh=load_fresh,
             device=device,
         )
 
@@ -208,8 +224,13 @@ class Benchmark(ABC):
         offline: bool = False,
         device: str = "cpu",
         metadata_suffix: str = "",
+        load_fresh: bool = False,
     ) -> "Benchmark":
         """Initialize the benchmark from a dictionary."""
+        if offline and load_fresh:
+            raise ValueError(
+                "offline=True and load_fresh=True are incompatible."
+            )
         cache_dir = config.get("bench_save_dir", "./tmp")
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config,
@@ -242,7 +263,8 @@ class Benchmark(ABC):
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
                 ckpts=_resolve_ckpts(config),
-                load_model_from_disk=offline,
+                offline=offline,
+                load_fresh=load_fresh,
                 device=device,
             )
         )
@@ -308,6 +330,7 @@ class Benchmark(ABC):
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 64,
+        load_meta_from_disk: bool = False,
     ) -> "Benchmark":
         """Train a model using the provided configuration.
 
@@ -321,6 +344,11 @@ class Benchmark(ABC):
             Device to use for training, by default "cpu"
         batch_size : int, optional
             Batch size for training, by default 8
+        load_meta_from_disk : bool, optional
+            If True, reuse existing metadata (splits, class mappings,
+            etc.) from the cache instead of regenerating. By default
+            False — training regenerates metadata so that a fresh
+            training run is reproducible from the config alone.
 
         Returns
         -------
@@ -330,7 +358,7 @@ class Benchmark(ABC):
         pid_suffix = f"_pid{os.getpid()}"
         obj = cls.from_config(
             config,
-            load_meta_from_disk=False,
+            load_meta_from_disk=load_meta_from_disk,
             device=device,
             metadata_suffix=pid_suffix,
         )
@@ -439,13 +467,14 @@ class Benchmark(ABC):
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 64,
+        load_meta_from_disk: bool = False,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
         skip_main_train = bool(config.get("skip_main_train", False))
         if skip_main_train:
             obj = cls.from_config(
                 config,
-                load_meta_from_disk=False,
+                load_meta_from_disk=load_meta_from_disk,
                 device=device,
             )
             obj._compute_and_save_indices(config, batch_size)
@@ -455,6 +484,7 @@ class Benchmark(ABC):
                 logger=logger,
                 device=device,
                 batch_size=batch_size,
+                load_meta_from_disk=load_meta_from_disk,
             )
             assert isinstance(obj.model, PyTorchModelHubMixin), (
                 "Model must inherit from PyTorchModelHubMixin."

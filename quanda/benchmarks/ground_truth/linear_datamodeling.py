@@ -366,7 +366,13 @@ class LinearDatamodeling(Benchmark):
         generator.manual_seed(seed)
 
         subset_meta = f"{metadata_dir}/{config['subset_ids']}"
-        if os.path.exists(subset_meta) and load_meta_from_disk:
+        if load_meta_from_disk:
+            if not os.path.exists(subset_meta):
+                raise FileNotFoundError(
+                    f"Subset ids file not found at {subset_meta}. "
+                    f"Re-run with load_meta_from_disk=False to "
+                    f"regenerate it."
+                )
             with open(subset_meta, "r") as f:
                 subset_ids = yaml.safe_load(f)
         else:
@@ -400,6 +406,7 @@ class LinearDatamodeling(Benchmark):
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 64,
+        load_meta_from_disk: bool = False,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
         skip_subsets = bool(config.get("skip_subsets", False))
@@ -411,6 +418,7 @@ class LinearDatamodeling(Benchmark):
                 logger=logger,
                 device=device,
                 batch_size=batch_size,
+                load_meta_from_disk=load_meta_from_disk,
             )
         finally:
             cls._push_subsets_during_train = False

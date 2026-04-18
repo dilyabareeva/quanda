@@ -128,6 +128,62 @@ def test_load(
 
 
 @pytest.mark.benchmarks
+def test_load_pretrained_offline_after_download(tmp_path, monkeypatch):
+    """After one online download, offline reload and checkpoint loading
+    must not make any HF Hub network calls."""
+    import requests
+
+    bench = ClassDetection.load_pretrained(
+        bench_id="mnist_class_detection_unit",
+        cache_dir=str(tmp_path),
+        offline=False,
+        device="cpu",
+    )
+    bench.load_last_checkpoint()
+
+    def _no_network(self, *args, **kwargs):
+        raise RuntimeError("Unexpected HF Hub network call in offline mode")
+
+    monkeypatch.setattr(requests.Session, "send", _no_network)
+
+    bench = ClassDetection.load_pretrained(
+        bench_id="mnist_class_detection_unit",
+        cache_dir=str(tmp_path),
+        offline=True,
+        device="cpu",
+    )
+    bench.load_last_checkpoint()
+
+
+@pytest.mark.benchmarks
+def test_load_pretrained_offline_and_fresh_incompatible(tmp_path):
+    """offline=True and load_fresh=True must raise."""
+    with pytest.raises(ValueError, match="incompatible"):
+        ClassDetection.load_pretrained(
+            bench_id="mnist_class_detection_unit",
+            cache_dir=str(tmp_path),
+            offline=True,
+            load_fresh=True,
+            device="cpu",
+        )
+
+
+@pytest.mark.benchmarks
+def test_load_meta_from_disk_missing_raises(
+    load_mnist_shortcut_config, tmp_path
+):
+    """load_meta_from_disk=True must raise when metadata is missing."""
+    config = load_mnist_shortcut_config
+    config["bench_save_dir"] = str(tmp_path)
+    with pytest.raises(FileNotFoundError):
+        ShortcutDetection.from_config(
+            config=config,
+            load_meta_from_disk=True,
+            offline=True,
+        )
+
+
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, bench_id, bench_cls",
     [
@@ -580,7 +636,7 @@ def test_save_filtered_indices(
 
     bench = ShortcutDetection.from_config(
         config=config,
-        load_meta_from_disk=True,
+        load_meta_from_disk=False,
         offline=True,
     )
 
