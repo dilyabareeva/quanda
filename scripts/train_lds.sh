@@ -15,6 +15,8 @@ HF_PUSH_SLEEP=60
 TRAIN_ONLY=false
 SKIP_MAIN_TRAIN=false
 GPU_SPLIT=false
+SUBSET_START=""
+SUBSET_END=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -24,6 +26,8 @@ while [[ $# -gt 0 ]]; do
         --train-only) TRAIN_ONLY=$2; shift 2 ;;
         --skip-main-train) SKIP_MAIN_TRAIN=$2; shift 2 ;;
         --gpu-split) GPU_SPLIT=$2; shift 2 ;;
+        --start) SUBSET_START=$2; shift 2 ;;
+        --end) SUBSET_END=$2; shift 2 ;;
         *) shift ;;
     esac
 done
@@ -82,21 +86,28 @@ LinearDatamodeling.load_pretrained(
 
     mkdir -p "logs/${id}"
 
-    for i in $(seq 0 $((M - 1))); do
+    local start end
+    start=${SUBSET_START:-0}
+    end=${SUBSET_END:-$((M - 1))}
+    if [ "$end" -gt "$((M - 1))" ]; then end=$((M - 1)); fi
+
+    for i in $(seq "$start" "$end"); do
+        gpu_env=()
         device_args=()
         if [ "$GPU_SPLIT" = true ]; then
-            device_args=(--device "cuda:$((i % 2))")
+            gpu_env=(env "CUDA_VISIBLE_DEVICES=$((i % 2))")
+            device_args=(--device "cuda:0")
         fi
         if [ "$PARALLEL" = true ]; then
             while [ "$(jobs -rp | wc -l)" -ge "$N_LDS_PARALLEL" ]; do
                 wait -n
             done
-            python scripts/train_lds_subset.py \
+            "${gpu_env[@]}" python scripts/train_lds_subset.py \
                 --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
                 "${device_args[@]}" \
                 > "logs/${id}/subset_${i}.log" 2>&1 &
         else
-            python scripts/train_lds_subset.py \
+            "${gpu_env[@]}" python scripts/train_lds_subset.py \
                 --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
                 "${device_args[@]}" \
                 > "logs/${id}/subset_${i}.log" 2>&1
@@ -105,7 +116,7 @@ LinearDatamodeling.load_pretrained(
     wait
 
     missing_subsets=()
-    for i in $(seq 0 $((M - 1))); do
+    for i in $(seq "$start" "$end"); do
         subset_dir="${bench_save_dir}/ckpt/${ckpt_basename}_lds_subset_${i}"
         if [ ! -d "$subset_dir" ]; then
             missing_subsets+=("$i")
@@ -125,4 +136,4 @@ bench="LDS"
 params="${BENCH_PARAMS[$bench]}"
 sweep="${BENCH_SWEEP[$bench]}"
 id="${commit_tag}-${CONFIG_NAME}_${bench}"
-run_bench "$bench" "$params" "$sweep" "$id" > "logs/${bench}.log" 2>&1 < /dev/null
+run_bench "$bench" "$params" "$sweep" "$id" > "logs/${id}.log" 2>&1 < /dev/null

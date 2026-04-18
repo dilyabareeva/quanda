@@ -22,6 +22,7 @@ def main(cfg: DictConfig) -> Tuple[float]:
         cfg,
         logger=logger,
         device=cfg.device,
+        batch_size=cfg.batch_size,
     )
     return 0.0
 

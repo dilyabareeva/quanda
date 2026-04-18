@@ -15,7 +15,7 @@ model:
       start_factor: 1.0
       end_factor: 0.0
     lr: 0.001
-    max_epochs: 20
+    max_epochs: 40
     seed: 42
     num_workers: 8
     gradient_clip_val: 1.0
@@ -90,3 +90,4 @@ splits:
     seed: 42
 cfg_file_name: 1ea9143-bert_qnli_LDS.yaml
 cfg_output_dir: quanda/benchmarks/resources/configs
+batch_size: 64
