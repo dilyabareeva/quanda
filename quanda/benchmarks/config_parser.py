@@ -164,9 +164,12 @@ class BenchConfigParser:
         if not hasattr(module_cls, "from_pretrained"):
             raise ValueError(f"Model class {module_cls} is not HF compatible.")
 
-        def _ensure_local(ckpt_str: str) -> str:
-            """Materialize ``ckpt_str`` into the local cache and return
-            the local directory.
+        def load_state_dict(model: torch.nn.Module, ckpt_str: str):
+            """Materialize ``ckpt_str`` on demand and load it into ``model``.
+
+            Checkpoints are fetched lazily: per-epoch revisions
+            (``<repo>@epoch_<i>``) are only downloaded the first time a
+            metric actually needs them.
 
             - ``offline=True``: no HTTP; the local directory must already
               exist or a ``FileNotFoundError`` is raised.
@@ -193,21 +196,15 @@ class BenchConfigParser:
                         f"offline=True. Run once with offline=False to "
                         f"populate the cache."
                     )
-                return ckpt_dir
-            if has_local and not load_fresh:
-                return ckpt_dir
+            elif not has_local or load_fresh:
+                os.makedirs(ckpt_dir, exist_ok=True)
+                snapshot_download(
+                    repo_id=repo_str,
+                    revision=revision,
+                    local_dir=ckpt_dir,
+                    force_download=load_fresh,
+                )
 
-            os.makedirs(ckpt_dir, exist_ok=True)
-            snapshot_download(
-                repo_id=repo_str,
-                revision=revision,
-                local_dir=ckpt_dir,
-                force_download=load_fresh,
-            )
-            return ckpt_dir
-
-        def load_state_dict(model: torch.nn.Module, ckpt_str: str):
-            ckpt_dir = _ensure_local(ckpt_str)
             try:
                 pretrained_model = module_cls.from_pretrained(
                     pretrained_model_name_or_path=ckpt_dir,
@@ -219,7 +216,6 @@ class BenchConfigParser:
             model.to(device)
             return model_cfg["trainer"]["lr"]
 
-        # check if dir is empty
         return module, ckpt_ids, load_state_dict
 
     @classmethod

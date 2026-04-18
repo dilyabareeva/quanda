@@ -69,6 +69,8 @@ def main(cfg: DictConfig) -> float:
             os.path.join(cfg.cache_dir, "explainers", cfg.explainer.name, tag),
         )
 
+    bench = bench_cls.from_config(bench_cfg, device=cfg.device)
+
     print(f"[run] {tag}")
     expl_save_dir = os.path.join(cfg.cache_dir, "explanations", tag)
     expl_meta = os.path.join(expl_save_dir, "explanations_config.yaml")
@@ -85,11 +87,7 @@ def main(cfg: DictConfig) -> float:
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
         )
-    bench = bench_cls.load_pretrained(
-        bench_id=bench_id,
-        cache_dir=cfg.cache_dir,
-        device=cfg.device,
-    )
+
     score = bench.evaluate(
         explainer_cls=expl_cls,
         expl_kwargs=expl_kwargs,

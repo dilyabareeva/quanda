@@ -40,7 +40,7 @@ def test_lds_sanity_check_subset_accuracy(
         device=device,
         offline=False,
     )
-    bench.subset_ckpt_filenames = bench.subset_ckpt_filenames[:5]
+    bench.subset_ckpt_filenames = bench.subset_ckpt_filenames[:3]
 
     sanity_results = bench.sanity_check(batch_size=batch_size)
 

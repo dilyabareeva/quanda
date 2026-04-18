@@ -11,7 +11,7 @@ export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 PARALLEL="${PARALLEL:-true}"
 EXTRA_ARGS=("$@")
 
-LOG_DIR="logs_${EVAL_CONFIG_NAME}"
+LOG_DIR="logs/${EVAL_CONFIG_NAME}"
 mkdir -p "$LOG_DIR"
 
 run_eval() {
@@ -23,6 +23,15 @@ run_eval() {
         bench="$bench" explainer="$method" \
         $sweep $multirun "${EXTRA_ARGS[@]}"
 }
+
+# Populate the local cache (metadata + ckpt) once per benchmark so that
+# parallel sweep jobs don't race on Hub downloads.
+for bench in "${benchmarks[@]}"; do
+    python scripts/prefetch_bench.py \
+        --config-name "$EVAL_CONFIG_NAME" \
+        bench="$bench" "${EXTRA_ARGS[@]}" \
+        >> "${LOG_DIR}/caching.log" 2>&1
+done
 
 for bench in "${benchmarks[@]}"; do
     for method in "${methods[@]}"; do

@@ -79,3 +79,4 @@ logs/*
 scripts/*/bar_rank.png
 scripts/bar_rank.png
 log/*
+logs_*/*
