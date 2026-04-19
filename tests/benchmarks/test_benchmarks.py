@@ -1,5 +1,6 @@
 """Contains tests common to all benchmarks."""
 
+import functools
 import math
 import os
 
@@ -188,23 +189,26 @@ def test_offline_and_fresh_incompatible(
     request,
 ):
     """offline=True and load_fresh=True must raise on every entrypoint."""
+    if entrypoint == "load_pretrained":
+        call = functools.partial(
+            bench_cls.load_pretrained,
+            bench_id=fixture_or_bench_id,
+            cache_dir=str(tmp_path),
+            offline=True,
+            load_fresh=True,
+            device="cpu",
+        )
+    else:
+        config = request.getfixturevalue(fixture_or_bench_id)
+        config["bench_save_dir"] = str(tmp_path)
+        call = functools.partial(
+            bench_cls.from_config,
+            config=config,
+            offline=True,
+            load_fresh=True,
+        )
     with pytest.raises(ValueError, match="incompatible"):
-        if entrypoint == "load_pretrained":
-            bench_cls.load_pretrained(
-                bench_id=fixture_or_bench_id,
-                cache_dir=str(tmp_path),
-                offline=True,
-                load_fresh=True,
-                device="cpu",
-            )
-        else:
-            config = request.getfixturevalue(fixture_or_bench_id)
-            config["bench_save_dir"] = str(tmp_path)
-            bench_cls.from_config(
-                config=config,
-                offline=True,
-                load_fresh=True,
-            )
+        call()
 
 
 @pytest.mark.benchmarks
@@ -219,10 +223,8 @@ def test_explain_default_explanations_id(
     fake_obj.train_dataset = mocker.MagicMock()
     fake_obj.eval_dataset = mocker.MagicMock()
     fake_obj.use_predictions = True
-    fake_obj._iter_explanations = (
-        lambda **kw: iter(
-            [(0, None, None, None, torch.zeros(1), 1)]
-        )
+    fake_obj._iter_explanations = lambda **kw: iter(
+        [(0, None, None, None, torch.zeros(1), 1)]
     )
     fake_obj._prepare_explainer = lambda **kw: mocker.MagicMock()
 

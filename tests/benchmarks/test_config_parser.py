@@ -114,7 +114,9 @@ def test_parse_model_cfg_load_state_dict_failure_raises(
 def test_load_dataset_from_cfg_false_single_class_raises(tmp_path):
     """single_class_dataset=False in ds_config triggers the catch-all raise."""
     ds_config = {"single_class_dataset": False}
-    with pytest.raises(ValueError, match="Dataset configuration not recognized"):
+    with pytest.raises(
+        ValueError, match="Dataset configuration not recognized"
+    ):
         BenchConfigParser._load_dataset_from_cfg(
             ds_config=ds_config,
             metadata_dir=str(tmp_path),

@@ -302,7 +302,9 @@ def test_train_subset_model_by_idx(
 def test_push_subset_missing_ckpt_dir_raises(tmp_path):
     """push_subset raises FileNotFoundError for a missing local ckpt dir."""
     config = {"ckpt": "repo-ckpt", "bench_save_dir": str(tmp_path)}
-    with pytest.raises(FileNotFoundError, match="Subset checkpoint dir missing"):
+    with pytest.raises(
+        FileNotFoundError, match="Subset checkpoint dir missing"
+    ):
         LinearDatamodeling.push_subset(config=config, idx=0)
 
 

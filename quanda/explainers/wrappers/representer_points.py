@@ -429,13 +429,13 @@ class RepresenterPoints(Explainer):
         logits = linear_classifier(self.samples)
         labels = softmax_torch(logits, self.samples.shape[0])
 
-        weight_linear = linear_classifier.weight.data.clone().detach() # type: ignore
+        weight_linear = linear_classifier.weight.data.clone().detach()  # type: ignore
         if linear_classifier.bias is None:
             bias_linear = torch.zeros(
                 linear_classifier.out_features, device=self.device
             )
         else:
-            bias_linear = linear_classifier.bias.data.clone().detach() # type: ignore
+            bias_linear = linear_classifier.bias.data.clone().detach()  # type: ignore
         w_and_b = torch.concatenate(
             [weight_linear.T, bias_linear.unsqueeze(0)]
         )
