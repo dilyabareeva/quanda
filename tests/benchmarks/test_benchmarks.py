@@ -613,6 +613,31 @@ def test_train_from_config(
 
 
 @pytest.mark.benchmarks
+def test_train_snapshot_dirs(
+    load_mnist_unit_test_config_num_ckpts_2,
+    tmp_path,
+    monkeypatch,
+):
+    """Cover the snapshot_dirs branch of train() without real training."""
+    config = load_mnist_unit_test_config_num_ckpts_2
+    config["bench_save_dir"] = str(tmp_path)
+
+    monkeypatch.setattr("lightning.Trainer.fit", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ClassDetection,
+        "_compute_and_save_indices",
+        lambda self, config, batch_size=8: None,
+    )
+
+    bench = ClassDetection.train(config=config)
+
+    expected_num = int(config["num_checkpoints"])
+    assert len(bench.checkpoints) == expected_num
+    for ckpt_dir in bench.checkpoints:
+        assert "epoch_" in ckpt_dir
+
+
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, extra_config, expect_error",
     [
@@ -658,6 +683,49 @@ def test_save_filtered_indices(
         bench_save_dir=str(tmp_path),
     )
     assert os.path.exists(os.path.join(metadata_dir, split_filename))
+
+
+@pytest.mark.benchmarks
+def test_filter_by_prediction_branches(
+    load_mnist_shortcut_config,
+    tmp_path,
+):
+    """Cover filter_by_prediction=True for both TransformedDataset and
+    plain-Dataset eval datasets in one setup pass."""
+    config = load_mnist_shortcut_config
+    config["bench_save_dir"] = str(tmp_path)
+
+    bench = ShortcutDetection.from_config(
+        config=config,
+        load_meta_from_disk=True,
+        offline=True,
+    )
+
+    bench._compute_and_save_filter_by_labels_and_prediction(
+        config=config,
+        batch_size=8,
+        filter_by_prediction=True,
+    )
+
+    split_filename = config["eval_dataset"]["filter_indices"]["split_filename"]
+    metadata_dir = BenchConfigParser.get_metadata_dir(
+        cfg=config,
+        bench_save_dir=str(tmp_path),
+    )
+    assert os.path.exists(os.path.join(metadata_dir, split_filename))
+
+    bench.eval_dataset = torch.utils.data.TensorDataset(
+        torch.randn(10, 1, 28, 28),
+        torch.randint(0, 10, (10,)),
+    )
+
+    bench._compute_and_save_filter_by_labels_and_prediction(
+        config=config,
+        batch_size=8,
+        filter_by_prediction=True,
+    )
+
+    assert isinstance(bench.eval_dataset, torch.utils.data.Subset)
 
 
 @pytest.mark.benchmarks

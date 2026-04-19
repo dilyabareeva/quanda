@@ -663,6 +663,18 @@ def load_mnist_unit_test_config_one_cycle():
 
 
 @pytest.fixture
+def load_mnist_unit_test_config_num_ckpts_2():
+    # load yaml file
+    with open(
+        "tests/assets/mnist_local_bench/83edb41-default_ClassDetection.yaml",
+        "r",
+    ) as f:
+        config = yaml.safe_load(f)
+    config["num_checkpoints"] = 2
+    return config
+
+
+@pytest.fixture
 def load_mnist_unit_test_config_hf():
     # load yaml file
     with open(

@@ -8,7 +8,7 @@ from quanda.utils.datasets.transformed import (
 
 @pytest.mark.utils
 @pytest.mark.parametrize(
-    "dataset, n_classes, n_groups, seed, expected_score",
+    "dataset, n_classes, n_groups, seed, expected_score, err",
     [
         (
             "load_mnist_dataset",
@@ -16,6 +16,15 @@ from quanda.utils.datasets.transformed import (
             2,
             27,
             0.375,
+            None,
+        ),
+        (
+            "load_mnist_dataset",
+            20,
+            2,
+            27,
+            None,
+            ValueError,
         ),
     ],
 )
@@ -25,6 +34,7 @@ def test_label_grouping_dataset(
     n_groups,
     seed,
     expected_score,
+    err,
     request,
 ):
     dataset = request.getfixturevalue(dataset)
@@ -34,16 +44,30 @@ def test_label_grouping_dataset(
         p=0.5,
     )
     mapping = ClassMapping(
-        class_to_group=ClassMapping._generate(n_classes, n_groups, seed),
-        n_classes=n_classes,
+        class_to_group=ClassMapping._generate(
+            len(set(range(10))), n_groups, seed
+        ),
+        n_classes=10,
         n_groups=n_groups,
         seed=seed,
     )
+
+    if err is not None:
+        with pytest.raises(err):
+            LabelGroupingDataset(
+                dataset=dataset,
+                metadata=metadata,
+                class_to_group=mapping.class_to_group,
+                n_classes=n_classes,
+                n_groups=mapping.n_groups,
+            )
+        return
+
     grouped_dataset = LabelGroupingDataset(
         dataset=dataset,
         metadata=metadata,
         class_to_group=mapping.class_to_group,
-        n_classes=mapping.n_classes,
+        n_classes=n_classes,
         n_groups=mapping.n_groups,
     )
 
