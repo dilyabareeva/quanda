@@ -697,7 +697,7 @@ def test_filter_by_prediction_branches(
 
     bench = ShortcutDetection.from_config(
         config=config,
-        load_meta_from_disk=True,
+        load_meta_from_disk=False,
         offline=True,
     )
 
