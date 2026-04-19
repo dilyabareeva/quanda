@@ -239,12 +239,13 @@ def test_train_subset_delegates_to_single_idx(mocker):
     assert kwargs["i"] == 3
     assert kwargs["push_to_hub"] is True
     assert kwargs["batch_size"] == 16
-    assert kwargs["ckpt_str"] == "repo/ckpt"
+    assert kwargs["repo_id"] == "repo/ckpt_lds_subset_3"
+    assert kwargs["local_ckpt_dir"] == "/tmp/unused/ckpt/ckpt_lds_subset_3"
 
 
 @pytest.mark.benchmarks
 def test_train_subset_model_by_idx_saves_ckpt(mocker, tmp_path):
-    """_train_subset_model_by_idx saves to `<ckpt_dir>_lds_subset_<i>`."""
+    """_train_subset_model_by_idx saves to `<prefix>_lds_subset_<i>`."""
     obj = _make_fake_lds_obj(mocker, m=2)
     saved_model = mocker.MagicMock()
     mocker.patch.object(
@@ -253,20 +254,19 @@ def test_train_subset_model_by_idx_saves_ckpt(mocker, tmp_path):
         return_value=saved_model,
     )
 
-    ckpt_dir = str(tmp_path / "ckpt_base")
+    local_ckpt_dir = str(tmp_path / "ckpt_base_lds_subset_1")
     obj._train_subset_model_by_idx(
         i=1,
         trainer=mocker.MagicMock(),
-        ckpt_str="repo/ckpt",
-        ckpt_dir=ckpt_dir,
+        local_ckpt_dir=local_ckpt_dir,
+        repo_id="repo/ckpt_lds_subset_1",
         batch_size=4,
         push_to_hub=True,
     )
 
-    expected_dir = f"{ckpt_dir}_lds_subset_1"
-    assert os.path.isdir(expected_dir)
+    assert os.path.isdir(local_ckpt_dir)
     saved_model.save_pretrained.assert_called_once_with(
-        expected_dir, safe_serialization=True
+        local_ckpt_dir, safe_serialization=True
     )
     saved_model.push_to_hub.assert_called_once_with("repo/ckpt_lds_subset_1")
 
@@ -285,8 +285,8 @@ def test_train_subset_model_by_idx_no_push(mocker, tmp_path):
     obj._train_subset_model_by_idx(
         i=0,
         trainer=mocker.MagicMock(),
-        ckpt_str="repo/ckpt",
-        ckpt_dir=str(tmp_path / "ckpt_base"),
+        local_ckpt_dir=str(tmp_path / "ckpt_base_lds_subset_0"),
+        repo_id="repo/ckpt_lds_subset_0",
         batch_size=4,
         push_to_hub=False,
     )
