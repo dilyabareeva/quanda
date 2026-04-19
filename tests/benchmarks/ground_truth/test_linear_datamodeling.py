@@ -362,7 +362,7 @@ def test_push_subset_uploads_to_hub(mocker, tmp_path):
 
 def _write_minimal_lds_cfg(path):
     with open(path, "w") as f:
-        yaml.safe_dump({"ckpt": "repo/ckpt"}, f)
+        yaml.safe_dump({"ckpt": "repo/ckpt", "batch_size": 16}, f)
 
 
 @pytest.mark.benchmarks
@@ -386,8 +386,6 @@ def test_train_lds_subset_script_trains(mocker, tmp_path, monkeypatch):
             "5",
             "--device",
             "cpu",
-            "--batch-size",
-            "16",
         ],
     )
     runpy.run_path("scripts/train_lds_subset.py", run_name="__main__")

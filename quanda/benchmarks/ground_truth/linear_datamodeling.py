@@ -359,7 +359,7 @@ class LinearDatamodeling(Benchmark):
         alpha = config.get("alpha", 0.5)
         seed = config["seed"]
 
-        ckpt = config["ckpt"]
+        ckpt = config.get("subset_ckpt", config["ckpt"])
 
         subset_ckpt_filenames = [_subset_repo_id(ckpt, i) for i in range(m)]
         counterfactual_trainer_cfg = config.get(
