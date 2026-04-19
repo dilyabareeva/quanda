@@ -44,7 +44,7 @@ def main(cfg: DictConfig) -> None:
         bench_id=bench_id,
         cache_dir=cfg.cache_dir,
         device=cfg.device,
-        load_fresh=True,
+        load_fresh=False,
     )
     # Checkpoints are fetched lazily by the closure in parse_model_cfg;
     # invoke it once per ckpt to materialize them all on disk now. For

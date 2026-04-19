@@ -7,11 +7,14 @@
     "random"
   ],
   "benches": [
+    "cifar_class_detection",
     "cifar_subclass_detection",
     "cifar_mislabeling_detection",
     "cifar_shortcut_detection",
+    "cifar_mixed_datasets",
     "cifar_top_k_cardinality",
-    "cifar_mixed_datasets"
+    "cifar_model_randomization",
+    "cifar_linear_datamodeling"
   ],
   "method_labels": {
     "representer_points": "ReprPoints",
@@ -25,7 +28,10 @@
     "cifar_mislabeling_detection": "Mislabeling\nDetection",
     "cifar_shortcut_detection": "Shortcut\nDetection",
     "cifar_top_k_cardinality": "Top-K\nCardinality",
-    "cifar_mixed_datasets": "Mixed Dataset\nSeparation"
+    "cifar_mixed_datasets": "Mixed Dataset\nSeparation",
+    "cifar_model_randomization": "Model\nRandomization",
+    "cifar_linear_datamodeling": "Linear\nDatamodeling",
+    "cifar_class_detection": "Class\nDetection"
   },
   "colors": {
     "representer_points": "#EB9C38",

@@ -2,7 +2,7 @@
 
 DIR="$(dirname "$0")"
 ROOT="$(realpath "$DIR/../..")"
-RESULTS_DIR="${RESULTS_DIR:-$ROOT/eval_results}"
+RESULTS_DIR="/data2/bareeva/Projects/quanda/cluster_output/eval_results/cifar"
 OUT="${OUT:-$DIR/bar_rank.png}"
 
 python "$DIR/../plot_results.py" \

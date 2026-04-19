@@ -71,13 +71,16 @@ def _discover(results_dir: str) -> tuple[list[str], list[str]]:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--results-dir", default="/data2/bareeva/Projects/quanda/cluster_output/eval_results/mnist")
+    ap.add_argument(
+        "--results-dir",
+        default="/data2/bareeva/Projects/quanda/cluster_output/eval_results/cifar",
+    )
     ap.add_argument(
         "--config",
         default=os.path.join(
             os.path.dirname(__file__),
-            "mnsit_lenet_bench",
-            "mnist_plot_config.json",
+            "cifar_resnet9_bench",
+            "cifar_plot_config.json",
         ),
         help=(
             "JSON config with keys: methods, benches, method_labels, "

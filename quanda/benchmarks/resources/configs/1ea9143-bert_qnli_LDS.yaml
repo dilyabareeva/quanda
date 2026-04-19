@@ -77,7 +77,8 @@ use_predictions: true
 m: 100
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpt: quanda-bench-test/1ea9143-bert_qnli_LDS
+ckpt: quanda-bench-test/eaea7be-bert_qnli_ClassDetection
+subset_ckpt: quanda-bench-test/1ea9143-bert_qnli_LDS
 num_checkpoints: 5
 meta_id: quanda-bench-test/1ea9143-bert_qnli_LDS_metadata
 splits:
