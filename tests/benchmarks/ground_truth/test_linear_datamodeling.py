@@ -244,8 +244,21 @@ def test_train_subset_delegates_to_single_idx(mocker):
 
 
 @pytest.mark.benchmarks
-def test_train_subset_model_by_idx_saves_ckpt(mocker, tmp_path):
-    """_train_subset_model_by_idx saves to `<prefix>_lds_subset_<i>`."""
+@pytest.mark.parametrize(
+    "test_id, push_to_hub, pre_populate_dir, expect_warning",
+    [
+        ("push_empty_dir", True, False, False),
+        ("no_push", False, False, False),
+        ("push_nonempty_dir", True, True, True),
+    ],
+)
+def test_train_subset_model_by_idx(
+    test_id, push_to_hub, pre_populate_dir, expect_warning, mocker, tmp_path
+):
+    """_train_subset_model_by_idx saves, optionally pushes, and warns
+    when the target dir already contains files."""
+    import warnings as _warnings
+
     obj = _make_fake_lds_obj(mocker, m=2)
     saved_model = mocker.MagicMock()
     mocker.patch.object(
@@ -254,44 +267,66 @@ def test_train_subset_model_by_idx_saves_ckpt(mocker, tmp_path):
         return_value=saved_model,
     )
 
-    local_ckpt_dir = str(tmp_path / "ckpt_base_lds_subset_1")
-    obj._train_subset_model_by_idx(
-        i=1,
-        trainer=mocker.MagicMock(),
-        local_ckpt_dir=local_ckpt_dir,
-        repo_id="repo/ckpt_lds_subset_1",
-        batch_size=4,
-        push_to_hub=True,
-    )
+    local_ckpt_dir = tmp_path / "ckpt_base_lds_subset_1"
+    if pre_populate_dir:
+        local_ckpt_dir.mkdir()
+        (local_ckpt_dir / "stale.bin").write_text("old")
+    repo_id = "repo/ckpt_lds_subset_1"
 
-    assert os.path.isdir(local_ckpt_dir)
+    with _warnings.catch_warnings(record=True) as rec:
+        _warnings.simplefilter("always")
+        obj._train_subset_model_by_idx(
+            i=1,
+            trainer=mocker.MagicMock(),
+            local_ckpt_dir=str(local_ckpt_dir),
+            repo_id=repo_id,
+            batch_size=4,
+            push_to_hub=push_to_hub,
+        )
+
+    assert os.path.isdir(str(local_ckpt_dir))
     saved_model.save_pretrained.assert_called_once_with(
-        local_ckpt_dir, safe_serialization=True
+        str(local_ckpt_dir), safe_serialization=True
     )
-    saved_model.push_to_hub.assert_called_once_with("repo/ckpt_lds_subset_1")
+    if push_to_hub:
+        saved_model.push_to_hub.assert_called_once_with(repo_id)
+    else:
+        saved_model.push_to_hub.assert_not_called()
+
+    messages = [str(w.message) for w in rec]
+    has_warning = any("already exists and is not empty" in m for m in messages)
+    assert has_warning is expect_warning
 
 
 @pytest.mark.benchmarks
-def test_train_subset_model_by_idx_no_push(mocker, tmp_path):
-    """When push_to_hub=False, the hub upload is skipped."""
-    obj = _make_fake_lds_obj(mocker, m=2)
-    saved_model = mocker.MagicMock()
-    mocker.patch.object(
-        LinearDatamodelingMetric,
-        "train_subset_model",
-        return_value=saved_model,
-    )
+def test_push_subset_missing_ckpt_dir_raises(tmp_path):
+    """push_subset raises FileNotFoundError for a missing local ckpt dir."""
+    config = {"ckpt": "repo-ckpt", "bench_save_dir": str(tmp_path)}
+    with pytest.raises(FileNotFoundError, match="Subset checkpoint dir missing"):
+        LinearDatamodeling.push_subset(config=config, idx=0)
 
-    obj._train_subset_model_by_idx(
-        i=0,
-        trainer=mocker.MagicMock(),
-        local_ckpt_dir=str(tmp_path / "ckpt_base_lds_subset_0"),
-        repo_id="repo/ckpt_lds_subset_0",
-        batch_size=4,
-        push_to_hub=False,
-    )
 
-    saved_model.push_to_hub.assert_not_called()
+@pytest.mark.benchmarks
+def test_extra_kwargs_missing_subset_ids_raises(
+    load_mnist_linear_datamodeling_config, tmp_path
+):
+    """Missing subset_ids file + load_meta_from_disk=True raises."""
+    config = load_mnist_linear_datamodeling_config
+    metadata_dir = str(tmp_path / "meta")
+    os.makedirs(metadata_dir, exist_ok=True)
+
+    with pytest.raises(FileNotFoundError, match="Subset ids file not found"):
+        LinearDatamodeling._extra_kwargs_from_config(
+            config=config,
+            train_dataset=torch.utils.data.TensorDataset(
+                torch.randn(4, 1, 28, 28), torch.randint(0, 10, (4,))
+            ),
+            eval_dataset=torch.utils.data.TensorDataset(
+                torch.randn(4, 1, 28, 28), torch.randint(0, 10, (4,))
+            ),
+            metadata_dir=metadata_dir,
+            load_meta_from_disk=True,
+        )
 
 
 @pytest.mark.benchmarks

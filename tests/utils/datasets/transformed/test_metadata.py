@@ -1,8 +1,14 @@
 import pytest
+import torch
+from torch.utils.data import TensorDataset
 
 from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.utils.datasets.transformed import LabelFlippingDataset
-from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
+from quanda.utils.datasets.transformed.metadata import (
+    ClassMapping,
+    LabelFlippingMetadata,
+    SampleTransformationMetadata,
+)
 
 
 @pytest.mark.utils
@@ -16,7 +22,7 @@ from quanda.utils.datasets.transformed.metadata import LabelFlippingMetadata
         ),
     ],
 )
-def test_mislabeling_detection(
+def test_label_flipping_metadata(
     test_id,
     config,
     expected_score,
@@ -64,3 +70,42 @@ def test_mislabeling_detection(
         == train_metadata_loaded.mislabeling_labels[key]
         for key in train_metadata.mislabeling_labels
     )
+
+
+@pytest.mark.utils
+def test_metadata_load_missing_raises(tmp_path):
+    """load() raises FileNotFoundError when no metadata file exists."""
+    with pytest.raises(FileNotFoundError, match="No metadata found"):
+        LabelFlippingMetadata.load(str(tmp_path), "does_not_exist.yaml")
+
+
+@pytest.mark.utils
+@pytest.mark.parametrize(
+    "test_id, kwargs, error_match",
+    [
+        ("invalid_prob", {"p": 1.5}, "Transformation probability"),
+        (
+            "invalid_indices",
+            {"transform_indices": [0, 99]},
+            "Invalid transform indices",
+        ),
+    ],
+)
+def test_metadata_validate_raises(test_id, kwargs, error_match):
+    """SampleTransformationMetadata.validate rejects bad fields."""
+    dataset = TensorDataset(torch.zeros(3, 1), torch.zeros(3))
+    meta = SampleTransformationMetadata(**kwargs)
+    with pytest.raises(ValueError, match=error_match):
+        meta.validate(dataset)
+
+
+@pytest.mark.utils
+def test_class_mapping_resolve_integer_keys(tmp_path):
+    """A spec with int keys is returned as a direct ClassMapping."""
+    spec = {0: 0, 1: 1, 2: 0, 3: 1}
+    mapping = ClassMapping.resolve(
+        spec=spec, metadata_dir=str(tmp_path), load_meta_from_disk=False
+    )
+    assert mapping.class_to_group == spec
+    assert mapping.n_classes == 4
+    assert mapping.n_groups == 2
