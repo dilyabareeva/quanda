@@ -350,7 +350,7 @@ class HuggingFaceDatasetHandler(DatasetHandler):
         )
 
 
-class HuggingFaceTupleDatasetHandler(HuggingFaceDatasetHandler):
+class HuggingFaceTupleDatasetHandler(DatasetHandler):
     """HuggingFace dataset handler that yields tuple-style batches.
 
     Unlike ``HuggingFaceDatasetHandler`` (which yields ``dict`` batches via
@@ -390,7 +390,7 @@ class HuggingFaceTupleDatasetHandler(HuggingFaceDatasetHandler):
     def collate(
         self, samples: List[Dict[str, Any]]
     ) -> Tuple[torch.Tensor, ...]:
-        """Stack HF dict samples into a tuple in ``input_keys + (label_key,)`` order."""
+        """Stack HF dict samples into tuple input_keys + (label_key,) ."""
         collated = default_data_collator(samples)
         inputs = tuple(collated[k] for k in self.input_keys)
         return (*inputs, collated[self.label_key])
@@ -417,7 +417,7 @@ class HuggingFaceTupleDatasetHandler(HuggingFaceDatasetHandler):
         batch: Tuple[torch.Tensor, ...],
         device: Union[str, torch.device],
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
-        """Unpack a tuple batch back into ``(inputs_dict, labels)`` on ``device``."""
+        """Unpack tuple batch into (inputs_dict, labels) on device."""
         *inputs, labels = batch
         inputs_dict = {
             key: tensor.to(device)
