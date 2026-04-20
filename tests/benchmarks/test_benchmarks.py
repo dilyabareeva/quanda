@@ -1,5 +1,6 @@
 """Contains tests common to all benchmarks."""
 
+import functools
 import math
 import os
 
@@ -125,6 +126,138 @@ def test_load(
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.benchmarks
+def test_load_pretrained_offline_after_download(tmp_path, monkeypatch):
+    """After one online download, offline reload and checkpoint loading
+    must not make any HF Hub network calls."""
+    import requests
+
+    bench = ClassDetection.load_pretrained(
+        bench_id="mnist_class_detection_unit",
+        cache_dir=str(tmp_path),
+        offline=False,
+        device="cpu",
+    )
+    bench.load_last_checkpoint()
+
+    def _no_network(self, *args, **kwargs):
+        raise RuntimeError("Unexpected HF Hub network call in offline mode")
+
+    monkeypatch.setattr(requests.Session, "send", _no_network)
+
+    bench = ClassDetection.load_pretrained(
+        bench_id="mnist_class_detection_unit",
+        cache_dir=str(tmp_path),
+        offline=True,
+        device="cpu",
+    )
+    bench.load_last_checkpoint()
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize(
+    "test_id, entrypoint, bench_cls, fixture_or_bench_id",
+    [
+        (
+            "load_pretrained",
+            "load_pretrained",
+            ClassDetection,
+            "mnist_class_detection_unit",
+        ),
+        (
+            "from_config_class",
+            "from_config",
+            ClassDetection,
+            "load_mnist_unit_test_config",
+        ),
+        (
+            "from_config_mixed",
+            "from_config",
+            MixedDatasets,
+            "load_mnist_mixed_config",
+        ),
+    ],
+)
+def test_offline_and_fresh_incompatible(
+    test_id,
+    entrypoint,
+    bench_cls,
+    fixture_or_bench_id,
+    tmp_path,
+    request,
+):
+    """offline=True and load_fresh=True must raise on every entrypoint."""
+    if entrypoint == "load_pretrained":
+        call = functools.partial(
+            bench_cls.load_pretrained,
+            bench_id=fixture_or_bench_id,
+            cache_dir=str(tmp_path),
+            offline=True,
+            load_fresh=True,
+            device="cpu",
+        )
+    else:
+        config = request.getfixturevalue(fixture_or_bench_id)
+        config["bench_save_dir"] = str(tmp_path)
+        call = functools.partial(
+            bench_cls.from_config,
+            config=config,
+            offline=True,
+            load_fresh=True,
+        )
+    with pytest.raises(ValueError, match="incompatible"):
+        call()
+
+
+@pytest.mark.benchmarks
+def test_explain_default_explanations_id(
+    load_mnist_unit_test_config, tmp_path, mocker
+):
+    """explain() uses default_explanations_id when none is provided."""
+    config = load_mnist_unit_test_config
+    config["bench_save_dir"] = str(tmp_path)
+
+    fake_obj = mocker.MagicMock(spec=ClassDetection)
+    fake_obj.train_dataset = mocker.MagicMock()
+    fake_obj.eval_dataset = mocker.MagicMock()
+    fake_obj.use_predictions = True
+    fake_obj._iter_explanations = lambda **kw: iter(
+        [(0, None, None, None, torch.zeros(1), 1)]
+    )
+    fake_obj._prepare_explainer = lambda **kw: mocker.MagicMock()
+
+    mocker.patch.object(ClassDetection, "from_config", return_value=fake_obj)
+    mocker.patch(
+        "quanda.benchmarks.base.ExplanationsCache.save",
+        return_value=None,
+    )
+
+    out = ClassDetection.explain(
+        config=config,
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs={"layers": "fc_2"},
+    )
+
+    assert out._explanations_id is not None
+    assert config["id"] in out._explanations_id
+    assert "CaptumSimilarity" in out._explanations_id
+
+
+@pytest.mark.benchmarks
+def test_load_meta_from_disk_missing_raises(
+    load_mnist_shortcut_config, tmp_path
+):
+    """load_meta_from_disk=True must raise when metadata is missing."""
+    config = load_mnist_shortcut_config
+    config["bench_save_dir"] = str(tmp_path)
+    with pytest.raises(FileNotFoundError):
+        ShortcutDetection.from_config(
+            config=config,
+            load_meta_from_disk=True,
+            offline=True,
+        )
 
 
 @pytest.mark.benchmarks
@@ -605,7 +738,7 @@ def test_save_filtered_indices(
 
     bench = ShortcutDetection.from_config(
         config=config,
-        load_meta_from_disk=True,
+        load_meta_from_disk=False,
         offline=True,
     )
 
@@ -641,7 +774,7 @@ def test_filter_by_prediction_branches(
 
     bench = ShortcutDetection.from_config(
         config=config,
-        load_meta_from_disk=True,
+        load_meta_from_disk=False,
         offline=True,
     )
 

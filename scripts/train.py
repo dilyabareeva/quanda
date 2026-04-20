@@ -17,7 +17,9 @@ def main(cfg: DictConfig) -> Tuple[float]:
     device = cfg.device
     bench_cls = bench_dict[cfg.bench]
     logger = BenchConfigParser.parse_logger(cfg)
-    bench = bench_cls.train(cfg, logger=logger, device=device)
+    bench = bench_cls.train(
+        cfg, logger=logger, device=device, batch_size=cfg.batch_size
+    )
     scores = bench.sanity_check()
     print(f"Sanity check scores: {scores}")
     logger.log_metrics(scores)

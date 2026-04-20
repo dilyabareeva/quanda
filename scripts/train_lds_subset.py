@@ -18,7 +18,6 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config-path", required=True)
     parser.add_argument("--idx", type=int, required=True)
-    parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--device", default=None)
     parser.add_argument(
         "--push-only",
@@ -45,7 +44,7 @@ def main() -> None:
         config=config,
         idx=args.idx,
         device=device,
-        batch_size=args.batch_size,
+        batch_size=config["batch_size"],
         push_to_hub=False,
     )
 

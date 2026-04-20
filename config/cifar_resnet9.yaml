@@ -42,7 +42,8 @@ model_id: "0"
 correlation_fn: "kendall"
 offline: true
 seed: 42
-device: "cuda:1"
+device: "cuda:0"
+batch_size: 64
 
 m: 100
 alpha: 0.5

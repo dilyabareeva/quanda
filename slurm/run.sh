@@ -9,6 +9,7 @@ case "$1" in
 esac
 
 apptainer exec --nv \
+    --env HF_HOME=/data/cluster/users/bareeva/.hf_cache \
     --bind "$(pwd):/workspace" \
     --bind /data/cluster/users/bareeva:/data/cluster/users/bareeva \
     --pwd /workspace \

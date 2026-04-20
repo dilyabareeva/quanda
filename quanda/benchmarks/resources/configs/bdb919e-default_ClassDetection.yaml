@@ -46,7 +46,7 @@ repo_id: quanda-bench-test
 cache_dir: tmp
 top_k: 5
 model_id: '0'
-correlation_fn: kendall
+correlation_fn: spearman
 offline: true
 seed: 42
 device: cuda:0
@@ -67,3 +67,4 @@ splits:
       val: 0.2
       test: 0.0
     seed: 42
+batch_size: 64

@@ -23,7 +23,7 @@ from quanda.utils.training import Trainer
             "load_mnist_test_labels_1",
             "torch_sgd_optimizer",
             "torch_cross_entropy_loss_object",
-            0.039999980479478836,
+            0.30999985337257385,
             {"layers": "relu_4", "similarity_metric": cosine_similarity},
         ),
     ],

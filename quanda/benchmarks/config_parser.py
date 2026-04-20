@@ -51,12 +51,32 @@ class BenchConfigParser:
         cls,
         cfg: dict,
         metadata_dir: str = ".tmp/meta",
+        offline: bool = False,
+        load_fresh: bool = False,
     ):
-        """Load metadata from the given configuration."""
+        """Load metadata from the given configuration.
+
+        When ``offline`` is True, no HTTP request is issued and the local
+        ``metadata_dir`` is used as-is. When ``load_fresh`` is True, the
+        metadata is re-downloaded from the Hub and the local cache is
+        overwritten.
+        """
+        if offline:
+            if not os.path.isdir(metadata_dir):
+                raise FileNotFoundError(
+                    f"Metadata directory {metadata_dir} not found while "
+                    f"offline=True. Run once with offline=False to "
+                    f"populate the cache."
+                )
+            return metadata_dir
+
         meta_id = cfg.get("meta_id", f"{cfg['repo_id']}/{cfg['id']}_metadata")
 
         return snapshot_download(
-            repo_id=meta_id, local_dir=metadata_dir, repo_type="dataset"
+            repo_id=meta_id,
+            local_dir=metadata_dir,
+            repo_type="dataset",
+            force_download=load_fresh,
         )
 
     @classmethod
@@ -105,8 +125,9 @@ class BenchConfigParser:
         model_cfg: dict,
         bench_save_dir: str,
         ckpts: List[str],
-        load_model_from_disk: bool,
+        offline: bool,
         device: str,
+        load_fresh: bool = False,
     ) -> Tuple[torch.nn.Module, List[str], Callable]:
         """Parse model configuration and return the model and checkpoints.
 
@@ -118,12 +139,14 @@ class BenchConfigParser:
             Path to checkpoint directory "ckpt".
         ckpts: List[str]
             File names of checkpoints.
-        load_model_from_disk : bool
-            If True, the method tries to load the model from the local cache.
-        load_model_from_disk : bool
-            If True, the method tries to load the model from the local cache.
+        offline : bool
+            If True, no HTTP request is issued to the Hub; the model is
+            loaded from the local cache or an error is raised.
         device : str
             Device to use for the model.
+        load_fresh : bool, optional
+            If True, force re-download from the Hub, overwriting the local
+            cache. Incompatible with ``offline=True``.
 
         Returns
         -------
@@ -142,6 +165,19 @@ class BenchConfigParser:
             raise ValueError(f"Model class {module_cls} is not HF compatible.")
 
         def load_state_dict(model: torch.nn.Module, ckpt_str: str):
+            """Materialize ``ckpt_str`` on demand and load it into ``model``.
+
+            Checkpoints are fetched lazily: per-epoch revisions
+            (``<repo>@epoch_<i>``) are only downloaded the first time a
+            metric actually needs them.
+
+            - ``offline=True``: no HTTP; the local directory must already
+              exist or a ``FileNotFoundError`` is raised.
+            - ``offline=False, load_fresh=False``: reuse the local cache
+              if present; otherwise download.
+            - ``offline=False, load_fresh=True``: force re-download,
+              overwriting the local cache.
+            """
             # Support `<repo>@<revision>` syntax used to address per-epoch
             # snapshots pushed by `train_and_push_to_hub`.
             if "@" in ckpt_str:
@@ -151,33 +187,35 @@ class BenchConfigParser:
             ckpt = repo_str.split("/")[-1]
             local_dir_name = ckpt if revision is None else f"{ckpt}@{revision}"
             ckpt_dir = os.path.join(checkpoint_path, local_dir_name)
-            if os.path.exists(os.path.join(ckpt_dir, "config.json")):
-                pretrained_model_name_or_path = ckpt_dir
-                cache_dir = None
-            else:
-                pretrained_model_name_or_path = repo_str
-                cache_dir = ckpt_dir
+            has_local = os.path.exists(os.path.join(ckpt_dir, "config.json"))
 
-            from_pretrained_kwargs = {}
-            if revision is not None:
-                from_pretrained_kwargs["revision"] = revision
+            if offline:
+                if not has_local:
+                    raise FileNotFoundError(
+                        f"Checkpoint directory {ckpt_dir} is empty while "
+                        f"offline=True. Run once with offline=False to "
+                        f"populate the cache."
+                    )
+            elif not has_local or load_fresh:
+                os.makedirs(ckpt_dir, exist_ok=True)
+                snapshot_download(
+                    repo_id=repo_str,
+                    revision=revision,
+                    local_dir=ckpt_dir,
+                    force_download=load_fresh,
+                )
+
             try:
                 pretrained_model = module_cls.from_pretrained(
-                    pretrained_model_name_or_path=pretrained_model_name_or_path,
-                    cache_dir=cache_dir,
-                    local_files_only=load_model_from_disk,
-                    **from_pretrained_kwargs,
+                    pretrained_model_name_or_path=ckpt_dir,
+                    local_files_only=True,
                 )
             except Exception as e:
-                raise ValueError(
-                    f"Error loading model from "
-                    f"{pretrained_model_name_or_path}: {e}"
-                )
+                raise ValueError(f"Error loading model from {ckpt_dir}: {e}")
             model.load_state_dict(pretrained_model.state_dict())
             model.to(device)
             return model_cfg["trainer"]["lr"]
 
-        # check if dir is empty
         return module, ckpt_ids, load_state_dict
 
     @classmethod
@@ -362,24 +400,31 @@ class BenchConfigParser:
         metadata_dir: str,
         load_meta_from_disk: bool = True,
     ):
-        """Apply the filter to the dataset and save the indices."""
+        """Apply the filter to the dataset.
+
+        ``filter_indices`` is a conditional post-training artifact
+        produced by ``_compute_and_save_indices`` only when a
+        ``filter_by_*`` flag is set. Its absence is treated as "no
+        filter applied" rather than a strict error — configs commonly
+        declare a filename without ever producing the file.
+        """
         filter_indices_cfg = ds_config.get("filter_indices", None)
-        if filter_indices_cfg is not None:
-            filter_filename = filter_indices_cfg.get(
-                "split_filename", "DOESNT_EXIST"
-            )
-            filter_split_name = filter_indices_cfg.get("split_name", "default")
-            if (
-                DatasetSplit.exists(metadata_dir, filter_filename)
-                and load_meta_from_disk
-            ):
-                filter_split = DatasetSplit.load(metadata_dir, filter_filename)
-                filter_indices = filter_split[filter_split_name].flatten()
-                if isinstance(dataset, TransformedDataset):
-                    dataset.apply_filter(filter_indices)
-                else:
-                    dataset = torch.utils.data.Subset(dataset, filter_indices)
-                return dataset
+        if filter_indices_cfg is None:
+            return dataset
+        if not load_meta_from_disk:
+            return dataset
+        filter_filename = filter_indices_cfg.get(
+            "split_filename", "DOESNT_EXIST"
+        )
+        filter_split_name = filter_indices_cfg.get("split_name", "default")
+        if not DatasetSplit.exists(metadata_dir, filter_filename):
+            return dataset
+        filter_split = DatasetSplit.load(metadata_dir, filter_filename)
+        filter_indices = filter_split[filter_split_name].flatten()
+        if isinstance(dataset, TransformedDataset):
+            dataset.apply_filter(filter_indices)
+        else:
+            dataset = torch.utils.data.Subset(dataset, filter_indices)
         return dataset
 
     @classmethod
@@ -406,10 +451,15 @@ class BenchConfigParser:
             meta_filename = metadata_args.pop(
                 "metadata_filename", "DOESNT_EXIST"
             )
-            if (
-                wrapper_cls.metadata_cls.exists(metadata_dir, meta_filename)
-                and load_meta_from_disk
-            ):
+            if load_meta_from_disk:
+                if not wrapper_cls.metadata_cls.exists(
+                    metadata_dir, meta_filename
+                ):
+                    raise FileNotFoundError(
+                        f"Wrapper metadata '{meta_filename}' not found in "
+                        f"{metadata_dir}. Re-run with "
+                        f"load_meta_from_disk=False to regenerate it."
+                    )
                 loaded_meta = wrapper_cls.metadata_cls.load(
                     metadata_dir, meta_filename
                 )
@@ -453,17 +503,26 @@ class BenchConfigParser:
         split_filename,
         split_ratios: Optional[dict] = None,
     ):
-        """Load the split if it exists, otherwise generate it."""
+        """Load the split from disk or generate it.
+
+        When ``load_meta_from_disk=True``, the split file must already
+        exist; a ``FileNotFoundError`` is raised if it does not. When
+        ``load_meta_from_disk=False``, a new split is generated and
+        saved to disk.
+        """
         if split_ratios is None:
             split_ratios = {"train": 0.9, "test": 0.1}
-        if (
-            DatasetSplit.exists(metadata_dir, split_filename)
-            and load_meta_from_disk
-        ):
-            split = DatasetSplit.load(metadata_dir, split_filename)
-        else:
-            split = DatasetSplit.split(len(dataset), 42, split_ratios)
-            split.save(metadata_dir, split_filename)
+        if load_meta_from_disk:
+            if not DatasetSplit.exists(metadata_dir, split_filename):
+                raise FileNotFoundError(
+                    f"Split file '{split_filename}' not found in "
+                    f"{metadata_dir}. Re-run with "
+                    f"load_meta_from_disk=False to regenerate it, or "
+                    f"populate the cache first."
+                )
+            return DatasetSplit.load(metadata_dir, split_filename)
+        split = DatasetSplit.split(len(dataset), 42, split_ratios)
+        split.save(metadata_dir, split_filename)
         return split
 
     @classmethod

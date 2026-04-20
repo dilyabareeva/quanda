@@ -291,7 +291,13 @@ class ClassMapping:
         n_groups = int(spec["n_groups"])
         seed = int(spec.get("seed", 42))
 
-        if cls.exists(metadata_dir, ctg_filename) and load_meta_from_disk:
+        if load_meta_from_disk:
+            if not cls.exists(metadata_dir, ctg_filename):
+                raise FileNotFoundError(
+                    f"Class mapping '{ctg_filename}' not found in "
+                    f"{metadata_dir}. Re-run with "
+                    f"load_meta_from_disk=False to regenerate it."
+                )
             return cls.load(metadata_dir, ctg_filename)
 
         mapping = cls._generate(n_classes, n_groups, seed)

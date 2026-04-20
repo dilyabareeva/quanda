@@ -85,3 +85,4 @@ splits:
       val: 0.02
       test: 0.02
     seed: 42
+batch_size: 64

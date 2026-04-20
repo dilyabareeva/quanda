@@ -7,11 +7,14 @@
     "random"
   ],
   "benches": [
+    "mnist_class_detection",
     "mnist_subclass_detection",
     "mnist_mislabeling_detection",
     "mnist_shortcut_detection",
+    "mnist_mixed_datasets",
     "mnist_top_k_cardinality",
-    "mnist_mixed_datasets"
+    "mnist_model_randomization",
+    "mnist_linear_datamodeling"
   ],
   "method_labels": {
     "representer_points": "ReprPoints",
@@ -21,11 +24,14 @@
     "random": "Random"
   },
   "bench_labels": {
+    "mnist_class_detection": "Class\nDetection",
     "mnist_subclass_detection": "Subclass\nDetection",
     "mnist_mislabeling_detection": "Mislabeling\nDetection",
     "mnist_shortcut_detection": "Shortcut\nDetection",
+    "mnist_mixed_datasets": "Mixed Dataset\nSeparation",
     "mnist_top_k_cardinality": "Top-K\nCardinality",
-    "mnist_mixed_datasets": "Mixed Dataset\nSeparation"
+    "mnist_model_randomization": "Model\nRandomization",
+    "mnist_linear_datamodeling": "Linear\nDatamodeling"
   },
   "colors": {
     "representer_points": "#EB9C38", 

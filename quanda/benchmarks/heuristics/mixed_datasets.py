@@ -87,6 +87,7 @@ class MixedDatasets(Benchmark):
         offline: bool = False,
         device: str = "cpu",
         metadata_suffix: str = "",
+        load_fresh: bool = False,
     ):
         """Initialize the benchmark from a dictionary.
 
@@ -98,14 +99,23 @@ class MixedDatasets(Benchmark):
             Loads dataset metadata from disk if True, otherwise generates
             it, default True.
         offline : bool, optional
-            Whether to load the model in offline mode, by default False.
+            If True, no HTTP request is issued to the Hub, by default
+            False.
         device: str, optional
             Device to use for the evaluation, by default "cpu".
         metadata_suffix: str, optional
             Suffix to add to the metadata directory name, by default "".
             User to prevent assets clashing when multiprocessing.
+        load_fresh : bool, optional
+            If True, force re-download of the model checkpoints from the
+            Hub, overwriting the local cache. Incompatible with
+            ``offline=True``. By default False.
 
         """
+        if offline and load_fresh:
+            raise ValueError(
+                "offline=True and load_fresh=True are incompatible."
+            )
         metadata_dir = BenchConfigParser.get_metadata_dir(
             cfg=config,
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
@@ -164,7 +174,8 @@ class MixedDatasets(Benchmark):
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
                 ckpts=_resolve_ckpts(config),
-                load_model_from_disk=offline,
+                offline=offline,
+                load_fresh=load_fresh,
                 device=device,
             )
         )

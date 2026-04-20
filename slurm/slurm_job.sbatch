@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --gpus=1
 #SBATCH --mem=32G
-#SBATCH --partition=gpu3,gpu4
+#SBATCH --partition=gpu3,gpu5
 
 # Hydra surfaces full tracebacks for scripts under scripts/*.
 export HYDRA_FULL_ERROR=1
@@ -17,8 +17,9 @@ COMMAND="${1:-echo 'No command specified. Pass a script path as argument to sbat
 mkdir -p log
 
 apptainer exec --nv \
+      --env HF_HOME=/data/cluster/users/bareeva/.hf_cache \
       --bind ${PWD}:/workspace \
       --bind /data/cluster/users/bareeva:/data/cluster/users/bareeva \
       --pwd /workspace \
-      $PWD/env_quanda.sif \
+      $PWD/slurm/env_quanda2.sif \
       bash "$COMMAND"

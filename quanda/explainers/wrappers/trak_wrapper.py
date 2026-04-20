@@ -17,7 +17,12 @@ from typing import (
 import lightning as L
 import torch
 from trak import TRAKer
-from trak.projectors import BasicProjector, CudaProjector, NoOpProjector
+from trak.projectors import (
+    BasicProjector,
+    CudaProjector,
+    NoOpProjector,
+    ProjectionType,
+)
 from trak.utils import get_matrix_mult
 
 from quanda.explainers.base import Explainer
@@ -159,7 +164,7 @@ class TRAK(Explainer):
         projector_kwargs = {
             "grad_dim": num_params_for_grad,
             "proj_dim": proj_dim,
-            "proj_type": proj_type,
+            "proj_type": ProjectionType(proj_type),
             "seed": seed,
             "device": self.device,
         }

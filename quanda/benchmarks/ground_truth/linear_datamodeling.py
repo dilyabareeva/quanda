@@ -5,7 +5,7 @@ import os
 import random
 import warnings
 from copy import deepcopy
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 import lightning as L
 import torch
@@ -23,14 +23,44 @@ from quanda.utils.training import Trainer
 logger = logging.getLogger(__name__)
 
 
-def _get_i_subset_ckpt_postfix(i: int) -> str:
-    """Get checkpoint postfix for subset model i."""
+def _subset_postfix(i: int) -> str:
+    """Shared postfix for the i-th subset's Hub repo id and local dir."""
     return f"_lds_subset_{i}"
 
 
-def _get_i_subset_ckpt_name(ckpt_str: str, i: int) -> str:
-    """Get full checkpoint name for subset model i."""
-    return f"{ckpt_str}{_get_i_subset_ckpt_postfix(i)}"
+def _subset_repo_id(base_repo_id: str, i: int) -> str:
+    """HF Hub repo id for the i-th subset checkpoint.
+
+    Format: ``<base_repo_id>_lds_subset_<i>``.
+    """
+    return f"{base_repo_id}{_subset_postfix(i)}"
+
+
+def _subset_ckpt_paths(config: dict, i: int) -> Tuple[str, str]:
+    """Resolve the two locations for the i-th subset checkpoint.
+
+    Every subset lives in two parallel places — on disk (for training/
+    loading) and on the HF Hub (for sharing). This returns both, derived
+    from ``config["ckpt"]`` (base Hub repo id) and ``config["bench_save_dir"]``
+    (local root).
+
+    Returns
+    -------
+    Tuple[str, str]
+        ``(local_ckpt_dir, hub_repo_id)`` for subset ``i``.
+
+    """
+    base_repo_id = config.get("subset_ckpt", config["ckpt"])
+    bench_save_dir = config.get("bench_save_dir", "./tmp")
+    subset_local_dir = os.path.join(
+        bench_save_dir,
+        "ckpt",
+        f"{base_repo_id.split('/')[-1]}{_subset_postfix(i)}",
+    )
+    return (
+        subset_local_dir,
+        _subset_repo_id(base_repo_id, i),
+    )
 
 
 class LinearDatamodeling(Benchmark):
@@ -119,8 +149,8 @@ class LinearDatamodeling(Benchmark):
         self,
         i: int,
         trainer: "Trainer",
-        ckpt_str: str,
-        ckpt_dir: str,
+        local_ckpt_dir: str,
+        repo_id: str,
         batch_size: int = 8,
         push_to_hub: bool = False,
         device: Optional[str] = None,
@@ -137,7 +167,6 @@ class LinearDatamodeling(Benchmark):
             device=device if device is not None else self.device,
         )
 
-        local_ckpt_dir = f"{ckpt_dir}{_get_i_subset_ckpt_postfix(i)}"
         os.makedirs(local_ckpt_dir, exist_ok=True)
         if push_to_hub and len(os.listdir(local_ckpt_dir)) > 0:
             warnings.warn(
@@ -148,35 +177,36 @@ class LinearDatamodeling(Benchmark):
         subset_model.save_pretrained(local_ckpt_dir, safe_serialization=True)
 
         if push_to_hub:
-            subset_model.push_to_hub(_get_i_subset_ckpt_name(ckpt_str, i))
+            subset_model.push_to_hub(repo_id)
 
     def _train_subset_models(
         self,
         trainer: "Trainer",
-        ckpt_str: str,
-        ckpt_dir: str,
+        config: dict,
         batch_size: int = 8,
         push_to_hub: bool = False,
     ):
         """Train and save all subset models."""
         for i in range(len(self.subset_ckpt_filenames)):
+            local_ckpt_dir, repo_id = _subset_ckpt_paths(config, i)
             self._train_subset_model_by_idx(
                 i=i,
                 trainer=trainer,
-                ckpt_str=ckpt_str,
-                ckpt_dir=ckpt_dir,
+                local_ckpt_dir=local_ckpt_dir,
+                repo_id=repo_id,
                 batch_size=batch_size,
                 push_to_hub=push_to_hub,
             )
 
     @classmethod
-    def train(
+    def train(  # type: ignore[override]
         cls,
         config: dict,
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 64,
         skip_subsets: bool = False,
+        load_meta_from_disk: bool = False,
     ) -> "LinearDatamodeling":
         """Train main model and subset models.
 
@@ -197,6 +227,9 @@ class LinearDatamodeling(Benchmark):
             If True, skip the subset training loop. Used when subsets
             are trained out-of-band (e.g. one-by-one in parallel
             workers via :meth:`train_subset`).
+        load_meta_from_disk : bool, optional
+            If True, reuse existing metadata (splits, subset_ids, etc.)
+            from the cache instead of regenerating. By default False.
 
         Returns
         -------
@@ -209,6 +242,7 @@ class LinearDatamodeling(Benchmark):
             logger=logger,
             device=device,
             batch_size=batch_size,
+            load_meta_from_disk=load_meta_from_disk,
         )
         assert isinstance(obj, LinearDatamodeling)
 
@@ -219,16 +253,9 @@ class LinearDatamodeling(Benchmark):
             config["model"]["trainer"]
         )
 
-        ckpt_dir = os.path.join(
-            config.get("bench_save_dir", "./tmp"),
-            "ckpt",
-            config["ckpt"].split("/")[-1],
-        )
-
         obj._train_subset_models(
             trainer=trainer,
-            ckpt_str=config["ckpt"],
-            ckpt_dir=ckpt_dir,
+            config=config,
             batch_size=batch_size,
             push_to_hub=cls._push_subsets_during_train,
         )
@@ -282,16 +309,12 @@ class LinearDatamodeling(Benchmark):
         trainer = BenchConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
         )
-        ckpt_dir = os.path.join(
-            config.get("bench_save_dir", "./tmp"),
-            "ckpt",
-            config["ckpt"].split("/")[-1],
-        )
+        local_ckpt_dir, repo_id = _subset_ckpt_paths(config, idx)
         obj._train_subset_model_by_idx(
             i=idx,
             trainer=trainer,
-            ckpt_str=config["ckpt"],
-            ckpt_dir=ckpt_dir,
+            local_ckpt_dir=local_ckpt_dir,
+            repo_id=repo_id,
             batch_size=batch_size,
             push_to_hub=push_to_hub,
             device=device,
@@ -310,14 +333,7 @@ class LinearDatamodeling(Benchmark):
         """
         from huggingface_hub import HfApi  # local import; optional dep path
 
-        ckpt_str = config["ckpt"]
-        ckpt_dir = os.path.join(
-            config.get("bench_save_dir", "./tmp"),
-            "ckpt",
-            ckpt_str.split("/")[-1],
-        )
-        local_ckpt_dir = f"{ckpt_dir}{_get_i_subset_ckpt_postfix(idx)}"
-        repo_id = _get_i_subset_ckpt_name(ckpt_str, idx)
+        local_ckpt_dir, repo_id = _subset_ckpt_paths(config, idx)
 
         if not os.path.isdir(local_ckpt_dir):
             raise FileNotFoundError(
@@ -343,11 +359,9 @@ class LinearDatamodeling(Benchmark):
         alpha = config.get("alpha", 0.5)
         seed = config["seed"]
 
-        ckpt = config["ckpt"]
+        ckpt = config.get("subset_ckpt", config["ckpt"])
 
-        subset_ckpt_filenames = [
-            _get_i_subset_ckpt_name(ckpt, i) for i in range(m)
-        ]
+        subset_ckpt_filenames = [_subset_repo_id(ckpt, i) for i in range(m)]
         counterfactual_trainer_cfg = config.get(
             "counterfactual_trainer",
             config["model"].get("trainer", None),
@@ -366,7 +380,13 @@ class LinearDatamodeling(Benchmark):
         generator.manual_seed(seed)
 
         subset_meta = f"{metadata_dir}/{config['subset_ids']}"
-        if os.path.exists(subset_meta) and load_meta_from_disk:
+        if load_meta_from_disk:
+            if not os.path.exists(subset_meta):
+                raise FileNotFoundError(
+                    f"Subset ids file not found at {subset_meta}. "
+                    f"Re-run with load_meta_from_disk=False to "
+                    f"regenerate it."
+                )
             with open(subset_meta, "r") as f:
                 subset_ids = yaml.safe_load(f)
         else:
@@ -377,7 +397,7 @@ class LinearDatamodeling(Benchmark):
                 generator=generator,
             )
             with open(subset_meta, "w") as f:
-                f.write(f"{subset_ids}")
+                yaml.safe_dump(subset_ids, f)
 
         return {
             "m": m,
@@ -400,6 +420,7 @@ class LinearDatamodeling(Benchmark):
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 64,
+        load_meta_from_disk: bool = False,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
         skip_subsets = bool(config.get("skip_subsets", False))
@@ -411,6 +432,7 @@ class LinearDatamodeling(Benchmark):
                 logger=logger,
                 device=device,
                 batch_size=batch_size,
+                load_meta_from_disk=load_meta_from_disk,
             )
         finally:
             cls._push_subsets_during_train = False

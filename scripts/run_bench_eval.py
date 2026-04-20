@@ -1,4 +1,4 @@
-"""Evaluate an explainer on a pretrained MNIST benchmark (Hydra entry)."""
+"""Evaluate an explainer on a pretrained benchmark (Hydra entry)."""
 
 from __future__ import annotations
 
@@ -15,15 +15,20 @@ from quanda.benchmarks import bench_dict
 from quanda.benchmarks.base import default_explanations_id
 from quanda.benchmarks.resources.config_map import config_map
 
+_SUFFIX_TO_CLASS = {
+    "class_detection": "ClassDetection",
+    "subclass_detection": "SubclassDetection",
+    "mislabeling_detection": "MislabelingDetection",
+    "shortcut_detection": "ShortcutDetection",
+    "mixed_datasets": "MixedDatasets",
+    "top_k_cardinality": "TopKCardinality",
+    "model_randomization": "ModelRandomization",
+    "linear_datamodeling": "LDS",
+}
 BENCH_CLASS = {
-    "mnist_class_detection": "ClassDetection",
-    "mnist_subclass_detection": "SubclassDetection",
-    "mnist_mislabeling_detection": "MislabelingDetection",
-    "mnist_shortcut_detection": "ShortcutDetection",
-    "mnist_mixed_datasets": "MixedDatasets",
-    "mnist_top_k_cardinality": "TopKCardinality",
-    "mnist_model_randomization": "ModelRandomization",
-    "mnist_linear_datamodeling": "LDS",
+    f"{prefix}_{suffix}": cls
+    for prefix in ("mnist", "cifar", "qnli")
+    for suffix, cls in _SUFFIX_TO_CLASS.items()
 }
 
 
@@ -44,8 +49,8 @@ def main(cfg: DictConfig) -> float:
 
     bench_cls = bench_dict[BENCH_CLASS[bench_id]]
 
-    max_eval_n = cfg.get("max_eval_n", 1000)
-    eval_seed = cfg.get("eval_seed", 42)
+    max_eval_n = cfg.bench_eval[bench_id].max_eval_n
+    eval_seed = cfg.bench_eval[bench_id].eval_seed
 
     explanations_id = default_explanations_id(
         bench_cfg,
@@ -64,6 +69,8 @@ def main(cfg: DictConfig) -> float:
             os.path.join(cfg.cache_dir, "explainers", cfg.explainer.name, tag),
         )
 
+    bench = bench_cls.from_config(bench_cfg, device=cfg.device)
+
     print(f"[run] {tag}")
     expl_save_dir = os.path.join(cfg.cache_dir, "explanations", tag)
     expl_meta = os.path.join(expl_save_dir, "explanations_config.yaml")
@@ -80,11 +87,7 @@ def main(cfg: DictConfig) -> float:
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
         )
-    bench = bench_cls.load_pretrained(
-        bench_id=bench_id,
-        cache_dir=cfg.cache_dir,
-        device=cfg.device,
-    )
+
     score = bench.evaluate(
         explainer_cls=expl_cls,
         expl_kwargs=expl_kwargs,

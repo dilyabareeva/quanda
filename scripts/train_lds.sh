@@ -14,7 +14,10 @@ N_LDS_PARALLEL=16
 HF_PUSH_SLEEP=60
 TRAIN_ONLY=false
 SKIP_MAIN_TRAIN=false
+PUSH_ONLY=false
 GPU_SPLIT=false
+SUBSET_START=""
+SUBSET_END=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -23,7 +26,10 @@ while [[ $# -gt 0 ]]; do
         --hf-push-sleep) HF_PUSH_SLEEP=$2; shift 2 ;;
         --train-only) TRAIN_ONLY=$2; shift 2 ;;
         --skip-main-train) SKIP_MAIN_TRAIN=$2; shift 2 ;;
+        --push-only) PUSH_ONLY=$2; shift 2 ;;
         --gpu-split) GPU_SPLIT=$2; shift 2 ;;
+        --start) SUBSET_START=$2; shift 2 ;;
+        --end) SUBSET_END=$2; shift 2 ;;
         *) shift ;;
     esac
 done
@@ -47,21 +53,17 @@ print(os.path.splitext(os.path.basename(path))[0])
 
 run_bench() {
     local bench=$1 params=$2 sweep=$3 id=$4
-    if [ "$SKIP_MAIN_TRAIN" = true ]; then
-        local config_name
-        config_name=$(get_config_name_from_map "${BENCH_CONFIG_MAP_KEY[$bench]}")
-        id=$config_name
-        python scripts/train_and_push_to_hub.py --config-name "$config_name" --config-dir $cfg_output_dir +skip_subsets=true +skip_main_train=true
+    if [ "$PUSH_ONLY" = true ]; then
+        :
+    elif [ "$SKIP_MAIN_TRAIN" = true ]; then
+        python scripts/train_and_push_to_hub.py --config-name "$id" --config-dir $cfg_output_dir +skip_subsets=true +skip_main_train=true
     elif [ "$TRAIN_ONLY" = false ]; then
         python scripts/generate_config.py --config-name "$CONFIG_NAME" hydra.run.dir="hydra_logs" bench=LDS $params id=$id +cfg_file_name=$id +cfg_output_dir=$cfg_output_dir
         python scripts/train.py --config-name "$CONFIG_NAME" bench=LDS $params $sweep m=1 id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id num_checkpoints=1 --multirun
         python scripts/opt_results_to_cfg.py --config-name "$CONFIG_NAME" bench=LDS $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id
         python scripts/train_and_push_to_hub.py --config-name $id --config-dir $cfg_output_dir +skip_subsets=true
     else
-        local config_name
-        config_name=$(get_config_name_from_map "${BENCH_CONFIG_MAP_KEY[$bench]}")
-        id=$config_name
-        python scripts/train_and_push_to_hub.py --config-name "$config_name" --config-dir $cfg_output_dir +skip_subsets=true
+        python scripts/train_and_push_to_hub.py --config-name "$id" --config-dir $cfg_output_dir +skip_subsets=true
     fi
 
     local M bench_save_dir
@@ -82,30 +84,39 @@ LinearDatamodeling.load_pretrained(
 
     mkdir -p "logs/${id}"
 
-    for i in $(seq 0 $((M - 1))); do
-        device_args=()
-        if [ "$GPU_SPLIT" = true ]; then
-            device_args=(--device "cuda:$((i % 2))")
-        fi
-        if [ "$PARALLEL" = true ]; then
-            while [ "$(jobs -rp | wc -l)" -ge "$N_LDS_PARALLEL" ]; do
-                wait -n
-            done
-            python scripts/train_lds_subset.py \
-                --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
-                "${device_args[@]}" \
-                > "logs/${id}/subset_${i}.log" 2>&1 &
-        else
-            python scripts/train_lds_subset.py \
-                --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
-                "${device_args[@]}" \
-                > "logs/${id}/subset_${i}.log" 2>&1
-        fi
-    done
-    wait
+    local start end
+    start=${SUBSET_START:-0}
+    end=${SUBSET_END:-$((M - 1))}
+    if [ "$end" -gt "$((M - 1))" ]; then end=$((M - 1)); fi
+
+    if [ "$PUSH_ONLY" = false ]; then
+        for i in $(seq "$start" "$end"); do
+            gpu_env=()
+            device_args=()
+            if [ "$GPU_SPLIT" = true ]; then
+                gpu_env=(env "CUDA_VISIBLE_DEVICES=$((i % 2))")
+                device_args=(--device "cuda:0")
+            fi
+            if [ "$PARALLEL" = true ]; then
+                while [ "$(jobs -rp | wc -l)" -ge "$N_LDS_PARALLEL" ]; do
+                    wait -n
+                done
+                "${gpu_env[@]}" python scripts/train_lds_subset.py \
+                    --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
+                    "${device_args[@]}" \
+                    > "logs/${id}/subset_${i}.log" 2>&1 &
+            else
+                "${gpu_env[@]}" python scripts/train_lds_subset.py \
+                    --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
+                    "${device_args[@]}" \
+                    > "logs/${id}/subset_${i}.log" 2>&1
+            fi
+        done
+        wait
+    fi
 
     missing_subsets=()
-    for i in $(seq 0 $((M - 1))); do
+    for i in $(seq "$start" "$end"); do
         subset_dir="${bench_save_dir}/ckpt/${ckpt_basename}_lds_subset_${i}"
         if [ ! -d "$subset_dir" ]; then
             missing_subsets+=("$i")
@@ -124,5 +135,9 @@ LinearDatamodeling.load_pretrained(
 bench="LDS"
 params="${BENCH_PARAMS[$bench]}"
 sweep="${BENCH_SWEEP[$bench]}"
-id="${commit_tag}-${CONFIG_NAME}_${bench}"
-run_bench "$bench" "$params" "$sweep" "$id" > "logs/${bench}.log" 2>&1 < /dev/null
+if [ "$SKIP_MAIN_TRAIN" = true ] || [ "$TRAIN_ONLY" = true ] || [ "$PUSH_ONLY" = true ]; then
+    id=$(get_config_name_from_map "${BENCH_CONFIG_MAP_KEY[$bench]}")
+else
+    id="${commit_tag}-${CONFIG_NAME}_${bench}"
+fi
+run_bench "$bench" "$params" "$sweep" "$id" > "logs/${id}.log" 2>&1 < /dev/null

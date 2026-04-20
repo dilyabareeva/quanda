@@ -15,7 +15,6 @@ clean-format:
 	find . -path ./.venv -prune -o -type d -name "htmlcov" -print -exec rm -rf {} +
 	find . -path ./.venv -prune -o -type d -name "lightning_logs" -print -exec rm -rf {} +
 	find . -path ./.venv -prune -o -type d -name "hydra_logs" -print -exec rm -rf {} +
-	find . -path ./.venv -prune -o -type d -name "logs" -print -exec rm -rf {} +
 	find . -path ./.venv -prune -o -type d -name "outputs" -print -exec rm -rf {} +
 	find . -path ./.venv -prune -o -type d -name ".tmp" -print -exec rm -rf {} +
 	find . -path ./.venv -prune -o -type d -name ".tox" -print -exec rm -rf {} +

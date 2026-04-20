@@ -1,0 +1,27 @@
+defaults:
+  - explainer: similarity
+  - override hydra/launcher: joblib
+  - override hydra/sweeper: basic
+  - _self_
+
+hydra:
+  sweep:
+    dir: "${results_dir}/${bench}__${explainer.name}"
+    subdir: ${hydra.job.num}
+  launcher:
+    n_jobs: 1
+
+bench: qnli_class_detection
+cache_dir: /data2/bareeva/Projects/quanda/cluster_output/eval_bench/qnli
+results_dir: /data2/bareeva/Projects/quanda/cluster_output/eval_results/qnli
+device: cuda:0
+batch_size: 8
+
+bench_eval:
+  qnli_class_detection: {max_eval_n: 1000, eval_seed: 42}
+  qnli_mislabeling_detection: {max_eval_n: null, eval_seed: 42}
+  qnli_linear_datamodeling: {max_eval_n: 1000, eval_seed: 42}
+  qnli_top_k_cardinality: {max_eval_n: 1000, eval_seed: 42}
+  qnli_model_randomization: {max_eval_n: 1000, eval_seed: 42}
+
+final_fc_layer: classifier

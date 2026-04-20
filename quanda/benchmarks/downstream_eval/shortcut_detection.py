@@ -116,9 +116,8 @@ class ShortcutDetection(Benchmark):
         eval_indices = eval_ds_config["filter_indices"]
         filter_indices = None
 
-        if (
-            DatasetSplit.exists(metadata_dir, eval_indices["split_filename"])
-            and load_meta_from_disk
+        if load_meta_from_disk and DatasetSplit.exists(
+            metadata_dir, eval_indices["split_filename"]
         ):
             filter_indices = DatasetSplit.load(
                 metadata_dir,

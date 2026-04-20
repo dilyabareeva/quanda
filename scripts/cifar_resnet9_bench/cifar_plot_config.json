@@ -1,0 +1,44 @@
+{
+  "methods": [
+    "representer_points",
+    "arnoldi",
+    "tracincpfast",
+    "trak",
+    "random"
+  ],
+  "benches": [
+    "cifar_class_detection",
+    "cifar_subclass_detection",
+    "cifar_mislabeling_detection",
+    "cifar_shortcut_detection",
+    "cifar_mixed_datasets",
+    "cifar_top_k_cardinality",
+    "cifar_model_randomization",
+    "cifar_linear_datamodeling"
+  ],
+  "method_labels": {
+    "representer_points": "ReprPoints",
+    "arnoldi": "ArnoldiInf",
+    "tracincpfast": "TracInCP",
+    "trak": "TRAK-1",
+    "random": "Random"
+  },
+  "bench_labels": {
+    "cifar_subclass_detection": "Subclass\nDetection",
+    "cifar_mislabeling_detection": "Mislabeling\nDetection",
+    "cifar_shortcut_detection": "Shortcut\nDetection",
+    "cifar_top_k_cardinality": "Top-K\nCardinality",
+    "cifar_mixed_datasets": "Mixed Dataset\nSeparation",
+    "cifar_model_randomization": "Model\nRandomization",
+    "cifar_linear_datamodeling": "Linear\nDatamodeling",
+    "cifar_class_detection": "Class\nDetection"
+  },
+  "colors": {
+    "representer_points": "#EB9C38",
+    "arnoldi":            "#83BA59",
+    "tracincpfast":       "#EA4E38",
+    "trak":               "#7D53BA",
+    "random":             "#90918B",
+    "similarity":         "#3B8FB5"
+  }
+}
