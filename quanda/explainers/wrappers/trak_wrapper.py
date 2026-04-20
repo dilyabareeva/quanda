@@ -6,7 +6,6 @@ from importlib.util import find_spec
 from typing import (
     Any,
     Callable,
-    Iterable,
     List,
     Literal,
     Optional,
@@ -95,9 +94,10 @@ class TRAK(Explainer):
         proj_type: TRAKProjectionTypeLiteral = "normal",
         seed: int = 42,
         batch_size: int = 32,
-        params_ldr: Optional[Iterable] = None,
+        grad_wrt: Optional[List[str]] = None,
         load_from_disk: bool = True,
         lambda_reg: float = 0.0,
+        use_half_precision: bool = False,
     ):
         """Initialize the TRAK explainer.
 
@@ -110,10 +110,10 @@ class TRAK(Explainer):
         model_id : str
             The model identifier.
         checkpoints : Optional[Union[str, List[str]]], optional
-            Ignored. Accepted for API consistency with other 
+            Ignored. Accepted for API consistency with other
             explainers.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Ignored, for the same reason as ``checkpoints``. 
+            Ignored, for the same reason as ``checkpoints``.
             Defaults to None.
         cache_dir : str
             The directory to save the TRAK cache.
@@ -130,14 +130,20 @@ class TRAK(Explainer):
             The seed for the projector, by default 42.
         batch_size : int, optional
             The batch size, by default 32.
-        params_ldr : Optional[Iterable], optional
-            Generator of model parameters, by default None, which uses all
-            parameters.
+        grad_wrt : Optional[List[str]], optional
+            Names of model parameters (as they appear in
+            ``model.named_parameters()``) to compute gradients with respect
+            to. Restricting this to a subset (e.g. the classifier head) is
+            the main knob for reducing peak GPU memory. Defaults to None,
+            which uses all parameters.
         load_from_disk : bool, optional
             Whether to load metadata from cache_dir, defaults to True.
         lambda_reg : int, optional
             Optional regularization term to add to the diagonals of X^TX to
             make it invertible.
+        use_half_precision : bool, optional
+            If True, TRAK stores and computes in float16, halving the grad
+            and projector tensor footprints. Defaults to False.
 
         """
         logging.info("Initializing TRAK explainer...")
@@ -158,12 +164,15 @@ class TRAK(Explainer):
             cache_dir if cache_dir is not None else f"./trak_{model_id}_cache"
         )
         self.lambda_reg = lambda_reg
+        self.grad_wrt = grad_wrt
         num_params_for_grad = 0
-        params_iter = (
-            params_ldr if params_ldr is not None else self.model.parameters()
-        )
-        for p in list(params_iter):
-            num_params_for_grad = num_params_for_grad + p.numel()
+        if grad_wrt is not None:
+            named_params = dict(self.model.named_parameters())
+            for name in grad_wrt:
+                num_params_for_grad += named_params[name].numel()
+        else:
+            for p in self.model.parameters():
+                num_params_for_grad += p.numel()
 
         # Check if traker was installer with the ["cuda"] option
         if projector == "cuda":
@@ -196,12 +205,13 @@ class TRAK(Explainer):
             projector_seed=seed,
             save_dir=self.cache_dir,
             device=str(self.device),
-            use_half_precision=False,
+            use_half_precision=use_half_precision,
             load_from_save_dir=load_from_disk,
             lambda_reg=lambda_reg,
+            grad_wrt=grad_wrt,
         )
         # TODO: currently, we implement TRAK-1, assuming that
-        # the weights are already loaded into the model. 
+        # the weights are already loaded into the model.
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 
         # Train the TRAK explainer: featurize the training data
@@ -316,10 +326,10 @@ def trak_explain(
     explanation_targets : Union[List[int], torch.Tensor]
         The target model outputs to explain.
     checkpoints : Optional[Union[str, List[str]]], optional
-        Ignored. Accepted for API consistency with other 
+        Ignored. Accepted for API consistency with other
         explainers.
     checkpoints_load_func : Optional[Callable[..., Any]], optional
-        Ignored, for the same reason as ``checkpoints``. 
+        Ignored, for the same reason as ``checkpoints``.
         Defaults to None.
     cache_dir : Optional[str], optional
         The directory to use for caching, by default None.
