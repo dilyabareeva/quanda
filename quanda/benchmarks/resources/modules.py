@@ -171,6 +171,16 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
             Logits of shape ``(batch, num_labels)``.
 
         """
+        if attention_mask is not None and attention_mask.dim() == 2:
+            # Pre-expand to the 4D additive mask BERT's eager attention
+            # expects. The 2D path routes through ``create_bidirectional_mask``
+            # which calls ``padding_mask.all()`` as a Python bool —
+            # incompatible with the ``torch.func.vmap`.
+            dtype = next(self.parameters()).dtype
+            min_val = torch.finfo(dtype).min
+            attention_mask = (1.0 - attention_mask.to(dtype))[
+                :, None, None, :
+            ] * min_val
         outputs = self.bert(
             input_ids=input_ids,
             attention_mask=attention_mask,
