@@ -12,6 +12,15 @@ from quanda.explainers.wrappers.captum_influence import (
     captum_similarity_explain,
     captum_similarity_self_influence,
 )
+from quanda.explainers.wrappers.dattri_influence import (
+    DattriArnoldi,
+    DattriEKFAC,
+    DattriGradCos,
+    DattriGradDot,
+    DattriInfluence,
+    DattriTracInCP,
+    DattriTRAK,
+)
 from quanda.explainers.wrappers.kronfluence import (
     Kronfluence,
     kronfluence_explain,
@@ -48,4 +57,11 @@ __all__ = [
     "Kronfluence",
     "kronfluence_explain",
     "kronfluence_self_influence",
+    "DattriInfluence",
+    "DattriTRAK",
+    "DattriTracInCP",
+    "DattriArnoldi",
+    "DattriEKFAC",
+    "DattriGradDot",
+    "DattriGradCos",
 ]

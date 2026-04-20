@@ -56,6 +56,8 @@ class SequenceClassificationModel(torch.nn.Module):
             revision="main",
             token=None,
             ignore_mismatched_sizes=False,
+            use_safetensors=True,
+            attn_implementation="eager",
         )
 
         self.model.eval()

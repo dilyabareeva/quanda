@@ -83,13 +83,7 @@ class Explainer(ABC):
                 checkpoints if isinstance(checkpoints, List) else [checkpoints]
             )
 
-        # If dataset return samples not on device, move them to device
-        # TODO: Check if this is required for datasets.Dataset as well
-        if (
-            isinstance(train_dataset, torch.utils.data.Dataset)
-            and train_dataset[0][0].device != self.device
-        ):
-            train_dataset = OnDeviceDataset(train_dataset, self.device)
+        train_dataset = OnDeviceDataset(train_dataset, self.device)
 
         self.train_dataset = train_dataset
 
