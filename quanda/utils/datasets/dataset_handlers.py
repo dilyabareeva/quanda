@@ -1,7 +1,7 @@
 """Dataset handler classes."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Tuple, Union
+from typing import Any, Dict, List, Sequence, Tuple, Union
 
 import datasets  # type: ignore
 import torch
@@ -348,6 +348,82 @@ class HuggingFaceDatasetHandler(DatasetHandler):
             num_workers=num_workers,
             multiprocessing_context="fork" if num_workers > 0 else None,
         )
+
+
+class HuggingFaceTupleDatasetHandler(HuggingFaceDatasetHandler):
+    """HuggingFace dataset handler that yields tuple-style batches.
+
+    Unlike ``HuggingFaceDatasetHandler`` (which yields ``dict`` batches via
+    ``default_data_collator``), this handler's ``DataLoader`` emits tuples
+    ``(input_key_0, ..., input_key_N, label_key)`` in the order given by
+    ``input_keys``. Required for consumers that index batches positionally
+    — e.g. ``dattri``, which does ``batch[0].shape[0]``.
+
+    ``process_batch`` / ``get_model_inputs`` still expose a ``dict`` view so
+    downstream quanda code (benchmarks, metrics) can call ``model(**inputs)``
+    the same way as with the dict handler.
+    """
+
+    def __init__(
+        self,
+        input_keys: Sequence[str] = (
+            "input_ids",
+            "token_type_ids",
+            "attention_mask",
+        ),
+        label_key: str = "labels",
+    ):
+        """Initialize the handler.
+
+        Parameters
+        ----------
+        input_keys : Sequence[str], optional
+            Keys to emit as the leading tuple elements, in order.
+        label_key : str, optional
+            Key emitted as the trailing tuple element. Defaults to
+            ``"labels"``.
+
+        """
+        self.input_keys = tuple(input_keys)
+        self.label_key = label_key
+
+    def collate(
+        self, samples: List[Dict[str, Any]]
+    ) -> Tuple[torch.Tensor, ...]:
+        """Stack HF dict samples into a tuple in ``input_keys + (label_key,)`` order."""
+        collated = default_data_collator(samples)
+        inputs = tuple(collated[k] for k in self.input_keys)
+        return (*inputs, collated[self.label_key])
+
+    def create_dataloader(
+        self,
+        dataset: datasets.Dataset,
+        batch_size: int,
+        shuffle: bool = False,
+        num_workers: int = 0,
+    ) -> DataLoader:
+        """Create a tuple-emitting DataLoader for the HF dataset."""
+        return DataLoader(
+            dataset,
+            batch_size=batch_size,
+            collate_fn=self.collate,
+            shuffle=shuffle,
+            num_workers=num_workers,
+            multiprocessing_context="fork" if num_workers > 0 else None,
+        )
+
+    def process_batch(
+        self,
+        batch: Tuple[torch.Tensor, ...],
+        device: Union[str, torch.device],
+    ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
+        """Unpack a tuple batch back into ``(inputs_dict, labels)`` on ``device``."""
+        *inputs, labels = batch
+        inputs_dict = {
+            key: tensor.to(device)
+            for key, tensor in zip(self.input_keys, inputs)
+        }
+        return inputs_dict, labels.to(device)
 
 
 def get_dataset_handler(

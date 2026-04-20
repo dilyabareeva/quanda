@@ -158,18 +158,19 @@ def test_class_detection_kronfluence_qnli(
     model = request.getfixturevalue(model)
     train_dataset, test_dataset = request.getfixturevalue(dataset)
 
-    dst_eval = ClassDetection()
-    dst_eval.train_dataset = train_dataset
-    dst_eval.eval_dataset = test_dataset
-    dst_eval.model = model
-    dst_eval.device = "cpu"
-    dst_eval.use_predictions = True
-    dst_eval.checkpoints_load_func = get_load_state_dict_func("cpu")
-
     # Save current model state as checkpoint
     checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
     torch.save(model.state_dict(), checkpoint_path)
-    dst_eval.checkpoints = [checkpoint_path]
+
+    dst_eval = ClassDetection(
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        model=model,
+        device="cpu",
+        use_predictions=True,
+        checkpoints=[checkpoint_path],
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+    )
 
     expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
 

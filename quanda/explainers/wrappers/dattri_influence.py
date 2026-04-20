@@ -362,8 +362,9 @@ class DattriTRAK(DattriInfluence):
             "correct_probability_func": correct_probability_func,
             "regularization": regularization,
         }
-        if projector_kwargs is not None:
-            attributor_kwargs["projector_kwargs"] = projector_kwargs
+        proj_kwargs = dict(projector_kwargs or {})
+        proj_kwargs.setdefault("device", device)
+        attributor_kwargs["projector_kwargs"] = proj_kwargs
 
         super().__init__(
             model=model,
@@ -439,8 +440,9 @@ class DattriTracInCP(DattriInfluence):
             "weight_list": weight_list,
             "normalized_grad": normalized_grad,
         }
-        if projector_kwargs is not None:
-            attributor_kwargs["projector_kwargs"] = projector_kwargs
+        proj_kwargs = dict(projector_kwargs or {})
+        proj_kwargs.setdefault("device", device)
+        attributor_kwargs["projector_kwargs"] = proj_kwargs
 
         super().__init__(
             model=model,

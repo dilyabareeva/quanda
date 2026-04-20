@@ -1,7 +1,5 @@
 """Tests for the dattri explainer wrappers.
 
-Two flavours of coverage:
-
 * ``test_dattri_<name>_qnli``: marked ``slow``, runs the real bert-qnli
   fixtures. Uses CUDA when available. Skipped on GitHub Actions.
 * ``test_dattri_<name>_simple``: lightweight smoke tests on a tiny dummy
@@ -10,7 +8,6 @@ Two flavours of coverage:
 
 import os
 from typing import Tuple
-from unittest.mock import patch
 
 import pytest
 import torch
@@ -24,6 +21,9 @@ from quanda.explainers.wrappers import (
     DattriTracInCP,
     DattriTRAK,
 )
+from quanda.utils.datasets.dataset_handlers import (
+    HuggingFaceTupleDatasetHandler,
+)
 from tests.models import SimpleTextClassifier
 
 
@@ -31,26 +31,19 @@ def _device() -> str:
     return "cuda" if torch.cuda.is_available() else "cpu"
 
 
-@pytest.fixture
-def vmap_compatible_bert_masking():
-    """Disable vmap-incompatible shortcuts in transformers' SDPA masking.
+def _bert_4d_attention_mask(
+    mask_2d: torch.Tensor, dtype: torch.dtype
+) -> torch.Tensor:
+    """Build the 4D additive mask BERT's eager attention expects.
 
-    The HuggingFace BERT forward pass takes a short-circuit path in
-    ``transformers.masking_utils`` that calls ``padding_mask.all()`` as a
-    Python bool — this is incompatible with ``torch.func.vmap``. Disabling
-    the shortcut forces the slower, but vmap-safe, masking path.
+    A 2D ``(batch, seq_len)`` mask routes through
+    ``transformers.masking_utils.create_bidirectional_mask``, whose skip path
+    calls ``padding_mask.all()`` as a Python bool — incompatible with
+    ``torch.func.vmap``. Passing a 4D tensor hits the early-exit in
+    ``_preprocess_mask_arguments`` and is used as-is.
     """
-    with (
-        patch(
-            "transformers.masking_utils._ignore_bidirectional_mask_sdpa",
-            return_value=False,
-        ),
-        patch(
-            "transformers.masking_utils._ignore_causal_mask_sdpa",
-            return_value=False,
-        ),
-    ):
-        yield
+    min_val = torch.finfo(dtype).min
+    return (1.0 - mask_2d.to(dtype))[:, None, None, :] * min_val
 
 
 BERT_CLASSIFIER_LAYER = [
@@ -58,6 +51,13 @@ BERT_CLASSIFIER_LAYER = [
     "model.classifier.bias",
 ]
 BERT_CLASSIFIER_MODULE = "model.classifier"
+
+BERT_ARNOLDI_LAYERS = [
+    "model.bert.pooler.dense.weight",
+    "model.bert.pooler.dense.bias",
+    "model.classifier.weight",
+    "model.classifier.bias",
+]
 
 SIMPLE_CLASSIFIER_LAYER = [
     "classifier.weight",
@@ -70,26 +70,9 @@ SIMPLE_CLASSIFIER_MODULE = "classifier"
 # bert-qnli helpers
 # ---------------------------------------------------------------------------
 
-
-def _qnli_to_tensor_dataset(ds, device: str = "cpu"):
-    """Convert a dict-style QNLI HF dataset into an ordered TensorDataset.
-
-    Installed dattri 0.3.0 assumes tuple-style batches in its per-batch
-    projector path (``train_batch_data[0].shape[0]``), so we flatten the
-    dict into a ``(input_ids, token_type_ids, attention_mask, labels)``
-    tuple for dattri compatibility.
-    """
-    input_ids = torch.tensor([d["input_ids"] for d in ds], device=device)
-    token_type_ids = torch.tensor(
-        [d["token_type_ids"] for d in ds], device=device
-    )
-    attention_mask = torch.tensor(
-        [d["attention_mask"] for d in ds], device=device
-    )
-    labels = torch.tensor([d["labels"] for d in ds], device=device)
-    return torch.utils.data.TensorDataset(
-        input_ids, token_type_ids, attention_mask, labels
-    )
+BERT_TUPLE_HANDLER = HuggingFaceTupleDatasetHandler(
+    input_keys=("input_ids", "token_type_ids", "attention_mask"),
+)
 
 
 def _make_bert_loss_funcs(model):
@@ -102,26 +85,29 @@ def _make_bert_loss_funcs(model):
         Used by the influence-function family (Arnoldi, EK-FAC).
     """
     ce = nn.CrossEntropyLoss()
+    dtype = next(model.parameters()).dtype
 
     def loss_fn_per_sample(params, batch):
         input_ids, token_type_ids, attention_mask, labels = batch
+        am_4d = _bert_4d_attention_mask(attention_mask.unsqueeze(0), dtype)
         outputs = torch.func.functional_call(
             model,
             params,
             args=(
                 input_ids.unsqueeze(0),
                 token_type_ids.unsqueeze(0),
-                attention_mask.unsqueeze(0),
+                am_4d,
             ),
         )
         return ce(outputs.logits, labels.unsqueeze(0))
 
     def loss_fn_batched(params, batch):
         input_ids, token_type_ids, attention_mask, labels = batch
+        am_4d = _bert_4d_attention_mask(attention_mask, dtype)
         outputs = torch.func.functional_call(
             model,
             params,
-            args=(input_ids, token_type_ids, attention_mask),
+            args=(input_ids, token_type_ids, am_4d),
         )
         return ce(outputs.logits, labels)
 
@@ -130,34 +116,23 @@ def _make_bert_loss_funcs(model):
 
 def _bert_correct_probability_fn(model):
     ce = nn.CrossEntropyLoss()
+    dtype = next(model.parameters()).dtype
 
     def m(params, batch):
         input_ids, token_type_ids, attention_mask, labels = batch
+        am_4d = _bert_4d_attention_mask(attention_mask.unsqueeze(0), dtype)
         outputs = torch.func.functional_call(
             model,
             params,
             args=(
                 input_ids.unsqueeze(0),
                 token_type_ids.unsqueeze(0),
-                attention_mask.unsqueeze(0),
+                am_4d,
             ),
         )
         return torch.exp(-ce(outputs.logits, labels.unsqueeze(0)))
 
     return m
-
-
-def _qnli_train_and_test_sample(
-    train_dataset, test_dataset, device: str
-) -> Tuple[torch.utils.data.TensorDataset, torch.utils.data.TensorDataset]:
-    train_tensor_ds = _qnli_to_tensor_dataset(train_dataset, device=device)
-    test_sample_ds = _qnli_to_tensor_dataset([test_dataset[0]], device=device)
-    return train_tensor_ds, test_sample_ds
-
-
-# ---------------------------------------------------------------------------
-# Simple text-classifier fixtures for CI
-# ---------------------------------------------------------------------------
 
 
 def _simple_dummy_datasets(
@@ -216,11 +191,6 @@ def _simple_correct_probability_fn(model):
     return m
 
 
-# ---------------------------------------------------------------------------
-# Slow bert-qnli tests (gated behind `slow` marker; skipped on GitHub CI)
-# ---------------------------------------------------------------------------
-
-
 QNLI_SLOW_MARKS = [
     pytest.mark.slow,
     pytest.mark.explainers,
@@ -240,183 +210,167 @@ def _apply_marks(marks):
 
 
 @_apply_marks(QNLI_SLOW_MARKS)
-def test_dattri_trak_qnli(
-    load_qnli_model, load_qnli_dataset, vmap_compatible_bert_masking
-):
+def test_dattri_trak_qnli(load_qnli_model, load_qnli_dataset):
     device = _device()
     model = load_qnli_model.to(device)
     model.eval()
 
-    train_tensor_ds, test_sample_ds = _qnli_train_and_test_sample(
-        *load_qnli_dataset, device=device
-    )
+    train_ds, test_ds = load_qnli_dataset
+    test_sample = [test_ds[0]]
 
     loss_fn, _ = _make_bert_loss_funcs(model)
 
     explainer = DattriTRAK(
         model=model,
-        train_dataset=train_tensor_ds,
+        train_dataset=train_ds,
         loss_func=loss_fn,
         correct_probability_func=_bert_correct_probability_fn(model),
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
         projector_kwargs={"proj_dim": 16},
+        collate_fn=BERT_TUPLE_HANDLER.collate,
         device=device,
     )
 
-    explanations = explainer.explain(test_data=test_sample_ds, targets=None)
-    assert explanations.shape == (1, len(train_tensor_ds))
+    explanations = explainer.explain(test_data=test_sample, targets=None)
+    assert explanations.shape == (1, len(train_ds))
 
 
 @_apply_marks(QNLI_SLOW_MARKS)
-def test_dattri_tracincp_qnli(
-    load_qnli_model, load_qnli_dataset, vmap_compatible_bert_masking
-):
+def test_dattri_tracincp_qnli(load_qnli_model, load_qnli_dataset):
     device = _device()
     model = load_qnli_model.to(device)
     model.eval()
 
-    train_tensor_ds, test_sample_ds = _qnli_train_and_test_sample(
-        *load_qnli_dataset, device=device
-    )
+    train_ds, test_ds = load_qnli_dataset
+    test_sample = [test_ds[0]]
 
     loss_fn, _ = _make_bert_loss_funcs(model)
 
     explainer = DattriTracInCP(
         model=model,
-        train_dataset=train_tensor_ds,
+        train_dataset=train_ds,
         loss_func=loss_fn,
         weight_list=torch.tensor([1.0], device=device),
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
+        collate_fn=BERT_TUPLE_HANDLER.collate,
         device=device,
     )
 
-    explanations = explainer.explain(test_data=test_sample_ds, targets=None)
-    assert explanations.shape == (1, len(train_tensor_ds))
+    explanations = explainer.explain(test_data=test_sample, targets=None)
+    assert explanations.shape == (1, len(train_ds))
 
 
 @_apply_marks(QNLI_SLOW_MARKS)
-def test_dattri_graddot_qnli(
-    load_qnli_model, load_qnli_dataset, vmap_compatible_bert_masking
-):
+def test_dattri_graddot_qnli(load_qnli_model, load_qnli_dataset):
     device = _device()
     model = load_qnli_model.to(device)
     model.eval()
 
-    train_tensor_ds, test_sample_ds = _qnli_train_and_test_sample(
-        *load_qnli_dataset, device=device
-    )
+    train_ds, test_ds = load_qnli_dataset
+    test_sample = [test_ds[0]]
 
     loss_fn, _ = _make_bert_loss_funcs(model)
 
     explainer = DattriGradDot(
         model=model,
-        train_dataset=train_tensor_ds,
+        train_dataset=train_ds,
         loss_func=loss_fn,
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
+        collate_fn=BERT_TUPLE_HANDLER.collate,
         device=device,
     )
 
-    explanations = explainer.explain(test_data=test_sample_ds, targets=None)
-    assert explanations.shape == (1, len(train_tensor_ds))
+    explanations = explainer.explain(test_data=test_sample, targets=None)
+    assert explanations.shape == (1, len(train_ds))
 
 
 @_apply_marks(QNLI_SLOW_MARKS)
-def test_dattri_gradcos_qnli(
-    load_qnli_model, load_qnli_dataset, vmap_compatible_bert_masking
-):
+def test_dattri_gradcos_qnli(load_qnli_model, load_qnli_dataset):
     device = _device()
     model = load_qnli_model.to(device)
     model.eval()
 
-    train_tensor_ds, test_sample_ds = _qnli_train_and_test_sample(
-        *load_qnli_dataset, device=device
-    )
+    train_ds, test_ds = load_qnli_dataset
+    test_sample = [test_ds[0]]
 
     loss_fn, _ = _make_bert_loss_funcs(model)
 
     explainer = DattriGradCos(
         model=model,
-        train_dataset=train_tensor_ds,
+        train_dataset=train_ds,
         loss_func=loss_fn,
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
+        collate_fn=BERT_TUPLE_HANDLER.collate,
         device=device,
     )
 
-    explanations = explainer.explain(test_data=test_sample_ds, targets=None)
-    assert explanations.shape == (1, len(train_tensor_ds))
+    explanations = explainer.explain(test_data=test_sample, targets=None)
+    assert explanations.shape == (1, len(train_ds))
 
 
 @_apply_marks(QNLI_SLOW_MARKS)
-def test_dattri_arnoldi_qnli(
-    load_qnli_model, load_qnli_dataset, vmap_compatible_bert_masking
-):
+def test_dattri_arnoldi_qnli(load_qnli_model, load_qnli_dataset):
     device = _device()
     model = load_qnli_model.to(device)
     model.eval()
 
-    train_tensor_ds, test_sample_ds = _qnli_train_and_test_sample(
-        *load_qnli_dataset, device=device
-    )
+    train_ds, test_ds = load_qnli_dataset
+    test_sample = [test_ds[0]]
 
     _, loss_fn = _make_bert_loss_funcs(model)
 
     explainer = DattriArnoldi(
         model=model,
-        train_dataset=train_tensor_ds,
+        train_dataset=train_ds,
         loss_func=loss_fn,
         task="text_classification",
-        layer_name=BERT_CLASSIFIER_LAYER,
+        layer_name=BERT_ARNOLDI_LAYERS,
         batch_size=1,
-        proj_dim=5,
-        max_iter=10,
+        proj_dim=10,
+        max_iter=3,
         regularization=1e-3,
+        collate_fn=BERT_TUPLE_HANDLER.collate,
         device=device,
     )
 
-    explanations = explainer.explain(test_data=test_sample_ds, targets=None)
-    assert explanations.shape == (1, len(train_tensor_ds))
+    explanations = explainer.explain(test_data=test_sample, targets=None)
+    assert explanations.shape == (1, len(train_ds))
 
 
 @_apply_marks(QNLI_SLOW_MARKS)
-def test_dattri_ekfac_qnli(
-    load_qnli_model, load_qnli_dataset, vmap_compatible_bert_masking
-):
+def test_dattri_ekfac_qnli(load_qnli_model, load_qnli_dataset):
     device = _device()
     model = load_qnli_model.to(device)
     model.eval()
 
-    train_tensor_ds, test_sample_ds = _qnli_train_and_test_sample(
-        *load_qnli_dataset, device=device
-    )
+    train_ds, test_ds = load_qnli_dataset
+    test_sample = [test_ds[0]]
 
     _, loss_fn = _make_bert_loss_funcs(model)
 
     explainer = DattriEKFAC(
         model=model,
-        train_dataset=train_tensor_ds,
+        train_dataset=train_ds,
         loss_func=loss_fn,
         task="text_classification",
         module_name=BERT_CLASSIFIER_MODULE,
         batch_size=1,
         damping=1e-2,
+        max_iter=1,
+        collate_fn=BERT_TUPLE_HANDLER.collate,
         device=device,
     )
 
-    explanations = explainer.explain(test_data=test_sample_ds, targets=None)
-    assert explanations.shape == (1, len(train_tensor_ds))
-
-
-# ---------------------------------------------------------------------------
-# Fast CI smoke tests on a tiny text classifier (always CPU)
-# ---------------------------------------------------------------------------
+    explanations = explainer.explain(test_data=test_sample, targets=None)
+    assert explanations.shape == (1, len(train_ds))
 
 
 @pytest.fixture
