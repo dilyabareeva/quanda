@@ -158,6 +158,11 @@ class CaptumInfluence(Explainer, ABC):
 
 class CaptumSimilarity(CaptumInfluence):
     # TODO: incorporate SimilarityInfluence kwargs into init_kwargs
+    
+    accepted_tasks: List[TaskLiterals] = [
+        "image_classification",
+        "text_classification"
+    ]
     """Class for Similarity Influence wrapper.
 
     This explainer uses a similarity function on its inputs to rank the
@@ -389,7 +394,10 @@ class CaptumSimilarity(CaptumInfluence):
             the influence scores.
 
         """
-        test_data = test_data.to(self.device)
+        if isinstance(test_data, dict):
+            test_data = tuple(v.to(self.device) for v in test_data.values())
+        else:
+            test_data = test_data.to(self.device)
 
         with (
             map_location_context(self.device),

@@ -165,12 +165,15 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
         token_type_ids : torch.Tensor, optional
             Token type IDs of shape ``(batch, seq_len)``.
 
-        Returns
-        -------
-        torch.Tensor
-            Logits of shape ``(batch, num_labels)``.
-
         """
+        # Captum's AV.generate_dataset_activations hands the whole batch
+        # through as a single positional arg; for BERT-style datasets that
+        # arg is a dict of input tensors. Unpack it here.
+        if isinstance(input_ids, dict):
+            d = input_ids
+            input_ids = d["input_ids"]
+            attention_mask = d.get("attention_mask", attention_mask)
+            token_type_ids = d.get("token_type_ids", token_type_ids)
         if attention_mask is not None and attention_mask.dim() == 2:
             # Pre-expand to the 4D additive mask BERT's eager attention
             # expects. The 2D path routes through ``create_bidirectional_mask``
