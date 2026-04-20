@@ -31,6 +31,11 @@ from quanda.explainers.utils import (
     self_influence_fn_from_explainer,
 )
 from quanda.utils.common import ds_len, process_targets
+from quanda.utils.datasets.dataset_handlers import (
+    HuggingFaceDatasetHandler,
+    HuggingFaceTupleDatasetHandler,
+    get_dataset_handler,
+)
 from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
@@ -65,7 +70,10 @@ class TRAK(Explainer):
 
     """
 
-    accepted_tasks: List[TaskLiterals] = ["image_classification"]
+    accepted_tasks: List[TaskLiterals] = [
+        "image_classification",
+        "text_classification",
+    ]
 
     def __init__(
         self,
@@ -188,16 +196,19 @@ class TRAK(Explainer):
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 
         # Train the TRAK explainer: featurize the training data
-        ld = torch.utils.data.DataLoader(
+        handler = get_dataset_handler(self.dataset)
+        if isinstance(handler, HuggingFaceDatasetHandler):
+            # TRAK's featurize indexes the batch positionally, so emit tuples.
+            handler = HuggingFaceTupleDatasetHandler()
+        ld = handler.create_dataloader(
             self.dataset, batch_size=self.batch_size
         )
-        for i, (x, y) in enumerate(iter(ld)):
-            batch = x.to(self.device), y.to(self.device)
+        for i, raw_batch in enumerate(ld):
+            batch = tuple(t.to(self.device) for t in raw_batch)
+            n = batch[-1].shape[0]
             self.traker.featurize(
                 batch=batch,
-                inds=torch.tensor(
-                    [i * self.batch_size + j for j in range(x.shape[0])]
-                ),
+                inds=torch.tensor([i * self.batch_size + j for j in range(n)]),
             )
         self.traker.finalize_features()
 

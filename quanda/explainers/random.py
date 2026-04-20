@@ -79,8 +79,13 @@ class RandomExplainer(Explainer):
             Random tensor of shape `(test.shape[0],train_dataset_length)`
 
         """
+        n = (
+            next(iter(test_data.values())).size(0)
+            if isinstance(test_data, dict)
+            else test_data.size(0)
+        )
         return torch.rand(
-            test_data.size(0),
+            n,
             ds_len(self.train_dataset),
             generator=self.generator,
             device=self.device,

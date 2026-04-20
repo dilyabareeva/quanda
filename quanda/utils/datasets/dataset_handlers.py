@@ -350,7 +350,7 @@ class HuggingFaceDatasetHandler(DatasetHandler):
         )
 
 
-class HuggingFaceTupleDatasetHandler(DatasetHandler):
+class HuggingFaceTupleDatasetHandler(HuggingFaceDatasetHandler):
     """HuggingFace dataset handler that yields tuple-style batches.
 
     Unlike ``HuggingFaceDatasetHandler`` (which yields ``dict`` batches via
@@ -414,7 +414,7 @@ class HuggingFaceTupleDatasetHandler(DatasetHandler):
 
     def process_batch(
         self,
-        batch: Tuple[torch.Tensor, ...],
+        batch: Any,
         device: Union[str, torch.device],
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         """Unpack tuple batch into (inputs_dict, labels) on device."""
