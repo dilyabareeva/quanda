@@ -203,10 +203,10 @@ class RepresenterPoints(Explainer):
             Possible options: "image_classification", "text_classification",
             "causal_lm".
         checkpoints : Optional[Union[str, List[str]]], optional
-            Ignored. Accepted for API consistency with other 
+            Ignored. Accepted for API consistency with other
             explainers.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Ignored, for the same reason as ``checkpoints``. 
+            Ignored, for the same reason as ``checkpoints``.
             Defaults to None.
         cache_dir : str, optional
             The directory to save the cache, defaults to "./cache".

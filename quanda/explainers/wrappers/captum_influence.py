@@ -211,7 +211,7 @@ class CaptumSimilarity(CaptumInfluence):
             The model to be used for the influence computation
             with loaded weights.
         checkpoints : Union[str, List[str]]
-            Ignored. Accepted for API consistency with other 
+            Ignored. Accepted for API consistency with other
             explainers.
         model_id : str
             Identifier for the model.
@@ -223,7 +223,7 @@ class CaptumSimilarity(CaptumInfluence):
             Task type of the model. Defaults to "image_classification".
             Possible options: "image_classification".
         checkpoints_load_func : Optional[Callable], optional
-            Ignored, for the same reason as ``checkpoints``. 
+            Ignored, for the same reason as ``checkpoints``.
             Defaults to None.
         cache_dir : str, optional
             Directory for caching activations. Defaults to "./cache".
@@ -435,7 +435,7 @@ def captum_similarity_explain(
         The model to be used for the influence computation
         with loaded weights.
     checkpoints : Union[str, List[str]]
-        Ignored. Accepted for API consistency with other 
+        Ignored. Accepted for API consistency with other
         explainers.
     model_id : str
         Identifier for the model.
@@ -446,7 +446,7 @@ def captum_similarity_explain(
     cache_dir : str, optional
         Directory for caching activations. Defaults to "./cache".
     checkpoints_load_func : Optional[Callable], optional
-        Ignored, for the same reason as ``checkpoints``. 
+        Ignored, for the same reason as ``checkpoints``.
         Defaults to None.
     **kwargs : Any
         Additional keyword arguments passed to the explainer.
@@ -572,7 +572,7 @@ class CaptumArnoldi(CaptumInfluence):
         model : Union[torch.nn.Module, pl.LightningModule]
             The model to be used for the influence computation.
         checkpoints : Union[str, List[str]]
-            Checkpoint paths by epochs, sorted from the earlier 
+            Checkpoint paths by epochs, sorted from the earlier
             to last epoch. Only last checkpoint ([-1]) is used.
         task: TaskLiterals, optional
             Task type of the model. Defaults to "image_classification".
@@ -741,7 +741,7 @@ def captum_arnoldi_explain(
     model : Union[torch.nn.Module, pl.LightningModule]
         The model to be used for the influence computation.
     checkpoints : Union[str, List[str]]
-        Checkpoint paths by epochs, sorted from the earlier 
+        Checkpoint paths by epochs, sorted from the earlier
         to last epoch.  Only last checkpoint ([-1]) is used.
     test_data : torch.Tensor
         Test samples for which influence scores are computed.
@@ -788,7 +788,7 @@ def captum_arnoldi_self_influence(
     model : torch.nn.Module
         The model to be used for the influence computation.
     checkpoints : Union[str, List[str]]
-        Checkpoint paths by epochs, sorted from the earlier 
+        Checkpoint paths by epochs, sorted from the earlier
         to last epoch. Only last checkpoint ([-1]) is used.
     train_dataset : torch.utils.data.Dataset
         Training dataset to be used for the influence computation.
@@ -859,7 +859,7 @@ class CaptumTracInCP(CaptumInfluence):
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str]]
-            Checkpoint paths by epochs, sorted from the earlier 
+            Checkpoint paths by epochs, sorted from the earlier
             to last epoch.
         task: TaskLiterals, optional
             Task type of the model. Defaults to "image_classification".
@@ -1005,7 +1005,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str]]
-            Checkpoint paths by epochs, sorted from the earlier 
+            Checkpoint paths by epochs, sorted from the earlier
             to last epoch.
         task: TaskLiterals, optional
             Task type of the model. Defaults to "image_classification".
@@ -1146,7 +1146,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str]]
-            Checkpoint paths by epochs, sorted from the earlier 
+            Checkpoint paths by epochs, sorted from the earlier
             to last epoch.
         task: TaskLiterals, optional
             Task type of the model. Defaults to "image_classification".
