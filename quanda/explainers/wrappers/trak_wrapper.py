@@ -59,6 +59,12 @@ class TRAK(Explainer):
     We refer the user to the official TRAK library [2] for more information on
     the details of parameters explainer.
 
+    The ``checkpoints`` and ``checkpoints_load_func`` arguments are accepted
+    for API consistency with other explainers but are **not used** by this
+    wrapper: featurization runs in ``__init__`` against
+    ``self.model.state_dict()``. The caller is therefore responsible for
+    passing a ``model`` whose weights have already been loaded.
+
     References
     ----------
     (1) Sung Min Park, Kristian Georgiev, Andrew Ilyas, Guillaume Leclerc,
@@ -98,16 +104,17 @@ class TRAK(Explainer):
         Parameters
         ----------
         model : torch.nn.Module
-            The model to be explained.
+            The model to be explained with loaded weights.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train the model.
         model_id : str
             The model identifier.
         checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
+            Ignored. Accepted for API consistency with other 
+            explainers.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
+            Ignored, for the same reason as ``checkpoints``. 
+            Defaults to None.
         cache_dir : str
             The directory to save the TRAK cache.
         task: TaskLiterals, optional
@@ -193,6 +200,8 @@ class TRAK(Explainer):
             load_from_save_dir=load_from_disk,
             lambda_reg=lambda_reg,
         )
+        # TODO: currently, we implement TRAK-1, assuming that
+        # the weights are already loaded into the model. 
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 
         # Train the TRAK explainer: featurize the training data
@@ -297,7 +306,7 @@ def trak_explain(
     Parameters
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be explained.
+            The model to be explained with loaded weights.
     model_id : Optional[str], optional
         Identifier for the model, by default None.
     test_data : torch.Tensor
@@ -307,10 +316,11 @@ def trak_explain(
     explanation_targets : Union[List[int], torch.Tensor]
         The target model outputs to explain.
     checkpoints : Optional[Union[str, List[str]]], optional
-        Path to the model checkpoint file(s), defaults to None.
+        Ignored. Accepted for API consistency with other 
+        explainers.
     checkpoints_load_func : Optional[Callable[..., Any]], optional
-        Function to load the model from the checkpoint file, takes
-        (model, checkpoint path) as two arguments, by default None.
+        Ignored, for the same reason as ``checkpoints``. 
+        Defaults to None.
     cache_dir : Optional[str], optional
         The directory to use for caching, by default None.
     kwargs : Any
@@ -351,16 +361,15 @@ def trak_self_influence(
     Parameters
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be explained.
+        The model to be explained with loaded weights.
     model_id : str
         Identifier for the model.
     train_dataset : torch.utils.data.Dataset
         The training dataset used to train the model.
     checkpoints : Optional[Union[str, List[str]]], optional
-        Path to the model checkpoint file(s), defaults to None.
+        Ignored. Accepted for API consistency with other explainers .
     checkpoints_load_func : Optional[Callable[..., Any]], optional
-        Function to load the model from the checkpoint file, takes
-        (model, checkpoint path) as two arguments, by default None.
+        Ignored, for the same reason as ``checkpoints``. Defaults to None.
     cache_dir : Optional[str]
         The directory to use for caching.
     batch_size : int, optional
