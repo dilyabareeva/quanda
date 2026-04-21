@@ -339,3 +339,52 @@ def test_trak_self_influence_functional(
     assert explanations.shape[0] == len(dataset), (
         "Training data attributions shape not as expected"
     )
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "test_id, model, dataset, test_data, test_labels, method_kwargs",
+    [
+        (
+            "mnist_grad_wrt",
+            "load_mnist_model",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            "load_mnist_test_labels_1",
+            {
+                "model_id": "grad_wrt",
+                "batch_size": 4,
+                "seed": 7,
+                "proj_dim": 4,
+                "projector": "basic",
+            },
+        ),
+    ],
+)
+def test_trak_with_grad_wrt_subset(
+    test_id,
+    model,
+    dataset,
+    test_data,
+    test_labels,
+    method_kwargs,
+    request,
+    tmp_path,
+):
+    """``grad_wrt`` restricts gradient computation to the named params."""
+    model = request.getfixturevalue(model)
+    dataset = request.getfixturevalue(dataset)
+    test_data = request.getfixturevalue(test_data)
+    test_labels = request.getfixturevalue(test_labels)
+
+    grad_wrt = ["fc_3.weight", "fc_3.bias"]
+
+    explainer = TRAK(
+        model=model,
+        train_dataset=dataset,
+        cache_dir=str(tmp_path / "trak_grad_wrt_cache"),
+        grad_wrt=grad_wrt,
+        **method_kwargs,
+    )
+    explanations = explainer.explain(test_data=test_data, targets=test_labels)
+    assert explanations.shape[0] == len(test_labels)

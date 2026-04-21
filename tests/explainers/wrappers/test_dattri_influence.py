@@ -24,6 +24,11 @@ from quanda.explainers.wrappers import (
     bert_classification_correct_probability,
     bert_classification_per_sample_loss,
 )
+from quanda.explainers.wrappers.dattri_influence import (
+    DattriInfluence,
+    _resolve_device,
+    _wrap_checkpoints_load_func,
+)
 from quanda.utils.datasets.dataset_handlers import (
     HuggingFaceSequenceDatasetHandler,
 )
@@ -424,3 +429,225 @@ def test_dattri_ekfac_simple(simple_setup):
         targets=test_labels.unsqueeze(0),
     )
     assert explanations.shape == (1, len(train_ds))
+
+
+@pytest.mark.explainers
+def test_dattri_tracincp_self_influence(simple_setup):
+    """Base-class ``self_influence`` delegates to ``attributor.self_attribute``."""
+    model, train_ds, _ = simple_setup
+    explainer = DattriTracInCP(
+        model=model,
+        train_dataset=train_ds,
+        loss_func=_simple_per_sample_loss_builder,
+        learning_rate=1.0,
+        task="text_classification",
+        layer_name=SIMPLE_CLASSIFIER_LAYER,
+        batch_size=1,
+        device="cpu",
+    )
+    scores = explainer.self_influence(batch_size=1)
+    assert scores.shape[0] == len(train_ds)
+
+
+@pytest.mark.explainers
+def test_dattri_trak_without_cache_paths(simple_setup):
+    """``use_cache=False`` falls back through the ``(test, train)`` call
+    and the manual self-attribute loop."""
+    model, train_ds, test_ds = simple_setup
+    explainer = DattriTRAK(
+        model=model,
+        train_dataset=train_ds,
+        loss_func=_simple_per_sample_loss_builder,
+        correct_probability_func=_simple_correct_probability_builder,
+        task="text_classification",
+        layer_name=SIMPLE_CLASSIFIER_LAYER,
+        batch_size=1,
+        projector_kwargs={"proj_dim": 8},
+        use_cache=False,
+        device="cpu",
+    )
+    assert explainer.attributor.full_train_dataloader is None
+
+    test_input_ids, test_labels = test_ds[0]
+    explanations = explainer.explain(
+        test_data=test_input_ids.unsqueeze(0),
+        targets=test_labels.unsqueeze(0),
+    )
+    assert explanations.shape == (1, len(train_ds))
+
+    scores = explainer.self_influence(batch_size=1)
+    assert scores.shape[0] == len(train_ds)
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "cls",
+    [DattriGradDot, DattriGradCos, DattriArnoldi],
+)
+def test_dattri_wrappers_keep_last_checkpoint_when_multiple(cls, simple_setup):
+    """Passing >1 checkpoints must collapse to the final one."""
+    model, train_ds, test_ds = simple_setup
+
+    ckpt_paths = ["ckpt_a.pt", "ckpt_b.pt"]
+    loader_calls = []
+
+    def loader(m, path):
+        loader_calls.append(path)
+
+    kwargs = dict(
+        model=model,
+        train_dataset=train_ds,
+        loss_func=_simple_batched_loss_builder
+        if cls is DattriArnoldi
+        else _simple_per_sample_loss_builder,
+        task="text_classification",
+        layer_name=SIMPLE_CLASSIFIER_LAYER,
+        batch_size=1,
+        checkpoints=ckpt_paths,
+        checkpoints_load_func=loader,
+        device="cpu",
+    )
+    if cls is DattriArnoldi:
+        kwargs.update(proj_dim=5, max_iter=2, regularization=1e-3)
+
+    explainer = cls(**kwargs)
+    assert explainer.checkpoints == [ckpt_paths[-1]]
+    assert all(p == ckpt_paths[-1] for p in loader_calls)
+
+
+@pytest.mark.explainers
+def test_resolve_device_passthrough_and_param_fallback():
+    model = nn.Linear(2, 2)
+    assert _resolve_device(model, "cuda") == "cuda"
+    # fall back to the param's device
+    assert _resolve_device(model, None) == str(next(model.parameters()).device)
+
+
+@pytest.mark.explainers
+def test_resolve_device_defaults_to_cpu_when_model_has_no_params():
+    class _NoParams(nn.Module):
+        def forward(self, x):
+            return x
+
+    assert _resolve_device(_NoParams(), None) == "cpu"
+
+
+@pytest.mark.explainers
+def test_wrap_checkpoints_load_func_invokes_inner_and_returns_model():
+    seen = []
+
+    def inner(model, ckpt):
+        seen.append((model, ckpt))
+
+    wrapped = _wrap_checkpoints_load_func(inner)
+    model = nn.Linear(1, 1)
+    returned = wrapped(model, "some-ckpt")
+    assert returned is model
+    assert seen == [(model, "some-ckpt")]
+
+
+@pytest.mark.explainers
+def test_create_test_dataset_tensor_without_targets_raises(simple_setup):
+    model, train_ds, _ = simple_setup
+    explainer = DattriTracInCP(
+        model=model,
+        train_dataset=train_ds,
+        loss_func=_simple_per_sample_loss_builder,
+        learning_rate=1.0,
+        task="text_classification",
+        layer_name=SIMPLE_CLASSIFIER_LAYER,
+        batch_size=1,
+        device="cpu",
+    )
+    with pytest.raises(ValueError, match="Targets required"):
+        explainer._create_test_dataset(torch.zeros(1, 8), targets=None)
+
+
+@pytest.mark.explainers
+def test_create_test_dataset_tensor_accepts_list_targets(simple_setup):
+    model, train_ds, _ = simple_setup
+    explainer = DattriTracInCP(
+        model=model,
+        train_dataset=train_ds,
+        loss_func=_simple_per_sample_loss_builder,
+        learning_rate=1.0,
+        task="text_classification",
+        layer_name=SIMPLE_CLASSIFIER_LAYER,
+        batch_size=1,
+        device="cpu",
+    )
+    ds = explainer._create_test_dataset(
+        torch.zeros(2, 8, dtype=torch.long), targets=[0, 1]
+    )
+    assert isinstance(ds, torch.utils.data.TensorDataset)
+    assert torch.equal(ds.tensors[1], torch.tensor([0, 1]))
+
+
+@pytest.mark.explainers
+def test_create_test_dataset_dict_builds_hf_dataset(simple_setup):
+    import datasets as hf_datasets
+
+    model, train_ds, _ = simple_setup
+    explainer = DattriTracInCP(
+        model=model,
+        train_dataset=train_ds,
+        loss_func=_simple_per_sample_loss_builder,
+        learning_rate=1.0,
+        task="text_classification",
+        layer_name=SIMPLE_CLASSIFIER_LAYER,
+        batch_size=1,
+        device="cpu",
+    )
+    ds = explainer._create_test_dataset(
+        {"input_ids": torch.tensor([[1, 2, 3]])},
+        targets=torch.tensor([1]),
+    )
+    assert isinstance(ds, hf_datasets.Dataset)
+    assert "labels" in ds.features
+    assert ds["labels"] == [1]
+
+
+@pytest.mark.explainers
+def test_create_test_dataset_unsupported_type_raises(simple_setup):
+    model, train_ds, _ = simple_setup
+    explainer = DattriTracInCP(
+        model=model,
+        train_dataset=train_ds,
+        loss_func=_simple_per_sample_loss_builder,
+        learning_rate=1.0,
+        task="text_classification",
+        layer_name=SIMPLE_CLASSIFIER_LAYER,
+        batch_size=1,
+        device="cpu",
+    )
+    with pytest.raises(ValueError, match="Unsupported test_data type"):
+        explainer._create_test_dataset("not a tensor", targets=None)
+
+
+@pytest.mark.explainers
+def test_dattri_influence_is_abstract_explainer_subclass():
+    """Sanity check so the import path exercised by the helpers is live."""
+    assert issubclass(DattriTracInCP, DattriInfluence)
+
+
+@pytest.mark.explainers
+def test_dattri_ekfac_keeps_last_checkpoint_when_multiple(simple_setup):
+    model, train_ds, _ = simple_setup
+    ckpt_paths = ["a", "b"]
+
+    def loader(m, path):
+        pass
+
+    explainer = DattriEKFAC(
+        model=model,
+        train_dataset=train_ds,
+        loss_func=_simple_batched_loss_builder,
+        task="text_classification",
+        module_name=SIMPLE_CLASSIFIER_MODULE,
+        batch_size=1,
+        damping=1e-2,
+        checkpoints=ckpt_paths,
+        checkpoints_load_func=loader,
+        device="cpu",
+    )
+    assert explainer.checkpoints == [ckpt_paths[-1]]
