@@ -1,4 +1,5 @@
 model:
+  pretrained_model_name: null
   module:
     name: ResNet9
     args:

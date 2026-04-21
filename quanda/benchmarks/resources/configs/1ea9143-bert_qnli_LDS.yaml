@@ -1,8 +1,8 @@
 model:
+  pretrained_model_name: google-bert/bert-base-cased
   module:
     name: BertClassifier
     args:
-      pretrained_model_name: google-bert/bert-base-cased
       num_labels: 2
   trainer:
     optimizer: adamw

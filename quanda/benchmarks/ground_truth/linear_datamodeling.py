@@ -306,6 +306,12 @@ class LinearDatamodeling(Benchmark):
         )
         assert isinstance(obj, LinearDatamodeling)
 
+        pretrained_base = BenchConfigParser.load_pretrained_base(
+            model_cfg=config["model"], device=device
+        )
+        if pretrained_base is not None:
+            obj.model = pretrained_base
+
         trainer = BenchConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
         )

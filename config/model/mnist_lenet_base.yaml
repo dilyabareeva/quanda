@@ -1,3 +1,4 @@
+pretrained_model_name: null
 module:
   name: MnistTorch
   args:

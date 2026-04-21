@@ -83,6 +83,13 @@ class ResNet9(torch.nn.Module, PyTorchModelHubMixin):
     def forward(self, x):
         """Forward pass."""
         return self.model(x)
+    
+    def from_pretrained_base(self, pretrained_model_name: str):
+        """Override to avoid HuggingFace trying to load pretrained weights."""
+        config = AutoConfig.from_pretrained(pretrained_model_name)
+        self.model = AutoModel.from_pretrained(
+            pretrained_model_name, config=config
+        )
 
 
 class LeNet(torch.nn.Module, PyTorchModelHubMixin):
@@ -116,6 +123,12 @@ class LeNet(torch.nn.Module, PyTorchModelHubMixin):
         x = self.fc_3(x)
         return x
 
+    def from_pretrained_base(self, pretrained_model_name: str):
+        """Override to avoid HuggingFace trying to load pretrained weights."""
+        config = AutoConfig.from_pretrained(pretrained_model_name)
+        self.model = AutoModel.from_pretrained(
+            pretrained_model_name, config=config
+        )
 
 class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
     """BERT-based sequence classifier without final nonlinearity.
@@ -127,7 +140,6 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
 
     def __init__(
         self,
-        pretrained_model_name: str = "google-bert/bert-base-cased",
         num_labels: int = 2,
     ):
         """Initialize the BertClassifier.
@@ -144,10 +156,11 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
         self.pretrained_model_name = pretrained_model_name
         self.num_labels = num_labels
 
-        config = AutoConfig.from_pretrained(pretrained_model_name)
-        self.bert = AutoModel.from_pretrained(
-            pretrained_model_name, config=config
+        config = AutoConfig.from_pretrained(
+            "google-bert/bert-base-cased",
+            num_labels=num_labels,
         )
+        self.bert = AutoModel.from_config(config)
         if getattr(self.bert, "pooler", None) is not None:
             self.bert.pooler.activation = torch.nn.Identity()
         self.dropout = torch.nn.Dropout(config.hidden_dropout_prob)
@@ -192,6 +205,15 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
         pooled = self.dropout(outputs.pooler_output)
         return self.classifier(pooled)
 
+    def from_pretrained_base(
+            self, 
+            pretrained_model_name: str
+        ):
+        """Override to avoid HuggingFace trying to load pretrained weights."""
+        config = AutoConfig.from_pretrained(pretrained_model_name)
+        self.model = AutoModel.from_pretrained(
+            pretrained_model_name, config=config
+        )
 
 pl_modules = {
     "MnistTorch": LeNet,

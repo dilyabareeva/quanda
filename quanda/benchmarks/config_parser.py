@@ -219,6 +219,28 @@ class BenchConfigParser:
         return module, ckpt_ids, load_state_dict
 
     @classmethod
+    def load_pretrained_base(
+        cls, model_cfg: dict, device: str
+    ) -> Optional[torch.nn.Module]:
+        """Build a module with HF-pretrained base weights if requested.
+
+        Returns ``None`` unless ``model_cfg['pretrained_model_name']`` is
+        set, so the train paths can replace the empty-architecture model
+        produced by :meth:`parse_model_cfg` only when fine-tuning from a
+        HF base model.
+        """
+        pretrained_model_name = model_cfg.get("pretrained_model_name")
+        if pretrained_model_name is None:
+            return None
+        module_cfg = model_cfg["module"]
+        module_cls = pl_modules[module_cfg["name"]]
+        model = module_cls.from_pretrained_base( 
+            pretrained_model_name=pretrained_model_name
+        )
+        model.to(device)
+        return model
+
+    @classmethod
     def parse_trainer_cfg(cls, trainer_cfg: dict) -> Trainer:
         """Parse trainer configuration.
 

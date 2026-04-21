@@ -364,6 +364,12 @@ class Benchmark(ABC):
         )
         obj._pid_suffix = pid_suffix
 
+        pretrained_base = BenchConfigParser.load_pretrained_base(
+            model_cfg=config["model"], device=device
+        )
+        if pretrained_base is not None:
+            obj.model = pretrained_base
+
         # Parse trainer configuration
         trainer = BenchConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
