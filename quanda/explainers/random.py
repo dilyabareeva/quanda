@@ -25,6 +25,7 @@ class RandomExplainer(Explainer):
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         seed: int = 27,
+        device: Optional[str] = None,
     ):
         """Initialize RandomExplainer.
 
@@ -41,6 +42,9 @@ class RandomExplainer(Explainer):
             (model, checkpoint path) as two arguments, by default None.
         seed : int, optional
             Seed for random number generator, by default 27.
+        device : Optional[str], optional
+            Device to run the computation on. If None, inferred from the
+            model's parameters. Defaults to None.
 
         """
         super().__init__(
@@ -49,6 +53,9 @@ class RandomExplainer(Explainer):
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
         )
+
+        if device is not None:
+            self.device = device
 
         self.seed = seed
         self.generator = torch.Generator(device=self.device)
