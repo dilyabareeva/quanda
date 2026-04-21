@@ -40,23 +40,25 @@ def test_model_randomization_kronfluence_text(
     task = request.getfixturevalue(task)
     model = request.getfixturevalue(model)
     train_dataset, test_dataset = request.getfixturevalue(dataset)
-
-    dst_eval = ModelRandomization()
-    dst_eval.train_dataset = train_dataset
-    dst_eval.eval_dataset = test_dataset
-    dst_eval.model = model
-    dst_eval.device = "cuda" if torch.cuda.is_available() else "cpu"
-    dst_eval.use_predictions = True
-    dst_eval.correlation_fn = correlation_functions["spearman"]
-    dst_eval.checkpoints_load_func = get_load_state_dict_func(dst_eval.device)
-    dst_eval.model_id = "test"
-    dst_eval.cache_dir = str(tmp_path)
-    dst_eval.seed = 42
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # Save current model state as checkpoint
     checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
     torch.save(model.state_dict(), checkpoint_path)
-    dst_eval.checkpoints = [checkpoint_path]
+
+    dst_eval = ModelRandomization(
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        model=model,
+        device=device,
+        use_predictions=True,
+        checkpoints=[checkpoint_path],
+        checkpoints_load_func=get_load_state_dict_func(device),
+        correlation_fn=correlation_functions["spearman"],
+        model_id="test",
+        cache_dir=str(tmp_path),
+        seed=42,
+    )
 
     expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
 
@@ -99,23 +101,25 @@ def test_model_randomization_kronfluence_qnli(
     task = request.getfixturevalue(task)
     model = request.getfixturevalue(model)
     train_dataset, test_dataset = request.getfixturevalue(dataset)
-
-    dst_eval = ModelRandomization()
-    dst_eval.train_dataset = train_dataset
-    dst_eval.eval_dataset = test_dataset
-    dst_eval.model = model
-    dst_eval.device = "cuda" if torch.cuda.is_available() else "cpu"
-    dst_eval.use_predictions = True
-    dst_eval.correlation_fn = correlation_functions["spearman"]
-    dst_eval.checkpoints_load_func = get_load_state_dict_func(dst_eval.device)
-    dst_eval.model_id = "test"
-    dst_eval.cache_dir = str(tmp_path)
-    dst_eval.seed = 42
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # Save current model state as checkpoint
     checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
     torch.save(model.state_dict(), checkpoint_path)
-    dst_eval.checkpoints = [checkpoint_path]
+
+    dst_eval = ModelRandomization(
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        model=model,
+        device=device,
+        use_predictions=True,
+        checkpoints=[checkpoint_path],
+        checkpoints_load_func=get_load_state_dict_func(device),
+        correlation_fn=correlation_functions["spearman"],
+        model_id="test",
+        cache_dir=str(tmp_path),
+        seed=42,
+    )
 
     expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
 

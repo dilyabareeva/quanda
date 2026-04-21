@@ -21,5 +21,5 @@ apptainer exec --nv \
       --bind ${PWD}:/workspace \
       --bind /data/cluster/users/bareeva:/data/cluster/users/bareeva \
       --pwd /workspace \
-      $PWD/slurm/env_quanda2.sif \
+      $PWD/slurm/env_quanda.sif \
       bash "$COMMAND"

@@ -8,8 +8,8 @@
 declare -A EXPL_SWEEP
 
 EXPL_SWEEP[similarity]="explainer.kwargs.layers=model.8,model.9 device=cuda:0"
-EXPL_SWEEP[representer_points]="explainer.kwargs.features_layer=model.8 explainer.kwargs.classifier_layer=model.9 device=cuda:0"
+EXPL_SWEEP[representer_points]="explainer.kwargs.features_layer=model.7,model.8 explainer.kwargs.classifier_layer=model.9 device=cuda:0 explainer.kwargs.normalize=true,false"
 EXPL_SWEEP[tracincpfast]="device=cuda:0"
-EXPL_SWEEP[arnoldi]="explainer.kwargs.layers=[model.9] explainer.kwargs.projection_dim=50 explainer.kwargs.arnoldi_dim=100,200 device=cuda:0"
+EXPL_SWEEP[arnoldi]="explainer.kwargs.layers=[model.9] explainer.kwargs.projection_dim=50,10 explainer.kwargs.arnoldi_dim=100,200 device=cuda:0"
 EXPL_SWEEP[trak]="explainer.kwargs.proj_dim=512,1024,2048 device=cuda:0"
 EXPL_SWEEP[random]="device=cuda:0"

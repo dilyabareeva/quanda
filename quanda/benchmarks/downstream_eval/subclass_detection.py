@@ -152,6 +152,12 @@ class SubclassDetection(Benchmark):
                 "The train dataset must be a LabelGroupingDataset."
             )
 
+        train_subclass_labels = torch.tensor(
+            [
+                self.train_dataset.get_original_label(s)
+                for s in range(ds_len(self.train_dataset.dataset))
+            ]
+        )
         if not isinstance(self.eval_dataset, LabelGroupingDataset):
             raise ValueError(
                 "The eval dataset must be a LabelGroupingDataset."
@@ -177,12 +183,7 @@ class SubclassDetection(Benchmark):
             checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
-            train_subclass_labels=torch.tensor(
-                [
-                    self.train_dataset.dataset[s][1]
-                    for s in range(ds_len(self.train_dataset.dataset))
-                ]
-            ),
+            train_subclass_labels=train_subclass_labels,
             filter_by_prediction=self.filter_by_prediction,
         )
 

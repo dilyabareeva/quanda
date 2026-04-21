@@ -46,9 +46,7 @@ def main(cfg: DictConfig) -> None:
         device=cfg.device,
         load_fresh=False,
     )
-    # Checkpoints are fetched lazily by the closure in parse_model_cfg;
-    # invoke it once per ckpt to materialize them all on disk now. For
-    # LDS, subset model ckpts share the same loader and are fetched too.
+
     all_ckpts = list(bench.checkpoints) + list(
         getattr(bench, "subset_ckpt_filenames", []) or []
     )

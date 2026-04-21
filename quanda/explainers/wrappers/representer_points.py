@@ -189,7 +189,7 @@ class RepresenterPoints(Explainer):
         Parameters
         ----------
         model : Union[torch.nn.Module, L.LightningModule]
-            The model to be explained.
+            The model to be explained with loaded weights.
         model_id : str
             The model identifier.
         train_dataset : torch.utils.data.Dataset
@@ -203,10 +203,11 @@ class RepresenterPoints(Explainer):
             Possible options: "image_classification", "text_classification",
             "causal_lm".
         checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
+            Ignored. Accepted for API consistency with other
+            explainers.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
+            Ignored, for the same reason as ``checkpoints``.
+            Defaults to None.
         cache_dir : str, optional
             The directory to save the cache, defaults to "./cache".
         features_postprocess : Optional[Callable], optional

@@ -74,9 +74,12 @@ def main(cfg: DictConfig) -> float:
     print(f"[run] {tag}")
     expl_save_dir = os.path.join(cfg.cache_dir, "explanations", tag)
     expl_meta = os.path.join(expl_save_dir, "explanations_config.yaml")
-    if os.path.exists(expl_meta):
+    regenerate = bool(cfg.get("regenerate_explanations", False))
+    if os.path.exists(expl_meta) and not regenerate:
         print(f"[run] reusing cached explanations at {expl_save_dir}")
     else:
+        if regenerate and os.path.exists(expl_meta):
+            print(f"[run] regenerating explanations at {expl_save_dir}")
         bench_cls.explain(
             config=bench_cfg,
             explainer_cls=expl_cls,
@@ -99,7 +102,8 @@ def main(cfg: DictConfig) -> float:
     )
 
     os.makedirs(cfg.results_dir, exist_ok=True)
-    out = os.path.join(cfg.results_dir, f"{tag}.json")
+    bench_name = BENCH_CLASS[bench_id]
+    out = os.path.join(cfg.results_dir, f"{bench_name}__{tag}.json")
     resolved = OmegaConf.to_container(cfg, resolve=True)
     with open(out, "w") as f:
         json.dump(

@@ -84,6 +84,13 @@ class ResNet9(torch.nn.Module, PyTorchModelHubMixin):
         """Forward pass."""
         return self.model(x)
 
+    def from_pretrained_base(self, pretrained_model_name: str):
+        """Override to avoid HuggingFace trying to load pretrained weights."""
+        config = AutoConfig.from_pretrained(pretrained_model_name)
+        self.model = AutoModel.from_pretrained(
+            pretrained_model_name, config=config
+        )
+
 
 class LeNet(torch.nn.Module, PyTorchModelHubMixin):
     """A torch implementation of LeNet architecture.
@@ -116,6 +123,13 @@ class LeNet(torch.nn.Module, PyTorchModelHubMixin):
         x = self.fc_3(x)
         return x
 
+    def from_pretrained_base(self, pretrained_model_name: str):
+        """Override to avoid HuggingFace trying to load pretrained weights."""
+        config = AutoConfig.from_pretrained(pretrained_model_name)
+        self.model = AutoModel.from_pretrained(
+            pretrained_model_name, config=config
+        )
+
 
 class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
     """BERT-based sequence classifier without final nonlinearity.
@@ -127,7 +141,6 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
 
     def __init__(
         self,
-        pretrained_model_name: str = "google-bert/bert-base-cased",
         num_labels: int = 2,
     ):
         """Initialize the BertClassifier.
@@ -141,13 +154,13 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
 
         """
         super().__init__()
-        self.pretrained_model_name = pretrained_model_name
         self.num_labels = num_labels
 
-        config = AutoConfig.from_pretrained(pretrained_model_name)
-        self.bert = AutoModel.from_pretrained(
-            pretrained_model_name, config=config
+        config = AutoConfig.from_pretrained(
+            "google-bert/bert-base-cased",
+            num_labels=num_labels,
         )
+        self.bert = AutoModel.from_config(config)
         if getattr(self.bert, "pooler", None) is not None:
             self.bert.pooler.activation = torch.nn.Identity()
         self.dropout = torch.nn.Dropout(config.hidden_dropout_prob)
@@ -165,12 +178,25 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
         token_type_ids : torch.Tensor, optional
             Token type IDs of shape ``(batch, seq_len)``.
 
-        Returns
-        -------
-        torch.Tensor
-            Logits of shape ``(batch, num_labels)``.
-
         """
+        # Captum's AV.generate_dataset_activations hands the whole batch
+        # through as a single positional arg; for BERT-style datasets that
+        # arg is a dict of input tensors. Unpack it here.
+        if isinstance(input_ids, dict):
+            d = input_ids
+            input_ids = d["input_ids"]
+            attention_mask = d.get("attention_mask", attention_mask)
+            token_type_ids = d.get("token_type_ids", token_type_ids)
+        if attention_mask is not None and attention_mask.dim() == 2:
+            # Pre-expand to the 4D additive mask BERT's eager attention
+            # expects. The 2D path routes through ``create_bidirectional_mask``
+            # which calls ``padding_mask.all()`` as a Python bool —
+            # incompatible with the ``torch.func.vmap`.
+            dtype = next(self.parameters()).dtype
+            min_val = torch.finfo(dtype).min
+            attention_mask = (1.0 - attention_mask.to(dtype))[
+                :, None, None, :
+            ] * min_val
         outputs = self.bert(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -178,6 +204,13 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
         )
         pooled = self.dropout(outputs.pooler_output)
         return self.classifier(pooled)
+
+    def from_pretrained_base(self, pretrained_model_name: str):
+        """Override to avoid HuggingFace trying to load pretrained weights."""
+        config = AutoConfig.from_pretrained(pretrained_model_name)
+        self.model = AutoModel.from_pretrained(
+            pretrained_model_name, config=config
+        )
 
 
 pl_modules = {

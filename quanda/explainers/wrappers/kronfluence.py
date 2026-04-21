@@ -78,7 +78,8 @@ class Kronfluence(Explainer):
         Parameters
         ----------
         model : nn.Module
-            The trained model for which influence scores will be computed.
+            The trained model for which influence scores will be computed,
+            with loaded weights.
         task_module : kronfluence.task.Task
             The task associated with the model.
         train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
@@ -88,10 +89,11 @@ class Kronfluence(Explainer):
             Possible options: "image_classification", "text_classification",
             "causal_lm".
         checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
+            Ignored. Accepted for API consistency with other
+            explainers.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
+            Ignored, for the same reason as ``checkpoints``.
+            Defaults to None.
         batch_size : int, optional
             Batch size used for iterating over the dataset. Defaults to 1.
         device : str, optional

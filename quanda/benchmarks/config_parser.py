@@ -158,6 +158,12 @@ class BenchConfigParser:
         module_cls = pl_modules[module_cfg["name"]]
         module = module_cls(**module_cfg["args"])
 
+        if not isinstance(module, torch.nn.Module):
+            raise ValueError(
+                f"Model class {module_cls} did not return a "
+                f"torch.nn.Module instance."
+            )
+
         checkpoint_path = os.path.join(bench_save_dir, "ckpt")
         ckpt_ids = [f"{ckpt}" for ckpt in ckpts]
 
@@ -210,6 +216,12 @@ class BenchConfigParser:
                     pretrained_model_name_or_path=ckpt_dir,
                     local_files_only=True,
                 )
+                if not isinstance(pretrained_model, torch.nn.Module):
+                    raise ValueError(
+                        f"Model class {module_cls} did not return a "
+                        f"torch.nn.Module instance when loading from "
+                        f"{ckpt_dir}."
+                    )
             except Exception as e:
                 raise ValueError(f"Error loading model from {ckpt_dir}: {e}")
             model.load_state_dict(pretrained_model.state_dict())
@@ -217,6 +229,28 @@ class BenchConfigParser:
             return model_cfg["trainer"]["lr"]
 
         return module, ckpt_ids, load_state_dict
+
+    @classmethod
+    def load_pretrained_base(
+        cls, model_cfg: dict, device: str
+    ) -> Optional[torch.nn.Module]:
+        """Build a module with HF-pretrained base weights if requested.
+
+        Returns ``None`` unless ``model_cfg['pretrained_model_name']`` is
+        set, so the train paths can replace the empty-architecture model
+        produced by :meth:`parse_model_cfg` only when fine-tuning from a
+        HF base model.
+        """
+        pretrained_model_name = model_cfg.get("pretrained_model_name")
+        if pretrained_model_name is None:
+            return None
+        module_cfg = model_cfg["module"]
+        module_cls = pl_modules[module_cfg["name"]]
+        model = module_cls.from_pretrained_base(  # type: ignore[attr-defined]
+            pretrained_model_name=pretrained_model_name
+        )
+        model.to(device)
+        return model
 
     @classmethod
     def parse_trainer_cfg(cls, trainer_cfg: dict) -> Trainer:

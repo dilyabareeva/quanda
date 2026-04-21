@@ -364,6 +364,12 @@ class Benchmark(ABC):
         )
         obj._pid_suffix = pid_suffix
 
+        pretrained_base = BenchConfigParser.load_pretrained_base(
+            model_cfg=config["model"], device=device
+        )
+        if pretrained_base is not None:
+            obj.model = pretrained_base
+
         # Parse trainer configuration
         trainer = BenchConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
@@ -1086,9 +1092,9 @@ class Benchmark(ABC):
                 "explanations": explanations,
             }
 
-            if hasattr(self, "class_to_group"):
+            if self.name == "Subclass Detection":
                 data_unit["test_superclass_targets"] = torch.tensor(
-                    [self.class_to_group[i.item()] for i in labels],
+                    [self.class_to_group[i.item()] for i in labels],  # type: ignore[attr-defined]
                     device=labels.device,
                 )
                 data_unit["test_targets"] = labels

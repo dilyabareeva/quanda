@@ -5,4 +5,4 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-apptainer build --force --fakeroot slurm/env_quanda2.sif slurm/env_quanda.def
+apptainer build --force --fakeroot slurm/env_quanda.sif slurm/env_quanda.def

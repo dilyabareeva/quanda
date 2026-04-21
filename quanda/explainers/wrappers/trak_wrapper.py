@@ -6,11 +6,9 @@ from importlib.util import find_spec
 from typing import (
     Any,
     Callable,
-    Iterable,
     List,
     Literal,
     Optional,
-    Sized,
     Union,
 )
 
@@ -31,6 +29,12 @@ from quanda.explainers.utils import (
     self_influence_fn_from_explainer,
 )
 from quanda.utils.common import ds_len, process_targets
+from quanda.utils.datasets.dataset_handlers import (
+    HuggingFaceDatasetHandler,
+    HuggingFaceSequenceDatasetHandler,
+    TorchDatasetHandler,
+    get_dataset_handler,
+)
 from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
@@ -54,6 +58,12 @@ class TRAK(Explainer):
     We refer the user to the official TRAK library [2] for more information on
     the details of parameters explainer.
 
+    The ``checkpoints`` and ``checkpoints_load_func`` arguments are accepted
+    for API consistency with other explainers but are **not used** by this
+    wrapper: featurization runs in ``__init__`` against
+    ``self.model.state_dict()``. The caller is therefore responsible for
+    passing a ``model`` whose weights have already been loaded.
+
     References
     ----------
     (1) Sung Min Park, Kristian Georgiev, Andrew Ilyas, Guillaume Leclerc,
@@ -65,7 +75,10 @@ class TRAK(Explainer):
 
     """
 
-    accepted_tasks: List[TaskLiterals] = ["image_classification"]
+    accepted_tasks: List[TaskLiterals] = [
+        "image_classification",
+        "text_classification",
+    ]
 
     def __init__(
         self,
@@ -81,25 +94,27 @@ class TRAK(Explainer):
         proj_type: TRAKProjectionTypeLiteral = "normal",
         seed: int = 42,
         batch_size: int = 32,
-        params_ldr: Optional[Iterable] = None,
+        grad_wrt: Optional[List[str]] = None,
         load_from_disk: bool = True,
         lambda_reg: float = 0.0,
+        use_half_precision: bool = False,
     ):
         """Initialize the TRAK explainer.
 
         Parameters
         ----------
         model : torch.nn.Module
-            The model to be explained.
+            The model to be explained with loaded weights.
         train_dataset : torch.utils.data.Dataset
             The training dataset used to train the model.
         model_id : str
             The model identifier.
         checkpoints : Optional[Union[str, List[str]]], optional
-            Path to the model checkpoint file(s), defaults to None.
+            Ignored. Accepted for API consistency with other
+            explainers.
         checkpoints_load_func : Optional[Callable[..., Any]], optional
-            Function to load the model from the checkpoint file, takes
-            (model, checkpoint path) as two arguments, by default None.
+            Ignored, for the same reason as ``checkpoints``.
+            Defaults to None.
         cache_dir : str
             The directory to save the TRAK cache.
         task: TaskLiterals, optional
@@ -115,14 +130,20 @@ class TRAK(Explainer):
             The seed for the projector, by default 42.
         batch_size : int, optional
             The batch size, by default 32.
-        params_ldr : Optional[Iterable], optional
-            Generator of model parameters, by default None, which uses all
-            parameters.
+        grad_wrt : Optional[List[str]], optional
+            Names of model parameters (as they appear in
+            ``model.named_parameters()``) to compute gradients with respect
+            to. Restricting this to a subset (e.g. the classifier head) is
+            the main knob for reducing peak GPU memory. Defaults to None,
+            which uses all parameters.
         load_from_disk : bool, optional
             Whether to load metadata from cache_dir, defaults to True.
         lambda_reg : int, optional
             Optional regularization term to add to the diagonals of X^TX to
             make it invertible.
+        use_half_precision : bool, optional
+            If True, TRAK stores and computes in float16, halving the grad
+            and projector tensor footprints. Defaults to False.
 
         """
         logging.info("Initializing TRAK explainer...")
@@ -143,12 +164,15 @@ class TRAK(Explainer):
             cache_dir if cache_dir is not None else f"./trak_{model_id}_cache"
         )
         self.lambda_reg = lambda_reg
+        self.grad_wrt = grad_wrt
         num_params_for_grad = 0
-        params_iter = (
-            params_ldr if params_ldr is not None else self.model.parameters()
-        )
-        for p in list(params_iter):
-            num_params_for_grad = num_params_for_grad + p.numel()
+        if grad_wrt is not None:
+            named_params = dict(self.model.named_parameters())
+            for name in grad_wrt:
+                num_params_for_grad += named_params[name].numel()
+        else:
+            for p in self.model.parameters():
+                num_params_for_grad += p.numel()
 
         # Check if traker was installer with the ["cuda"] option
         if projector == "cuda":
@@ -181,23 +205,27 @@ class TRAK(Explainer):
             projector_seed=seed,
             save_dir=self.cache_dir,
             device=str(self.device),
-            use_half_precision=False,
+            use_half_precision=use_half_precision,
             load_from_save_dir=load_from_disk,
             lambda_reg=lambda_reg,
+            grad_wrt=grad_wrt,
         )
+        # TODO: currently, we implement TRAK-1, assuming that
+        # the weights are already loaded into the model.
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 
         # Train the TRAK explainer: featurize the training data
-        ld = torch.utils.data.DataLoader(
+        handler = self._select_handler(self.dataset)
+        self._handler = handler
+        ld = handler.create_dataloader(
             self.dataset, batch_size=self.batch_size
         )
-        for i, (x, y) in enumerate(iter(ld)):
-            batch = x.to(self.device), y.to(self.device)
+        for i, raw_batch in enumerate(ld):
+            batch = tuple(t.to(self.device) for t in raw_batch)
+            n = batch[-1].shape[0]
             self.traker.featurize(
                 batch=batch,
-                inds=torch.tensor(
-                    [i * self.batch_size + j for j in range(x.shape[0])]
-                ),
+                inds=torch.tensor([i * self.batch_size + j for j in range(n)]),
             )
         self.traker.finalize_features()
 
@@ -206,35 +234,32 @@ class TRAK(Explainer):
                 **projector_kwargs
             )
 
-    @property
-    def dataset_length(self) -> int:
-        """Return dataset length for a torch dataset.
-
-        By default, the length of the dataset is calculated by checking if the
-        dataset is an instance of Sized. If not, a DataLoader is created to
-        calculate the length.
-
-        Returns
-        -------
-        int
-            The length of the training dataset.
-
-        """
-        if isinstance(self.dataset, Sized):
-            return len(self.dataset)
-        dl = torch.utils.data.DataLoader(self.dataset, batch_size=1)
-        return len(dl)
+    @staticmethod
+    def _select_handler(
+        dataset: torch.utils.data.Dataset,
+    ) -> Union[TorchDatasetHandler, HuggingFaceSequenceDatasetHandler]:
+        """Pick a handler that emits positional batches for TRAK."""
+        handler = get_dataset_handler(dataset)
+        if isinstance(handler, HuggingFaceDatasetHandler):
+            return HuggingFaceSequenceDatasetHandler()
+        if isinstance(handler, TorchDatasetHandler):
+            return handler
+        raise ValueError(
+            f"TRAK wrapper does not support dataset handler of type "
+            f"{type(handler)}. Please use a TorchDatasetHandler or "
+            f"HuggingFaceDatasetHandler."
+        )
 
     def explain(
         self,
-        test_data: torch.Tensor,
+        test_data: Union[torch.Tensor, dict],
         targets: Union[List[int], torch.Tensor],
     ):
         """Generate explanations for the given test inputs.
 
         Parameters
         ----------
-        test_data : torch.Tensor
+        test_data : Union[torch.Tensor, dict]
             The test inputs for which explanations are generated.
         targets : Union[List[int], torch.Tensor]
             The model outputs to explain per test input.
@@ -245,11 +270,13 @@ class TRAK(Explainer):
             The explanations generated by the explainer.
 
         """
-        test_data = test_data.to(self.device)
         targets = process_targets(targets, self.device)
+        test_batch = self._handler.build_positional_batch(
+            test_data, targets, self.device
+        )
 
         grads = self.traker.gradient_computer.compute_per_sample_grad(
-            batch=(test_data, targets)
+            batch=test_batch
         )
 
         g_target = self.traker.projector.project(
@@ -286,7 +313,7 @@ def trak_explain(
     Parameters
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be explained.
+            The model to be explained with loaded weights.
     model_id : Optional[str], optional
         Identifier for the model, by default None.
     test_data : torch.Tensor
@@ -296,10 +323,11 @@ def trak_explain(
     explanation_targets : Union[List[int], torch.Tensor]
         The target model outputs to explain.
     checkpoints : Optional[Union[str, List[str]]], optional
-        Path to the model checkpoint file(s), defaults to None.
+        Ignored. Accepted for API consistency with other
+        explainers.
     checkpoints_load_func : Optional[Callable[..., Any]], optional
-        Function to load the model from the checkpoint file, takes
-        (model, checkpoint path) as two arguments, by default None.
+        Ignored, for the same reason as ``checkpoints``.
+        Defaults to None.
     cache_dir : Optional[str], optional
         The directory to use for caching, by default None.
     kwargs : Any
@@ -340,16 +368,15 @@ def trak_self_influence(
     Parameters
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be explained.
+        The model to be explained with loaded weights.
     model_id : str
         Identifier for the model.
     train_dataset : torch.utils.data.Dataset
         The training dataset used to train the model.
     checkpoints : Optional[Union[str, List[str]]], optional
-        Path to the model checkpoint file(s), defaults to None.
+        Ignored. Accepted for API consistency with other explainers .
     checkpoints_load_func : Optional[Callable[..., Any]], optional
-        Function to load the model from the checkpoint file, takes
-        (model, checkpoint path) as two arguments, by default None.
+        Ignored, for the same reason as ``checkpoints``. Defaults to None.
     cache_dir : Optional[str]
         The directory to use for caching.
     batch_size : int, optional

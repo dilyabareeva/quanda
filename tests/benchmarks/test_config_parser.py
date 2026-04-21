@@ -7,6 +7,7 @@ import datasets as hf_datasets
 import pytest
 import torch
 
+from quanda.benchmarks import config_parser as cp_module
 from quanda.benchmarks.config_parser import BenchConfigParser
 
 
@@ -196,4 +197,64 @@ def test_apply_wrapper_missing_metadata_raises(
             wrapper_cfg=wrapper_cfg,
             metadata_dir=metadata_dir,
             load_meta_from_disk=True,
+        )
+
+
+@pytest.mark.utils
+def test_load_pretrained_base_returns_none_when_key_absent():
+    """Without ``pretrained_model_name`` in the cfg, ``load_pretrained_base``
+    must short-circuit to ``None`` so train paths keep the empty-architecture
+    model produced by ``parse_model_cfg``."""
+    cfg = {"module": {"name": "MnistTorch", "args": {}}}
+    assert BenchConfigParser.load_pretrained_base(cfg, device="cpu") is None
+
+
+@pytest.mark.utils
+def test_load_pretrained_base_invokes_from_pretrained_base(monkeypatch):
+    """The happy path routes through
+    ``module_cls.from_pretrained_base(pretrained_model_name=...)`` and
+    ``.to(device)``."""
+    calls = {}
+
+    class _FakeModule(torch.nn.Linear):
+        def __init__(self):
+            super().__init__(1, 1)
+
+        @classmethod
+        def from_pretrained_base(cls, pretrained_model_name):
+            calls["name"] = pretrained_model_name
+            return cls()
+
+    monkeypatch.setitem(cp_module.pl_modules, "FakeForPretrained", _FakeModule)
+    cfg = {
+        "pretrained_model_name": "fake/base",
+        "module": {"name": "FakeForPretrained", "args": {}},
+    }
+    model = BenchConfigParser.load_pretrained_base(cfg, device="cpu")
+    assert isinstance(model, _FakeModule)
+    assert calls["name"] == "fake/base"
+
+
+@pytest.mark.utils
+def test_parse_model_cfg_rejects_non_module_instance(monkeypatch, tmp_path):
+    """If the registered class doesn't return ``torch.nn.Module``, the parser
+    raises early rather than silently proceeding."""
+
+    class _NotAModule:
+        def __init__(self, **kwargs):
+            pass
+
+    monkeypatch.setitem(cp_module.pl_modules, "NotAModule", _NotAModule)
+
+    cfg = {
+        "module": {"name": "NotAModule", "args": {}},
+        "trainer": {"lr": 0.01},
+    }
+    with pytest.raises(ValueError, match="did not return a"):
+        BenchConfigParser.parse_model_cfg(
+            model_cfg=cfg,
+            bench_save_dir=str(tmp_path),
+            ckpts=["repo/any"],
+            offline=True,
+            device="cpu",
         )
