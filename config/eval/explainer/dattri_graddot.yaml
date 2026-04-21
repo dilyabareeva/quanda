@@ -1,0 +1,7 @@
+name: dattri_graddot
+cls: quanda.explainers.wrappers.DattriGradDot
+kwargs:
+  loss_func:
+    _target_: hydra.utils.get_method
+    path: quanda.explainers.wrappers.dattri_losses.bert_classification_per_sample_loss
+  batch_size: ${batch_size}

@@ -4,7 +4,7 @@ import torch
 
 from quanda.utils.datasets.dataset_handlers import (
     HuggingFaceDatasetHandler,
-    HuggingFaceTupleDatasetHandler,
+    HuggingFaceSequenceDatasetHandler,
     TorchDatasetHandler,
     get_dataset_handler,
 )
@@ -57,8 +57,8 @@ def test_get_dataset_handler_hf_missing_labels():
 
 
 @pytest.mark.utils
-def test_huggingface_tuple_handler_emits_ordered_tuples():
-    handler = HuggingFaceTupleDatasetHandler(
+def test_huggingface_sequence_handler_emits_ordered_lists():
+    handler = HuggingFaceSequenceDatasetHandler(
         input_keys=("input_ids", "attention_mask"),
     )
     ds = datasets.Dataset.from_dict(
@@ -75,7 +75,7 @@ def test_huggingface_tuple_handler_emits_ordered_tuples():
     loader = handler.create_dataloader(ds, batch_size=2)
     batch = next(iter(loader))
 
-    assert isinstance(batch, tuple)
+    assert isinstance(batch, list)
     assert len(batch) == 3
     input_ids, attention_mask, labels = batch
     assert torch.equal(input_ids, torch.tensor([[1, 2, 3], [4, 5, 6]]))
@@ -84,15 +84,15 @@ def test_huggingface_tuple_handler_emits_ordered_tuples():
 
 
 @pytest.mark.utils
-def test_huggingface_tuple_handler_process_batch_returns_dict():
-    handler = HuggingFaceTupleDatasetHandler(
+def test_huggingface_sequence_handler_process_batch_returns_dict():
+    handler = HuggingFaceSequenceDatasetHandler(
         input_keys=("input_ids", "attention_mask"),
     )
-    batch = (
+    batch = [
         torch.tensor([[1, 2]]),
         torch.tensor([[1, 1]]),
         torch.tensor([0]),
-    )
+    ]
     inputs, labels = handler.process_batch(batch, device="cpu")
 
     assert set(inputs.keys()) == {"input_ids", "attention_mask"}

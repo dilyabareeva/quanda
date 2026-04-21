@@ -1,0 +1,10 @@
+name: dattri_tracin
+cls: quanda.explainers.wrappers.DattriTracInCP
+kwargs:
+  loss_func:
+    _target_: hydra.utils.get_method
+    path: quanda.explainers.wrappers.dattri_losses.bert_classification_per_sample_loss
+  learning_rate:
+    2.0e-05
+  normalized_grad: false
+  batch_size: ${batch_size}

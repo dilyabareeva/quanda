@@ -21,6 +21,11 @@ from quanda.explainers.wrappers.dattri_influence import (
     DattriTracInCP,
     DattriTRAK,
 )
+from quanda.explainers.wrappers.dattri_losses import (
+    bert_classification_batched_loss,
+    bert_classification_correct_probability,
+    bert_classification_per_sample_loss,
+)
 from quanda.explainers.wrappers.kronfluence import (
     Kronfluence,
     kronfluence_explain,
@@ -64,4 +69,7 @@ __all__ = [
     "DattriEKFAC",
     "DattriGradDot",
     "DattriGradCos",
+    "bert_classification_per_sample_loss",
+    "bert_classification_batched_loss",
+    "bert_classification_correct_probability",
 ]

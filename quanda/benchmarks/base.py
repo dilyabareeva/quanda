@@ -826,7 +826,7 @@ class Benchmark(ABC):
         self.model.eval()
         self.model.to(self.device)
 
-        expl_kwargs = expl_kwargs or {}
+        expl_kwargs = {"device": self.device, **(expl_kwargs or {})}
         explainer = explainer_cls(
             model=self.model,
             checkpoints=self.checkpoints,

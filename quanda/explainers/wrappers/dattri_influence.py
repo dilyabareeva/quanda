@@ -1,5 +1,6 @@
 """Wrappers for the dattri influence computation methods."""
 
+import inspect
 import logging
 from abc import ABC
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -16,9 +17,11 @@ from dattri.algorithm.trak import TRAKAttributor  # type: ignore
 from dattri.task import AttributionTask  # type: ignore
 
 from quanda.explainers.base import Explainer
-from quanda.utils.common import process_targets
+from quanda.utils.common import get_load_state_dict_func, process_targets
 from quanda.utils.datasets.dataset_handlers import (
     DatasetHandler,
+    HuggingFaceDatasetHandler,
+    HuggingFaceSequenceDatasetHandler,
     TorchDatasetHandler,
     get_dataset_handler,
 )
@@ -27,31 +30,31 @@ from quanda.utils.tasks import TaskLiterals
 logger = logging.getLogger(__name__)
 
 
-_NUMERIC_DTYPES = (
-    "int8",
-    "int16",
-    "int32",
-    "int64",
-    "uint8",
-    "uint16",
-    "uint32",
-    "uint64",
-    "float16",
-    "float32",
-    "float64",
-    "bool",
-)
+def _resolve_model_fn(fn: Optional[Callable], model: Any) -> Any:
+    """Resolve a loss/probability callable that may be a builder."""
+    if fn is None:
+        return None
+    return fn(model)
 
 
-def _is_numeric_feature(feat: Any) -> bool:
-    """Return True if an HF dataset feature is stored as numeric tensors."""
-    if isinstance(feat, hf_datasets.Value):
-        return feat.dtype in _NUMERIC_DTYPES
-    if isinstance(feat, hf_datasets.Sequence):
-        return _is_numeric_feature(feat.feature)
-    if isinstance(feat, list) and feat:
-        return _is_numeric_feature(feat[0])
-    return False
+def _wrap_checkpoints_load_func(
+    checkpoints_load_func: Callable,
+) -> Optional[Callable[..., torch.nn.Module]]:
+    """Adapt quanda's ``checkpoints_load_func`` to dattri's contract."""
+
+    def _load(model: torch.nn.Module, checkpoint: Any) -> torch.nn.Module:
+        checkpoints_load_func(model, checkpoint)
+        return model
+
+    return _load
+
+
+def _resolve_device(model: torch.nn.Module, device: Optional[str]) -> str:
+    """Fall back to the model's parameter device when ``device`` is unset."""
+    if device is not None:
+        return device
+    param = next(model.parameters(), None)
+    return str(param.device) if param is not None else "cpu"
 
 
 class DattriInfluence(Explainer, ABC):
@@ -78,7 +81,7 @@ class DattriInfluence(Explainer, ABC):
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
         use_cache: bool = True,
-        device: str = "cpu",
+        device: Optional[str] = None,
     ):
         """Initialize the base `DattriInfluence` wrapper.
 
@@ -89,8 +92,16 @@ class DattriInfluence(Explainer, ABC):
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         loss_func : Callable
-            The loss function for the dattri `AttributionTask`. Signature
-            must follow dattri's expectations for the specific attributor.
+            Builder for dattri's `AttributionTask` loss, with signature:
+            ```
+            def loss_func(
+                model: torch.nn.Module,
+            ) -> Callable[[Dict[str, torch.Tensor], Tuple], torch.Tensor]:
+                ...
+            ```
+            The returned callable takes `(params, batch)` and returns a
+            per-sample loss tensor (compatible with
+            `torch.func.functional_call`).
         attributor_cls : type
             The dattri attributor class.
         attributor_kwargs : Dict[str, Any]
@@ -98,8 +109,9 @@ class DattriInfluence(Explainer, ABC):
         task: TaskLiterals, optional
             Task type of the model. Defaults to "image_classification".
         target_func : Optional[Callable], optional
-            Target function for the dattri `AttributionTask`. If None, loss
-            function is used. Defaults to None.
+            Builder for the `AttributionTask` target function, with the
+            same signature as `loss_func`. If None, the loss function is
+            used. Defaults to None.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s). If None, the current
             `state_dict` of `model` is used. Defaults to None.
@@ -116,9 +128,18 @@ class DattriInfluence(Explainer, ABC):
             Whether to cache the full training data on the attributor at
             initialization. Defaults to True.
         device : str, optional
-            Device to run the computation on. Defaults to "cpu".
+            Device to run the computation on. Defaults to the model's
+            parameter device.
 
         """
+        device = _resolve_device(model, device)
+        
+        if checkpoints_load_func is None:
+            checkpoints_load_func = get_load_state_dict_func(device)
+            
+        checkpoints_load_func = _wrap_checkpoints_load_func(
+            checkpoints_load_func
+        )
         super().__init__(
             model=model,
             train_dataset=train_dataset,
@@ -131,20 +152,19 @@ class DattriInfluence(Explainer, ABC):
         self.collate_fn = collate_fn
         self.layer_name = layer_name
 
-        dattri_checkpoints = (
-            self.checkpoints if self.checkpoints else model.state_dict()
-        )
+        loss_func = _resolve_model_fn(loss_func, model)
+        target_func = _resolve_model_fn(target_func, model)
 
         task_kwargs: Dict[str, Any] = {}
-        if checkpoints_load_func is not None:
-            task_kwargs["checkpoints_load_func"] = checkpoints_load_func
+
         if target_func is not None:
             task_kwargs["target_func"] = target_func
 
         self.attribution_task = AttributionTask(
             loss_func=loss_func,
             model=model,
-            checkpoints=dattri_checkpoints,
+            checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
             **task_kwargs,
         )
 
@@ -164,44 +184,28 @@ class DattriInfluence(Explainer, ABC):
         self,
         dataset: Any,
         batch_size: Optional[int] = None,
+        collate_fn: Optional[Callable] = None,
     ) -> torch.utils.data.DataLoader:
         """Build a DataLoader using the matching quanda dataset handler."""
-        bs = batch_size if batch_size is not None else self.batch_size
-        if self.collate_fn is not None:
-            return torch.utils.data.DataLoader(
-                dataset,
-                batch_size=bs,
-                shuffle=False,
-                collate_fn=self.collate_fn,
-            )
-        handler = self._get_handler(dataset)
+
+        handler = get_dataset_handler(dataset)
+        if isinstance(handler, HuggingFaceDatasetHandler) and not isinstance(
+            handler, HuggingFaceSequenceDatasetHandler
+        ):
+            handler = HuggingFaceSequenceDatasetHandler()
         return handler.create_dataloader(
-            dataset=dataset, batch_size=bs, shuffle=False
+            dataset=dataset, 
+            batch_size=batch_size or self.batch_size, 
+            shuffle=False, 
+            collate_fn=collate_fn or self.collate_fn
         )
-
-    @staticmethod
-    def _get_handler(dataset: Any) -> DatasetHandler:
-        """Return a quanda dataset handler for the given dataset.
-
-        Falls back to ``TorchDatasetHandler`` for custom ``Dataset`` types
-        (e.g., ``TensorDataset`` subsets) that ``get_dataset_handler`` may
-        not match directly.
-        """
-        try:
-            return get_dataset_handler(dataset)
-        except ValueError:
-            if isinstance(dataset, torch.utils.data.Dataset):
-                return TorchDatasetHandler()
-            raise
 
     def _create_test_dataset(
         self,
-        test_data: Any,
+        test_data: Union[torch.Tensor, Dict[str, Any]],
         targets: Optional[Union[List[int], torch.Tensor]],
     ) -> Any:
         """Turn `(test_data, targets)` into a dataset consumable by dattri."""
-        if isinstance(test_data, torch.utils.data.Dataset):
-            return test_data
         if isinstance(test_data, torch.Tensor):
             if targets is None:
                 raise ValueError("Targets required for tensor test_data.")
@@ -211,80 +215,38 @@ class DattriInfluence(Explainer, ABC):
             return torch.utils.data.TensorDataset(
                 test_data.to(self.device), targets.to(self.device)
             )
-        if isinstance(test_data, list):
-            first = test_data[0]
-            if isinstance(first, dict):
-                data = {key: [d[key] for d in test_data] for key in first}
-                if targets is not None:
-                    data["labels"] = (
-                        targets
-                        if isinstance(targets, list)
-                        else targets.tolist()
-                    )
-                ds = hf_datasets.Dataset.from_dict(data)
-                return self._set_torch_format(ds)
-            if isinstance(first, (tuple, list)):
-                stacked = [
-                    torch.stack([torch.as_tensor(d[i]) for d in test_data])
-                    for i in range(len(first))
-                ]
-                return torch.utils.data.TensorDataset(*stacked)
-        if isinstance(test_data, hf_datasets.Dataset):
-            return self._set_torch_format(test_data)
+        if isinstance(test_data, dict):
+            data = {
+                k: v.tolist() if isinstance(v, torch.Tensor) else list(v)
+                for k, v in test_data.items()
+            }
+            if targets is not None:
+                data["labels"] = (
+                    targets
+                    if isinstance(targets, list)
+                    else targets.tolist()
+                )
+            return hf_datasets.Dataset.from_dict(data)
         raise ValueError(
             f"Unsupported test_data type: {type(test_data)}. "
-            "Expected torch.Tensor, List[dict], List[tuple], "
-            "torch.utils.data.Dataset, or datasets.Dataset."
+            "Expected torch.Tensor or Dict[str, Tensor]."
         )
-
-    @staticmethod
-    def _set_torch_format(ds: hf_datasets.Dataset) -> hf_datasets.Dataset:
-        """Restrict HF dataset format to its numeric (tensor-safe) columns.
-
-        HF datasets often carry raw string/object columns (e.g., original
-        text fields) alongside the tokenized tensor columns. Passing those
-        into dattri's vmap-based pipeline fails, so we restrict the dataset
-        format to columns with numeric feature types.
-        """
-        numeric_cols = [
-            name
-            for name, feat in ds.features.items()
-            if _is_numeric_feature(feat)
-        ]
-        ds.set_format(type="torch", columns=numeric_cols)
-        return ds
-
-    def _prepare_train_dataset(self) -> Any:
-        """Return the training dataset in a dattri-friendly format."""
-        train_dataset = self.train_dataset
-        if isinstance(train_dataset, hf_datasets.Dataset):
-            return self._set_torch_format(train_dataset)
-        return train_dataset
-
-    def _call_attribute(
-        self,
-        train_loader: torch.utils.data.DataLoader,
-        test_loader: torch.utils.data.DataLoader,
-    ) -> torch.Tensor:
-        """Invoke the attributor's attribute method."""
-        return self.attributor.attribute(train_loader, test_loader)
 
     def explain(
         self,
-        test_data: Any,
+        test_data: Union[torch.Tensor, Dict[str, Any]],
         targets: Optional[Union[List[int], torch.Tensor]] = None,
     ) -> torch.Tensor:
         """Compute influence scores for the test samples.
 
         Parameters
         ----------
-        test_data : Any
-            Test samples for which influence scores are computed. Supported
-            types: ``torch.Tensor``, list of dicts, list of tuples,
-            ``torch.utils.data.Dataset``, or ``datasets.Dataset``.
+        test_data : Union[torch.Tensor, Dict[str, torch.Tensor]]
+            Test samples for which influence scores are computed.
         targets : Optional[Union[List[int], torch.Tensor]], optional
             Labels for the test samples. Required when ``test_data`` is a
-            bare tensor; ignored when ``test_data`` already carries labels.
+            bare tensor; merged into the dataset under the ``"labels"`` key
+            when ``test_data`` is a dict.
 
         Returns
         -------
@@ -294,7 +256,7 @@ class DattriInfluence(Explainer, ABC):
         """
         test_dataset = self._create_test_dataset(test_data, targets)
         test_loader = self._make_loader(test_dataset)
-        train_loader = self._make_loader(self._prepare_train_dataset())
+        train_loader = self._make_loader(self.train_dataset)
         scores = self._call_attribute(train_loader, test_loader)
         return scores.T.detach().cpu()
 
@@ -314,7 +276,7 @@ class DattriInfluence(Explainer, ABC):
 
         """
         train_loader = self._make_loader(
-            self._prepare_train_dataset(), batch_size=batch_size
+            self.train_dataset, batch_size=batch_size
         )
         scores = self.attributor.self_attribute(train_loader)
         return scores.detach().cpu()
@@ -352,12 +314,16 @@ class DattriTRAK(DattriInfluence):
         collate_fn: Optional[Callable] = None,
         projector_kwargs: Optional[Dict[str, Any]] = None,
         regularization: float = 0.0,
-        device: str = "cpu",
+        device: Optional[str] = None,
         use_cache: bool = True,
     ):
         """Initialize the `DattriTRAK` explainer."""
         logger.info("Initializing dattri TRAK explainer...")
 
+        device = _resolve_device(model, device)
+        correct_probability_func = _resolve_model_fn(
+            correct_probability_func, model
+        )
         attributor_kwargs: Dict[str, Any] = {
             "correct_probability_func": correct_probability_func,
             "regularization": regularization,
@@ -398,7 +364,7 @@ class DattriTRAK(DattriInfluence):
             scores = self.attributor.self_attribute()
         else:
             train_loader = self._make_loader(
-                self._prepare_train_dataset(), batch_size=batch_size
+                self.train_dataset, batch_size=batch_size
             )
             scores = self.attributor.self_attribute(train_loader)
         return scores.detach().cpu()
@@ -422,7 +388,7 @@ class DattriTracInCP(DattriInfluence):
         model: Union[torch.nn.Module, L.LightningModule],
         train_dataset: torch.utils.data.Dataset,
         loss_func: Callable,
-        weight_list: torch.Tensor,
+        learning_rate: float = 0.001,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
@@ -431,10 +397,14 @@ class DattriTracInCP(DattriInfluence):
         collate_fn: Optional[Callable] = None,
         projector_kwargs: Optional[Dict[str, Any]] = None,
         normalized_grad: bool = False,
-        device: str = "cpu",
+        device: Optional[str] = None,
     ):
         """Initialize the `DattriTracInCP` explainer."""
         logger.info("Initializing dattri TracInCP explainer...")
+
+        device = _resolve_device(model, device)
+        n_ckpts = len(checkpoints) if isinstance(checkpoints, list) else 1
+        weight_list = torch.tensor([learning_rate] * n_ckpts, device=device)
 
         attributor_kwargs: Dict[str, Any] = {
             "weight_list": weight_list,
@@ -481,15 +451,17 @@ class DattriGradDot(DattriTracInCP):
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
         projector_kwargs: Optional[Dict[str, Any]] = None,
-        device: str = "cpu",
+        device: Optional[str] = None,
     ):
         """Initialize the `DattriGradDot` explainer."""
-        n_ckpts = len(checkpoints) if isinstance(checkpoints, list) else 1
+        if isinstance(checkpoints, list) and len(checkpoints) > 1:
+            checkpoints = [checkpoints[-1]]
+
         super().__init__(
             model=model,
             train_dataset=train_dataset,
             loss_func=loss_func,
-            weight_list=torch.ones(n_ckpts),
+            weight_list=torch.ones(1),
             task=task,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
@@ -522,15 +494,17 @@ class DattriGradCos(DattriTracInCP):
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
         projector_kwargs: Optional[Dict[str, Any]] = None,
-        device: str = "cpu",
+        device: Optional[str] = None,
     ):
         """Initialize the `DattriGradCos` explainer."""
-        n_ckpts = len(checkpoints) if isinstance(checkpoints, list) else 1
+        if isinstance(checkpoints, list) and len(checkpoints) > 1:
+            checkpoints = [checkpoints[-1]]
+
         super().__init__(
             model=model,
             train_dataset=train_dataset,
             loss_func=loss_func,
-            weight_list=torch.ones(n_ckpts),
+            weight_list=torch.ones(1),
             task=task,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
@@ -573,7 +547,7 @@ class DattriArnoldi(DattriInfluence):
         tol: float = 1e-7,
         regularization: float = 0.0,
         seed: int = 0,
-        device: str = "cpu",
+        device: Optional[str] = None,
     ):
         """Initialize the `DattriArnoldi` explainer."""
         logger.info("Initializing dattri Arnoldi explainer...")
@@ -586,6 +560,9 @@ class DattriArnoldi(DattriInfluence):
             "regularization": regularization,
             "seed": seed,
         }
+
+        if isinstance(checkpoints, list) and len(checkpoints) > 1:
+            checkpoints = [checkpoints[-1]]
 
         super().__init__(
             model=model,
@@ -607,13 +584,10 @@ class DattriArnoldi(DattriInfluence):
 class DattriEKFAC(DattriInfluence):
     """Wrapper for `IFAttributorEKFAC` from dattri.
 
-    This implements the EK-FAC inverse-FIM approximation of George et al.
-    (2018) for influence function estimation.
-
     References
     ----------
-    (1) George, Thomas, et al. (2018). "Fast approximate natural gradient
-        descent in a Kronecker-factored eigenbasis." NeurIPS.
+    (1) Grosse, Roger, et al.  (2023). "Studying Large Language Model 
+    Generalization with Influence Functions." arXiv preprint arXiv:2308.03296.
 
     """
 
@@ -630,7 +604,7 @@ class DattriEKFAC(DattriInfluence):
         collate_fn: Optional[Callable] = None,
         damping: float = 0.0,
         max_iter: Optional[int] = None,
-        device: str = "cpu",
+        device: Optional[str] = None,
     ):
         """Initialize the `DattriEKFAC` explainer."""
         logger.info("Initializing dattri EK-FAC explainer...")
@@ -639,6 +613,9 @@ class DattriEKFAC(DattriInfluence):
             "module_name": module_name,
             "damping": damping,
         }
+
+        if isinstance(checkpoints, list) and len(checkpoints) > 1:
+            checkpoints = [checkpoints[-1]]
 
         # EK-FAC takes `module_name`, not `layer_name`.
         super().__init__(
@@ -657,7 +634,7 @@ class DattriEKFAC(DattriInfluence):
             device=device,
         )
         self.attributor.cache(
-            self._make_loader(self._prepare_train_dataset()),
+            self._make_loader(self.train_dataset),
             max_iter=max_iter,
         )
 

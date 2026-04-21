@@ -1,0 +1,9 @@
+name: dattri_arnoldi
+cls: quanda.explainers.wrappers.DattriArnoldi
+kwargs:
+  loss_func:
+    _target_: hydra.utils.get_method
+    path: quanda.explainers.wrappers.dattri_losses.bert_classification_batched_loss
+  proj_dim: 50
+  max_iter: 100
+  batch_size: ${batch_size}

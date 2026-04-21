@@ -20,30 +20,18 @@ from quanda.explainers.wrappers import (
     DattriGradDot,
     DattriTracInCP,
     DattriTRAK,
+    bert_classification_batched_loss,
+    bert_classification_correct_probability,
+    bert_classification_per_sample_loss,
 )
 from quanda.utils.datasets.dataset_handlers import (
-    HuggingFaceTupleDatasetHandler,
+    HuggingFaceSequenceDatasetHandler,
 )
 from tests.models import SimpleTextClassifier
 
 
 def _device() -> str:
     return "cuda" if torch.cuda.is_available() else "cpu"
-
-
-def _bert_4d_attention_mask(
-    mask_2d: torch.Tensor, dtype: torch.dtype
-) -> torch.Tensor:
-    """Build the 4D additive mask BERT's eager attention expects.
-
-    A 2D ``(batch, seq_len)`` mask routes through
-    ``transformers.masking_utils.create_bidirectional_mask``, whose skip path
-    calls ``padding_mask.all()`` as a Python bool — incompatible with
-    ``torch.func.vmap``. Passing a 4D tensor hits the early-exit in
-    ``_preprocess_mask_arguments`` and is used as-is.
-    """
-    min_val = torch.finfo(dtype).min
-    return (1.0 - mask_2d.to(dtype))[:, None, None, :] * min_val
 
 
 BERT_CLASSIFIER_LAYER = [
@@ -70,69 +58,9 @@ SIMPLE_CLASSIFIER_MODULE = "classifier"
 # bert-qnli helpers
 # ---------------------------------------------------------------------------
 
-BERT_TUPLE_HANDLER = HuggingFaceTupleDatasetHandler(
+BERT_SEQ_HANDLER = HuggingFaceSequenceDatasetHandler(
     input_keys=("input_ids", "token_type_ids", "attention_mask"),
 )
-
-
-def _make_bert_loss_funcs(model):
-    """Per-sample / batched loss functions for a bert-qnli model.
-
-    Returns two functions:
-      * ``loss_fn_per_sample``: per-sample tuple input (no batch dim). Used
-        by TracIn/TRAK-family attributors.
-      * ``loss_fn_batched``: batched tuple input (leading batch dim of 1).
-        Used by the influence-function family (Arnoldi, EK-FAC).
-    """
-    ce = nn.CrossEntropyLoss()
-    dtype = next(model.parameters()).dtype
-
-    def loss_fn_per_sample(params, batch):
-        input_ids, token_type_ids, attention_mask, labels = batch
-        am_4d = _bert_4d_attention_mask(attention_mask.unsqueeze(0), dtype)
-        outputs = torch.func.functional_call(
-            model,
-            params,
-            args=(
-                input_ids.unsqueeze(0),
-                token_type_ids.unsqueeze(0),
-                am_4d,
-            ),
-        )
-        return ce(outputs.logits, labels.unsqueeze(0))
-
-    def loss_fn_batched(params, batch):
-        input_ids, token_type_ids, attention_mask, labels = batch
-        am_4d = _bert_4d_attention_mask(attention_mask, dtype)
-        outputs = torch.func.functional_call(
-            model,
-            params,
-            args=(input_ids, token_type_ids, am_4d),
-        )
-        return ce(outputs.logits, labels)
-
-    return loss_fn_per_sample, loss_fn_batched
-
-
-def _bert_correct_probability_fn(model):
-    ce = nn.CrossEntropyLoss()
-    dtype = next(model.parameters()).dtype
-
-    def m(params, batch):
-        input_ids, token_type_ids, attention_mask, labels = batch
-        am_4d = _bert_4d_attention_mask(attention_mask.unsqueeze(0), dtype)
-        outputs = torch.func.functional_call(
-            model,
-            params,
-            args=(
-                input_ids.unsqueeze(0),
-                token_type_ids.unsqueeze(0),
-                am_4d,
-            ),
-        )
-        return torch.exp(-ce(outputs.logits, labels.unsqueeze(0)))
-
-    return m
 
 
 def _simple_dummy_datasets(
@@ -141,12 +69,10 @@ def _simple_dummy_datasets(
     torch.manual_seed(0)
     train = torch.utils.data.TensorDataset(
         torch.randint(1, vocab_size, (train_size, seq_len)),
-        torch.ones(train_size, seq_len, dtype=torch.long),
         torch.randint(0, 2, (train_size,)),
     )
     test = torch.utils.data.TensorDataset(
         torch.randint(1, vocab_size, (1, seq_len)),
-        torch.ones(1, seq_len, dtype=torch.long),
         torch.randint(0, 2, (1,)),
     )
     return train, test
@@ -156,20 +82,16 @@ def _make_simple_loss_funcs(model):
     ce = nn.CrossEntropyLoss()
 
     def loss_fn_per_sample(params, batch):
-        input_ids, attention_mask, labels = batch
+        input_ids, labels = batch
         outputs = torch.func.functional_call(
-            model,
-            params,
-            args=(input_ids.unsqueeze(0), attention_mask.unsqueeze(0)),
+            model, params, args=(input_ids.unsqueeze(0),)
         )
         return ce(outputs.logits, labels.unsqueeze(0))
 
     def loss_fn_batched(params, batch):
-        input_ids, attention_mask, labels = batch
+        input_ids, labels = batch
         outputs = torch.func.functional_call(
-            model,
-            params,
-            args=(input_ids, attention_mask),
+            model, params, args=(input_ids,)
         )
         return ce(outputs.logits, labels)
 
@@ -180,11 +102,9 @@ def _simple_correct_probability_fn(model):
     ce = nn.CrossEntropyLoss()
 
     def m(params, batch):
-        input_ids, attention_mask, labels = batch
+        input_ids, labels = batch
         outputs = torch.func.functional_call(
-            model,
-            params,
-            args=(input_ids.unsqueeze(0), attention_mask.unsqueeze(0)),
+            model, params, args=(input_ids.unsqueeze(0),)
         )
         return torch.exp(-ce(outputs.logits, labels.unsqueeze(0)))
 
@@ -216,20 +136,22 @@ def test_dattri_trak_qnli(load_qnli_model, load_qnli_dataset):
     model.eval()
 
     train_ds, test_ds = load_qnli_dataset
-    test_sample = [test_ds[0]]
+    test_sample = test_ds[:1]
 
-    loss_fn, _ = _make_bert_loss_funcs(model)
+    loss_fn = bert_classification_per_sample_loss(model)
 
     explainer = DattriTRAK(
         model=model,
         train_dataset=train_ds,
         loss_func=loss_fn,
-        correct_probability_func=_bert_correct_probability_fn(model),
+        correct_probability_func=bert_classification_correct_probability(
+            model
+        ),
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
         projector_kwargs={"proj_dim": 16},
-        collate_fn=BERT_TUPLE_HANDLER.collate,
+        collate_fn=BERT_SEQ_HANDLER.collate,
         device=device,
     )
 
@@ -244,9 +166,9 @@ def test_dattri_tracincp_qnli(load_qnli_model, load_qnli_dataset):
     model.eval()
 
     train_ds, test_ds = load_qnli_dataset
-    test_sample = [test_ds[0]]
+    test_sample = test_ds[:1]
 
-    loss_fn, _ = _make_bert_loss_funcs(model)
+    loss_fn = bert_classification_per_sample_loss(model)
 
     explainer = DattriTracInCP(
         model=model,
@@ -256,7 +178,7 @@ def test_dattri_tracincp_qnli(load_qnli_model, load_qnli_dataset):
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
-        collate_fn=BERT_TUPLE_HANDLER.collate,
+        collate_fn=BERT_SEQ_HANDLER.collate,
         device=device,
     )
 
@@ -271,9 +193,9 @@ def test_dattri_graddot_qnli(load_qnli_model, load_qnli_dataset):
     model.eval()
 
     train_ds, test_ds = load_qnli_dataset
-    test_sample = [test_ds[0]]
+    test_sample = test_ds[:1]
 
-    loss_fn, _ = _make_bert_loss_funcs(model)
+    loss_fn = bert_classification_per_sample_loss(model)
 
     explainer = DattriGradDot(
         model=model,
@@ -282,7 +204,7 @@ def test_dattri_graddot_qnli(load_qnli_model, load_qnli_dataset):
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
-        collate_fn=BERT_TUPLE_HANDLER.collate,
+        collate_fn=BERT_SEQ_HANDLER.collate,
         device=device,
     )
 
@@ -297,9 +219,9 @@ def test_dattri_gradcos_qnli(load_qnli_model, load_qnli_dataset):
     model.eval()
 
     train_ds, test_ds = load_qnli_dataset
-    test_sample = [test_ds[0]]
+    test_sample = test_ds[:1]
 
-    loss_fn, _ = _make_bert_loss_funcs(model)
+    loss_fn = bert_classification_per_sample_loss(model)
 
     explainer = DattriGradCos(
         model=model,
@@ -308,7 +230,7 @@ def test_dattri_gradcos_qnli(load_qnli_model, load_qnli_dataset):
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
-        collate_fn=BERT_TUPLE_HANDLER.collate,
+        collate_fn=BERT_SEQ_HANDLER.collate,
         device=device,
     )
 
@@ -323,9 +245,9 @@ def test_dattri_arnoldi_qnli(load_qnli_model, load_qnli_dataset):
     model.eval()
 
     train_ds, test_ds = load_qnli_dataset
-    test_sample = [test_ds[0]]
+    test_sample = test_ds[:1]
 
-    _, loss_fn = _make_bert_loss_funcs(model)
+    loss_fn = bert_classification_batched_loss(model)
 
     explainer = DattriArnoldi(
         model=model,
@@ -337,7 +259,7 @@ def test_dattri_arnoldi_qnli(load_qnli_model, load_qnli_dataset):
         proj_dim=10,
         max_iter=3,
         regularization=1e-3,
-        collate_fn=BERT_TUPLE_HANDLER.collate,
+        collate_fn=BERT_SEQ_HANDLER.collate,
         device=device,
     )
 
@@ -352,9 +274,9 @@ def test_dattri_ekfac_qnli(load_qnli_model, load_qnli_dataset):
     model.eval()
 
     train_ds, test_ds = load_qnli_dataset
-    test_sample = [test_ds[0]]
+    test_sample = test_ds[:1]
 
-    _, loss_fn = _make_bert_loss_funcs(model)
+    loss_fn = bert_classification_batched_loss(model)
 
     explainer = DattriEKFAC(
         model=model,
@@ -365,7 +287,7 @@ def test_dattri_ekfac_qnli(load_qnli_model, load_qnli_dataset):
         batch_size=1,
         damping=1e-2,
         max_iter=1,
-        collate_fn=BERT_TUPLE_HANDLER.collate,
+        collate_fn=BERT_SEQ_HANDLER.collate,
         device=device,
     )
 
@@ -397,7 +319,11 @@ def test_dattri_trak_simple(simple_setup):
         projector_kwargs={"proj_dim": 8},
         device="cpu",
     )
-    explanations = explainer.explain(test_data=test_ds, targets=None)
+    test_input_ids, test_labels = test_ds[0]
+    explanations = explainer.explain(
+        test_data=test_input_ids.unsqueeze(0),
+        targets=test_labels.unsqueeze(0),
+    )
     assert explanations.shape == (1, len(train_ds))
 
 
@@ -416,7 +342,11 @@ def test_dattri_tracincp_simple(simple_setup):
         batch_size=1,
         device="cpu",
     )
-    explanations = explainer.explain(test_data=test_ds, targets=None)
+    test_input_ids, test_labels = test_ds[0]
+    explanations = explainer.explain(
+        test_data=test_input_ids.unsqueeze(0),
+        targets=test_labels.unsqueeze(0),
+    )
     assert explanations.shape == (1, len(train_ds))
 
 
@@ -434,7 +364,11 @@ def test_dattri_graddot_simple(simple_setup):
         batch_size=1,
         device="cpu",
     )
-    explanations = explainer.explain(test_data=test_ds, targets=None)
+    test_input_ids, test_labels = test_ds[0]
+    explanations = explainer.explain(
+        test_data=test_input_ids.unsqueeze(0),
+        targets=test_labels.unsqueeze(0),
+    )
     assert explanations.shape == (1, len(train_ds))
 
 
@@ -452,7 +386,11 @@ def test_dattri_gradcos_simple(simple_setup):
         batch_size=1,
         device="cpu",
     )
-    explanations = explainer.explain(test_data=test_ds, targets=None)
+    test_input_ids, test_labels = test_ds[0]
+    explanations = explainer.explain(
+        test_data=test_input_ids.unsqueeze(0),
+        targets=test_labels.unsqueeze(0),
+    )
     assert explanations.shape == (1, len(train_ds))
 
 
@@ -473,7 +411,11 @@ def test_dattri_arnoldi_simple(simple_setup):
         regularization=1e-3,
         device="cpu",
     )
-    explanations = explainer.explain(test_data=test_ds, targets=None)
+    test_input_ids, test_labels = test_ds[0]
+    explanations = explainer.explain(
+        test_data=test_input_ids.unsqueeze(0),
+        targets=test_labels.unsqueeze(0),
+    )
     assert explanations.shape == (1, len(train_ds))
 
 
@@ -492,5 +434,9 @@ def test_dattri_ekfac_simple(simple_setup):
         damping=1e-2,
         device="cpu",
     )
-    explanations = explainer.explain(test_data=test_ds, targets=None)
+    test_input_ids, test_labels = test_ds[0]
+    explanations = explainer.explain(
+        test_data=test_input_ids.unsqueeze(0),
+        targets=test_labels.unsqueeze(0),
+    )
     assert explanations.shape == (1, len(train_ds))
