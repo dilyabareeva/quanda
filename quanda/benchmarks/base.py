@@ -1092,7 +1092,7 @@ class Benchmark(ABC):
                 "explanations": explanations,
             }
 
-            if hasattr(self, "class_to_group"):
+            if self.name == "Subclass Detection":
                 data_unit["test_superclass_targets"] = torch.tensor(
                     [self.class_to_group[i.item()] for i in labels],
                     device=labels.device,

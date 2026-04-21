@@ -83,7 +83,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         explanations : torch.Tensor
             Explanations of the test samples.
         test_targets : Union[List[int], torch.Tensor]
-            Original subclass labels of the test samples.
+            Original **not-grouped, subclass** labels of the test samples.
         test_data: Optional[torch.Tensor]
             Test samples to used to generate the explanations.
             Only required if `filter_by_prediction` is True during
