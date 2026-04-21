@@ -187,5 +187,5 @@ class MislabelingDetectionMetric(Metric):
         return {
             "score": score.item(),
             "success_arr": success_arr,
-            "curve": normalized_curve / len(self.mislabeling_indices),
+            "curve": normalized_curve,
         }
