@@ -83,7 +83,7 @@ class ResNet9(torch.nn.Module, PyTorchModelHubMixin):
     def forward(self, x):
         """Forward pass."""
         return self.model(x)
-    
+
     def from_pretrained_base(self, pretrained_model_name: str):
         """Override to avoid HuggingFace trying to load pretrained weights."""
         config = AutoConfig.from_pretrained(pretrained_model_name)
@@ -130,6 +130,7 @@ class LeNet(torch.nn.Module, PyTorchModelHubMixin):
             pretrained_model_name, config=config
         )
 
+
 class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
     """BERT-based sequence classifier without final nonlinearity.
 
@@ -153,7 +154,6 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
 
         """
         super().__init__()
-        self.pretrained_model_name = pretrained_model_name
         self.num_labels = num_labels
 
         config = AutoConfig.from_pretrained(
@@ -205,15 +205,13 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
         pooled = self.dropout(outputs.pooler_output)
         return self.classifier(pooled)
 
-    def from_pretrained_base(
-            self, 
-            pretrained_model_name: str
-        ):
+    def from_pretrained_base(self, pretrained_model_name: str):
         """Override to avoid HuggingFace trying to load pretrained weights."""
         config = AutoConfig.from_pretrained(pretrained_model_name)
         self.model = AutoModel.from_pretrained(
             pretrained_model_name, config=config
         )
+
 
 pl_modules = {
     "MnistTorch": LeNet,

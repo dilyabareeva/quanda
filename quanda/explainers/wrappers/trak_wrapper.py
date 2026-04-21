@@ -98,7 +98,6 @@ class TRAK(Explainer):
         load_from_disk: bool = True,
         lambda_reg: float = 0.0,
         use_half_precision: bool = False,
-        device: Optional[str] = None,
     ):
         """Initialize the TRAK explainer.
 
@@ -145,9 +144,6 @@ class TRAK(Explainer):
         use_half_precision : bool, optional
             If True, TRAK stores and computes in float16, halving the grad
             and projector tensor footprints. Defaults to False.
-        device : Optional[str], optional
-            Device to run the computation on. If None, inferred from the
-            model's parameters. Defaults to None.
 
         """
         logging.info("Initializing TRAK explainer...")
@@ -159,8 +155,6 @@ class TRAK(Explainer):
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
         )
-        if device is not None:
-            self.device = device
         self.model_id = model_id
         self.cache_dir = cache_dir
         self.dataset = train_dataset

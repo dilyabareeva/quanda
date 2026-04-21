@@ -154,7 +154,7 @@ class SubclassDetection(Benchmark):
 
         train_subclass_labels = torch.tensor(
             [
-                self.train_dataset.get_original_label(s)    
+                self.train_dataset.get_original_label(s)
                 for s in range(ds_len(self.train_dataset.dataset))
             ]
         )

@@ -832,7 +832,7 @@ class Benchmark(ABC):
         self.model.eval()
         self.model.to(self.device)
 
-        expl_kwargs = {"device": self.device, **(expl_kwargs or {})}
+        expl_kwargs = expl_kwargs or {}
         explainer = explainer_cls(
             model=self.model,
             checkpoints=self.checkpoints,
@@ -1094,7 +1094,7 @@ class Benchmark(ABC):
 
             if self.name == "Subclass Detection":
                 data_unit["test_superclass_targets"] = torch.tensor(
-                    [self.class_to_group[i.item()] for i in labels],
+                    [self.class_to_group[i.item()] for i in labels],  # type: ignore[attr-defined]
                     device=labels.device,
                 )
                 data_unit["test_targets"] = labels

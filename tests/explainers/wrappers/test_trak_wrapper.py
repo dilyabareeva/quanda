@@ -6,6 +6,7 @@ from trak import TRAKer
 from trak.projectors import BasicProjector, CudaProjector, NoOpProjector
 
 from quanda.explainers.wrappers import TRAK, trak_explain, trak_self_influence
+from quanda.utils.common import ds_len
 
 projector_cls = {
     "cuda": CudaProjector,
@@ -84,7 +85,7 @@ def test_trak(
     traker = TRAKer(
         model=model,
         task="image_classification",
-        train_set_size=explainer.dataset_length,
+        train_set_size=ds_len(dataset),
         projector=projector_obj,
         proj_dim=method_kwargs["proj_dim"],
         projector_seed=method_kwargs["seed"],

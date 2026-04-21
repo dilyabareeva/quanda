@@ -158,6 +158,12 @@ class BenchConfigParser:
         module_cls = pl_modules[module_cfg["name"]]
         module = module_cls(**module_cfg["args"])
 
+        if not isinstance(module, torch.nn.Module):
+            raise ValueError(
+                f"Model class {module_cls} did not return a "
+                f"torch.nn.Module instance."
+            )
+
         checkpoint_path = os.path.join(bench_save_dir, "ckpt")
         ckpt_ids = [f"{ckpt}" for ckpt in ckpts]
 
@@ -210,6 +216,12 @@ class BenchConfigParser:
                     pretrained_model_name_or_path=ckpt_dir,
                     local_files_only=True,
                 )
+                if not isinstance(pretrained_model, torch.nn.Module):
+                    raise ValueError(
+                        f"Model class {module_cls} did not return a "
+                        f"torch.nn.Module instance when loading from "
+                        f"{ckpt_dir}."
+                    )
             except Exception as e:
                 raise ValueError(f"Error loading model from {ckpt_dir}: {e}")
             model.load_state_dict(pretrained_model.state_dict())
@@ -234,7 +246,7 @@ class BenchConfigParser:
             return None
         module_cfg = model_cfg["module"]
         module_cls = pl_modules[module_cfg["name"]]
-        model = module_cls.from_pretrained_base( 
+        model = module_cls.from_pretrained_base(  # type: ignore[attr-defined]
             pretrained_model_name=pretrained_model_name
         )
         model.to(device)

@@ -78,25 +78,31 @@ def _simple_dummy_datasets(
     return train, test
 
 
-def _make_simple_loss_funcs(model):
+def _simple_per_sample_loss_builder(model):
     ce = nn.CrossEntropyLoss()
 
-    def loss_fn_per_sample(params, batch):
+    def loss_fn(params, batch):
         input_ids, labels = batch
         outputs = torch.func.functional_call(
             model, params, args=(input_ids.unsqueeze(0),)
         )
         return ce(outputs.logits, labels.unsqueeze(0))
 
-    def loss_fn_batched(params, batch):
+    return loss_fn
+
+
+def _simple_batched_loss_builder(model):
+    ce = nn.CrossEntropyLoss()
+
+    def loss_fn(params, batch):
         input_ids, labels = batch
         outputs = torch.func.functional_call(model, params, args=(input_ids,))
         return ce(outputs.logits, labels)
 
-    return loss_fn_per_sample, loss_fn_batched
+    return loss_fn
 
 
-def _simple_correct_probability_fn(model):
+def _simple_correct_probability_builder(model):
     ce = nn.CrossEntropyLoss()
 
     def m(params, batch):
@@ -136,15 +142,11 @@ def test_dattri_trak_qnli(load_qnli_model, load_qnli_dataset):
     train_ds, test_ds = load_qnli_dataset
     test_sample = test_ds[:1]
 
-    loss_fn = bert_classification_per_sample_loss(model)
-
     explainer = DattriTRAK(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
-        correct_probability_func=bert_classification_correct_probability(
-            model
-        ),
+        loss_func=bert_classification_per_sample_loss,
+        correct_probability_func=bert_classification_correct_probability,
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
@@ -166,13 +168,11 @@ def test_dattri_tracincp_qnli(load_qnli_model, load_qnli_dataset):
     train_ds, test_ds = load_qnli_dataset
     test_sample = test_ds[:1]
 
-    loss_fn = bert_classification_per_sample_loss(model)
-
     explainer = DattriTracInCP(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
-        weight_list=torch.tensor([1.0], device=device),
+        loss_func=bert_classification_per_sample_loss,
+        learning_rate=1.0,
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
@@ -193,12 +193,10 @@ def test_dattri_graddot_qnli(load_qnli_model, load_qnli_dataset):
     train_ds, test_ds = load_qnli_dataset
     test_sample = test_ds[:1]
 
-    loss_fn = bert_classification_per_sample_loss(model)
-
     explainer = DattriGradDot(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
+        loss_func=bert_classification_per_sample_loss,
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
@@ -219,12 +217,10 @@ def test_dattri_gradcos_qnli(load_qnli_model, load_qnli_dataset):
     train_ds, test_ds = load_qnli_dataset
     test_sample = test_ds[:1]
 
-    loss_fn = bert_classification_per_sample_loss(model)
-
     explainer = DattriGradCos(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
+        loss_func=bert_classification_per_sample_loss,
         task="text_classification",
         layer_name=BERT_CLASSIFIER_LAYER,
         batch_size=1,
@@ -245,12 +241,10 @@ def test_dattri_arnoldi_qnli(load_qnli_model, load_qnli_dataset):
     train_ds, test_ds = load_qnli_dataset
     test_sample = test_ds[:1]
 
-    loss_fn = bert_classification_batched_loss(model)
-
     explainer = DattriArnoldi(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
+        loss_func=bert_classification_batched_loss,
         task="text_classification",
         layer_name=BERT_ARNOLDI_LAYERS,
         batch_size=1,
@@ -274,12 +268,10 @@ def test_dattri_ekfac_qnli(load_qnli_model, load_qnli_dataset):
     train_ds, test_ds = load_qnli_dataset
     test_sample = test_ds[:1]
 
-    loss_fn = bert_classification_batched_loss(model)
-
     explainer = DattriEKFAC(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
+        loss_func=bert_classification_batched_loss,
         task="text_classification",
         module_name=BERT_CLASSIFIER_MODULE,
         batch_size=1,
@@ -304,13 +296,12 @@ def simple_setup():
 @pytest.mark.explainers
 def test_dattri_trak_simple(simple_setup):
     model, train_ds, test_ds = simple_setup
-    loss_fn, _ = _make_simple_loss_funcs(model)
 
     explainer = DattriTRAK(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
-        correct_probability_func=_simple_correct_probability_fn(model),
+        loss_func=_simple_per_sample_loss_builder,
+        correct_probability_func=_simple_correct_probability_builder,
         task="text_classification",
         layer_name=SIMPLE_CLASSIFIER_LAYER,
         batch_size=1,
@@ -328,13 +319,12 @@ def test_dattri_trak_simple(simple_setup):
 @pytest.mark.explainers
 def test_dattri_tracincp_simple(simple_setup):
     model, train_ds, test_ds = simple_setup
-    loss_fn, _ = _make_simple_loss_funcs(model)
 
     explainer = DattriTracInCP(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
-        weight_list=torch.tensor([1.0]),
+        loss_func=_simple_per_sample_loss_builder,
+        learning_rate=1.0,
         task="text_classification",
         layer_name=SIMPLE_CLASSIFIER_LAYER,
         batch_size=1,
@@ -351,12 +341,11 @@ def test_dattri_tracincp_simple(simple_setup):
 @pytest.mark.explainers
 def test_dattri_graddot_simple(simple_setup):
     model, train_ds, test_ds = simple_setup
-    loss_fn, _ = _make_simple_loss_funcs(model)
 
     explainer = DattriGradDot(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
+        loss_func=_simple_per_sample_loss_builder,
         task="text_classification",
         layer_name=SIMPLE_CLASSIFIER_LAYER,
         batch_size=1,
@@ -373,12 +362,11 @@ def test_dattri_graddot_simple(simple_setup):
 @pytest.mark.explainers
 def test_dattri_gradcos_simple(simple_setup):
     model, train_ds, test_ds = simple_setup
-    loss_fn, _ = _make_simple_loss_funcs(model)
 
     explainer = DattriGradCos(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
+        loss_func=_simple_per_sample_loss_builder,
         task="text_classification",
         layer_name=SIMPLE_CLASSIFIER_LAYER,
         batch_size=1,
@@ -395,12 +383,11 @@ def test_dattri_gradcos_simple(simple_setup):
 @pytest.mark.explainers
 def test_dattri_arnoldi_simple(simple_setup):
     model, train_ds, test_ds = simple_setup
-    _, loss_fn = _make_simple_loss_funcs(model)
 
     explainer = DattriArnoldi(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
+        loss_func=_simple_batched_loss_builder,
         task="text_classification",
         layer_name=SIMPLE_CLASSIFIER_LAYER,
         batch_size=1,
@@ -420,12 +407,11 @@ def test_dattri_arnoldi_simple(simple_setup):
 @pytest.mark.explainers
 def test_dattri_ekfac_simple(simple_setup):
     model, train_ds, test_ds = simple_setup
-    _, loss_fn = _make_simple_loss_funcs(model)
 
     explainer = DattriEKFAC(
         model=model,
         train_dataset=train_ds,
-        loss_func=loss_fn,
+        loss_func=_simple_batched_loss_builder,
         task="text_classification",
         module_name=SIMPLE_CLASSIFIER_MODULE,
         batch_size=1,

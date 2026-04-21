@@ -51,7 +51,7 @@ def bert_classification_per_sample_loss(
     def loss_fn(params, batch):
         input_ids, token_type_ids, attention_mask, labels = batch
         am_4d = _bert_4d_attention_mask(attention_mask.unsqueeze(0), dtype)
-        logits = torch.func.functional_call(
+        outputs = torch.func.functional_call(
             model,
             params,
             args=(),
@@ -61,6 +61,7 @@ def bert_classification_per_sample_loss(
                 am_4d,
             ),
         )
+        logits = getattr(outputs, "logits", outputs)
         return ce(logits, labels.unsqueeze(0))
 
     return loss_fn
@@ -81,12 +82,13 @@ def bert_classification_batched_loss(
     def loss_fn(params, batch):
         input_ids, token_type_ids, attention_mask, labels = batch
         am_4d = _bert_4d_attention_mask(attention_mask, dtype)
-        logits = torch.func.functional_call(
+        outputs = torch.func.functional_call(
             model,
             params,
             args=(),
             kwargs=_bert_forward_kwargs(input_ids, token_type_ids, am_4d),
         )
+        logits = getattr(outputs, "logits", outputs)
         return ce(logits, labels)
 
     return loss_fn
@@ -106,7 +108,7 @@ def bert_classification_correct_probability(
     def prob_fn(params, batch):
         input_ids, token_type_ids, attention_mask, labels = batch
         am_4d = _bert_4d_attention_mask(attention_mask.unsqueeze(0), dtype)
-        logits = torch.func.functional_call(
+        outputs = torch.func.functional_call(
             model,
             params,
             args=(),
@@ -116,6 +118,7 @@ def bert_classification_correct_probability(
                 am_4d,
             ),
         )
+        logits = getattr(outputs, "logits", outputs)
         return torch.exp(-ce(logits, labels.unsqueeze(0)))
 
     return prob_fn

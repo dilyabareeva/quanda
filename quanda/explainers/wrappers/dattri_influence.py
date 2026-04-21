@@ -157,11 +157,20 @@ class DattriInfluence(Explainer, ABC):
         if target_func is not None:
             task_kwargs["target_func"] = target_func
 
+        if self.checkpoints:
+            task_checkpoints: Any = self.checkpoints
+            task_load_func: Optional[Callable] = self.checkpoints_load_func
+        else:
+            task_checkpoints = [
+                {k: v.detach().clone() for k, v in model.state_dict().items()}
+            ]
+            task_load_func = None
+
         self.attribution_task = AttributionTask(
             loss_func=loss_func,
             model=model,
-            checkpoints=self.checkpoints,
-            checkpoints_load_func=self.checkpoints_load_func,
+            checkpoints=task_checkpoints,
+            checkpoints_load_func=task_load_func,
             **task_kwargs,
         )
 
@@ -231,10 +240,9 @@ class DattriInfluence(Explainer, ABC):
         train_loader: torch.utils.data.DataLoader,
         test_loader: torch.utils.data.DataLoader,
     ) -> torch.Tensor:
-        # dattri TRAK: attribute(test_loader, train_loader) → (n_train, n_test)
-        if self.attributor.full_train_dataloader is not None:
-            return self.attributor.attribute(test_loader)
-        return self.attributor.attribute(test_loader, train_loader)
+        return self.attributor.attribute(
+            train_dataloader=train_loader, test_dataloader=test_loader
+        )
 
     def explain(
         self,
