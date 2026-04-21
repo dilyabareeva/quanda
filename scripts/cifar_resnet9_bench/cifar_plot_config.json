@@ -4,7 +4,8 @@
     "arnoldi",
     "tracincpfast",
     "trak",
-    "random"
+    "random",
+    "similarity"
   ],
   "benches": [
     "cifar_class_detection",
@@ -21,7 +22,8 @@
     "arnoldi": "ArnoldiInf",
     "tracincpfast": "TracInCP",
     "trak": "TRAK-1",
-    "random": "Random"
+    "random": "Random",
+    "similarity": "Similarity"
   },
   "bench_labels": {
     "cifar_subclass_detection": "Subclass\nDetection",

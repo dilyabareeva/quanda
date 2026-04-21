@@ -18,10 +18,10 @@ benchmarks=(
 methods=(
     similarity
     representer_points
-    tracincpfast
+    #tracincpfast
     arnoldi
-    trak
-    random
+    #trak
+    #random
 )
 
-source "$(dirname "$0")/../eval.sh" "$@"
+source "$(dirname "$0")/../eval.sh" --regenerate-explanations "$@"

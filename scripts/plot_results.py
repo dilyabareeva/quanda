@@ -52,6 +52,7 @@ def load_scores(
         )
     df = pd.DataFrame(rows)
     df = df[df["method"].isin(methods) & df["bench"].isin(benches)]
+    df = df.dropna(subset=["score"])
     # for sweeps, keep the best score per (method, bench)
     df = df.loc[df.groupby(["method", "bench"])["score"].idxmax()]
     return df.pivot(index="method", columns="bench", values="score")
@@ -185,6 +186,13 @@ def main():
     plt.subplots_adjust(left=0.15, right=0.95, top=0.85, bottom=0.38)
     plt.savefig(args.out, bbox_inches=None, pad_inches=0, dpi=1000)
     print(f"wrote {args.out}")
+
+    csv_path = os.path.join(
+        os.path.dirname(args.out) or ".",
+        os.path.splitext(os.path.basename(args.out))[0] + ".csv",
+    )
+    df.to_csv(csv_path, index=False)
+    print(f"wrote {csv_path}")
 
 
 if __name__ == "__main__":
