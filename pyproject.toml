@@ -33,6 +33,7 @@ dependencies = [
     "captum==0.8.0",
     "Pillow>=10.0.0",
     "pyarrow>=18.0.0",
+    "dattri>=0.3.0",
 ]
 
 
