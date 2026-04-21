@@ -90,9 +90,7 @@ def _make_simple_loss_funcs(model):
 
     def loss_fn_batched(params, batch):
         input_ids, labels = batch
-        outputs = torch.func.functional_call(
-            model, params, args=(input_ids,)
-        )
+        outputs = torch.func.functional_call(model, params, args=(input_ids,))
         return ce(outputs.logits, labels)
 
     return loss_fn_per_sample, loss_fn_batched

@@ -200,9 +200,10 @@ def _load_flexible_state_dict(
     return learning_rate
 
 
-def get_load_state_dict_func(device: Union[str, torch.device]):
-    """Get a load_state_dict function that loads a model state dict,
-    return learning rate.
+def get_load_state_dict_func(
+    device: Union[str, torch.device],
+) -> Callable[[torch.nn.Module, str], float]:
+    """Get a load_state_dict function that loads a model state dict.
 
     Parameters
     ----------

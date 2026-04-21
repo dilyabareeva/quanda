@@ -89,6 +89,8 @@ class DatasetHandler(ABC):
             Whether to shuffle the dataset (default is False).
         num_workers : int, optional
             Number of workers for data loading, by default 0.
+        collate_fn : Optional[Callable], optional
+            Collate function for the DataLoader, by default None.
 
         Returns
         -------
@@ -201,12 +203,23 @@ class TorchDatasetHandler(DatasetHandler):
         """
         return outputs.argmax(dim=-1)
 
+    def build_positional_batch(
+        self,
+        inputs: Union[torch.Tensor, Dict[str, torch.Tensor]],
+        labels: torch.Tensor,
+        device: Union[str, torch.device],
+    ) -> Tuple[torch.Tensor, ...]:
+        """Build an ``(inputs, labels)`` batch on ``device``."""
+        assert isinstance(inputs, torch.Tensor)
+        return inputs.to(device), labels.to(device)
+
     def create_dataloader(
         self,
         dataset: torch.utils.data.Dataset,
         batch_size: int,
         shuffle: bool = False,
         num_workers: int = 0,
+        collate_fn: Optional[Callable] = None,
     ) -> DataLoader:
         """Create a DataLoader for the dataset.
 
@@ -220,6 +233,9 @@ class TorchDatasetHandler(DatasetHandler):
             Whether to shuffle the data, by default False.
         num_workers : int, optional
             Number of workers for data loading, by default 0.
+        collate_fn : Optional[Callable], optional
+            Collate function for the DataLoader, by default None.
+            Ignored.
 
         Returns
         -------
@@ -437,6 +453,18 @@ class HuggingFaceSequenceDatasetHandler(HuggingFaceDatasetHandler):
             for key, tensor in zip(self.input_keys, inputs)
         }
         return inputs_dict, labels.to(device)
+
+    def build_positional_batch(
+        self,
+        inputs: Union[torch.Tensor, Dict[str, torch.Tensor]],
+        labels: torch.Tensor,
+        device: Union[str, torch.device],
+    ) -> Tuple[torch.Tensor, ...]:
+        """Build a ``(*input_keys, labels)`` batch on ``device``."""
+        assert isinstance(inputs, dict)
+        return tuple(inputs[k].to(device) for k in self.input_keys) + (
+            labels.to(device),
+        )
 
 
 def get_dataset_handler(

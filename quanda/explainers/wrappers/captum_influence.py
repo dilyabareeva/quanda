@@ -157,12 +157,6 @@ class CaptumInfluence(Explainer, ABC):
 
 
 class CaptumSimilarity(CaptumInfluence):
-    # TODO: incorporate SimilarityInfluence kwargs into init_kwargs
-    
-    accepted_tasks: List[TaskLiterals] = [
-        "image_classification",
-        "text_classification"
-    ]
     """Class for Similarity Influence wrapper.
 
     This explainer uses a similarity function on its inputs to rank the
@@ -185,6 +179,13 @@ class CaptumSimilarity(CaptumInfluence):
     1) https://captum.ai/api/influence.html#similarityinfluence
 
     """
+
+    # TODO: incorporate SimilarityInfluence kwargs into init_kwargs
+
+    accepted_tasks: List[TaskLiterals] = [
+        "image_classification",
+        "text_classification",
+    ]
 
     def __init__(
         self,

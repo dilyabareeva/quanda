@@ -9,7 +9,6 @@ from typing import (
     List,
     Literal,
     Optional,
-    Sized,
     Union,
 )
 
@@ -33,6 +32,7 @@ from quanda.utils.common import ds_len, process_targets
 from quanda.utils.datasets.dataset_handlers import (
     HuggingFaceDatasetHandler,
     HuggingFaceSequenceDatasetHandler,
+    TorchDatasetHandler,
     get_dataset_handler,
 )
 from quanda.utils.tasks import TaskLiterals
@@ -215,11 +215,8 @@ class TRAK(Explainer):
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 
         # Train the TRAK explainer: featurize the training data
-        handler = get_dataset_handler(self.dataset)
-        if isinstance(handler, HuggingFaceDatasetHandler):
-            # TRAK's featurize indexes the batch positionally.
-            handler = HuggingFaceSequenceDatasetHandler()
-        self._tuple_input_keys = handler.input_keys
+        handler = self._select_handler(self.dataset)
+        self._handler = handler
         ld = handler.create_dataloader(
             self.dataset, batch_size=self.batch_size
         )
@@ -237,35 +234,32 @@ class TRAK(Explainer):
                 **projector_kwargs
             )
 
-    @property
-    def dataset_length(self) -> int:
-        """Return dataset length for a torch dataset.
-
-        By default, the length of the dataset is calculated by checking if the
-        dataset is an instance of Sized. If not, a DataLoader is created to
-        calculate the length.
-
-        Returns
-        -------
-        int
-            The length of the training dataset.
-
-        """
-        if isinstance(self.dataset, Sized):
-            return len(self.dataset)
-        dl = torch.utils.data.DataLoader(self.dataset, batch_size=1)
-        return len(dl)
+    @staticmethod
+    def _select_handler(
+        dataset: torch.utils.data.Dataset,
+    ) -> Union[TorchDatasetHandler, HuggingFaceSequenceDatasetHandler]:
+        """Pick a handler that emits positional batches for TRAK."""
+        handler = get_dataset_handler(dataset)
+        if isinstance(handler, HuggingFaceDatasetHandler):
+            return HuggingFaceSequenceDatasetHandler()
+        if isinstance(handler, TorchDatasetHandler):
+            return handler
+        raise ValueError(
+            f"TRAK wrapper does not support dataset handler of type "
+            f"{type(handler)}. Please use a TorchDatasetHandler or "
+            f"HuggingFaceDatasetHandler."
+        )
 
     def explain(
         self,
-        test_data: torch.Tensor,
+        test_data: Union[torch.Tensor, dict],
         targets: Union[List[int], torch.Tensor],
     ):
         """Generate explanations for the given test inputs.
 
         Parameters
         ----------
-        test_data : torch.Tensor
+        test_data : Union[torch.Tensor, dict]
             The test inputs for which explanations are generated.
         targets : Union[List[int], torch.Tensor]
             The model outputs to explain per test input.
@@ -277,13 +271,9 @@ class TRAK(Explainer):
 
         """
         targets = process_targets(targets, self.device)
-
-        if isinstance(test_data, dict):
-            test_batch = tuple(
-                test_data[k].to(self.device) for k in self._tuple_input_keys
-            ) + (targets,)
-        else:
-            test_batch = (test_data.to(self.device), targets)
+        test_batch = self._handler.build_positional_batch(
+            test_data, targets, self.device
+        )
 
         grads = self.traker.gradient_computer.compute_per_sample_grad(
             batch=test_batch

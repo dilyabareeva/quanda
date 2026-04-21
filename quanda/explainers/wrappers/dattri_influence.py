@@ -1,6 +1,5 @@
 """Wrappers for the dattri influence computation methods."""
 
-import inspect
 import logging
 from abc import ABC
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -19,10 +18,8 @@ from dattri.task import AttributionTask  # type: ignore
 from quanda.explainers.base import Explainer
 from quanda.utils.common import get_load_state_dict_func, process_targets
 from quanda.utils.datasets.dataset_handlers import (
-    DatasetHandler,
     HuggingFaceDatasetHandler,
     HuggingFaceSequenceDatasetHandler,
-    TorchDatasetHandler,
     get_dataset_handler,
 )
 from quanda.utils.tasks import TaskLiterals
@@ -133,10 +130,10 @@ class DattriInfluence(Explainer, ABC):
 
         """
         device = _resolve_device(model, device)
-        
+
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
-            
+
         checkpoints_load_func = _wrap_checkpoints_load_func(
             checkpoints_load_func
         )
@@ -187,17 +184,16 @@ class DattriInfluence(Explainer, ABC):
         collate_fn: Optional[Callable] = None,
     ) -> torch.utils.data.DataLoader:
         """Build a DataLoader using the matching quanda dataset handler."""
-
         handler = get_dataset_handler(dataset)
         if isinstance(handler, HuggingFaceDatasetHandler) and not isinstance(
             handler, HuggingFaceSequenceDatasetHandler
         ):
             handler = HuggingFaceSequenceDatasetHandler()
         return handler.create_dataloader(
-            dataset=dataset, 
-            batch_size=batch_size or self.batch_size, 
-            shuffle=False, 
-            collate_fn=collate_fn or self.collate_fn
+            dataset=dataset,
+            batch_size=batch_size or self.batch_size,
+            shuffle=False,
+            collate_fn=collate_fn or self.collate_fn,
         )
 
     def _create_test_dataset(
@@ -222,15 +218,23 @@ class DattriInfluence(Explainer, ABC):
             }
             if targets is not None:
                 data["labels"] = (
-                    targets
-                    if isinstance(targets, list)
-                    else targets.tolist()
+                    targets if isinstance(targets, list) else targets.tolist()
                 )
             return hf_datasets.Dataset.from_dict(data)
         raise ValueError(
             f"Unsupported test_data type: {type(test_data)}. "
             "Expected torch.Tensor or Dict[str, Tensor]."
         )
+
+    def _call_attribute(
+        self,
+        train_loader: torch.utils.data.DataLoader,
+        test_loader: torch.utils.data.DataLoader,
+    ) -> torch.Tensor:
+        # dattri TRAK: attribute(test_loader, train_loader) → (n_train, n_test)
+        if self.attributor.full_train_dataloader is not None:
+            return self.attributor.attribute(test_loader)
+        return self.attributor.attribute(test_loader, train_loader)
 
     def explain(
         self,
@@ -461,7 +465,7 @@ class DattriGradDot(DattriTracInCP):
             model=model,
             train_dataset=train_dataset,
             loss_func=loss_func,
-            weight_list=torch.ones(1),
+            learning_rate=1.0,
             task=task,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
@@ -504,7 +508,7 @@ class DattriGradCos(DattriTracInCP):
             model=model,
             train_dataset=train_dataset,
             loss_func=loss_func,
-            weight_list=torch.ones(1),
+            learning_rate=1.0,
             task=task,
             checkpoints=checkpoints,
             checkpoints_load_func=checkpoints_load_func,
@@ -586,7 +590,7 @@ class DattriEKFAC(DattriInfluence):
 
     References
     ----------
-    (1) Grosse, Roger, et al.  (2023). "Studying Large Language Model 
+    (1) Grosse, Roger, et al.  (2023). "Studying Large Language Model
     Generalization with Influence Functions." arXiv preprint arXiv:2308.03296.
 
     """
