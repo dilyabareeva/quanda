@@ -9,4 +9,4 @@ apptainer shell --nv \
     --bind "$(pwd):/workspace" \
     --bind /data/cluster/users/bareeva:/data/cluster/users/bareeva \
     --pwd /workspace \
-    "$(dirname "$0")/env_quanda2.sif"
+    "$(dirname "$0")/env_quanda.sif"

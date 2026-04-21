@@ -129,6 +129,7 @@ def main():
     df.reset_index(inplace=True)
 
     metrics = [bench_labels.get(b, b) for b in benches]
+    metrics = [m for m in metrics if not df[m].isna().all()]
 
     rcParams["font.family"] = "DejaVu Sans"
     rcParams["font.weight"] = "normal"
@@ -145,42 +146,37 @@ def main():
     bar_padding = 0.03
     x_indices = np.arange(n_metrics)
 
-    for y in (25, 50, 75, 100):
-        plt.axhline(
-            y=y, linewidth=0.3, zorder=0, color="gray", linestyle="dashed"
-        )
-
     for j, metric in enumerate(metrics):
         values = df[metric].values
         valid = ~np.isnan(values)
         sorted_idx = np.argsort(values[valid])[::-1]
         sorted_values = values[valid][sorted_idx]
         orig_idx = np.flatnonzero(valid)[sorted_idx]
-        top = sorted_values[0] if sorted_values.size else 0.0
-        pct = 100.0 * sorted_values / top if top else sorted_values * 0.0
         x_positions = x_indices[j] + np.arange(len(sorted_values)) * (
             bar_width + bar_padding
         )
         ax.bar(
             x_positions,
-            pct,
+            sorted_values,
             width=bar_width,
             color=[colors[i % len(colors)] for i in orig_idx],
             edgecolor="none",
             label=metric,
         )
 
-    ax.set_yticks([0, 25, 50, 75, 100])
-    ax.set_yticklabels(["0%", "25%", "50%", "75%", "100%"])
+    ax.yaxis.grid(
+        True, linewidth=0.3, zorder=0, color="gray", linestyle="dashed"
+    )
+    ax.set_axisbelow(True)
     ax.tick_params(axis="y", size=3, width=0.5)
 
     ax.set_xticks(
         x_indices + (bar_width + bar_padding) * (n_explainers - 1) / 2
     )
-    ax.set_xticklabels(metrics, rotation=45, ha="center", fontsize=7)
+    ax.set_xticklabels(metrics, rotation=45, ha="center", fontsize=4)
     ax.tick_params(axis="x", pad=0, size=3, width=0.5)
 
-    ax.set_ylabel("% of top", fontsize=7)
+    ax.set_ylabel("score", fontsize=7)
     ax.tick_params(axis="y", labelsize=6)
     for spine in ax.spines.values():
         spine.set_linewidth(0.3)

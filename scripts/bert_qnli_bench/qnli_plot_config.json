@@ -1,9 +1,12 @@
 {
   "methods": [
-    "representer_points",
-    "arnoldi",
-    "tracincpfast",
+    "dattri_arnoldi",
+    "dattri_ekfac",
+    "dattri_tracin",
+    "dattri_graddot",
+    "dattri_gradcos",
     "trak",
+    "similarity",
     "random"
   ],
   "benches": [
@@ -14,10 +17,13 @@
     "qnli_model_randomization"
   ],
   "method_labels": {
-    "representer_points": "ReprPoints",
-    "arnoldi": "ArnoldiInf",
-    "tracincpfast": "TracInCP",
+    "dattri_arnoldi": "ArnoldiInf",
+    "dattri_ekfac": "EK-FAC",
+    "dattri_tracin": "TracIn",
+    "dattri_graddot": "GradDot",
+    "dattri_gradcos": "GradCos",
     "trak": "TRAK-1",
+    "similarity": "Similarity",
     "random": "Random"
   },
   "bench_labels": {
@@ -28,11 +34,13 @@
     "qnli_model_randomization": "Model\nRandomization"
   },
   "colors": {
-    "representer_points": "#EB9C38",
-    "arnoldi":            "#83BA59",
-    "tracincpfast":       "#EA4E38",
-    "trak":               "#7D53BA",
-    "random":             "#90918B",
-    "similarity":         "#3B8FB5"
+    "dattri_arnoldi":  "#83BA59",
+    "dattri_tracin":   "#EA4E38",
+    "trak":            "#7D53BA",
+    "similarity":      "#3B8FB5",
+    "random":          "#90918B",
+    "dattri_ekfac":    "#EB9C38",
+    "dattri_graddot":  "#D94F8A",
+    "dattri_gradcos":  "#F2C14E"
   }
 }

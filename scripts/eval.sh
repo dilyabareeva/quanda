@@ -9,7 +9,22 @@
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 PARALLEL="${PARALLEL:-true}"
-EXTRA_ARGS=("$@")
+
+REGENERATE_EXPLANATIONS=false
+EXTRA_ARGS=()
+for arg in "$@"; do
+    case "$arg" in
+        --regenerate-explanations)
+            REGENERATE_EXPLANATIONS=true
+            ;;
+        *)
+            EXTRA_ARGS+=("$arg")
+            ;;
+    esac
+done
+if [ "$REGENERATE_EXPLANATIONS" = true ]; then
+    EXTRA_ARGS+=("+regenerate_explanations=true")
+fi
 
 LOG_DIR="logs/${EVAL_CONFIG_NAME}"
 mkdir -p "$LOG_DIR"
@@ -19,9 +34,9 @@ run_eval() {
     local multirun=""
     [ -n "$sweep" ] && multirun="--multirun"
     python scripts/run_bench_eval.py \
-        --config-name "$EVAL_CONFIG_NAME" \
+        --config-name "$EVAL_CONFIG_NAME" $multirun \
         bench="$bench" explainer="$method" \
-        $sweep $multirun "${EXTRA_ARGS[@]}"
+        $sweep "${EXTRA_ARGS[@]}"
 }
 
 # Populate the local cache (metadata + ckpt) once per benchmark so that
@@ -37,12 +52,9 @@ for bench in "${benchmarks[@]}"; do
     for method in "${methods[@]}"; do
         sweep="${EXPL_SWEEP[$method]}"
         log="${LOG_DIR}/${bench}__${method}.log"
-        if [ "$PARALLEL" = true ]; then
-            run_eval "$bench" "$method" "$sweep" > "$log" 2>&1 &
-        else
-            run_eval "$bench" "$method" "$sweep" > "$log" 2>&1
-        fi
+        run_eval "$bench" "$method" "$sweep" > "$log" 2>&1 &
     done
+    [ "$PARALLEL" = true ] || wait
 done
 
 wait
