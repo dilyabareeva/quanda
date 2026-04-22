@@ -143,6 +143,7 @@ class Kronfluence(Explainer):
             model=self.model,
             task=self.task,
             output_dir=self.cache_dir,
+            cpu=torch.device(self.device).type == "cpu",
         )
 
         if dataloader_kwargs is None:
