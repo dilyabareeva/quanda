@@ -244,7 +244,8 @@ class LinearDatamodeling(Benchmark):
             batch_size=batch_size,
             load_meta_from_disk=load_meta_from_disk,
         )
-        assert isinstance(obj, LinearDatamodeling)
+        if not isinstance(obj, LinearDatamodeling):
+            raise TypeError("Expected a LinearDatamodeling instance.")
 
         if skip_subsets or cls._lds_skip_subsets:
             return obj
@@ -304,7 +305,8 @@ class LinearDatamodeling(Benchmark):
             offline=True,
             device=device,
         )
-        assert isinstance(obj, LinearDatamodeling)
+        if not isinstance(obj, LinearDatamodeling):
+            raise TypeError("Expected a LinearDatamodeling instance.")
 
         pretrained_base = BenchConfigParser.load_pretrained_base(
             model_cfg=config["model"], device=device
@@ -443,7 +445,8 @@ class LinearDatamodeling(Benchmark):
         finally:
             cls._push_subsets_during_train = False
             cls._lds_skip_subsets = False
-        assert isinstance(obj, LinearDatamodeling)
+        if not isinstance(obj, LinearDatamodeling):
+            raise TypeError("Expected a LinearDatamodeling instance.")
         return obj
 
     def sanity_check(self, batch_size: int = 32) -> dict:

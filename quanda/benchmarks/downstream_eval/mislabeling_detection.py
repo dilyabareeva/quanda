@@ -81,10 +81,11 @@ class MislabelingDetection(Benchmark):
         """
         results = super().sanity_check(batch_size)
 
-        assert isinstance(self.train_dataset, LabelFlippingDataset), (
-            "Training dataset in Mislabeling Metric should have flipped "
-            "labels."
-        )
+        if not isinstance(self.train_dataset, LabelFlippingDataset):
+            raise TypeError(
+                "Training dataset in Mislabeling Metric should have flipped "
+                "labels."
+            )
         train_dl = torch.utils.data.DataLoader(
             self.train_dataset.filtered(self.train_dataset.transform_indices),
             batch_size=batch_size,

@@ -61,7 +61,10 @@ class LabelFlippingDataset(TransformedDataset):
         }
         super().apply_filter(filter_indices)
         self.mislabeling_labels = remapped_labels
-        assert isinstance(self.metadata, LabelFlippingMetadata)
+        if not isinstance(self.metadata, LabelFlippingMetadata):
+            raise TypeError(
+                "metadata must be a LabelFlippingMetadata instance."
+            )
         self.metadata.mislabeling_labels = remapped_labels
 
     def __getitem__(self, idx: int):

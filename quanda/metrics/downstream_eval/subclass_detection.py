@@ -60,11 +60,12 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             checkpoints_load_func=checkpoints_load_func,
         )
 
-        assert len(train_subclass_labels) == ds_len(self.train_dataset), (
-            f"Number of subclass labels ({len(train_subclass_labels)}) "
-            f"does not match the number of train dataset samples "
-            f"({ds_len(self.train_dataset)})."
-        )
+        if len(train_subclass_labels) != ds_len(self.train_dataset):
+            raise ValueError(
+                f"Number of subclass labels ({len(train_subclass_labels)}) "
+                f"does not match the number of train dataset samples "
+                f"({ds_len(self.train_dataset)})."
+            )
         self.subclass_labels = train_subclass_labels
         self.filter_by_prediction = filter_by_prediction
 

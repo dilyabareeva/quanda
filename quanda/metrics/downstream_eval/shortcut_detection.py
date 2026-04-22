@@ -99,10 +99,12 @@ class ShortcutDetectionMetric(Metric):
             [self.train_dataset[int(i)][1] for i in self.shortcut_indices],
             device=self.device,
         )
-        assert torch.all(shortcut_labels == self.shortcut_cls), (
-            f"shortcut indices don't have the correct class.\
-            Expected only {self.shortcut_cls}, got {set(shortcut_labels)}."
-        )
+        if not torch.all(shortcut_labels == self.shortcut_cls):
+            raise ValueError(
+                f"shortcut indices don't have the correct class. "
+                f"Expected only {self.shortcut_cls}, "
+                f"got {set(shortcut_labels)}."
+            )
 
     def update(
         self,
