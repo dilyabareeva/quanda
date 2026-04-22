@@ -291,7 +291,8 @@ class TRAK(Explainer):
         out_to_loss = self.traker.saver.current_store["out_to_loss"]
 
         explanations = (
-            get_matrix_mult(g, g_target).detach().cpu() * out_to_loss
+            get_matrix_mult(g, g_target.to(g.dtype)).detach().cpu()
+            * out_to_loss
         )
 
         return explanations.T
