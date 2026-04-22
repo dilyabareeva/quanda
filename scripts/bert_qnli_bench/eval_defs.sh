@@ -22,6 +22,3 @@ EXPL_SWEEP[similarity]="explainer.kwargs.layers=dropout,classifier +explainer.kw
 EXPL_SWEEP[trak]="explainer.kwargs.proj_dim=512 +explainer.kwargs.use_half_precision=true +explainer.kwargs.task=text_classification device=cuda:0 explainer.kwargs.batch_size=8"
 EXPL_SWEEP[random]="device=cuda:0"
 EXPL_SWEEP[kronfluence]="explainer.kwargs.task_module.tracked_modules=[classifier],[bert.pooler.dense,classifier] +explainer.kwargs.task=text_classification device=cuda:1"
-EXPL_SWEEP[dattri_tracin]="+explainer.kwargs.task=text_classification +explainer.kwargs.layer_name=[classifier.weight,classifier.bias] device=cuda:1"
-EXPL_SWEEP[dattri_graddot]="+explainer.kwargs.task=text_classification +explainer.kwargs.layer_name=[classifier.weight,classifier.bias] device=cuda:0"
-EXPL_SWEEP[dattri_gradcos]="+explainer.kwargs.task=text_classification +explainer.kwargs.layer_name=[classifier.weight,classifier.bias] device=cuda:1"

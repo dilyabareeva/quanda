@@ -247,7 +247,8 @@ class BenchConfigParser:
         module_cfg = model_cfg["module"]
         module_cls = pl_modules[module_cfg["name"]]
         model = module_cls.from_pretrained_base(  # type: ignore[attr-defined]
-            pretrained_model_name=pretrained_model_name
+            pretrained_model_name=pretrained_model_name,
+            num_labels=model_cfg.get("num_labels", 2),
         )
         model.to(device)
         return model
