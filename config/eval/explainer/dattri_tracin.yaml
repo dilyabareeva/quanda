@@ -7,4 +7,4 @@ kwargs:
   learning_rate:
     2.0e-05
   normalized_grad: false
-  batch_size: ${batch_size}
+  batch_size: 4
