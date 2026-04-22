@@ -381,7 +381,7 @@ class Benchmark(ABC):
         train_dl = ds_handler.create_dataloader(
             dataset=obj.train_dataset,
             batch_size=batch_size,
-            shuffle=False,  # TODO: true
+            shuffle=True,
             num_workers=trainer.num_workers,
         )
         if obj.val_dataset is not None:
@@ -389,7 +389,7 @@ class Benchmark(ABC):
             val_dl = val_ds_handler.create_dataloader(
                 dataset=obj.val_dataset,
                 batch_size=batch_size,
-                shuffle=False,  # TODO: true
+                shuffle=False,
                 num_workers=trainer.num_workers,
             )
         else:
@@ -512,6 +512,10 @@ class Benchmark(ABC):
                         repo_id=repo_id,
                         revision=revision,
                     )
+                upload_folder(
+                    folder_path=obj.checkpoints[-1],
+                    repo_id=repo_id,
+                )
 
         pid_suffix = getattr(obj, "_pid_suffix", "")
         metadata_dir = BenchConfigParser.get_metadata_dir(
