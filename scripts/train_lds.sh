@@ -18,6 +18,7 @@ PUSH_ONLY=false
 GPU_SPLIT=false
 SUBSET_START=""
 SUBSET_END=""
+SUBSET_INDICES=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -30,6 +31,7 @@ while [[ $# -gt 0 ]]; do
         --gpu-split) GPU_SPLIT=$2; shift 2 ;;
         --start) SUBSET_START=$2; shift 2 ;;
         --end) SUBSET_END=$2; shift 2 ;;
+        --indices) SUBSET_INDICES=$2; shift 2 ;;
         *) shift ;;
     esac
 done
@@ -69,7 +71,7 @@ run_bench() {
     local M bench_save_dir
     M=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['m'])")
     bench_save_dir=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml')).get('bench_save_dir', './tmp'))")
-    ckpt_basename=$(python -c "import yaml, os; print(os.path.basename(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['ckpt']))")
+    ckpt_basename=$(python -c "import yaml, os; print(os.path.basename(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['subset_ckpt']))")
 
     # Hydrate non-pid metadata dir from HF Hub so parallel workers and
     # push_subset find subset_ids without hitting the pid-suffixed path.
@@ -84,13 +86,19 @@ LinearDatamodeling.load_pretrained(
 
     mkdir -p "logs/${id}"
 
-    local start end
-    start=${SUBSET_START:-0}
-    end=${SUBSET_END:-$((M - 1))}
-    if [ "$end" -gt "$((M - 1))" ]; then end=$((M - 1)); fi
+    local index_list
+    if [ -n "$SUBSET_INDICES" ]; then
+        index_list=$(echo "$SUBSET_INDICES" | tr ',' ' ')
+    else
+        local start end
+        start=${SUBSET_START:-0}
+        end=${SUBSET_END:-$((M - 1))}
+        if [ "$end" -gt "$((M - 1))" ]; then end=$((M - 1)); fi
+        index_list=$(seq "$start" "$end")
+    fi
 
     if [ "$PUSH_ONLY" = false ]; then
-        for i in $(seq "$start" "$end"); do
+        for i in $index_list; do
             gpu_env=()
             device_args=()
             if [ "$GPU_SPLIT" = true ]; then
@@ -116,8 +124,9 @@ LinearDatamodeling.load_pretrained(
     fi
 
     missing_subsets=()
-    for i in $(seq "$start" "$end"); do
+    for i in $index_list; do
         subset_dir="${bench_save_dir}/ckpt/${ckpt_basename}_lds_subset_${i}"
+        echo "Pushing subset $i from $subset_dir to HF Hub..."
         if [ ! -d "$subset_dir" ]; then
             missing_subsets+=("$i")
             continue

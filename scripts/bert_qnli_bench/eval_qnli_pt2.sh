@@ -7,7 +7,7 @@ EVAL_CONFIG_NAME="bert_qnli"
 benchmarks=(
     qnli_class_detection
     qnli_mislabeling_detection
-    qnli_linear_datamodeling
+    #qnli_linear_datamodeling
     #qnli_top_k_cardinality
     #qnli_model_randomization
 )
@@ -15,11 +15,6 @@ benchmarks=(
 methods=(
     similarity
     kronfluence
-    #dattri_tracin
-    #dattri_graddot
-    #dattri_gradcos
-    trak
-    random
 )
 
 PARALLEL=false 

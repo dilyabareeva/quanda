@@ -5,9 +5,8 @@ source "$(dirname "$0")/eval_defs.sh"
 EVAL_CONFIG_NAME="mnist_lenet"
 
 benchmarks=(
-    #mnist_top_k_cardinality
-    #mnist_model_randomization
-    mnist_linear_datamodeling
+    mnist_top_k_cardinality
+    mnist_model_randomization
 )
 
 methods=(
@@ -19,4 +18,4 @@ methods=(
     random
 )
 
-source "$(dirname "$0")/../eval.sh" --regenerate-explanations "$@"
+source "$(dirname "$0")/../eval.sh" "$@"

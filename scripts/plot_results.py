@@ -74,7 +74,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "--results-dir",
-        default="/data2/bareeva/Projects/quanda/cluster_output/eval_results/cifar",
+        default="/data2/bareeva/Projects/quanda/cluster_output_new/eval_results/cifar",
     )
     ap.add_argument(
         "--config",

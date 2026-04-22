@@ -80,3 +80,4 @@ scripts/*/bar_rank.png
 scripts/*/bar_rank.csv
 log/*
 logs_*/*
+local_eval_results/*

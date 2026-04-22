@@ -8,6 +8,11 @@
 
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
+# Disable pathname expansion so bracketed Hydra override values in
+# ${EXPL_SWEEP[*]} (e.g. `key=[a,b],[c,d]`) are passed through to Python
+# as-is instead of being globbed against cwd.
+set -o noglob
+
 PARALLEL="${PARALLEL:-true}"
 
 REGENERATE_EXPLANATIONS=false
@@ -47,6 +52,11 @@ for bench in "${benchmarks[@]}"; do
         bench="$bench" "${EXTRA_ARGS[@]}" \
         >> "${LOG_DIR}/caching.log" 2>&1
 done
+
+# Cache is warm — force HF libs to skip Hub revalidation in the sweep.
+export HF_HUB_OFFLINE=1
+export HF_DATASETS_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
 
 for bench in "${benchmarks[@]}"; do
     for method in "${methods[@]}"; do

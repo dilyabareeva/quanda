@@ -10,18 +10,16 @@ benchmarks=(
     mnist_mislabeling_detection
     mnist_shortcut_detection
     mnist_mixed_datasets
-    #mnist_linear_datamodeling
-    #mnist_top_k_cardinality
-    #mnist_model_randomization
+    mnist_linear_datamodeling
 )
 
 methods=(
     similarity
     representer_points
-    #tracincpfast
+    tracincpfast
     arnoldi
-    #trak
-    #random
+    trak
+    random
 )
 
 source "$(dirname "$0")/../eval.sh" "$@"
