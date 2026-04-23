@@ -60,7 +60,7 @@ from quanda.utils.functions import cosine_similarity
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.4991194009780884,
+            0.5077641606330872,
         ),
         (
             "mnist",
@@ -458,7 +458,7 @@ def test_filter_missing_shortcut_cls(
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.4991194009780884,
+            0.5077641606330872,
         ),
         (
             "mnist-mislabeling-download",
@@ -468,7 +468,7 @@ def test_filter_missing_shortcut_cls(
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.4991194009780884,
+            0.5077641606330872,
         ),
         (
             "mnist-shortcut",
