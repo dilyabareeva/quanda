@@ -1,8 +1,10 @@
 """Common utility functions for the Quanda package."""
 
 import functools
+import json
 import os
 import random
+import re
 from abc import ABC
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -509,17 +511,26 @@ class DatasetSplit(ABC):
         return os.path.exists(os.path.join(path, name))
 
 
-def _stable_repr(obj: Any) -> str:
-    """Process-stable string form of ``obj`` for hashing/serialization.
+_DEFAULT_REPR_RE = re.compile(r" object at 0x[0-9a-fA-F]+>")
 
-    ``str()`` / ``repr()`` embed ``id(obj)`` for callables and arbitrary
-    instances, so the default ``json.dumps(..., default=str)`` produces a
-    different payload on every Python process and breaks cache reuse.
-    """
+
+def _stable_repr(obj: Any) -> str:
+    """Process-stable string form of ``obj`` for hashing/serialization."""
     if callable(obj) and hasattr(obj, "__qualname__"):
         module = getattr(obj, "__module__", "") or ""
         return f"{module}.{obj.__qualname__}" if module else obj.__qualname__
-    return str(obj)
+    s = str(obj)
+    if not _DEFAULT_REPR_RE.search(s):
+        return s
+    cls = type(obj)
+    module = getattr(cls, "__module__", "") or ""
+    qualname = cls.__qualname__
+    fq = f"{module}.{qualname}" if module else qualname
+    attrs = getattr(obj, "__dict__", None)
+    if attrs:
+        inner = json.dumps(attrs, sort_keys=True, default=_stable_repr)
+        return f"{fq}({inner})"
+    return fq
 
 
 def _subsample_dataset(
