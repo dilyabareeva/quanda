@@ -5,3 +5,4 @@ kwargs:
     _target_: quanda.explainers.wrappers.kronfluence_tasks.TextClassificationTask
     tracked_modules: [classifier]
   batch_size: 8
+  device: ${device}
