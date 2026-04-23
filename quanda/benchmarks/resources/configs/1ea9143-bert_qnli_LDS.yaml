@@ -63,7 +63,7 @@ logger:
 id: 1ea9143-bert_qnli_LDS
 explanations_group: bert_qnli_base
 bench: LDS
-bench_save_dir: bench_out #/data/cluster/users/bareeva/quanda_output/train2
+bench_save_dir: bench_out
 log_dir: hydra_logs
 repo_id: quanda-bench-test
 cache_dir: tmp

@@ -10,5 +10,5 @@ benchmarks=(
     MislabelingDetection
 )
 
-source "$(dirname "$0")/../train.sh" --parallel true --train-only false "$@"
+source "$(dirname "$0")/../train.sh" --parallel true --train-only true "$@"
 
