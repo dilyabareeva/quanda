@@ -1,7 +1,7 @@
 import json
 import os
 import pickle
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import datasets
 import numpy as np
@@ -404,52 +404,13 @@ def load_resnet():
     return resnet18()
 
 
-class ClassificationTask(Task):
-    # Copied from: https://github.com/pomonam/kronfluence/blob/main/examples/cifar/analyze.py
-    def compute_train_loss(
-        self,
-        batch: Tuple[torch.Tensor, torch.Tensor],
-        model: nn.Module,
-        sample: bool = False,
-    ) -> torch.Tensor:
-        inputs, labels = batch
-        logits = model(inputs)
-        if not sample:
-            return F.cross_entropy(logits, labels, reduction="sum")
-        with torch.no_grad():
-            probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
-            sampled_labels = torch.multinomial(
-                probs,
-                num_samples=1,
-            ).flatten()
-        return F.cross_entropy(logits, sampled_labels, reduction="sum")
-
-    def compute_measurement(
-        self,
-        batch: Tuple[torch.Tensor, torch.Tensor],
-        model: nn.Module,
-    ) -> torch.Tensor:
-        # Copied from: https://github.com/MadryLab/trak/blob/main/trak/modelout_functions.py.
-        inputs, labels = batch
-        logits = model(inputs)
-
-        bindex = torch.arange(logits.shape[0]).to(
-            device=logits.device, non_blocking=False
-        )
-        logits_correct = logits[bindex, labels]
-
-        cloned_logits = logits.clone()
-        cloned_logits[bindex, labels] = torch.tensor(
-            -torch.inf, device=logits.device, dtype=logits.dtype
-        )
-
-        margins = logits_correct - cloned_logits.logsumexp(dim=-1)
-        return -margins.sum()
-
-
 @pytest.fixture
 def classification_task():
-    return ClassificationTask()
+    from quanda.explainers.wrappers.kronfluence_tasks import (
+        ImageClassificationTask,
+    )
+
+    return ImageClassificationTask()
 
 
 # Partially copied from https://github.com/pomonam/kronfluence/tree/main/examples/glue.

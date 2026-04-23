@@ -5,3 +5,4 @@ kwargs:
   proj_dim: 2048
   batch_size: 64
   load_from_disk: true
+  lambda_reg: 0.0
