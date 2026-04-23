@@ -246,6 +246,33 @@ def test_explain_default_explanations_id(
 
 
 @pytest.mark.benchmarks
+def test_iter_explanations_requires_explainer_when_no_cache():
+    """_iter_explanations raises if explainer is None and no precomputed
+    explanations were provided."""
+    from quanda.benchmarks.base import Benchmark
+
+    bench = Benchmark.__new__(ClassDetection)
+    bench.device = "cpu"
+    bench.use_predictions = False
+
+    dataset = torch.utils.data.TensorDataset(
+        torch.randn(2, 1, 4, 4), torch.tensor([0, 1])
+    )
+
+    with pytest.raises(RuntimeError, match="explainer must be provided"):
+        next(
+            bench._iter_explanations(
+                explainer=None,
+                eval_dataset=dataset,
+                batch_size=2,
+                max_eval_n=None,
+                eval_seed=0,
+                precomputed_explanations=None,
+            )
+        )
+
+
+@pytest.mark.benchmarks
 def test_load_meta_from_disk_missing_raises(
     load_mnist_shortcut_config, tmp_path
 ):

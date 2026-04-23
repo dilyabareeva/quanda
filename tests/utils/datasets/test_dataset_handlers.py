@@ -135,6 +135,30 @@ def test_huggingface_sequence_handler_build_positional_batch():
 
 
 @pytest.mark.utils
+def test_torch_handler_build_positional_batch_rejects_dict_input():
+    handler = TorchDatasetHandler()
+    with pytest.raises(TypeError, match="expects a tensor input"):
+        handler.build_positional_batch(
+            {"input_ids": torch.tensor([1])},  # type: ignore[arg-type]
+            torch.tensor([0]),
+            device="cpu",
+        )
+
+
+@pytest.mark.utils
+def test_huggingface_sequence_handler_build_positional_batch_rejects_tensor():
+    handler = HuggingFaceSequenceDatasetHandler(
+        input_keys=("input_ids",),
+    )
+    with pytest.raises(TypeError, match="expects a dict input"):
+        handler.build_positional_batch(
+            torch.tensor([[1]]),  # type: ignore[arg-type]
+            torch.tensor([0]),
+            device="cpu",
+        )
+
+
+@pytest.mark.utils
 def test_get_dataset_handler_unwraps_subset_and_raises_on_unsupported():
     tensor_ds = torch.utils.data.TensorDataset(
         torch.randn(4, 2), torch.randint(0, 2, (4,))

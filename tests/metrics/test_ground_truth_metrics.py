@@ -11,6 +11,39 @@ from quanda.utils.training import Trainer
 
 
 @pytest.mark.ground_truth_metrics
+def test_linear_datamodeling_missing_subset_ids_file(
+    load_mnist_model,
+    load_mnist_last_checkpoint,
+    load_mnist_dataset,
+    torch_sgd_optimizer,
+    torch_cross_entropy_loss_object,
+    tmp_path,
+):
+    trainer = Trainer(
+        max_epochs=1,
+        optimizer=torch_sgd_optimizer,
+        lr=0.1,
+        criterion=torch_cross_entropy_loss_object,
+    )
+
+    with pytest.raises(FileNotFoundError, match="No file found at"):
+        LinearDatamodelingMetric(
+            model=load_mnist_model,
+            checkpoints=load_mnist_last_checkpoint,
+            train_dataset=load_mnist_dataset,
+            trainer=trainer,
+            alpha=0.5,
+            model_id="lds_missing",
+            m=2,
+            seed=0,
+            correlation_fn="spearman",
+            cache_dir=str(tmp_path),
+            batch_size=1,
+            subset_ids="does_not_exist.yaml",
+        )
+
+
+@pytest.mark.ground_truth_metrics
 @pytest.mark.parametrize(
     "test_id, model, checkpoint,dataset, test_data, test_labels, optimizer, criterion, expected, method_kwargs",
     [

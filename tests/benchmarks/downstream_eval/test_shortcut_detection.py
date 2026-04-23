@@ -1,5 +1,6 @@
 import math
 import os
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -12,6 +13,88 @@ from quanda.benchmarks.resources import config_map
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import cosine_similarity
+
+
+def _bare_bench(**attrs):
+    """Build a ShortcutDetection instance without running __init__."""
+    bench = ShortcutDetection.__new__(ShortcutDetection)
+    defaults = {
+        "model": torch.nn.Identity(),
+        "train_dataset": torch.utils.data.TensorDataset(torch.zeros(1, 1)),
+        "eval_dataset": torch.utils.data.TensorDataset(torch.zeros(1, 1)),
+        "device": "cpu",
+    }
+    defaults.update(attrs)
+    for k, v in defaults.items():
+        setattr(bench, k, v)
+    return bench
+
+
+@pytest.mark.benchmarks
+def test_shortcut_sanity_check_rejects_plain_train_dataset(monkeypatch):
+    from quanda.benchmarks.base import Benchmark
+
+    monkeypatch.setattr(
+        Benchmark, "sanity_check", lambda self, batch_size=32: {}
+    )
+    bench = _bare_bench()
+    with pytest.raises(
+        TypeError, match="train_dataset must be a SampleTransformationDataset"
+    ):
+        bench.sanity_check()
+
+
+@pytest.mark.benchmarks
+def test_shortcut_sanity_check_rejects_plain_eval_dataset(monkeypatch):
+    from quanda.benchmarks.base import Benchmark
+    from quanda.utils.datasets.transformed.sample import (
+        SampleTransformationDataset,
+    )
+
+    monkeypatch.setattr(
+        Benchmark, "sanity_check", lambda self, batch_size=32: {}
+    )
+    train_ds = SampleTransformationDataset.__new__(SampleTransformationDataset)
+    bench = _bare_bench(train_dataset=train_ds)
+    with pytest.raises(
+        TypeError, match="eval_dataset must be a SampleTransformationDataset"
+    ):
+        bench.sanity_check()
+
+
+@pytest.mark.benchmarks
+def test_shortcut_evaluate_rejects_plain_train_dataset(monkeypatch):
+    monkeypatch.setattr(
+        ShortcutDetection,
+        "_resolve_precomputed_explanations",
+        lambda self, **kwargs: object(),
+    )
+    bench = _bare_bench()
+    with pytest.raises(
+        TypeError, match="train_dataset must be a SampleTransformationDataset"
+    ):
+        bench.evaluate(explainer_cls=CaptumSimilarity)
+
+
+@pytest.mark.benchmarks
+def test_shortcut_extra_kwargs_missing_cls_idx_raises():
+    from quanda.utils.datasets.transformed.sample import (
+        SampleTransformationDataset,
+    )
+
+    fake_ds = SampleTransformationDataset.__new__(SampleTransformationDataset)
+    fake_ds.metadata = SimpleNamespace(cls_idx=None)
+
+    with pytest.raises(
+        ValueError, match="must have a class index in its metadata"
+    ):
+        ShortcutDetection._extra_kwargs_from_config(
+            config={"eval_dataset": {"filter_indices": {}}},
+            train_dataset=fake_ds,
+            eval_dataset=fake_ds,
+            metadata_dir="/tmp",
+            load_meta_from_disk=False,
+        )
 
 
 @pytest.mark.benchmarks
