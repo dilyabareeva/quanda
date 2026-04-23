@@ -485,9 +485,7 @@ class RepresenterPoints(Explainer):
             if model.W.grad is None:
                 raise ValueError("Gradient is None")
 
-            grad_loss = (
-                torch.mean(torch.abs(model.W.grad)).detach().cpu().numpy()
-            )
+            grad_loss = torch.mean(torch.abs(model.W.grad)).item()
 
             if epoch == 0:
                 init_grad = grad_loss
