@@ -470,6 +470,9 @@ class RepresenterPoints(Explainer):
                 "0 | Grad: 0",
             )
 
+        best_W = model.W.data.clone()
+        init_grad = float("inf")
+
         for epoch in range(self.epoch):
             phi_loss = 0
             optimizer.zero_grad()
@@ -486,10 +489,12 @@ class RepresenterPoints(Explainer):
                 torch.mean(torch.abs(model.W.grad)).detach().cpu().numpy()
             )
 
+            if epoch == 0:
+                init_grad = grad_loss
+                best_W = temp_W
+
             # save the W with lowest loss
             if grad_loss < min_loss:
-                if epoch == 0:
-                    init_grad = grad_loss
                 min_loss = grad_loss
                 best_W = temp_W
                 if min_loss < init_grad / 200:
