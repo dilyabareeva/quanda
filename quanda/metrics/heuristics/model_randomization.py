@@ -82,7 +82,7 @@ class ModelRandomizationMetric(Metric):
             checkpoints_load_func=checkpoints_load_func,
         )
 
-        self.expl_kwargs = expl_kwargs or {}
+        self.expl_kwargs = copy.copy(expl_kwargs) if expl_kwargs else {}
         self.model_id = model_id
         self.cache_dir = cache_dir
         # create cache directory if it does not exist
@@ -96,6 +96,8 @@ class ModelRandomizationMetric(Metric):
 
         if "model_id" in self.expl_kwargs:
             self.expl_kwargs["model_id"] += "_rand"
+        else:
+            self.expl_kwargs["model_id"] = self.model_id + "_rand"
 
         self.rand_explainer = explainer_cls(
             model=self.rand_model,

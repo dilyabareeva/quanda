@@ -1,6 +1,7 @@
 """Wrapper for the TRAK explainer as given by the official TRAK library."""
 
 import logging
+import os
 import warnings
 from importlib.util import find_spec
 from typing import (
@@ -156,13 +157,13 @@ class TRAK(Explainer):
             checkpoints_load_func=checkpoints_load_func,
         )
         self.model_id = model_id
-        self.cache_dir = cache_dir
         self.dataset = train_dataset
         self.proj_dim = proj_dim
         self.batch_size = batch_size
-        self.cache_dir = (
-            cache_dir if cache_dir is not None else f"./trak_{model_id}_cache"
-        )
+        if cache_dir is None:
+            cache_dir = "./trak_cache"
+        self.cache_dir = os.path.join(cache_dir, str(model_id))
+        os.makedirs(self.cache_dir, exist_ok=True)
         self.lambda_reg = lambda_reg
         self.grad_wrt = grad_wrt
         num_params_for_grad = 0

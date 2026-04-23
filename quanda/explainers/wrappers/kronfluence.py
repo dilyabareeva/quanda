@@ -1,6 +1,7 @@
 """Kronfluence data attribution wrapper."""
 
 import copy
+import os
 from typing import Any, Callable, Dict, List, Optional, Union
 
 import datasets  # type: ignore
@@ -72,6 +73,7 @@ class Kronfluence(Explainer):
         dataloader_kwargs: DataLoaderKwargs = None,
         overwrite_output_dir: bool = False,
         cache_dir: str = "./cache",
+        model_id: str = "0",
     ):
         """Initialize the `Kronfluence` explainer.
 
@@ -115,6 +117,9 @@ class Kronfluence(Explainer):
             Whether to overwrite cached factors. Defaults to False.
         cache_dir : str, optional
             Directory to store the cached results. Defaults to "./cache".
+        model_id : str, optional
+            Model identifier to distinguish cache directories when running
+            multiple explainers. Defaults to "0".
 
         """
         super().__init__(
@@ -136,7 +141,10 @@ class Kronfluence(Explainer):
         self.scores_name = scores_name
         self.score_args = score_args
         self.overwrite_output_dir = overwrite_output_dir
-        self.cache_dir = cache_dir
+        if cache_dir is None:
+            cache_dir = "./kronfluence_cache"
+        self.cache_dir = os.path.join(cache_dir, str(model_id))
+        os.makedirs(self.cache_dir, exist_ok=True)
 
         self.analyzer = Analyzer(
             analysis_name=self.analysis_name,
