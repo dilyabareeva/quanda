@@ -5,6 +5,7 @@ from __future__ import annotations
 import inspect
 import json
 import os
+import shutil
 
 import hydra
 import yaml
@@ -73,13 +74,19 @@ def main(cfg: DictConfig) -> float:
 
     print(f"[run] {tag}")
     expl_save_dir = os.path.join(cfg.cache_dir, "explanations", tag)
-    expl_meta = os.path.join(expl_save_dir, "explanations_config.yaml")
     regenerate = bool(cfg.get("regenerate_explanations", False))
-    if os.path.exists(expl_meta) and not regenerate:
+    if regenerate:
+        print(f"[run] regenerating: clearing {expl_save_dir}")
+        shutil.rmtree(expl_save_dir, ignore_errors=True)
+        expl_cache = expl_kwargs.get("cache_dir")
+        if expl_cache:
+            print(f"[run] regenerating: clearing {expl_cache}")
+            shutil.rmtree(expl_cache, ignore_errors=True)
+
+    expl_meta = os.path.join(expl_save_dir, "explanations_config.yaml")
+    if not regenerate and os.path.exists(expl_meta):
         print(f"[run] reusing cached explanations at {expl_save_dir}")
     else:
-        if regenerate and os.path.exists(expl_meta):
-            print(f"[run] regenerating explanations at {expl_save_dir}")
         bench_cls.explain(
             config=bench_cfg,
             explainer_cls=expl_cls,
