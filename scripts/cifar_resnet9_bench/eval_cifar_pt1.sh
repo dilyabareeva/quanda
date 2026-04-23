@@ -7,7 +7,6 @@ EVAL_CONFIG_NAME="cifar_resnet9"
 benchmarks=(
     cifar_class_detection
     cifar_subclass_detection
-    cifar_mislabeling_detection
     cifar_shortcut_detection
     cifar_mixed_datasets
 )

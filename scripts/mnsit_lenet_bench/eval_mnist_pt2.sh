@@ -7,6 +7,8 @@ EVAL_CONFIG_NAME="mnist_lenet"
 benchmarks=(
     mnist_top_k_cardinality
     mnist_model_randomization
+    mnist_mislabeling_detection
+    mnist_linear_datamodeling
 )
 
 methods=(
