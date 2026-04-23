@@ -75,7 +75,11 @@ def main(cfg: DictConfig) -> float:
     print(f"[run] {tag}")
     expl_save_dir = os.path.join(cfg.cache_dir, "explanations", tag)
     regenerate = bool(cfg.get("regenerate_explanations", False))
-    if regenerate:
+
+    expl_meta = os.path.join(expl_save_dir, "explanations_config.yaml")
+    if not regenerate and os.path.exists(expl_meta):
+        print(f"[run] reusing cached explanations at {expl_save_dir}")
+    else:
         print(f"[run] regenerating: clearing {expl_save_dir}")
         shutil.rmtree(expl_save_dir, ignore_errors=True)
         expl_cache = expl_kwargs.get("cache_dir")
@@ -83,10 +87,6 @@ def main(cfg: DictConfig) -> float:
             print(f"[run] regenerating: clearing {expl_cache}")
             shutil.rmtree(expl_cache, ignore_errors=True)
 
-    expl_meta = os.path.join(expl_save_dir, "explanations_config.yaml")
-    if not regenerate and os.path.exists(expl_meta):
-        print(f"[run] reusing cached explanations at {expl_save_dir}")
-    else:
         bench_cls.explain(
             config=bench_cfg,
             explainer_cls=expl_cls,
