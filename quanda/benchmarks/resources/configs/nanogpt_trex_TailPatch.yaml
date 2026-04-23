@@ -1,0 +1,29 @@
+model:
+  module:
+    name: NanoGPT
+    args: {}
+fact_tracing:
+  dataset_str: quanda-bench-test/trex-subset-benchmark
+  dataset_split: train
+  tokenizer:
+    backend: tiktoken
+    encoding: gpt2
+  num_prompts: 20
+  max_evidence_per_prompt: 5
+  max_length: 64
+  seed: 42
+id: nanogpt_trex_TailPatch
+bench: TailPatch
+bench_save_dir: bench_out
+repo_id: quanda-bench-test
+cache_dir: tmp
+device: cuda:0
+use_predictions: false
+batch_size: 1
+k: 4
+learning_rate: 1.0e-05
+optimizer_kwargs: {}
+tokenizer_name: gpt2
+ckpt: quanda-bench-test/gpt2-small-trex-openwebtext-ft
+num_checkpoints: 1
+meta_id: quanda-bench-test/nanogpt_trex_TailPatch_metadata

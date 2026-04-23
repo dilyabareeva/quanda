@@ -12,6 +12,22 @@ from quanda.utils.common import get_load_state_dict_func
 BATCH_TYPE = Dict[str, torch.Tensor]
 
 
+def _build_mrr_benchmark(
+    model, train_dataset, eval_dataset, entailment_labels, tmp_path
+) -> MRR:
+    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
+    torch.save(model.state_dict(), checkpoint_path)
+    return MRR(
+        model=model,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        checkpoints=[checkpoint_path],
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        device="cpu",
+        entailment_labels=entailment_labels,
+    )
+
+
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, explainer_cls, task, model, dataset, batch_size, expected_score",
@@ -44,20 +60,13 @@ def test_mrr_benchmark_dummy_causal_lm(
     train_dataset = request.getfixturevalue(dataset)
     task = request.getfixturevalue(task)
 
-    mrr_benchmark = MRR()
-
-    mrr_benchmark.train_dataset = train_dataset
-    mrr_benchmark.model = model
-    mrr_benchmark.device = "cpu"
-
-    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
-    torch.save(model.state_dict(), checkpoint_path)
-    mrr_benchmark.checkpoints = [checkpoint_path]
-
-    mrr_benchmark.checkpoints_load_func = get_load_state_dict_func("cpu")
-
-    mrr_benchmark.entailment_labels = causal_lm_test_entailment_labels
-    mrr_benchmark.eval_dataset = causal_lm_test_dataset
+    mrr_benchmark = _build_mrr_benchmark(
+        model=model,
+        train_dataset=train_dataset,
+        eval_dataset=causal_lm_test_dataset,
+        entailment_labels=causal_lm_test_entailment_labels,
+        tmp_path=tmp_path,
+    )
 
     expl_kwargs = {
         "task_module": task,
@@ -108,20 +117,13 @@ def test_mrr_benchmark_gpt2(
     )
     task = request.getfixturevalue(task)
 
-    mrr_benchmark = MRR()
-
-    mrr_benchmark.train_dataset = evidence_dataset
-    mrr_benchmark.model = model
-    mrr_benchmark.device = "cpu"
-
-    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
-    torch.save(model.state_dict(), checkpoint_path)
-    mrr_benchmark.checkpoints = [checkpoint_path]
-
-    mrr_benchmark.checkpoints_load_func = get_load_state_dict_func("cpu")
-
-    mrr_benchmark.entailment_labels = entailment_labels
-    mrr_benchmark.eval_dataset = prompt_dataset
+    mrr_benchmark = _build_mrr_benchmark(
+        model=model,
+        train_dataset=evidence_dataset,
+        eval_dataset=prompt_dataset,
+        entailment_labels=entailment_labels,
+        tmp_path=tmp_path,
+    )
 
     expl_kwargs = {
         "task_module": task,
@@ -172,20 +174,13 @@ def test_mrr_benchmark_nano_gpt(
     )
     task = request.getfixturevalue(task)
 
-    mrr_benchmark = MRR()
-
-    mrr_benchmark.train_dataset = evidence_dataset
-    mrr_benchmark.model = model
-    mrr_benchmark.device = "cpu"
-
-    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
-    torch.save(model.state_dict(), checkpoint_path)
-    mrr_benchmark.checkpoints = [checkpoint_path]
-
-    mrr_benchmark.checkpoints_load_func = get_load_state_dict_func("cpu")
-
-    mrr_benchmark.entailment_labels = entailment_labels
-    mrr_benchmark.eval_dataset = prompt_dataset
+    mrr_benchmark = _build_mrr_benchmark(
+        model=model,
+        train_dataset=evidence_dataset,
+        eval_dataset=prompt_dataset,
+        entailment_labels=entailment_labels,
+        tmp_path=tmp_path,
+    )
 
     expl_kwargs = {
         "task_module": task,

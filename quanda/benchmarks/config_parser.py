@@ -2,6 +2,7 @@
 
 import copy
 import os
+import random
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 import datasets as hf_datasets  # type: ignore
@@ -18,7 +19,7 @@ from quanda.utils.datasets.transformed import (
     transform_wrappers,
 )
 from quanda.utils.datasets.transformed.metadata import ClassMapping
-from quanda.utils.tokenization import tokenize_dataset
+from quanda.utils.tokenization import resolve_tokenizer, tokenize_dataset
 from quanda.utils.training import Trainer
 from quanda.utils.training.options import criteria, optimizers, schedulers
 
@@ -688,3 +689,147 @@ class BenchConfigParser:
         logger = instantiate(logger_cfg)
 
         return logger
+
+
+class FactTracingConfigParser:
+    """Parser for fact-tracing benchmark configs.
+
+    Fact-tracing benchmarks (MRR, Recall@k, Tail-Patch) derive a
+    ``(prompt_dataset, evidence_dataset, entailment_labels)`` triple
+    from a single HF dataset whose rows pair a prompt with its
+    evidence sentences. This parser owns that construction — it does
+    not fit the generic ``parse_dataset_cfg`` shape because one HF
+    source fans out into two datasets plus a fact matrix.
+    """
+
+    @classmethod
+    def parse_fact_tracing_cfg(
+        cls, cfg: dict
+    ) -> Tuple[
+        hf_datasets.Dataset, hf_datasets.Dataset, torch.Tensor, int
+    ]:
+        """Build ``(prompt_ds, evidence_ds, entailment_labels, pad_id)``."""
+        tokenize, pad_id = resolve_tokenizer(cfg["tokenizer"])
+        ds = load_dataset(
+            cfg["dataset_str"], split=cfg.get("dataset_split", "train")
+        )
+        
+        num_prompts=cfg.get("num_prompts", 20)
+        seed = cfg.get("seed", 42)
+        max_length = cfg.get("max_length", 128)
+        max_evidence_per_prompt = cfg.get("max_evidence_per_prompt", 5)
+            
+        # Sample prompt entries
+        if num_prompts < len(ds):
+            random.seed(seed)
+            indices = random.sample(range(len(ds)), num_prompts)
+            sampled_dataset = ds.select(indices)
+        else:
+            sampled_dataset = ds
+        
+        
+        # Tokenize prompt + answer and mask prompt in labels
+        input_ids = []
+        attention_mask = []
+        labels = []
+        prompts = []
+        answers = []
+
+        for entry in sampled_dataset:
+            prompt = entry["prompt"].strip()
+            answer = entry["answer"][0].strip()
+            full_text = prompt + " " + answer
+
+            encoded = tokenize(
+                full_text,
+                padding="max_length",
+                truncation=True,
+                max_length=max_length,
+            )
+
+            prompt_ids = tokenize(prompt, truncation=True, max_length=max_length)[
+                "input_ids"
+            ]
+            prompt_len = len(prompt_ids)
+
+            # Mask out prompt from loss
+            label_ids = encoded["input_ids"].copy()
+            label_ids[:prompt_len] = [-100] * prompt_len
+
+            # Mask out padding tokens in labels
+            for i in range(len(encoded["input_ids"])):
+                if encoded["attention_mask"][i] == 0:
+                    label_ids[i] = -100
+
+            input_ids.append(encoded["input_ids"])
+            attention_mask.append(encoded["attention_mask"])
+            labels.append(label_ids)
+            prompts.append(prompt)
+            answers.append(answer)
+
+        prompt_dataset = hf_datasets.Dataset.from_dict(
+            {
+                "prompt": prompts,
+                "answer": answers,
+                "input_ids": input_ids,
+                "attention_mask": attention_mask,
+                "labels": labels,
+            }
+        )
+
+        # Gather evidence sentences
+        evidence_sentences = []
+        evidence_map = []
+
+        for i, entry in enumerate(sampled_dataset):
+            selected = entry["evidence_sentences"][:max_evidence_per_prompt]
+            for sentence in selected:
+                evidence_sentences.append(sentence)
+                evidence_map.append(i)
+
+        # Tokenize evidence sentences
+        evidence_input_ids = []
+        evidence_attention_mask = []
+        evidence_labels = []
+        for sentence in evidence_sentences:
+            encoded = tokenize(
+                sentence,
+                padding="max_length",
+                truncation=True,
+                max_length=max_length,
+            )
+            evidence_input_ids.append(encoded["input_ids"])
+            evidence_attention_mask.append(encoded["attention_mask"])
+
+            # Create labels and mask out padding tokens
+            label_ids = encoded["input_ids"].copy()
+            for i in range(len(encoded["input_ids"])):
+                if encoded["attention_mask"][i] == 0:
+                    label_ids[i] = -100
+            evidence_labels.append(label_ids)
+
+        evidence_dataset = hf_datasets.Dataset.from_dict(
+            {
+                "sentence": evidence_sentences,
+                "input_ids": evidence_input_ids,
+                "attention_mask": evidence_attention_mask,
+                "labels": evidence_labels,
+            }
+        )
+
+        # Create entailment matrix
+        entailment_labels = cls._build_entailment_matrix(
+            len(prompt_dataset), len(evidence_dataset), evidence_map
+        )
+
+        return prompt_dataset, evidence_dataset, entailment_labels, pad_id
+
+    @staticmethod
+    def _build_entailment_matrix(
+        num_queries: int, num_evidence: int, evidence_map: List[int]
+    ) -> torch.Tensor:
+        """Binary entailment matrix from an evidence → query index map."""
+        labels = torch.zeros((num_queries, num_evidence), dtype=torch.long)
+        for j, query_idx in enumerate(evidence_map):
+            labels[query_idx, j] = 1
+        return labels

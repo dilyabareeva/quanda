@@ -7,13 +7,15 @@ import datasets  # type: ignore
 import torch
 from torch.optim import Optimizer
 
-from quanda.benchmarks.base import Benchmark
+from quanda.benchmarks.downstream_eval._fact_tracing import (
+    FactTracingBenchmark,
+)
 from quanda.metrics.downstream_eval.tail_patch import TailPatchMetric
 
 logger = logging.getLogger(__name__)
 
 
-class TailPatch(Benchmark):
+class TailPatch(FactTracingBenchmark):
     """Benchmark for Tail Patch metric.
 
     This benchmark evaluates the effectiveness of a training data attribution
@@ -35,90 +37,75 @@ class TailPatch(Benchmark):
 
     def __init__(
         self,
-        *args,
-        **kwargs,
+        model: torch.nn.Module,
+        train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
+        eval_dataset: torch.utils.data.Dataset,
+        checkpoints: List[str],
+        checkpoints_load_func: Callable[..., Any],
+        device: str = "cpu",
+        val_dataset: Optional[
+            Union[torch.utils.data.Dataset, datasets.Dataset]
+        ] = None,
+        use_predictions: bool = False,
+        entailment_labels: Optional[torch.Tensor] = None,
+        k: int = 10,
+        learning_rate: float = 1e-5,
+        optimizer_class: Type[Optimizer] = torch.optim.AdamW,
+        optimizer_kwargs: Optional[dict] = None,
+        tokenizer_name: str = "gpt2",
     ):
         """Initialize the Tail Patch benchmark.
 
-        This initializer is not used directly, instead,
-        the `generate` or the `assemble` methods should be used.
-        Alternatively, `download` can be used to load a precomputed benchmark.
-        """
-        super().__init__()
+        Parameters
+        ----------
+        k : int, optional
+            Number of top proponents to evaluate, by default 10.
+        learning_rate : float, optional
+            Learning rate for the single gradient step, by default 1e-5.
+        optimizer_class : Type[Optimizer], optional
+            Optimizer class, by default ``torch.optim.AdamW``.
+        optimizer_kwargs : Optional[dict], optional
+            Extra optimizer kwargs.
+        tokenizer_name : str, optional
+            HF tokenizer name used inside
+            :class:`~quanda.metrics.downstream_eval.tail_patch.TailPatchMetric`.
 
-        self.model: torch.nn.Module
-        self.device: str
-        self.train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
-        self.eval_dataset: Union[torch.utils.data.Dataset, datasets.Dataset]
-        self.checkpoints: List[str]
-        self.checkpoints_load_func: Callable[..., Any]
-        self.k: int
-        self.learning_rate: float
-        self.optimizer_class: Type[Optimizer]
-        self.optimizer_kwargs: dict
-        self.tokenizer_name: str
+        All other parameters mirror
+        :class:`~quanda.benchmarks.base.Benchmark`.
+        """
+        super().__init__(
+            model=model,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            device=device,
+            val_dataset=val_dataset,
+            use_predictions=use_predictions,
+            entailment_labels=entailment_labels,
+        )
+        self.k: int = k
+        self.learning_rate: float = learning_rate
+        self.optimizer_class: Type[Optimizer] = optimizer_class
+        self.optimizer_kwargs: dict = optimizer_kwargs or {}
+        self.tokenizer_name: str = tokenizer_name
 
     @classmethod
-    def from_config(
-        cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
-        offline: bool = False,
-        device: str = "cpu",
-    ):
-        """Initialize the benchmark from a dictionary.
+    def _extra_kwargs_from_config(cls, config: dict) -> dict:
+        """Pull TailPatch-specific kwargs off the config."""
+        return {
+            "k": config.get("k", 10),
+            "learning_rate": config.get("learning_rate", 1e-5),
+            "optimizer_class": config.get(
+                "optimizer_class", torch.optim.AdamW
+            ),
+            "optimizer_kwargs": config.get("optimizer_kwargs", {}),
+            "tokenizer_name": config.get("tokenizer_name", "gpt2"),
+        }
 
-        Parameters
-        ----------
-        config : dict
-            Dictionary containing the configuration.
-        load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates it,
-            default True.
-        offline : bool
-            If True, the model is not downloaded, default False.
-        device: str, optional
-            Device to use for the evaluation, by default "cpu".
-
-        """
-        obj = super().from_config(config, load_meta_from_disk, offline, device)
-        obj.k = config.get("k", 10)
-        obj.learning_rate = config.get("learning_rate", 1e-5)
-        obj.optimizer_class = config.get("optimizer_class", torch.optim.AdamW)
-        obj.optimizer_kwargs = config.get("optimizer_kwargs", {})
-        obj.tokenizer_name = config.get("tokenizer_name", "gpt2")
-        return obj
-
-    def evaluate(
-        self,
-        explainer_cls: type,
-        expl_kwargs: Optional[dict] = None,
-        batch_size: int = 8,
-    ):
-        """Evaluate the given data attributor.
-
-        Parameters
-        ----------
-        explainer_cls : type
-            Class of the explainer to be used for the evaluation.
-        expl_kwargs : Optional[dict], optional
-            Additional keyword arguments for the explainer, by default None.
-        batch_size : int, optional
-            Batch size to be used for the evaluation, default to 8.
-
-        Returns
-        -------
-        Dict[str, float]
-            Dictionary containing the evaluation results.
-
-        """
-        explainer = self._prepare_explainer(
-            dataset=self.train_dataset,
-            explainer_cls=explainer_cls,
-            expl_kwargs=expl_kwargs,
-        )
-
-        metric = TailPatchMetric(
+    def _build_metric(self) -> TailPatchMetric:
+        """Instantiate the Tail-Patch metric."""
+        return TailPatchMetric(
             model=self.model,
             train_dataset=self.train_dataset,
             checkpoints=self.checkpoints,
@@ -127,11 +114,4 @@ class TailPatch(Benchmark):
             optimizer_class=self.optimizer_class,
             optimizer_kwargs=self.optimizer_kwargs,
             tokenizer_name=self.tokenizer_name,
-        )
-
-        return self._evaluate_dataset(
-            eval_dataset=self.eval_dataset,
-            explainer=explainer,
-            metric=metric,
-            batch_size=batch_size,
         )

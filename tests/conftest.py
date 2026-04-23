@@ -1,14 +1,12 @@
 import json
 import os
 import pickle
-import random
 from itertools import chain
 from typing import Dict, List
 
 import datasets
 import numpy as np
 import pytest
-import tiktoken
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -23,7 +21,7 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
 )
-
+from quanda.benchmarks.config_parser import FactTracingConfigParser
 from quanda.benchmarks.resources import config_map
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
@@ -1356,252 +1354,42 @@ def causal_lm_test_entailment_labels():
     return entailment_labels
 
 
-def _build_entailment_matrix(num_queries, num_evidence, evidence_map):
-    """Build a binary entailment matrix from an evidence map."""
-    entailment_labels = torch.zeros(
-        (num_queries, num_evidence), dtype=torch.long
+@pytest.fixture
+def load_fact_tracing_dataset_nanogpt():
+    """Build prompt/evidence/entailment via the fact-tracing parser (tiktoken)."""
+
+    cfg = {
+        "dataset_str": "quanda-bench-test/trex-subset-benchmark",
+        "dataset_split": "train",
+        "tokenizer": {"backend": "tiktoken", "encoding": "gpt2"},
+        "num_prompts": 5,
+        "max_evidence_per_prompt": 5,
+        "max_length": 64,
+        "seed": 0,
+    }
+    prompt_ds, evidence_ds, entailment_labels, _ = (
+        FactTracingConfigParser.parse_fact_tracing_cfg(cfg)
     )
-    for j, query_idx in enumerate(evidence_map):
-        entailment_labels[query_idx, j] = 1
-    return entailment_labels
+    return prompt_ds, evidence_ds, entailment_labels
 
 
 @pytest.fixture
-def load_fact_tracing_dataset_nanogpt(
-    dataset_name="quanda-bench-test/trex-subset-benchmark",
-    num_prompts=5,
-    max_evidence_per_prompt=5,
-    max_length=64,
-    seed=0,
-):
-    # Load tokenizer
-    tokenizer = tiktoken.get_encoding("gpt2")
-    pad_token_id = tokenizer.eot_token
-
-    # Load dataset
-    dataset = datasets.load_dataset(dataset_name, split="train")
-
-    # Sample prompts
-    if num_prompts < len(dataset):
-        random.seed(seed)
-        indices = random.sample(range(len(dataset)), num_prompts)
-        sampled_dataset = dataset.select(indices)
-    else:
-        sampled_dataset = dataset
-
-    input_ids = []
-    attention_mask = []
-    labels = []
-    prompts = []
-    answers = []
-
-    for entry in sampled_dataset:
-        prompt = entry["prompt"].strip()
-        answer = entry["answer"][0].strip()
-        full_text = prompt + " " + answer
-
-        # Tokenize
-        full_ids = tokenizer.encode_ordinary(full_text)[:max_length]
-        prompt_ids = tokenizer.encode_ordinary(prompt)[:max_length]
-        prompt_len = len(prompt_ids)
-
-        # Pad
-        padding_length = max_length - len(full_ids)
-        padded_ids = full_ids + [pad_token_id] * padding_length
-        padded_mask = [1] * len(full_ids) + [0] * padding_length
-
-        # Create labels and mask out prompt and padding
-        label_ids = padded_ids.copy()
-        for i in range(min(prompt_len, max_length)):
-            label_ids[i] = -100
-
-        for i in range(len(full_ids), max_length):
-            label_ids[i] = -100
-
-        input_ids.append(padded_ids)
-        attention_mask.append(padded_mask)
-        labels.append(label_ids)
-        prompts.append(prompt)
-        answers.append(answer)
-
-    prompt_dataset = datasets.Dataset.from_dict(
-        {
-            "prompt": prompts,
-            "answer": answers,
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "labels": labels,
-        }
+def load_fact_tracing_dataset():
+    """Build prompt/evidence/entailment via the fact-tracing parser (HF GPT-2)."""
+    
+    cfg = {
+        "dataset_str": "quanda-bench-test/trex-subset-benchmark",
+        "dataset_split": "train",
+        "tokenizer": {"backend": "hf", "name": "gpt2"},
+        "num_prompts": 2,
+        "max_evidence_per_prompt": 3,
+        "max_length": 64,
+        "seed": 42,
+    }
+    prompt_ds, evidence_ds, entailment_labels, _ = (
+        FactTracingConfigParser.parse_fact_tracing_cfg(cfg)
     )
-
-    # Collect evidence sentences
-    evidence_sentences = []
-    evidence_map = []
-
-    for i, entry in enumerate(sampled_dataset):
-        selected = entry["evidence_sentences"][:max_evidence_per_prompt]
-        for sentence in selected:
-            evidence_sentences.append(sentence)
-            evidence_map.append(i)
-
-    # Tokenize
-    evidence_input_ids = []
-    evidence_attention_mask = []
-    evidence_labels = []
-    for sentence in evidence_sentences:
-        sentence_ids = tokenizer.encode_ordinary(sentence)[:max_length]
-        padded_ids = sentence_ids + [pad_token_id] * (
-            max_length - len(sentence_ids)
-        )
-        padded_mask = [1] * len(sentence_ids) + [0] * (
-            max_length - len(sentence_ids)
-        )
-
-        # Create labels and mask out padding
-        label_ids = padded_ids.copy()
-        for i in range(len(sentence_ids), max_length):
-            label_ids[i] = -100
-
-        evidence_input_ids.append(padded_ids)
-        evidence_attention_mask.append(padded_mask)
-        evidence_labels.append(label_ids)
-
-    evidence_dataset = datasets.Dataset.from_dict(
-        {
-            "sentence": evidence_sentences,
-            "input_ids": evidence_input_ids,
-            "attention_mask": evidence_attention_mask,
-            "labels": evidence_labels,
-        }
-    )
-
-    # Create entailment matrix
-    entailment_labels = _build_entailment_matrix(
-        len(prompt_dataset), len(evidence_dataset), evidence_map
-    )
-
-    return prompt_dataset, evidence_dataset, entailment_labels
-
-
-@pytest.fixture
-def load_fact_tracing_dataset(
-    dataset_name="quanda-bench-test/trex-subset-benchmark",
-    tokenizer_name="gpt2",
-    num_prompts=2,
-    max_evidence_per_prompt=3,
-    max_length=64,
-    seed=42,
-):
-    # Load GPT-2 tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name, use_fast=True)
-    tokenizer.pad_token = tokenizer.eos_token
-
-    # Load the TREx dataset
-    dataset = datasets.load_dataset(dataset_name, split="train")
-
-    # Sample prompt entries
-    if num_prompts < len(dataset):
-        random.seed(seed)
-        indices = random.sample(range(len(dataset)), num_prompts)
-        sampled_dataset = dataset.select(indices)
-    else:
-        sampled_dataset = dataset
-
-    # Tokenize prompt + answer and mask prompt in labels
-    input_ids = []
-    attention_mask = []
-    labels = []
-    prompts = []
-    answers = []
-
-    for entry in sampled_dataset:
-        prompt = entry["prompt"].strip()
-        answer = entry["answer"][0].strip()
-        full_text = prompt + " " + answer
-
-        encoded = tokenizer(
-            full_text,
-            padding="max_length",
-            truncation=True,
-            max_length=max_length,
-        )
-
-        prompt_ids = tokenizer(prompt, truncation=True, max_length=max_length)[
-            "input_ids"
-        ]
-        prompt_len = len(prompt_ids)
-
-        # Mask out prompt from loss
-        label_ids = encoded["input_ids"].copy()
-        label_ids[:prompt_len] = [-100] * prompt_len
-
-        # Mask out padding tokens in labels
-        for i in range(len(encoded["input_ids"])):
-            if encoded["attention_mask"][i] == 0:
-                label_ids[i] = -100
-
-        input_ids.append(encoded["input_ids"])
-        attention_mask.append(encoded["attention_mask"])
-        labels.append(label_ids)
-        prompts.append(prompt)
-        answers.append(answer)
-
-    prompt_dataset = datasets.Dataset.from_dict(
-        {
-            "prompt": prompts,
-            "answer": answers,
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "labels": labels,
-        }
-    )
-
-    # Gather evidence sentences
-    evidence_sentences = []
-    evidence_map = []
-
-    for i, entry in enumerate(sampled_dataset):
-        selected = entry["evidence_sentences"][:max_evidence_per_prompt]
-        for sentence in selected:
-            evidence_sentences.append(sentence)
-            evidence_map.append(i)
-
-    # Tokenize evidence sentences
-    evidence_input_ids = []
-    evidence_attention_mask = []
-    evidence_labels = []
-    for sentence in evidence_sentences:
-        encoded = tokenizer(
-            sentence,
-            padding="max_length",
-            truncation=True,
-            max_length=max_length,
-        )
-        evidence_input_ids.append(encoded["input_ids"])
-        evidence_attention_mask.append(encoded["attention_mask"])
-
-        # Create labels and mask out padding tokens
-        label_ids = encoded["input_ids"].copy()
-        for i in range(len(encoded["input_ids"])):
-            if encoded["attention_mask"][i] == 0:
-                label_ids[i] = -100
-        evidence_labels.append(label_ids)
-
-    evidence_dataset = datasets.Dataset.from_dict(
-        {
-            "sentence": evidence_sentences,
-            "input_ids": evidence_input_ids,
-            "attention_mask": evidence_attention_mask,
-            "labels": evidence_labels,
-        }
-    )
-
-    # Create entailment matrix
-    entailment_labels = _build_entailment_matrix(
-        len(prompt_dataset), len(evidence_dataset), evidence_map
-    )
-
-    return prompt_dataset, evidence_dataset, entailment_labels
+    return prompt_ds, evidence_ds, entailment_labels
 
 
 class SimpleLanguageModelingTask(LanguageModelingTask):

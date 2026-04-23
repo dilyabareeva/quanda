@@ -8,6 +8,31 @@ from quanda.explainers.wrappers import Kronfluence
 from quanda.utils.common import get_load_state_dict_func
 
 
+def _build_tail_patch_benchmark(
+    model,
+    train_dataset,
+    eval_dataset,
+    tmp_path,
+    k: int,
+    learning_rate: float,
+) -> TailPatch:
+    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
+    torch.save(model.state_dict(), checkpoint_path)
+    return TailPatch(
+        model=model,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        checkpoints=[checkpoint_path],
+        checkpoints_load_func=get_load_state_dict_func("cpu"),
+        device="cpu",
+        k=k,
+        learning_rate=learning_rate,
+        optimizer_class=torch.optim.AdamW,
+        optimizer_kwargs={},
+        tokenizer_name="gpt2",
+    )
+
+
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, explainer_cls, task, model, dataset, batch_size",
@@ -36,25 +61,14 @@ def test_tail_patch_benchmark_simple_causal_lm(
     train_dataset = request.getfixturevalue(dataset)
     task = request.getfixturevalue(task)
 
-    tail_patch_benchmark = TailPatch()
-    tail_patch_benchmark.k = 10
-    tail_patch_benchmark.learning_rate = 1e-4
-    tail_patch_benchmark.optimizer_class = torch.optim.AdamW
-    tail_patch_benchmark.optimizer_kwargs = {}
-    tail_patch_benchmark.tokenizer_name = "gpt2"
-
-    tail_patch_benchmark.train_dataset = train_dataset
-    tail_patch_benchmark.model = model
-    tail_patch_benchmark.device = "cpu"
-
-    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
-    torch.save(model.state_dict(), checkpoint_path)
-    tail_patch_benchmark.checkpoints = [checkpoint_path]
-
-    tail_patch_benchmark.checkpoints_load_func = get_load_state_dict_func(
-        "cpu"
+    tail_patch_benchmark = _build_tail_patch_benchmark(
+        model=model,
+        train_dataset=train_dataset,
+        eval_dataset=train_dataset,
+        tmp_path=tmp_path,
+        k=10,
+        learning_rate=1e-4,
     )
-    tail_patch_benchmark.eval_dataset = train_dataset
 
     expl_kwargs = {
         "task_module": task,
@@ -103,25 +117,14 @@ def test_tail_patch_benchmark_gpt2(
     prompt_dataset, evidence_dataset, _ = request.getfixturevalue(dataset)
     task = request.getfixturevalue(task)
 
-    tail_patch_benchmark = TailPatch()
-    tail_patch_benchmark.k = 4
-    tail_patch_benchmark.learning_rate = 1e-5
-    tail_patch_benchmark.optimizer_class = torch.optim.AdamW
-    tail_patch_benchmark.optimizer_kwargs = {}
-    tail_patch_benchmark.tokenizer_name = "gpt2"
-
-    tail_patch_benchmark.train_dataset = evidence_dataset
-    tail_patch_benchmark.model = model
-    tail_patch_benchmark.device = "cpu"
-
-    checkpoint_path = os.path.join(str(tmp_path), "checkpoint.pt")
-    torch.save(model.state_dict(), checkpoint_path)
-    tail_patch_benchmark.checkpoints = [checkpoint_path]
-
-    tail_patch_benchmark.checkpoints_load_func = get_load_state_dict_func(
-        "cpu"
+    tail_patch_benchmark = _build_tail_patch_benchmark(
+        model=model,
+        train_dataset=evidence_dataset,
+        eval_dataset=prompt_dataset,
+        tmp_path=tmp_path,
+        k=4,
+        learning_rate=1e-5,
     )
-    tail_patch_benchmark.eval_dataset = prompt_dataset
 
     expl_kwargs = {
         "task_module": task,
