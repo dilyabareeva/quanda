@@ -408,7 +408,7 @@ def test_mislabeling_detection_metric_si_warnings(
             0,
             "load_mnist_explanations_similarity_1",
             False,
-            AssertionError,
+            ValueError,
         ),
         (
             "mnist",

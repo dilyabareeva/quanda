@@ -221,18 +221,21 @@ def test_load_pretrained_base_invokes_from_pretrained_base(monkeypatch):
             super().__init__(1, 1)
 
         @classmethod
-        def from_pretrained_base(cls, pretrained_model_name):
+        def from_pretrained_base(cls, pretrained_model_name, num_labels):
             calls["name"] = pretrained_model_name
+            calls["num_labels"] = num_labels
             return cls()
 
     monkeypatch.setitem(cp_module.pl_modules, "FakeForPretrained", _FakeModule)
     cfg = {
         "pretrained_model_name": "fake/base",
+        "num_labels": 3,
         "module": {"name": "FakeForPretrained", "args": {}},
     }
     model = BenchConfigParser.load_pretrained_base(cfg, device="cpu")
     assert isinstance(model, _FakeModule)
     assert calls["name"] == "fake/base"
+    assert calls["num_labels"] == 3
 
 
 @pytest.mark.utils

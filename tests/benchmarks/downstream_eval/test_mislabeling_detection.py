@@ -201,7 +201,7 @@ def test_mislabeling_evaluate(
             )
     elif scenario == "sanity_not_flipped":
         bench.train_dataset = bench.eval_dataset
-        with pytest.raises(AssertionError):
+        with pytest.raises(TypeError, match="should have flipped"):
             bench.sanity_check(batch_size=8)
     elif scenario == "subsample_wrong_type":
         from quanda.benchmarks.downstream_eval import (
