@@ -70,7 +70,7 @@ class Kronfluence(Explainer):
         scores_name: str = "initial_score",
         score_args: ScoreArguments = None,
         dataloader_kwargs: DataLoaderKwargs = None,
-        overwrite_output_dir: bool = True,
+        overwrite_output_dir: bool = False,
         cache_dir: str = "./cache",
     ):
         """Initialize the `Kronfluence` explainer.
@@ -112,7 +112,7 @@ class Kronfluence(Explainer):
         dataloader_kwargs : DataLoaderKwargs, optional
             DataLoader arguments. Defaults to None.
         overwrite_output_dir : bool, optional
-            Whether to overwrite stored results. Defaults to True.
+            Whether to overwrite cached factors. Defaults to False.
         cache_dir : str, optional
             Directory to store the cached results. Defaults to "./cache".
 
