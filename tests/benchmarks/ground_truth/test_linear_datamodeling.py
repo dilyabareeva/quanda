@@ -479,3 +479,32 @@ def test_train_lds_subset_script_missing_config(tmp_path, monkeypatch):
     )
     with pytest.raises(FileNotFoundError):
         runpy.run_path("scripts/train_lds_subset.py", run_name="__main__")
+
+
+@pytest.mark.benchmarks
+def test_lds_train_raises_if_super_returns_wrong_type(monkeypatch):
+    monkeypatch.setattr(
+        Benchmark, "train", classmethod(lambda cls, **kwargs: object())
+    )
+    monkeypatch.setattr(
+        LinearDatamodeling, "_lds_skip_subsets", True, raising=False
+    )
+    with pytest.raises(
+        TypeError, match="Expected a LinearDatamodeling instance"
+    ):
+        LinearDatamodeling.train(config={})
+
+
+@pytest.mark.benchmarks
+def test_lds_train_subset_raises_if_from_config_returns_wrong_type(
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        LinearDatamodeling,
+        "from_config",
+        classmethod(lambda cls, *args, **kwargs: object()),
+    )
+    with pytest.raises(
+        TypeError, match="Expected a LinearDatamodeling instance"
+    ):
+        LinearDatamodeling.train_subset(config={}, idx=0)

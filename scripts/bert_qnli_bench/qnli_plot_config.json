@@ -1,6 +1,6 @@
 {
   "methods": [
-    "dattri_arnoldi",
+    "kronfluence",
     "dattri_ekfac",
     "dattri_tracin",
     "dattri_graddot",
@@ -17,7 +17,7 @@
     "qnli_model_randomization"
   ],
   "method_labels": {
-    "dattri_arnoldi": "ArnoldiInf",
+    "kronfluence": "Kronfluence",
     "dattri_ekfac": "EK-FAC",
     "dattri_tracin": "TracIn",
     "dattri_graddot": "GradDot",
@@ -34,7 +34,7 @@
     "qnli_model_randomization": "Model\nRandomization"
   },
   "colors": {
-    "dattri_arnoldi":  "#83BA59",
+    "kronfluence":  "#83BA59",
     "dattri_tracin":   "#EA4E38",
     "trak":            "#7D53BA",
     "similarity":      "#3B8FB5",

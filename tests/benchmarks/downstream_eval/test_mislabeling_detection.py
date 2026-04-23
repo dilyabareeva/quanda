@@ -37,7 +37,7 @@ from quanda.utils.functions import cosine_similarity
             42,
             False,
             False,
-            0.49223580956459045,
+            0.5077641606330872,
         ),
         (
             "mnist_subset_cached_mocked",
@@ -201,7 +201,7 @@ def test_mislabeling_evaluate(
             )
     elif scenario == "sanity_not_flipped":
         bench.train_dataset = bench.eval_dataset
-        with pytest.raises(AssertionError):
+        with pytest.raises(TypeError, match="should have flipped"):
             bench.sanity_check(batch_size=8)
     elif scenario == "subsample_wrong_type":
         from quanda.benchmarks.downstream_eval import (

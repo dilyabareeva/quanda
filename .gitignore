@@ -80,3 +80,5 @@ scripts/*/bar_rank.png
 scripts/*/bar_rank.csv
 log/*
 logs_*/*
+local_eval_results/*
+scripts/bert_qnli_bench/eval_defs_notes.txt

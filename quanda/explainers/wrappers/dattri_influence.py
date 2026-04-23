@@ -560,6 +560,7 @@ class DattriArnoldi(DattriInfluence):
         regularization: float = 0.0,
         seed: int = 0,
         device: Optional[str] = None,
+        precompute_data_ratio: float = 1.0,
     ):
         """Initialize the `DattriArnoldi` explainer."""
         logger.info("Initializing dattri Arnoldi explainer...")
@@ -571,6 +572,7 @@ class DattriArnoldi(DattriInfluence):
             "tol": tol,
             "regularization": regularization,
             "seed": seed,
+            "precompute_data_ratio": precompute_data_ratio,
         }
 
         if isinstance(checkpoints, list) and len(checkpoints) > 1:

@@ -5,4 +5,5 @@ kwargs:
     _target_: hydra.utils.get_method
     path: quanda.explainers.wrappers.dattri_losses.bert_classification_batched_loss
   damping: 0.0
-  batch_size: ${batch_size}
+  max_iter: 500
+  batch_size: 8

@@ -6,4 +6,6 @@ kwargs:
     path: quanda.explainers.wrappers.dattri_losses.bert_classification_batched_loss
   proj_dim: 50
   max_iter: 100
-  batch_size: ${batch_size}
+  precompute_data_ratio: 0.0005
+  batch_size: 8
+  regularization: 0.01

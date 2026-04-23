@@ -7,17 +7,13 @@ EVAL_CONFIG_NAME="mnist_lenet"
 benchmarks=(
     mnist_class_detection
     mnist_subclass_detection
-    mnist_mislabeling_detection
     mnist_shortcut_detection
     mnist_mixed_datasets
-    #mnist_linear_datamodeling
-    #mnist_top_k_cardinality
-    #mnist_model_randomization
 )
 
 methods=(
-    similarity
-    representer_points
+    #similarity
+    #representer_points
     #tracincpfast
     arnoldi
     #trak

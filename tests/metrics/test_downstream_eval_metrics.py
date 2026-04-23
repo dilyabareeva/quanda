@@ -1,6 +1,7 @@
 import math
 
 import pytest
+import torch
 
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.downstream_eval import (
@@ -234,6 +235,21 @@ def test_identical_subclass_metrics(
 
 
 @pytest.mark.downstream_eval_metrics
+def test_subclass_metric_rejects_mismatched_label_count(
+    load_mnist_model, load_mnist_last_checkpoint, load_grouped_mnist_dataset
+):
+    with pytest.raises(
+        ValueError, match="does not match the number of train dataset samples"
+    ):
+        SubclassDetectionMetric(
+            model=load_mnist_model,
+            checkpoints=load_mnist_last_checkpoint,
+            train_dataset=load_grouped_mnist_dataset,
+            train_subclass_labels=torch.tensor([0]),
+        )
+
+
+@pytest.mark.downstream_eval_metrics
 @pytest.mark.parametrize(
     "test_id, model, checkpoint,dataset, test_samples, test_labels, expl_kwargs, expected_score",
     [
@@ -408,7 +424,7 @@ def test_mislabeling_detection_metric_si_warnings(
             0,
             "load_mnist_explanations_similarity_1",
             False,
-            AssertionError,
+            ValueError,
         ),
         (
             "mnist",

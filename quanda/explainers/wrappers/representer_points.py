@@ -22,7 +22,7 @@ import logging
 import os
 import warnings
 from functools import reduce
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import lightning as L
 import torch
@@ -38,6 +38,7 @@ from quanda.utils.common import (
     map_location_context,
     process_targets,
 )
+from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
@@ -160,7 +161,10 @@ class RepresenterPoints(Explainer):
 
     """
 
-    accepted_tasks: List[TaskLiterals] = ["image_classification"]
+    accepted_tasks: List[TaskLiterals] = [
+        "image_classification",
+        "text_classification",
+    ]
 
     def __init__(
         self,
@@ -283,8 +287,12 @@ class RepresenterPoints(Explainer):
         if self.features_postprocess is not None:
             self.samples = self.features_postprocess(self.samples)
 
+        handler = get_dataset_handler(self.train_dataset)
         self.labels = torch.tensor(
-            [train_dataset[i][1] for i in range(ds_len(self.train_dataset))],
+            [
+                int(handler.get_label(train_dataset[i]))
+                for i in range(ds_len(self.train_dataset))
+            ],
             device=self.device,
         ).type(torch.int)
 
@@ -336,7 +344,11 @@ class RepresenterPoints(Explainer):
         """
         return (features - self.mean) / self.std_dev
 
-    def _get_activations(self, x: torch.Tensor, layer: str) -> torch.Tensor:
+    def _get_activations(
+        self,
+        x: Union[torch.Tensor, Dict[str, torch.Tensor]],
+        layer: str,
+    ) -> torch.Tensor:
         """Returnthe activations of a specific layer for a given input batch.
 
         Parameters
@@ -371,7 +383,7 @@ class RepresenterPoints(Explainer):
 
     def explain(
         self,
-        test_data: torch.Tensor,
+        test_data: Union[torch.Tensor, Dict[str, torch.Tensor]],
         targets: Union[List[int], torch.Tensor],
     ) -> torch.Tensor:
         """Explain the predictions of the model for a given test batch.
@@ -389,7 +401,10 @@ class RepresenterPoints(Explainer):
             The explanations for the test batch.
 
         """
-        test_data = test_data.to(self.device)
+        if isinstance(test_data, dict):
+            test_data = {k: v.to(self.device) for k, v in test_data.items()}
+        else:
+            test_data = test_data.to(self.device)
         targets = process_targets(targets, self.device)
 
         f = self._get_activations(test_data, self.features_layer)
@@ -455,6 +470,9 @@ class RepresenterPoints(Explainer):
                 "0 | Grad: 0",
             )
 
+        best_W = model.W.data.clone()
+        init_grad = float("inf")
+
         for epoch in range(self.epoch):
             phi_loss = 0
             optimizer.zero_grad()
@@ -467,14 +485,14 @@ class RepresenterPoints(Explainer):
             if model.W.grad is None:
                 raise ValueError("Gradient is None")
 
-            grad_loss = (
-                torch.mean(torch.abs(model.W.grad)).detach().cpu().numpy()
-            )
+            grad_loss = torch.mean(torch.abs(model.W.grad)).item()
+
+            if epoch == 0:
+                init_grad = grad_loss
+                best_W = temp_W
 
             # save the W with lowest loss
             if grad_loss < min_loss:
-                if epoch == 0:
-                    init_grad = grad_loss
                 min_loss = grad_loss
                 best_W = temp_W
                 if min_loss < init_grad / 200:

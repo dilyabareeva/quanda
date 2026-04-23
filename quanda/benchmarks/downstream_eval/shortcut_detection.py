@@ -108,9 +108,10 @@ class ShortcutDetection(Benchmark):
                 "SampleTransformationDataset as the training dataset."
             )
 
-        assert train_dataset.metadata.cls_idx is not None, (
-            "The training dataset must have a class index in its metadata."
-        )
+        if train_dataset.metadata.cls_idx is None:
+            raise ValueError(
+                "The training dataset must have a class index in its metadata."
+            )
 
         eval_ds_config = config["eval_dataset"]
         eval_indices = eval_ds_config["filter_indices"]
@@ -151,8 +152,14 @@ class ShortcutDetection(Benchmark):
         """
         results = super().sanity_check(batch_size)
 
-        assert isinstance(self.train_dataset, SampleTransformationDataset)
-        assert isinstance(self.eval_dataset, SampleTransformationDataset)
+        if not isinstance(self.train_dataset, SampleTransformationDataset):
+            raise TypeError(
+                "train_dataset must be a SampleTransformationDataset."
+            )
+        if not isinstance(self.eval_dataset, SampleTransformationDataset):
+            raise TypeError(
+                "eval_dataset must be a SampleTransformationDataset."
+            )
 
         train_dl = torch.utils.data.DataLoader(
             self.train_dataset.filtered(self.train_dataset.transform_indices),
@@ -277,7 +284,10 @@ class ShortcutDetection(Benchmark):
             )
         )
 
-        assert isinstance(self.train_dataset, SampleTransformationDataset)
+        if not isinstance(self.train_dataset, SampleTransformationDataset):
+            raise TypeError(
+                "train_dataset must be a SampleTransformationDataset."
+            )
         metric = ShortcutDetectionMetric(
             model=self.model,
             checkpoints=self.checkpoints,

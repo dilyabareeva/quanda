@@ -14,6 +14,7 @@ from quanda.utils.common import (
     load_last_checkpoint,
 )
 from quanda.utils.datasets import OnDeviceDataset
+from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.tasks import TaskLiterals
 
 
@@ -21,6 +22,28 @@ class Explainer(ABC):
     """Base class for explainer wrappers.
 
     Defines the interface that all explainer classes must implement.
+
+    Notes
+    -----
+    Conventions for wrapper subclasses that cache intermediate artifacts
+    (activations, projected gradients, factor estimates, etc.) on disk:
+
+    - ``cache_dir`` is the on-disk root under which the wrapper may read
+      and write. Wrappers should treat it as their own scratch space and
+      must not assume any particular layout inside it.
+    - ``model_id`` is a stable, user-supplied string that uniquely
+      identifies the ``(model, train_dataset, explainer_config)`` triple.
+      It is used to namespace files inside ``cache_dir`` so that runs
+      with different models or configurations do not clobber each
+      other's caches. Changing any input that would invalidate cached
+      artifacts should imply a new ``model_id``.
+    - Individual wrappers may repurpose ``model_id`` for library-specific
+      identifiers (e.g. an activation directory, a TRAK checkpoint key,
+      a Kronfluence analysis name). Callers should not rely on its
+      downstream semantics, only on its role as a cache namespace.
+
+    These parameters are not part of the base ``__init__`` signature
+    because not every explainer caches to disk; subclasses opt in.
 
     """
 
@@ -127,20 +150,17 @@ class Explainer(ABC):
 
         """
         # Pre-allcate memory for influences, because torch.cat is slow
-        influences = torch.empty(
-            (ds_len(self.train_dataset),), device=self.device
-        )
-        ldr = torch.utils.data.DataLoader(
+        n = ds_len(self.train_dataset)
+        influences = torch.empty((n,), device=self.device)
+        handler = get_dataset_handler(self.train_dataset)
+        ldr = handler.create_dataloader(
             self.train_dataset, shuffle=False, batch_size=batch_size
         )
-        batch_size = min(batch_size, ds_len(self.train_dataset))
+        batch_size = min(batch_size, n)
 
-        for i, (x, y) in zip(
-            range(0, ds_len(self.train_dataset), batch_size), ldr
-        ):
-            explanations = self.explain(
-                test_data=x.to(self.device), targets=y.to(self.device)
-            )
+        for i, batch in zip(range(0, n, batch_size), ldr):
+            inputs, labels = handler.process_batch(batch, self.device)
+            explanations = self.explain(test_data=inputs, targets=labels)
             influences[i : i + batch_size] = explanations.diag(diagonal=i)
 
         return influences

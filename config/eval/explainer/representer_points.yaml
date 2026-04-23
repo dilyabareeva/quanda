@@ -6,3 +6,4 @@ kwargs:
   batch_size: 64
   load_from_disk: true
   show_progress: false
+  normalize: false

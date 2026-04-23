@@ -27,8 +27,8 @@ def test_self_influence_ranking_paths(scenario, mocker):
         si = torch.tensor([2.0, 0.0, 1.0])
         ranker = SelfInfluenceRanking(self_influence=si)
         assert torch.equal(ranker.get_self_influence(), si)
-        # global rank stable-sorts by (si + tiny idx bias)
-        assert torch.equal(ranker.get_global_rank(), torch.tensor([1, 2, 0]))
+        # global rank: highest self-influence first (descending, stable)
+        assert torch.equal(ranker.get_global_rank(), torch.tensor([0, 2, 1]))
         return
 
     if scenario == "explainer_call":

@@ -210,7 +210,8 @@ class TorchDatasetHandler(DatasetHandler):
         device: Union[str, torch.device],
     ) -> Tuple[torch.Tensor, ...]:
         """Build an ``(inputs, labels)`` batch on ``device``."""
-        assert isinstance(inputs, torch.Tensor)
+        if not isinstance(inputs, torch.Tensor):
+            raise TypeError("Positional batch builder expects a tensor input.")
         return inputs.to(device), labels.to(device)
 
     def create_dataloader(
@@ -461,7 +462,8 @@ class HuggingFaceSequenceDatasetHandler(HuggingFaceDatasetHandler):
         device: Union[str, torch.device],
     ) -> Tuple[torch.Tensor, ...]:
         """Build a ``(*input_keys, labels)`` batch on ``device``."""
-        assert isinstance(inputs, dict)
+        if not isinstance(inputs, dict):
+            raise TypeError("Keyword batch builder expects a dict input.")
         return tuple(inputs[k].to(device) for k in self.input_keys) + (
             labels.to(device),
         )

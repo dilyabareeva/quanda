@@ -84,13 +84,6 @@ class ResNet9(torch.nn.Module, PyTorchModelHubMixin):
         """Forward pass."""
         return self.model(x)
 
-    def from_pretrained_base(self, pretrained_model_name: str):
-        """Override to avoid HuggingFace trying to load pretrained weights."""
-        config = AutoConfig.from_pretrained(pretrained_model_name)
-        self.model = AutoModel.from_pretrained(
-            pretrained_model_name, config=config
-        )
-
 
 class LeNet(torch.nn.Module, PyTorchModelHubMixin):
     """A torch implementation of LeNet architecture.
@@ -123,13 +116,6 @@ class LeNet(torch.nn.Module, PyTorchModelHubMixin):
         x = self.fc_3(x)
         return x
 
-    def from_pretrained_base(self, pretrained_model_name: str):
-        """Override to avoid HuggingFace trying to load pretrained weights."""
-        config = AutoConfig.from_pretrained(pretrained_model_name)
-        self.model = AutoModel.from_pretrained(
-            pretrained_model_name, config=config
-        )
-
 
 class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
     """BERT-based sequence classifier without final nonlinearity.
@@ -159,6 +145,7 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
         config = AutoConfig.from_pretrained(
             "google-bert/bert-base-cased",
             num_labels=num_labels,
+            attn_implementation="eager",
         )
         self.bert = AutoModel.from_config(config)
         if getattr(self.bert, "pooler", None) is not None:
@@ -205,12 +192,23 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
         pooled = self.dropout(outputs.pooler_output)
         return self.classifier(pooled)
 
-    def from_pretrained_base(self, pretrained_model_name: str):
+    @classmethod
+    def from_pretrained_base(
+        cls, pretrained_model_name: str, num_labels: int = 2
+    ):
         """Override to avoid HuggingFace trying to load pretrained weights."""
-        config = AutoConfig.from_pretrained(pretrained_model_name)
-        self.model = AutoModel.from_pretrained(
+        self = cls(num_labels=num_labels)
+        config = AutoConfig.from_pretrained(
+            pretrained_model_name, num_labels=num_labels
+        )
+        self.bert = AutoModel.from_pretrained(
             pretrained_model_name, config=config
         )
+        if getattr(self.bert, "pooler", None) is not None:
+            self.bert.pooler.activation = torch.nn.Identity()
+        self.dropout = torch.nn.Dropout(config.hidden_dropout_prob)
+        self.classifier = torch.nn.Linear(config.hidden_size, num_labels)
+        return self
 
 
 pl_modules = {

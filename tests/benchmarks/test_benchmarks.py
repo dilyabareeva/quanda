@@ -60,7 +60,7 @@ from quanda.utils.functions import cosine_similarity
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.49223580956459045,
+            0.5077641606330872,
         ),
         (
             "mnist",
@@ -243,6 +243,33 @@ def test_explain_default_explanations_id(
     assert out._explanations_id is not None
     assert config["id"] in out._explanations_id
     assert "CaptumSimilarity" in out._explanations_id
+
+
+@pytest.mark.benchmarks
+def test_iter_explanations_requires_explainer_when_no_cache():
+    """_iter_explanations raises if explainer is None and no precomputed
+    explanations were provided."""
+    from quanda.benchmarks.base import Benchmark
+
+    bench = Benchmark.__new__(ClassDetection)
+    bench.device = "cpu"
+    bench.use_predictions = False
+
+    dataset = torch.utils.data.TensorDataset(
+        torch.randn(2, 1, 4, 4), torch.tensor([0, 1])
+    )
+
+    with pytest.raises(RuntimeError, match="explainer must be provided"):
+        next(
+            bench._iter_explanations(
+                explainer=None,
+                eval_dataset=dataset,
+                batch_size=2,
+                max_eval_n=None,
+                eval_seed=0,
+                precomputed_explanations=None,
+            )
+        )
 
 
 @pytest.mark.benchmarks
@@ -458,7 +485,7 @@ def test_filter_missing_shortcut_cls(
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.49223580956459045,
+            0.5077641606330872,
         ),
         (
             "mnist-mislabeling-download",
@@ -468,7 +495,7 @@ def test_filter_missing_shortcut_cls(
             MislabelingDetection,
             CaptumSimilarity,
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.49223580956459045,
+            0.5077641606330872,
         ),
         (
             "mnist-shortcut",

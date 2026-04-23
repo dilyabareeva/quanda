@@ -626,3 +626,28 @@ def test_kronfluence_qnli_explain(
         1,
         len(train_dataset),
     ), "Explanation scores have incorrect shape"
+
+
+@pytest.mark.explainers
+def test_kronfluence_cache_dir_none_uses_default(
+    load_mnist_model,
+    load_mnist_dataset,
+    classification_task,
+    tmp_path,
+    monkeypatch,
+):
+    """Passing cache_dir=None falls back to ./kronfluence_cache/<model_id>."""
+    monkeypatch.chdir(tmp_path)
+    explainer = Kronfluence(
+        model=load_mnist_model,
+        task_module=classification_task,
+        train_dataset=load_mnist_dataset,
+        batch_size=1,
+        device="cpu",
+        cache_dir=None,  # type: ignore[arg-type]
+        model_id="fallback",
+    )
+    assert explainer.cache_dir == os.path.join(
+        "./kronfluence_cache", "fallback"
+    )
+    assert os.path.isdir(explainer.cache_dir)

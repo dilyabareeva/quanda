@@ -4,9 +4,9 @@
 #SBATCH --output=log/%j_%x.out
 #SBATCH --error=log/%j_%x.err
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --gpus=1
-#SBATCH --mem=32G
+#SBATCH --mem=64G
 #SBATCH --partition=gpu3,gpu5
 
 # Hydra surfaces full tracebacks for scripts under scripts/*.

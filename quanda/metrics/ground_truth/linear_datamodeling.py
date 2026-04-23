@@ -102,9 +102,10 @@ class LinearDatamodelingMetric(Metric):
 
         if subset_ids is not None:
             if isinstance(subset_ids, str):
-                assert os.path.exists(f"{cache_dir}/{subset_ids}"), (
-                    f"No file found at {cache_dir}/{subset_ids}"
-                )
+                if not os.path.exists(f"{cache_dir}/{subset_ids}"):
+                    raise FileNotFoundError(
+                        f"No file found at {cache_dir}/{subset_ids}"
+                    )
                 with open(f"{cache_dir}/{subset_ids}", "r") as f:
                     self.subset_ids = yaml.safe_load(f)
             else:

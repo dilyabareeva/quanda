@@ -4,7 +4,7 @@ import hashlib
 import json
 import os
 import warnings
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Any, Callable, List, Optional, Union
 
 import datasets  # type: ignore
@@ -381,7 +381,7 @@ class Benchmark(ABC):
         train_dl = ds_handler.create_dataloader(
             dataset=obj.train_dataset,
             batch_size=batch_size,
-            shuffle=False,  # TODO: true
+            shuffle=True,
             num_workers=trainer.num_workers,
         )
         if obj.val_dataset is not None:
@@ -389,7 +389,7 @@ class Benchmark(ABC):
             val_dl = val_ds_handler.create_dataloader(
                 dataset=obj.val_dataset,
                 batch_size=batch_size,
-                shuffle=False,  # TODO: true
+                shuffle=False,
                 num_workers=trainer.num_workers,
             )
         else:
@@ -453,9 +453,8 @@ class Benchmark(ABC):
         obj.model.to(obj.device)
         obj.model.eval()
 
-        assert isinstance(obj.model, PyTorchModelHubMixin), (
-            "Model must inherit from PyTorchModelHubMixin."
-        )
+        if not isinstance(obj.model, PyTorchModelHubMixin):
+            raise TypeError("Model must inherit from PyTorchModelHubMixin.")
         if snapshot_dirs:
             obj.checkpoints = snapshot_dirs
         else:
@@ -492,9 +491,10 @@ class Benchmark(ABC):
                 batch_size=batch_size,
                 load_meta_from_disk=load_meta_from_disk,
             )
-            assert isinstance(obj.model, PyTorchModelHubMixin), (
-                "Model must inherit from PyTorchModelHubMixin."
-            )
+            if not isinstance(obj.model, PyTorchModelHubMixin):
+                raise TypeError(
+                    "Model must inherit from PyTorchModelHubMixin."
+                )
 
             repo_id = config["ckpt"]
             num_checkpoints = int(config.get("num_checkpoints", 1))
@@ -512,6 +512,10 @@ class Benchmark(ABC):
                         repo_id=repo_id,
                         revision=revision,
                     )
+                upload_folder(
+                    folder_path=obj.checkpoints[-1],
+                    repo_id=repo_id,
+                )
 
         pid_suffix = getattr(obj, "_pid_suffix", "")
         metadata_dir = BenchConfigParser.get_metadata_dir(
@@ -755,6 +759,7 @@ class Benchmark(ABC):
         """
         return sum(sanity_check_results.values()) / len(sanity_check_results)
 
+    @abstractmethod
     def evaluate(
         self,
         explainer_cls: type,
@@ -766,8 +771,37 @@ class Benchmark(ABC):
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
     ):
-        """Run the evaluation using the benchmark."""
-        pass
+        """Run the evaluation using the benchmark.
+
+        Parameters
+        ----------
+        explainer_cls : type
+            Explainer subclass to instantiate for this evaluation.
+        expl_kwargs : Optional[dict]
+            Extra kwargs passed through to ``explainer_cls``.
+        batch_size : int
+            Batch size used when iterating the eval dataset.
+        max_eval_n : Optional[int]
+            Cap on the number of eval samples; ``None`` means all.
+        eval_seed : int
+            Seed used when sampling the eval subset.
+        cache_dir : Optional[str]
+            Directory where explanations are cached on disk. Required when
+            ``use_cached_expl`` or ``use_hf_expl`` is ``True``.
+        use_cached_expl : bool
+            Load precomputed explanations from ``cache_dir`` instead of
+            recomputing them.
+        use_hf_expl : bool
+            Download precomputed explanations from the HF Hub into
+            ``cache_dir`` before loading.
+
+        Returns
+        -------
+        dict
+            Metric scores produced by this benchmark's metric(s).
+
+        """
+        raise NotImplementedError
 
     def _resolve_precomputed_explanations(
         self,
@@ -807,10 +841,6 @@ class Benchmark(ABC):
             )
             return ExplanationsCache.load(path=cache_dir, device=self.device)
         return None
-
-    def save_metadata(self):
-        """Save metadata to disk."""
-        raise NotImplementedError
 
     def _prepare_explainer(
         self,
@@ -967,8 +997,11 @@ class Benchmark(ABC):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
         )
-        assert obj._explanations_id is not None
-        assert obj._explanations_dir is not None
+        if obj._explanations_id is None or obj._explanations_dir is None:
+            raise RuntimeError(
+                "explain() must populate _explanations_id and "
+                "_explanations_dir before pushing to the Hub."
+            )
         create_repo(
             repo_id=obj._explanations_id,
             repo_type="dataset",
@@ -1026,7 +1059,11 @@ class Benchmark(ABC):
             if precomputed_explanations is not None:
                 explanations = precomputed_explanations[i].to(self.device)
             else:
-                assert explainer is not None
+                if explainer is None:
+                    raise RuntimeError(
+                        "explainer must be provided when "
+                        "precomputed_explanations is None."
+                    )
                 explanations = explainer.explain(
                     test_data=inputs, targets=targets
                 )

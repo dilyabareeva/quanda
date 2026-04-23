@@ -1,6 +1,7 @@
 """Model randomization metric."""
 
 import copy
+import inspect
 import os
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
@@ -82,7 +83,7 @@ class ModelRandomizationMetric(Metric):
             checkpoints_load_func=checkpoints_load_func,
         )
 
-        self.expl_kwargs = expl_kwargs or {}
+        self.expl_kwargs = copy.copy(expl_kwargs) if expl_kwargs else {}
         self.model_id = model_id
         self.cache_dir = cache_dir
         # create cache directory if it does not exist
@@ -94,8 +95,12 @@ class ModelRandomizationMetric(Metric):
         self.generator.manual_seed(self.seed)
         self.rand_model, self.rand_checkpoint = self._randomize_model()
 
-        if "model_id" in self.expl_kwargs:
-            self.expl_kwargs["model_id"] += "_rand"
+        explainer_params = inspect.signature(explainer_cls.__init__).parameters
+        if "model_id" in explainer_params:
+            if "model_id" in self.expl_kwargs:
+                self.expl_kwargs["model_id"] += "_rand"
+            else:
+                self.expl_kwargs["model_id"] = self.model_id + "_rand"
 
         self.rand_explainer = explainer_cls(
             model=self.rand_model,

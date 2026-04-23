@@ -388,3 +388,22 @@ def test_trak_with_grad_wrt_subset(
     )
     explanations = explainer.explain(test_data=test_data, targets=test_labels)
     assert explanations.shape[0] == len(test_labels)
+
+
+@pytest.mark.explainers
+def test_trak_cache_dir_none_uses_default(
+    load_mnist_model, load_mnist_dataset, tmp_path, monkeypatch
+):
+    """Passing cache_dir=None falls back to ./trak_cache/<model_id>."""
+    monkeypatch.chdir(tmp_path)
+    explainer = TRAK(
+        model=load_mnist_model,
+        train_dataset=load_mnist_dataset,
+        model_id="fallback",
+        cache_dir=None,  # type: ignore[arg-type]
+        batch_size=8,
+        proj_dim=10,
+        projector="basic",
+    )
+    assert explainer.cache_dir == os.path.join("./trak_cache", "fallback")
+    assert os.path.isdir(explainer.cache_dir)

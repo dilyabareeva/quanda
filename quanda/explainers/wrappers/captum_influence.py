@@ -1,5 +1,6 @@
 """Wrappers for the Captum influence computation methods."""
 
+import inspect
 import logging
 import warnings
 from abc import ABC
@@ -396,7 +397,12 @@ class CaptumSimilarity(CaptumInfluence):
 
         """
         if isinstance(test_data, dict):
-            test_data = tuple(v.to(self.device) for v in test_data.values())
+            params = inspect.signature(self.model.forward).parameters
+            test_data = tuple(
+                test_data[name].to(self.device)
+                for name in params
+                if name in test_data
+            )
         else:
             test_data = test_data.to(self.device)
 
