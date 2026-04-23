@@ -16,6 +16,14 @@ from quanda.benchmarks import bench_dict
 from quanda.benchmarks.base import default_explanations_id
 from quanda.benchmarks.resources.config_map import config_map
 
+OmegaConf.register_new_resolver(
+    "cluster_or_local",
+    lambda cluster, local: (
+        cluster if os.path.isdir("/data/cluster/users/bareeva") else local
+    ),
+    replace=True,
+)
+
 _SUFFIX_TO_CLASS = {
     "class_detection": "ClassDetection",
     "subclass_detection": "SubclassDetection",

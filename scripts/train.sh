@@ -23,6 +23,12 @@ cfg_output_dir="quanda/benchmarks/resources/configs"
 commit_tag=$(git rev-parse --short HEAD)
 mkdir -p logs
 
+if [ -d "/data/cluster/users/bareeva" ]; then
+    bench_save_dir_override="bench_save_dir=/data/cluster/users/bareeva/quanda_output_new/eval_bench/${CONFIG_MAP_PREFIX}"
+else
+    bench_save_dir_override="bench_save_dir=/data2/bareeva/Projects/quanda/cluster_output_new/eval_bench/${CONFIG_MAP_PREFIX}"
+fi
+
 # Map benchmark names to config_map.py keys
 declare -A BENCH_CONFIG_MAP_KEY
 BENCH_CONFIG_MAP_KEY[ClassDetection]="${CONFIG_MAP_PREFIX}_class_detection"
@@ -48,12 +54,12 @@ run_bench() {
         # Hyperparameter search uses a single checkpoint per trial; only the
         # final train_and_push_to_hub call honors `num_checkpoints` from the
         # persisted config.
-        python scripts/generate_config.py --config-name "$CONFIG_NAME" hydra.run.dir="hydra_logs" bench="$bench" $params id=$id +cfg_file_name=$id +cfg_output_dir=$cfg_output_dir
-        #python scripts/train.py --config-name "$CONFIG_NAME" bench="$bench" $params $sweep id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id num_checkpoints=1 +skip_subsets=true --multirun
-        #python scripts/opt_results_to_cfg.py --config-name "$CONFIG_NAME" bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id
-        python scripts/train_and_push_to_hub.py --config-name $id --config-dir $cfg_output_dir +skip_subsets=true
+        python scripts/generate_config.py --config-name "$CONFIG_NAME" hydra.run.dir="hydra_logs" bench="$bench" $params id=$id +cfg_file_name=$id +cfg_output_dir=$cfg_output_dir $bench_save_dir_override
+        python scripts/train.py --config-name "$CONFIG_NAME" bench="$bench" $params $sweep id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id num_checkpoints=1 +skip_subsets=true $bench_save_dir_override --multirun
+        python scripts/opt_results_to_cfg.py --config-name "$CONFIG_NAME" bench="$bench" $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id $bench_save_dir_override
+        python scripts/train_and_push_to_hub.py --config-name $id --config-dir $cfg_output_dir +skip_subsets=true $bench_save_dir_override
     else
-        python scripts/train_and_push_to_hub.py --config-name "$id" --config-dir $cfg_output_dir +skip_subsets=true
+        python scripts/train_and_push_to_hub.py --config-name "$id" --config-dir $cfg_output_dir +skip_subsets=true $bench_save_dir_override
     fi
 }
 

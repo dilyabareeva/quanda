@@ -313,6 +313,7 @@ class RepresenterPoints(Explainer):
                     os.path.join(
                         self.cache_dir, f"{self.model_id}_repr_weights.pt"
                     ),
+                    map_location=self.device,
                     weights_only=True,
                 )
                 if self.coefficients.shape[0] != self.samples.shape[0]:

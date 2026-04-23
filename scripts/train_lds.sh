@@ -1,11 +1,4 @@
 #!/bin/bash
-# Shared LDS benchmark training logic.
-# Dataset-specific scripts should set the following before sourcing this file:
-#   - CONFIG_NAME:        Hydra config name (e.g. "mnist_lenet", "cifar_resnet9")
-#   - CONFIG_MAP_PREFIX:  Prefix for config_map.py keys (e.g. "mnist", "cifar")
-# and source their own bench_defs.sh (BENCH_PARAMS / BENCH_SWEEP).
-#
-# The number of subsets `m` is read from the dataset config.
 
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
@@ -40,6 +33,12 @@ cfg_output_dir="quanda/benchmarks/resources/configs"
 commit_tag=$(GIT_DISCOVERY_ACROSS_FILESYSTEM=1 git rev-parse --short HEAD 2>/dev/null || echo "nogit")
 mkdir -p logs
 
+if [ -d "/data/cluster/users/bareeva" ]; then
+    bench_save_dir_override="bench_save_dir=/data/cluster/users/bareeva/quanda_output_new/eval_bench/${CONFIG_MAP_PREFIX}"
+else
+    bench_save_dir_override="bench_save_dir=/data2/bareeva/Projects/quanda/cluster_output_new/eval_bench/${CONFIG_MAP_PREFIX}"
+fi
+
 declare -A BENCH_CONFIG_MAP_KEY
 BENCH_CONFIG_MAP_KEY[LDS]="${CONFIG_MAP_PREFIX}_linear_datamodeling"
 
@@ -58,19 +57,19 @@ run_bench() {
     if [ "$PUSH_ONLY" = true ]; then
         :
     elif [ "$SKIP_MAIN_TRAIN" = true ]; then
-        python scripts/train_and_push_to_hub.py --config-name "$id" --config-dir $cfg_output_dir +skip_subsets=true +skip_main_train=true
+        python scripts/train_and_push_to_hub.py --config-name "$id" --config-dir $cfg_output_dir +skip_subsets=true +skip_main_train=true $bench_save_dir_override
     elif [ "$TRAIN_ONLY" = false ]; then
-        python scripts/generate_config.py --config-name "$CONFIG_NAME" hydra.run.dir="hydra_logs" bench=LDS $params id=$id +cfg_file_name=$id +cfg_output_dir=$cfg_output_dir
-        python scripts/train.py --config-name "$CONFIG_NAME" bench=LDS $params $sweep m=1 id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id num_checkpoints=1 --multirun
-        python scripts/opt_results_to_cfg.py --config-name "$CONFIG_NAME" bench=LDS $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id
-        python scripts/train_and_push_to_hub.py --config-name $id --config-dir $cfg_output_dir +skip_subsets=true
+        python scripts/generate_config.py --config-name "$CONFIG_NAME" hydra.run.dir="hydra_logs" bench=LDS $params id=$id +cfg_file_name=$id +cfg_output_dir=$cfg_output_dir $bench_save_dir_override
+        python scripts/train.py --config-name "$CONFIG_NAME" bench=LDS $params $sweep m=1 id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id num_checkpoints=1 $bench_save_dir_override --multirun
+        python scripts/opt_results_to_cfg.py --config-name "$CONFIG_NAME" bench=LDS $params id=$id +cfg_output_dir=$cfg_output_dir +cfg_file_name=$id $bench_save_dir_override
+        python scripts/train_and_push_to_hub.py --config-name $id --config-dir $cfg_output_dir +skip_subsets=true $bench_save_dir_override
     else
-        python scripts/train_and_push_to_hub.py --config-name "$id" --config-dir $cfg_output_dir +skip_subsets=true
+        python scripts/train_and_push_to_hub.py --config-name "$id" --config-dir $cfg_output_dir +skip_subsets=true $bench_save_dir_override
     fi
 
     local M bench_save_dir
     M=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['m'])")
-    bench_save_dir=$(python -c "import yaml; print(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml')).get('bench_save_dir', './tmp'))")
+    bench_save_dir="${bench_save_dir_override#bench_save_dir=}"
     ckpt_basename=$(python -c "import yaml, os; print(os.path.basename(yaml.safe_load(open('${cfg_output_dir}/${id}.yaml'))['subset_ckpt']))")
 
     # Hydrate non-pid metadata dir from HF Hub so parallel workers and
