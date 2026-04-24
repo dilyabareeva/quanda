@@ -1,5 +1,6 @@
 """Benchmark for the Linear Datamodeling Score metric."""
 
+import fcntl
 import logging
 import os
 import random
@@ -510,10 +511,9 @@ class LinearDatamodeling(Benchmark):
         eval_seed: int = 42,
     ) -> str:
         """Default local directory for cached counterfactual subset logits."""
-        repo = config.get("repo_id", "quanda-bench-test")
-        group = config.get("explanations_group", config["id"])
+        repo_id = config.get("subset_ckpt", config["ckpt"])
         logits_id = (
-            f"{repo}/{group}"
+            f"{repo_id}"
             f"__n{max_eval_n}_s{eval_seed}_b{batch_size}__subset_logits"
         )
         return os.path.join(
@@ -586,9 +586,14 @@ class LinearDatamodeling(Benchmark):
                     .cpu()
                 )
                 path = os.path.join(save_dir, f"{i}.pt")
-                batch_dict = torch.load(path) if os.path.exists(path) else {}
-                batch_dict[idx] = logits
-                torch.save(batch_dict, path)
+                # concurrent workers won't clash
+                with open(path + ".lock", "a") as lock_fd:
+                    fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
+                    batch_dict = (
+                        torch.load(path) if os.path.exists(path) else {}
+                    )
+                    batch_dict[idx] = logits
+                    torch.save(batch_dict, path)
 
         return save_dir
 
