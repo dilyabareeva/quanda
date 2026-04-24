@@ -7,7 +7,6 @@ from typing import Callable, Dict, List, Optional, Union
 import lightning as L
 import torch
 import yaml
-from torch.nn.functional import log_softmax
 from torch.utils.data import DataLoader
 
 from quanda.metrics.base import Metric
@@ -378,7 +377,7 @@ class LinearDatamodelingMetric(Metric):
             The explanation scores for the test data with shape (test_samples,
             dataset_size).
         test_targets : torch.Tensor
-            The target values for the explanations.
+            The **correct** labels for the test data.
         test_data : torch.Tensor
             The test data used for evaluation.
         kwargs: Any
@@ -404,26 +403,26 @@ class LinearDatamodelingMetric(Metric):
 
             counterfactual_model = self.load_counterfactual_model(s)
             counterfactual_output = counterfactual_model(test_data).detach()
-            # We take softmax since we want the rank
-            # correlation of probabilities
-            # The original definition computes the rank
-            # correlation of p/1-p
-            # So it is skipped to avoid overflow errors.
-            # This operation conserves the ranking of the data
-            # We also take logsoftmax
-            # to avoid underflow issues at the softmax output
             if (
                 counterfactual_output.ndim == 1
                 or counterfactual_output.shape[1] == 1
             ):
                 counterfactual_output = counterfactual_output.squeeze()
             else:
-                counterfactual_output = log_softmax(
-                    counterfactual_output, dim=-1
-                )
-                counterfactual_output = counterfactual_output.gather(
+                # Park et al. 2023, Eq. (19): f(z;θ) = log(p/(1-p)),
+                # i.e. the correct-class margin
+                #     z_y - logsumexp(z_{j != y}).
+                # Preferred over log-softmax, which saturates at 0
+                # when p ≈ 1 and collapses rank across subset models.
+                true_logit = counterfactual_output.gather(
                     1, test_targets.unsqueeze(1)
                 ).squeeze(1)
+                masked = counterfactual_output.scatter(
+                    1, test_targets.unsqueeze(1), float("-inf")
+                )
+                counterfactual_output = true_logit - torch.logsumexp(
+                    masked, dim=-1
+                )
 
             model_output_list.append(counterfactual_output)
 
