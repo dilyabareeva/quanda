@@ -85,6 +85,8 @@ class LinearDatamodeling(Benchmark):
 
     name: str = "Linear Datamodeling Score"
     eval_args: list = ["explanations", "test_data", "test_targets"]
+    default_use_predictions: bool = False
+    
     _push_subsets_during_train: bool = False
     _lds_skip_subsets: bool = False
 

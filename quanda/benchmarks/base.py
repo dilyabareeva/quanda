@@ -94,6 +94,7 @@ class Benchmark(ABC):
 
     name: str
     eval_args: List = []
+    default_use_predictions: bool = False
 
     def __init__(
         self,
@@ -285,7 +286,9 @@ class Benchmark(ABC):
             checkpoints_load_func=checkpoints_load_func,
             device=device,
             val_dataset=val_dataset,
-            use_predictions=config.get("use_predictions", True),
+            use_predictions=config.get(
+                "use_predictions", cls.default_use_predictions
+            ),
             **extra,
         )
 

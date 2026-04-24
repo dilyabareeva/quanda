@@ -32,6 +32,7 @@ class TopKCardinality(Benchmark):
 
     name: str = "Top-K Cardinality"
     eval_args: list = ["explanations"]
+    default_use_predictions: bool = True
 
     def __init__(
         self,

@@ -25,8 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class MislabelingDetection(Benchmark):
-    # TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE
-    #  PREDICTIONS
+
     """Benchmark for noisy label detection.
 
     This benchmark generates a dataset with mislabeled samples, and trains a
@@ -305,7 +304,6 @@ class MislabelingDetection(Benchmark):
             "expl_kwargs": safe_kwargs,
             "expl_kwargs_hash": _hash_expl_kwargs(expl_kwargs),
             "batch_size": batch_size,
-            "use_predictions": obj.use_predictions,
             "artifact": SELF_INFLUENCE_KEY,
             "max_eval_n": max_eval_n,
             "eval_seed": eval_seed,

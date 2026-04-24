@@ -37,12 +37,14 @@ class SubclassDetection(Benchmark):
         "test_data",
         "test_superclass_targets",
     ]
+    default_use_predictions: bool = True
+    default_filter_by_prediction: bool = True
 
     def __init__(
         self,
         *args,
         class_to_group: Optional[Dict[int, int]] = None,
-        filter_by_prediction: bool = False,
+        filter_by_prediction: bool = True,
         **kwargs,
     ):
         """Initialize the Subclass Detection benchmark.
@@ -56,7 +58,7 @@ class SubclassDetection(Benchmark):
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the correct superclass is predicted, by
-            default False.
+            default True.
         **kwargs
             Arguments passed to the base Benchmark class.
 
@@ -92,7 +94,7 @@ class SubclassDetection(Benchmark):
 
         return {
             "class_to_group": train_dataset.class_to_group,
-            "filter_by_prediction": config.get("filter_by_prediction", False),
+            "filter_by_prediction": config.get("filter_by_prediction", cls.default_filter_by_prediction),
         }
 
     def evaluate(

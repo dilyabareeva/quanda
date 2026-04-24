@@ -34,6 +34,7 @@ class ModelRandomization(Benchmark):
 
     name: str = "Model Randomization"
     eval_args: list = ["explanations", "test_data", "test_targets"]
+    default_use_predictions: bool = False
 
     def __init__(
         self,

@@ -35,6 +35,8 @@ class ClassDetection(Benchmark):
     # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     name: str = "Class Detection"
     eval_args = ["test_data", "test_targets", "explanations"]
+    default_use_predictions: bool = True
+    default_filter_by_prediction: bool = False
 
     def __init__(
         self,
@@ -70,7 +72,7 @@ class ClassDetection(Benchmark):
     ) -> dict:
         """Extract class detection kwargs from config."""
         return {
-            "filter_by_prediction": config.get("filter_by_prediction", False),
+            "filter_by_prediction": config.get("filter_by_prediction", cls.default_filter_by_prediction),
         }
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
