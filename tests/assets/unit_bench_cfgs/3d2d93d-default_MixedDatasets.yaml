@@ -43,6 +43,7 @@ logger:
 id: 3d2d93d-default_MixedDatasets
 bench: MixedDatasets
 adversarial_label: 0
+filter_by_prediction: false
 bench_save_dir: bench_out
 log_dir: hydra_logs
 repo_id: quanda-bench-test

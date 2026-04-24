@@ -76,6 +76,7 @@ logger:
 id: 83edb41-default_SubclassDetection
 bench: SubclassDetection
 adversarial_label: 0
+filter_by_prediction: false
 bench_save_dir: tests/assets/mnist_local_bench
 log_dir: hydra_logs
 repo_id: quanda-bench-test
