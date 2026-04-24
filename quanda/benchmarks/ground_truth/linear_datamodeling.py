@@ -511,9 +511,10 @@ class LinearDatamodeling(Benchmark):
         eval_seed: int = 42,
     ) -> str:
         """Default local directory for cached counterfactual subset logits."""
-        repo_id = config.get("subset_ckpt", config["ckpt"])
+        repo = config.get("repo_id", "quanda-bench-test")
+        group = config.get("explanations_group", config["id"])
         logits_id = (
-            f"{repo_id}"
+            f"{repo}/{group}"
             f"__n{max_eval_n}_s{eval_seed}_b{batch_size}__subset_logits"
         )
         return os.path.join(
