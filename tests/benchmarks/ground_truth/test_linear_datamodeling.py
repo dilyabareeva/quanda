@@ -508,3 +508,270 @@ def test_lds_train_subset_raises_if_from_config_returns_wrong_type(
         TypeError, match="Expected a LinearDatamodeling instance"
     ):
         LinearDatamodeling.train_subset(config={}, idx=0)
+
+
+@pytest.mark.benchmarks
+def test_lds_metric_update_uses_subset_logits(mocker):
+    """When ``subset_logits`` is supplied, ``update`` skips the
+    counterfactual model reload for every subset in the dict."""
+    metric = LinearDatamodelingMetric.__new__(LinearDatamodelingMetric)
+    metric.m = 3
+    metric.subsets = [
+        mocker.MagicMock(indices=[0, 1]),
+        mocker.MagicMock(indices=[1, 2]),
+        mocker.MagicMock(indices=[0, 2]),
+    ]
+    metric.corr_measure = lambda a, b: torch.zeros(a.shape[0])
+    metric.inference_batch_size = None
+    metric.results = {"scores": []}
+
+    spy = mocker.patch.object(
+        LinearDatamodelingMetric, "load_counterfactual_model"
+    )
+    subset_logits = {s: torch.randn(4, 2) for s in range(3)}
+
+    metric.update(
+        explanations=torch.randn(4, 3),
+        test_data=torch.randn(4, 5),
+        test_targets=torch.tensor([0, 1, 0, 1]),
+        subset_logits=subset_logits,
+    )
+    spy.assert_not_called()
+    assert len(metric.results["scores"]) == 1
+
+
+@pytest.mark.benchmarks
+def test_lds_cache_subset_logits_writes_per_batch_files(mocker, tmp_path):
+    """``cache_subset_logits`` writes one ``{i}.pt`` per eval batch,
+    each a ``dict[subset_idx -> Tensor]`` across all ``m`` subsets."""
+    fake = _make_fake_lds_obj(mocker, m=2)
+    fake.eval_dataset = mocker.MagicMock()
+    mocker.patch.object(LinearDatamodeling, "from_config", return_value=fake)
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling."
+        "_subsample_dataset",
+        side_effect=lambda ds, **kw: ds,
+    )
+    handler = mocker.MagicMock()
+    handler.create_dataloader.return_value = ["ba", "bb"]
+    handler.process_batch.side_effect = [("ia", None), ("ib", None)]
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling."
+        "get_dataset_handler",
+        return_value=handler,
+    )
+    mocker.patch.object(
+        LinearDatamodeling,
+        "_load_subset_model",
+        side_effect=lambda idx, device=None: f"model_{idx}",
+    )
+    counter = {"n": 0}
+
+    def fake_logits(model, test_data, ibs):
+        counter["n"] += 1
+        return torch.tensor([[float(counter["n"])]])
+
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling.chunked_logits",
+        side_effect=fake_logits,
+    )
+
+    save_dir = LinearDatamodeling.cache_subset_logits(
+        config={
+            "ckpt": "repo/ckpt",
+            "id": "bid",
+            "bench_save_dir": str(tmp_path),
+        },
+        batch_size=4,
+        device="cpu",
+    )
+
+    assert sorted(f for f in os.listdir(save_dir) if f.endswith(".pt")) == [
+        "0.pt",
+        "1.pt",
+    ]
+    for i in range(2):
+        d = torch.load(os.path.join(save_dir, f"{i}.pt"))
+        assert set(d.keys()) == {0, 1}
+
+
+@pytest.mark.benchmarks
+def test_lds_evaluate_forwards_subset_logits_dir(mocker):
+    """``evaluate`` passes ``subset_logits_dir`` through to
+    ``_evaluate_dataset``."""
+    fake = _make_fake_lds_obj(mocker)
+    fake.eval_dataset = mocker.MagicMock()
+    fake.checkpoints = ["c"]
+    fake.checkpoints_load_func = mocker.MagicMock()
+    fake.alpha = 0.5
+    fake.cache_dir = "/tmp"
+    fake.model_id = "id"
+    fake.correlation_fn = lambda a, b: torch.tensor(0.0)
+    fake.seed = 0
+
+    mocker.patch.object(
+        LinearDatamodeling,
+        "_resolve_precomputed_explanations",
+        return_value=None,
+    )
+    mocker.patch.object(
+        LinearDatamodeling,
+        "_prepare_explainer",
+        return_value=mocker.MagicMock(),
+    )
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling."
+        "LinearDatamodelingMetric",
+        return_value=mocker.MagicMock(),
+    )
+    spy = mocker.patch.object(
+        LinearDatamodeling,
+        "_evaluate_dataset",
+        return_value={"score": 0.0},
+    )
+
+    LinearDatamodeling.evaluate(
+        fake,
+        explainer_cls=type("StubExplainer", (), {}),
+        subset_logits_dir="/my/logits",
+    )
+    assert spy.call_args.kwargs["subset_logits_dir"] == "/my/logits"
+
+
+@pytest.mark.benchmarks
+def test_lds_metric_update_partial_subset_logits(mocker):
+    metric = LinearDatamodelingMetric.__new__(LinearDatamodelingMetric)
+    metric.m = 3
+    metric.subsets = [mocker.MagicMock(indices=[0, 1]) for _ in range(3)]
+    metric.corr_measure = lambda a, b: torch.zeros(a.shape[0])
+    metric.inference_batch_size = None
+    metric.results = {"scores": []}
+
+    load_spy = mocker.patch.object(
+        LinearDatamodelingMetric,
+        "load_counterfactual_model",
+        return_value=mocker.MagicMock(),
+    )
+    mocker.patch(
+        "quanda.metrics.ground_truth.linear_datamodeling.chunked_logits",
+        return_value=torch.randn(4, 2),
+    )
+
+    metric.update(
+        explanations=torch.randn(4, 3),
+        test_data=torch.randn(4, 5),
+        test_targets=torch.tensor([0, 1, 0, 1]),
+        subset_logits={0: torch.randn(4, 2)},
+    )
+    # Only subset 0 was provided: subsets 1 and 2 must be loaded.
+    assert load_spy.call_count == 2
+    loaded_idxs = sorted(c.args[0] for c in load_spy.call_args_list)
+    assert loaded_idxs == [1, 2]
+
+
+@pytest.mark.benchmarks
+def test_subset_logits_cache_dir_is_deterministic():
+
+    config = {
+        "ckpt": "repo/ckpt",
+        "id": "bid",
+        "bench_save_dir": "/tmp",
+    }
+    base = LinearDatamodeling.subset_logits_cache_dir(
+        config=config, batch_size=8, max_eval_n=1000, eval_seed=42
+    )
+    assert (
+        LinearDatamodeling.subset_logits_cache_dir(
+            config=config, batch_size=8, max_eval_n=1000, eval_seed=42
+        )
+        == base
+    )
+    for bs, n, s in [(16, 1000, 42), (8, 500, 42), (8, 1000, 7)]:
+        assert (
+            LinearDatamodeling.subset_logits_cache_dir(
+                config=config, batch_size=bs, max_eval_n=n, eval_seed=s
+            )
+            != base
+        )
+
+
+@pytest.mark.benchmarks
+def test_evaluate_dataset_without_subset_logits_dir_skips_injection(mocker):
+
+    fake = _make_fake_lds_obj(mocker)
+    mocker.patch.object(
+        LinearDatamodeling,
+        "_iter_explanations",
+        side_effect=lambda *a, **kw: iter(
+            [(0, "inputs", "labels", "targets", "expl", 1)]
+        ),
+    )
+    metric = mocker.MagicMock()
+    metric.compute.return_value = {"score": 0.0}
+
+    LinearDatamodeling._evaluate_dataset(
+        fake,
+        eval_dataset=mocker.MagicMock(),
+        explainer=None,
+        metric=metric,
+        batch_size=1,
+    )
+    assert "subset_logits" not in metric.update.call_args.kwargs
+
+
+@pytest.mark.benchmarks
+def test_evaluate_dataset_loads_subset_logits_from_dir(mocker, tmp_path):
+
+    fake = _make_fake_lds_obj(mocker)
+    torch.save(
+        {0: torch.tensor([1.0, 2.0])},
+        os.path.join(tmp_path, "0.pt"),
+    )
+
+    mocker.patch.object(
+        LinearDatamodeling,
+        "_iter_explanations",
+        side_effect=lambda *a, **kw: iter(
+            [(0, "inputs", "labels", "targets", "expl", 1)]
+        ),
+    )
+    metric = mocker.MagicMock()
+    metric.compute.return_value = {"score": 0.0}
+
+    LinearDatamodeling._evaluate_dataset(
+        fake,
+        eval_dataset=mocker.MagicMock(),
+        explainer=None,
+        metric=metric,
+        batch_size=1,
+        subset_logits_dir=str(tmp_path),
+    )
+    kwargs = metric.update.call_args.kwargs
+    assert "subset_logits" in kwargs
+    assert torch.equal(kwargs["subset_logits"][0], torch.tensor([1.0, 2.0]))
+
+
+@pytest.mark.benchmarks
+def test_evaluate_dataset_skips_missing_subset_logits_file(mocker, tmp_path):
+
+    fake = _make_fake_lds_obj(mocker)
+
+    mocker.patch.object(
+        LinearDatamodeling,
+        "_iter_explanations",
+        side_effect=lambda *a, **kw: iter(
+            [(0, "inputs", "labels", "targets", "expl", 1)]
+        ),
+    )
+    metric = mocker.MagicMock()
+    metric.compute.return_value = {"score": 0.0}
+
+    LinearDatamodeling._evaluate_dataset(
+        fake,
+        eval_dataset=mocker.MagicMock(),
+        explainer=None,
+        metric=metric,
+        batch_size=1,
+        subset_logits_dir=str(tmp_path),
+    )
+    assert "subset_logits" not in metric.update.call_args.kwargs
