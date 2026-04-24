@@ -38,7 +38,8 @@ run_eval() {
     local bench=$1 method=$2 sweep=$3
     local multirun=""
     [ -n "$sweep" ] && multirun="--multirun"
-    python scripts/run_bench_eval.py \
+    env HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
+        python scripts/run_bench_eval.py \
         --config-name "$EVAL_CONFIG_NAME" $multirun \
         bench="$bench" explainer="$method" \
         $sweep "${EXTRA_ARGS[@]}"
@@ -52,11 +53,6 @@ for bench in "${benchmarks[@]}"; do
         bench="$bench" "${EXTRA_ARGS[@]}" \
         >> "${LOG_DIR}/caching.log" 2>&1
 done
-
-# Cache is warm — force HF libs to skip Hub revalidation in the sweep.
-export HF_HUB_OFFLINE=1
-export HF_DATASETS_OFFLINE=1
-export TRANSFORMERS_OFFLINE=1
 
 for bench in "${benchmarks[@]}"; do
     for method in "${methods[@]}"; do

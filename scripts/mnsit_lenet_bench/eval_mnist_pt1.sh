@@ -14,33 +14,10 @@ benchmarks=(
 methods=(
     similarity
     representer_points
-    random
-)
-
-source "$(dirname "$0")/../eval.sh"  --regenerate-explanations "$@"
-
-methods=(
-    tracincpfast
-    trak
-)
-
-source "$(dirname "$0")/../eval.sh"  --regenerate-explanations "$@"
-
-
-methods=(
-    similarity
-    representer_points
     tracincpfast
     #arnoldi
     trak
     random
 )
 
-benchmarks=(
-    mnist_top_k_cardinality
-    mnist_model_randomization
-    mnist_mislabeling_detection
-    mnist_linear_datamodeling
-)
-
-source "$(dirname "$0")/../eval.sh"  --regenerate-explanations "$@"
+source "$(dirname "$0")/../eval.sh" "$@"
