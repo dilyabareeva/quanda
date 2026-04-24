@@ -34,9 +34,9 @@ commit_tag=$(GIT_DISCOVERY_ACROSS_FILESYSTEM=1 git rev-parse --short HEAD 2>/dev
 mkdir -p logs
 
 if [ -d "/data/cluster/users/bareeva" ]; then
-    bench_save_dir_override="bench_save_dir=/data/cluster/users/bareeva/quanda_output_new/eval_bench/${CONFIG_MAP_PREFIX}"
+    bench_save_dir_override="bench_save_dir=/data/cluster/users/bareeva/quanda_output_new2/eval_bench/${CONFIG_MAP_PREFIX}"
 else
-    bench_save_dir_override="bench_save_dir=/data2/bareeva/Projects/quanda/cluster_output_new/eval_bench/${CONFIG_MAP_PREFIX}"
+    bench_save_dir_override="bench_save_dir=/data2/bareeva/Projects/quanda/cluster_output_new2/eval_bench/${CONFIG_MAP_PREFIX}"
 fi
 
 declare -A BENCH_CONFIG_MAP_KEY

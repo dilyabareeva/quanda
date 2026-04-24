@@ -28,4 +28,4 @@ benchmarks=(
     qnli_model_randomization
 )
 
-#source "$(dirname "$0")/../eval.sh" "$@"
+source "$(dirname "$0")/../eval.sh" "$@"

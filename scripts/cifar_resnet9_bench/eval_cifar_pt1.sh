@@ -14,14 +14,28 @@ benchmarks=(
 methods=(
     similarity
     representer_points
-    tracincpfast
-    #arnoldi
-    trak
     random
 )
 
 source "$(dirname "$0")/../eval.sh" --regenerate-explanations "$@"
 
+
+methods=(
+    tracincpfast
+    trak
+)
+
+source "$(dirname "$0")/../eval.sh" --regenerate-explanations "$@"
+
+
+methods=(
+    similarity
+    representer_points
+    tracincpfast
+    #arnoldi
+    trak
+    random
+)
 
 benchmarks=(
     cifar_linear_datamodeling

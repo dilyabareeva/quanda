@@ -24,9 +24,9 @@ commit_tag=$(git rev-parse --short HEAD)
 mkdir -p logs
 
 if [ -d "/data/cluster/users/bareeva" ]; then
-    bench_save_dir_override="bench_save_dir=/data/cluster/users/bareeva/quanda_output_new/eval_bench/${CONFIG_MAP_PREFIX}"
+    bench_save_dir_override="bench_save_dir=/data/cluster/users/bareeva/quanda_output_new2/eval_bench/${CONFIG_MAP_PREFIX}"
 else
-    bench_save_dir_override="bench_save_dir=/data2/bareeva/Projects/quanda/cluster_output_new/eval_bench/${CONFIG_MAP_PREFIX}"
+    bench_save_dir_override="bench_save_dir=/data2/bareeva/Projects/quanda/cluster_output_new2/eval_bench/${CONFIG_MAP_PREFIX}"
 fi
 
 # Map benchmark names to config_map.py keys
