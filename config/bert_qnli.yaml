@@ -28,7 +28,6 @@ correlation_fn: "kendall"
 offline: true
 seed: 42
 device: "auto"
-use_predictions: true
 batch_size: 64
 
 m: 100

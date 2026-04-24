@@ -79,7 +79,7 @@ correlation_fn: kendall
 offline: true
 seed: 42
 device: cuda:1
-use_predictions: true
+
 batch_size: 64
 m: 100
 alpha: 0.5
