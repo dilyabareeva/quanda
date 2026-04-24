@@ -85,9 +85,9 @@ config_map: dict = {
     "qnli_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("e59b08c-bert_qnli_LDS.yaml"),
-    "nanogpt_trex_mrr": files(
-        "quanda.benchmarks.resources.configs"
-    ).joinpath("nanogpt_trex_MRR.yaml"),
+    "nanogpt_trex_mrr": files("quanda.benchmarks.resources.configs").joinpath(
+        "nanogpt_trex_MRR.yaml"
+    ),
     "nanogpt_trex_recall_at_k": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("nanogpt_trex_RecallAtK.yaml"),

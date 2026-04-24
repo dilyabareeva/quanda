@@ -10,7 +10,7 @@ import yaml
 from torch.utils.data import DataLoader
 
 from quanda.metrics.base import Metric
-from quanda.utils.common import ds_len
+from quanda.utils.common import chunked_logits, ds_len
 from quanda.utils.functions import CorrelationFnLiterals, correlation_functions
 from quanda.utils.training import BaseTrainer
 
@@ -52,6 +52,7 @@ class LinearDatamodelingMetric(Metric):
         subset_ckpt_filenames: Optional[List[str]] = None,
         model_id: Optional[str] = "0",
         cache_dir: str = "./cache",
+        inference_batch_size: Optional[int] = None,
     ):
         """Initialize the LinearDatamodelingMetric.
 
@@ -90,6 +91,10 @@ class LinearDatamodelingMetric(Metric):
             An identifier for the model, by default "0".
         cache_dir : str
             The cache directory for the checkpoints, by default "./cache".
+        inference_batch_size : Optional[int], optional
+            If set, split each counterfactual-model forward over
+            ``test_data`` into sub-batches of this size. ``None`` runs the
+            forward on the full batch.
 
         """
         super().__init__(
@@ -139,6 +144,7 @@ class LinearDatamodelingMetric(Metric):
         self.trainer_fit_kwargs = trainer_fit_kwargs
         self.seed = seed
         self.batch_size = batch_size
+        self.inference_batch_size = inference_batch_size
 
         self.generator = None
         if self.seed is not None:
@@ -402,7 +408,12 @@ class LinearDatamodelingMetric(Metric):
             predicted_output_list.append(g_tau)
 
             counterfactual_model = self.load_counterfactual_model(s)
-            counterfactual_output = counterfactual_model(test_data).detach()
+            with torch.no_grad():
+                counterfactual_output = chunked_logits(
+                    counterfactual_model,
+                    test_data,
+                    self.inference_batch_size,
+                )
             if (
                 counterfactual_output.ndim == 1
                 or counterfactual_output.shape[1] == 1

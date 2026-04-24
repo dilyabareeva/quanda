@@ -104,6 +104,7 @@ def main(cfg: DictConfig) -> float:
             device=cfg.device,
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
+            inference_batch_size=cfg.inference_batch_size,
         )
 
     score = bench.evaluate(
@@ -114,6 +115,7 @@ def main(cfg: DictConfig) -> float:
         eval_seed=eval_seed,
         cache_dir=expl_save_dir,
         use_cached_expl=True,
+        inference_batch_size=cfg.inference_batch_size,
     )
 
     os.makedirs(cfg.results_dir, exist_ok=True)

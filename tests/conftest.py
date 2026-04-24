@@ -21,6 +21,7 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
 )
+
 from quanda.benchmarks.config_parser import FactTracingConfigParser
 from quanda.benchmarks.resources import config_map
 from quanda.utils.datasets.transformed.label_flipping import (
@@ -1376,7 +1377,7 @@ def load_fact_tracing_dataset_nanogpt():
 @pytest.fixture
 def load_fact_tracing_dataset():
     """Build prompt/evidence/entailment via the fact-tracing parser (HF GPT-2)."""
-    
+
     cfg = {
         "dataset_str": "quanda-bench-test/trex-subset-benchmark",
         "dataset_split": "train",

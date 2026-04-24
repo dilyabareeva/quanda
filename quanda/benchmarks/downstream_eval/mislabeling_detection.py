@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 
 
 class MislabelingDetection(Benchmark):
-
     """Benchmark for noisy label detection.
 
     This benchmark generates a dataset with mislabeled samples, and trains a

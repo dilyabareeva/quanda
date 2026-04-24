@@ -56,6 +56,7 @@ class RecallAtK(FactTracingBenchmark):
 
         All other parameters mirror
         :class:`~quanda.benchmarks.base.Benchmark`.
+
         """
         super().__init__(
             model=model,
@@ -75,7 +76,7 @@ class RecallAtK(FactTracingBenchmark):
         """Pull ``k`` off the config into ``__init__`` kwargs."""
         return {"k": config.get("k", 10)}
 
-    def _build_metric(self) -> RecallAtKMetric:
+    def _build_metric(self, inference_batch_size=None) -> RecallAtKMetric:
         """Instantiate the Recall@k metric."""
         return RecallAtKMetric(
             model=self.model,

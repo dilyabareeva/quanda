@@ -121,7 +121,9 @@ class FactTracingBenchmark(Benchmark):
         """Override to supply benchmark-specific ``__init__`` kwargs."""
         return {}
 
-    def _build_metric(self) -> Metric:
+    def _build_metric(
+        self, inference_batch_size: Optional[int] = None
+    ) -> Metric:
         """Return the concrete metric instance for this benchmark."""
         raise NotImplementedError
 
@@ -135,6 +137,7 @@ class FactTracingBenchmark(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Evaluate the benchmark using a given explanation method.
 
@@ -158,9 +161,12 @@ class FactTracingBenchmark(Benchmark):
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,
             explainer=explainer,
-            metric=self._build_metric(),
+            metric=self._build_metric(
+                inference_batch_size=inference_batch_size
+            ),
             batch_size=batch_size,
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
+            inference_batch_size=inference_batch_size,
         )

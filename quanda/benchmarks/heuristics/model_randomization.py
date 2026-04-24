@@ -96,6 +96,7 @@ class ModelRandomization(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Evaluate the given data attributor.
 
@@ -121,6 +122,10 @@ class ModelRandomization(Benchmark):
             Whether to use Hugging Face cached explanations, by default False.
             If use_cached_expl is also True, will prioritize local cache over
             HF cache.
+        inference_batch_size: Optional[int], optional
+            If set, split the per-batch model forward (prediction and any
+            forward inside the metric) into sub-batches of this size.
+            ``None`` keeps the full ``batch_size`` forward.
 
         Returns
         -------
@@ -164,4 +169,5 @@ class ModelRandomization(Benchmark):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
+            inference_batch_size=inference_batch_size,
         )

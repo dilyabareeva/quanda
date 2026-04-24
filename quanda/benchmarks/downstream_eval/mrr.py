@@ -28,7 +28,7 @@ class MRR(FactTracingBenchmark):
 
     name: str = "Mean Reciprocal Rank"
 
-    def _build_metric(self) -> MRRMetric:
+    def _build_metric(self, inference_batch_size=None) -> MRRMetric:
         """Instantiate the MRR metric bound to this benchmark's assets."""
         return MRRMetric(
             model=self.model,

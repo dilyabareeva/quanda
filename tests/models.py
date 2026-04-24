@@ -231,4 +231,3 @@ class SimpleCausalLM(torch.nn.Module):
             attentions=None,
             cross_attentions=None,
         )
-

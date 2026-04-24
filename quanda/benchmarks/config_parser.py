@@ -705,20 +705,18 @@ class FactTracingConfigParser:
     @classmethod
     def parse_fact_tracing_cfg(
         cls, cfg: dict
-    ) -> Tuple[
-        hf_datasets.Dataset, hf_datasets.Dataset, torch.Tensor, int
-    ]:
+    ) -> Tuple[hf_datasets.Dataset, hf_datasets.Dataset, torch.Tensor, int]:
         """Build ``(prompt_ds, evidence_ds, entailment_labels, pad_id)``."""
         tokenize, pad_id = resolve_tokenizer(cfg["tokenizer"])
         ds = load_dataset(
             cfg["dataset_str"], split=cfg.get("dataset_split", "train")
         )
-        
-        num_prompts=cfg.get("num_prompts", 20)
+
+        num_prompts = cfg.get("num_prompts", 20)
         seed = cfg.get("seed", 42)
         max_length = cfg.get("max_length", 128)
         max_evidence_per_prompt = cfg.get("max_evidence_per_prompt", 5)
-            
+
         # Sample prompt entries
         if num_prompts < len(ds):
             random.seed(seed)
@@ -726,8 +724,7 @@ class FactTracingConfigParser:
             sampled_dataset = ds.select(indices)
         else:
             sampled_dataset = ds
-        
-        
+
         # Tokenize prompt + answer and mask prompt in labels
         input_ids = []
         attention_mask = []
@@ -747,9 +744,9 @@ class FactTracingConfigParser:
                 max_length=max_length,
             )
 
-            prompt_ids = tokenize(prompt, truncation=True, max_length=max_length)[
-                "input_ids"
-            ]
+            prompt_ids = tokenize(
+                prompt, truncation=True, max_length=max_length
+            )["input_ids"]
             prompt_len = len(prompt_ids)
 
             # Mask out prompt from loss

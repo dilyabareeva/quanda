@@ -94,7 +94,9 @@ class SubclassDetection(Benchmark):
 
         return {
             "class_to_group": train_dataset.class_to_group,
-            "filter_by_prediction": config.get("filter_by_prediction", cls.default_filter_by_prediction),
+            "filter_by_prediction": config.get(
+                "filter_by_prediction", cls.default_filter_by_prediction
+            ),
         }
 
     def evaluate(
@@ -107,6 +109,7 @@ class SubclassDetection(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
         *args,
         **kwargs,
     ):
@@ -138,6 +141,10 @@ class SubclassDetection(Benchmark):
             Whether to use Hugging Face cached explanations, by default False.
             If use_cached_expl is also True, will prioritize local cache over
             HF cache.
+        inference_batch_size: Optional[int], optional
+            If set, split the per-batch model forward (prediction and any
+            forward inside the metric) into sub-batches of this size.
+            ``None`` keeps the full ``batch_size`` forward.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -187,6 +194,7 @@ class SubclassDetection(Benchmark):
             checkpoints_load_func=self.checkpoints_load_func,
             train_subclass_labels=train_subclass_labels,
             filter_by_prediction=self.filter_by_prediction,
+            inference_batch_size=inference_batch_size,
         )
 
         # using the pre class-to-group dataset for evaluation
@@ -198,6 +206,7 @@ class SubclassDetection(Benchmark):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
+            inference_batch_size=inference_batch_size,
         )
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):

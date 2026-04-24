@@ -29,6 +29,7 @@ from quanda.utils.common import (
     DatasetSplit,
     _stable_repr,
     _subsample_dataset,
+    chunked_logits,
     class_accuracy,
     load_last_checkpoint,
 )
@@ -773,6 +774,7 @@ class Benchmark(ABC):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Run the evaluation using the benchmark.
 
@@ -797,6 +799,11 @@ class Benchmark(ABC):
         use_hf_expl : bool
             Download precomputed explanations from the HF Hub into
             ``cache_dir`` before loading.
+        inference_batch_size : Optional[int]
+            If set, every forward through ``self.model`` run during
+            evaluation (prediction of ``targets`` and any model calls in
+            ``metric.update``) is split into sub-batches of this size.
+            ``None`` keeps the full ``batch_size``-wide forward.
 
         Returns
         -------
@@ -904,6 +911,7 @@ class Benchmark(ABC):
         device: str = "cpu",
         max_eval_n: Optional[int] = 1000,
         eval_seed: int = 42,
+        inference_batch_size: Optional[int] = None,
     ) -> "Benchmark":
         """Compute and persist explanations for ``eval_dataset`` to disk.
 
@@ -943,6 +951,7 @@ class Benchmark(ABC):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=None,
+            inference_batch_size=inference_batch_size,
         ):
             ExplanationsCache.save(save_dir, explanations, num_id=i)
 
@@ -1025,6 +1034,7 @@ class Benchmark(ABC):
         max_eval_n: Optional[int],
         eval_seed: int,
         precomputed_explanations: Optional[BatchedCachedExplanations] = None,
+        inference_batch_size: Optional[int] = None,
     ):
         """Yield ``(i, inputs, labels, targets, explanations, n_batches)``.
 
@@ -1050,12 +1060,10 @@ class Benchmark(ABC):
             if self.use_predictions:
                 with torch.no_grad():
                     model_inputs = ds_handler.get_model_inputs(inputs=inputs)
-                    outputs = (
-                        self.model(**model_inputs)
-                        if isinstance(model_inputs, dict)
-                        else self.model(model_inputs)
+                    logits = chunked_logits(
+                        self.model, model_inputs, inference_batch_size
                     )
-                    targets = ds_handler.get_predictions(outputs=outputs)
+                    targets = ds_handler.get_predictions(outputs=logits)
             else:
                 targets = labels
 
@@ -1081,6 +1089,7 @@ class Benchmark(ABC):
         max_eval_n: Optional[int] = 1000,
         eval_seed: int = 42,
         precomputed_explanations: Optional[BatchedCachedExplanations] = None,
+        inference_batch_size: Optional[int] = None,
     ):
         """Evaluate dataset using explainer and metric.
 
@@ -1103,6 +1112,10 @@ class Benchmark(ABC):
             optional
             If provided, these explanations will be used instead of computing
             them on the fly. By default None.
+        inference_batch_size : Optional[int], optional
+            Forwarded to :meth:`_iter_explanations` to sub-batch the model
+            forward used for predictions. ``None`` keeps the full
+            ``batch_size`` forward.
 
         Returns
         -------
@@ -1124,6 +1137,7 @@ class Benchmark(ABC):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=precomputed_explanations,
+            inference_batch_size=inference_batch_size,
         ):
             data_unit = {
                 "test_data": inputs,

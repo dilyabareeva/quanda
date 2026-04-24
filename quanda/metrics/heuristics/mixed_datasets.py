@@ -6,6 +6,7 @@ import torch
 from torcheval.metrics.functional import binary_auprc
 
 from quanda.metrics.base import Metric
+from quanda.utils.common import chunked_logits
 
 
 class MixedDatasetsMetric(Metric):
@@ -45,6 +46,7 @@ class MixedDatasetsMetric(Metric):
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
         adversarial_label: Optional[int] = None,
+        inference_batch_size: Optional[int] = None,
     ):
         """Initialize the Mislabeling Detection metric.
 
@@ -73,6 +75,9 @@ class MixedDatasetsMetric(Metric):
             The label of the adversarial examples. If None, the label is
             inferred from the adversarial_indices.
             Defaults to None.
+        inference_batch_size : Optional[int], optional
+            If set, split the model forward used to filter by prediction into
+            sub-batches of this size. ``None`` disables chunking.
 
         Raises
         ------
@@ -99,6 +104,7 @@ class MixedDatasetsMetric(Metric):
             adversarial_label = induced_adv_label
         self.adversarial_label = adversarial_label
         self.filter_by_prediction = filter_by_prediction
+        self.inference_batch_size = inference_batch_size
 
     def _validate_adversarial_labels(self) -> int:
         """Validate the adversarial labels in the training dataset."""
@@ -151,7 +157,10 @@ class MixedDatasetsMetric(Metric):
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
 
         if self.filter_by_prediction:
-            pred_cls = self.model(test_data).argmax(dim=1)
+            logits = chunked_logits(
+                self.model, test_data, self.inference_batch_size
+            )
+            pred_cls = logits.argmax(dim=1)
             select_idx *= pred_cls == self.adversarial_label
 
         explanations = explanations[select_idx]

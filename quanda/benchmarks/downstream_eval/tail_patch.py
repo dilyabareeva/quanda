@@ -72,6 +72,7 @@ class TailPatch(FactTracingBenchmark):
 
         All other parameters mirror
         :class:`~quanda.benchmarks.base.Benchmark`.
+
         """
         super().__init__(
             model=model,
@@ -103,7 +104,9 @@ class TailPatch(FactTracingBenchmark):
             "tokenizer_name": config.get("tokenizer_name", "gpt2"),
         }
 
-    def _build_metric(self) -> TailPatchMetric:
+    def _build_metric(
+        self, inference_batch_size: Optional[int] = None
+    ) -> TailPatchMetric:
         """Instantiate the Tail-Patch metric."""
         return TailPatchMetric(
             model=self.model,
@@ -114,4 +117,5 @@ class TailPatch(FactTracingBenchmark):
             optimizer_class=self.optimizer_class,
             optimizer_kwargs=self.optimizer_kwargs,
             tokenizer_name=self.tokenizer_name,
+            inference_batch_size=inference_batch_size,
         )

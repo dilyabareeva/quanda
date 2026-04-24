@@ -40,6 +40,7 @@ class TailPatchMetric(Metric):
         optimizer_class: Type[Optimizer] = AdamW,
         optimizer_kwargs: Optional[dict] = None,
         tokenizer_name: str = "gpt2",
+        inference_batch_size: Optional[int] = None,
     ):
         """Initialize the Tail Patch Metric.
 
@@ -64,6 +65,10 @@ class TailPatchMetric(Metric):
             Additional keyword arguments for the optimizer, by default None.
         tokenizer_name : str, optional
             Name of the tokenizer to use for text decoding, by default "gpt2".
+        inference_batch_size : Optional[int], optional
+            If set, split the original-model forward used to compute the
+            baseline log-probability into sub-batches of this size. ``None``
+            disables chunking.
 
         """
         super().__init__(
@@ -78,6 +83,7 @@ class TailPatchMetric(Metric):
         self.scores: List[float] = []
         self.optimizer_class = optimizer_class
         self.optimizer_kwargs = optimizer_kwargs or {}
+        self.inference_batch_size = inference_batch_size
         self.tokenizer = AutoTokenizer.from_pretrained(
             tokenizer_name, use_fast=True
         )
@@ -177,13 +183,27 @@ class TailPatchMetric(Metric):
         attention_mask = test_data["attention_mask"].to(self.device)
         test_targets = test_targets.to(self.device)
 
-        # Original log-prob
-        orig_logps = self._compute_log_prob(
-            self.model,
-            input_ids,
-            attention_mask,
-            test_targets,
-        )
+        # Original log-prob. Chunk so the original-model forward matches
+        # ``inference_batch_size`` when set (the per-proponent forward
+        # below already runs one sample at a time).
+        cs = self.inference_batch_size
+        if cs is None or cs >= input_ids.size(0):
+            orig_logps = self._compute_log_prob(
+                self.model, input_ids, attention_mask, test_targets
+            )
+        else:
+            orig_logps = torch.cat(
+                [
+                    self._compute_log_prob(
+                        self.model,
+                        input_ids[i : i + cs],
+                        attention_mask[i : i + cs],
+                        test_targets[i : i + cs],
+                    )
+                    for i in range(0, input_ids.size(0), cs)
+                ],
+                dim=0,
+            )
         orig_probs = torch.exp(orig_logps)
 
         # Top-k proponents

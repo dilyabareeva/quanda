@@ -86,7 +86,7 @@ class LinearDatamodeling(Benchmark):
     name: str = "Linear Datamodeling Score"
     eval_args: list = ["explanations", "test_data", "test_targets"]
     default_use_predictions: bool = False
-    
+
     _push_subsets_during_train: bool = False
     _lds_skip_subsets: bool = False
 
@@ -498,6 +498,7 @@ class LinearDatamodeling(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Evaluate the given data attributor.
 
@@ -523,6 +524,11 @@ class LinearDatamodeling(Benchmark):
             Whether to use Hugging Face cached explanations, by default False.
             If use_cached_expl is also True, will prioritize local cache over
             HF cache.
+        inference_batch_size: Optional[int], optional
+            If set, split the per-batch model forward (prediction and the
+            ``m`` counterfactual forwards inside the metric) into
+            sub-batches of this size. ``None`` keeps the full ``batch_size``
+            forward.
 
         Returns
         -------
@@ -559,6 +565,7 @@ class LinearDatamodeling(Benchmark):
             batch_size=batch_size,
             subset_ids=self.subset_ids,
             subset_ckpt_filenames=self.subset_ckpt_filenames,
+            inference_batch_size=inference_batch_size,
         )
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,
@@ -568,4 +575,5 @@ class LinearDatamodeling(Benchmark):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
+            inference_batch_size=inference_batch_size,
         )
