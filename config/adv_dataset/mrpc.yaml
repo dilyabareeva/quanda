@@ -1,0 +1,13 @@
+single_class_dataset: true
+label: 0
+transforms: null
+tokenizer:
+  name: google-bert/bert-base-cased
+  text_fields:
+  - text1
+  - text2
+  max_length: 128
+  label_field: label
+dataset_str: SetFit/mrpc
+split_ref: mrpc
+split_name: train

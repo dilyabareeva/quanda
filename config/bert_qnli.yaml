@@ -29,6 +29,7 @@ offline: true
 seed: 42
 device: "auto"
 batch_size: 64
+adversarial_label: 0
 
 m: 100
 alpha: 0.5
@@ -47,4 +48,8 @@ splits:
   qnli_train_mislabeling_50k:
     filename: qnli_train_mislabeling_50k_split.yaml
     ratios: {train: 0.47736, val: 0.1, test: 0.0}
+    seed: 42
+  mrpc:
+    filename: mrpc_split.yaml
+    ratios: {train: 0.8, val: 0.1, test: 0.1}
     seed: 42

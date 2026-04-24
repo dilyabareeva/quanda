@@ -348,10 +348,12 @@ class BenchConfigParser:
     @classmethod
     def _load_single_class_dataset(
         cls, ds_config: dict, cache_dir: Optional[str] = None
-    ) -> torch.utils.data.Dataset:
+    ) -> Union[torch.utils.data.Dataset, hf_datasets.Dataset]:
         """Load a dataset from a zip file based on configuration."""
         transform = cls._get_transform(ds_config)
         transform = transform if transform is not None else lambda x: x
+
+        tokenizer_cfg = ds_config.get("tokenizer", None)
 
         base_dataset = load_dataset(
             ds_config["dataset_str"],
@@ -359,6 +361,13 @@ class BenchConfigParser:
             split=ds_config.get("dataset_split", "train"),
             cache_dir=cache_dir,
         )
+        if tokenizer_cfg is not None:
+            if "label" in ds_config:
+                label_field = tokenizer_cfg.get("label_field", "label")
+                base_dataset = base_dataset.map(
+                    lambda x: {label_field: ds_config["label"]}
+                )
+            return tokenize_dataset(base_dataset, tokenizer_cfg)
         if "label" in ds_config:
             return HFtoTV(
                 base_dataset.map(
@@ -653,8 +662,13 @@ class BenchConfigParser:
             split_ratios=recipe["ratios"],
         ).splits
 
+        is_hf = isinstance(dataset, hf_datasets.Dataset)
         return {
-            k: torch.utils.data.Subset(dataset, splits[k])
+            k: (
+                dataset.select(splits[k])
+                if is_hf
+                else torch.utils.data.Subset(dataset, splits[k])
+            )
             if len(splits[k]) > 0
             else None
             for k in splits.keys()
