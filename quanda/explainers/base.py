@@ -6,6 +6,7 @@ from typing import Any, Callable, List, Optional, Union
 import datasets  # type: ignore
 import lightning as L
 import torch
+from tqdm import tqdm
 
 from quanda.utils.common import (
     cache_result,
@@ -158,7 +159,11 @@ class Explainer(ABC):
         )
         batch_size = min(batch_size, n)
 
-        for i, batch in zip(range(0, n, batch_size), ldr):
+        for i, batch in tqdm(
+            zip(range(0, n, batch_size), ldr),
+            total=len(ldr),
+            desc="Computing self-influence",
+        ):
             inputs, labels = handler.process_batch(batch, self.device)
             explanations = self.explain(test_data=inputs, targets=labels)
             influences[i : i + batch_size] = explanations.diag(diagonal=i)

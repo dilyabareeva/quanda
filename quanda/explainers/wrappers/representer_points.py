@@ -592,6 +592,7 @@ class RepresenterPoints(Explainer):
             MislabelingDetecion.
 
         """
+        logger.info("Computing self-influence...")
         # coefficients for each training label
         return self.coefficients[
             torch.arange(self.coefficients.shape[0]), self.labels

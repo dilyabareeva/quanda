@@ -1,6 +1,7 @@
 """Kronfluence data attribution wrapper."""
 
 import copy
+import logging
 import os
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -23,6 +24,8 @@ from quanda.explainers.utils import (
 )
 from quanda.utils.common import process_targets
 from quanda.utils.tasks import TaskLiterals
+
+logger = logging.getLogger(__name__)
 
 
 class Kronfluence(Explainer):
@@ -310,6 +313,7 @@ class Kronfluence(Explainer):
         scores_name = scores_name or self.scores_name
         score_args = score_args or self.score_args
 
+        logger.info("Computing self-influence...")
         self.analyzer.compute_self_scores(
             scores_name=scores_name,
             factors_name=self.factors_name,

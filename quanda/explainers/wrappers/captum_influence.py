@@ -734,6 +734,7 @@ class CaptumArnoldi(CaptumInfluence):
             Self-influence scores for each datapoint in train_dataset.
 
         """
+        logger.info("Computing self-influence...")
         influence_scores = self.captum_explainer.self_influence(
             inputs_dataset=None
         )
@@ -963,6 +964,7 @@ class CaptumTracInCP(CaptumInfluence):
             Self-influence scores for each datapoint in train_dataset.
 
         """
+        logger.info("Computing self-influence...")
         influence_scores = self.captum_explainer.self_influence(
             inputs=None,
             outer_loop_by_checkpoints=self.outer_loop_by_checkpoints,
@@ -1100,6 +1102,7 @@ class CaptumTracInCPFast(CaptumInfluence):
             Self-influence scores for each datapoint in train_dataset.
 
         """
+        logger.info("Computing self-influence...")
         influence_scores = self.captum_explainer.self_influence(
             inputs=None,
             outer_loop_by_checkpoints=self.outer_loop_by_checkpoints,

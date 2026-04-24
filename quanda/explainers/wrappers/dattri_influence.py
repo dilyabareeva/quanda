@@ -287,6 +287,7 @@ class DattriInfluence(Explainer, ABC):
             Self-influence scores for each datapoint in train_dataset.
 
         """
+        logger.info("Computing self-influence...")
         train_loader = self._make_loader(
             self.train_dataset, batch_size=batch_size
         )
@@ -372,6 +373,7 @@ class DattriTRAK(DattriInfluence):
 
     def self_influence(self, batch_size: int = 1) -> torch.Tensor:
         """Compute TRAK self-influence scores."""
+        logger.info("Computing self-influence...")
         if self.attributor.full_train_dataloader is not None:
             scores = self.attributor.self_attribute()
         else:
