@@ -373,6 +373,7 @@ class LinearDatamodelingMetric(Metric):
         explanations: torch.Tensor,
         test_targets: torch.Tensor,
         test_data: torch.Tensor,
+        subset_logits: Optional[Dict[int, torch.Tensor]] = None,
         **kwargs,
     ):
         """Update the evaluation scores based on new data.
@@ -386,6 +387,9 @@ class LinearDatamodelingMetric(Metric):
             The **correct** labels for the test data.
         test_data : torch.Tensor
             The test data used for evaluation.
+        subset_logits : Optional[Dict[int, torch.Tensor]], optional
+            Precomputed counterfactual logits for this batch, keyed by
+            subset index.
         kwargs: Any
             Additional keyword arguments
 
@@ -407,13 +411,18 @@ class LinearDatamodelingMetric(Metric):
 
             predicted_output_list.append(g_tau)
 
-            counterfactual_model = self.load_counterfactual_model(s)
-            with torch.no_grad():
-                counterfactual_output = chunked_logits(
-                    counterfactual_model,
-                    test_data,
-                    self.inference_batch_size,
+            if subset_logits is not None and s in subset_logits:
+                counterfactual_output = subset_logits[s].to(
+                    test_targets.device
                 )
+            else:
+                counterfactual_model = self.load_counterfactual_model(s)
+                with torch.no_grad():
+                    counterfactual_output = chunked_logits(
+                        counterfactual_model,
+                        test_data,
+                        self.inference_batch_size,
+                    )
             if (
                 counterfactual_output.ndim == 1
                 or counterfactual_output.shape[1] == 1

@@ -107,6 +107,15 @@ def main(cfg: DictConfig) -> float:
             inference_batch_size=cfg.inference_batch_size,
         )
 
+    extra: dict = {}
+    if BENCH_CLASS[bench_id] == "LDS":
+        extra["subset_logits_dir"] = bench_cls.subset_logits_cache_dir(
+            config=bench_cfg,
+            batch_size=cfg.batch_size,
+            max_eval_n=max_eval_n,
+            eval_seed=eval_seed,
+        )
+
     score = bench.evaluate(
         explainer_cls=expl_cls,
         expl_kwargs=expl_kwargs,
@@ -116,6 +125,7 @@ def main(cfg: DictConfig) -> float:
         cache_dir=expl_save_dir,
         use_cached_expl=True,
         inference_batch_size=cfg.inference_batch_size,
+        **extra,
     )
 
     os.makedirs(cfg.results_dir, exist_ok=True)

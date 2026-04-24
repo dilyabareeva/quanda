@@ -821,7 +821,7 @@ class Benchmark(ABC):
     ) -> Optional[BatchedCachedExplanations]:
         """Return a cached-explanations handle if available.
 
-        Uses the same ``cache_dir`` that was passed to :meth:`explain`. If
+        Uses the same ``cache_dir`` that was passed to `explain`. If
         ``use_cached_expl`` and ``cache_dir`` exists locally, load from it.
         Else if ``use_hf_expl``, download the HF dataset repo into
         ``cache_dir`` (repo_id derived by replacing the last ``"__"`` in
@@ -1090,6 +1090,7 @@ class Benchmark(ABC):
         eval_seed: int = 42,
         precomputed_explanations: Optional[BatchedCachedExplanations] = None,
         inference_batch_size: Optional[int] = None,
+        subset_logits_dir: Optional[str] = None,
     ):
         """Evaluate dataset using explainer and metric.
 
@@ -1116,6 +1117,11 @@ class Benchmark(ABC):
             Forwarded to :meth:`_iter_explanations` to sub-batch the model
             forward used for predictions. ``None`` keeps the full
             ``batch_size`` forward.
+        subset_logits_dir : Optional[str], optional
+            If set, for each batch ``i`` loads ``{dir}/{i}.pt`` (a
+            ``dict[int, Tensor]`` of per-subset counterfactual logits) and
+            passes it to ``metric.update`` as ``subset_logits``. Used by
+            :class:`LinearDatamodeling` to skip counterfactual forwards.
 
         Returns
         -------
@@ -1124,7 +1130,7 @@ class Benchmark(ABC):
 
         """
         for (
-            _,
+            i,
             inputs,
             labels,
             targets,
@@ -1159,6 +1165,12 @@ class Benchmark(ABC):
                     data_unit["targets"] = data_unit["grouped_labels"]
 
             eval_unit = {k: data_unit[k] for k in self.eval_args}
+            if subset_logits_dir is not None:
+                path = os.path.join(subset_logits_dir, f"{i}.pt")
+                if os.path.exists(path):
+                    eval_unit["subset_logits"] = torch.load(
+                        path, map_location=self.device
+                    )
             metric.update(**eval_unit)
 
         return metric.compute()
