@@ -15,7 +15,7 @@ methods=(
     arnoldi
 )
 
-source "$(dirname "$0")/../eval.sh" "$@"
+#source "$(dirname "$0")/../eval.sh" "$@"
 
 
 benchmarks=(

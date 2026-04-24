@@ -9,6 +9,7 @@ benchmarks=(
     cifar_top_k_cardinality
     cifar_model_randomization
     cifar_mislabeling_detection
+)
 
 methods=(
     similarity

@@ -11,9 +11,6 @@
 
 # Hydra surfaces full tracebacks for scripts under scripts/*.
 export HYDRA_FULL_ERROR=1
-
-COMMAND="${1:-echo 'No command specified. Pass a script path as argument to sbatch.'}"
-
 mkdir -p log
 
 apptainer exec --nv \
@@ -22,4 +19,4 @@ apptainer exec --nv \
       --bind /data/cluster/users/bareeva:/data/cluster/users/bareeva \
       --pwd /workspace \
       $PWD/slurm/env_quanda.sif \
-      bash "$COMMAND"
+      bash "$@"
