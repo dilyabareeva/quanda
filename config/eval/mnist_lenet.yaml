@@ -20,6 +20,7 @@ results_dir: ${root_dir}/eval_results/mnist
 #results_dir: ./eval_results/mnist
 device: cpu
 batch_size: 32
+inference_batch_size: null
 
 bench_eval:
   mnist_class_detection: {max_eval_n: 1000, eval_seed: 42}

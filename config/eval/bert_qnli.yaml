@@ -17,6 +17,7 @@ cache_dir: ${root_dir}/eval_bench/qnli
 results_dir: ${root_dir}/eval_results/qnli
 device: cuda:0
 batch_size: 8
+inference_batch_size: null
 
 bench_eval:
   qnli_class_detection: {max_eval_n: 1000, eval_seed: 42}

@@ -20,6 +20,7 @@ results_dir: ${root_dir}/eval_results/cifar
 #results_dir: ./eval_results/cifar
 device: cuda:0
 batch_size: 32
+inference_batch_size: null
 
 bench_eval:
   cifar_class_detection: {max_eval_n: 1000, eval_seed: 42}
