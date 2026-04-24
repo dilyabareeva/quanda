@@ -110,11 +110,13 @@ LinearDatamodeling.load_pretrained(
                 done
                 "${gpu_env[@]}" python scripts/train_lds_subset.py \
                     --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
+                    --bench-save-dir "$bench_save_dir" \
                     "${device_args[@]}" \
                     > "logs/${id}/subset_${i}.log" 2>&1 &
             else
                 "${gpu_env[@]}" python scripts/train_lds_subset.py \
                     --config-path "${cfg_output_dir}/${id}.yaml" --idx "$i" \
+                    --bench-save-dir "$bench_save_dir" \
                     "${device_args[@]}" \
                     > "logs/${id}/subset_${i}.log" 2>&1
             fi
@@ -132,7 +134,8 @@ LinearDatamodeling.load_pretrained(
         fi
         python scripts/train_lds_subset.py \
             --config-path "${cfg_output_dir}/${id}.yaml" \
-            --idx "$i" --push-only
+            --idx "$i" --push-only \
+            --bench-save-dir "$bench_save_dir"
         sleep "$HF_PUSH_SLEEP"
     done
     if [ "${#missing_subsets[@]}" -gt 0 ]; then

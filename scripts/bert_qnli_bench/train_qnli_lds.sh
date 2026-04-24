@@ -11,6 +11,6 @@ source "$(dirname "$0")/../train_lds.sh" \
     --skip-main-train true \
     --gpu-split false \
     --start 0 \
-    --end 10 \
+    --end 100 \
     --train-only true \
-    --push-only false
+    --push-only true

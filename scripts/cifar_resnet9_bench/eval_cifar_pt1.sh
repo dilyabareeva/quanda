@@ -12,15 +12,15 @@ benchmarks=(
 )
 
 methods=(
-    #similarity
-    #representer_points
-    #tracincpfast
-    arnoldi
-    #trak
-    #random
+    similarity
+    representer_points
+    tracincpfast
+    #arnoldi
+    trak
+    random
 )
 
-source "$(dirname "$0")/../eval.sh" "$@"
+source "$(dirname "$0")/../eval.sh" --regenerate-explanations "$@"
 
 
 benchmarks=(
@@ -30,13 +30,5 @@ benchmarks=(
     cifar_mislabeling_detection
 )
 
-methods=(
-    #similarity
-    #representer_points
-    #tracincpfast
-    arnoldi
-    #trak
-    #random
-)
 
-source "$(dirname "$0")/../eval.sh" "$@"
+source "$(dirname "$0")/../eval.sh" --regenerate-explanations "$@"
