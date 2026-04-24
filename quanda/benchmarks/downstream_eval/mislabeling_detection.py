@@ -236,6 +236,7 @@ class MislabelingDetection(Benchmark):
         device: str = "cpu",
         max_eval_n: Optional[int] = None,
         eval_seed: int = 42,
+        inference_batch_size: Optional[int] = None,
     ) -> "MislabelingDetection":
         """Compute and persist self-influence scores to disk.
 
@@ -244,7 +245,8 @@ class MislabelingDetection(Benchmark):
         is a single 1D tensor stored as ``self_influence.pt``. For
         consistency with other benchmarks, ``max_eval_n``/``eval_seed``
         here parameterize the train-dataset subsample over which
-        self-influence is computed.
+        self-influence is computed. ``inference_batch_size`` is ignored
+        since there is no eval-time inference pass.
         """
         obj = cls.from_config(config, device=device)
         if explanations_id is None:
