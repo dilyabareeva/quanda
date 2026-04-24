@@ -5,6 +5,7 @@ import json
 import os
 import random
 import re
+import time
 from abc import ABC
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -180,7 +181,25 @@ def _load_flexible_state_dict(
     if isinstance(device, str):
         device = torch.device(device)
 
-    checkpoint = torch.load(path, map_location=device, weights_only=True)
+    # torch.load on the same .pth is called repeatedly by callers like
+    # TracInCPFast (once per test batch). A single transient read error
+    # from the kernel ("PytorchStreamReader ... file read failed") is
+    # enough to kill a multi-hour run, so retry a few times before
+    # giving up.
+    last_err: Optional[Exception] = None
+    for attempt in range(3):
+        try:
+            checkpoint = torch.load(
+                path, map_location=device, weights_only=True
+            )
+            break
+        except RuntimeError as e:
+            last_err = e
+            time.sleep(2**attempt)
+    else:
+        raise RuntimeError(
+            f"Failed to load checkpoint at {path} after 3 attempts"
+        ) from last_err
 
     learning_rate = checkpoint.get("learning_rate", 1.0)
 
