@@ -96,7 +96,7 @@ def test_mrr_benchmark_dummy_causal_lm(
             "load_gpt2_model",
             "load_fact_tracing_dataset",
             1,
-            0.6111111044883728,
+            0.6666666865348816,
         ),
     ],
 )
@@ -111,6 +111,7 @@ def test_mrr_benchmark_gpt2(
     tmp_path,
     request,
 ):
+    torch.manual_seed(42)
     model = request.getfixturevalue(model)
     prompt_dataset, evidence_dataset, entailment_labels = (
         request.getfixturevalue(dataset)
@@ -153,7 +154,7 @@ def test_mrr_benchmark_gpt2(
             "load_nano_gpt_model",
             "load_fact_tracing_dataset_nanogpt",
             1,
-            0.5,
+            0.6333333253860474,
         ),
     ],
 )
@@ -168,6 +169,7 @@ def test_mrr_benchmark_nano_gpt(
     tmp_path,
     request,
 ):
+    torch.manual_seed(42)
     model = request.getfixturevalue(model)
     prompt_dataset, evidence_dataset, entailment_labels = (
         request.getfixturevalue(dataset)

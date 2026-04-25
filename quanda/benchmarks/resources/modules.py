@@ -739,6 +739,8 @@ class NanoGPT(PreTrainedModel):
             self.transformer.lm_head.weight.clone()
         )
 
+        self.post_init()
+
     def forward(self, input_ids, attention_mask=None, labels=None):
         """Run the wrapped model and return a ``CausalLMOutput``."""
         logits, loss = self.transformer(input_ids, labels)

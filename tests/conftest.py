@@ -752,11 +752,11 @@ def load_nano_gpt_model():
 @pytest.fixture
 def load_gpt2_model():
     config = AutoConfig.from_pretrained(
-        "gpt2-ft",
+        "gpt2",
         trust_remote_code=True,
     )
     model = AutoModelForCausalLM.from_pretrained(
-        "gpt2-ft",
+        "gpt2",
         from_tf=False,
         config=config,
         ignore_mismatched_sizes=False,
