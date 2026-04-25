@@ -213,13 +213,16 @@ class Kronfluence(Explainer):
             return torch.utils.data.TensorDataset(test_data, targets)
         elif isinstance(test_data, Dict):
             test_data["labels"] = targets
-            return datasets.Dataset.from_dict(test_data)
+            dataset = datasets.Dataset.from_dict(test_data)
+            dataset.set_format("torch")
+            return dataset
         elif isinstance(test_data, List):
             data_dict = {
                 key: [d[key] for d in test_data] for key in test_data[0].keys()
             }
             data_dict["labels"] = targets.tolist()
             dataset = datasets.Dataset.from_dict(data_dict)
+            dataset.set_format("torch")
             return dataset
         else:
             raise ValueError(
