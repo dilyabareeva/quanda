@@ -1,12 +1,16 @@
 """Mixed Datasets Metric."""
 
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import torch
 from torcheval.metrics.functional import binary_auprc
 
 from quanda.metrics.base import Metric
-from quanda.utils.common import chunked_logits
+from quanda.utils.common import (
+    chunked_logits,
+    get_targets,
+    move_ds_item_to_device,
+)
 
 
 class MixedDatasetsMetric(Metric):
@@ -108,12 +112,10 @@ class MixedDatasetsMetric(Metric):
 
     def _validate_adversarial_labels(self) -> int:
         """Validate the adversarial labels in the training dataset."""
-        adversarial_labels = set(
-            [
-                self.train_dataset[int(i)][1]
-                for i in torch.where(self.adversarial_indices == 1)[0]
-            ]
-        )
+        adversarial_labels = {
+            int(get_targets(self.train_dataset[int(i)]))
+            for i in torch.where(self.adversarial_indices == 1)[0]
+        }
         if len(adversarial_labels) != 1:
             raise ValueError("Adversarial labels must be unique.")
         return adversarial_labels.pop()
@@ -121,7 +123,9 @@ class MixedDatasetsMetric(Metric):
     def update(
         self,
         explanations: torch.Tensor,
-        test_data: Optional[torch.Tensor] = None,
+        test_data: Optional[
+            Union[torch.Tensor, Dict[str, torch.Tensor]]
+        ] = None,
         test_labels: Optional[torch.Tensor] = None,
         **kwargs,
     ):
@@ -151,7 +155,7 @@ class MixedDatasetsMetric(Metric):
             )
 
         if test_data is not None:
-            test_data = test_data.to(self.device)
+            test_data = move_ds_item_to_device(test_data, self.device)
         if test_labels is not None:
             test_labels = test_labels.to(self.device)
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)

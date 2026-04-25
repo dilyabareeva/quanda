@@ -494,6 +494,11 @@ def get_dataset_handler(
         A handler instance suited for the dataset.
 
     """
+    if isinstance(dataset, torch.utils.data.ConcatDataset):
+        children = dataset.datasets
+        if not children:
+            raise ValueError("ConcatDataset has no child datasets.")
+        return get_dataset_handler(children[0])
     inner = getattr(dataset, "dataset", None)
     if inner is not None and not isinstance(dataset, datasets.Dataset):
         if (
