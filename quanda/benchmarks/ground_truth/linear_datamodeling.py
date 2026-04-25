@@ -531,7 +531,7 @@ class LinearDatamodeling(Benchmark):
         eval_seed: int,
         device: str,
     ) -> list:
-        """Return the list of ``test_data`` batches for the subsampled eval set.
+        """Return ``test_data`` batches for the subsampled eval set.
 
         Shared producer-side helper so that per-subset and all-subset cache
         methods batch the eval set identically (same batch boundaries = same

@@ -51,11 +51,28 @@ class RecallAtK(FactTracingBenchmark):
 
         Parameters
         ----------
+        model : torch.nn.Module
+            The model used to produce attributions.
+        train_dataset : torch.utils.data.Dataset or datasets.Dataset
+            Training dataset (proponent pool).
+        eval_dataset : torch.utils.data.Dataset
+            Evaluation dataset of facts.
+        checkpoints : list of str
+            Paths to model checkpoints.
+        checkpoints_load_func : Callable
+            Function used to load each checkpoint into ``model``.
+        device : str, optional
+            Torch device, by default ``"cpu"``.
+        val_dataset : torch.utils.data.Dataset or datasets.Dataset, optional
+            Optional validation dataset, by default ``None``.
+        use_predictions : bool, optional
+            Whether to attribute model predictions instead of labels, by
+            default ``False``.
+        entailment_labels : torch.Tensor, optional
+            Binary ``(n_eval, n_train)`` fact entailment matrix, by default
+            ``None``.
         k : int, optional
             The k value for Recall@k, by default 10.
-
-        All other parameters mirror
-        :class:`~quanda.benchmarks.base.Benchmark`.
 
         """
         super().__init__(
