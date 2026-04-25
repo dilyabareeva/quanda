@@ -1,9 +1,4 @@
-"""Prefetch benchmark assets (metadata + ckpt) from the Hub into cache_dir.
-
-Run once per benchmark before a method sweep so parallel sweep jobs don't
-race on downloads and each job can use ``from_config`` against the local
-cache.
-"""
+"""Prefetch benchmark assets (metadata + ckpt) from the Hub into cache_dir."""
 
 from __future__ import annotations
 

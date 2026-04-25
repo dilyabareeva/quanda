@@ -1,8 +1,4 @@
 #!/bin/bash
-# Shared orchestrator: loops a range of LDS subset indices through the
-# per-subset CLI. Source this from a per-bench shard that sets CONFIG_MAP_KEY
-# (e.g. "qnli_linear_datamodeling") and CONFIG_MAP_PREFIX (e.g. "qnli"),
-# and passes --start / --end plus any overrides.
 
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 

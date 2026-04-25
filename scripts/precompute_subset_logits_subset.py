@@ -1,10 +1,4 @@
-"""Precompute LDS counterfactual logits for a single subset index.
-
-Parallel-safe via fcntl locks inside
-:meth:`LinearDatamodeling.cache_subset_logits_per_idx` — multiple
-workers writing the same per-batch ``{i}.pt`` dicts serialize on a
-per-file lock so no key is lost on read-modify-write.
-"""
+"""Precompute LDS counterfactual logits for a single subset index."""
 
 import argparse
 import os
