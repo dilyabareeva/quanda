@@ -27,7 +27,6 @@ from quanda.explainers.wrappers.dattri_losses import (
 from quanda.explainers.wrappers.kronfluence_tasks import CausalLMTask
 from quanda.utils.common import get_load_state_dict_func
 
-
 _GPT2_HF_KEYS = ("input_ids", "attention_mask")
 _LAYER_LIST = ["lm_head.weight"]
 
@@ -216,6 +215,7 @@ def test_dattri_explainer_with_fact_tracing_metric(
     if metric_id in ("mrr", "recall_at_k"):
         assert 0.0 <= float(score) <= 1.0, score
 
+
 @pytest.mark.slow
 @pytest.mark.benchmarks
 @pytest.mark.integration
@@ -272,9 +272,7 @@ def test_fact_tracing_gpt2_small(
         result = bench.evaluate(
             explainer_cls=Kronfluence,
             expl_kwargs={
-                "task_module": CausalLMTask(
-                    tracked_modules=tracked_modules
-                ),
+                "task_module": CausalLMTask(tracked_modules=tracked_modules),
                 "task": "causal_lm",
                 "batch_size": 1,
                 "device": device,
@@ -290,4 +288,3 @@ def test_fact_tracing_gpt2_small(
 
     assert 0.0 <= scores["mrr"] <= 1.0, scores["mrr"]
     assert 0.0 <= scores["recall_at_k"] <= 1.0, scores["recall_at_k"]
-    

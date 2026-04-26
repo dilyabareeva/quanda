@@ -53,8 +53,17 @@ def load_scores(
     df = pd.DataFrame(rows)
     df = df[df["method"].isin(methods) & df["bench"].isin(benches)]
     df = df.dropna(subset=["score"])
-    # for sweeps, keep the best score per (method, bench)
-    df = df.loc[df.groupby(["method", "bench"])["score"].idxmax()]
+
+    is_random = df["method"] == "random"
+    best = df[~is_random].loc[
+        df[~is_random].groupby(["method", "bench"])["score"].idxmax()
+    ]
+    avg = (
+        df[is_random]
+        .groupby(["method", "bench"], as_index=False)["score"]
+        .mean()
+    )
+    df = pd.concat([best, avg], ignore_index=True)
     return df.pivot(index="method", columns="bench", values="score")
 
 

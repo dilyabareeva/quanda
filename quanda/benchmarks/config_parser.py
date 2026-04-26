@@ -72,6 +72,8 @@ class BenchConfigParser:
             return metadata_dir
 
         meta_id = cfg.get("meta_id", f"{cfg['repo_id']}/{cfg['id']}_metadata")
+        if meta_id is None:
+            return metadata_dir
 
         return snapshot_download(
             repo_id=meta_id,
@@ -227,7 +229,6 @@ class BenchConfigParser:
                 raise ValueError(f"Error loading model from {ckpt_dir}: {e}")
             model.load_state_dict(pretrained_model.state_dict())
             model.to(device)
-            return model_cfg["trainer"]["lr"]
 
         return module, ckpt_ids, load_state_dict
 
@@ -665,7 +666,7 @@ class BenchConfigParser:
         is_hf = isinstance(dataset, hf_datasets.Dataset)
         return {
             k: (
-                dataset.select(splits[k])
+                dataset.select(splits[k])  # type: ignore[attr-defined]
                 if is_hf
                 else torch.utils.data.Subset(dataset, splits[k])
             )
@@ -787,6 +788,11 @@ class FactTracingConfigParser:
                 "labels": labels,
             }
         )
+        prompt_dataset.set_format(
+            type="torch",
+            columns=["input_ids", "attention_mask", "labels"],
+            output_all_columns=True,
+        )
 
         # Gather evidence sentences
         evidence_sentences = []
@@ -826,6 +832,11 @@ class FactTracingConfigParser:
                 "attention_mask": evidence_attention_mask,
                 "labels": evidence_labels,
             }
+        )
+        evidence_dataset.set_format(
+            type="torch",
+            columns=["input_ids", "attention_mask", "labels"],
+            output_all_columns=True,
         )
 
         # Create entailment matrix

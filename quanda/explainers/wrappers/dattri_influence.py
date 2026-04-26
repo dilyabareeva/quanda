@@ -196,7 +196,8 @@ class DattriInfluence(Explainer, ABC):
         )
 
         if use_cache and hasattr(self.attributor, "cache"):
-            self.attributor.cache(self._make_loader(self.train_dataset))
+            with torch.no_grad():
+                self.attributor.cache(self._make_loader(self.train_dataset))
 
     def _make_loader(
         self,
@@ -255,9 +256,10 @@ class DattriInfluence(Explainer, ABC):
         train_loader: torch.utils.data.DataLoader,
         test_loader: torch.utils.data.DataLoader,
     ) -> torch.Tensor:
-        return self.attributor.attribute(
-            train_dataloader=train_loader, test_dataloader=test_loader
-        )
+        with torch.no_grad():
+            return self.attributor.attribute(
+                train_dataloader=train_loader, test_dataloader=test_loader
+            )
 
     def explain(
         self,
@@ -384,9 +386,10 @@ class DattriTRAK(DattriInfluence):
         test_loader: torch.utils.data.DataLoader,
     ) -> torch.Tensor:
         # dattri TRAK: attribute(test_loader, train_loader) → (n_train, n_test)
-        if self.attributor.full_train_dataloader is not None:
-            return self.attributor.attribute(test_loader)
-        return self.attributor.attribute(test_loader, train_loader)
+        with torch.no_grad():
+            if self.attributor.full_train_dataloader is not None:
+                return self.attributor.attribute(test_loader)
+            return self.attributor.attribute(test_loader, train_loader)
 
     def self_influence(self, batch_size: int = 1) -> torch.Tensor:
         """Compute TRAK self-influence scores."""

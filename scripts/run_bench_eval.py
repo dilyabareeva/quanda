@@ -39,6 +39,13 @@ BENCH_CLASS = {
     for prefix in ("mnist", "cifar", "qnli")
     for suffix, cls in _SUFFIX_TO_CLASS.items()
 }
+BENCH_CLASS.update(
+    {
+        "gpt2_trex_openwebtext_ft_mrr": "MRR",
+        "gpt2_trex_openwebtext_ft_recall_at_k": "RecallAtK",
+        "gpt2_trex_openwebtext_ft_tail_patch": "TailPatch",
+    }
+)
 
 
 @hydra.main(

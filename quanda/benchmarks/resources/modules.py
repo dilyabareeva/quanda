@@ -3,6 +3,7 @@
 import inspect
 import math
 from dataclasses import dataclass
+from typing import Any
 
 import torch
 import torch.nn as nn
@@ -532,7 +533,7 @@ class GPT(nn.Module):
         print("loading weights from pretrained gpt: %s" % model_type)
 
         # n_layer, n_head and n_embd are determined from model_type
-        config_args = {
+        config_args: dict[str, Any] = {
             "gpt2": dict(n_layer=12, n_head=12, n_embd=768),  # 124M params
             "gpt2-medium": dict(
                 n_layer=24, n_head=16, n_embd=1024
@@ -560,9 +561,8 @@ class GPT(nn.Module):
         config = GPTConfig(**config_args)
         model = GPT(config)
         sd = model.state_dict()
-        sd_keys = sd.keys()
         sd_keys = [
-            k for k in sd_keys if not k.endswith(".attn.bias")
+            k for k in sd.keys() if not k.endswith(".attn.bias")
         ]  # discard this mask / buffer, not a param
 
         # init a huggingface/transformers model
@@ -571,9 +571,8 @@ class GPT(nn.Module):
 
         # copy while ensuring all of the parameters are aligned and match
         # in names and shapes
-        sd_keys_hf = sd_hf.keys()
         sd_keys_hf = [
-            k for k in sd_keys_hf if not k.endswith(".attn.masked_bias")
+            k for k in sd_hf.keys() if not k.endswith(".attn.masked_bias")
         ]  # ignore these, just a buffer
         sd_keys_hf = [
             k for k in sd_keys_hf if not k.endswith(".attn.bias")
@@ -752,12 +751,34 @@ class NanoGPT(PreTrainedModel):
 
 
 class HFGPT2(GPT2LMHeadModel):
+    """HuggingFace GPT-2 model."""
 
     def __init__(self, config=None, **kwargs):
         """Construct from a config or from ``GPT2Config`` kwargs."""
         if config is None:
             config = GPT2Config(**kwargs) if kwargs else GPT2Config()
+        # SDPA's mem-efficient backward breaks dattri's attributors (CG/LiSSA/DataInf/
+        # Arnoldi).
+        config._attn_implementation = "eager"
         super().__init__(config)
+
+    def forward(self, input_ids=None, attention_mask=None, **kwargs):
+        """Forward pass, unpacking dict batches from Captum's AV.
+
+        Captum's ``AV.generate_dataset_activations`` hands the whole
+        batch through as a single positional arg; for HF datasets that
+        arg is a dict of input tensors, which is unpacked here.
+        """
+        if isinstance(input_ids, dict):
+            d = input_ids
+            input_ids = d["input_ids"]
+            attention_mask = d.get("attention_mask", attention_mask)
+            for k in ("labels",):
+                if k in d and k not in kwargs:
+                    kwargs[k] = d[k]
+        return super().forward(
+            input_ids=input_ids, attention_mask=attention_mask, **kwargs
+        )
 
 
 pl_modules = {

@@ -1,6 +1,6 @@
 """Utils for tokenization of HuggingFace datasets."""
 
-from typing import Any, Tuple
+from typing import Any, Optional, Tuple
 
 import datasets as hf_datasets  # type: ignore
 from transformers import AutoTokenizer
@@ -27,7 +27,7 @@ class _TikTokenHFAdapter:
         text: str,
         padding: Any = False,
         truncation: bool = False,
-        max_length: int = None,
+        max_length: Optional[int] = None,
         **_: Any,
     ) -> dict:
         ids = self._enc.encode_ordinary(text)

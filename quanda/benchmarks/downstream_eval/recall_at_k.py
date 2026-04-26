@@ -89,8 +89,13 @@ class RecallAtK(FactTracingBenchmark):
         self.k: int = k
 
     @classmethod
-    def _extra_kwargs_from_config(cls, config: dict) -> dict:
+    def _extra_kwargs_from_config(
+        cls,
+        *args,
+        **kwargs,
+    ) -> dict:
         """Pull ``k`` off the config into ``__init__`` kwargs."""
+        config = args[0] if args else kwargs
         return {"k": config.get("k", 10)}
 
     def _build_metric(self, inference_batch_size=None) -> RecallAtKMetric:

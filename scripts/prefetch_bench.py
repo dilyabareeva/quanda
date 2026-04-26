@@ -32,6 +32,13 @@ BENCH_CLASS = {
     for prefix in ("mnist", "cifar", "qnli")
     for suffix, cls in _SUFFIX_TO_CLASS.items()
 }
+BENCH_CLASS.update(
+    {
+        "gpt2_trex_openwebtext_ft_mrr": "MRR",
+        "gpt2_trex_openwebtext_ft_recall_at_k": "RecallAtK",
+        "gpt2_trex_openwebtext_ft_tail_patch": "TailPatch",
+    }
+)
 
 
 @hydra.main(
@@ -43,6 +50,7 @@ def main(cfg: DictConfig) -> None:
     bench_id = cfg.bench
     os.makedirs(cfg.cache_dir, exist_ok=True)
     bench_cls = bench_dict[BENCH_CLASS[bench_id]]
+
     bench = bench_cls.load_pretrained(
         bench_id=bench_id,
         cache_dir=cfg.cache_dir,

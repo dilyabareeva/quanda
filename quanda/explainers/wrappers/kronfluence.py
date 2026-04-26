@@ -23,6 +23,7 @@ from quanda.explainers.utils import (
     self_influence_fn_from_explainer,
 )
 from quanda.utils.common import process_targets
+from quanda.utils.common import _replace_conv1d_with_linear
 from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
@@ -186,6 +187,7 @@ class Kronfluence(Explainer):
         """
         model_copy = copy.deepcopy(self.model)
         model_copy.to(self.device)
+        _replace_conv1d_with_linear(model_copy)
         prepared_model = prepare_model(model=model_copy, task=self.task)
         return prepared_model
 

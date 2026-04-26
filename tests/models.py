@@ -206,7 +206,7 @@ class SimpleCausalLM(torch.nn.Module):
     def forward(self, input_ids, attention_mask=None, labels=None, **kwargs):
         embeddings = self.embedding(input_ids)
 
-        if attention_mask is not None:
+        if attention_mask is not None and attention_mask.ndim == 2:
             embeddings = embeddings * attention_mask.unsqueeze(-1)
 
         hidden_states = self.mlp1(embeddings)

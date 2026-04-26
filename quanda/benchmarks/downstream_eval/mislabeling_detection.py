@@ -135,6 +135,7 @@ class MislabelingDetection(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Evaluate the given data attributor.
 
@@ -164,6 +165,9 @@ class MislabelingDetection(Benchmark):
         use_hf_expl: bool, optional
             If True, download a precomputed self-influence cache from
             HF into ``cache_dir`` and load it.
+        inference_batch_size: Optional[int], optional
+            Unused for this benchmark; accepted for signature
+            compatibility with the base ``Benchmark.evaluate``.
 
         Returns
         -------

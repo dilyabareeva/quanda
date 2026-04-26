@@ -11,6 +11,7 @@ from quanda.benchmarks.downstream_eval._fact_tracing import (
     FactTracingBenchmark,
 )
 from quanda.metrics.downstream_eval.tail_patch import TailPatchMetric
+from quanda.utils.training.options import optimizers
 
 logger = logging.getLogger(__name__)
 
@@ -109,14 +110,18 @@ class TailPatch(FactTracingBenchmark):
         self.tokenizer_name: str = tokenizer_name
 
     @classmethod
-    def _extra_kwargs_from_config(cls, config: dict) -> dict:
-        """Pull TailPatch-specific kwargs off the config."""
+    def _extra_kwargs_from_config(cls, *args: Any, **kwargs: Any) -> dict:
+        """Pull TailPatch-specific kwargs off the config.
+
+        ``optimizer`` is a string key into
+        :data:`quanda.utils.training.options.optimizers` (e.g. ``"sgd"``,
+        ``"adamw"``).
+        """
+        config = args[0] if args else kwargs["config"]
         return {
             "k": config.get("k", 10),
             "learning_rate": config.get("learning_rate", 1e-5),
-            "optimizer_class": config.get(
-                "optimizer_class", torch.optim.AdamW
-            ),
+            "optimizer_class": optimizers[config.get("optimizer", "adamw")],
             "optimizer_kwargs": config.get("optimizer_kwargs", {}),
             "tokenizer_name": config.get("tokenizer_name", "gpt2"),
         }
@@ -129,6 +134,7 @@ class TailPatch(FactTracingBenchmark):
             model=self.model,
             train_dataset=self.train_dataset,
             checkpoints=self.checkpoints,
+            checkpoints_load_func=self.checkpoints_load_func,
             k=self.k,
             learning_rate=self.learning_rate,
             optimizer_class=self.optimizer_class,

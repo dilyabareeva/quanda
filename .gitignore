@@ -83,3 +83,7 @@ logs_*/*
 local_eval_results/*
 scripts/bert_qnli_bench/eval_defs_notes.txt
 scripts/bert_qnli_bench/train_qnli_lds_*
+scripts/nanoGPT-master/*
+scripts/sanity_check.tex
+tmp_*/*
+scripts/paper_tex/**

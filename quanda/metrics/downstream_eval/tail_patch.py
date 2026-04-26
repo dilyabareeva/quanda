@@ -3,7 +3,6 @@
 import copy
 from typing import Any, Callable, List, Optional, Type, Union
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -79,7 +78,7 @@ class TailPatchMetric(Metric):
         )
         self.k = k
         self.learning_rate = learning_rate
-        self.device = next(model.parameters()).device
+        self.device = str(next(model.parameters()).device)
         self.scores: List[float] = []
         self.optimizer_class = optimizer_class
         self.optimizer_kwargs = optimizer_kwargs or {}
@@ -143,22 +142,21 @@ class TailPatchMetric(Metric):
         model.train()
         optimizer.zero_grad()
 
+        allowed_keys = ("input_ids", "attention_mask", "labels")
         batch = {}
-        for key, val in proponent.items():
+        for key in allowed_keys:
+            if key not in proponent:
+                continue
+            val = proponent[key]
             if isinstance(val, torch.Tensor):
-                batch[key] = val.to(self.device)
-            elif isinstance(val, (list, np.ndarray)):
-                batch[key] = torch.tensor(val, device=self.device)
+                val = val.to(self.device)
             else:
-                batch[key] = val
+                val = torch.tensor(val, device=self.device)
+            if val.dim() == 1:
+                val = val.unsqueeze(0)
+            batch[key] = val
 
-        allowed_keys = {"input_ids", "attention_mask", "labels"}
-        clean_batch = {
-            k: (v.unsqueeze(0) if v.dim() == 1 else v)
-            for k, v in batch.items()
-            if k in allowed_keys
-        }
-        outputs = model(**clean_batch)
+        outputs = model(**batch)
         loss = outputs.loss
         loss.backward()
         optimizer.step()
@@ -223,7 +221,7 @@ class TailPatchMetric(Metric):
                 model_copy = self._clone_model()
                 optimizer = self.optimizer_class(
                     [p for p in model_copy.parameters() if p.requires_grad],
-                    lr=self.learning_rate,
+                    lr=self.learning_rate,  # type: ignore[call-arg]
                     **self.optimizer_kwargs,
                 )
 

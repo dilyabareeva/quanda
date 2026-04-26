@@ -13,6 +13,7 @@ from functools import reduce
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sized, Union
 
 import torch
+from torch import nn
 import yaml
 
 
@@ -601,3 +602,24 @@ def _subsample_dataset(
     if hasattr(dataset, "filtered"):
         return dataset.filtered(indices)
     return torch.utils.data.Subset(dataset, indices)
+
+
+def _replace_conv1d_with_linear(model: nn.Module) -> None:
+    """Swap HF ``Conv1D`` modules in-place with ``nn.Linear`` equivalents.
+
+    HF GPT-2 uses ``Conv1D`` (a transposed Linear) for attention/MLP
+    projections; kronfluence only wraps ``nn.Linear`` and ``nn.Conv2d``,
+    so the swap is required before ``prepare_model`` for those models.
+    """
+    for name, module in model.named_children():
+        if len(list(module.children())) > 0:
+            _replace_conv1d_with_linear(module)
+        if module.__class__.__name__ == "Conv1D":
+            new_module = nn.Linear(
+                in_features=module.weight.shape[0],
+                out_features=module.weight.shape[1],
+            )
+            new_module.weight.data.copy_(module.weight.data.t())
+            new_module.bias.data.copy_(module.bias.data)
+            new_module.to(module.weight.device)
+            setattr(model, name, new_module)

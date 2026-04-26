@@ -117,7 +117,11 @@ class FactTracingBenchmark(Benchmark):
         )
 
     @classmethod
-    def _extra_kwargs_from_config(cls, config: dict) -> dict:
+    def _extra_kwargs_from_config(
+        cls,
+        *args,
+        **kwargs,
+    ) -> dict:
         """Override to supply benchmark-specific ``__init__`` kwargs."""
         return {}
 

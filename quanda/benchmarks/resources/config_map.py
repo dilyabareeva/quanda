@@ -88,13 +88,13 @@ config_map: dict = {
     "qnli_mixed_datasets": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("99a4f7b-bert_qnli_MixedDatasets.yaml"),
-    "nanogpt_trex_mrr": files("quanda.benchmarks.resources.configs").joinpath(
-        "nanogpt_trex_MRR.yaml"
-    ),
-    "nanogpt_trex_recall_at_k": files(
+    "gpt2_trex_openwebtext_ft_mrr": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("nanogpt_trex_RecallAtK.yaml"),
-    "nanogpt_trex_tail_patch": files(
+    ).joinpath("gpt2_trex_openwebtext_ft_MRR.yaml"),
+    "gpt2_trex_openwebtext_ft_recall_at_k": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("nanogpt_trex_TailPatch.yaml"),
+    ).joinpath("gpt2_trex_openwebtext_ft_RecallAtK.yaml"),
+    "gpt2_trex_openwebtext_ft_tail_patch": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("gpt2_trex_openwebtext_ft_TailPatch.yaml"),
 }
