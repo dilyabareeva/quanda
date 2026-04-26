@@ -13,8 +13,8 @@ from functools import reduce
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sized, Union
 
 import torch
-from torch import nn
 import yaml
+from torch import nn
 
 
 def chunked_logits(
@@ -580,6 +580,16 @@ def _stable_repr(obj: Any) -> str:
     return fq
 
 
+def _subsample_indices(n: int, max_n: Optional[int], seed: int) -> List[int]:
+    """Deterministic subsample of ``range(n)`` matching ``_subsample_dataset``.
+
+    Returns the full ``range(n)`` (as a list) when no subsampling is needed.
+    """
+    if max_n is None or max_n >= n:
+        return list(range(n))
+    return sorted(random.Random(seed).sample(range(n), max_n))
+
+
 def _subsample_dataset(
     dataset: torch.utils.data.Dataset,
     max_n: Optional[int],
@@ -598,7 +608,7 @@ def _subsample_dataset(
     n = len(dataset)  # type: ignore[arg-type]
     if max_n >= n:
         return dataset
-    indices = sorted(random.Random(seed).sample(range(n), max_n))
+    indices = _subsample_indices(n, max_n, seed)
     if hasattr(dataset, "filtered"):
         return dataset.filtered(indices)
     return torch.utils.data.Subset(dataset, indices)

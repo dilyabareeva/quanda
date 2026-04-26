@@ -757,8 +757,8 @@ class HFGPT2(GPT2LMHeadModel):
         """Construct from a config or from ``GPT2Config`` kwargs."""
         if config is None:
             config = GPT2Config(**kwargs) if kwargs else GPT2Config()
-        # SDPA's mem-efficient backward breaks dattri's attributors (CG/LiSSA/DataInf/
-        # Arnoldi).
+        # SDPA's mem-efficient backward breaks dattri's attributors
+        # (CG/LiSSA/DataInf/Arnoldi).
         config._attn_implementation = "eager"
         super().__init__(config)
 

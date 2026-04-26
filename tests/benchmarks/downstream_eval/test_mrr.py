@@ -85,6 +85,9 @@ def test_mrr_benchmark_dummy_causal_lm(
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(
+    "GITHUB_ACTIONS" in os.environ, reason="Skip on GitHub Actions"
+)
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, explainer_cls, task, model, dataset, batch_size, expected_score",

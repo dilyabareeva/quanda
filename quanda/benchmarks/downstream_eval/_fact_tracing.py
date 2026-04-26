@@ -16,7 +16,10 @@ from quanda.benchmarks.config_parser import (
     BenchConfigParser,
     FactTracingConfigParser,
 )
+from quanda.explainers import Explainer
 from quanda.metrics import Metric
+from quanda.utils.cache import BatchedCachedExplanations
+from quanda.utils.common import _subsample_indices, ds_len
 
 
 class FactTracingBenchmark(Benchmark):
@@ -130,6 +133,59 @@ class FactTracingBenchmark(Benchmark):
     ) -> Metric:
         """Return the concrete metric instance for this benchmark."""
         raise NotImplementedError
+
+    def _evaluate_dataset(
+        self,
+        eval_dataset: torch.utils.data.Dataset,
+        explainer: Optional[Explainer],
+        metric: Metric,
+        batch_size: int,
+        max_eval_n: Optional[int] = 1000,
+        eval_seed: int = 42,
+        precomputed_explanations: Optional[BatchedCachedExplanations] = None,
+        inference_batch_size: Optional[int] = None,
+        subset_logits_dir: Optional[str] = None,
+    ):
+        """Subsample ``entailment_labels`` to align with the eval iteration.
+
+        Stashes the aligned matrix on ``self`` so the per-batch hook can
+        slice it without re-running the (deterministic) subsampling.
+        """
+        self._entailment_labels_aligned: Optional[torch.Tensor]
+        if self.entailment_labels is None:
+            self._entailment_labels_aligned = None
+        else:
+            indices = _subsample_indices(
+                ds_len(eval_dataset), max_eval_n, eval_seed
+            )
+            self._entailment_labels_aligned = self.entailment_labels[indices]
+
+        return super()._evaluate_dataset(
+            eval_dataset=eval_dataset,
+            explainer=explainer,
+            metric=metric,
+            batch_size=batch_size,
+            max_eval_n=max_eval_n,
+            eval_seed=eval_seed,
+            precomputed_explanations=precomputed_explanations,
+            inference_batch_size=inference_batch_size,
+            subset_logits_dir=subset_logits_dir,
+        )
+
+    def _extra_metric_inputs(
+        self,
+        batch_index: int,
+        batch_size: int,
+        explanations: torch.Tensor,
+    ) -> dict:
+        """Return the rows of ``entailment_labels`` matching this batch."""
+        if self._entailment_labels_aligned is None:
+            return {}
+        start = batch_index * batch_size
+        end = start + explanations.shape[0]
+        return {
+            "entailment_labels": self._entailment_labels_aligned[start:end]
+        }
 
     def evaluate(
         self,

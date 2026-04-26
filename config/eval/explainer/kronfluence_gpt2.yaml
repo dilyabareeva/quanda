@@ -64,4 +64,4 @@ kwargs:
   score_args:
     _target_: kronfluence.arguments.ScoreArguments
     damping_factor: null
-    compute_per_token_scores: true
+    compute_per_token_scores: false

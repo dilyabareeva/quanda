@@ -22,8 +22,7 @@ from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
-from quanda.utils.common import process_targets
-from quanda.utils.common import _replace_conv1d_with_linear
+from quanda.utils.common import _replace_conv1d_with_linear, process_targets
 from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)

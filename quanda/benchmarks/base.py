@@ -1080,6 +1080,15 @@ class Benchmark(ABC):
                 )
             yield i, inputs, labels, targets, explanations, n_batches
 
+    def _extra_metric_inputs(
+        self,
+        batch_index: int,
+        batch_size: int,
+        explanations: torch.Tensor,
+    ) -> dict:
+        """Inject batch-aligned metric inputs."""
+        return {}
+
     def _evaluate_dataset(
         self,
         eval_dataset: torch.utils.data.Dataset,
@@ -1150,10 +1159,8 @@ class Benchmark(ABC):
                 "test_targets": targets,
                 "test_labels": labels,
                 "explanations": explanations,
+                **self._extra_metric_inputs(i, batch_size, explanations),
             }
-
-            if hasattr(self, "entailment_labels"):
-                data_unit["entailment_labels"] = self.entailment_labels
 
             if self.name == "Subclass Detection":
                 data_unit["test_superclass_targets"] = torch.tensor(
