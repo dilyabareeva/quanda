@@ -40,4 +40,4 @@ HYDRA_FULL_ERROR=1
 CUDA_LAUNCH_BLOCKING=1
 PARALLEL=false
 
-source "$(dirname "$0")/../eval.sh" "$@"
+source "$(dirname "$0")/../eval.sh" --regenerate-explanations "$@"
