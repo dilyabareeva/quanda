@@ -2,14 +2,18 @@
 
 import logging
 from abc import ABC
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
 import datasets as hf_datasets  # type: ignore
 import lightning as L
 import torch
 from dattri.algorithm.influence_function import (  # type: ignore
     IFAttributorArnoldi,
+    IFAttributorCG,
+    IFAttributorDataInf,
     IFAttributorEKFAC,
+    IFAttributorExplicit,
+    IFAttributorLiSSA,
 )
 from dattri.algorithm.tracin import TracInAttributor  # type: ignore
 from dattri.algorithm.trak import TRAKAttributor  # type: ignore
@@ -79,6 +83,7 @@ class DattriInfluence(Explainer, ABC):
         collate_fn: Optional[Callable] = None,
         use_cache: bool = True,
         device: Optional[str] = None,
+        hf_input_keys: Optional[Sequence[str]] = None,
     ):
         """Initialize the base `DattriInfluence` wrapper.
 
@@ -127,6 +132,10 @@ class DattriInfluence(Explainer, ABC):
         device : str, optional
             Device to run the computation on. Defaults to the model's
             parameter device.
+        hf_input_keys : Optional[Sequence[str]], optional
+            Input keys of the HF ``train_dataset`` for the model inference; the
+            ``"labels"`` field is always appended last. Defaults to
+            ``("input_ids", "token_type_ids", "attention_mask")``.
 
         """
         device = _resolve_device(model, device)
@@ -148,6 +157,9 @@ class DattriInfluence(Explainer, ABC):
         self.batch_size = batch_size
         self.collate_fn = collate_fn
         self.layer_name = layer_name
+        self.hf_input_keys: Optional[Sequence[str]] = (
+            tuple(hf_input_keys) if hf_input_keys is not None else None
+        )
 
         loss_func = _resolve_model_fn(loss_func, model)
         target_func = _resolve_model_fn(target_func, model)
@@ -197,7 +209,10 @@ class DattriInfluence(Explainer, ABC):
         if isinstance(handler, HuggingFaceDatasetHandler) and not isinstance(
             handler, HuggingFaceSequenceDatasetHandler
         ):
-            handler = HuggingFaceSequenceDatasetHandler()
+            handler_kwargs: Dict[str, Any] = {}
+            if self.hf_input_keys is not None:
+                handler_kwargs["input_keys"] = self.hf_input_keys
+            handler = HuggingFaceSequenceDatasetHandler(**handler_kwargs)
         return handler.create_dataloader(
             dataset=dataset,
             batch_size=batch_size or self.batch_size,
@@ -305,9 +320,9 @@ class DattriTRAK(DattriInfluence):
 
     References
     ----------
-    (1) Sung Min Park, Kristian Georgiev, Andrew Ilyas, Guillaume Leclerc,
-        and Aleksander Madry. (2023). "TRAK: attributing model behavior at
-        scale". ICML.
+    (1) Park, Sung Min, et al. (2023). "TRAK: Attributing Model Behavior at
+    Scale." Proceedings of the 40th International Conference on Machine
+    Learning. PMLR. Vol. 202. (27074-27113).
 
     (2) https://github.com/TRAIS-Lab/dattri
 
@@ -329,6 +344,7 @@ class DattriTRAK(DattriInfluence):
         regularization: float = 0.0,
         device: Optional[str] = None,
         use_cache: bool = True,
+        hf_input_keys: Optional[Sequence[str]] = None,
     ):
         """Initialize the `DattriTRAK` explainer."""
         logger.info("Initializing dattri TRAK explainer...")
@@ -359,6 +375,7 @@ class DattriTRAK(DattriInfluence):
             collate_fn=collate_fn,
             use_cache=use_cache,
             device=device,
+            hf_input_keys=hf_input_keys,
         )
 
     def _call_attribute(
@@ -393,7 +410,8 @@ class DattriTracInCP(DattriInfluence):
     References
     ----------
     (1) Pruthi, Garima, et al. (2020). "Estimating training data influence
-        by tracing gradient descent." NeurIPS.
+    by tracing gradient descent." Advances in Neural Information Processing
+    Systems 33. (19920-19930).
 
     """
 
@@ -412,6 +430,7 @@ class DattriTracInCP(DattriInfluence):
         projector_kwargs: Optional[Dict[str, Any]] = None,
         normalized_grad: bool = False,
         device: Optional[str] = None,
+        hf_input_keys: Optional[Sequence[str]] = None,
     ):
         """Initialize the `DattriTracInCP` explainer."""
         logger.info("Initializing dattri TracInCP explainer...")
@@ -442,6 +461,7 @@ class DattriTracInCP(DattriInfluence):
             collate_fn=collate_fn,
             use_cache=False,
             device=device,
+            hf_input_keys=hf_input_keys,
         )
 
 
@@ -466,6 +486,7 @@ class DattriGradDot(DattriTracInCP):
         collate_fn: Optional[Callable] = None,
         projector_kwargs: Optional[Dict[str, Any]] = None,
         device: Optional[str] = None,
+        hf_input_keys: Optional[Sequence[str]] = None,
     ):
         """Initialize the `DattriGradDot` explainer."""
         if isinstance(checkpoints, list) and len(checkpoints) > 1:
@@ -485,6 +506,7 @@ class DattriGradDot(DattriTracInCP):
             projector_kwargs=projector_kwargs,
             normalized_grad=False,
             device=device,
+            hf_input_keys=hf_input_keys,
         )
 
 
@@ -509,6 +531,7 @@ class DattriGradCos(DattriTracInCP):
         collate_fn: Optional[Callable] = None,
         projector_kwargs: Optional[Dict[str, Any]] = None,
         device: Optional[str] = None,
+        hf_input_keys: Optional[Sequence[str]] = None,
     ):
         """Initialize the `DattriGradCos` explainer."""
         if isinstance(checkpoints, list) and len(checkpoints) > 1:
@@ -528,6 +551,7 @@ class DattriGradCos(DattriTracInCP):
             projector_kwargs=projector_kwargs,
             normalized_grad=True,
             device=device,
+            hf_input_keys=hf_input_keys,
         )
 
 
@@ -540,7 +564,8 @@ class DattriArnoldi(DattriInfluence):
     References
     ----------
     (1) Schioppa, Andrea, et al. (2022). "Scaling up influence functions."
-        AAAI.
+    Proceedings of the AAAI Conference on Artificial Intelligence. Vol. 36.
+    No. 8.
 
     """
 
@@ -563,6 +588,7 @@ class DattriArnoldi(DattriInfluence):
         seed: int = 0,
         device: Optional[str] = None,
         precompute_data_ratio: float = 1.0,
+        hf_input_keys: Optional[Sequence[str]] = None,
     ):
         """Initialize the `DattriArnoldi` explainer."""
         logger.info("Initializing dattri Arnoldi explainer...")
@@ -594,6 +620,7 @@ class DattriArnoldi(DattriInfluence):
             collate_fn=collate_fn,
             use_cache=True,
             device=device,
+            hf_input_keys=hf_input_keys,
         )
 
 
@@ -602,8 +629,9 @@ class DattriEKFAC(DattriInfluence):
 
     References
     ----------
-    (1) Grosse, Roger, et al.  (2023). "Studying Large Language Model
-    Generalization with Influence Functions." arXiv preprint arXiv:2308.03296.
+    (1) Grosse, Roger, et al. (2023). "Studying Large Language Model
+    Generalization with Influence Functions." arXiv preprint
+    arXiv:2308.03296.
 
     """
 
@@ -621,6 +649,7 @@ class DattriEKFAC(DattriInfluence):
         damping: float = 0.0,
         max_iter: Optional[int] = None,
         device: Optional[str] = None,
+        hf_input_keys: Optional[Sequence[str]] = None,
     ):
         """Initialize the `DattriEKFAC` explainer."""
         logger.info("Initializing dattri EK-FAC explainer...")
@@ -648,10 +677,255 @@ class DattriEKFAC(DattriInfluence):
             collate_fn=collate_fn,
             use_cache=False,
             device=device,
+            hf_input_keys=hf_input_keys,
         )
         self.attributor.cache(
             self._make_loader(self.train_dataset),
             max_iter=max_iter,
+        )
+
+
+class DattriIFExplicit(DattriInfluence):
+    """Wrapper for `IFAttributorExplicit` from dattri.
+
+    Computes the influence function with the explicit Hessian inverse.
+    Practical only on small models / small parameter subsets selected via
+    ``layer_name``. Used in dattri's ``experiments/gpt2_wikitext``.
+
+    References
+    ----------
+    (1) Koh, Pang Wei, and Percy Liang. (2017). "Understanding black-box
+    predictions via influence functions." International Conference on
+    Machine Learning. PMLR.
+
+    """
+
+    def __init__(
+        self,
+        model: Union[torch.nn.Module, L.LightningModule],
+        train_dataset: torch.utils.data.Dataset,
+        loss_func: Callable,
+        task: TaskLiterals = "image_classification",
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        layer_name: Optional[Union[str, List[str]]] = None,
+        batch_size: int = 1,
+        collate_fn: Optional[Callable] = None,
+        regularization: float = 0.0,
+        device: Optional[str] = None,
+        hf_input_keys: Optional[Sequence[str]] = None,
+    ):
+        """Initialize the `DattriIFExplicit` explainer."""
+        logger.info("Initializing dattri IF-Explicit explainer...")
+
+        attributor_kwargs: Dict[str, Any] = {
+            "regularization": regularization,
+        }
+
+        if isinstance(checkpoints, list) and len(checkpoints) > 1:
+            checkpoints = [checkpoints[-1]]
+
+        super().__init__(
+            model=model,
+            train_dataset=train_dataset,
+            loss_func=loss_func,
+            attributor_cls=IFAttributorExplicit,
+            attributor_kwargs=attributor_kwargs,
+            task=task,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            layer_name=layer_name,
+            batch_size=batch_size,
+            collate_fn=collate_fn,
+            use_cache=True,
+            device=device,
+            hf_input_keys=hf_input_keys,
+        )
+
+
+class DattriIFCG(DattriInfluence):
+    """Wrapper for `IFAttributorCG` from dattri.
+
+    References
+    ----------
+    (1) Martens, James. (2010). "Deep learning via Hessian-free
+    optimization." Proceedings of the 27th International Conference on
+    Machine Learning. (735-742).
+
+    """
+
+    def __init__(
+        self,
+        model: Union[torch.nn.Module, L.LightningModule],
+        train_dataset: torch.utils.data.Dataset,
+        loss_func: Callable,
+        task: TaskLiterals = "image_classification",
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        layer_name: Optional[Union[str, List[str]]] = None,
+        batch_size: int = 1,
+        collate_fn: Optional[Callable] = None,
+        max_iter: int = 10,
+        tol: float = 1e-7,
+        mode: str = "rev-rev",
+        regularization: float = 0.0,
+        device: Optional[str] = None,
+        hf_input_keys: Optional[Sequence[str]] = None,
+    ):
+        """Initialize the `DattriIFCG` explainer."""
+        logger.info("Initializing dattri IF-CG explainer...")
+
+        attributor_kwargs: Dict[str, Any] = {
+            "max_iter": max_iter,
+            "tol": tol,
+            "mode": mode,
+            "regularization": regularization,
+        }
+
+        if isinstance(checkpoints, list) and len(checkpoints) > 1:
+            checkpoints = [checkpoints[-1]]
+
+        super().__init__(
+            model=model,
+            train_dataset=train_dataset,
+            loss_func=loss_func,
+            attributor_cls=IFAttributorCG,
+            attributor_kwargs=attributor_kwargs,
+            task=task,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            layer_name=layer_name,
+            batch_size=batch_size,
+            collate_fn=collate_fn,
+            use_cache=True,
+            device=device,
+            hf_input_keys=hf_input_keys,
+        )
+
+
+class DattriIFLiSSA(DattriInfluence):
+    """Wrapper for `IFAttributorLiSSA` from dattri.
+
+    Stochastic Hessian-inverse approximation via the LiSSA algorithm of
+    Agarwal et al. (2017). Used in dattri's ``experiments/gpt2_wikitext``.
+
+    References
+    ----------
+    (1) Agarwal, Naman, Brian Bullins, and Elad Hazan. (2017). "Second-order
+    stochastic optimization for machine learning in linear time." Journal
+    of Machine Learning Research 18. (1-40).
+
+    """
+
+    def __init__(
+        self,
+        model: Union[torch.nn.Module, L.LightningModule],
+        train_dataset: torch.utils.data.Dataset,
+        loss_func: Callable,
+        task: TaskLiterals = "image_classification",
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        layer_name: Optional[Union[str, List[str]]] = None,
+        batch_size: int = 1,
+        collate_fn: Optional[Callable] = None,
+        lissa_batch_size: int = 1,
+        num_repeat: int = 1,
+        recursion_depth: int = 5000,
+        damping: float = 0.0,
+        scaling: float = 50.0,
+        mode: str = "rev-rev",
+        device: Optional[str] = None,
+        hf_input_keys: Optional[Sequence[str]] = None,
+    ):
+        """Initialize the `DattriIFLiSSA` explainer."""
+        logger.info("Initializing dattri IF-LiSSA explainer...")
+
+        attributor_kwargs: Dict[str, Any] = {
+            "batch_size": lissa_batch_size,
+            "num_repeat": num_repeat,
+            "recursion_depth": recursion_depth,
+            "damping": damping,
+            "scaling": scaling,
+            "mode": mode,
+        }
+
+        if isinstance(checkpoints, list) and len(checkpoints) > 1:
+            checkpoints = [checkpoints[-1]]
+
+        super().__init__(
+            model=model,
+            train_dataset=train_dataset,
+            loss_func=loss_func,
+            attributor_cls=IFAttributorLiSSA,
+            attributor_kwargs=attributor_kwargs,
+            task=task,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            layer_name=layer_name,
+            batch_size=batch_size,
+            collate_fn=collate_fn,
+            use_cache=True,
+            device=device,
+            hf_input_keys=hf_input_keys,
+        )
+
+
+class DattriIFDataInf(DattriInfluence):
+    """Wrapper for `IFAttributorDataInf` from dattri.
+
+    Layer-wise empirical-Fisher influence approximation of Kwon et al.
+    (2024).
+
+    References
+    ----------
+    (1) Kwon, Yongchan, et al. (2024). "DataInf: Efficiently Estimating Data
+    Influence in LoRA-tuned LLMs and Diffusion Models." International
+    Conference on Learning Representations.
+
+    """
+
+    def __init__(
+        self,
+        model: Union[torch.nn.Module, L.LightningModule],
+        train_dataset: torch.utils.data.Dataset,
+        loss_func: Callable,
+        task: TaskLiterals = "image_classification",
+        checkpoints: Optional[Union[str, List[str]]] = None,
+        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        layer_name: Optional[Union[str, List[str]]] = None,
+        batch_size: int = 1,
+        collate_fn: Optional[Callable] = None,
+        regularization: float = 0.0,
+        fim_estimate_data_ratio: float = 1.0,
+        device: Optional[str] = None,
+        hf_input_keys: Optional[Sequence[str]] = None,
+    ):
+        """Initialize the `DattriIFDataInf` explainer."""
+        logger.info("Initializing dattri IF-DataInf explainer...")
+
+        attributor_kwargs: Dict[str, Any] = {
+            "regularization": regularization,
+            "fim_estimate_data_ratio": fim_estimate_data_ratio,
+        }
+
+        if isinstance(checkpoints, list) and len(checkpoints) > 1:
+            checkpoints = [checkpoints[-1]]
+
+        super().__init__(
+            model=model,
+            train_dataset=train_dataset,
+            loss_func=loss_func,
+            attributor_cls=IFAttributorDataInf,
+            attributor_kwargs=attributor_kwargs,
+            task=task,
+            checkpoints=checkpoints,
+            checkpoints_load_func=checkpoints_load_func,
+            layer_name=layer_name,
+            batch_size=batch_size,
+            collate_fn=collate_fn,
+            use_cache=True,
+            device=device,
+            hf_input_keys=hf_input_keys,
         )
 
 
@@ -663,4 +937,8 @@ __all__ = [
     "DattriEKFAC",
     "DattriGradDot",
     "DattriGradCos",
+    "DattriIFExplicit",
+    "DattriIFCG",
+    "DattriIFLiSSA",
+    "DattriIFDataInf",
 ]

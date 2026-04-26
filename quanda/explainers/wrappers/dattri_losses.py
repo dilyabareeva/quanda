@@ -124,8 +124,92 @@ def bert_classification_correct_probability(
     return prob_fn
 
 
+def _shifted_lm_loss(
+    logits: torch.Tensor, labels: torch.Tensor, reduction: str
+) -> torch.Tensor:
+    """Compute shifted next-token CE with `ignore_index=-100`."""
+    shift_logits = logits[..., :-1, :].contiguous()
+    shift_labels = labels[..., 1:].contiguous()
+    return torch.nn.functional.cross_entropy(
+        shift_logits.view(-1, shift_logits.size(-1)),
+        shift_labels.view(-1),
+        ignore_index=-100,
+        reduction=reduction,
+    )
+
+
+def causal_lm_per_sample_loss(model: nn.Module) -> Callable:
+    """Build a per-sample LM loss for an HF causal-LM."""
+
+    def loss_fn(params, batch):
+        input_ids, attention_mask, labels = batch
+        outputs = torch.func.functional_call(
+            model,
+            params,
+            args=(),
+            kwargs={
+                "input_ids": input_ids.unsqueeze(0),
+                "attention_mask": attention_mask.unsqueeze(0),
+            },
+        )
+        logits = outputs.logits.float()
+        return _shifted_lm_loss(logits, labels.unsqueeze(0), reduction="sum")
+
+    return loss_fn
+
+
+def causal_lm_batched_loss(model: nn.Module) -> Callable:
+    """Build a batched LM loss for an HF causal-LM."""
+
+    def loss_fn(params, batch):
+        input_ids, attention_mask, labels = batch
+        outputs = torch.func.functional_call(
+            model,
+            params,
+            args=(),
+            kwargs={
+                "input_ids": input_ids,
+                "attention_mask": attention_mask,
+            },
+        )
+        logits = outputs.logits.float()
+        return _shifted_lm_loss(logits, labels, reduction="sum")
+
+    return loss_fn
+
+
+def causal_lm_correct_probability(model: nn.Module) -> Callable:
+    """Build the per-sample correct-token probability for an HF causal LM.
+
+    Used as ``correct_probability_func`` by dattri's TRAK attributor.
+    Returns ``exp(-mean_token_loss)`` over the answer tokens of each
+    sample, mirroring the TRAK convention used in dattri's
+    ``experiments/gpt2_wikitext/score_TRAK.py``.
+    """
+
+    def prob_fn(params, batch):
+        input_ids, attention_mask, labels = batch
+        outputs = torch.func.functional_call(
+            model,
+            params,
+            args=(),
+            kwargs={
+                "input_ids": input_ids.unsqueeze(0),
+                "attention_mask": attention_mask.unsqueeze(0),
+            },
+        )
+        logits = outputs.logits.float()
+        loss = _shifted_lm_loss(logits, labels.unsqueeze(0), reduction="mean")
+        return torch.exp(-loss)
+
+    return prob_fn
+
+
 __all__ = [
     "bert_classification_per_sample_loss",
     "bert_classification_batched_loss",
     "bert_classification_correct_probability",
+    "causal_lm_per_sample_loss",
+    "causal_lm_batched_loss",
+    "causal_lm_correct_probability",
 ]

@@ -1,0 +1,15 @@
+name: dattri_trak
+cls: quanda.explainers.wrappers.DattriTRAK
+kwargs:
+  loss_func:
+    _target_: hydra.utils.get_method
+    path: quanda.explainers.wrappers.dattri_losses.causal_lm_per_sample_loss
+  correct_probability_func:
+    _target_: hydra.utils.get_method
+    path: quanda.explainers.wrappers.dattri_losses.causal_lm_correct_probability
+  task: causal_lm
+  hf_input_keys: [input_ids, attention_mask]
+  projector_kwargs:
+    proj_dim: 2048
+  regularization: 1.0e-05
+  batch_size: 1

@@ -1,0 +1,14 @@
+name: dattri_if_lissa
+cls: quanda.explainers.wrappers.DattriIFLiSSA
+kwargs:
+  loss_func:
+    _target_: hydra.utils.get_method
+    path: quanda.explainers.wrappers.dattri_losses.causal_lm_batched_loss
+  task: causal_lm
+  hf_input_keys: [input_ids, attention_mask]
+  lissa_batch_size: 1
+  num_repeat: 1
+  recursion_depth: 100
+  damping: 0.01
+  scaling: 50.0
+  batch_size: 1
