@@ -273,6 +273,7 @@ class CaptumSimilarity(CaptumInfluence):
         self.model_id = model_id
         self.cache_dir = cache_dir
 
+        batch_size = min(batch_size, ds_len(train_dataset))
         self.modulo_batch_size = ds_len(train_dataset) % batch_size
         # divide train_dataset into two subsets to make up for a batching bug
         self.train_set_1 = torch.utils.data.Subset(
