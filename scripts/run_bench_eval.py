@@ -16,6 +16,14 @@ from quanda.benchmarks import bench_dict
 from quanda.benchmarks.base import default_explanations_id
 from quanda.benchmarks.resources.config_map import config_map
 
+OmegaConf.register_new_resolver(
+    "cluster_or_local",
+    lambda cluster, local: (
+        cluster if os.path.isdir("/data/cluster/users/bareeva") else local
+    ),
+    replace=True,
+)
+
 _SUFFIX_TO_CLASS = {
     "class_detection": "ClassDetection",
     "subclass_detection": "SubclassDetection",
@@ -31,6 +39,13 @@ BENCH_CLASS = {
     for prefix in ("mnist", "cifar", "qnli")
     for suffix, cls in _SUFFIX_TO_CLASS.items()
 }
+BENCH_CLASS.update(
+    {
+        "gpt2_trex_openwebtext_ft_mrr": "MRR",
+        "gpt2_trex_openwebtext_ft_recall_at_k": "RecallAtK",
+        "gpt2_trex_openwebtext_ft_tail_patch": "TailPatch",
+    }
+)
 
 
 @hydra.main(
@@ -96,6 +111,16 @@ def main(cfg: DictConfig) -> float:
             device=cfg.device,
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
+            inference_batch_size=cfg.inference_batch_size,
+        )
+
+    extra: dict = {}
+    if BENCH_CLASS[bench_id] == "LDS":
+        extra["subset_logits_dir"] = bench_cls.subset_logits_cache_dir(
+            config=bench_cfg,
+            batch_size=cfg.batch_size,
+            max_eval_n=max_eval_n,
+            eval_seed=eval_seed,
         )
 
     score = bench.evaluate(
@@ -106,6 +131,8 @@ def main(cfg: DictConfig) -> float:
         eval_seed=eval_seed,
         cache_dir=expl_save_dir,
         use_cached_expl=True,
+        inference_batch_size=cfg.inference_batch_size,
+        **extra,
     )
 
     os.makedirs(cfg.results_dir, exist_ok=True)

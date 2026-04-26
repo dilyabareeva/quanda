@@ -1,0 +1,13 @@
+dataset_str: SetFit/qnli
+dataset_split: validation
+transforms: null
+tokenizer:
+  name: google-bert/bert-base-cased
+  text_fields:
+  - text1
+  - text2
+  max_length: 128
+  label_field: label
+filter_indices:
+  split_filename: qnli_eval_mixed_main_filter.yaml
+  split_name: default

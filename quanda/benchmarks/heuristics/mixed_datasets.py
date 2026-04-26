@@ -47,13 +47,15 @@ class MixedDatasets(Benchmark):
 
     name: str = "Mixed Datasets"
     eval_args: list = ["explanations", "test_data", "test_labels"]
+    default_use_predictions: bool = True
+    default_filter_by_prediction: bool = True
 
     def __init__(
         self,
         *args,
         adversarial_label: int = 0,
         adversarial_indices: Optional[List[int]] = None,
-        filter_by_prediction: bool = False,
+        filter_by_prediction: bool = True,
         **kwargs,
     ):
         """Initialize the Mixed Datasets benchmark.
@@ -69,7 +71,7 @@ class MixedDatasets(Benchmark):
         filter_by_prediction: bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the adversarial class
-            is predicted, by default False.
+            is predicted, by default True.
         **kwargs
             Arguments passed to the base Benchmark class.
 
@@ -188,10 +190,14 @@ class MixedDatasets(Benchmark):
             checkpoints_load_func=checkpoints_load_func,
             device=device,
             val_dataset=val_dataset,
-            use_predictions=config.get("use_predictions", False),
+            use_predictions=config.get(
+                "use_predictions", cls.default_use_predictions
+            ),
             adversarial_label=config["adversarial_label"],
             adversarial_indices=adversarial_indices,
-            filter_by_prediction=config.get("filter_by_prediction", False),
+            filter_by_prediction=config.get(
+                "filter_by_prediction", cls.default_filter_by_prediction
+            ),
         )
 
     def sanity_check(self, batch_size: int = 32) -> dict:
@@ -251,6 +257,7 @@ class MixedDatasets(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Evaluate the benchmark using a given explanation method.
 
@@ -277,6 +284,10 @@ class MixedDatasets(Benchmark):
             Whether to use Hugging Face cached explanations, by default False.
             If use_cached_expl is also True, will prioritize local cache over
             HF cache.
+        inference_batch_size: Optional[int], optional
+            If set, split the per-batch model forward (prediction and any
+            forward inside the metric) into sub-batches of this size.
+            ``None`` keeps the full ``batch_size`` forward.
 
         Returns
         -------
@@ -308,8 +319,9 @@ class MixedDatasets(Benchmark):
             train_dataset=self.train_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
             adversarial_indices=self.adversarial_indices,
-            filter_by_prediction=False,  # the dataset is already filtered
+            filter_by_prediction=self.filter_by_prediction,
             adversarial_label=self.adversarial_label,
+            inference_batch_size=inference_batch_size,
         )
 
         return self._evaluate_dataset(
@@ -320,6 +332,7 @@ class MixedDatasets(Benchmark):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
+            inference_batch_size=inference_batch_size,
         )
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):

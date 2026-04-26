@@ -1,18 +1,21 @@
-"""Prefetch benchmark assets (metadata + ckpt) from the Hub into cache_dir.
-
-Run once per benchmark before a method sweep so parallel sweep jobs don't
-race on downloads and each job can use ``from_config`` against the local
-cache.
-"""
+"""Prefetch benchmark assets (metadata + ckpt) from the Hub into cache_dir."""
 
 from __future__ import annotations
 
 import os
 
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from quanda.benchmarks import bench_dict
+
+OmegaConf.register_new_resolver(
+    "cluster_or_local",
+    lambda cluster, local: (
+        cluster if os.path.isdir("/data/cluster/users/bareeva") else local
+    ),
+    replace=True,
+)
 
 _SUFFIX_TO_CLASS = {
     "class_detection": "ClassDetection",
@@ -29,6 +32,13 @@ BENCH_CLASS = {
     for prefix in ("mnist", "cifar", "qnli")
     for suffix, cls in _SUFFIX_TO_CLASS.items()
 }
+BENCH_CLASS.update(
+    {
+        "gpt2_trex_openwebtext_ft_mrr": "MRR",
+        "gpt2_trex_openwebtext_ft_recall_at_k": "RecallAtK",
+        "gpt2_trex_openwebtext_ft_tail_patch": "TailPatch",
+    }
+)
 
 
 @hydra.main(
@@ -40,6 +50,7 @@ def main(cfg: DictConfig) -> None:
     bench_id = cfg.bench
     os.makedirs(cfg.cache_dir, exist_ok=True)
     bench_cls = bench_dict[BENCH_CLASS[bench_id]]
+
     bench = bench_cls.load_pretrained(
         bench_id=bench_id,
         cache_dir=cfg.cache_dir,

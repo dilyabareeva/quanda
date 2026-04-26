@@ -1,6 +1,7 @@
 """Kronfluence data attribution wrapper."""
 
 import copy
+import logging
 import os
 from typing import Any, Callable, Dict, List, Optional, Union
 
@@ -22,7 +23,10 @@ from quanda.explainers.utils import (
     self_influence_fn_from_explainer,
 )
 from quanda.utils.common import process_targets
+from quanda.utils.common import _replace_conv1d_with_linear
 from quanda.utils.tasks import TaskLiterals
+
+logger = logging.getLogger(__name__)
 
 
 class Kronfluence(Explainer):
@@ -53,6 +57,7 @@ class Kronfluence(Explainer):
     accepted_tasks: List[TaskLiterals] = [
         "image_classification",
         "text_classification",
+        "causal_lm",
     ]
 
     def __init__(
@@ -182,6 +187,7 @@ class Kronfluence(Explainer):
         """
         model_copy = copy.deepcopy(self.model)
         model_copy.to(self.device)
+        _replace_conv1d_with_linear(model_copy)
         prepared_model = prepare_model(model=model_copy, task=self.task)
         return prepared_model
 
@@ -209,13 +215,16 @@ class Kronfluence(Explainer):
             return torch.utils.data.TensorDataset(test_data, targets)
         elif isinstance(test_data, Dict):
             test_data["labels"] = targets
-            return datasets.Dataset.from_dict(test_data)
+            dataset = datasets.Dataset.from_dict(test_data)
+            dataset.set_format("torch")
+            return dataset
         elif isinstance(test_data, List):
             data_dict = {
                 key: [d[key] for d in test_data] for key in test_data[0].keys()
             }
             data_dict["labels"] = targets.tolist()
             dataset = datasets.Dataset.from_dict(data_dict)
+            dataset.set_format("torch")
             return dataset
         else:
             raise ValueError(
@@ -309,6 +318,7 @@ class Kronfluence(Explainer):
         scores_name = scores_name or self.scores_name
         score_args = score_args or self.score_args
 
+        logger.info("Computing self-influence...")
         self.analyzer.compute_self_scores(
             scores_name=scores_name,
             factors_name=self.factors_name,

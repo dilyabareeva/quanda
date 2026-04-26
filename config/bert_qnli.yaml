@@ -5,8 +5,6 @@ defaults:
   - val_dataset: qnli_val
   - model/trainer: bert_qnli
   - logger: wandb
-  - override hydra/sweeper: optuna
-  - override hydra/sweeper/sampler: grid
   - override hydra/launcher: joblib
   - _self_
 
@@ -17,16 +15,6 @@ hydra:
 
   launcher:
     n_jobs: 3
-
-  sweeper:
-    direction:
-      - maximize
-    study_name: "${cfg_file_name}"
-    storage: null
-    n_trials: 2
-    n_jobs: 3
-    params:
-      model.trainer.max_epochs: choice(20, 30)
 
 id: "bert_qnli"
 bench: LDS
@@ -40,8 +28,8 @@ correlation_fn: "kendall"
 offline: true
 seed: 42
 device: "auto"
-use_predictions: true
 batch_size: 64
+adversarial_label: 0
 
 m: 100
 alpha: 0.5
@@ -60,4 +48,8 @@ splits:
   qnli_train_mislabeling_50k:
     filename: qnli_train_mislabeling_50k_split.yaml
     ratios: {train: 0.47736, val: 0.1, test: 0.0}
+    seed: 42
+  mrpc:
+    filename: mrpc_split.yaml
+    ratios: {train: 0.8, val: 0.1, test: 0.1}
     seed: 42

@@ -25,8 +25,6 @@ logger = logging.getLogger(__name__)
 
 
 class MislabelingDetection(Benchmark):
-    # TODO: remove ALL PAPERS USE SELF-INFLUENCE? OTHERWISE WE CAN USE
-    #  PREDICTIONS
     """Benchmark for noisy label detection.
 
     This benchmark generates a dataset with mislabeled samples, and trains a
@@ -137,6 +135,7 @@ class MislabelingDetection(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Evaluate the given data attributor.
 
@@ -166,6 +165,9 @@ class MislabelingDetection(Benchmark):
         use_hf_expl: bool, optional
             If True, download a precomputed self-influence cache from
             HF into ``cache_dir`` and load it.
+        inference_batch_size: Optional[int], optional
+            Unused for this benchmark; accepted for signature
+            compatibility with the base ``Benchmark.evaluate``.
 
         Returns
         -------
@@ -238,6 +240,7 @@ class MislabelingDetection(Benchmark):
         device: str = "cpu",
         max_eval_n: Optional[int] = None,
         eval_seed: int = 42,
+        inference_batch_size: Optional[int] = None,
     ) -> "MislabelingDetection":
         """Compute and persist self-influence scores to disk.
 
@@ -246,7 +249,8 @@ class MislabelingDetection(Benchmark):
         is a single 1D tensor stored as ``self_influence.pt``. For
         consistency with other benchmarks, ``max_eval_n``/``eval_seed``
         here parameterize the train-dataset subsample over which
-        self-influence is computed.
+        self-influence is computed. ``inference_batch_size`` is ignored
+        since there is no eval-time inference pass.
         """
         obj = cls.from_config(config, device=device)
         if explanations_id is None:
@@ -305,7 +309,6 @@ class MislabelingDetection(Benchmark):
             "expl_kwargs": safe_kwargs,
             "expl_kwargs_hash": _hash_expl_kwargs(expl_kwargs),
             "batch_size": batch_size,
-            "use_predictions": obj.use_predictions,
             "artifact": SELF_INFLUENCE_KEY,
             "max_eval_n": max_eval_n,
             "eval_seed": eval_seed,

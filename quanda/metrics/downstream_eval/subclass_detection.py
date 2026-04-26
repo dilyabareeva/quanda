@@ -5,7 +5,7 @@ from typing import Any, Callable, List, Optional, Union
 import torch
 
 from quanda.metrics.downstream_eval import ClassDetectionMetric
-from quanda.utils.common import ds_len
+from quanda.utils.common import chunked_logits, ds_len
 
 
 class SubclassDetectionMetric(ClassDetectionMetric):
@@ -31,6 +31,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Initialize the Subclass Detection metric.
 
@@ -51,6 +52,9 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             Whether to filter the test samples to only calculate the metric on
             those samples, where the correct superclass is predicted, by
             default False.
+        inference_batch_size : Optional[int], optional
+            If set, split the model forward used to filter by prediction into
+            sub-batches of this size. ``None`` disables chunking.
 
         """
         super().__init__(
@@ -58,6 +62,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             checkpoints=checkpoints,
             train_dataset=train_dataset,
             checkpoints_load_func=checkpoints_load_func,
+            inference_batch_size=inference_batch_size,
         )
 
         if len(train_subclass_labels) != ds_len(self.train_dataset):
@@ -119,8 +124,11 @@ class SubclassDetectionMetric(ClassDetectionMetric):
                 test_superclass_targets = torch.tensor(test_superclass_targets)
             test_superclass_targets = test_superclass_targets.to(self.device)
             model_device = next(self.model.parameters()).device
-            pred_cls = self.model(test_data.to(model_device)).argmax(dim=1)
-            pred_cls = pred_cls.to(self.device)
+            test_data = test_data.to(model_device)
+            logits = chunked_logits(
+                self.model, test_data, self.inference_batch_size
+            )
+            pred_cls = logits.argmax(dim=1).to(self.device)
             select_idx *= pred_cls == test_superclass_targets
 
         explanations = explanations[select_idx]

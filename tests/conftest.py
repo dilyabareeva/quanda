@@ -1,6 +1,7 @@
 import json
 import os
 import pickle
+from itertools import chain
 from typing import Dict, List
 
 import datasets
@@ -12,10 +13,16 @@ import torch.nn.functional as F
 import torchvision
 import yaml
 from kronfluence.task import Task  # type: ignore
+from safetensors.torch import load_model
 from torch.utils.data import Dataset, TensorDataset
 from torchvision.models import resnet18, vit_b_16
-from transformers import AutoTokenizer
+from transformers import (
+    AutoConfig,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+)
 
+from quanda.benchmarks.config_parser import FactTracingConfigParser
 from quanda.benchmarks.resources import config_map
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
@@ -28,8 +35,12 @@ from quanda.utils.training import Trainer
 from quanda.utils.training.base_pl_module import BasicLightningModule
 from tests.models import (
     LeNet,
+    NanoGPT,
+    NanoGPTConfig,
     SequenceClassificationModel,
+    SimpleCausalLM,
     SimpleTextClassifier,
+    TinyGPT2,
 )
 
 # Copied from https://github.com/huggingface/transformers/blob/main/examples/pytorch/text-classification/run_glue.py.
@@ -145,7 +156,8 @@ def load_mnist_model():
 @pytest.fixture
 def load_mnist_model_with_custom_param():
     """Load a pre-trained LeNet classification model with a custom parameter
-    (architecture at quantus/helpers/models)."""
+    (architecture at quantus/helpers/models).
+    """
     model = LeNet()
     model.load_state_dict(
         torch.load(
@@ -413,8 +425,8 @@ def classification_task():
     return ImageClassificationTask()
 
 
-# Partially copied from https://github.com/pomonam/kronfluence/tree/main/examples/glue.
 class TextClassificationTask(Task):
+    # Partially copied from: https://github.com/pomonam/kronfluence/tree/main/examples/glue.
     def compute_train_loss(
         self,
         batch: Dict[str, torch.Tensor],
@@ -472,6 +484,388 @@ class TextClassificationTask(Task):
 @pytest.fixture
 def text_classification_task():
     return TextClassificationTask()
+
+
+class LanguageModelingTask(Task):
+    # Copied from: https://github.com/pomonam/kronfluence/blob/main/examples/wikitext/analyze.py
+    def compute_train_loss(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+        sample: bool = False,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+        ).logits
+        logits = logits[..., :-1, :].contiguous()
+        logits = logits.view(-1, logits.size(-1))
+
+        if not sample:
+            labels = batch["labels"]
+            labels = labels[..., 1:].contiguous()
+            summed_loss = F.cross_entropy(
+                logits, labels.view(-1), reduction="sum"
+            )
+        else:
+            with torch.no_grad():
+                probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
+                sampled_labels = torch.multinomial(
+                    probs,
+                    num_samples=1,
+                ).flatten()
+            summed_loss = F.cross_entropy(
+                logits, sampled_labels, reduction="sum"
+            )
+        return summed_loss
+
+    def compute_measurement(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+    ) -> torch.Tensor:
+        return self.compute_train_loss(batch, model)
+
+    def get_influence_tracked_modules(self) -> List[str]:
+        total_modules = []
+
+        for i in range(12):
+            total_modules.append(f"transformer.h.{i}.attn.c_attn")
+            total_modules.append(f"transformer.h.{i}.attn.c_proj")
+
+        for i in range(12):
+            total_modules.append(f"transformer.h.{i}.mlp.c_fc")
+            total_modules.append(f"transformer.h.{i}.mlp.c_proj")
+
+        return total_modules
+
+    def get_attention_mask(
+        self, batch: Dict[str, torch.Tensor]
+    ) -> torch.Tensor:
+        return batch["attention_mask"]
+
+
+@pytest.fixture
+def language_modeling_task():
+    return LanguageModelingTask()
+
+
+class LanguageModelingTaskExtended(Task):
+    def compute_train_loss(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+        sample: bool = False,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+        ).logits.float()
+        logits = logits[..., :-1, :].contiguous()
+        logits = logits.view(-1, logits.size(-1))
+        labels = batch["labels"][..., 1:].contiguous()
+
+        if not sample:
+            summed_loss = F.cross_entropy(
+                logits, labels.view(-1), reduction="sum", ignore_index=-100
+            )
+        else:
+            with torch.no_grad():
+                probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
+                sampled_labels = torch.multinomial(
+                    probs,
+                    num_samples=1,
+                ).flatten()
+                masks = labels.view(-1) == -100
+                sampled_labels[masks] = -100
+            summed_loss = F.cross_entropy(
+                logits, sampled_labels, ignore_index=-100, reduction="sum"
+            )
+        return summed_loss
+
+    def compute_measurement(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+        ).logits.float()
+        shift_labels = batch["labels"][..., 1:].contiguous().view(-1)
+        logits = logits[..., :-1, :].contiguous().view(-1, logits.size(-1))
+        return F.cross_entropy(
+            logits, shift_labels, ignore_index=-100, reduction="sum"
+        )
+
+    def get_influence_tracked_modules(self) -> List[str]:
+        total_modules = []
+
+        for i in range(12):
+            total_modules.append(f"transformer.h.{i}.attn.c_attn")
+            total_modules.append(f"transformer.h.{i}.attn.c_proj")
+
+        for i in range(12):
+            total_modules.append(f"transformer.h.{i}.mlp.c_fc")
+            total_modules.append(f"transformer.h.{i}.mlp.c_proj")
+
+        return total_modules
+
+    def get_attention_mask(
+        self, batch: Dict[str, torch.Tensor]
+    ) -> torch.Tensor:
+        return batch["attention_mask"]
+
+
+@pytest.fixture
+def language_modeling_task_extended():
+    return LanguageModelingTaskExtended()
+
+
+class LanguageModelingTaskNanoGPT(Task):
+    def compute_train_loss(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+        sample: bool = False,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+        ).logits.float()
+        logits = logits[..., :-1, :].contiguous()
+        logits = logits.view(-1, logits.size(-1))
+        labels = batch["labels"][..., 1:].contiguous()
+        if not sample:
+            summed_loss = F.cross_entropy(
+                logits, labels.view(-1), reduction="sum", ignore_index=-100
+            )
+        else:
+            with torch.no_grad():
+                probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
+                sampled_labels = torch.multinomial(
+                    probs,
+                    num_samples=1,
+                ).flatten()
+                masks = labels.view(-1) == -100
+                sampled_labels[masks] = -100
+            summed_loss = F.cross_entropy(
+                logits, sampled_labels, ignore_index=-100, reduction="sum"
+            )
+        return summed_loss
+
+    def compute_measurement(
+        self,
+        batch: Dict[str, torch.Tensor],
+        model: nn.Module,
+    ) -> torch.Tensor:
+        logits = model(
+            input_ids=batch["input_ids"],
+            attention_mask=batch["attention_mask"],
+        ).logits.float()
+        shift_labels = batch["labels"][..., 1:].contiguous().view(-1)
+        logits = logits[..., :-1, :].contiguous().view(-1, logits.size(-1))
+        return F.cross_entropy(
+            logits, shift_labels, ignore_index=-100, reduction="sum"
+        )
+
+    def get_influence_tracked_modules(self) -> List[str]:
+        return (
+            [f"transformer.transformer.h.{i}.attn.c_attn" for i in range(12)]
+            + [f"transformer.transformer.h.{i}.attn.c_proj" for i in range(12)]
+            + [f"transformer.transformer.h.{i}.mlp.c_fc" for i in range(12)]
+            + [f"transformer.transformer.h.{i}.mlp.c_proj" for i in range(12)]
+        )
+
+    def get_attention_mask(
+        self, batch: Dict[str, torch.Tensor]
+    ) -> torch.Tensor:
+        return batch["attention_mask"]
+
+
+@pytest.fixture
+def language_modeling_task_nano_gpt():
+    return LanguageModelingTaskNanoGPT()
+
+
+class DummyLanguageModelingTask(LanguageModelingTask):
+    def get_influence_tracked_modules(self) -> List[str]:
+        total_modules = []
+
+        for i in range(2):
+            total_modules.append(f"transformer.h.{i}.attn.c_attn")
+            total_modules.append(f"transformer.h.{i}.attn.c_proj")
+
+        for i in range(2):
+            total_modules.append(f"transformer.h.{i}.mlp.c_fc")
+            total_modules.append(f"transformer.h.{i}.mlp.c_proj")
+
+        return total_modules
+
+
+@pytest.fixture
+def dummy_language_modeling_task():
+    return DummyLanguageModelingTask()
+
+
+def replace_conv1d_modules(model: nn.Module) -> None:
+    # Partially copied from https://github.com/pomonam/kronfluence/blob/main/examples/wikitext/pipeline.py
+    for name, module in model.named_children():
+        if len(list(module.children())) > 0:
+            replace_conv1d_modules(module)
+
+        if module.__class__.__name__ == "Conv1D":
+            new_module = nn.Linear(
+                in_features=module.weight.shape[0],
+                out_features=module.weight.shape[1],
+            )
+            new_module.weight.data.copy_(module.weight.data.t())
+            new_module.bias.data.copy_(module.bias.data)
+            setattr(model, name, new_module)
+
+
+@pytest.fixture
+def load_nano_gpt_model_local():
+    model_dir = "gpt2-small-trex-openwebtext-ft"
+
+    with open(os.path.join(model_dir, "config.json")) as f:
+        config = NanoGPTConfig(**json.load(f))
+
+    model = NanoGPT(config)
+    load_model(model, os.path.join(model_dir, "model.safetensors"))
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.eval().to(device)
+
+    return model
+
+
+@pytest.fixture
+def load_nano_gpt_model():
+    model = NanoGPT.from_pretrained(
+        "quanda-bench-test/gpt2-small-trex-openwebtext-ft"
+    )
+    model.eval()
+    model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+    return model
+
+
+@pytest.fixture
+def load_hf_gpt2_trex_finetuned():
+    """Load HF GPT-2 small T-REx-finetuned with Conv1D → Linear swap."""
+    from quanda.benchmarks.resources.modules import HFGPT2
+
+    model = HFGPT2.from_pretrained(
+        "quanda-bench-test/gpt2-small-trex-openwebtext-ft-hf"
+    )
+    replace_conv1d_modules(model)
+    model.eval()
+    model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+    return model
+
+
+@pytest.fixture
+def load_fact_tracing_dataset_gpt2_small():
+    """Build a small filtered prompt/evidence dataset for the HF GPT-2 test.
+
+    Uses the ``trex-subset-benchmark`` dataset (per ``INFO.md``: only
+    prompts that the fine-tuned ``gpt2-small-trex-openwebtext-ft`` model
+    answered correctly), with a small ``num_prompts`` to keep the test
+    tractable.
+    """
+    cfg = {
+        "dataset_str": "quanda-bench-test/trex-subset-benchmark",
+        "dataset_split": "train",
+        "tokenizer": {"backend": "tiktoken", "encoding": "gpt2"},
+        "num_prompts": 5,
+        "max_evidence_per_prompt": 2,
+        "max_length": 64,
+        "seed": 42,
+    }
+    prompt_ds, evidence_ds, entailment_labels, _ = (
+        FactTracingConfigParser.parse_fact_tracing_cfg(cfg)
+    )
+    return prompt_ds, evidence_ds, entailment_labels
+
+
+@pytest.fixture
+def load_gpt2_model():
+    config = AutoConfig.from_pretrained(
+        "gpt2",
+        trust_remote_code=True,
+    )
+    model = AutoModelForCausalLM.from_pretrained(
+        "gpt2",
+        from_tf=False,
+        config=config,
+        ignore_mismatched_sizes=False,
+        trust_remote_code=True,
+    )
+    replace_conv1d_modules(model)
+    return model
+
+
+@pytest.fixture
+def load_wikitext_dataset():
+    split = "train"
+    indices = [i for i in range(2)]
+
+    raw_datasets = datasets.load_dataset("wikitext", "wikitext-2-raw-v1")
+    tokenizer = AutoTokenizer.from_pretrained(
+        "gpt2", use_fast=True, trust_remote_code=True
+    )
+
+    column_names = raw_datasets["train"].column_names
+    text_column_name = "text" if "text" in column_names else column_names[0]
+
+    def tokenize_function(examples):
+        return tokenizer(examples[text_column_name])
+
+    tokenized_datasets = raw_datasets.map(
+        tokenize_function,
+        batched=True,
+        num_proc=None,
+        remove_columns=column_names,
+        load_from_cache_file=True,
+        desc="Running tokenizer on dataset",
+    )
+    block_size = 16
+
+    def group_texts(examples):
+        concatenated_examples = {
+            k: list(chain(*examples[k])) for k in examples.keys()
+        }
+        total_length = len(concatenated_examples[list(examples.keys())[0]])
+        total_length = (total_length // block_size) * block_size
+        result = {
+            k: [
+                t[i : i + block_size]
+                for i in range(0, total_length, block_size)
+            ]
+            for k, t in concatenated_examples.items()
+        }
+        result["labels"] = result["input_ids"].copy()
+        return result
+
+    lm_datasets = tokenized_datasets.map(
+        group_texts,
+        batched=True,
+        num_proc=None,
+        load_from_cache_file=True,
+        desc=f"Grouping texts in chunks of {block_size}",
+    )
+
+    if split in ["train", "eval_train"]:
+        train_dataset = lm_datasets["train"]
+        ds = train_dataset
+    else:
+        eval_dataset = lm_datasets["validation"]
+        ds = eval_dataset
+
+    if indices is not None:
+        ds = ds.select(indices)
+
+    return ds
 
 
 def get_glue_dataset(
@@ -927,3 +1321,148 @@ def dict_dataloader():
         return torch.utils.data.DataLoader(ds, batch_size=batch_size)
 
     return _create
+
+
+@pytest.fixture
+def load_dummy_causal_lm_model():
+    model = TinyGPT2()
+    return model
+
+
+@pytest.fixture
+def load_dummy_causal_lm_dataset():
+    vocab_size = 100
+    seq_length = 16
+    num_samples = 5
+
+    input_ids = torch.randint(
+        low=0,
+        high=vocab_size,
+        size=(num_samples, seq_length),
+        dtype=torch.long,
+    ).tolist()
+
+    attention_mask = [[1] * seq_length for _ in range(num_samples)]
+    labels = [ids.copy() for ids in input_ids]
+
+    data = {
+        "input_ids": input_ids,
+        "attention_mask": attention_mask,
+        "labels": labels,
+    }
+
+    dataset = datasets.Dataset.from_dict(data)
+    return dataset
+
+
+@pytest.fixture
+def causal_lm_test_dataset():
+    vocab_size = 100
+    seq_length = 16
+    num_queries = 3
+
+    np.random.seed(42)
+    input_ids = np.random.randint(
+        low=0, high=vocab_size, size=(num_queries, seq_length), dtype=np.int64
+    )
+
+    attention_mask = np.ones((num_queries, seq_length), dtype=np.int64)
+
+    labels = input_ids.copy()
+
+    data_dict = {
+        "input_ids": input_ids,
+        "attention_mask": attention_mask,
+        "labels": labels,
+    }
+
+    return datasets.Dataset.from_dict(data_dict)
+
+
+@pytest.fixture
+def causal_lm_test_entailment_labels():
+    num_queries = 3
+    num_training_examples = 10
+
+    entailment_labels = torch.zeros(
+        (num_queries, num_training_examples), dtype=torch.bool
+    )
+    entailment_labels[0, 1] = True
+    entailment_labels[1, 0] = True
+    entailment_labels[2, 2] = True
+
+    return entailment_labels
+
+
+@pytest.fixture
+def load_fact_tracing_dataset_nanogpt():
+    """Build prompt/evidence/entailment via the fact-tracing parser (tiktoken)."""
+    cfg = {
+        "dataset_str": "quanda-bench-test/trex-subset-benchmark",
+        "dataset_split": "train",
+        "tokenizer": {"backend": "tiktoken", "encoding": "gpt2"},
+        "num_prompts": 5,
+        "max_evidence_per_prompt": 5,
+        "max_length": 64,
+        "seed": 0,
+    }
+    prompt_ds, evidence_ds, entailment_labels, _ = (
+        FactTracingConfigParser.parse_fact_tracing_cfg(cfg)
+    )
+    return prompt_ds, evidence_ds, entailment_labels
+
+
+@pytest.fixture
+def load_fact_tracing_dataset():
+    """Build prompt/evidence/entailment via the fact-tracing parser (HF GPT-2)."""
+    cfg = {
+        "dataset_str": "quanda-bench-test/trex-subset-benchmark",
+        "dataset_split": "train",
+        "tokenizer": {"backend": "hf", "name": "gpt2"},
+        "num_prompts": 2,
+        "max_evidence_per_prompt": 3,
+        "max_length": 64,
+        "seed": 42,
+    }
+    prompt_ds, evidence_ds, entailment_labels, _ = (
+        FactTracingConfigParser.parse_fact_tracing_cfg(cfg)
+    )
+    return prompt_ds, evidence_ds, entailment_labels
+
+
+class SimpleLanguageModelingTask(LanguageModelingTask):
+    def get_influence_tracked_modules(self) -> List[str]:
+        return [
+            "mlp1.0",
+            "mlp1.2",
+            "mlp2.0",
+            "mlp2.2",
+            "lm_head",
+        ]
+
+
+@pytest.fixture
+def simple_language_modeling_task() -> SimpleLanguageModelingTask:
+    return SimpleLanguageModelingTask()
+
+
+@pytest.fixture
+def load_simple_causal_lm_model() -> SimpleCausalLM:
+    return SimpleCausalLM()
+
+
+@pytest.fixture
+def load_simple_causal_lm_dataset() -> datasets.Dataset:
+    input_ids = torch.randint(
+        0, 100, (5, 16)
+    )  # 5 examples with sequence length 16
+    attention_mask = torch.ones_like(input_ids)
+    labels = input_ids.clone()
+
+    data = {
+        "input_ids": input_ids.tolist(),
+        "attention_mask": attention_mask.tolist(),
+        "labels": labels.tolist(),
+    }
+
+    return datasets.Dataset.from_dict(data)

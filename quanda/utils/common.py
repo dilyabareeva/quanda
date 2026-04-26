@@ -1,8 +1,11 @@
 """Common utility functions for the Quanda package."""
 
 import functools
+import json
 import os
 import random
+import re
+import time
 from abc import ABC
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -10,7 +13,35 @@ from functools import reduce
 from typing import Any, Callable, Dict, List, Mapping, Optional, Sized, Union
 
 import torch
+from torch import nn
 import yaml
+
+
+def chunked_logits(
+    model: torch.nn.Module,
+    inputs: Any,
+    chunk_size: Optional[int],
+) -> torch.Tensor:
+    """Run ``model`` forward on ``inputs`` in chunks; return logits tensor."""
+
+    def _call(batch: Any) -> torch.Tensor:
+        out = model(**batch) if isinstance(batch, dict) else model(batch)
+        return out.logits if hasattr(out, "logits") else out
+
+    if chunk_size is None:
+        return _call(inputs)
+    if isinstance(inputs, dict):
+        total = next(iter(inputs.values())).shape[0]
+        chunks: Any = (
+            {k: v[i : i + chunk_size] for k, v in inputs.items()}
+            for i in range(0, total, chunk_size)
+        )
+    else:
+        chunks = (
+            inputs[i : i + chunk_size]
+            for i in range(0, inputs.shape[0], chunk_size)
+        )
+    return torch.cat([_call(chunk) for chunk in chunks], dim=0)
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
@@ -178,7 +209,25 @@ def _load_flexible_state_dict(
     if isinstance(device, str):
         device = torch.device(device)
 
-    checkpoint = torch.load(path, map_location=device, weights_only=True)
+    # torch.load on the same .pth is called repeatedly by callers like
+    # TracInCPFast (once per test batch). A single transient read error
+    # from the kernel ("PytorchStreamReader ... file read failed") is
+    # enough to kill a multi-hour run, so retry a few times before
+    # giving up.
+    last_err: Optional[Exception] = None
+    for attempt in range(3):
+        try:
+            checkpoint = torch.load(
+                path, map_location=device, weights_only=True
+            )
+            break
+        except RuntimeError as e:
+            last_err = e
+            time.sleep(2**attempt)
+    else:
+        raise RuntimeError(
+            f"Failed to load checkpoint at {path} after 3 attempts"
+        ) from last_err
 
     learning_rate = checkpoint.get("learning_rate", 1.0)
 
@@ -509,17 +558,26 @@ class DatasetSplit(ABC):
         return os.path.exists(os.path.join(path, name))
 
 
-def _stable_repr(obj: Any) -> str:
-    """Process-stable string form of ``obj`` for hashing/serialization.
+_DEFAULT_REPR_RE = re.compile(r" object at 0x[0-9a-fA-F]+>")
 
-    ``str()`` / ``repr()`` embed ``id(obj)`` for callables and arbitrary
-    instances, so the default ``json.dumps(..., default=str)`` produces a
-    different payload on every Python process and breaks cache reuse.
-    """
+
+def _stable_repr(obj: Any) -> str:
+    """Process-stable string form of ``obj`` for hashing/serialization."""
     if callable(obj) and hasattr(obj, "__qualname__"):
         module = getattr(obj, "__module__", "") or ""
         return f"{module}.{obj.__qualname__}" if module else obj.__qualname__
-    return str(obj)
+    s = str(obj)
+    if not _DEFAULT_REPR_RE.search(s):
+        return s
+    cls = type(obj)
+    module = getattr(cls, "__module__", "") or ""
+    qualname = cls.__qualname__
+    fq = f"{module}.{qualname}" if module else qualname
+    attrs = getattr(obj, "__dict__", None)
+    if attrs:
+        inner = json.dumps(attrs, sort_keys=True, default=_stable_repr)
+        return f"{fq}({inner})"
+    return fq
 
 
 def _subsample_dataset(
@@ -544,3 +602,24 @@ def _subsample_dataset(
     if hasattr(dataset, "filtered"):
         return dataset.filtered(indices)
     return torch.utils.data.Subset(dataset, indices)
+
+
+def _replace_conv1d_with_linear(model: nn.Module) -> None:
+    """Swap HF ``Conv1D`` modules in-place with ``nn.Linear`` equivalents.
+
+    HF GPT-2 uses ``Conv1D`` (a transposed Linear) for attention/MLP
+    projections; kronfluence only wraps ``nn.Linear`` and ``nn.Conv2d``,
+    so the swap is required before ``prepare_model`` for those models.
+    """
+    for name, module in model.named_children():
+        if len(list(module.children())) > 0:
+            _replace_conv1d_with_linear(module)
+        if module.__class__.__name__ == "Conv1D":
+            new_module = nn.Linear(
+                in_features=module.weight.shape[0],
+                out_features=module.weight.shape[1],
+            )
+            new_module.weight.data.copy_(module.weight.data.t())
+            new_module.bias.data.copy_(module.bias.data)
+            new_module.to(module.weight.device)
+            setattr(model, name, new_module)

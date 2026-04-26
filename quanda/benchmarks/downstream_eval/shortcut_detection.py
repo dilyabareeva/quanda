@@ -1,6 +1,6 @@
 """Shortcut Detection Benchmark."""
 
-from typing import List, Optional
+from typing import Optional
 
 import torch
 
@@ -9,7 +9,6 @@ from quanda.metrics.downstream_eval.shortcut_detection import (
     ShortcutDetectionMetric,
 )
 from quanda.utils.common import (
-    DatasetSplit,
     class_accuracy,
     ds_len,
 )
@@ -19,8 +18,6 @@ from quanda.utils.datasets.transformed.sample import (
 
 
 class ShortcutDetection(Benchmark):
-    # TODO: Add citation to the original paper formulating ShortcutDetection
-    #  after acceptance
     """Benchmark for shortcut detection evaluation task.
 
     A class is selected, and a subset of its images is modified by overlaying a
@@ -48,14 +45,16 @@ class ShortcutDetection(Benchmark):
 
     name: str = "Shortcut Detection"
     eval_args = ["test_data", "test_labels", "explanations"]
+    default_use_predictions: bool = False
+    default_filter_by_non_shortcut: bool = True
+    default_filter_by_shortcut_pred: bool = True
 
     def __init__(
         self,
         *args,
         shortcut_cls: int = 0,
-        filter_by_non_shortcut: bool = False,
-        filter_by_shortcut_pred: bool = False,
-        filter_indices: Optional[List[int]] = None,
+        filter_by_non_shortcut: bool = True,
+        filter_by_shortcut_pred: bool = True,
         **kwargs,
     ):
         """Initialize the benchmark object.
@@ -74,9 +73,6 @@ class ShortcutDetection(Benchmark):
             Whether to filter the test samples to only calculate the metric on
             those samples, where the shortcut class
             is predicted, by default True.
-        filter_indices : Optional[List[int]], optional
-            Pre-computed indices for filtering eval samples, by default
-            None.
         **kwargs
             Arguments passed to the base Benchmark class.
 
@@ -85,7 +81,6 @@ class ShortcutDetection(Benchmark):
         self.shortcut_cls = shortcut_cls
         self.filter_by_non_shortcut = filter_by_non_shortcut
         self.filter_by_shortcut_pred = filter_by_shortcut_pred
-        self.filter_indices = filter_indices
 
     @classmethod
     def _extra_kwargs_from_config(
@@ -113,27 +108,14 @@ class ShortcutDetection(Benchmark):
                 "The training dataset must have a class index in its metadata."
             )
 
-        eval_ds_config = config["eval_dataset"]
-        eval_indices = eval_ds_config["filter_indices"]
-        filter_indices = None
-
-        if load_meta_from_disk and DatasetSplit.exists(
-            metadata_dir, eval_indices["split_filename"]
-        ):
-            filter_indices = DatasetSplit.load(
-                metadata_dir,
-                name=eval_indices["split_filename"],
-            )[eval_indices["split_name"]]
-
         return {
             "shortcut_cls": train_dataset.metadata.cls_idx,
             "filter_by_non_shortcut": config.get(
-                "filter_by_non_shortcut", False
+                "filter_by_non_shortcut", cls.default_filter_by_non_shortcut
             ),
             "filter_by_shortcut_pred": config.get(
-                "filter_by_shortcut_pred", False
+                "filter_by_shortcut_pred", cls.default_filter_by_shortcut_pred
             ),
-            "filter_indices": filter_indices,
         }
 
     def sanity_check(self, batch_size: int = 32) -> dict:
@@ -237,6 +219,7 @@ class ShortcutDetection(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Evaluate the given data attributor.
 
@@ -262,6 +245,10 @@ class ShortcutDetection(Benchmark):
             Whether to use Hugging Face cached explanations, by default False.
             If use_cached_expl is also True, will prioritize local cache over
             HF cache.
+        inference_batch_size: Optional[int], optional
+            If set, split the per-batch model forward (prediction and any
+            forward inside the metric) into sub-batches of this size.
+            ``None`` keeps the full ``batch_size`` forward.
 
         Returns
         -------
@@ -297,6 +284,7 @@ class ShortcutDetection(Benchmark):
             shortcut_cls=self.shortcut_cls,
             filter_by_non_shortcut=self.filter_by_non_shortcut,
             filter_by_shortcut_pred=self.filter_by_shortcut_pred,
+            inference_batch_size=inference_batch_size,
         )
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,
@@ -306,15 +294,16 @@ class ShortcutDetection(Benchmark):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
+            inference_batch_size=inference_batch_size,
         )
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
         """Run inference on eval_dataset and save the filter indices.
 
-        Iterates over ``self.eval_dataset``, calls ``_compute_filter_mask``
-        on every batch, collects the selected indices, stores them in
-        ``self.filter_indices``, and persists them via
-        ``save_filtered_indices``.
+        Iterates over ``self.eval_dataset``, selects samples matching the
+        configured ``filter_by_*`` flags, persists them via
+        ``save_filtered_indices``, and applies the filter to
+        ``self.eval_dataset`` in-place.
 
         Parameters
         ----------

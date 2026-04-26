@@ -168,3 +168,16 @@ def test_get_dataset_handler_unwraps_subset_and_raises_on_unsupported():
 
     with pytest.raises(ValueError, match="Unsupported dataset type"):
         get_dataset_handler("not a dataset")  # type: ignore[arg-type]
+
+
+@pytest.mark.utils
+def test_get_dataset_handler_unwraps_concat_dataset():
+    hf_ds = datasets.Dataset.from_dict({"input_ids": [[1, 2]], "labels": [0]})
+    concat = torch.utils.data.ConcatDataset([hf_ds, hf_ds])
+    assert isinstance(get_dataset_handler(concat), HuggingFaceDatasetHandler)
+
+    tensor_ds = torch.utils.data.TensorDataset(
+        torch.randn(2, 2), torch.randint(0, 2, (2,))
+    )
+    concat_torch = torch.utils.data.ConcatDataset([tensor_ds, tensor_ds])
+    assert isinstance(get_dataset_handler(concat_torch), TorchDatasetHandler)

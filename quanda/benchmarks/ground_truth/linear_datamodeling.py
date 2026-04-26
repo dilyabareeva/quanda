@@ -1,5 +1,6 @@
 """Benchmark for the Linear Datamodeling Score metric."""
 
+import fcntl
 import logging
 import os
 import random
@@ -16,7 +17,12 @@ from quanda.benchmarks.config_parser import BenchConfigParser
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
-from quanda.utils.common import class_accuracy
+from quanda.utils.common import (
+    _subsample_dataset,
+    chunked_logits,
+    class_accuracy,
+)
+from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import correlation_functions
 from quanda.utils.training import Trainer
 
@@ -85,6 +91,8 @@ class LinearDatamodeling(Benchmark):
 
     name: str = "Linear Datamodeling Score"
     eval_args: list = ["explanations", "test_data", "test_targets"]
+    default_use_predictions: bool = False
+
     _push_subsets_during_train: bool = False
     _lds_skip_subsets: bool = False
 
@@ -476,15 +484,165 @@ class LinearDatamodeling(Benchmark):
             list(enumerate(self.subset_ckpt_filenames)),
             k=min(3, len(self.subset_ckpt_filenames)),
         )
-        for i, ckpt_path in sampled:
-            subset_model = deepcopy(self.model)
-            self.checkpoints_load_func(subset_model, ckpt_path)
-            subset_model.eval()
-            subset_model.to(self.device)
+        for i, _ in sampled:
+            subset_model = self._load_subset_model(i, device=self.device)
             acc = class_accuracy(subset_model, eval_dl, self.device)
             results[f"subset_acc_{i}"] = acc
 
         return results
+
+    def _load_subset_model(
+        self, idx: int, device: Optional[str] = None
+    ) -> torch.nn.Module:
+        """Deep-copy ``self.model``, load the ``idx``-th subset ckpt, eval."""
+        subset_model = deepcopy(self.model)
+        self.checkpoints_load_func(
+            subset_model, self.subset_ckpt_filenames[idx]
+        )
+        subset_model.to(device if device is not None else self.device).eval()
+        return subset_model
+
+    @classmethod
+    def subset_logits_cache_dir(
+        cls,
+        config: dict,
+        batch_size: int = 8,
+        max_eval_n: Optional[int] = 1000,
+        eval_seed: int = 42,
+    ) -> str:
+        """Default local directory for cached counterfactual subset logits."""
+        repo = config.get("repo_id", "quanda-bench-test")
+        group = config.get("explanations_group", config["id"])
+        logits_id = (
+            f"{repo}/{group}"
+            f"__n{max_eval_n}_s{eval_seed}_b{batch_size}__subset_logits"
+        )
+        return os.path.join(
+            config.get("bench_save_dir", "./tmp"),
+            "subset_logits",
+            logits_id.replace("/", "__"),
+        )
+
+    @staticmethod
+    def _collect_eval_batches(
+        obj: "LinearDatamodeling",
+        batch_size: int,
+        max_eval_n: Optional[int],
+        eval_seed: int,
+        device: str,
+    ) -> list:
+        """Return ``test_data`` batches for the subsampled eval set.
+
+        Shared producer-side helper so that per-subset and all-subset cache
+        methods batch the eval set identically (same batch boundaries = same
+        ``i`` indexing as the ``_iter_explanations`` consumer).
+        """
+        eval_dataset = _subsample_dataset(
+            obj.eval_dataset, max_n=max_eval_n, seed=eval_seed
+        )
+        ds_handler = get_dataset_handler(dataset=eval_dataset)
+        return [
+            ds_handler.process_batch(batch=b, device=device)[0]
+            for b in ds_handler.create_dataloader(
+                dataset=eval_dataset, batch_size=batch_size
+            )
+        ]
+
+    @classmethod
+    def cache_subset_logits_per_idx(
+        cls,
+        config: dict,
+        idx: int,
+        batch_size: int = 8,
+        cache_dir: Optional[str] = None,
+        device: str = "cpu",
+        max_eval_n: Optional[int] = 1000,
+        eval_seed: int = 42,
+        inference_batch_size: Optional[int] = None,
+    ) -> str:
+        """Cache counterfactual logits for a **single** subset index."""
+        obj = cls.from_config(config, device=device)
+        if not isinstance(obj, LinearDatamodeling):
+            raise TypeError("Expected a LinearDatamodeling instance.")
+
+        save_dir = cache_dir or cls.subset_logits_cache_dir(
+            config=config,
+            batch_size=batch_size,
+            max_eval_n=max_eval_n,
+            eval_seed=eval_seed,
+        )
+        os.makedirs(save_dir, exist_ok=True)
+
+        batches = cls._collect_eval_batches(
+            obj, batch_size, max_eval_n, eval_seed, device
+        )
+        subset_model = obj._load_subset_model(idx, device=device)
+        with torch.no_grad():
+            for i, test_data in enumerate(batches):
+                logits = (
+                    chunked_logits(
+                        subset_model, test_data, inference_batch_size
+                    )
+                    .detach()
+                    .cpu()
+                )
+                path = os.path.join(save_dir, f"{i}.pt")
+                # concurrent workers won't clash
+                with open(path + ".lock", "a") as lock_fd:
+                    fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
+                    batch_dict = (
+                        torch.load(path) if os.path.exists(path) else {}
+                    )
+                    batch_dict[idx] = logits
+                    torch.save(batch_dict, path)
+
+        return save_dir
+
+    @classmethod
+    def cache_subset_logits(
+        cls,
+        config: dict,
+        batch_size: int = 8,
+        cache_dir: Optional[str] = None,
+        device: str = "cpu",
+        max_eval_n: Optional[int] = 1000,
+        eval_seed: int = 42,
+        inference_batch_size: Optional[int] = None,
+    ) -> str:
+        """Cache counterfactual logits for every (subset, eval batch)."""
+        obj = cls.from_config(config, device=device)
+        if not isinstance(obj, LinearDatamodeling):
+            raise TypeError("Expected a LinearDatamodeling instance.")
+
+        save_dir = cache_dir or cls.subset_logits_cache_dir(
+            config=config,
+            batch_size=batch_size,
+            max_eval_n=max_eval_n,
+            eval_seed=eval_seed,
+        )
+        os.makedirs(save_dir, exist_ok=True)
+
+        batches = cls._collect_eval_batches(
+            obj, batch_size, max_eval_n, eval_seed, device
+        )
+        per_batch: List[dict] = [{} for _ in batches]
+        for s in range(obj.m):
+            subset_model = obj._load_subset_model(s, device=device)
+            with torch.no_grad():
+                for i, test_data in enumerate(batches):
+                    per_batch[i][s] = (
+                        chunked_logits(
+                            subset_model, test_data, inference_batch_size
+                        )
+                        .detach()
+                        .cpu()
+                    )
+            del subset_model
+
+        for i, d in enumerate(per_batch):
+            torch.save(d, os.path.join(save_dir, f"{i}.pt"))
+
+        return save_dir
 
     def evaluate(
         self,
@@ -496,6 +654,8 @@ class LinearDatamodeling(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
+        subset_logits_dir: Optional[str] = None,
     ):
         """Evaluate the given data attributor.
 
@@ -521,6 +681,16 @@ class LinearDatamodeling(Benchmark):
             Whether to use Hugging Face cached explanations, by default False.
             If use_cached_expl is also True, will prioritize local cache over
             HF cache.
+        inference_batch_size: Optional[int], optional
+            If set, split the per-batch model forward (prediction and the
+            ``m`` counterfactual forwards inside the metric) into
+            sub-batches of this size. ``None`` keeps the full ``batch_size``
+            forward.
+        subset_logits_dir: Optional[str], optional
+            If set, counterfactual logits are loaded per batch from this
+            directory (as produced by :meth:`cache_subset_logits`) and
+            fed into the metric, bypassing counterfactual inference. By
+            default None.
 
         Returns
         -------
@@ -557,6 +727,7 @@ class LinearDatamodeling(Benchmark):
             batch_size=batch_size,
             subset_ids=self.subset_ids,
             subset_ckpt_filenames=self.subset_ckpt_filenames,
+            inference_batch_size=inference_batch_size,
         )
         return self._evaluate_dataset(
             eval_dataset=self.eval_dataset,
@@ -566,4 +737,6 @@ class LinearDatamodeling(Benchmark):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
+            inference_batch_size=inference_batch_size,
+            subset_logits_dir=subset_logits_dir,
         )

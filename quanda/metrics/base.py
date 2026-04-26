@@ -37,11 +37,11 @@ class Metric(ABC):
         self.device: str
         self.model: torch.nn.Module = model
 
-        # if model has device attribute, use it, otherwise the
-        if next(model.parameters(), None) is not None:
-            self.device = str(next(model.parameters()).device)
-        else:
-            self.device = "cpu"
+        def _model_device() -> str:
+            first_param = next(model.parameters(), None)
+            return "cpu" if first_param is None else str(first_param.device)
+
+        self.device = _model_device()
 
         if checkpoints_load_func is None:
             self.checkpoints_load_func = get_load_state_dict_func(self.device)
@@ -55,6 +55,9 @@ class Metric(ABC):
                 checkpoints if isinstance(checkpoints, List) else [checkpoints]
             )
             self.load_last_checkpoint()
+            # Checkpoint loaders can move the model to a new device
+            # (e.g. `model.to("cuda")`), so re-read after loading.
+            self.device = _model_device()
         self.train_dataset: Union[
             torch.utils.data.Dataset, datasets.Dataset
         ] = train_dataset
