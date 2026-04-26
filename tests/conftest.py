@@ -156,7 +156,8 @@ def load_mnist_model():
 @pytest.fixture
 def load_mnist_model_with_custom_param():
     """Load a pre-trained LeNet classification model with a custom parameter
-    (architecture at quantus/helpers/models)."""
+    (architecture at quantus/helpers/models).
+    """
     model = LeNet()
     model.load_state_dict(
         torch.load(
@@ -747,6 +748,44 @@ def load_nano_gpt_model():
     model.eval()
     model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
     return model
+
+
+@pytest.fixture
+def load_hf_gpt2_trex_finetuned():
+    """Load HF GPT-2 small T-REx-finetuned with Conv1D → Linear swap."""
+    from quanda.benchmarks.resources.modules import HFGPT2
+
+    model = HFGPT2.from_pretrained(
+        "quanda-bench-test/gpt2-small-trex-openwebtext-ft-hf"
+    )
+    replace_conv1d_modules(model)
+    model.eval()
+    model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+    return model
+
+
+@pytest.fixture
+def load_fact_tracing_dataset_gpt2_small():
+    """Build a small filtered prompt/evidence dataset for the HF GPT-2 test.
+
+    Uses the ``trex-subset-benchmark`` dataset (per ``INFO.md``: only
+    prompts that the fine-tuned ``gpt2-small-trex-openwebtext-ft`` model
+    answered correctly), with a small ``num_prompts`` to keep the test
+    tractable.
+    """
+    cfg = {
+        "dataset_str": "quanda-bench-test/trex-subset-benchmark",
+        "dataset_split": "train",
+        "tokenizer": {"backend": "tiktoken", "encoding": "gpt2"},
+        "num_prompts": 5,
+        "max_evidence_per_prompt": 2,
+        "max_length": 64,
+        "seed": 42,
+    }
+    prompt_ds, evidence_ds, entailment_labels, _ = (
+        FactTracingConfigParser.parse_fact_tracing_cfg(cfg)
+    )
+    return prompt_ds, evidence_ds, entailment_labels
 
 
 @pytest.fixture
@@ -1358,7 +1397,6 @@ def causal_lm_test_entailment_labels():
 @pytest.fixture
 def load_fact_tracing_dataset_nanogpt():
     """Build prompt/evidence/entailment via the fact-tracing parser (tiktoken)."""
-
     cfg = {
         "dataset_str": "quanda-bench-test/trex-subset-benchmark",
         "dataset_split": "train",
@@ -1377,7 +1415,6 @@ def load_fact_tracing_dataset_nanogpt():
 @pytest.fixture
 def load_fact_tracing_dataset():
     """Build prompt/evidence/entailment via the fact-tracing parser (HF GPT-2)."""
-
     cfg = {
         "dataset_str": "quanda-bench-test/trex-subset-benchmark",
         "dataset_split": "train",

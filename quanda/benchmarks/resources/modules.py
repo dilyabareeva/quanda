@@ -11,6 +11,8 @@ from huggingface_hub import PyTorchModelHubMixin
 from transformers import (  # type: ignore
     AutoConfig,
     AutoModel,
+    GPT2Config,
+    GPT2LMHeadModel,
     PretrainedConfig,
     PreTrainedModel,
 )
@@ -749,9 +751,19 @@ class NanoGPT(PreTrainedModel):
         )
 
 
+class HFGPT2(GPT2LMHeadModel):
+
+    def __init__(self, config=None, **kwargs):
+        """Construct from a config or from ``GPT2Config`` kwargs."""
+        if config is None:
+            config = GPT2Config(**kwargs) if kwargs else GPT2Config()
+        super().__init__(config)
+
+
 pl_modules = {
     "MnistTorch": LeNet,
     "BertClassifier": BertClassifier,
     "ResNet9": ResNet9,
     "NanoGPT": NanoGPT,
+    "HFGPT2": HFGPT2,
 }

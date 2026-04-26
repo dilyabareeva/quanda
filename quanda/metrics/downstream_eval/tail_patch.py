@@ -153,7 +153,11 @@ class TailPatchMetric(Metric):
                 batch[key] = val
 
         allowed_keys = {"input_ids", "attention_mask", "labels"}
-        clean_batch = {k: v for k, v in batch.items() if k in allowed_keys}
+        clean_batch = {
+            k: (v.unsqueeze(0) if v.dim() == 1 else v)
+            for k, v in batch.items()
+            if k in allowed_keys
+        }
         outputs = model(**clean_batch)
         loss = outputs.loss
         loss.backward()
