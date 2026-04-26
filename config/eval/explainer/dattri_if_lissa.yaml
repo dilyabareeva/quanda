@@ -7,8 +7,8 @@ kwargs:
   task: causal_lm
   hf_input_keys: [input_ids, attention_mask]
   lissa_batch_size: 1
-  num_repeat: 1
-  recursion_depth: 100
+  num_repeat: 10
+  recursion_depth: 5000
   damping: 0.01
   scaling: 50.0
   batch_size: 1

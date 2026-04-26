@@ -10,6 +10,6 @@ kwargs:
   task: causal_lm
   hf_input_keys: [input_ids, attention_mask]
   projector_kwargs:
-    proj_dim: 2048
+    proj_dim: 4096
   regularization: 1.0e-05
   batch_size: 1

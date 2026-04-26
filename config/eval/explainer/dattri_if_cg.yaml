@@ -6,7 +6,7 @@ kwargs:
     path: quanda.explainers.wrappers.dattri_losses.causal_lm_batched_loss
   task: causal_lm
   hf_input_keys: [input_ids, attention_mask]
-  max_iter: 10
+  max_iter: 100
   tol: 1.0e-07
   regularization: 0.01
   batch_size: 1

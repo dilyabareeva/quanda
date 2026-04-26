@@ -19,8 +19,9 @@ fact_tracing:
   num_prompts: 20
   max_evidence_per_prompt: 5
   max_length: 64
-  seed: 42
+  seed: 1
 id: gpt2_trex_openwebtext_ft_RecallAtK
+explanations_group: gpt2_trex_openwebtext_ft
 bench: RecallAtK
 bench_save_dir: bench_out
 repo_id: quanda-bench-test
@@ -31,4 +32,4 @@ batch_size: 1
 k: 3
 ckpt: quanda-bench-test/gpt2-small-trex-openwebtext-ft-hf
 num_checkpoints: 1
-meta_id: quanda-bench-test/gpt2_trex_openwebtext_ft_RecallAtK_metadata
+meta_id: null

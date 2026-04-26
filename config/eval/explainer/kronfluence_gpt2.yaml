@@ -1,0 +1,67 @@
+name: kronfluence_gpt2
+cls: quanda.explainers.wrappers.Kronfluence
+kwargs:
+  task_module:
+    _target_: quanda.explainers.wrappers.kronfluence_tasks.CausalLMTask
+    tracked_modules:
+      - transformer.h.0.attn.c_attn
+      - transformer.h.0.attn.c_proj
+      - transformer.h.0.mlp.c_fc
+      - transformer.h.0.mlp.c_proj
+      - transformer.h.1.attn.c_attn
+      - transformer.h.1.attn.c_proj
+      - transformer.h.1.mlp.c_fc
+      - transformer.h.1.mlp.c_proj
+      - transformer.h.2.attn.c_attn
+      - transformer.h.2.attn.c_proj
+      - transformer.h.2.mlp.c_fc
+      - transformer.h.2.mlp.c_proj
+      - transformer.h.3.attn.c_attn
+      - transformer.h.3.attn.c_proj
+      - transformer.h.3.mlp.c_fc
+      - transformer.h.3.mlp.c_proj
+      - transformer.h.4.attn.c_attn
+      - transformer.h.4.attn.c_proj
+      - transformer.h.4.mlp.c_fc
+      - transformer.h.4.mlp.c_proj
+      - transformer.h.5.attn.c_attn
+      - transformer.h.5.attn.c_proj
+      - transformer.h.5.mlp.c_fc
+      - transformer.h.5.mlp.c_proj
+      - transformer.h.6.attn.c_attn
+      - transformer.h.6.attn.c_proj
+      - transformer.h.6.mlp.c_fc
+      - transformer.h.6.mlp.c_proj
+      - transformer.h.7.attn.c_attn
+      - transformer.h.7.attn.c_proj
+      - transformer.h.7.mlp.c_fc
+      - transformer.h.7.mlp.c_proj
+      - transformer.h.8.attn.c_attn
+      - transformer.h.8.attn.c_proj
+      - transformer.h.8.mlp.c_fc
+      - transformer.h.8.mlp.c_proj
+      - transformer.h.9.attn.c_attn
+      - transformer.h.9.attn.c_proj
+      - transformer.h.9.mlp.c_fc
+      - transformer.h.9.mlp.c_proj
+      - transformer.h.10.attn.c_attn
+      - transformer.h.10.attn.c_proj
+      - transformer.h.10.mlp.c_fc
+      - transformer.h.10.mlp.c_proj
+      - transformer.h.11.attn.c_attn
+      - transformer.h.11.attn.c_proj
+      - transformer.h.11.mlp.c_fc
+      - transformer.h.11.mlp.c_proj
+  task: causal_lm
+  batch_size: 1
+  device: ${device}
+  factor_args:
+    _target_: kronfluence.arguments.FactorArguments
+    strategy: ekfac
+    use_empirical_fisher: false
+    covariance_max_examples: null
+    lambda_max_examples: null
+  score_args:
+    _target_: kronfluence.arguments.ScoreArguments
+    damping_factor: null
+    compute_per_token_scores: true
