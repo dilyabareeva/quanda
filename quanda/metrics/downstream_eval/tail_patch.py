@@ -118,16 +118,17 @@ class TailPatchMetric(Metric):
                 attention_mask=attention_mask,
                 labels=None,
             )
-            logits = outputs.logits  # [B, T, V]
-            log_probs = F.log_softmax(logits, dim=-1)
-            # clamp invalid indices before gather
-            target_clamped = target_ids.clone()
+
+            shift_logits = outputs.logits[..., :-1, :]
+            shift_targets = target_ids[..., 1:]
+            shift_attn = attention_mask[..., 1:]
+            log_probs = F.log_softmax(shift_logits, dim=-1)
+            target_clamped = shift_targets.clone()
             target_clamped[target_clamped < 0] = 0
             token_logps = log_probs.gather(
                 2, target_clamped.unsqueeze(-1)
-            ).squeeze(-1)  # [B, T]
-            # Mask out non-target or padding tokens
-            mask = (target_ids != -100) & attention_mask.bool()
+            ).squeeze(-1)
+            mask = (shift_targets != -100) & shift_attn.bool()
             token_logps = token_logps * mask
             seq_logp = token_logps.sum(dim=1)  # [B]
         return seq_logp.double()
