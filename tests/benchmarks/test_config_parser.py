@@ -8,7 +8,10 @@ import pytest
 import torch
 
 from quanda.benchmarks import config_parser as cp_module
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import (
+    BenchConfigParser,
+    FactTracingConfigParser,
+)
 
 
 @pytest.mark.utils
@@ -261,3 +264,162 @@ def test_parse_model_cfg_rejects_non_module_instance(monkeypatch, tmp_path):
             offline=True,
             device="cpu",
         )
+
+
+class _FakeTokenizer:
+    """Minimal tokenize() callable for FactTracingConfigParser tests.
+
+    Returns a token id per character (so ``len(input_ids)`` is
+    deterministic from the input length) plus the standard
+    padding/truncation behaviour.
+    """
+
+    pad_token_id = 0
+
+    def __call__(self, text, padding=False, truncation=False, max_length=None):
+        ids = [ord(c) % 100 + 1 for c in text]
+        if truncation and max_length is not None:
+            ids = ids[:max_length]
+        if padding == "max_length" and max_length is not None:
+            pad = max_length - len(ids)
+            return {
+                "input_ids": ids + [self.pad_token_id] * pad,
+                "attention_mask": [1] * len(ids) + [0] * pad,
+            }
+        return {"input_ids": list(ids), "attention_mask": [1] * len(ids)}
+
+
+def _fake_hf_dataset(rows):
+    return hf_datasets.Dataset.from_list(rows)
+
+
+@pytest.mark.utils
+def test_parse_fact_tracing_cfg_basic(monkeypatch):
+    """Builds prompt/evidence datasets, entailment matrix, and pad id."""
+    rows = [
+        {
+            "prompt": "Q1?",
+            "answer": ["A1"],
+            "evidence_sentences": ["E1a", "E1b", "E1c"],
+        },
+        {
+            "prompt": "Q2?",
+            "answer": ["A2"],
+            "evidence_sentences": ["E2a", "E2b"],
+        },
+    ]
+    monkeypatch.setattr(
+        cp_module, "load_dataset", lambda *a, **kw: _fake_hf_dataset(rows)
+    )
+    fake_tok = _FakeTokenizer()
+    monkeypatch.setattr(
+        cp_module, "resolve_tokenizer", lambda cfg: (fake_tok, 0)
+    )
+
+    cfg = {
+        "dataset_str": "fake/ds",
+        "tokenizer": {"backend": "hf", "name": "irrelevant"},
+        "num_prompts": 5,  # >= len(rows) → no sampling
+        "max_length": 16,
+        "max_evidence_per_prompt": 2,
+    }
+
+    prompt_ds, evidence_ds, labels, pad_id = (
+        FactTracingConfigParser.parse_fact_tracing_cfg(cfg)
+    )
+
+    assert pad_id == 0
+    assert len(prompt_ds) == 2
+    assert prompt_ds["prompt"] == ["Q1?", "Q2?"]
+    assert prompt_ds["answer"] == ["A1", "A2"]
+    # max_evidence_per_prompt clips each prompt's evidence list.
+    assert len(evidence_ds) == 4
+    assert evidence_ds["sentence"] == ["E1a", "E1b", "E2a", "E2b"]
+
+    # Padded sequences land at max_length; tensors via set_format("torch").
+    assert prompt_ds[0]["input_ids"].shape[0] == 16
+    assert evidence_ds[0]["input_ids"].shape[0] == 16
+
+    # Prompt tokens (and pad positions) must be masked with -100 in labels.
+    prompt_len = len(
+        fake_tok("Q1?", truncation=True, max_length=16)["input_ids"]
+    )
+    label_row = prompt_ds[0]["labels"].tolist()
+    assert all(x == -100 for x in label_row[:prompt_len])
+    # Pad positions must also be -100.
+    assert label_row[-1] == -100
+
+    # Evidence labels: pad positions are -100, real tokens are the input id.
+    ev_input = evidence_ds[0]["input_ids"].tolist()
+    ev_label = evidence_ds[0]["labels"].tolist()
+    real_len = sum(1 for v in evidence_ds[0]["attention_mask"].tolist() if v)
+    assert ev_label[:real_len] == ev_input[:real_len]
+    assert all(x == -100 for x in ev_label[real_len:])
+
+    # Entailment matrix wires evidence rows back to their prompt rows.
+    expected = torch.tensor([[1, 1, 0, 0], [0, 0, 1, 1]], dtype=torch.long)
+    assert torch.equal(labels, expected)
+
+
+@pytest.mark.utils
+def test_parse_fact_tracing_cfg_samples_when_num_prompts_lt_len(monkeypatch):
+    """num_prompts < len(ds) triggers the random.sample branch."""
+    rows = [
+        {
+            "prompt": f"Q{i}?",
+            "answer": [f"A{i}"],
+            "evidence_sentences": [f"E{i}"],
+        }
+        for i in range(6)
+    ]
+    monkeypatch.setattr(
+        cp_module, "load_dataset", lambda *a, **kw: _fake_hf_dataset(rows)
+    )
+    monkeypatch.setattr(
+        cp_module, "resolve_tokenizer", lambda cfg: (_FakeTokenizer(), 0)
+    )
+    cfg = {
+        "dataset_str": "fake/ds",
+        "tokenizer": {"backend": "hf", "name": "x"},
+        "num_prompts": 3,
+        "seed": 42,
+        "max_length": 8,
+        "max_evidence_per_prompt": 5,
+    }
+
+    prompt_ds, evidence_ds, labels, _ = (
+        FactTracingConfigParser.parse_fact_tracing_cfg(cfg)
+    )
+
+    assert len(prompt_ds) == 3
+    assert len(evidence_ds) == 3
+    # Each evidence belongs to exactly one prompt (one-to-one for these rows).
+    assert torch.equal(labels.sum(dim=0), torch.ones(3, dtype=torch.long))
+    # Sampling is seed-stable: rerun yields the same prompts.
+    prompts2, _, _, _ = FactTracingConfigParser.parse_fact_tracing_cfg(cfg)
+    assert prompt_ds["prompt"] == prompts2["prompt"]
+
+
+@pytest.mark.utils
+def test_build_entailment_matrix_basic():
+    labels = FactTracingConfigParser._build_entailment_matrix(
+        num_queries=3, num_evidence=5, evidence_map=[0, 0, 1, 2, 2]
+    )
+    expected = torch.tensor(
+        [
+            [1, 1, 0, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 0, 1, 1],
+        ],
+        dtype=torch.long,
+    )
+    assert torch.equal(labels, expected)
+
+
+@pytest.mark.utils
+def test_build_entailment_matrix_empty():
+    labels = FactTracingConfigParser._build_entailment_matrix(
+        num_queries=2, num_evidence=0, evidence_map=[]
+    )
+    assert labels.shape == (2, 0)
+    assert labels.dtype == torch.long

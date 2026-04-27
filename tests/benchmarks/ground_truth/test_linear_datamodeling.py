@@ -775,3 +775,259 @@ def test_evaluate_dataset_skips_missing_subset_logits_file(mocker, tmp_path):
         subset_logits_dir=str(tmp_path),
     )
     assert "subset_logits" not in metric.update.call_args.kwargs
+
+
+def _patch_lds_cache_dependencies(mocker, batches, fake_logits):
+    """Mock the I/O collaborators around cache_subset_logits_per_idx."""
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling."
+        "_subsample_dataset",
+        side_effect=lambda ds, **kw: ds,
+    )
+    handler = mocker.MagicMock()
+    handler.create_dataloader.return_value = list(range(len(batches)))
+    handler.process_batch.side_effect = [(b, None) for b in batches]
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling."
+        "get_dataset_handler",
+        return_value=handler,
+    )
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling.chunked_logits",
+        side_effect=fake_logits,
+    )
+
+
+@pytest.mark.benchmarks
+def test_lds_cache_subset_logits_per_idx_writes_only_one_key(mocker, tmp_path):
+    """``cache_subset_logits_per_idx`` writes per-batch files keyed only by
+    the supplied subset index (not all ``m`` subsets)."""
+    fake = _make_fake_lds_obj(mocker, m=3)
+    fake.eval_dataset = mocker.MagicMock()
+    mocker.patch.object(LinearDatamodeling, "from_config", return_value=fake)
+    mocker.patch.object(
+        LinearDatamodeling,
+        "_load_subset_model",
+        side_effect=lambda idx, device=None: f"model_{idx}",
+    )
+    batches = [torch.tensor([[0.0]]), torch.tensor([[1.0]])]
+    _patch_lds_cache_dependencies(
+        mocker,
+        batches,
+        fake_logits=lambda model, td, ibs: torch.tensor([[float(td[0, 0])]]),
+    )
+
+    save_dir = LinearDatamodeling.cache_subset_logits_per_idx(
+        config={
+            "ckpt": "repo/ckpt",
+            "id": "bid",
+            "bench_save_dir": str(tmp_path),
+        },
+        idx=2,
+        batch_size=4,
+        device="cpu",
+    )
+
+    files = sorted(f for f in os.listdir(save_dir) if f.endswith(".pt"))
+    assert files == ["0.pt", "1.pt"]
+    for i in range(2):
+        d = torch.load(os.path.join(save_dir, f"{i}.pt"))
+        assert set(d.keys()) == {2}
+        assert torch.equal(d[2], torch.tensor([[float(i)]]))
+
+
+@pytest.mark.benchmarks
+def test_lds_cache_subset_logits_per_idx_accumulates_across_calls(
+    mocker, tmp_path
+):
+    """Repeated calls with different ``idx`` merge into the same file
+    (the file lock + load/merge/save protocol that lets parallel
+    workers share a directory)."""
+    fake = _make_fake_lds_obj(mocker, m=3)
+    fake.eval_dataset = mocker.MagicMock()
+    mocker.patch.object(LinearDatamodeling, "from_config", return_value=fake)
+    mocker.patch.object(
+        LinearDatamodeling,
+        "_load_subset_model",
+        side_effect=lambda idx, device=None: f"model_{idx}",
+    )
+    config = {
+        "ckpt": "repo/ckpt",
+        "id": "bid",
+        "bench_save_dir": str(tmp_path),
+    }
+
+    for idx in (0, 2):
+        _patch_lds_cache_dependencies(
+            mocker,
+            batches=[torch.tensor([[float(idx)]])],
+            fake_logits=lambda m, td, ibs, _idx=idx: torch.tensor(
+                [[float(_idx) * 10]]
+            ),
+        )
+        save_dir = LinearDatamodeling.cache_subset_logits_per_idx(
+            config=config, idx=idx, batch_size=4, device="cpu"
+        )
+
+    merged = torch.load(os.path.join(save_dir, "0.pt"))
+    assert set(merged.keys()) == {0, 2}
+    assert torch.equal(merged[0], torch.tensor([[0.0]]))
+    assert torch.equal(merged[2], torch.tensor([[20.0]]))
+
+
+@pytest.mark.benchmarks
+def test_lds_cache_subset_logits_per_idx_uses_explicit_cache_dir(
+    mocker, tmp_path
+):
+    """An explicit ``cache_dir`` overrides ``subset_logits_cache_dir``."""
+    fake = _make_fake_lds_obj(mocker, m=2)
+    fake.eval_dataset = mocker.MagicMock()
+    mocker.patch.object(LinearDatamodeling, "from_config", return_value=fake)
+    mocker.patch.object(
+        LinearDatamodeling, "_load_subset_model", return_value="m"
+    )
+    _patch_lds_cache_dependencies(
+        mocker,
+        batches=[torch.tensor([[0.0]])],
+        fake_logits=lambda *a, **kw: torch.tensor([[1.0]]),
+    )
+    spy = mocker.patch.object(LinearDatamodeling, "subset_logits_cache_dir")
+
+    explicit = tmp_path / "custom_dir"
+    save_dir = LinearDatamodeling.cache_subset_logits_per_idx(
+        config={"ckpt": "repo/ckpt", "id": "bid"},
+        idx=0,
+        cache_dir=str(explicit),
+        device="cpu",
+    )
+    assert save_dir == str(explicit)
+    spy.assert_not_called()
+    assert os.path.exists(os.path.join(str(explicit), "0.pt"))
+
+
+class _LinearLogitsModel(torch.nn.Module):
+    """Tiny linear model — chunking the input tensor must be a no-op
+    relative to a single forward."""
+
+    def __init__(self, in_features=4, out_features=3):
+        super().__init__()
+        torch.manual_seed(0)
+        self.fc = torch.nn.Linear(in_features, out_features)
+
+    def forward(self, x):
+        return self.fc(x)
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize("inference_batch_size", [1, 2, 5, None])
+def test_lds_cache_subset_logits_per_idx_chunked_inference(
+    mocker, tmp_path, inference_batch_size
+):
+    """``inference_batch_size`` only changes how the forward is sliced —
+    the cached logits must be identical to a full-batch forward.
+
+    Exercises the real ``chunked_logits`` (no mock) so the chunked
+    iterator and its concat path are covered end-to-end through the
+    benchmark file.
+    """
+    model = _LinearLogitsModel().eval()
+    fake = _make_fake_lds_obj(mocker, m=1)
+    fake.eval_dataset = mocker.MagicMock()
+    mocker.patch.object(LinearDatamodeling, "from_config", return_value=fake)
+    mocker.patch.object(
+        LinearDatamodeling, "_load_subset_model", return_value=model
+    )
+
+    batch = torch.randn(5, 4)
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling."
+        "_subsample_dataset",
+        side_effect=lambda ds, **kw: ds,
+    )
+    handler = mocker.MagicMock()
+    handler.create_dataloader.return_value = ["b0"]
+    handler.process_batch.side_effect = [(batch, None)]
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling."
+        "get_dataset_handler",
+        return_value=handler,
+    )
+
+    save_dir = LinearDatamodeling.cache_subset_logits_per_idx(
+        config={
+            "ckpt": "repo/ckpt",
+            "id": "bid",
+            "bench_save_dir": str(tmp_path / str(inference_batch_size)),
+        },
+        idx=0,
+        batch_size=5,
+        device="cpu",
+        inference_batch_size=inference_batch_size,
+    )
+
+    cached = torch.load(os.path.join(save_dir, "0.pt"))[0]
+    with torch.no_grad():
+        expected = model(batch)
+    assert cached.shape == expected.shape
+    assert torch.allclose(cached, expected, atol=1e-6)
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize("inference_batch_size", [None, 2])
+def test_lds_cache_subset_logits_per_idx_chunked_dict_inputs(
+    mocker, tmp_path, inference_batch_size
+):
+    """Same equivalence check, but with dict-shaped ``test_data`` so the
+    dict branch of ``chunked_logits`` is exercised."""
+
+    class _DictModel(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            torch.manual_seed(1)
+            self.fc = torch.nn.Linear(3, 2)
+
+        def forward(self, **kwargs):
+            return self.fc(kwargs["input_ids"])
+
+    model = _DictModel().eval()
+    fake = _make_fake_lds_obj(mocker, m=1)
+    fake.eval_dataset = mocker.MagicMock()
+    mocker.patch.object(LinearDatamodeling, "from_config", return_value=fake)
+    mocker.patch.object(
+        LinearDatamodeling, "_load_subset_model", return_value=model
+    )
+
+    batch = {
+        "input_ids": torch.randn(5, 3),
+        "attention_mask": torch.ones(5, 3),
+    }
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling."
+        "_subsample_dataset",
+        side_effect=lambda ds, **kw: ds,
+    )
+    handler = mocker.MagicMock()
+    handler.create_dataloader.return_value = ["b0"]
+    handler.process_batch.side_effect = [(batch, None)]
+    mocker.patch(
+        "quanda.benchmarks.ground_truth.linear_datamodeling."
+        "get_dataset_handler",
+        return_value=handler,
+    )
+
+    save_dir = LinearDatamodeling.cache_subset_logits_per_idx(
+        config={
+            "ckpt": "repo/ckpt",
+            "id": "bid",
+            "bench_save_dir": str(tmp_path / f"d_{inference_batch_size}"),
+        },
+        idx=0,
+        batch_size=5,
+        device="cpu",
+        inference_batch_size=inference_batch_size,
+    )
+
+    cached = torch.load(os.path.join(save_dir, "0.pt"))[0]
+    with torch.no_grad():
+        expected = model(**batch)
+    assert torch.allclose(cached, expected, atol=1e-6)
