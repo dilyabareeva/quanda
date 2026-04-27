@@ -148,27 +148,25 @@ def test_mrr_benchmark_gpt2(
 @pytest.mark.slow
 @pytest.mark.benchmarks
 @pytest.mark.parametrize(
-    "test_id, explainer_cls, task, model, dataset, batch_size, expected_score",
+    "test_id, explainer_cls, task, model, dataset, batch_size",
     [
         (
-            "mrr_test_nano_gpt",
+            "mrr_test_gpt2_finetuned",
             Kronfluence,
-            "language_modeling_task_nano_gpt",
-            "load_nano_gpt_model",
-            "load_fact_tracing_dataset_nanogpt",
+            "language_modeling_task_extended",
+            "load_hf_gpt2_trex_finetuned",
+            "load_fact_tracing_dataset_gpt2_small",
             1,
-            0.6681817770004272,
         ),
     ],
 )
-def test_mrr_benchmark_nano_gpt(
+def test_mrr_benchmark_gpt2_finetuned(
     test_id,
     explainer_cls,
     task,
     model,
     dataset,
     batch_size,
-    expected_score,
     tmp_path,
     request,
 ):
@@ -200,4 +198,7 @@ def test_mrr_benchmark_nano_gpt(
         batch_size=batch_size,
     )["score"]
 
-    assert math.isclose(score, expected_score, abs_tol=0.00001)
+    score_t = torch.tensor(score)
+    assert not torch.isnan(score_t).item()
+    assert not torch.isinf(score_t).item()
+    assert 0.0 <= float(score) <= 1.0

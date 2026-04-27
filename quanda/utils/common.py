@@ -10,7 +10,17 @@ from abc import ABC
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import reduce
-from typing import Any, Callable, Dict, List, Mapping, Optional, Sized, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sized,
+    Union,
+    cast,
+)
 
 import torch
 import yaml
@@ -625,11 +635,13 @@ def _replace_conv1d_with_linear(model: nn.Module) -> None:
         if len(list(module.children())) > 0:
             _replace_conv1d_with_linear(module)
         if module.__class__.__name__ == "Conv1D":
+            weight = cast(torch.Tensor, module.weight)
+            bias = cast(torch.Tensor, module.bias)
             new_module = nn.Linear(
-                in_features=module.weight.shape[0],
-                out_features=module.weight.shape[1],
+                in_features=weight.shape[0],
+                out_features=weight.shape[1],
             )
-            new_module.weight.data.copy_(module.weight.data.t())
-            new_module.bias.data.copy_(module.bias.data)
-            new_module.to(module.weight.device)
+            new_module.weight.data.copy_(weight.data.t())
+            new_module.bias.data.copy_(bias.data)
+            new_module.to(weight.device)
             setattr(model, name, new_module)

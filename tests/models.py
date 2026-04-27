@@ -8,20 +8,6 @@ from transformers.modeling_outputs import (
     SequenceClassifierOutput,
 )
 
-from quanda.benchmarks.resources.modules import (
-    GPT,
-    GPTConfig,
-    NanoGPT,
-    NanoGPTConfig,
-)
-
-__all__ = [
-    "GPT",
-    "GPTConfig",
-    "NanoGPT",
-    "NanoGPTConfig",
-]
-
 
 class LeNet(torch.nn.Module):
     """A torch implementation of LeNet architecture.

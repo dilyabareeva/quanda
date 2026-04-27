@@ -13,7 +13,6 @@ import torch.nn.functional as F
 import torchvision
 import yaml
 from kronfluence.task import Task  # type: ignore
-from safetensors.torch import load_model
 from torch.utils.data import Dataset, TensorDataset
 from torchvision.models import resnet18, vit_b_16
 from transformers import (
@@ -35,8 +34,6 @@ from quanda.utils.training import Trainer
 from quanda.utils.training.base_pl_module import BasicLightningModule
 from tests.models import (
     LeNet,
-    NanoGPT,
-    NanoGPTConfig,
     SequenceClassificationModel,
     SimpleCausalLM,
     SimpleTextClassifier,
@@ -622,72 +619,6 @@ def language_modeling_task_extended():
     return LanguageModelingTaskExtended()
 
 
-class LanguageModelingTaskNanoGPT(Task):
-    def compute_train_loss(
-        self,
-        batch: Dict[str, torch.Tensor],
-        model: nn.Module,
-        sample: bool = False,
-    ) -> torch.Tensor:
-        logits = model(
-            input_ids=batch["input_ids"],
-            attention_mask=batch["attention_mask"],
-        ).logits.float()
-        logits = logits[..., :-1, :].contiguous()
-        logits = logits.view(-1, logits.size(-1))
-        labels = batch["labels"][..., 1:].contiguous()
-        if not sample:
-            summed_loss = F.cross_entropy(
-                logits, labels.view(-1), reduction="sum", ignore_index=-100
-            )
-        else:
-            with torch.no_grad():
-                probs = torch.nn.functional.softmax(logits.detach(), dim=-1)
-                sampled_labels = torch.multinomial(
-                    probs,
-                    num_samples=1,
-                ).flatten()
-                masks = labels.view(-1) == -100
-                sampled_labels[masks] = -100
-            summed_loss = F.cross_entropy(
-                logits, sampled_labels, ignore_index=-100, reduction="sum"
-            )
-        return summed_loss
-
-    def compute_measurement(
-        self,
-        batch: Dict[str, torch.Tensor],
-        model: nn.Module,
-    ) -> torch.Tensor:
-        logits = model(
-            input_ids=batch["input_ids"],
-            attention_mask=batch["attention_mask"],
-        ).logits.float()
-        shift_labels = batch["labels"][..., 1:].contiguous().view(-1)
-        logits = logits[..., :-1, :].contiguous().view(-1, logits.size(-1))
-        return F.cross_entropy(
-            logits, shift_labels, ignore_index=-100, reduction="sum"
-        )
-
-    def get_influence_tracked_modules(self) -> List[str]:
-        return (
-            [f"transformer.transformer.h.{i}.attn.c_attn" for i in range(12)]
-            + [f"transformer.transformer.h.{i}.attn.c_proj" for i in range(12)]
-            + [f"transformer.transformer.h.{i}.mlp.c_fc" for i in range(12)]
-            + [f"transformer.transformer.h.{i}.mlp.c_proj" for i in range(12)]
-        )
-
-    def get_attention_mask(
-        self, batch: Dict[str, torch.Tensor]
-    ) -> torch.Tensor:
-        return batch["attention_mask"]
-
-
-@pytest.fixture
-def language_modeling_task_nano_gpt():
-    return LanguageModelingTaskNanoGPT()
-
-
 class DummyLanguageModelingTask(LanguageModelingTask):
     def get_influence_tracked_modules(self) -> List[str]:
         total_modules = []
@@ -722,32 +653,6 @@ def replace_conv1d_modules(model: nn.Module) -> None:
             new_module.weight.data.copy_(module.weight.data.t())
             new_module.bias.data.copy_(module.bias.data)
             setattr(model, name, new_module)
-
-
-@pytest.fixture
-def load_nano_gpt_model_local():
-    model_dir = "gpt2-small-trex-openwebtext-ft"
-
-    with open(os.path.join(model_dir, "config.json")) as f:
-        config = NanoGPTConfig(**json.load(f))
-
-    model = NanoGPT(config)
-    load_model(model, os.path.join(model_dir, "model.safetensors"))
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.eval().to(device)
-
-    return model
-
-
-@pytest.fixture
-def load_nano_gpt_model():
-    model = NanoGPT.from_pretrained(
-        "quanda-bench-test/gpt2-small-trex-openwebtext-ft"
-    )
-    model.eval()
-    model.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-    return model
 
 
 @pytest.fixture
@@ -1392,24 +1297,6 @@ def causal_lm_test_entailment_labels():
     entailment_labels[2, 2] = True
 
     return entailment_labels
-
-
-@pytest.fixture
-def load_fact_tracing_dataset_nanogpt():
-    """Build prompt/evidence/entailment via the fact-tracing parser (tiktoken)."""
-    cfg = {
-        "dataset_str": "quanda-bench-test/trex-subset-benchmark",
-        "dataset_split": "train",
-        "tokenizer": {"backend": "tiktoken", "encoding": "gpt2"},
-        "num_prompts": 5,
-        "max_evidence_per_prompt": 5,
-        "max_length": 64,
-        "seed": 0,
-    }
-    prompt_ds, evidence_ds, entailment_labels, _ = (
-        FactTracingConfigParser.parse_fact_tracing_cfg(cfg)
-    )
-    return prompt_ds, evidence_ds, entailment_labels
 
 
 @pytest.fixture
