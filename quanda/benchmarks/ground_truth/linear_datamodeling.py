@@ -510,7 +510,7 @@ class LinearDatamodeling(Benchmark):
         max_eval_n: Optional[int] = 1000,
         eval_seed: int = 42,
     ) -> str:
-        """Default local directory for cached counterfactual subset logits."""
+        """Return default local cache dir for counterfactual subset logits."""
         repo = config.get("repo_id", "quanda-bench-test")
         group = config.get("explanations_group", config["id"])
         logits_id = (
