@@ -10,13 +10,15 @@ model:
       weight_decay: 0.0
     criterion: cross_entropy
     criterion_kwargs: {}
-    scheduler: constant
+    scheduler: linear
     scheduler_kwargs:
-      last_epoch: -1
+      start_factor: 1.0
+      end_factor: 0.0
     lr: 0.001
     max_epochs: 20
     seed: 42
     num_workers: 8
+    gradient_clip_val: 1.0
 train_dataset:
   dataset_str: SetFit/qnli
   dataset_split: train
@@ -28,7 +30,7 @@ train_dataset:
     - text2
     max_length: 128
     label_field: label
-  split_ref: qnli_train
+  split_ref: qnli_train_50k
   split_name: train
 eval_dataset:
   dataset_str: SetFit/qnli
@@ -52,13 +54,14 @@ val_dataset:
     - text2
     max_length: 128
     label_field: label
-  split_ref: qnli_train
+  split_ref: qnli_train_50k
   split_name: val
 logger:
   _target_: lightning.pytorch.loggers.wandb.WandbLogger
   save_dir: hydra_logs/wandb/
   project: quanda-bench
-id: 584a930-default_LDS
+id: e59b08c-bert_qnli_LDS
+explanations_group: e59b08c-bert_qnli_ClassDetection
 bench: LDS
 bench_save_dir: bench_out
 log_dir: hydra_logs
@@ -66,25 +69,33 @@ repo_id: quanda-bench-test
 cache_dir: tmp
 top_k: 5
 model_id: '0'
-correlation_fn: kendall
+correlation_fn: spearman
 offline: true
 seed: 42
 device: cuda:0
-use_predictions: true
-m: 4
+use_predictions: false
+batch_size: 64
+m: 100
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-cfg_file_name: 584a930-default_LDS.yaml
-cfg_output_dir: quanda/benchmarks/resources/configs
-ckpt: quanda-bench-test/584a930-default_LDS
+ckpt: quanda-bench-test/e59b08c-bert_qnli_ClassDetection
+subset_ckpt: quanda-bench-test/e59b08c-bert_qnli_ClassDetection
 num_checkpoints: 5
-meta_id: quanda-bench-test/584a930-default_LDS_metadata
+meta_id: quanda-bench-test/e59b08c-bert_qnli_LDS_metadata
 splits:
-  qnli_train:
-    filename: qnli_train_split.yaml
+  qnli_train_50k:
+    filename: qnli_train_50k_split.yaml
     ratios:
-      train: 0.9
+      train: 0.47736
       val: 0.1
       test: 0.0
     seed: 42
-batch_size: 64
+  qnli_train_mislabeling_50k:
+    filename: qnli_train_mislabeling_50k_split.yaml
+    ratios:
+      train: 0.47736
+      val: 0.1
+      test: 0.0
+    seed: 42
+cfg_file_name: e59b08c-bert_qnli_LDS.yaml
+cfg_output_dir: quanda/benchmarks/resources/configs

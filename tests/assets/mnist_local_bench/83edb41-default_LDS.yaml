@@ -40,6 +40,7 @@ logger:
 id: 83edb41-default_LDS
 bench: LDS
 adversarial_label: 0
+use_predictions: true
 bench_save_dir: tests/assets/mnist_local_bench
 log_dir: hydra_logs
 repo_id: quanda-bench-test

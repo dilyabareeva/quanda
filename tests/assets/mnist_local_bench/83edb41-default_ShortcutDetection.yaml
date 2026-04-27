@@ -69,6 +69,9 @@ logger:
 id: 83edb41-default_ShortcutDetection
 bench: ShortcutDetection
 adversarial_label: 0
+use_predictions: true
+filter_by_non_shortcut: false
+filter_by_shortcut_pred: false
 bench_save_dir: tests/assets/mnist_local_bench
 log_dir: hydra_logs
 repo_id: quanda-bench-test

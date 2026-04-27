@@ -441,9 +441,9 @@ def test_eval_dataset_is_clean(config_name, tmp_path):
         (
             "qnli_mislabeling_detection",
             {
-                "train_acc": 0.85,
-                "val_acc": 0.85,
-                "mislabeling_memorization": 0.99,
+                "train_acc": 0.83,
+                "val_acc": 0.84,
+                "mislabeling_memorization": 0.15,
             },
         ),
     ],

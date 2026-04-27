@@ -19,6 +19,7 @@ def main() -> None:
     parser.add_argument("--config-path", required=True)
     parser.add_argument("--idx", type=int, required=True)
     parser.add_argument("--device", default=None)
+    parser.add_argument("--bench-save-dir", default=None)
     parser.add_argument(
         "--push-only",
         action="store_true",
@@ -33,6 +34,8 @@ def main() -> None:
 
     if args.device:
         config["device"] = args.device
+    if args.bench_save_dir:
+        config["bench_save_dir"] = args.bench_save_dir
     if args.push_only:
         LinearDatamodeling.push_subset(config=config, idx=args.idx)
         return

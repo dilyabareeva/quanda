@@ -1,0 +1,27 @@
+defaults:
+  - explainer: similarity
+  - override hydra/launcher: joblib
+  - override hydra/sweeper: basic
+  - _self_
+
+hydra:
+  sweep:
+    dir: "${results_dir}/${bench}__${explainer.name}"
+    subdir: ${hydra.job.num}
+  launcher:
+    n_jobs: 1
+
+bench: gpt2_trex_openwebtext_ft_mrr
+root_dir: ${cluster_or_local:/data/cluster/users/bareeva/quanda_output_new2,/data2/bareeva/Projects/quanda/cluster_output_new2}
+cache_dir: ${root_dir}/eval_bench/gpt2_trex
+results_dir: ${root_dir}/eval_results/gpt2_trex
+device: cuda:0
+batch_size: 20
+inference_batch_size: null
+
+bench_eval:
+  gpt2_trex_openwebtext_ft_mrr: {max_eval_n: null, eval_seed: 42}
+  gpt2_trex_openwebtext_ft_recall_at_k: {max_eval_n: null, eval_seed: 42}
+  gpt2_trex_openwebtext_ft_tail_patch: {max_eval_n: null, eval_seed: 42}
+
+final_fc_layer: lm_head

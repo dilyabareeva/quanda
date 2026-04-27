@@ -1,0 +1,10 @@
+name: dattri_if_explicit
+cls: quanda.explainers.wrappers.DattriIFExplicit
+kwargs:
+  loss_func:
+    _target_: hydra.utils.get_method
+    path: quanda.explainers.wrappers.dattri_losses.causal_lm_batched_loss
+  task: causal_lm
+  hf_input_keys: [input_ids, attention_mask]
+  regularization: 0.01
+  batch_size: 1

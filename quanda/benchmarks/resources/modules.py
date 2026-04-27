@@ -2,7 +2,12 @@
 
 import torch
 from huggingface_hub import PyTorchModelHubMixin
-from transformers import AutoConfig, AutoModel  # type: ignore
+from transformers import (  # type: ignore
+    AutoConfig,
+    AutoModel,
+    GPT2Config,
+    GPT2LMHeadModel,
+)
 
 
 class _Mul(torch.nn.Module):
@@ -211,8 +216,40 @@ class BertClassifier(torch.nn.Module, PyTorchModelHubMixin):
         return self
 
 
+class HFGPT2(GPT2LMHeadModel):
+    """HuggingFace GPT-2 model."""
+
+    def __init__(self, config=None, **kwargs):
+        """Construct from a config or from ``GPT2Config`` kwargs."""
+        if config is None:
+            config = GPT2Config(**kwargs) if kwargs else GPT2Config()
+        # SDPA's mem-efficient backward breaks dattri's attributors
+        # (CG/LiSSA/DataInf/Arnoldi).
+        config._attn_implementation = "eager"
+        super().__init__(config)
+
+    def forward(self, input_ids=None, attention_mask=None, **kwargs):
+        """Forward pass, unpacking dict batches from Captum's AV.
+
+        Captum's ``AV.generate_dataset_activations`` hands the whole
+        batch through as a single positional arg; for HF datasets that
+        arg is a dict of input tensors, which is unpacked here.
+        """
+        if isinstance(input_ids, dict):
+            d = input_ids
+            input_ids = d["input_ids"]
+            attention_mask = d.get("attention_mask", attention_mask)
+            for k in ("labels",):
+                if k in d and k not in kwargs:
+                    kwargs[k] = d[k]
+        return super().forward(
+            input_ids=input_ids, attention_mask=attention_mask, **kwargs
+        )
+
+
 pl_modules = {
     "MnistTorch": LeNet,
     "BertClassifier": BertClassifier,
     "ResNet9": ResNet9,
+    "HFGPT2": HFGPT2,
 }

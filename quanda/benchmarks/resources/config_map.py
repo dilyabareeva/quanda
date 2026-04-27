@@ -72,17 +72,29 @@ config_map: dict = {
     ).joinpath("a701608-default_LDS.yaml"),
     "qnli_class_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("eaea7be-bert_qnli_ClassDetection.yaml"),
+    ).joinpath("e59b08c-bert_qnli_ClassDetection.yaml"),
     "qnli_top_k_cardinality": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("eaea7be-bert_qnli_ClassDetection.yaml"),
+    ).joinpath("e59b08c-bert_qnli_ClassDetection.yaml"),
     "qnli_model_randomization": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("eaea7be-bert_qnli_ClassDetection.yaml"),
+    ).joinpath("e59b08c-bert_qnli_ClassDetection.yaml"),
     "qnli_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("6d2fd20-bert_qnli_MislabelingDetection.yaml"),
+    ).joinpath("e59b08c-bert_qnli_MislabelingDetection.yaml"),
     "qnli_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("1ea9143-bert_qnli_LDS.yaml"),
+    ).joinpath("e59b08c-bert_qnli_LDS.yaml"),
+    "qnli_mixed_datasets": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("99a4f7b-bert_qnli_MixedDatasets.yaml"),
+    "gpt2_trex_openwebtext_ft_mrr": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("gpt2_trex_openwebtext_ft_MRR.yaml"),
+    "gpt2_trex_openwebtext_ft_recall_at_k": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("gpt2_trex_openwebtext_ft_RecallAtK.yaml"),
+    "gpt2_trex_openwebtext_ft_tail_patch": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("gpt2_trex_openwebtext_ft_TailPatch.yaml"),
 }

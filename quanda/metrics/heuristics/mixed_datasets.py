@@ -1,11 +1,16 @@
 """Mixed Datasets Metric."""
 
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import torch
 from torcheval.metrics.functional import binary_auprc
 
 from quanda.metrics.base import Metric
+from quanda.utils.common import (
+    chunked_logits,
+    get_targets,
+    move_ds_item_to_device,
+)
 
 
 class MixedDatasetsMetric(Metric):
@@ -45,6 +50,7 @@ class MixedDatasetsMetric(Metric):
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
         adversarial_label: Optional[int] = None,
+        inference_batch_size: Optional[int] = None,
     ):
         """Initialize the Mislabeling Detection metric.
 
@@ -73,6 +79,9 @@ class MixedDatasetsMetric(Metric):
             The label of the adversarial examples. If None, the label is
             inferred from the adversarial_indices.
             Defaults to None.
+        inference_batch_size : Optional[int], optional
+            If set, split the model forward used to filter by prediction into
+            sub-batches of this size. ``None`` disables chunking.
 
         Raises
         ------
@@ -99,15 +108,14 @@ class MixedDatasetsMetric(Metric):
             adversarial_label = induced_adv_label
         self.adversarial_label = adversarial_label
         self.filter_by_prediction = filter_by_prediction
+        self.inference_batch_size = inference_batch_size
 
     def _validate_adversarial_labels(self) -> int:
         """Validate the adversarial labels in the training dataset."""
-        adversarial_labels = set(
-            [
-                self.train_dataset[int(i)][1]
-                for i in torch.where(self.adversarial_indices == 1)[0]
-            ]
-        )
+        adversarial_labels = {
+            int(get_targets(self.train_dataset[int(i)]))
+            for i in torch.where(self.adversarial_indices == 1)[0]
+        }
         if len(adversarial_labels) != 1:
             raise ValueError("Adversarial labels must be unique.")
         return adversarial_labels.pop()
@@ -115,7 +123,9 @@ class MixedDatasetsMetric(Metric):
     def update(
         self,
         explanations: torch.Tensor,
-        test_data: Optional[torch.Tensor] = None,
+        test_data: Optional[
+            Union[torch.Tensor, Dict[str, torch.Tensor]]
+        ] = None,
         test_labels: Optional[torch.Tensor] = None,
         **kwargs,
     ):
@@ -145,13 +155,16 @@ class MixedDatasetsMetric(Metric):
             )
 
         if test_data is not None:
-            test_data = test_data.to(self.device)
+            test_data = move_ds_item_to_device(test_data, self.device)
         if test_labels is not None:
             test_labels = test_labels.to(self.device)
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
 
         if self.filter_by_prediction:
-            pred_cls = self.model(test_data).argmax(dim=1)
+            logits = chunked_logits(
+                self.model, test_data, self.inference_batch_size
+            )
+            pred_cls = logits.argmax(dim=1)
             select_idx *= pred_cls == self.adversarial_label
 
         explanations = explanations[select_idx]

@@ -1,0 +1,40 @@
+{
+  "methods": [
+    "random",
+    "kronfluence_gpt2",
+    "dattri_if_datainf",
+    "dattri_trak",
+    "similarity"
+  ],
+  "benches": [
+    "gpt2_trex_openwebtext_ft_mrr",
+    "gpt2_trex_openwebtext_ft_recall_at_k",
+    "gpt2_trex_openwebtext_ft_tail_patch"
+  ],
+  "method_labels": {
+    "kronfluence_gpt2": "Kronfluence",
+    "dattri_trak": "TRAK-1",
+    "dattri_if_datainf": "DataInf",
+    "similarity": "Similarity",
+    "random": "Random"
+  },
+  "bench_labels": {
+    "gpt2_trex_openwebtext_ft_mrr": "MRR",
+    "gpt2_trex_openwebtext_ft_recall_at_k": "Recall@K",
+    "gpt2_trex_openwebtext_ft_tail_patch": "Tail\nPatch"
+  },
+  "colors": {
+    "kronfluence_gpt2":   "#83BA59",
+    "dattri_arnoldi":     "#5BA88A",
+    "dattri_tracin":      "#EA4E38",
+    "dattri_graddot":     "#D94F8A",
+    "dattri_gradcos":     "#F2C14E",
+    "dattri_trak":        "#7D53BA",
+    "dattri_if_explicit": "#EB9C38",
+    "dattri_if_cg":       "#B26E1D",
+    "dattri_if_lissa":    "#C28F4A",
+    "dattri_if_datainf":  "#A04060",
+    "similarity":         "#3B8FB5",
+    "random":             "#90918B"
+  }
+}

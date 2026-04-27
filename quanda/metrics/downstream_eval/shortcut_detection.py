@@ -6,7 +6,7 @@ import torch
 from torcheval.metrics.functional import binary_auprc
 
 from quanda.metrics.base import Metric
-from quanda.utils.common import ds_len
+from quanda.utils.common import chunked_logits, ds_len
 
 
 class ShortcutDetectionMetric(Metric):
@@ -33,6 +33,7 @@ class ShortcutDetectionMetric(Metric):
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_non_shortcut: bool = True,
         filter_by_shortcut_pred: bool = True,
+        inference_batch_size: Optional[int] = None,
     ):
         """Initialize the Shortcut Detection metric.
 
@@ -62,6 +63,10 @@ class ShortcutDetectionMetric(Metric):
             Whether to filter the test samples to only calculate the metric on
             those samples, where the shortcut class
             is predicted, by default True.
+        inference_batch_size : Optional[int], optional
+            If set, split the model forward used to filter by shortcut
+            prediction into sub-batches of this size. ``None`` disables
+            chunking.
 
         Raises
         ------
@@ -92,6 +97,7 @@ class ShortcutDetectionMetric(Metric):
 
         self.filter_by_non_shortcut = filter_by_non_shortcut
         self.filter_by_shortcut_pred = filter_by_shortcut_pred
+        self.inference_batch_size = inference_batch_size
 
     def _validate_shortcut_labels(self):
         """Validate the adversarial labels in the training dataset."""
@@ -153,7 +159,10 @@ class ShortcutDetectionMetric(Metric):
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
 
         if self.filter_by_shortcut_pred:
-            pred_cls = self.model(test_data).argmax(dim=1)
+            logits = chunked_logits(
+                self.model, test_data, self.inference_batch_size
+            )
+            pred_cls = logits.argmax(dim=1)
             select_idx *= pred_cls == self.shortcut_cls
         if self.filter_by_non_shortcut:
             select_idx *= test_labels != self.shortcut_cls

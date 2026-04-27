@@ -186,6 +186,7 @@ class CaptumSimilarity(CaptumInfluence):
     accepted_tasks: List[TaskLiterals] = [
         "image_classification",
         "text_classification",
+        "causal_lm",
     ]
 
     def __init__(
@@ -272,6 +273,7 @@ class CaptumSimilarity(CaptumInfluence):
         self.model_id = model_id
         self.cache_dir = cache_dir
 
+        batch_size = min(batch_size, ds_len(train_dataset))
         self.modulo_batch_size = ds_len(train_dataset) % batch_size
         # divide train_dataset into two subsets to make up for a batching bug
         self.train_set_1 = torch.utils.data.Subset(
@@ -734,6 +736,7 @@ class CaptumArnoldi(CaptumInfluence):
             Self-influence scores for each datapoint in train_dataset.
 
         """
+        logger.info("Computing self-influence...")
         influence_scores = self.captum_explainer.self_influence(
             inputs_dataset=None
         )
@@ -963,6 +966,7 @@ class CaptumTracInCP(CaptumInfluence):
             Self-influence scores for each datapoint in train_dataset.
 
         """
+        logger.info("Computing self-influence...")
         influence_scores = self.captum_explainer.self_influence(
             inputs=None,
             outer_loop_by_checkpoints=self.outer_loop_by_checkpoints,
@@ -1100,6 +1104,7 @@ class CaptumTracInCPFast(CaptumInfluence):
             Self-influence scores for each datapoint in train_dataset.
 
         """
+        logger.info("Computing self-influence...")
         influence_scores = self.captum_explainer.self_influence(
             inputs=None,
             outer_loop_by_checkpoints=self.outer_loop_by_checkpoints,

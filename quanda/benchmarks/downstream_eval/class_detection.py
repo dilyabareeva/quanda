@@ -35,6 +35,8 @@ class ClassDetection(Benchmark):
     # TODO: remove USES PREDICTED LABELS https://arxiv.org/pdf/2006.04528
     name: str = "Class Detection"
     eval_args = ["test_data", "test_targets", "explanations"]
+    default_use_predictions: bool = True
+    default_filter_by_prediction: bool = False
 
     def __init__(
         self,
@@ -70,7 +72,9 @@ class ClassDetection(Benchmark):
     ) -> dict:
         """Extract class detection kwargs from config."""
         return {
-            "filter_by_prediction": config.get("filter_by_prediction", False),
+            "filter_by_prediction": config.get(
+                "filter_by_prediction", cls.default_filter_by_prediction
+            ),
         }
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):
@@ -91,6 +95,7 @@ class ClassDetection(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Evaluate the benchmark using a given explanation method.
 
@@ -117,6 +122,10 @@ class ClassDetection(Benchmark):
             Whether to use Hugging Face cached explanations, by default False.
             If use_cached_expl is also True, will prioritize local cache over
             HF cache.
+        inference_batch_size: Optional[int], optional
+            If set, split the per-batch model forward (prediction and any
+            forward inside the metric) into sub-batches of this size.
+            ``None`` keeps the full ``batch_size`` forward.
 
         Returns
         -------
@@ -145,6 +154,7 @@ class ClassDetection(Benchmark):
             train_dataset=self.train_dataset,
             checkpoints_load_func=self.checkpoints_load_func,
             filter_by_prediction=self.filter_by_prediction,
+            inference_batch_size=inference_batch_size,
         )
 
         return self._evaluate_dataset(
@@ -155,4 +165,5 @@ class ClassDetection(Benchmark):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
+            inference_batch_size=inference_batch_size,
         )

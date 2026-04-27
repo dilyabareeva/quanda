@@ -14,7 +14,8 @@
     "qnli_mislabeling_detection",
     "qnli_top_k_cardinality",
     "qnli_linear_datamodeling",
-    "qnli_model_randomization"
+    "qnli_model_randomization",
+    "qnli_mixed_datasets"
   ],
   "method_labels": {
     "kronfluence": "Kronfluence",
@@ -31,7 +32,8 @@
     "qnli_mislabeling_detection": "Mislabeling\nDetection",
     "qnli_top_k_cardinality": "Top-K\nCardinality",
     "qnli_linear_datamodeling": "Linear\nDatamodeling",
-    "qnli_model_randomization": "Model\nRandomization"
+    "qnli_model_randomization": "Model\nRandomization",
+    "qnli_mixed_datasets": "Mixed\nDatasets"
   },
   "colors": {
     "kronfluence":  "#83BA59",

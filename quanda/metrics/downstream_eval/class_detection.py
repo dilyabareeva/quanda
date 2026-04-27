@@ -6,7 +6,7 @@ import datasets  # type: ignore
 import torch
 
 from quanda.metrics.base import Metric
-from quanda.utils.common import get_targets
+from quanda.utils.common import chunked_logits, get_targets
 
 
 class ClassDetectionMetric(Metric):
@@ -39,6 +39,7 @@ class ClassDetectionMetric(Metric):
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[Callable[..., Any]] = None,
         filter_by_prediction: bool = False,
+        inference_batch_size: Optional[int] = None,
     ):
         """Initialize the Class Detection metric.
 
@@ -57,6 +58,9 @@ class ClassDetectionMetric(Metric):
             Whether to filter the test samples to only calculate the metric on
             those samples, where the correct class is predicted, by default
             False.
+        inference_batch_size : Optional[int], optional
+            If set, split the model forward used to filter by prediction into
+            sub-batches of this size. ``None`` disables chunking.
 
         """
         super().__init__(
@@ -68,6 +72,7 @@ class ClassDetectionMetric(Metric):
 
         self.scores: List[torch.Tensor] = []
         self.filter_by_prediction = filter_by_prediction
+        self.inference_batch_size = inference_batch_size
 
     def update(
         self,
@@ -108,7 +113,10 @@ class ClassDetectionMetric(Metric):
 
         select_idx = torch.tensor([True] * len(explanations)).to(self.device)
         if self.filter_by_prediction:
-            pred_cls = self.model(test_data).argmax(dim=1)
+            logits = chunked_logits(
+                self.model, test_data, self.inference_batch_size
+            )
+            pred_cls = logits.argmax(dim=1)
             select_idx *= pred_cls == test_targets
 
         explanations = explanations[select_idx]

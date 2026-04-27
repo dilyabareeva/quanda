@@ -167,6 +167,13 @@ class BasicLightningModule(L.LightningModule):
                     "total_steps",
                     self.trainer.estimated_stepping_batches,
                 )
+            if self.scheduler is torch.optim.lr_scheduler.LinearLR:
+                kwargs.setdefault(
+                    "total_iters",
+                    self.trainer.max_epochs
+                    if interval == "epoch"
+                    else self.trainer.estimated_stepping_batches,
+                )
             scheduler = self.scheduler(optimizer, **kwargs)
             if not isinstance(scheduler, torch.optim.lr_scheduler.LRScheduler):
                 raise ValueError(

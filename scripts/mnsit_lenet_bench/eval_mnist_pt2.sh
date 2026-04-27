@@ -15,7 +15,7 @@ methods=(
     similarity
     representer_points
     tracincpfast
-    #arnoldi
+    arnoldi
     trak
     random
 )

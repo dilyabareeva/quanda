@@ -1,0 +1,11 @@
+name: dattri_if_datainf
+cls: quanda.explainers.wrappers.DattriIFDataInf
+kwargs:
+  loss_func:
+    _target_: hydra.utils.get_method
+    path: quanda.explainers.wrappers.dattri_losses.causal_lm_batched_loss
+  task: causal_lm
+  hf_input_keys: [input_ids, attention_mask]
+  regularization: 0.01
+  fim_estimate_data_ratio: 1.0
+  batch_size: 1

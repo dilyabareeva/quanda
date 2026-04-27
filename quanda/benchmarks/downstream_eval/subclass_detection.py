@@ -37,12 +37,14 @@ class SubclassDetection(Benchmark):
         "test_data",
         "test_superclass_targets",
     ]
+    default_use_predictions: bool = True
+    default_filter_by_prediction: bool = True
 
     def __init__(
         self,
         *args,
         class_to_group: Optional[Dict[int, int]] = None,
-        filter_by_prediction: bool = False,
+        filter_by_prediction: bool = True,
         **kwargs,
     ):
         """Initialize the Subclass Detection benchmark.
@@ -56,7 +58,7 @@ class SubclassDetection(Benchmark):
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the correct superclass is predicted, by
-            default False.
+            default True.
         **kwargs
             Arguments passed to the base Benchmark class.
 
@@ -92,7 +94,9 @@ class SubclassDetection(Benchmark):
 
         return {
             "class_to_group": train_dataset.class_to_group,
-            "filter_by_prediction": config.get("filter_by_prediction", False),
+            "filter_by_prediction": config.get(
+                "filter_by_prediction", cls.default_filter_by_prediction
+            ),
         }
 
     def evaluate(
@@ -105,6 +109,7 @@ class SubclassDetection(Benchmark):
         cache_dir: Optional[str] = None,
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
+        inference_batch_size: Optional[int] = None,
         *args,
         **kwargs,
     ):
@@ -136,6 +141,10 @@ class SubclassDetection(Benchmark):
             Whether to use Hugging Face cached explanations, by default False.
             If use_cached_expl is also True, will prioritize local cache over
             HF cache.
+        inference_batch_size: Optional[int], optional
+            If set, split the per-batch model forward (prediction and any
+            forward inside the metric) into sub-batches of this size.
+            ``None`` keeps the full ``batch_size`` forward.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -185,6 +194,7 @@ class SubclassDetection(Benchmark):
             checkpoints_load_func=self.checkpoints_load_func,
             train_subclass_labels=train_subclass_labels,
             filter_by_prediction=self.filter_by_prediction,
+            inference_batch_size=inference_batch_size,
         )
 
         # using the pre class-to-group dataset for evaluation
@@ -196,6 +206,7 @@ class SubclassDetection(Benchmark):
             max_eval_n=max_eval_n,
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
+            inference_batch_size=inference_batch_size,
         )
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):

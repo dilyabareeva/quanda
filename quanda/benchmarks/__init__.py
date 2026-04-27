@@ -12,5 +12,8 @@ bench_dict = {
     "TopKCardinality": heuristics.TopKCardinality,
     "MixedDatasets": heuristics.MixedDatasets,
     "LDS": ground_truth.LinearDatamodeling,
+    "MRR": downstream_eval.MRR,
+    "RecallAtK": downstream_eval.RecallAtK,
+    "TailPatch": downstream_eval.TailPatch,
 }
 __all__ = ["Benchmark", "downstream_eval", "heuristics", "ground_truth"]

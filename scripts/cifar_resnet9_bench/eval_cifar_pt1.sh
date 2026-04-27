@@ -12,12 +12,13 @@ benchmarks=(
 )
 
 methods=(
-    #similarity
-    #representer_points
-    #tracincpfast
+    similarity
+    representer_points
+    tracincpfast
     arnoldi
-    #trak
-    #random
+    trak
+    random
 )
 
 source "$(dirname "$0")/../eval.sh" "$@"
+
