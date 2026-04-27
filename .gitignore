@@ -87,3 +87,4 @@ scripts/nanoGPT-master/*
 scripts/sanity_check.tex
 tmp_*/*
 scripts/paper_tex/**
+scratch/*
