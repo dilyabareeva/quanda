@@ -99,7 +99,7 @@ def test_mrr_benchmark_dummy_causal_lm(
             "load_gpt2_model",
             "load_fact_tracing_dataset",
             1,
-            0.6666666865348816,
+            1.0,
         ),
     ],
 )
@@ -157,7 +157,7 @@ def test_mrr_benchmark_gpt2(
             "load_nano_gpt_model",
             "load_fact_tracing_dataset_nanogpt",
             1,
-            0.6333333253860474,
+            0.6681817770004272,
         ),
     ],
 )

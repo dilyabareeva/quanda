@@ -229,6 +229,7 @@ class BenchConfigParser:
                 raise ValueError(f"Error loading model from {ckpt_dir}: {e}")
             model.load_state_dict(pretrained_model.state_dict())
             model.to(device)
+            return model_cfg.get("trainer", {}).get("lr")
 
         return module, ckpt_ids, load_state_dict
 
