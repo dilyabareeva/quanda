@@ -84,6 +84,25 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 
 - **Mixed Datasets** ([Hammoudeh and Lowd, 2022](https://dl.acm.org/doi/abs/10.1145/3548606.3559335)): In a setting where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example.
 
+<details>
+  <summary><b><big>Metric interpretation guideline</big></b></summary>
+
+| Benchmark                                                                                            | Output range | Better       |
+|------------------------------------------------------------------------------------------------------|--------------|--------------|
+| [ClassDetection](quanda/metrics/downstream_eval/class_detection.py)                                  | `[0, 1]`     | higher       |
+| [SubclassDetection](quanda/metrics/downstream_eval/subclass_detection.py)                            | `[0, 1]`     | higher       |
+| [MislabelingDetection](quanda/metrics/downstream_eval/mislabeling_detection.py)                      | `[0, 1]`     | higher       |
+| [ShortcutDetection](quanda/metrics/downstream_eval/shortcut_detection.py)                            | `[0, 1]`     | higher       |
+| [MixedDatasets](quanda/metrics/heuristics/mixed_datasets.py)                                         | `[0, 1]`     | higher       |
+| [TopKCardinality](quanda/metrics/heuristics/top_k_cardinality.py)                                    | `[0, 1]`     | higher       |
+| [ModelRandomization](quanda/metrics/heuristics/model_randomization.py)                               | `[-1, 1]`    | closer to 0  |
+| [LinearDatamodelingScore](quanda/metrics/ground_truth/linear_datamodeling.py)                        | `[-1, 1]`    | higher       |
+| [MRR](quanda/metrics/downstream_eval/mrr.py)                                                         | `[0, 1]`     | higher       |
+| [RecallAtK](quanda/metrics/downstream_eval/recall_at_k.py)                                           | `[0, 1]`     | higher       |
+| [TailPatch](quanda/metrics/downstream_eval/tail_patch.py)                                            | `[-1, 1]`    | higher       |
+
+</details>
+
 ### Benchmarks
 
 **quanda** comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The following benchmarks are currently available:
