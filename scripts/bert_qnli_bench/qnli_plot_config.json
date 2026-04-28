@@ -1,10 +1,6 @@
 {
   "methods": [
     "kronfluence",
-    "dattri_ekfac",
-    "dattri_tracin",
-    "dattri_graddot",
-    "dattri_gradcos",
     "trak",
     "similarity",
     "random"
@@ -31,7 +27,7 @@
     "qnli_class_detection": "Class\nDetection",
     "qnli_mislabeling_detection": "Mislabeling\nDetection",
     "qnli_top_k_cardinality": "Top-K\nCardinality",
-    "qnli_linear_datamodeling": "Linear\nDatamodeling",
+    "qnli_linear_datamodeling": "LDS",
     "qnli_model_randomization": "Model\nRandomization",
     "qnli_mixed_datasets": "Mixed\nDatasets"
   },
