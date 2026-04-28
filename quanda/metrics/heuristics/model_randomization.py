@@ -102,6 +102,12 @@ class ModelRandomizationMetric(Metric):
             else:
                 self.expl_kwargs["model_id"] = self.model_id + "_rand"
 
+        # this is needed for random explainer: otherwise the correlation is 1.0
+        if "seed" in explainer_params:
+            self.expl_kwargs["seed"] = (
+                self.expl_kwargs.get("seed", self.seed) + 1
+            )
+
         self.rand_explainer = explainer_cls(
             model=self.rand_model,
             checkpoints=self.rand_checkpoint,
