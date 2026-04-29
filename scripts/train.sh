@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 cfg_output_dir="quanda/benchmarks/resources/configs"
-commit_tag=$(git rev-parse --short HEAD)
+commit_tag=$(git rev-parse --short HEAD 2>/dev/null || echo "GIT_TAG")
 mkdir -p logs
 
 if [ -d "/data/cluster/users/bareeva" ]; then

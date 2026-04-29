@@ -1,6 +1,4 @@
 #!/bin/bash
-# Fan out one sbatch job per benchmark; each job runs the full sweep for
-# that benchmark with hydra n_jobs sized to its grid cardinality.
 
 BENCHMARKS=(
     ClassDetection
@@ -8,7 +6,6 @@ BENCHMARKS=(
     MixedDatasets
     ShortcutDetection
     MislabelingDetection
-    LDS
 )
 
 for bench in "${BENCHMARKS[@]}"; do
@@ -16,3 +13,4 @@ for bench in "${BENCHMARKS[@]}"; do
         scripts/awa2_resnet50_bench/train_awa2_per_bench.sh \
         "$bench"
 done
+ 

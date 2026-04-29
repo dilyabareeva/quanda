@@ -6,7 +6,7 @@ declare -A BENCH_PARAMS
 declare -A BENCH_SWEEP
 
 
-BENCH_PARAMS[ClassDetection]="train_dataset=mnist_train train_dataset.dataset_split='train' eval_dataset=mnist_test eval_dataset.dataset_split='test' +filter_by_prediction=true"
+BENCH_PARAMS[ClassDetection]="train_dataset=mnist_train train_dataset.dataset_split='train' eval_dataset=mnist_test eval_dataset.dataset_split='test'"
 BENCH_SWEEP[ClassDetection]=""
 
 BENCH_PARAMS[SubclassDetection]="model=mnist_lenet_subclass train_dataset=mnist_train_subclass train_dataset.dataset_split='train' eval_dataset=mnist_test_subclass eval_dataset.dataset_split='test' val_dataset=mnist_val_subclass +filter_by_prediction=true"

@@ -5,7 +5,7 @@ wrapper:
   type: LabelFlippingDataset
   metadata:
     metadata_filename: awa2_train_mislabeling_transform_indices.yaml
-    p: 0.2
+    p: 0.1
     seed: 43
 split_ref: awa2_train_mislabeling
 split_name: train

@@ -22,7 +22,8 @@ def main(cfg: DictConfig) -> Tuple[float]:
     )
     scores = bench.sanity_check()
     print(f"Sanity check scores: {scores}")
-    logger.log_metrics(scores)
+    if logger is not None:
+        logger.log_metrics(scores)
     return bench.overall_objective(scores)
 
 

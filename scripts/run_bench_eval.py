@@ -123,6 +123,12 @@ def main(cfg: DictConfig) -> float:
             eval_seed=eval_seed,
         )
 
+    bootstrap_unsupported = {"MislabelingDetection", "TopKCardinality"}
+    if cfg.get("bootstrap", True) and (
+        BENCH_CLASS[bench_id] not in bootstrap_unsupported
+    ):
+        extra["bootstrap"] = True
+
     score = bench.evaluate(
         explainer_cls=expl_cls,
         expl_kwargs=expl_kwargs,
@@ -135,6 +141,15 @@ def main(cfg: DictConfig) -> float:
         **extra,
     )
 
+    if isinstance(score, dict):
+        score_value = score["score"]
+        ci_low = score.get("ci_low")
+        ci_high = score.get("ci_high")
+    else:
+        score_value = score
+        ci_low = None
+        ci_high = None
+
     os.makedirs(cfg.results_dir, exist_ok=True)
     bench_name = BENCH_CLASS[bench_id]
     out = os.path.join(cfg.results_dir, f"{bench_name}__{tag}.json")
@@ -145,20 +160,17 @@ def main(cfg: DictConfig) -> float:
                 "bench_id": bench_id,
                 "method": cfg.explainer.name,
                 "expl_kwargs": {k: repr(v) for k, v in expl_kwargs.items()},
-                "score": score,
+                "score": score_value,
+                "ci_low": ci_low,
+                "ci_high": ci_high,
                 "resolved": resolved,
             },
             f,
             indent=2,
             default=str,
         )
-    scalar = (
-        score
-        if isinstance(score, (int, float))
-        else (next(iter(score.values())) if isinstance(score, dict) else 0.0)
-    )
 
-    return float(scalar)
+    return float(score_value) if isinstance(score_value, (int, float)) else 0.0
 
 
 if __name__ == "__main__":

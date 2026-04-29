@@ -28,7 +28,6 @@ hydra:
     params:
       model.trainer.lr: choice(0.001, 0.01)
       model.trainer.optimizer: choice("adam", "sgd")
-      model.trainer.max_epochs: choice(20, 30)
 
 id: "default"
 bench: ClassDetection

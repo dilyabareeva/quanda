@@ -6,7 +6,7 @@ declare -A BENCH_PARAMS
 declare -A BENCH_SWEEP
 
 
-BENCH_PARAMS[ClassDetection]="train_dataset=cifar10_train train_dataset.dataset_split='train' eval_dataset=cifar10_test eval_dataset.dataset_split='test' +filter_by_prediction=true device=cuda:0"
+BENCH_PARAMS[ClassDetection]="train_dataset=cifar10_train train_dataset.dataset_split='train' eval_dataset=cifar10_test eval_dataset.dataset_split='test' device=cuda:0"
 BENCH_SWEEP[ClassDetection]=""
 
 BENCH_PARAMS[SubclassDetection]="model=cifar_resnet9_subclass train_dataset=cifar10_train_subclass train_dataset.dataset_split='train' eval_dataset=cifar10_test_subclass eval_dataset.dataset_split='test' val_dataset=cifar10_val_subclass +filter_by_prediction=true device=cuda:0"

@@ -3,6 +3,7 @@
     "kronfluence",
     "trak",
     "similarity",
+    "representer_points",
     "random"
   ],
   "benches": [
@@ -21,6 +22,7 @@
     "dattri_gradcos": "GradCos",
     "trak": "TRAK-1",
     "similarity": "Similarity",
+    "representer_points": "Representer\nPoints",
     "random": "Random"
   },
   "bench_labels": {
@@ -30,15 +32,5 @@
     "qnli_linear_datamodeling": "LDS",
     "qnli_model_randomization": "Model\nRandomization",
     "qnli_mixed_datasets": "Mixed\nDatasets"
-  },
-  "colors": {
-    "kronfluence":  "#83BA59",
-    "dattri_tracin":   "#EA4E38",
-    "trak":            "#7D53BA",
-    "similarity":      "#3B8FB5",
-    "random":          "#90918B",
-    "dattri_ekfac":    "#EB9C38",
-    "dattri_graddot":  "#D94F8A",
-    "dattri_gradcos":  "#F2C14E"
   }
 }
