@@ -372,13 +372,9 @@ class BenchConfigParser:
             return tokenize_dataset(base_dataset, tokenizer_cfg)
         if "label" in ds_config:
             return HFtoTV(
-                base_dataset.map(
-                    lambda x: {
-                        "label": ds_config["label"],
-                        "image": transform(x["image"]),
-                    }
-                ).with_format("torch"),
-                transform=None,
+                base_dataset,
+                transform=transform,
+                label_override=ds_config["label"],
             )
         else:
             return HFtoTV(base_dataset, transform=transform)

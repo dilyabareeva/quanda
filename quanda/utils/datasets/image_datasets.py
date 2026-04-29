@@ -1,5 +1,7 @@
 """Dataset classes for image datasets."""
 
+from typing import Optional
+
 import torch
 
 _IMAGE_KEYS = ("image", "img", "pixel_values")
@@ -8,10 +10,13 @@ _IMAGE_KEYS = ("image", "img", "pixel_values")
 class HFtoTV(torch.utils.data.Dataset):
     """Wrapper to make Hugging Face datasets compatible with torchvision."""
 
-    def __init__(self, dataset, transform=None):
+    def __init__(
+        self, dataset, transform=None, label_override: Optional[int] = None
+    ):
         """Construct the HFtoTV dataset."""
         self.dataset = dataset
         self.transform = transform
+        self.label_override = label_override
         sample = dataset[0]
         for key in _IMAGE_KEYS:
             if key in sample:
@@ -35,4 +40,9 @@ class HFtoTV(torch.utils.data.Dataset):
         img = item[self.image_key]
         if self.transform:
             img = self.transform(img)
-        return img, int(item["label"])
+        label = (
+            self.label_override
+            if self.label_override is not None
+            else int(item["label"])
+        )
+        return img, label
