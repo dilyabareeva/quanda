@@ -1,0 +1,16 @@
+dataset_str: quanda-bench-test/awa2
+dataset_split: train
+transforms: none
+filter_indices:
+  split_filename: awa2_eval_shortcut_filter.yaml
+  split_name: default
+wrapper:
+  type: SampleTransformationDataset
+  metadata:
+    metadata_filename: awa2_eval_shortcut_split.yaml
+    p: 1.0
+    seed: 42
+  sample_fn: add_pink_frame
+  dataset_transform: awa2_transforms
+split_ref: awa2_train_shortcut
+split_name: test

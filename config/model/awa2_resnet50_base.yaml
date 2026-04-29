@@ -1,0 +1,5 @@
+pretrained_model_name: null
+module:
+  name: ResNet50
+  args:
+    num_classes: 50

@@ -1,0 +1,16 @@
+dataset_str: quanda-bench-test/awa2
+dataset_split: train
+transforms: awa2_train_transforms
+wrapper:
+  type: LabelGroupingDataset
+  metadata:
+    metadata_filename: awa2_train_subclass_transform_indices.yaml
+    p: 1.0
+    seed: 42
+  class_to_group:
+    ctg_filename: ${id}_class_to_group.yaml
+    n_classes: 50
+    n_groups: 2
+    seed: 42
+split_ref: awa2_train_subclass
+split_name: train
