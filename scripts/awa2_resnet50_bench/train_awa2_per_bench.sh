@@ -16,7 +16,7 @@ CONFIG_MAP_PREFIX="awa2"
 BENCH="$1"
 shift
 
-MAX_PARALLEL=${MAX_PARALLEL:-4}
+MAX_PARALLEL=${MAX_PARALLEL:-3}
 
 if [ -z "${BENCH_PARAMS[$BENCH]+x}" ]; then
     echo "Error: unknown benchmark '$BENCH'" >&2
