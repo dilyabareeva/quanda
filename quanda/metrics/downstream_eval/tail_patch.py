@@ -256,6 +256,10 @@ class TailPatchMetric(Metric):
             )
         }
 
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample TailPatch deltas."""
+        return torch.tensor(self.scores)
+
     def reset(self) -> None:
         """Reset the metric state."""
         self.scores = []

@@ -449,9 +449,11 @@ class LinearDatamodelingMetric(Metric):
         model_outputs = torch.stack(model_output_list, dim=1)
         predicted_outputs = torch.stack(predicted_output_list, dim=1)
 
-        batch_lds_scores = self.corr_measure(model_outputs, predicted_outputs)
+        per_sample_lds_scores = self.corr_measure(
+            model_outputs, predicted_outputs
+        )
 
-        self.results["scores"].append(batch_lds_scores)
+        self.results["scores"].append(per_sample_lds_scores)
 
     def reset(self, *args, **kwargs):
         """Reset the LDS score."""
@@ -492,3 +494,9 @@ class LinearDatamodelingMetric(Metric):
 
         """
         return {"score": torch.cat(self.results["scores"]).mean().item()}
+
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample LDS correlations."""
+        if not self.results["scores"]:
+            return torch.empty(0)
+        return torch.cat(self.results["scores"])

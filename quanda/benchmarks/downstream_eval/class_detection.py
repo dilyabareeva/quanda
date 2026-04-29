@@ -96,6 +96,7 @@ class ClassDetection(Benchmark):
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
         inference_batch_size: Optional[int] = None,
+        bootstrap: bool = False,
     ):
         """Evaluate the benchmark using a given explanation method.
 
@@ -166,4 +167,5 @@ class ClassDetection(Benchmark):
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
             inference_batch_size=inference_batch_size,
+            bootstrap=bootstrap,
         )

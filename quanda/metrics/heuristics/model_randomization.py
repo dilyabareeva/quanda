@@ -172,6 +172,12 @@ class ModelRandomizationMetric(Metric):
         """
         return {"score": torch.cat(self.results["scores"]).mean().item()}
 
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample correlations against the randomized model."""
+        if not self.results["scores"]:
+            return torch.empty(0)
+        return torch.cat(self.results["scores"])
+
     def reset(self):
         """Reset the state of the model randomization.
 

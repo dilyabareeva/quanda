@@ -656,6 +656,7 @@ class LinearDatamodeling(Benchmark):
         use_hf_expl: bool = False,
         inference_batch_size: Optional[int] = None,
         subset_logits_dir: Optional[str] = None,
+        bootstrap: bool = False,
     ):
         """Evaluate the given data attributor.
 
@@ -739,4 +740,5 @@ class LinearDatamodeling(Benchmark):
             precomputed_explanations=precomputed,
             inference_batch_size=inference_batch_size,
             subset_logits_dir=subset_logits_dir,
+            bootstrap=bootstrap,
         )

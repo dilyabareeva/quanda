@@ -186,6 +186,10 @@ class MixedDatasetsMetric(Metric):
         """
         return {"score": torch.tensor(self.auprc_scores).mean().item()}
 
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample AUPRC scores."""
+        return torch.tensor(self.auprc_scores)
+
     def reset(self, *args, **kwargs):
         """Reset the metric state."""
         self.auprc_scores = []

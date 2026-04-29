@@ -1100,6 +1100,7 @@ class Benchmark(ABC):
         precomputed_explanations: Optional[BatchedCachedExplanations] = None,
         inference_batch_size: Optional[int] = None,
         subset_logits_dir: Optional[str] = None,
+        bootstrap: bool = False,
     ):
         """Evaluate dataset using explainer and metric.
 
@@ -1180,4 +1181,4 @@ class Benchmark(ABC):
                     )
             metric.update(**eval_unit)
 
-        return metric.compute()
+        return metric.compute_bootstrapped() if bootstrap else metric.compute()

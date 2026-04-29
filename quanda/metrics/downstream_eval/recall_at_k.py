@@ -106,6 +106,12 @@ class RecallAtKMetric(Metric):
 
         return {"score": torch.cat(self.recalls).mean().item()}
 
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample recall@k scores."""
+        if not self.recalls:
+            return torch.empty(0)
+        return torch.cat(self.recalls)
+
     def reset(self, *args, **kwargs):
         """Reset the metric state."""
         self.recalls = []

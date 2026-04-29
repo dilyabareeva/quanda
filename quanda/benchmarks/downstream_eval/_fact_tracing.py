@@ -145,6 +145,7 @@ class FactTracingBenchmark(Benchmark):
         precomputed_explanations: Optional[BatchedCachedExplanations] = None,
         inference_batch_size: Optional[int] = None,
         subset_logits_dir: Optional[str] = None,
+        bootstrap: bool = False,
     ):
         """Subsample ``entailment_labels`` to align with the eval iteration.
 
@@ -170,6 +171,7 @@ class FactTracingBenchmark(Benchmark):
             precomputed_explanations=precomputed_explanations,
             inference_batch_size=inference_batch_size,
             subset_logits_dir=subset_logits_dir,
+            bootstrap=bootstrap,
         )
 
     def _extra_metric_inputs(
@@ -198,6 +200,7 @@ class FactTracingBenchmark(Benchmark):
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
         inference_batch_size: Optional[int] = None,
+        bootstrap: bool = False,
     ):
         """Evaluate the benchmark using a given explanation method.
 
@@ -229,4 +232,5 @@ class FactTracingBenchmark(Benchmark):
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
             inference_batch_size=inference_batch_size,
+            bootstrap=bootstrap,
         )

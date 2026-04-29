@@ -102,6 +102,12 @@ class MRRMetric(Metric):
         """
         return {"score": torch.cat(self.reciprocal_ranks).mean().item()}
 
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample reciprocal ranks."""
+        if not self.reciprocal_ranks:
+            return torch.empty(0)
+        return torch.cat(self.reciprocal_ranks)
+
     def reset(self, *args, **kwargs):
         """Reset the metric state."""
         self.reciprocal_ranks = []

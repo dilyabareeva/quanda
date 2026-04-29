@@ -142,6 +142,10 @@ class ClassDetectionMetric(Metric):
         """
         return {"score": torch.cat(self.scores).mean().item()}
 
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample correctness scores."""
+        return torch.cat(self.scores) if self.scores else torch.empty(0)
+
     def reset(self, *args, **kwargs):
         """Reset the metric state."""
         self.scores = []
