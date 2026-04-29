@@ -76,8 +76,7 @@ CLAUDE.md
 .vscode/
 quanda_benchmark_tutorial_cache/*
 logs/*
-scripts/*/bar_rank.png
-scripts/*/bar_rank.csv
+scripts/*/bar_rank*
 log/*
 logs_*/*
 local_eval_results/*
