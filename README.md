@@ -468,9 +468,12 @@ For detailed examples, we refer to the [existing](quanda/explainers/wrappers/cap
 
 - **Controlled Setting Evaluation**: Many metrics require access to ground truth labels for datasets, such as the indices of the "shortcut samples" in the Shortcut Detection metric, or the mislabeling (noisy) label indices for the Mislabeling Detection Metric. However, users often may not have access to these labels. To address this, we recommend either using one of our pre-built benchmark suites (see [Benchmarks](#benchmarks) section) or generating (`train` method) a custom benchmark for comparing explainers. Benchmarks provide a controlled environment for systematic evaluation.
 
-- **Caching**: Many explainers in our library generate re-usable cache. The `cache_id` and `model_id` parameters passed to various class instances are used to store these intermediary results. Ensure each experiment is assigned a unique combination of these arguments. Failing to do so could lead to incorrect reuse of cached results. If you wish to avoid re-using cached results, you can set the `load_from_disk` parameter to `False`.
+- **Explainer Caching**: Many explainers in our library generate re-usable cache. The `cache_id` and `model_id` parameters passed to various class instances are used to store these intermediary results. Ensure each experiment is assigned a unique combination of these arguments. Failing to do so could lead to incorrect reuse of cached results. If you wish to avoid re-using cached results, you can set the `load_from_disk` parameter to `False`.
+
+- **Benchmark Dataset Caching**: Benchmark initialization methods involve caching a HuggingFace dataset locally to the `HF_HOME` cache path. We recommend ensuring that the environment variable is set as needed and caching the dataset into the directory in advance of loading the benchmark.
 
 - **Explainers Are Expensive To Calculate**: Certain explainers, such as TracInCPRandomProj, may lead to OutOfMemory (OOM) issues when applied to large models or datasets. In such cases, we recommend adjusting memory usage by either reducing the dataset size or using smaller models to avoid these issues.
+
 
 ## 📓 Tutorials
 
