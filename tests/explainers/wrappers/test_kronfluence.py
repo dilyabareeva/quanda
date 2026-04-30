@@ -231,7 +231,7 @@ def test_kronfluence_explain_with_optional_args(
         device="cuda" if torch.cuda.is_available() else "cpu",
         factor_args=factor_args,
         dataloader_kwargs=dataloader_kwargs,
-        overwrite_output_dir=True,
+        load_from_disk=False,
         cache_dir=str(tmp_path),
     )
 
@@ -239,7 +239,7 @@ def test_kronfluence_explain_with_optional_args(
         test_data=test_tensor,
         targets=test_labels,
         score_args=score_args,
-        overwrite_output_dir=True,
+        load_from_disk=False,
     )
 
     assert explanations.shape == (
@@ -286,12 +286,12 @@ def test_kronfluence_self_influence_with_optional_args(
         device="cuda" if torch.cuda.is_available() else "cpu",
         factor_args=factor_args,
         dataloader_kwargs=dataloader_kwargs,
-        overwrite_output_dir=True,
+        load_from_disk=False,
         cache_dir=str(tmp_path),
     )
 
     self_influence_scores = explainer.self_influence(
-        score_args=score_args, overwrite_output_dir=True
+        score_args=score_args, load_from_disk=False
     )
 
     assert self_influence_scores.shape == (len(train_dataset),), (

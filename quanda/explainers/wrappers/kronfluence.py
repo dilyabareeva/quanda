@@ -75,7 +75,7 @@ class Kronfluence(Explainer):
         scores_name: str = "initial_score",
         score_args: ScoreArguments = None,
         dataloader_kwargs: DataLoaderKwargs = None,
-        overwrite_output_dir: bool = False,
+        load_from_disk: bool = True,
         cache_dir: str = "./cache",
         model_id: str = "0",
     ):
@@ -117,7 +117,7 @@ class Kronfluence(Explainer):
             Arguments for score computation. Defaults to None.
         dataloader_kwargs : DataLoaderKwargs, optional
             DataLoader arguments. Defaults to None.
-        overwrite_output_dir : bool, optional
+        load_from_disk : bool, optional
             Whether to overwrite cached factors. Defaults to False.
         cache_dir : str, optional
             Directory to store the cached results. Defaults to "./cache".
@@ -144,7 +144,7 @@ class Kronfluence(Explainer):
         self.factors_name = factors_name
         self.scores_name = scores_name
         self.score_args = score_args
-        self.overwrite_output_dir = overwrite_output_dir
+        self.load_from_disk = load_from_disk
         if cache_dir is None:
             cache_dir = "./kronfluence_cache"
         self.cache_dir = os.path.join(cache_dir, str(model_id))
@@ -172,7 +172,7 @@ class Kronfluence(Explainer):
             factors_name=self.factors_name,
             dataset=self.train_dataset,
             factor_args=self.factor_args,
-            overwrite_output_dir=self.overwrite_output_dir,
+            load_from_disk=self.load_from_disk,
         )
 
     def _prepare_model(self) -> nn.Module:
@@ -238,7 +238,7 @@ class Kronfluence(Explainer):
         targets: Union[List[int], torch.Tensor],
         scores_name: Optional[str] = None,
         score_args: ScoreArguments = None,
-        overwrite_output_dir: bool = True,
+        load_from_disk: bool = True,
     ) -> torch.Tensor:
         """Compute influence scores for the test samples.
 
@@ -254,7 +254,7 @@ class Kronfluence(Explainer):
         score_args : ScoreArguments, optional
             Arguments for score computation. Overrides the instance variable
             if provided.
-        overwrite_output_dir : bool, optional
+        load_from_disk : bool, optional
             Whether to overwrite stored results. Defaults to True.
 
         Returns
@@ -277,7 +277,7 @@ class Kronfluence(Explainer):
             train_dataset=self.train_dataset,
             per_device_query_batch_size=self.batch_size,
             score_args=score_args,
-            overwrite_output_dir=overwrite_output_dir,
+            load_from_disk=load_from_disk,
         )
         scores = self.analyzer.load_pairwise_scores(
             scores_name=self.scores_name
@@ -290,7 +290,7 @@ class Kronfluence(Explainer):
         batch_size: int = 1,
         scores_name: Optional[str] = None,
         score_args: ScoreArguments = None,
-        overwrite_output_dir: bool = True,
+        load_from_disk: bool = True,
     ) -> torch.Tensor:
         """Compute self-influence scores.
 
@@ -305,7 +305,7 @@ class Kronfluence(Explainer):
         score_args : ScoreArguments, optional
             Arguments for score computation. Overrides the instance variable
             if provided.
-        overwrite_output_dir : bool, optional
+        load_from_disk : bool, optional
             Whether to overwrite stored results. Defaults to True.
 
         Returns
@@ -323,7 +323,7 @@ class Kronfluence(Explainer):
             factors_name=self.factors_name,
             train_dataset=self.train_dataset,
             score_args=score_args,
-            overwrite_output_dir=overwrite_output_dir,
+            load_from_disk=load_from_disk,
         )
 
         scores = self.analyzer.load_self_scores(scores_name=self.scores_name)[
