@@ -5,7 +5,7 @@ import json
 import os
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import datasets  # type: ignore
 import lightning as L
@@ -31,6 +31,7 @@ from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
 from quanda.utils.common import (
+    CheckpointLoadFunc,
     DatasetSplit,
     _stable_repr,
     _subsample_dataset,
@@ -86,7 +87,17 @@ def default_explanations_id(
     grouped benchmarks truly share those inputs.
     """
     repo = config.get("repo_id", "quanda-bench-test")
-    group = config.get("explanations_group", config["id"])
+    bench_id = config.get("id")
+    group = config.get("explanations_group", bench_id)
+    if "explanations_group" in config and group != bench_id:
+        warnings.warn(
+            f"Using shared explanations cache: explanations_group="
+            f"{group!r} replaces bench id {bench_id!r}. Only correct if "
+            "grouped benchmarks share model + train/eval datasets — "
+            "mismatches will silently corrupt results.",
+            UserWarning,
+            stacklevel=2,
+        )
     return (
         f"{repo}/{group}__{explainer_cls.__name__}"
         f"__{_hash_expl_kwargs(expl_kwargs)}"
@@ -107,7 +118,7 @@ class Benchmark(ABC):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: List[str],
-        checkpoints_load_func: Callable[..., Any],
+        checkpoints_load_func: CheckpointLoadFunc,
         device: str = "cpu",
         val_dataset: Optional[
             Union[torch.utils.data.Dataset, datasets.Dataset]
@@ -126,8 +137,10 @@ class Benchmark(ABC):
             The evaluation dataset.
         checkpoints : List[str]
             List of checkpoint paths.
-        checkpoints_load_func : Callable[..., Any]
-            Function to load model checkpoints.
+        checkpoints_load_func : CheckpointLoadFunc
+            Function to load model checkpoints. Takes
+            ``(model, checkpoint_path)`` and returns the learning rate or
+            any auxiliary value the checkpoint exposes.
         device : str, optional
             Device to use, by default "cpu".
         val_dataset : Optional[Union[torch.utils.data.Dataset,
@@ -346,7 +359,7 @@ class Benchmark(ABC):
         ----------
         config : dict
             Dictionary containing the configuration.
-        logger : Optional[Callable], optional
+        logger : Optional[lightning.pytorch.loggers.logger.Logger], optional
             Logger to be used for logging, by default None.
         device : str, optional
             Device to use for training, by default "cpu"
@@ -839,6 +852,7 @@ class Benchmark(ABC):
                 "use_hf_expl is True."
             )
         if use_cached_expl and os.path.exists(cache_dir):
+            self._validate_explanations_meta(cache_dir)
             return ExplanationsCache.load(path=cache_dir, device=self.device)
         if use_hf_expl:
             base = os.path.basename(cache_dir.rstrip("/"))
@@ -853,8 +867,42 @@ class Benchmark(ABC):
                 local_dir=cache_dir,
                 repo_type="dataset",
             )
+            self._validate_explanations_meta(cache_dir)
             return ExplanationsCache.load(path=cache_dir, device=self.device)
         return None
+
+    def _validate_explanations_meta(self, cache_dir: str) -> None:
+        """Warn when cached explanations were produced for a different bench.
+
+        Reads ``explanations_config.yaml`` from ``cache_dir`` (written by
+        :meth:`explain`) and compares ``bench_name`` to ``self.name``. A
+        mismatch is the most common ``explanations_group`` footgun: the
+        cache was produced by another benchmark whose train/eval datasets
+        may differ from this one. Missing meta is silently skipped to
+        preserve backward compatibility with older caches.
+        """
+        meta_path = os.path.join(cache_dir, "explanations_config.yaml")
+        if not os.path.exists(meta_path):
+            return
+        try:
+            with open(meta_path) as f:
+                meta = yaml.safe_load(f) or {}
+        except yaml.YAMLError:
+            return
+        cached_bench = meta.get("bench_name")
+        my_name = getattr(self, "name", self.__class__.__name__)
+        if cached_bench and cached_bench != my_name:
+            warnings.warn(
+                f"Loading cached explanations produced for "
+                f"{cached_bench!r} into a {my_name!r} benchmark. This is "
+                "only safe if both benchmarks were generated with the "
+                "same explanations_group AND share model + train/eval "
+                "datasets. Cache meta: "
+                f"explainer={meta.get('explainer_cls')!r}, "
+                f"explanations_group={meta.get('explanations_group')!r}.",
+                UserWarning,
+                stacklevel=2,
+            )
 
     def _prepare_explainer(
         self,
@@ -972,10 +1020,16 @@ class Benchmark(ABC):
             "explanations_id": explanations_id,
             "bench_id": config.get("id"),
             "bench": config.get("bench"),
+            "bench_name": getattr(cls, "name", cls.__name__),
+            "explanations_group": config.get(
+                "explanations_group", config.get("id")
+            ),
             "explainer_cls": explainer_cls.__name__,
             "expl_kwargs": safe_kwargs,
             "expl_kwargs_hash": _hash_expl_kwargs(expl_kwargs),
             "batch_size": batch_size,
+            "max_eval_n": max_eval_n,
+            "eval_seed": eval_seed,
             "use_predictions": obj.use_predictions,
             "n_batches": n_batches,
         }
