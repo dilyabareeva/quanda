@@ -87,3 +87,5 @@ scripts/sanity_check.tex
 tmp_*/*
 scripts/paper_tex/**
 scratch/*
+slurm/get_logs.sh
+scripts/delete_hf.py
