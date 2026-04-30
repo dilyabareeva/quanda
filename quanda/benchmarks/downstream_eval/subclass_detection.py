@@ -146,6 +146,10 @@ class SubclassDetection(Benchmark):
             If set, split the per-batch model forward (prediction and any
             forward inside the metric) into sub-batches of this size.
             ``None`` keeps the full ``batch_size`` forward.
+        bootstrap: bool
+            Whether to return bootstrapped metric score, if available,
+            instead of the single-point estimate.
+            By default False.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -153,8 +157,8 @@ class SubclassDetection(Benchmark):
 
         Returns
         -------
-        Dict[str, float]
-            Dictionary containing the metric score.
+                Dict[str, float]
+                    Dictionary containing the metric score.
 
         """
         if not isinstance(self.train_dataset, LabelGroupingDataset):

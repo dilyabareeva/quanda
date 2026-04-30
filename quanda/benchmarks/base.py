@@ -1115,23 +1115,26 @@ class Benchmark(ABC):
         batch_size : int
             Batch size for evaluation
         max_eval_n: Optional[int], optional
-            Maximum number of evaluation samples to use. If None, uses the
-            entire evaluation dataset. By default 1000.
+            Maximum number of evaluation samples to use. If None, uses
+            the entire evaluation dataset. By default 1000.
         eval_seed: int, optional
             Random seed for evaluation sampling, by default 42.
-        precomputed_explanations : Optional[BatchedCachedExplanations],
-            optional
-            If provided, these explanations will be used instead of computing
-            them on the fly. By default None.
+        precomputed_explanations : Optional[BatchedCachedExplanations]
+            Optional. If provided, these explanations will be used
+            instead of computing them on the fly. By default None.
         inference_batch_size : Optional[int], optional
-            Forwarded to :meth:`_iter_explanations` to sub-batch the model
-            forward used for predictions. ``None`` keeps the full
+            Forwarded to :meth:`_iter_explanations` to sub-batch the
+            model forward used for predictions. ``None`` keeps the full
             ``batch_size`` forward.
         subset_logits_dir : Optional[str], optional
             If set, for each batch ``i`` loads ``{dir}/{i}.pt`` (a
-            ``dict[int, Tensor]`` of per-subset counterfactual logits) and
-            passes it to ``metric.update`` as ``subset_logits``. Used by
-            :class:`LinearDatamodeling` to skip counterfactual forwards.
+            ``dict[int, Tensor]`` of per-subset counterfactual logits)
+            and passes it to ``metric.update`` as ``subset_logits``.
+            Used by :class:`LinearDatamodeling` to skip counterfactual
+            forwards.
+        bootstrap: bool
+            Whether to return bootstrapped metric score, if available,
+            instead of the single-point estimate. By default False.
 
         Returns
         -------

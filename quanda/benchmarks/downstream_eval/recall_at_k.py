@@ -23,10 +23,10 @@ class RecallAtK(FactTracingBenchmark):
 
     References
     ----------
-    1) Tyler A. Chang, Dheeraj Rajagopal, Tolga Bolukbasi, Lucas Dixon,
-    and Ian Tenney. (2024) "Scalable Influence and Fact Tracing for
-    Large Language Model Pretraining". The Thirteenth International
-    Conference on Learning Representations.
+    1) Ekin Akyurek, Tolga Bolukbasi, Frederick Liu, Binbin Xiong, Ian Tenney,
+    Jacob Andreas, and Kelvin Guu. (2022) "Towards tracing knowledge in
+    language models back to the training data." In Findings of the
+    Association for Computational Linguistics: EMNLP 2022, pp.  2429–2446
 
     """
 

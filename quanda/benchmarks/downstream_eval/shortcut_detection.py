@@ -250,11 +250,15 @@ class ShortcutDetection(Benchmark):
             If set, split the per-batch model forward (prediction and any
             forward inside the metric) into sub-batches of this size.
             ``None`` keeps the full ``batch_size`` forward.
+        bootstrap: bool
+            Whether to return bootstrapped metric score, if available,
+            instead of the single-point estimate.
+            By default False.
 
         Returns
         -------
-        Dict[str, float]
-            Dictionary containing the evaluation results.
+                Dict[str, float]
+                    Dictionary containing the evaluation results.
 
         """
         precomputed = self._resolve_precomputed_explanations(

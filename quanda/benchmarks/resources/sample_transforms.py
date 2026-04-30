@@ -21,12 +21,7 @@ def add_yellow_square(img):
 
 
 def add_pink_frame(img):
-    """Draw a pink frame inside the central square preserved by
-    Resize(256)+CenterCrop(224).
-
-    Positioning is centered (not edge-inset) so the full rectangle survives
-    the crop regardless of source aspect ratio.
-    """
+    """Draw a pink frame preserved by Resize(256)+CenterCrop(224)."""
     draw = ImageDraw.Draw(img)
     w, h = img.size
     m = min(w, h)
@@ -34,7 +29,7 @@ def add_pink_frame(img):
     width = max(3, int(0.04 * m))
     cx, cy = w / 2, h / 2
     draw.rectangle(
-        [cx - half, cy - half, cx + half, cy + half],
+        (cx - half, cy - half, cx + half, cy + half),
         outline=(255, 105, 180),
         width=width,
     )
