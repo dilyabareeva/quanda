@@ -70,6 +70,30 @@ config_map: dict = {
     "cifar_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("a701608-default_LDS.yaml"),
+    "awa2_class_detection": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("5d5968d-awa2_resnet50_ClassDetection.yaml"),
+    "awa2_top_k_cardinality": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("5d5968d-awa2_resnet50_ClassDetection.yaml"),
+    "awa2_model_randomization": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("5d5968d-awa2_resnet50_ClassDetection.yaml"),
+    "awa2_subclass_detection": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("GIT_TAG-awa2_resnet50_SubclassDetection.yaml"),
+    "awa2_mixed_datasets": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("GIT_TAG-awa2_resnet50_MixedDatasets.yaml"),
+    "awa2_shortcut_detection": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("GIT_TAG-awa2_resnet50_ShortcutDetection.yaml"),
+    "awa2_mislabeling_detection": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("GIT_TAG-awa2_resnet50_MislabelingDetection.yaml"),
+    "awa2_linear_datamodeling": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("5d5968d-awa2_resnet50_LDS.yaml"),
     "qnli_class_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("e59b08c-bert_qnli_ClassDetection.yaml"),
