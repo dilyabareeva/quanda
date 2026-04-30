@@ -16,6 +16,7 @@ from quanda.benchmarks.downstream_eval import (
     ShortcutDetection,
     SubclassDetection,
 )
+from quanda.benchmarks.downstream_eval.mrr import MRR
 from quanda.benchmarks.ground_truth import LinearDatamodeling
 from quanda.benchmarks.heuristics import (
     MixedDatasets,
@@ -24,6 +25,7 @@ from quanda.benchmarks.heuristics import (
 )
 from quanda.benchmarks.resources import config_map
 from quanda.explainers.wrappers import CaptumSimilarity
+from quanda.explainers.wrappers.kronfluence import Kronfluence
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import cosine_similarity
 
@@ -577,26 +579,26 @@ def test_filter_missing_shortcut_cls(
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             0.36709094047546387,
         ),
-        # (
-        #     "mnist",
-        #     "load_mnist_unit_test_config",
-        #     True,
-        #     True,
-        #     MRR,
-        #     CaptumSimilarity,
-        #     {"layers": "fc_2", "similarity_metric": cosine_similarity},
-        #     0.07678571343421936,
-        # ),
-        # (
-        #     "dummy_causal_lm",
-        #     "load_dummy_causal_lm_config",
-        #     True,
-        #     True,
-        #     MRR,
-        #     Kronfluence,
-        #     {"task": "causal_lm"},
-        #     0.33333,
-        # ),
+        (
+            "mnist",
+            "load_mnist_unit_test_config",
+            True,
+            True,
+            MRR,
+            CaptumSimilarity,
+            {"layers": "fc_2", "similarity_metric": cosine_similarity},
+            0.07678571343421936,
+        ),
+        (
+            "dummy_causal_lm",
+            "load_dummy_causal_lm_config",
+            True,
+            True,
+            MRR,
+            Kronfluence,
+            {"task": "causal_lm"},
+            0.33333,
+        ),
     ],
 )
 def test_bench_from_config(
@@ -633,6 +635,69 @@ def test_bench_from_config(
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize(
+    "test_id, config, bench_cls",
+    [
+        ("class", "load_mnist_unit_test_config", ClassDetection),
+        ("subclass", "load_mnist_subclass_config", SubclassDetection),
+        ("shortcut", "load_mnist_shortcut_config", ShortcutDetection),
+        ("mixed", "load_mnist_mixed_config", MixedDatasets),
+        (
+            "lds",
+            "load_mnist_linear_datamodeling_config",
+            LinearDatamodeling,
+        ),
+        ("rand", "load_mnist_unit_test_config", ModelRandomization),
+    ],
+)
+def test_bench_from_config_bootstrap(
+    test_id,
+    config,
+    bench_cls,
+    tmp_path,
+    request,
+):
+    """evaluate(bootstrap=True) returns a CI dict for each unit benchmark.
+
+    Uses ``max_eval_n=4`` and a tiny batch so the test stays cheap across
+    every benchmark that supports bootstrapping.
+    """
+    config = request.getfixturevalue(config)
+    config["cache_dir"] = "bench_out"
+
+    expl_kwargs = {
+        "layers": "fc_2",
+        "similarity_metric": cosine_similarity,
+        "model_id": "test",
+        "cache_dir": str(tmp_path),
+    }
+
+    dst_eval = bench_cls.from_config(
+        config=config,
+        load_meta_from_disk=True,
+        offline=True,
+    )
+
+    result = dst_eval.evaluate(
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs=expl_kwargs,
+        batch_size=4,
+        max_eval_n=4,
+        bootstrap=True,
+    )
+
+    assert isinstance(result, dict)
+    assert {
+        "score",
+        "ci_low",
+        "ci_high",
+        "ci",
+        "n_bootstrap",
+    } <= set(result.keys())
+    assert result["ci_low"] <= result["score"] <= result["ci_high"]
 
 
 @pytest.mark.tested

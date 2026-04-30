@@ -339,6 +339,7 @@ def test_download_explanations_uses_snapshot(tmp_path, monkeypatch):
     [
         "mnist_mislabeling_detection",
         "qnli_mislabeling_detection",
+        "awa2_mislabeling_detection",
     ],
 )
 def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
@@ -395,6 +396,7 @@ def test_train_dataset_mislabeling_is_correct(config_name, tmp_path):
     [
         "mnist_mislabeling_detection",
         "qnli_mislabeling_detection",
+        "awa2_mislabeling_detection",
     ],
 )
 def test_eval_dataset_is_clean(config_name, tmp_path):
@@ -444,6 +446,14 @@ def test_eval_dataset_is_clean(config_name, tmp_path):
                 "train_acc": 0.83,
                 "val_acc": 0.84,
                 "mislabeling_memorization": 0.15,
+            },
+        ),
+        (
+            "awa2_mislabeling_detection",
+            {
+                "train_acc": 0.9,
+                "val_acc": 0.7,
+                "mislabeling_memorization": 0.9,
             },
         ),
     ],

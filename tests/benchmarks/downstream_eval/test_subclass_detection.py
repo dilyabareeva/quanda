@@ -16,6 +16,7 @@ from quanda.benchmarks.downstream_eval import (
     "config_name",
     [
         "mnist_subclass_detection",
+        "awa2_subclass_detection",
     ],
 )
 def test_subclass_class_to_group(config_name, tmp_path):
@@ -72,6 +73,14 @@ def test_subclass_class_to_group(config_name, tmp_path):
                 "train_acc": 0.9,
                 "val_acc": 0.9,
                 "eval_post_filter_percentage": 0.5,
+            },
+        ),
+        (
+            "awa2_subclass_detection",
+            {
+                "train_acc": 0.9,
+                "val_acc": 0.75,
+                "eval_post_filter_percentage": 0.74,
             },
         ),
     ],

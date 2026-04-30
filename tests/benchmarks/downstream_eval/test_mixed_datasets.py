@@ -17,6 +17,7 @@ from quanda.benchmarks.resources import config_map
     "config_name",
     [
         "mnist_mixed_datasets",
+        "awa2_mixed_datasets",
     ],
 )
 def test_train_dataset_indexing_is_correct(config_name, tmp_path):
@@ -95,6 +96,15 @@ def test_train_dataset_indexing_is_correct(config_name, tmp_path):
                 "val_acc": 0.84,
                 "train_adversarial_memorization": 0.75,
                 "eval_adversarial_memorization": 0.74,
+            },
+        ),
+        (
+            "awa2_mixed_datasets",
+            {
+                "train_acc": 0.95,
+                "val_acc": 0.8,
+                "train_adversarial_memorization": 0.95,
+                "eval_adversarial_memorization": 0.95,
             },
         ),
     ],
