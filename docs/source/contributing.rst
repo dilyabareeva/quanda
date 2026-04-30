@@ -258,10 +258,16 @@ for explaining these samples:
 
    def update(
       self,
-      test_data: torch.Tensor,
       explanations: torch.Tensor,
-      explanation_targets: Optional[torch.Tensor] = None,
+      test_data: Union[torch.Tensor, Dict[str, torch.Tensor]],
+      test_targets: Optional[torch.Tensor] = None,
    ):
+
+The first positional argument is always the attribution tensor
+(``explanations``); subsequent arguments are metric-specific (e.g.
+``test_data`` / ``test_targets`` for metrics that need to recompute
+attributions on a randomized model, or ``entailment_labels`` for
+fact-tracing metrics like :doc:`MRRMetric <docs_api/quanda.metrics.downstream_eval.mrr>`).
 
 The ``reset`` method resets the internal state of the metric, to a state
 before seeing any explanations.
@@ -277,83 +283,77 @@ implementing these, implement the ``state_dict`` and ``load_state_dict``
 methods for the user to be able to save and restore metric states.
 ``state_dict`` should return a dictionary containing all the data needed
 to completely store the state of the metric, whereas ``load_state_dict``
-should completely restore the metric state from that dictionary. ###
-Contributing a New Benchmark As explained above, the :doc:`Benchmark <docs_api/quanda.benchmarks.base>`
-objects conduct the whole evaluation process, from start to finish.
-Thus, they use their corresponding metric. Benchmarks are not
-initialized using the ``__init__`` method. Instead, |quanda| offers
-different initialization strategies. Below, we list the initialization
-methods that you should implement, along with their functionalities:
+should completely restore the metric state from that dictionary.
 
-The class method ``generate`` accepts a trained ``model`` to be
-explained, a vanilla ``train_dataset`` to be used, and other components
-required by the benchmark to run the evaluation process from start to
-finish. The ``train_dataset`` should have type annotation
-``Union[str, torch.utils.data.Dataset]``, since we want to allow for a
-downloadable benchmark using a HuggingFace dataset, which we take from
-the user as a string. Another input, ``dataset_split : str = "train"``
-is also needed, to use when a HuggingFace dataset is downloaded. When
-you are implementing the ``generate`` function, you should additionally:
+Contributing a New Benchmark
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
+As explained above, the :doc:`Benchmark <docs_api/quanda.benchmarks.base>`
+objects conduct the whole evaluation process, from start to finish, and
+use their corresponding metric to compute the final score. A benchmark
+in |quanda| is fully described by a YAML configuration file (see the
+``quanda/benchmarks/resources/configs/`` directory for examples). The
+configuration declares the model, the training and evaluation datasets
+(including any wrappers such as label flipping or shortcut injection),
+the trainer, and any benchmark-specific options.
 
-.. code:: python
+The base :doc:`Benchmark <docs_api/quanda.benchmarks.base>` class
+exposes four classmethods that drive a benchmark through its lifecycle:
 
-   obj = cls()
+-  ``train(config, ...)`` — given a configuration dict, regenerate the
+   metadata (e.g. mislabeled-sample indices, class groupings, shortcut
+   masks), train the model, persist the checkpoint, and return a fully
+   assembled benchmark object ready for ``evaluate``.
+-  ``from_config(config, ...)`` — build a benchmark object from a
+   configuration dict and existing assets (model checkpoint, generated
+   metadata) without retraining.
+-  ``load_pretrained(bench_id, cache_dir, ...)`` — look up a benchmark
+   by its registered ID in
+   :doc:`config_map <docs_api/quanda.benchmarks.resources.config_map>`,
+   download the YAML / metadata / checkpoint from the Hugging Face Hub
+   into ``cache_dir``, and return the assembled benchmark.
+-  ``train_and_push_to_hub(config, ...)`` — same as ``train``, plus
+   uploading the checkpoint and the generated metadata to the Hub so
+   the benchmark can later be ``load_pretrained``-ed by anyone.
 
--  Infer device from the passed model using the base method:
+To contribute a new benchmark you generally do not need to override
+these four classmethods . What you should provide is:
 
-.. code:: python
+1. **A subclass of** :doc:`Benchmark <docs_api/quanda.benchmarks.base>`
+   under the appropriate
+   ``quanda/benchmarks/{downstream_eval,heuristics,ground_truth}/``
+   subdirectory. Subclasses customize behavior via:
 
-   obj._set_devices(model)
+   -  ``__init__`` — accept any benchmark-specific fields beyond what
+      the base ``__init__`` already stores
+      (``model``, ``train_dataset``, ``eval_dataset``, ``checkpoints``,
+      ``checkpoints_load_func``, ``device``, ``val_dataset``,
+      ``use_predictions``).
+   -  ``_extra_kwargs_from_config(cls, config, train_dataset,
+      eval_dataset, metadata_dir, load_meta_from_disk)`` — extract any
+      subclass-specific kwargs from the YAML and return them as a dict;
+      they get passed into ``__init__`` by ``from_config``.
+   -  ``_compute_and_save_indices(self, config, batch_size)`` — only
+      override if your benchmark needs to cache extra metadata on the
+      train pass (filtered eval indices, ranking caches, etc.).
+   -  ``evaluate(self, explainer_cls, expl_kwargs, batch_size)`` — runs
+      the explainer over ``eval_dataset``, feeds the attributions to
+      the corresponding ``Metric`` via ``update``/``compute``, and
+      returns the result dict (must contain ``"score"``).
 
--  Populate ``train_dataset`` field of ``obj``:
+2. **A YAML configuration** under
+   ``quanda/benchmarks/resources/configs/`` for at least one
+   reference setup. Use existing configs (e.g.
+   ``ad1b983-default_ClassDetection.yaml``) as a template.
 
-.. code:: python
+3. **An entry in**
+   :doc:`config_map <docs_api/quanda.benchmarks.resources.config_map>`
+   so users can load your benchmark via
+   ``YourBenchmark.load_pretrained(bench_id="my_bench", ...)``.
 
-   obj.train_dataset = obj._process_dataset(train_dataset, dataset_split)
-
--  Populate the rest of the required fields of the ``obj`` object from
-   the parameters of the method.
--  If the benchmark requires training a model on a modified dataset,
-   ``generate`` should take a ``BaseTrainer`` or a Lightning ``Trainer``
-   object as a parameter and handle the training.
-
-The class method ``assemble`` should generate the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` object
-from existing components, generated beforehand with the ``generate``
-method. Again, it should take a ``train_dataset`` and ``model``. You
-should again: 
-
-- Create an instance of the :doc:`Benchmark <docs_api/quanda.benchmarks.base>` to return:
-
-.. code:: python
-
-   obj = cls()
-
--  Infer device from the passed model using the base method:
-
-.. code:: python
-
-   obj._set_devices(model)
-
--  Populate ``train_dataset`` field of ``obj``:
-
-.. code:: python
-
-   obj.train_dataset = obj._process_dataset(train_dataset, dataset_split)
-
--  Populate the rest of the required fields of the ``obj`` object from
-   the parameters of the method.
--  If the benchmark requires training a model, the ``model`` should be a
-   model trained already in the correct context. This constitutes the
-   main difference between the ``generate`` and ``assemble`` methods.
-   Thus, ``assemble`` is used to skip the costly training process.
-   Otherwise, the ``assemble`` method is generally the same as the
-   ``generate`` method.
-
-Finally, the class method ``download`` is needed to download and
-assemble a benchmark from precomputed component. We will handle this
-method once your pull request is reviewed and merged.
+4. **Tests** under ``tests/benchmarks/`` covering ``from_config``,
+   ``train`` (on a small unit-test config in
+   ``tests/assets/unit_bench_cfgs/``), and ``evaluate``.
 
 License
 -------

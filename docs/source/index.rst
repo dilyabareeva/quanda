@@ -108,6 +108,14 @@ Supported TDA Methods
      - `TRAK <https://github.com/MadryLab/trak>`_
      - `Park et al., 2023 <https://proceedings.mlr.press/v202/park23c.html>`_
      - Uses an empirical Neural Tangent Kernel surrogate model for which a theoretical TDA formula exists
+   * - Kronfluence
+     - `Kronfluence <https://github.com/pomonam/kronfluence>`_
+     - `Grosse et al., 2023 <https://arxiv.org/abs/2308.03296>`_
+     - Estimates LOO effects with EK-FAC-based approximations to the inverse Hessian
+   * - Dattri (Influence Functions: Explicit / CG / LiSSA / DataInf, Arnoldi, EK-FAC, TracInCP, Grad-Dot, Grad-Cos, TRAK)
+     - `Dattri <https://github.com/TRAIS-Lab/dattri>`_
+     - `Deng et al., 2024 <https://arxiv.org/abs/2410.04555>`_
+     - Provides a unified family of TDA methods (influence functions, TracIn, gradient similarity, TRAK) via the ``Dattri`` library.
 
 Evaluation Metrics
 ------------------
@@ -148,41 +156,74 @@ In this section, we list the evaluation criteria that are currently available in
     - `Hammoudeh and Lowd, 2022 <https://dl.acm.org/doi/abs/10.1145/3548606.3559335>`_
     - In a setting where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example.
     - Heuristic
+  * - Mean Reciprocal Rank (MRR)
+    - `Chang et al., 2024 <https://openreview.net/forum?id=KIPJKST4gw>`_
+    - For fact-tracing settings, measures the mean reciprocal rank of the highest-ranked entailing proponent across fact queries.
+    - Downstream Task Evaluator
+  * - Recall@k
+    - `Chang et al., 2024 <https://openreview.net/forum?id=KIPJKST4gw>`_
+    - For fact-tracing settings, measures the proportion of facts for which an entailing proponent appears in the top-k retrievals.
+    - Downstream Task Evaluator
+  * - Tail Patch
+    - `Chang et al., 2024 <https://openreview.net/forum?id=KIPJKST4gw>`_
+    - For fact-tracing settings, measures the incremental change in target-sequence probability after taking a single training step on retrieved proponents.
+    - Downstream Task Evaluator
 
 Benchmarks
 ----------
-|quanda| comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The benchmarks currently use the MNIST (LeNet) and CIFAR-10 (ResNet-9) datasets to conduct evaluations. The following benchmarks are available:
+|quanda| comes with a number of pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. Currently available benchmarks span vision (MNIST / LeNet, CIFAR-10 / ResNet-9, AWA2 / ResNet-50), text classification (QNLI / BERT), and causal language modeling (T-REx / GPT-2 fine-tuned on OpenWebText).
 
 .. list-table::
   :header-rows: 1
 
   * - Metric
     - Type
+    - Modality
     - Benchmarks (Dataset / Model)
   * - `TopKCardinalityMetric <docs_api/quanda.metrics.heuristics.top_k_cardinality.html>`_
     - Heuristic
-    - mnist_top_k_cardinality (MNIST / LeNet), cifar_top_k_cardinality (CIFAR-10 / ResNet-9)
+    - Vision / Text
+    - mnist_top_k_cardinality, cifar_top_k_cardinality, awa2_top_k_cardinality, qnli_top_k_cardinality
   * - `ModelRandomizationMetric <docs_api/quanda.metrics.heuristics.model_randomization.html>`_
     - Heuristic
-    - cifar_model_randomization (CIFAR-10 / ResNet-9)
-  * - `MixedDatasetMetric <docs_api/quanda.metrics.heuristics.mixed_datasets.html>`_
+    - Vision / Text
+    - mnist_model_randomization, cifar_model_randomization, awa2_model_randomization, qnli_model_randomization
+  * - `MixedDatasetsMetric <docs_api/quanda.metrics.heuristics.mixed_datasets.html>`_
     - Heuristic
-    - mnist_mixed_datasets (MNIST / LeNet), cifar_mixed_datasets (CIFAR-10 / ResNet-9)
+    - Vision / Text
+    - mnist_mixed_datasets, cifar_mixed_datasets, awa2_mixed_datasets, qnli_mixed_datasets
   * - `ClassDetectionMetric <docs_api/quanda.metrics.downstream_eval.class_detection.html>`_
     - Downstream Task Evaluator
-    - mnist_class_detection (MNIST / LeNet), cifar_class_detection (CIFAR-10 / ResNet-9)
+    - Vision / Text
+    - mnist_class_detection, cifar_class_detection, awa2_class_detection, qnli_class_detection
   * - `SubclassDetectionMetric <docs_api/quanda.metrics.downstream_eval.subclass_detection.html>`_
     - Downstream Task Evaluator
-    - mnist_subclass_detection (MNIST / LeNet), cifar_subclass_detection (CIFAR-10 / ResNet-9)
+    - Vision
+    - mnist_subclass_detection, cifar_subclass_detection, awa2_subclass_detection
   * - `MislabelingDetectionMetric <docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html>`_
     - Downstream Task Evaluator
-    - mnist_mislabeling_detection (MNIST / LeNet), cifar_mislabeling_detection (CIFAR-10 / ResNet-9)
+    - Vision / Text
+    - mnist_mislabeling_detection, cifar_mislabeling_detection, awa2_mislabeling_detection, qnli_mislabeling_detection
   * - `ShortcutDetectionMetric <docs_api/quanda.metrics.downstream_eval.shortcut_detection.html>`_
     - Downstream Task Evaluator
-    - cifar_shortcut_detection (CIFAR-10 / ResNet-9)
+    - Vision
+    - mnist_shortcut_detection, cifar_shortcut_detection, awa2_shortcut_detection
+  * - `MRRMetric <docs_api/quanda.metrics.downstream_eval.mrr.html>`_
+    - Downstream Task Evaluator
+    - Causal LM
+    - gpt2_trex_openwebtext_ft_mrr
+  * - `RecallAtKMetric <docs_api/quanda.metrics.downstream_eval.recall_at_k.html>`_
+    - Downstream Task Evaluator
+    - Causal LM
+    - gpt2_trex_openwebtext_ft_recall_at_k
+  * - `TailPatchMetric <docs_api/quanda.metrics.downstream_eval.tail_patch.html>`_
+    - Downstream Task Evaluator
+    - Causal LM
+    - gpt2_trex_openwebtext_ft_tail_patch
   * - `LinearDatamodelingMetric <docs_api/quanda.metrics.ground_truth.linear_datamodeling.html>`_
     - Ground Truth
-    - mnist_linear_datamodeling_score (MNIST / LeNet), cifar_linear_datamodeling (CIFAR-10 / ResNet-9)
+    - Vision / Text
+    - mnist_linear_datamodeling, cifar_linear_datamodeling, awa2_linear_datamodeling, qnli_linear_datamodeling
 
 Citation
 --------
