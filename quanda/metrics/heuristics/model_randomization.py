@@ -3,12 +3,13 @@
 import copy
 import inspect
 import os
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Callable, Dict, List, Optional, Tuple, Type, Union
 
 import torch
 
 from quanda.metrics.base import Metric
 from quanda.utils.common import (
+    CheckpointLoadFunc,
     get_parent_module_from_name,
     move_ds_item_to_device,
 )
@@ -39,7 +40,7 @@ class ModelRandomizationMetric(Metric):
         checkpoints: Union[str, List[str]],
         explainer_cls: Type,
         expl_kwargs: Optional[dict] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
         seed: int = 42,
     ):
@@ -64,7 +65,7 @@ class ModelRandomizationMetric(Metric):
         expl_kwargs : Optional[dict], optional
             Additional keyword arguments for the explainer,
             by default None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file,
             takes (model, checkpoint path) as two arguments,
             by default None.

@@ -76,7 +76,7 @@ class LinearDatamodelingMetric(Metric):
             Additional keyword arguments for the trainer, by default None.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
         seed : Optional[int], optional

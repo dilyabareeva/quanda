@@ -26,6 +26,8 @@ import torch
 import yaml
 from torch import nn
 
+CheckpointLoadFunc = Callable[[torch.nn.Module, str], Any]
+
 
 def chunked_logits(
     model: torch.nn.Module,
@@ -92,6 +94,22 @@ def get_parent_module_from_name(
 
     """
     return reduce(getattr, layer_name.split(".")[:-1], model)
+
+
+def resolve_device(
+    model: torch.nn.Module, device: Optional[str] = None
+) -> str:
+    """Return ``device`` if set, else infer from ``model``'s parameters.
+
+    Falls back to ``"cpu"`` when the model has no parameters. This is the
+    canonical device-resolution used by every explainer wrapper so that
+    callers can opt out of explicit device passing without silently ending
+    up on the wrong device.
+    """
+    if device is not None:
+        return device
+    param = next(model.parameters(), None)
+    return str(param.device) if param is not None else "cpu"
 
 
 def make_func(
@@ -448,7 +466,7 @@ def move_ds_item_to_device(
 def load_last_checkpoint(
     model: torch.nn.Module,
     checkpoints: List[str],
-    checkpoints_load_func: Callable[..., Any],
+    checkpoints_load_func: CheckpointLoadFunc,
 ):
     """Load the model from the checkpoint file.
 
@@ -458,7 +476,7 @@ def load_last_checkpoint(
         The model to load the checkpoint into.
     checkpoints : Optional[Union[str, List[str]]], optional
         Path to the model checkpoint file(s), defaults to None.
-    checkpoints_load_func : Optional[Callable[..., Any]], optional
+    checkpoints_load_func : Optional[CheckpointLoadFunc], optional
         Function to load the model from the checkpoint file, takes
         (model, checkpoint path) as two arguments, by default None.
 

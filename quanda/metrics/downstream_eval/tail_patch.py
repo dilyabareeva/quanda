@@ -1,7 +1,7 @@
 """Tail Patch Metric."""
 
 import copy
-from typing import Any, Callable, List, Optional, Type, Union
+from typing import List, Optional, Type, Union
 
 import torch
 import torch.nn.functional as F
@@ -10,6 +10,7 @@ from torch.optim import AdamW, Optimizer
 from transformers import AutoTokenizer  # type: ignore
 
 from quanda.metrics.base import Metric
+from quanda.utils.common import CheckpointLoadFunc
 
 
 class TailPatchMetric(Metric):
@@ -33,7 +34,7 @@ class TailPatchMetric(Metric):
         model: nn.Module,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         k: int = 10,
         learning_rate: float = 1e-3,
         optimizer_class: Type[Optimizer] = AdamW,
@@ -51,7 +52,7 @@ class TailPatchMetric(Metric):
             The training dataset that was used to train `model`.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
         k : int, optional

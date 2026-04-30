@@ -1,12 +1,13 @@
 """Mixed Datasets Metric."""
 
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import torch
 from torcheval.metrics.functional import binary_auprc
 
 from quanda.metrics.base import Metric
 from quanda.utils.common import (
+    CheckpointLoadFunc,
     chunked_logits,
     get_targets,
     move_ds_item_to_device,
@@ -47,7 +48,7 @@ class MixedDatasetsMetric(Metric):
         train_dataset: torch.utils.data.Dataset,
         adversarial_indices: Union[List[int], torch.Tensor],
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         filter_by_prediction: bool = False,
         adversarial_label: Optional[int] = None,
         inference_batch_size: Optional[int] = None,
@@ -68,7 +69,7 @@ class MixedDatasetsMetric(Metric):
             `train_dataset`.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
         filter_by_prediction: bool, optional

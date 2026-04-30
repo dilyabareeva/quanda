@@ -6,7 +6,6 @@ import warnings
 from importlib.util import find_spec
 from typing import (
     Any,
-    Callable,
     List,
     Literal,
     Optional,
@@ -29,7 +28,7 @@ from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
-from quanda.utils.common import ds_len, process_targets
+from quanda.utils.common import CheckpointLoadFunc, ds_len, process_targets
 from quanda.utils.datasets.dataset_handlers import (
     HuggingFaceDatasetHandler,
     HuggingFaceSequenceDatasetHandler,
@@ -88,7 +87,7 @@ class TRAK(Explainer):
         model_id: str,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         cache_dir: str = "./cache",
         projector: TRAKProjectorLiteral = "basic",
         proj_dim: int = 2048,
@@ -113,7 +112,7 @@ class TRAK(Explainer):
         checkpoints : Optional[Union[str, List[str]]], optional
             Ignored. Accepted for API consistency with other
             explainers.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Ignored, for the same reason as ``checkpoints``.
             Defaults to None.
         cache_dir : str
@@ -148,6 +147,15 @@ class TRAK(Explainer):
 
         """
         logging.info("Initializing TRAK explainer...")
+
+        if checkpoints is not None or checkpoints_load_func is not None:
+            warnings.warn(
+                "TRAK ignores `checkpoints` and `checkpoints_load_func`: "
+                "featurization runs against `model.state_dict()` only. Pass "
+                "a model whose weights are already loaded.",
+                UserWarning,
+                stacklevel=2,
+            )
 
         super(TRAK, self).__init__(
             model=model,
@@ -306,7 +314,7 @@ def trak_explain(
     train_dataset: torch.utils.data.Dataset,
     explanation_targets: Union[List[int], torch.Tensor],
     checkpoints: Optional[Union[str, List[str]]] = None,
-    checkpoints_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     cache_dir: str = "./cache",
     **kwargs: Any,
 ) -> torch.Tensor:
@@ -327,7 +335,7 @@ def trak_explain(
     checkpoints : Optional[Union[str, List[str]]], optional
         Ignored. Accepted for API consistency with other
         explainers.
-    checkpoints_load_func : Optional[Callable[..., Any]], optional
+    checkpoints_load_func : Optional[CheckpointLoadFunc], optional
         Ignored, for the same reason as ``checkpoints``.
         Defaults to None.
     cache_dir : Optional[str], optional
@@ -360,7 +368,7 @@ def trak_self_influence(
     model_id: str,
     train_dataset: torch.utils.data.Dataset,
     checkpoints: Optional[Union[str, List[str]]] = None,
-    checkpoints_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     cache_dir: str = "./cache",
     batch_size: int = 32,
     **kwargs: Any,
@@ -377,7 +385,7 @@ def trak_self_influence(
         The training dataset used to train the model.
     checkpoints : Optional[Union[str, List[str]]], optional
         Ignored. Accepted for API consistency with other explainers .
-    checkpoints_load_func : Optional[Callable[..., Any]], optional
+    checkpoints_load_func : Optional[CheckpointLoadFunc], optional
         Ignored, for the same reason as ``checkpoints``. Defaults to None.
     cache_dir : Optional[str]
         The directory to use for caching.

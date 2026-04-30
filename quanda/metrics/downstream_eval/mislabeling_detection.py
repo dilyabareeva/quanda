@@ -1,12 +1,12 @@
 """Mislabeling Detection Metric."""
 
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import torch
 
 from quanda.explainers.global_ranking import SelfInfluenceRanking
 from quanda.metrics.base import Metric
-from quanda.utils.common import ds_len
+from quanda.utils.common import CheckpointLoadFunc, ds_len
 
 
 class MislabelingDetectionMetric(Metric):
@@ -49,7 +49,7 @@ class MislabelingDetectionMetric(Metric):
         explainer_cls: Optional[type] = None,
         expl_kwargs: Optional[dict] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         precomputed_self_influence: Optional[torch.Tensor] = None,
     ):
         """Initialize the Mislabeling Detection metric.
@@ -68,7 +68,7 @@ class MislabelingDetectionMetric(Metric):
             A list of ground truth mislabeled indices of the `train_dataset`.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
         explainer_cls : type

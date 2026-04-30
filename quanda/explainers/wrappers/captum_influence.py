@@ -30,6 +30,7 @@ from quanda.explainers.utils import (
     self_influence_fn_from_explainer,
 )
 from quanda.utils.common import (
+    CheckpointLoadFunc,
     default_tensor_type,
     ds_len,
     map_location_context,
@@ -55,7 +56,7 @@ class CaptumInfluence(Explainer, ABC):
         explain_kwargs: Any,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     ):
         """Initialize the base `CaptumInfluence` wrapper.
 
@@ -75,7 +76,7 @@ class CaptumInfluence(Explainer, ABC):
             "causal_lm".
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
 
@@ -197,7 +198,7 @@ class CaptumSimilarity(CaptumInfluence):
         layers: Union[str, List[str]],
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         cache_dir: str = "./cache",
         similarity_metric: Callable = cosine_similarity,
         similarity_direction: str = "max",
@@ -441,7 +442,7 @@ def captum_similarity_explain(
     train_dataset: torch.utils.data.Dataset,
     cache_dir: str = "./cache",
     checkpoints: Optional[Union[str, List[str]]] = None,
-    checkpoints_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """Functional interface for the `CaptumSimilarity` explainer.
@@ -565,7 +566,7 @@ class CaptumArnoldi(CaptumInfluence):
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(
             reduction="none"
         ),
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layers: Optional[List[str]] = None,
         batch_size: int = 1,
         hessian_dataset: Optional[torch.utils.data.Dataset] = None,
@@ -749,7 +750,7 @@ def captum_arnoldi_explain(
     test_data: torch.Tensor,
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: torch.utils.data.Dataset,
-    checkpoints_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """Functional interface for the `CaptumArnoldi` explainer.
@@ -796,7 +797,7 @@ def captum_arnoldi_self_influence(
     model: torch.nn.Module,
     checkpoints: Union[str, List[str]],
     train_dataset: torch.utils.data.Dataset,
-    checkpoints_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """Functional `CaptumArnoldi` explainer.
@@ -857,7 +858,7 @@ class CaptumTracInCP(CaptumInfluence):
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str]],
         task: TaskLiterals = "image_classification",
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layers: Optional[List[str]] = None,
         loss_fn: Optional[
             Union[torch.nn.Module, Callable]
@@ -1003,7 +1004,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str]],
         task: TaskLiterals = "image_classification",
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         loss_fn: Optional[
             Union[torch.nn.Module, Callable]
         ] = torch.nn.CrossEntropyLoss(reduction="sum"),
@@ -1029,7 +1030,7 @@ class CaptumTracInCPFast(CaptumInfluence):
         task: TaskLiterals, optional
             Task type of the model. Defaults to "image_classification".
             Possible options: "image_classification".
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load checkpoints. If None, a default function is used.
         loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
             Loss function used for influence computation. Defaults to
@@ -1142,7 +1143,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Union[str, List[str]],
         task: TaskLiterals = "image_classification",
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         loss_fn: Union[torch.nn.Module, Callable] = torch.nn.CrossEntropyLoss(
             reduction="sum"
         ),
@@ -1171,7 +1172,7 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         task: TaskLiterals, optional
             Task type of the model. Defaults to "image_classification".
             Possible options: "image_classification".
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load checkpoints. If None, a default function is used.
         loss_fn : Union[torch.nn.Module, Callable], optional
             Loss function used for influence computation. Defaults to `

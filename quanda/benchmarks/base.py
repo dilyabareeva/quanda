@@ -5,7 +5,7 @@ import json
 import os
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Union
+from typing import List, Optional, Union
 
 import datasets  # type: ignore
 import lightning as L

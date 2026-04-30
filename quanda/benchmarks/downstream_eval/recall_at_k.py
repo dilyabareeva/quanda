@@ -1,7 +1,7 @@
 """Recall@k benchmark."""
 
 import logging
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import datasets  # type: ignore
 import torch
@@ -10,6 +10,7 @@ from quanda.benchmarks.downstream_eval._fact_tracing import (
     FactTracingBenchmark,
 )
 from quanda.metrics.downstream_eval.recall_at_k import RecallAtKMetric
+from quanda.utils.common import CheckpointLoadFunc
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class RecallAtK(FactTracingBenchmark):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: List[str],
-        checkpoints_load_func: Callable[..., Any],
+        checkpoints_load_func: CheckpointLoadFunc,
         device: str = "cpu",
         val_dataset: Optional[
             Union[torch.utils.data.Dataset, datasets.Dataset]

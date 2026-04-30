@@ -6,7 +6,7 @@ skeleton — into a single class so the concrete benchmarks only need
 to declare their metric and metric-specific kwargs.
 """
 
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import datasets  # type: ignore
 import torch
@@ -19,7 +19,7 @@ from quanda.benchmarks.config_parser import (
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.cache import BatchedCachedExplanations
-from quanda.utils.common import _subsample_indices, ds_len
+from quanda.utils.common import CheckpointLoadFunc, _subsample_indices, ds_len
 
 
 class FactTracingBenchmark(Benchmark):
@@ -42,7 +42,7 @@ class FactTracingBenchmark(Benchmark):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: List[str],
-        checkpoints_load_func: Callable[..., Any],
+        checkpoints_load_func: CheckpointLoadFunc,
         device: str = "cpu",
         val_dataset: Optional[
             Union[torch.utils.data.Dataset, datasets.Dataset]

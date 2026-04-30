@@ -1,12 +1,16 @@
 """Base class for metrics."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import datasets  # type: ignore
 import torch
 
-from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
+from quanda.utils.common import (
+    CheckpointLoadFunc,
+    get_load_state_dict_func,
+    load_last_checkpoint,
+)
 
 
 class Metric(ABC):
@@ -17,7 +21,7 @@ class Metric(ABC):
         model: torch.nn.Module,
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     ):
         """Initialize metric.
 
@@ -29,7 +33,7 @@ class Metric(ABC):
             Training dataset to be used for the influence computation.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
 
@@ -88,8 +92,14 @@ class Metric(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def compute(self) -> Any:
+    def compute(self) -> Dict[str, Any]:
         """Compute the metric score.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Dictionary keyed by metric output names. All quanda metrics
+            return a ``"score"`` entry; some return additional fields.
 
         Raises
         ------
