@@ -6,6 +6,7 @@ import yaml
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+import quanda
 from quanda.benchmarks.downstream_eval import (
     MislabelingDetection,
     SubclassDetection,
@@ -63,7 +64,7 @@ def test_quickstart(
     # END2
 
     # START2_2
-    trak_explainer = TRAK(
+    trak_explainer = quanda.TRAK(
         model=model,
         train_dataset=dataset,
         model_id="trak_model_id",
@@ -96,7 +97,7 @@ def test_quickstart(
     # END3
 
     # START3_2
-    class_detection = ClassDetectionMetric(
+    class_detection = quanda.ClassDetectionMetric(
         model=model,
         train_dataset=dataset,
     )
