@@ -15,25 +15,63 @@ from matplotlib import rcParams
 
 METHOD_COLORS = {
     "representer_points": "#EB9C38",
-    "arnoldi":            "#83BA59",
-    "tracincpfast":       "#EA4E38",
-    "trak":               "#7D53BA",
-    "similarity":         "#3B8FB5",
-    "random":             "#90918B",
-    "kronfluence":        "#83BA59",
-    "kronfluence_gpt2":   "#83BA59",
-    "dattri_arnoldi":     "#5BA88A",
-    "dattri_tracin":      "#EA4E38",
-    "dattri_ekfac":       "#D94F8A",
-    "dattri_graddot":     "#D94F8A",
-    "dattri_gradcos":     "#F2C14E",
-    "dattri_trak":        "#7D53BA",
-    "dattri_if_explicit": "#EB9C38",
-    "dattri_if_cg":       "#B26E1D",
-    "dattri_if_lissa":    "#C28F4A",
-    "dattri_if_datainf":  "#A04060",
+    "arnoldi": "#E41517",
+    "tracincpfast": "#7EAF6E",
+    "trak": "#7D53BA",
+    "similarity": "#6F97B1",
+    "random": "#90918B",
+    "kronfluence": "#FDAEB9",
+    "kronfluence_gpt2": "#FDAEB9",
+    "dattri_trak": "#7D53BA",
+    "dattri_if_datainf": "#204541",
 }
 _FALLBACK_COLOR = "#90918B"
+
+METHOD_LABELS = {
+    "representer_points": "ReprPoints",
+    "arnoldi": "ArnoldiInf",
+    "tracincpfast": "TracInCP",
+    "trak": "TRAK-1",
+    "similarity": "Similarity",
+    "random": "Random",
+    "kronfluence": "Kronfluence",
+    "kronfluence_gpt2": "Kronfluence",
+    "dattri_trak": "TRAK-1",
+    "dattri_if_datainf": "DataInf",
+}
+
+BENCH_LABEL_SUFFIXES = {
+    "class_detection": "Class\nDetection",
+    "subclass_detection": "Subclass\nDetection",
+    "mislabeling_detection": "Mislabeling\nDetection",
+    "shortcut_detection": "Shortcut\nDetection",
+    "mixed_datasets": "Mixed Dataset\nSeparation",
+    "top_k_cardinality": "Top-K\nCardinality",
+    "model_randomization": "Model\nRandomization",
+    "linear_datamodeling": "LDS",
+}
+
+BENCH_ORDER = (
+    "class_detection",
+    "subclass_detection",
+    "mislabeling_detection",
+    "shortcut_detection",
+    "mixed_datasets",
+    "top_k_cardinality",
+    "linear_datamodeling",
+    "model_randomization",
+    "mrr",
+    "recall_at_k",
+    "tail_patch",
+)
+
+
+def _bench_rank(bench_id: str) -> int:
+    for i, suffix in enumerate(BENCH_ORDER):
+        if bench_id == suffix or bench_id.endswith("_" + suffix):
+            return i
+    return len(BENCH_ORDER)
+
 
 MIN_ABS_BENCH_SUBSTRINGS = ("model_randomization",)
 SIDE_PANEL_BENCH_SUBSTRINGS = (
@@ -116,9 +154,7 @@ def load_scores(
     ].drop(columns="__rank")
     bars_df = best.pivot(index="method", columns="bench", values="score")
     ci_low_df = best.pivot(index="method", columns="bench", values="ci_low")
-    ci_high_df = best.pivot(
-        index="method", columns="bench", values="ci_high"
-    )
+    ci_high_df = best.pivot(index="method", columns="bench", values="ci_high")
     return bars_df, ci_low_df, ci_high_df, random_stats
 
 
@@ -134,7 +170,7 @@ def _discover(results_dir: str) -> tuple[list[str], list[str]]:
     return sorted(methods), sorted(benches)
 
 
-def main():
+def _parse_args() -> argparse.Namespace:
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "--results-dir",
@@ -157,39 +193,59 @@ def main():
         "--out",
         default=os.path.join(os.path.dirname(__file__), "bar_rank.png"),
     )
-    args = ap.parse_args()
+    return ap.parse_args()
 
-    if args.config:
-        with open(args.config) as f:
-            text = re.sub(r"(?m)^\s*//.*$|//[^\n\"]*$", "", f.read())
-        cfg = json.loads(text)
-    else:
-        cfg = {}
 
+def _load_config(path: str | None) -> dict:
+    if not path:
+        return {}
+    with open(path) as f:
+        text = re.sub(r"(?m)^\s*//.*$|//[^\n\"]*$", "", f.read())
+    return json.loads(text)
+
+
+def _resolve_methods_benches(
+    cfg: dict, results_dir: str
+) -> tuple[list[str], list[str]]:
     methods = cfg.get("methods")
     benches = cfg.get("benches")
     if methods is None or benches is None:
-        disc_methods, disc_benches = _discover(args.results_dir)
+        disc_methods, disc_benches = _discover(results_dir)
         methods = methods or disc_methods
         benches = benches or disc_benches
+    return methods, sorted(benches, key=_bench_rank)
 
-    setting = _detect_setting(benches)
-    if setting:
-        out_dir = os.path.dirname(args.out)
-        out_base, out_ext = os.path.splitext(os.path.basename(args.out))
-        if setting not in out_base:
-            args.out = os.path.join(out_dir, f"{out_base}_{setting}{out_ext}")
 
-    bar_methods = [m for m in methods if m != "random"]
+def _apply_setting_to_outpath(out: str, setting: str | None) -> str:
+    if not setting:
+        return out
+    out_dir = os.path.dirname(out)
+    out_base, out_ext = os.path.splitext(os.path.basename(out))
+    if setting in out_base:
+        return out
+    return os.path.join(out_dir, f"{out_base}_{setting}{out_ext}")
 
-    method_labels = cfg.get("method_labels", {})
-    bench_labels = cfg.get("bench_labels", {})
-    colors = [METHOD_COLORS.get(m, _FALLBACK_COLOR) for m in bar_methods]
-    random_color = METHOD_COLORS.get("random", _FALLBACK_COLOR)
 
-    df, ci_low_df, ci_high_df, random_stats = load_scores(
-        args.results_dir, methods, benches
-    )
+def _default_bench_labels(
+    setting: str | None, benches: list[str]
+) -> dict[str, str]:
+    if not setting:
+        return {}
+    out = {}
+    for b in benches:
+        suffix = b[len(setting) + 1 :] if b.startswith(setting + "_") else b
+        if suffix in BENCH_LABEL_SUFFIXES:
+            out[b] = BENCH_LABEL_SUFFIXES[suffix]
+    return out
+
+
+def _warn_missing_ci(
+    df: pd.DataFrame,
+    ci_low_df: pd.DataFrame,
+    ci_high_df: pd.DataFrame,
+    benches: list[str],
+    bar_methods: list[str],
+) -> None:
     for b in benches:
         if _ci_exempt(b) or b not in ci_low_df.columns:
             continue
@@ -198,23 +254,194 @@ def main():
                 continue
             if pd.isna(df.loc[m, b]):
                 continue
-            if pd.isna(ci_low_df.loc[m, b]) and pd.isna(
-                ci_high_df.loc[m, b]
-            ):
+            if pd.isna(ci_low_df.loc[m, b]) and pd.isna(ci_high_df.loc[m, b]):
                 print(
                     f"warning: benchmark {b!r} is missing error bars "
                     f"for explainer {m!r}"
                 )
+
+
+def _draw_bench_bars(
+    ax,
+    df: pd.DataFrame,
+    ci_low_df: pd.DataFrame,
+    ci_high_df: pd.DataFrame,
+    random_stats: pd.DataFrame,
+    metric: str,
+    bench_id: str,
+    is_min_abs: bool,
+    group_start_px: float,
+    bar_px: int,
+    inner_pad_px: int,
+    group_w_px: float,
+    colors: list[str],
+    random_color: str,
+) -> float:
+    values = df[metric].values
+    valid = ~np.isnan(values)
+    if is_min_abs:
+        # Closest-to-zero first.
+        sorted_idx = np.argsort(np.abs(values[valid]))
+    else:
+        sorted_idx = np.argsort(values[valid])[::-1]
+    sorted_values = values[valid][sorted_idx]
+    orig_idx = np.flatnonzero(valid)[sorted_idx]
+    n_bars = len(sorted_values)
+
+    x_positions = (
+        group_start_px
+        + bar_px / 2
+        + np.arange(n_bars) * (bar_px + inner_pad_px)
+    )
+    ax.bar(
+        x_positions,
+        sorted_values,
+        width=bar_px,
+        color=[colors[i % len(colors)] for i in orig_idx],
+        edgecolor="none",
+        label=metric,
+    )
+
+    lows = ci_low_df[metric].values[orig_idx]
+    highs = ci_high_df[metric].values[orig_idx]
+    err_mask = ~np.isnan(lows) & ~np.isnan(highs)
+    if err_mask.any():
+        yerr = np.vstack(
+            [
+                np.maximum(sorted_values[err_mask] - lows[err_mask], 0),
+                np.maximum(highs[err_mask] - sorted_values[err_mask], 0),
+            ]
+        )
+        ax.errorbar(
+            x_positions[err_mask],
+            sorted_values[err_mask],
+            yerr=yerr,
+            fmt="none",
+            ecolor="black",
+            elinewidth=0.4,
+            capsize=1,
+            capthick=0.4,
+            zorder=5,
+        )
+
+    if bench_id in random_stats.index:
+        mu = random_stats.loc[bench_id, "mean"]
+        sd = random_stats.loc[bench_id, "std"]
+        line_x = (group_start_px, group_start_px + group_w_px)
+        ax.hlines(
+            mu,
+            *line_x,
+            colors=random_color,
+            linewidth=0.5,
+            linestyles="solid",
+            zorder=4,
+        )
+        if not pd.isna(sd):
+            ax.hlines(
+                [mu - sd, mu + sd],
+                *line_x,
+                colors=random_color,
+                linewidth=0.5,
+                linestyles="dashed",
+                zorder=4,
+            )
+
+    return group_start_px + group_w_px / 2
+
+
+def _style_panel(
+    ax,
+    panel_w: float,
+    xtick_positions: list[float],
+    xtick_labels: list[str],
+    tick_fontsize_pt: int,
+) -> None:
+    ax.set_xlim(0, panel_w)
+    ax.set_facecolor("#FFFFFF")
+    ax.yaxis.grid(
+        True,
+        linewidth=0.3,
+        zorder=0,
+        color="gray",
+        linestyle="dashed",
+    )
+    ax.set_axisbelow(True)
+    ax.set_xticks(xtick_positions)
+    ax.set_xticklabels(
+        xtick_labels,
+        rotation=0,
+        ha="center",
+        fontsize=tick_fontsize_pt,
+    )
+    ax.xaxis.tick_top()
+    ax.xaxis.set_label_position("top")
+    ax.tick_params(axis="x", pad=1, size=0, width=0.5)
+    ax.tick_params(
+        axis="y",
+        labelsize=tick_fontsize_pt,
+        pad=1,
+        size=3,
+        width=0.5,
+    )
+    for spine in ax.spines.values():
+        spine.set_linewidth(0.3)
+        spine.set_color("black")
+
+
+def _append_random_rows(
+    df: pd.DataFrame,
+    random_stats: pd.DataFrame,
+    benches: list[str],
+    bench_labels: dict[str, str],
+    method_labels: dict[str, str],
+) -> pd.DataFrame:
+    if random_stats.empty:
+        return df
+    random_label = method_labels.get("random", "random")
+    for stat in ("mean", "std"):
+        row = {"explainer": f"{random_label} ({stat})"}
+        for b in benches:
+            row[bench_labels.get(b, b)] = (
+                random_stats.loc[b, stat]
+                if b in random_stats.index
+                else np.nan
+            )
+        df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+    return df
+
+
+def main():
+    args = _parse_args()
+    cfg = _load_config(args.config)
+    methods, benches = _resolve_methods_benches(cfg, args.results_dir)
+
+    setting = _detect_setting(benches)
+    args.out = _apply_setting_to_outpath(args.out, setting)
+
+    bar_methods = [m for m in methods if m != "random"]
+
+    method_labels = {**METHOD_LABELS, **cfg.get("method_labels", {})}
+    bench_labels = {
+        **_default_bench_labels(setting, benches),
+        **cfg.get("bench_labels", {}),
+    }
+    colors = [METHOD_COLORS.get(m, _FALLBACK_COLOR) for m in bar_methods]
+    random_color = METHOD_COLORS.get("random", _FALLBACK_COLOR)
+
+    df, ci_low_df, ci_high_df, random_stats = load_scores(
+        args.results_dir, methods, benches
+    )
+    _warn_missing_ci(df, ci_low_df, ci_high_df, benches, bar_methods)
     rename_idx = {m: method_labels.get(m, m) for m in bar_methods}
     rename_cols = {b: bench_labels.get(b, b) for b in benches}
     df = df.reindex(index=bar_methods, columns=benches)
     df = df.rename(index=rename_idx, columns=rename_cols)
-    ci_low_df = ci_low_df.reindex(
-        index=bar_methods, columns=benches
-    ).rename(index=rename_idx, columns=rename_cols)
-    ci_high_df = ci_high_df.reindex(
-        index=bar_methods, columns=benches
-    ).rename(index=rename_idx, columns=rename_cols)
+    ci_low_df = ci_low_df.reindex(index=bar_methods, columns=benches).rename(
+        index=rename_idx, columns=rename_cols
+    )
+    ci_high_df = ci_high_df.reindex(index=bar_methods, columns=benches).rename(
+        index=rename_idx, columns=rename_cols
+    )
     df.index.name = "explainer"
     df.reset_index(inplace=True)
     ci_low_df = ci_low_df.reset_index(drop=True)
@@ -224,8 +451,6 @@ def main():
         (b, bench_labels.get(b, b), _is_min_abs(b)) for b in benches
     ]
     metric_pairs = [p for p in metric_pairs if not df[p[1]].isna().all()]
-    metrics = [p[1] for p in metric_pairs]
-    metric_is_min_abs = [p[2] for p in metric_pairs]
 
     rcParams["font.family"] = "DejaVu Sans"
     rcParams["font.weight"] = "normal"
@@ -292,114 +517,29 @@ def main():
         x_off_px += panel_w + panel_gap_px
 
     for ax, group, panel_w in zip(axes, groups, panels_px):
-        g_bench_ids = [p[0] for p in group]
         g_metrics = [p[1] for p in group]
-        g_min_abs = [p[2] for p in group]
         xtick_positions = []
-
-        for j, metric in enumerate(g_metrics):
-            values = df[metric].values
-            valid = ~np.isnan(values)
-            if g_min_abs[j]:
-                # Closest-to-zero first.
-                sorted_idx = np.argsort(np.abs(values[valid]))
-            else:
-                sorted_idx = np.argsort(values[valid])[::-1]
-            sorted_values = values[valid][sorted_idx]
-            orig_idx = np.flatnonzero(valid)[sorted_idx]
-            n_bars = len(sorted_values)
-
+        for j, (bench_id, metric, is_min_abs) in enumerate(group):
             group_start_px = axes_pad_px + j * (group_w_px + group_gap_px)
-            x_positions = (
-                group_start_px
-                + bar_px / 2
-                + np.arange(n_bars) * (bar_px + inner_pad_px)
+            xtick_positions.append(
+                _draw_bench_bars(
+                    ax,
+                    df,
+                    ci_low_df,
+                    ci_high_df,
+                    random_stats,
+                    metric,
+                    bench_id,
+                    is_min_abs,
+                    group_start_px,
+                    bar_px,
+                    inner_pad_px,
+                    group_w_px,
+                    colors,
+                    random_color,
+                )
             )
-            xtick_positions.append(group_start_px + group_w_px / 2)
-            ax.bar(
-                x_positions,
-                sorted_values,
-                width=bar_px,
-                color=[colors[i % len(colors)] for i in orig_idx],
-                edgecolor="none",
-                label=metric,
-            )
-
-            lows = ci_low_df[metric].values[orig_idx]
-            highs = ci_high_df[metric].values[orig_idx]
-            err_mask = ~np.isnan(lows) & ~np.isnan(highs)
-            if err_mask.any():
-                yerr = np.vstack(
-                    [
-                        np.maximum(sorted_values[err_mask] - lows[err_mask], 0),
-                        np.maximum(highs[err_mask] - sorted_values[err_mask], 0),
-                    ]
-                )
-                ax.errorbar(
-                    x_positions[err_mask],
-                    sorted_values[err_mask],
-                    yerr=yerr,
-                    fmt="none",
-                    ecolor="black",
-                    elinewidth=0.4,
-                    capsize=1,
-                    capthick=0.4,
-                    zorder=5,
-                )
-
-            bench_id = g_bench_ids[j]
-            if bench_id in random_stats.index:
-                mu = random_stats.loc[bench_id, "mean"]
-                sd = random_stats.loc[bench_id, "std"]
-                line_x = (group_start_px, group_start_px + group_w_px)
-                ax.hlines(
-                    mu,
-                    *line_x,
-                    colors=random_color,
-                    linewidth=0.5,
-                    linestyles="solid",
-                    zorder=4,
-                )
-                if not pd.isna(sd):
-                    ax.hlines(
-                        [mu - sd, mu + sd],
-                        *line_x,
-                        colors=random_color,
-                        linewidth=0.5,
-                        linestyles="dashed",
-                        zorder=4,
-                    )
-
-        ax.set_xlim(0, panel_w)
-        ax.set_facecolor("#FFFFFF")
-        ax.yaxis.grid(
-            True,
-            linewidth=0.3,
-            zorder=0,
-            color="gray",
-            linestyle="dashed",
-        )
-        ax.set_axisbelow(True)
-        ax.set_xticks(xtick_positions)
-        ax.set_xticklabels(
-            g_metrics,
-            rotation=0,
-            ha="center",
-            fontsize=tick_fontsize_pt,
-        )
-        ax.xaxis.tick_top()
-        ax.xaxis.set_label_position("top")
-        ax.tick_params(axis="x", pad=1, size=0, width=0.5)
-        ax.tick_params(
-            axis="y",
-            labelsize=tick_fontsize_pt,
-            pad=1,
-            size=3,
-            width=0.5,
-        )
-        for spine in ax.spines.values():
-            spine.set_linewidth(0.3)
-            spine.set_color("black")
+        _style_panel(ax, panel_w, xtick_positions, g_metrics, tick_fontsize_pt)
 
     axes[0].set_ylabel("Metric score", fontsize=tick_fontsize_pt)
 
@@ -417,17 +557,9 @@ def main():
         os.path.dirname(args.out) or ".",
         os.path.splitext(os.path.basename(args.out))[0] + ".csv",
     )
-    if not random_stats.empty:
-        random_label = method_labels.get("random", "random")
-        for stat in ("mean", "std"):
-            row = {"explainer": f"{random_label} ({stat})"}
-            for b in benches:
-                row[bench_labels.get(b, b)] = (
-                    random_stats.loc[b, stat]
-                    if b in random_stats.index
-                    else np.nan
-                )
-            df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
+    df = _append_random_rows(
+        df, random_stats, benches, bench_labels, method_labels
+    )
     df.to_csv(csv_path, index=False)
     print(f"wrote {csv_path}")
 

@@ -11,16 +11,9 @@
     "gpt2_trex_openwebtext_ft_recall_at_k",
     "gpt2_trex_openwebtext_ft_tail_patch"
   ],
-  "method_labels": {
-    "kronfluence_gpt2": "Kronfluence",
-    "dattri_trak": "TRAK-1",
-    "dattri_if_datainf": "DataInf",
-    "similarity": "Similarity",
-    "random": "Random"
-  },
   "bench_labels": {
     "gpt2_trex_openwebtext_ft_mrr": "MRR",
-    "gpt2_trex_openwebtext_ft_recall_at_k": "Recall@K",
+    "gpt2_trex_openwebtext_ft_recall_at_k": "Recall@3",
     "gpt2_trex_openwebtext_ft_tail_patch": "Tail\nPatch"
   }
 }

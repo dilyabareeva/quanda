@@ -14,23 +14,7 @@
     "qnli_model_randomization",
     "qnli_mixed_datasets"
   ],
-  "method_labels": {
-    "kronfluence": "Kronfluence",
-    "dattri_ekfac": "EK-FAC",
-    "dattri_tracin": "TracIn",
-    "dattri_graddot": "GradDot",
-    "dattri_gradcos": "GradCos",
-    "trak": "TRAK-1",
-    "similarity": "Similarity",
-    "representer_points": "Representer\nPoints",
-    "random": "Random"
-  },
   "bench_labels": {
-    "qnli_class_detection": "Class\nDetection",
-    "qnli_mislabeling_detection": "Mislabeling\nDetection",
-    "qnli_top_k_cardinality": "Top-K\nCardinality",
-    "qnli_linear_datamodeling": "LDS",
-    "qnli_model_randomization": "Model\nRandomization",
     "qnli_mixed_datasets": "Mixed\nDatasets"
   }
 }
