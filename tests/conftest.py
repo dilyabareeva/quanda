@@ -373,11 +373,6 @@ def load_fashion_mnist_to_mnist_transform():
 
 
 @pytest.fixture
-def load_fashion_mnist_path():
-    return "tests/assets/fashion_mnist_examples"
-
-
-@pytest.fixture
 def mnist_white_square_transformation():
     def add_white_square(img):
         img[:, 8:13, 10:15] = (
