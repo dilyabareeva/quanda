@@ -4,7 +4,12 @@ import datasets as hf_datasets
 import pytest
 import torch
 
-from quanda.utils.tokenization import tokenize_dataset, _TikTokenHFAdapter, resolve_tokenizer
+from quanda.utils.tokenization import (
+    _TikTokenHFAdapter,
+    resolve_tokenizer,
+    tokenize_dataset,
+)
+
 
 @pytest.mark.utils
 @pytest.mark.parametrize(

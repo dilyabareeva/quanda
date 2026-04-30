@@ -2,7 +2,10 @@ import pytest
 import torch
 from torch.utils.data import TensorDataset
 
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import (
+    DatasetConfigParser,
+    MetadataConfigParser,
+)
 from quanda.utils.datasets.transformed import LabelFlippingDataset
 from quanda.utils.datasets.transformed.metadata import (
     ClassMapping,
@@ -31,7 +34,7 @@ def test_label_flipping_metadata(
 ):
     config = request.getfixturevalue(config)
 
-    metadata_dir = BenchConfigParser.get_metadata_dir(
+    metadata_dir = MetadataConfigParser.get_metadata_dir(
         cfg=config, bench_save_dir=config.get("bench_save_dir", "./tmp")
     )
 
@@ -40,12 +43,12 @@ def test_label_flipping_metadata(
         seed=config["train_dataset"]["wrapper"]["metadata"]["seed"],
     )
 
-    base_dataset = BenchConfigParser._parse_hf_dataset(
+    base_dataset = DatasetConfigParser._parse_hf_dataset(
         dataset=config["train_dataset"]["dataset_str"],
         transform=None,
         dataset_split=config["train_dataset"]["dataset_split"],
     )
-    base_dataset = BenchConfigParser._apply_indices(
+    base_dataset = DatasetConfigParser._apply_indices(
         base_dataset,
         config["train_dataset"],
         metadata_dir,

@@ -9,8 +9,10 @@ import torch
 
 from quanda.benchmarks import config_parser as cp_module
 from quanda.benchmarks.config_parser import (
-    BenchConfigParser,
+    DatasetConfigParser,
     FactTracingConfigParser,
+    MetadataConfigParser,
+    ModelConfigParser,
 )
 
 
@@ -36,7 +38,7 @@ def test_load_ckpt_from_hf(
 
     rand_input = torch.rand(1, *input_shape)
 
-    model, ckpt, load_fn = BenchConfigParser.parse_model_cfg(
+    model, ckpt, load_fn = ModelConfigParser.parse_model_cfg(
         config["model"],
         str(tmp_path),
         [config["ckpt"]],
@@ -46,7 +48,7 @@ def test_load_ckpt_from_hf(
     load_fn(model, ckpt[-1])
     out_offline = model(rand_input).mean().item()
 
-    model, ckpt, load_fn = BenchConfigParser.parse_model_cfg(
+    model, ckpt, load_fn = ModelConfigParser.parse_model_cfg(
         config["model"],
         str(tmp_path),
         [config["ckpt"]],
@@ -64,7 +66,7 @@ def test_load_metadata_offline_missing_dir_raises(tmp_path):
     """offline=True with a missing metadata dir must raise FileNotFoundError."""
     missing_dir = str(tmp_path / "does_not_exist")
     with pytest.raises(FileNotFoundError, match="Metadata directory"):
-        BenchConfigParser.load_metadata(
+        MetadataConfigParser.load_metadata(
             cfg={"id": "x", "repo_id": "y"},
             metadata_dir=missing_dir,
             offline=True,
@@ -78,7 +80,7 @@ def test_parse_model_cfg_offline_missing_ckpt_raises(
     """offline=True with no local checkpoint must raise FileNotFoundError."""
     config = load_mnist_unit_test_config_hf
 
-    _, ckpt_ids, load_fn = BenchConfigParser.parse_model_cfg(
+    _, ckpt_ids, load_fn = ModelConfigParser.parse_model_cfg(
         model_cfg=config["model"],
         bench_save_dir=str(tmp_path),
         ckpts=[config["ckpt"]],
@@ -97,7 +99,7 @@ def test_parse_model_cfg_load_state_dict_failure_raises(
     """Corrupt local checkpoint must surface as a ValueError."""
     config = load_mnist_unit_test_config_hf
 
-    model, ckpt_ids, load_fn = BenchConfigParser.parse_model_cfg(
+    model, ckpt_ids, load_fn = ModelConfigParser.parse_model_cfg(
         model_cfg=config["model"],
         bench_save_dir=str(tmp_path),
         ckpts=[config["ckpt"]],
@@ -121,7 +123,7 @@ def test_load_dataset_from_cfg_false_single_class_raises(tmp_path):
     with pytest.raises(
         ValueError, match="Dataset configuration not recognized"
     ):
-        BenchConfigParser._load_dataset_from_cfg(
+        DatasetConfigParser._load_dataset_from_cfg(
             ds_config=ds_config,
             metadata_dir=str(tmp_path),
         )
@@ -133,7 +135,7 @@ def test_apply_indices_with_hf_dataset(tmp_path):
     hf_ds = hf_datasets.Dataset.from_dict(
         {"x": [0, 1, 2, 3, 4], "label": [0, 1, 0, 1, 0]}
     )
-    result = BenchConfigParser._apply_indices(
+    result = DatasetConfigParser._apply_indices(
         base_dataset=hf_ds,
         ds_config={},
         metadata_dir=str(tmp_path),
@@ -159,14 +161,14 @@ def test_apply_indices_with_hf_dataset(tmp_path):
 def test_resolve_split_recipe_raises(test_id, ref, splits_cfg, exc, match):
     """_resolve_split_recipe rejects missing refs and incomplete recipes."""
     with pytest.raises(exc, match=match):
-        BenchConfigParser._resolve_split_recipe(ref, splits_cfg)
+        DatasetConfigParser._resolve_split_recipe(ref, splits_cfg)
 
 
 @pytest.mark.utils
 def test_resolve_split_recipe_returns_copy():
     """A fully-formed recipe is returned (as a deepcopy)."""
     recipe = {"filename": "x.yaml", "ratios": {"train": 0.9, "test": 0.1}}
-    result = BenchConfigParser._resolve_split_recipe(
+    result = DatasetConfigParser._resolve_split_recipe(
         "mnist_train", {"mnist_train": recipe}
     )
     assert result == recipe
@@ -194,7 +196,7 @@ def test_apply_wrapper_missing_metadata_raises(
     }
 
     with pytest.raises(FileNotFoundError, match="Wrapper metadata"):
-        BenchConfigParser._apply_wrapper(
+        DatasetConfigParser._apply_wrapper(
             dataset=dummy_ds,
             ds_config=ds_cfg,
             wrapper_cfg=wrapper_cfg,
@@ -209,7 +211,7 @@ def test_load_pretrained_base_returns_none_when_key_absent():
     must short-circuit to ``None`` so train paths keep the empty-architecture
     model produced by ``parse_model_cfg``."""
     cfg = {"module": {"name": "MnistTorch", "args": {}}}
-    assert BenchConfigParser.load_pretrained_base(cfg, device="cpu") is None
+    assert ModelConfigParser.load_pretrained_base(cfg, device="cpu") is None
 
 
 @pytest.mark.utils
@@ -235,7 +237,7 @@ def test_load_pretrained_base_invokes_from_pretrained_base(monkeypatch):
         "num_labels": 3,
         "module": {"name": "FakeForPretrained", "args": {}},
     }
-    model = BenchConfigParser.load_pretrained_base(cfg, device="cpu")
+    model = ModelConfigParser.load_pretrained_base(cfg, device="cpu")
     assert isinstance(model, _FakeModule)
     assert calls["name"] == "fake/base"
     assert calls["num_labels"] == 3
@@ -257,7 +259,7 @@ def test_parse_model_cfg_rejects_non_module_instance(monkeypatch, tmp_path):
         "trainer": {"lr": 0.01},
     }
     with pytest.raises(ValueError, match="did not return a"):
-        BenchConfigParser.parse_model_cfg(
+        ModelConfigParser.parse_model_cfg(
             model_cfg=cfg,
             bench_save_dir=str(tmp_path),
             ckpts=["repo/any"],

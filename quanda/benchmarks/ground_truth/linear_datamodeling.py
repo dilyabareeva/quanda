@@ -13,7 +13,11 @@ import torch
 import yaml
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import (
+    MetadataConfigParser,
+    ModelConfigParser,
+    TrainerConfigParser,
+)
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
@@ -258,7 +262,7 @@ class LinearDatamodeling(Benchmark):
         if skip_subsets or cls._lds_skip_subsets:
             return obj
 
-        trainer = BenchConfigParser.parse_trainer_cfg(
+        trainer = TrainerConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
         )
 
@@ -316,13 +320,13 @@ class LinearDatamodeling(Benchmark):
         if not isinstance(obj, LinearDatamodeling):
             raise TypeError("Expected a LinearDatamodeling instance.")
 
-        pretrained_base = BenchConfigParser.load_pretrained_base(
+        pretrained_base = ModelConfigParser.load_pretrained_base(
             model_cfg=config["model"], device=device
         )
         if pretrained_base is not None:
             obj.model = pretrained_base
 
-        trainer = BenchConfigParser.parse_trainer_cfg(
+        trainer = TrainerConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
         )
         local_ckpt_dir, repo_id = _subset_ckpt_paths(config, idx)
@@ -349,7 +353,7 @@ class LinearDatamodeling(Benchmark):
         """
         from huggingface_hub import HfApi  # local import; optional dep path
 
-        metadata_dir = BenchConfigParser.get_metadata_dir(
+        metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=config["bench_save_dir"]
         )
         meta_id = config.get(
@@ -414,7 +418,7 @@ class LinearDatamodeling(Benchmark):
             raise ValueError(
                 "Either ‘trainer’ or ‘model.trainer’ should be set."
             )
-        counterfactual_trainer = BenchConfigParser.parse_trainer_cfg(
+        counterfactual_trainer = TrainerConfigParser.parse_trainer_cfg(
             counterfactual_trainer_cfg
         )
 

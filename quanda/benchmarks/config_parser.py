@@ -1,4 +1,4 @@
-"""Configuration parser for benchmarks."""
+"""Configuration parsers for benchmarks."""
 
 import copy
 import os
@@ -24,8 +24,8 @@ from quanda.utils.training import Trainer
 from quanda.utils.training.options import criteria, optimizers, schedulers
 
 
-class BenchConfigParser:
-    """Parser for benchmark configurations."""
+class MetadataConfigParser:
+    """Parser for benchmark metadata directories and HF metadata snapshots."""
 
     @classmethod
     def get_metadata_dir(
@@ -82,6 +82,10 @@ class BenchConfigParser:
             force_download=load_fresh,
         )
 
+
+class DatasetConfigParser:
+    """Parser for dataset configurations and split registries."""
+
     @classmethod
     def parse_dataset_cfg(
         cls,
@@ -123,183 +127,59 @@ class BenchConfigParser:
         return dataset
 
     @classmethod
-    def parse_model_cfg(
+    def split_dataset(
         cls,
-        model_cfg: dict,
-        bench_save_dir: str,
-        ckpts: List[str],
-        offline: bool,
-        device: str,
-        load_fresh: bool = False,
-    ) -> Tuple[torch.nn.Module, List[str], Callable]:
-        """Parse model configuration and return the model and checkpoints.
+        dataset: torch.utils.data.Dataset,
+        ds_config: dict,
+        metadata_dir: str,
+        load_meta_from_disk: bool = True,
+        splits_cfg: Optional[dict] = None,
+    ):
+        """Split the dataset using the given parameters.
 
         Parameters
         ----------
-        model_cfg : dict
-            Model configuration dictionary
-        bench_save_dir : str
-            Path to checkpoint directory "ckpt".
-        ckpts: List[str]
-            File names of checkpoints.
-        offline : bool
-            If True, no HTTP request is issued to the Hub; the model is
-            loaded from the local cache or an error is raised.
-        device : str
-            Device to use for the model.
-        load_fresh : bool, optional
-            If True, force re-download from the Hub, overwriting the local
-            cache. Incompatible with ``offline=True``.
+        dataset: torch.utils.data.Dataset
+            The dataset to be split.
+        ds_config: dict
+            The dataset configuration dictionary.
+        metadata_dir: str
+            Directory to store the metadata.
+        load_meta_from_disk: bool
+            Whether to load metadata from disk.
+        splits_cfg: Optional[dict]
+            Top-level splits registry (name -> recipe).
 
         Returns
         -------
-        Tuple[torch.nn.Module, List[str]]
-            The configured model and list of checkpoints
+        Dict[str, Optional[torch.utils.data.Dataset]]
+            The ``train``, ``val``, ``test`` datasets (``None`` when empty).
 
         """
-        module_cfg = model_cfg["module"]
-        module_cls = pl_modules[module_cfg["name"]]
-        module = module_cls(**module_cfg["args"])
+        split_ref = ds_config.get("split_ref")
+        if split_ref is None:
+            return {"train": dataset, "val": None, "test": None}
 
-        if not isinstance(module, torch.nn.Module):
-            raise ValueError(
-                f"Model class {module_cls} did not return a "
-                f"torch.nn.Module instance."
+        recipe = cls._resolve_split_recipe(split_ref, splits_cfg or {})
+        splits = cls._load_split_if_exists_or_generate(
+            dataset,
+            load_meta_from_disk,
+            metadata_dir,
+            recipe["filename"],
+            split_ratios=recipe["ratios"],
+        ).splits
+
+        is_hf = isinstance(dataset, hf_datasets.Dataset)
+        return {
+            k: (
+                dataset.select(splits[k])  # type: ignore[attr-defined]
+                if is_hf
+                else torch.utils.data.Subset(dataset, splits[k])
             )
-
-        checkpoint_path = os.path.join(bench_save_dir, "ckpt")
-        ckpt_ids = [f"{ckpt}" for ckpt in ckpts]
-
-        if not hasattr(module_cls, "from_pretrained"):
-            raise ValueError(f"Model class {module_cls} is not HF compatible.")
-
-        def load_state_dict(model: torch.nn.Module, ckpt_str: str):
-            """Materialize ``ckpt_str`` on demand and load it into ``model``.
-
-            Checkpoints are fetched lazily: per-epoch revisions
-            (``<repo>@epoch_<i>``) are only downloaded the first time a
-            metric actually needs them.
-
-            - ``offline=True``: no HTTP; the local directory must already
-              exist or a ``FileNotFoundError`` is raised.
-            - ``offline=False, load_fresh=False``: reuse the local cache
-              if present; otherwise download.
-            - ``offline=False, load_fresh=True``: force re-download,
-              overwriting the local cache.
-            """
-            # Support `<repo>@<revision>` syntax used to address per-epoch
-            # snapshots pushed by `train_and_push_to_hub`.
-            if "@" in ckpt_str:
-                repo_str, revision = ckpt_str.rsplit("@", 1)
-            else:
-                repo_str, revision = ckpt_str, None
-            ckpt = repo_str.split("/")[-1]
-            local_dir_name = ckpt if revision is None else f"{ckpt}@{revision}"
-            ckpt_dir = os.path.join(checkpoint_path, local_dir_name)
-            has_local = os.path.exists(os.path.join(ckpt_dir, "config.json"))
-
-            if offline:
-                if not has_local:
-                    raise FileNotFoundError(
-                        f"Checkpoint directory {ckpt_dir} is empty while "
-                        f"offline=True. Run once with offline=False to "
-                        f"populate the cache."
-                    )
-            elif not has_local or load_fresh:
-                os.makedirs(ckpt_dir, exist_ok=True)
-                snapshot_download(
-                    repo_id=repo_str,
-                    revision=revision,
-                    local_dir=ckpt_dir,
-                    force_download=load_fresh,
-                )
-
-            try:
-                pretrained_model = module_cls.from_pretrained(
-                    pretrained_model_name_or_path=ckpt_dir,
-                    local_files_only=True,
-                )
-                if not isinstance(pretrained_model, torch.nn.Module):
-                    raise ValueError(
-                        f"Model class {module_cls} did not return a "
-                        f"torch.nn.Module instance when loading from "
-                        f"{ckpt_dir}."
-                    )
-            except Exception as e:
-                raise ValueError(f"Error loading model from {ckpt_dir}: {e}")
-            model.load_state_dict(pretrained_model.state_dict())
-            model.to(device)
-            return model_cfg.get("trainer", {}).get("lr")
-
-        return module, ckpt_ids, load_state_dict
-
-    @classmethod
-    def load_pretrained_base(
-        cls, model_cfg: dict, device: str
-    ) -> Optional[torch.nn.Module]:
-        """Build a module with HF-pretrained base weights if requested.
-
-        Returns ``None`` unless ``model_cfg['pretrained_model_name']`` is
-        set, so the train paths can replace the empty-architecture model
-        produced by :meth:`parse_model_cfg` only when fine-tuning from a
-        HF base model.
-        """
-        pretrained_model_name = model_cfg.get("pretrained_model_name")
-        if pretrained_model_name is None:
-            return None
-        module_cfg = model_cfg["module"]
-        module_cls = pl_modules[module_cfg["name"]]
-        model = module_cls.from_pretrained_base(  # type: ignore[attr-defined]
-            pretrained_model_name=pretrained_model_name,
-            num_labels=model_cfg.get("num_labels", 2),
-        )
-        model.to(device)
-        return model
-
-    @classmethod
-    def parse_trainer_cfg(cls, trainer_cfg: dict) -> Trainer:
-        """Parse trainer configuration.
-
-        Parameters
-        ----------
-        trainer_cfg : dict
-            Trainer configuration dictionary
-
-        Returns
-        -------
-        Dict[str, Any]
-            Dictionary containing trainer configuration
-
-        """
-        # Get optimizer
-        optimizer = optimizers[trainer_cfg["optimizer"]]
-
-        # Get criterion
-        criterion = criteria[trainer_cfg["criterion"]]()
-
-        # Get scheduler if specified
-        scheduler = None
-        if trainer_cfg.get("scheduler"):
-            scheduler = schedulers[trainer_cfg["scheduler"]]
-
-        # Extract other parameters
-        trainer_kwargs = {
-            "optimizer": optimizer,
-            "lr": trainer_cfg["lr"],
-            "max_epochs": trainer_cfg["max_epochs"],
-            "criterion": criterion,
-            "scheduler": scheduler,
-            "optimizer_kwargs": trainer_cfg.get("optimizer_kwargs", {}),
-            "scheduler_kwargs": trainer_cfg.get("scheduler_kwargs", {}),
-            "seed": trainer_cfg.get("seed", 42),
-            "num_workers": trainer_cfg.get("num_workers", 0),
-            "enable_progress_bar": trainer_cfg.get(
-                "enable_progress_bar", True
-            ),
-            "gradient_clip_val": trainer_cfg.get("gradient_clip_val", None),
+            if len(splits[k]) > 0
+            else None
+            for k in splits.keys()
         }
-
-        return Trainer(**trainer_kwargs)
 
     @classmethod
     def _load_dataset_from_cfg(
@@ -617,60 +497,196 @@ class BenchConfigParser:
         else:
             return dataset
 
+
+class ModelConfigParser:
+    """Parser for model configurations and checkpoint loading."""
+
     @classmethod
-    def split_dataset(
+    def parse_model_cfg(
         cls,
-        dataset: torch.utils.data.Dataset,
-        ds_config: dict,
-        metadata_dir: str,
-        load_meta_from_disk: bool = True,
-        splits_cfg: Optional[dict] = None,
-    ):
-        """Split the dataset using the given parameters.
+        model_cfg: dict,
+        bench_save_dir: str,
+        ckpts: List[str],
+        offline: bool,
+        device: str,
+        load_fresh: bool = False,
+    ) -> Tuple[torch.nn.Module, List[str], Callable]:
+        """Parse model configuration and return the model and checkpoints.
 
         Parameters
         ----------
-        dataset: torch.utils.data.Dataset
-            The dataset to be split.
-        ds_config: dict
-            The dataset configuration dictionary.
-        metadata_dir: str
-            Directory to store the metadata.
-        load_meta_from_disk: bool
-            Whether to load metadata from disk.
-        splits_cfg: Optional[dict]
-            Top-level splits registry (name -> recipe).
+        model_cfg : dict
+            Model configuration dictionary
+        bench_save_dir : str
+            Path to checkpoint directory "ckpt".
+        ckpts: List[str]
+            File names of checkpoints.
+        offline : bool
+            If True, no HTTP request is issued to the Hub; the model is
+            loaded from the local cache or an error is raised.
+        device : str
+            Device to use for the model.
+        load_fresh : bool, optional
+            If True, force re-download from the Hub, overwriting the local
+            cache. Incompatible with ``offline=True``.
 
         Returns
         -------
-        Dict[str, Optional[torch.utils.data.Dataset]]
-            The ``train``, ``val``, ``test`` datasets (``None`` when empty).
+        Tuple[torch.nn.Module, List[str]]
+            The configured model and list of checkpoints
 
         """
-        split_ref = ds_config.get("split_ref")
-        if split_ref is None:
-            return {"train": dataset, "val": None, "test": None}
+        module_cfg = model_cfg["module"]
+        module_cls = pl_modules[module_cfg["name"]]
+        module = module_cls(**module_cfg["args"])
 
-        recipe = cls._resolve_split_recipe(split_ref, splits_cfg or {})
-        splits = cls._load_split_if_exists_or_generate(
-            dataset,
-            load_meta_from_disk,
-            metadata_dir,
-            recipe["filename"],
-            split_ratios=recipe["ratios"],
-        ).splits
-
-        is_hf = isinstance(dataset, hf_datasets.Dataset)
-        return {
-            k: (
-                dataset.select(splits[k])  # type: ignore[attr-defined]
-                if is_hf
-                else torch.utils.data.Subset(dataset, splits[k])
+        if not isinstance(module, torch.nn.Module):
+            raise ValueError(
+                f"Model class {module_cls} did not return a "
+                f"torch.nn.Module instance."
             )
-            if len(splits[k]) > 0
-            else None
-            for k in splits.keys()
+
+        checkpoint_path = os.path.join(bench_save_dir, "ckpt")
+        ckpt_ids = [f"{ckpt}" for ckpt in ckpts]
+
+        if not hasattr(module_cls, "from_pretrained"):
+            raise ValueError(f"Model class {module_cls} is not HF compatible.")
+
+        def load_state_dict(model: torch.nn.Module, ckpt_str: str):
+            """Materialize ``ckpt_str`` on demand and load it into ``model``.
+
+            Checkpoints are fetched lazily: per-epoch revisions
+            (``<repo>@epoch_<i>``) are only downloaded the first time a
+            metric actually needs them.
+
+            - ``offline=True``: no HTTP; the local directory must already
+              exist or a ``FileNotFoundError`` is raised.
+            - ``offline=False, load_fresh=False``: reuse the local cache
+              if present; otherwise download.
+            - ``offline=False, load_fresh=True``: force re-download,
+              overwriting the local cache.
+            """
+            # Support `<repo>@<revision>` syntax used to address per-epoch
+            # snapshots pushed by `train_and_push_to_hub`.
+            if "@" in ckpt_str:
+                repo_str, revision = ckpt_str.rsplit("@", 1)
+            else:
+                repo_str, revision = ckpt_str, None
+            ckpt = repo_str.split("/")[-1]
+            local_dir_name = ckpt if revision is None else f"{ckpt}@{revision}"
+            ckpt_dir = os.path.join(checkpoint_path, local_dir_name)
+            has_local = os.path.exists(os.path.join(ckpt_dir, "config.json"))
+
+            if offline:
+                if not has_local:
+                    raise FileNotFoundError(
+                        f"Checkpoint directory {ckpt_dir} is empty while "
+                        f"offline=True. Run once with offline=False to "
+                        f"populate the cache."
+                    )
+            elif not has_local or load_fresh:
+                os.makedirs(ckpt_dir, exist_ok=True)
+                snapshot_download(
+                    repo_id=repo_str,
+                    revision=revision,
+                    local_dir=ckpt_dir,
+                    force_download=load_fresh,
+                )
+
+            try:
+                pretrained_model = module_cls.from_pretrained(
+                    pretrained_model_name_or_path=ckpt_dir,
+                    local_files_only=True,
+                )
+                if not isinstance(pretrained_model, torch.nn.Module):
+                    raise ValueError(
+                        f"Model class {module_cls} did not return a "
+                        f"torch.nn.Module instance when loading from "
+                        f"{ckpt_dir}."
+                    )
+            except Exception as e:
+                raise ValueError(f"Error loading model from {ckpt_dir}: {e}")
+            model.load_state_dict(pretrained_model.state_dict())
+            model.to(device)
+            return model_cfg.get("trainer", {}).get("lr")
+
+        return module, ckpt_ids, load_state_dict
+
+    @classmethod
+    def load_pretrained_base(
+        cls, model_cfg: dict, device: str
+    ) -> Optional[torch.nn.Module]:
+        """Build a module with HF-pretrained base weights if requested.
+
+        Returns ``None`` unless ``model_cfg['pretrained_model_name']`` is
+        set, so the train paths can replace the empty-architecture model
+        produced by :meth:`parse_model_cfg` only when fine-tuning from a
+        HF base model.
+        """
+        pretrained_model_name = model_cfg.get("pretrained_model_name")
+        if pretrained_model_name is None:
+            return None
+        module_cfg = model_cfg["module"]
+        module_cls = pl_modules[module_cfg["name"]]
+        model = module_cls.from_pretrained_base(  # type: ignore[attr-defined]
+            pretrained_model_name=pretrained_model_name,
+            num_labels=model_cfg.get("num_labels", 2),
+        )
+        model.to(device)
+        return model
+
+
+class TrainerConfigParser:
+    """Parser for trainer configurations."""
+
+    @classmethod
+    def parse_trainer_cfg(cls, trainer_cfg: dict) -> Trainer:
+        """Parse trainer configuration.
+
+        Parameters
+        ----------
+        trainer_cfg : dict
+            Trainer configuration dictionary
+
+        Returns
+        -------
+        Dict[str, Any]
+            Dictionary containing trainer configuration
+
+        """
+        # Get optimizer
+        optimizer = optimizers[trainer_cfg["optimizer"]]
+
+        # Get criterion
+        criterion = criteria[trainer_cfg["criterion"]]()
+
+        # Get scheduler if specified
+        scheduler = None
+        if trainer_cfg.get("scheduler"):
+            scheduler = schedulers[trainer_cfg["scheduler"]]
+
+        # Extract other parameters
+        trainer_kwargs = {
+            "optimizer": optimizer,
+            "lr": trainer_cfg["lr"],
+            "max_epochs": trainer_cfg["max_epochs"],
+            "criterion": criterion,
+            "scheduler": scheduler,
+            "optimizer_kwargs": trainer_cfg.get("optimizer_kwargs", {}),
+            "scheduler_kwargs": trainer_cfg.get("scheduler_kwargs", {}),
+            "seed": trainer_cfg.get("seed", 42),
+            "num_workers": trainer_cfg.get("num_workers", 0),
+            "enable_progress_bar": trainer_cfg.get(
+                "enable_progress_bar", True
+            ),
+            "gradient_clip_val": trainer_cfg.get("gradient_clip_val", None),
         }
+
+        return Trainer(**trainer_kwargs)
+
+
+class LoggerConfigParser:
+    """Parser for logger configurations."""
 
     @classmethod
     def parse_logger(cls, cfg):

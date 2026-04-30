@@ -4,7 +4,10 @@ import pytest
 import torch
 import yaml
 
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import (
+    DatasetConfigParser,
+    MetadataConfigParser,
+)
 from quanda.benchmarks.heuristics.mixed_datasets import MixedDatasets
 from quanda.benchmarks.resources import config_map
 
@@ -29,7 +32,7 @@ def test_train_dataset_indexing_is_correct(config_name, tmp_path):
     with open(bench_yaml, "r") as f:
         cfg = yaml.safe_load(f)
 
-    metadata_dir = BenchConfigParser.get_metadata_dir(
+    metadata_dir = MetadataConfigParser.get_metadata_dir(
         cfg=cfg,
         bench_save_dir=cfg.get("bench_save_dir", "./tmp"),
     )
@@ -41,12 +44,12 @@ def test_train_dataset_indexing_is_correct(config_name, tmp_path):
     )
 
     splits_cfg = cfg.get("splits", {})
-    full_adv_dataset = BenchConfigParser.parse_dataset_cfg(
+    full_adv_dataset = DatasetConfigParser.parse_dataset_cfg(
         ds_config=cfg["adv_dataset"],
         metadata_dir=metadata_dir,
         splits_cfg=splits_cfg,
     )
-    split_datasets = BenchConfigParser.split_dataset(
+    split_datasets = DatasetConfigParser.split_dataset(
         dataset=full_adv_dataset,
         ds_config=cfg["adv_dataset"],
         metadata_dir=metadata_dir,

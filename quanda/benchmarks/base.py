@@ -20,7 +20,12 @@ from huggingface_hub import (
 )
 from tqdm import tqdm
 
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import (
+    DatasetConfigParser,
+    MetadataConfigParser,
+    ModelConfigParser,
+    TrainerConfigParser,
+)
 from quanda.benchmarks.resources.config_map import config_map
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
@@ -78,8 +83,7 @@ def default_explanations_id(
     as the identity segment so multiple benchmarks that share the same
     model + train/eval datasets (e.g. qnli ClassDetection and LDS) can
     reuse a single cached explanations artifact. Only opt in when the
-    grouped benchmarks truly share those inputs — a mismatch will be
-    silent.
+    grouped benchmarks truly share those inputs.
     """
     repo = config.get("repo_id", "quanda-bench-test")
     group = config.get("explanations_group", config["id"])
@@ -199,10 +203,10 @@ class Benchmark(ABC):
 
         cfg["bench_save_dir"] = cache_dir
 
-        metadata_dir = BenchConfigParser.get_metadata_dir(
+        metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=cfg, bench_save_dir=cache_dir
         )
-        BenchConfigParser.load_metadata(
+        MetadataConfigParser.load_metadata(
             cfg,
             metadata_dir,
             offline=offline,
@@ -234,26 +238,26 @@ class Benchmark(ABC):
                 "offline=True and load_fresh=True are incompatible."
             )
         cache_dir = config.get("bench_save_dir", "./tmp")
-        metadata_dir = BenchConfigParser.get_metadata_dir(
+        metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config,
             bench_save_dir=cache_dir,
             suffix=metadata_suffix,
         )
         splits_cfg = config.get("splits", {})
-        train_dataset = BenchConfigParser.parse_dataset_cfg(
+        train_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
             splits_cfg=splits_cfg,
         )
 
-        val_dataset = BenchConfigParser.parse_dataset_cfg(
+        val_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
             splits_cfg=splits_cfg,
         )
-        eval_dataset = BenchConfigParser.parse_dataset_cfg(
+        eval_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
@@ -261,7 +265,7 @@ class Benchmark(ABC):
         )
 
         model, checkpoints, checkpoints_load_func = (
-            BenchConfigParser.parse_model_cfg(
+            ModelConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
                 ckpts=_resolve_ckpts(config),
@@ -368,14 +372,14 @@ class Benchmark(ABC):
         )
         obj._pid_suffix = pid_suffix
 
-        pretrained_base = BenchConfigParser.load_pretrained_base(
+        pretrained_base = ModelConfigParser.load_pretrained_base(
             model_cfg=config["model"], device=device
         )
         if pretrained_base is not None:
             obj.model = pretrained_base
 
         # Parse trainer configuration
-        trainer = BenchConfigParser.parse_trainer_cfg(
+        trainer = TrainerConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
         )
         if logger is not None:
@@ -522,7 +526,7 @@ class Benchmark(ABC):
                 )
 
         pid_suffix = getattr(obj, "_pid_suffix", "")
-        metadata_dir = BenchConfigParser.get_metadata_dir(
+        metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config,
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
             suffix=pid_suffix,
@@ -667,7 +671,7 @@ class Benchmark(ABC):
         """
         cache_dir = config.get("bench_save_dir", "./tmp")
         pid_suffix = getattr(self, "_pid_suffix", "")
-        metadata_dir = BenchConfigParser.get_metadata_dir(
+        metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config,
             bench_save_dir=cache_dir,
             suffix=pid_suffix,

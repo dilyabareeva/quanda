@@ -9,7 +9,10 @@ import torch
 import yaml
 from omegaconf import OmegaConf
 
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import (
+    LoggerConfigParser,
+    MetadataConfigParser,
+)
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
     MislabelingDetection,
@@ -824,7 +827,7 @@ def test_train_from_config(
         config["log_dir"] = os.path.join(str(tmp_path), "logs")
         config["logger"] = logger_cfg
         config = OmegaConf.create(config)
-        logger = BenchConfigParser.parse_logger(config)
+        logger = LoggerConfigParser.parse_logger(config)
 
     dst_eval = bench_cls.train(
         config=config,
@@ -907,7 +910,7 @@ def test_save_filtered_indices(
     bench._compute_and_save_indices(config, batch_size=8)
 
     split_filename = config["eval_dataset"]["filter_indices"]["split_filename"]
-    metadata_dir = BenchConfigParser.get_metadata_dir(
+    metadata_dir = MetadataConfigParser.get_metadata_dir(
         cfg=config,
         bench_save_dir=str(tmp_path),
     )
@@ -937,7 +940,7 @@ def test_filter_by_prediction_branches(
     )
 
     split_filename = config["eval_dataset"]["filter_indices"]["split_filename"]
-    metadata_dir = BenchConfigParser.get_metadata_dir(
+    metadata_dir = MetadataConfigParser.get_metadata_dir(
         cfg=config,
         bench_save_dir=str(tmp_path),
     )
@@ -1086,7 +1089,7 @@ def test_logger(
 
     # to hydra object
 
-    logger = BenchConfigParser.parse_logger(config)
+    logger = LoggerConfigParser.parse_logger(config)
     logger.log_metrics({"test": 1})
 
 

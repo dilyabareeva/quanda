@@ -13,8 +13,8 @@ import torch
 
 from quanda.benchmarks.base import Benchmark, _resolve_ckpts
 from quanda.benchmarks.config_parser import (
-    BenchConfigParser,
     FactTracingConfigParser,
+    ModelConfigParser,
 )
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
@@ -83,7 +83,7 @@ class FactTracingBenchmark(Benchmark):
         :func:`load_fact_tracing_datasets_from_cfg` (which bypasses the
         generic dataset parser because one HF dataset fans out into
         both splits) and the model via the standard
-        :class:`BenchConfigParser` path.
+        :class:`ModelConfigParser` path.
         """
         if offline and load_fresh:
             raise ValueError(
@@ -97,7 +97,7 @@ class FactTracingBenchmark(Benchmark):
         )
 
         model, checkpoints, checkpoints_load_func = (
-            BenchConfigParser.parse_model_cfg(
+            ModelConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config.get("bench_save_dir", "./tmp"),
                 ckpts=_resolve_ckpts(config),
