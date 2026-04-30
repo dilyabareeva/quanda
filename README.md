@@ -11,7 +11,7 @@
 </p>
 
 
-![py_versions](https://img.shields.io/pypi/pyversions/quanda?color=3A76A8)
+![py_versions](https://img.shields.io/badge/python-3.10%20%7C%203.11-3A76A8)
 ![PyPI - Version](https://img.shields.io/pypi/v/quanda?color=EB9C38)
 ![mypy](https://img.shields.io/badge/mypy-checked-7EAF6E)
 ![ruff](https://img.shields.io/badge/ruff-checked-7D53BA)
