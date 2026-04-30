@@ -66,6 +66,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 | TRAK                        | [TRAK](https://github.com/MadryLab/trak)                                          | [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)             |
 | Representer Point Selection | [Representer Point Selection](https://github.com/chihkuanyeh/Representer_Point_Selection)                 | [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html) |
 | Kronfluence                 | [Kronfluence](https://github.com/pomonam/kronfluence)                                                      | [Grosse et al., 2023](https://arxiv.org/abs/2308.03296)                                                             |
+| Dattri (Influence Functions: Explicit / CG / LiSSA / DataInf, Arnoldi, EK-FAC, TracInCP, Grad-Dot, Grad-Cos, TRAK) | [Dattri](https://github.com/TRAIS-Lab/dattri) | [Deng et al., 2024](https://arxiv.org/abs/2410.04555)                                                          |
 
 
 ### Metrics
@@ -80,9 +81,15 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 
 - **Mislabeled Data Detection** ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html)): Computes the proportion of noisy training labels detected as a function of the percentage of inspected training samples. The samples are inspected in order according to their global TDA ranking, which is computed using local attributions. This produces a cumulative mislabeling detection curve. We expect to see a curve that rapidly increases as we check more of the training data, thus we compute the area under this curve
 
-- **Shortcut Detection** ([Yolcu et al., 2024](https://arxiv.org/abs/2402.12118)): Assuming a known [shortcut](https://www.nature.com/articles/s42256-020-00257-z), or [Clever-Hans](https://www.nature.com/articles/s41467-019-08987-4) effect has been identified in the model, this metric evaluates how effectively a TDA method can identify shortcut samples as the most influential in predicting cases with the shortcut artifact. This process is referred to as _Domain Mismatch Debugging_ in the original paper.
+- **Shortcut Detection** ([Yolcu et al., 2024](https://proceedings.mlr.press/v70/koh17a/koh17a.pdf)): Assuming a known [shortcut](https://www.nature.com/articles/s42256-020-00257-z), or [Clever-Hans](https://www.nature.com/articles/s41467-019-08987-4) effect has been identified in the model, this metric evaluates how effectively a TDA method can identify shortcut samples as the most influential in predicting cases with the shortcut artifact. This process is referred to as _Domain Mismatch Debugging_ in the original paper.
 
 - **Mixed Datasets** ([Hammoudeh and Lowd, 2022](https://dl.acm.org/doi/abs/10.1145/3548606.3559335)): In a setting where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example.
+
+- **Mean Reciprocal Rank (MRR)** ([Chang et al., 2024](https://aclanthology.org/2022.findings-emnlp.180)): For fact-tracing settings, measures the mean reciprocal rank of the highest-ranked entailing proponent across fact queries.
+
+- **Recall@k** ([Chang et al., 2024](https://aclanthology.org/2022.findings-emnlp.180)): For fact-tracing settings, measures the proportion of facts for which an entailing proponent appears in the top-k retrievals.
+
+- **Tail Patch** ([Chang et al., 2024](https://openreview.net/forum?id=gLa96FlWwn)): For fact-tracing settings, measures the incremental change in target-sequence probability after taking a single training step on retrieved proponents.
 
 <details>
   <summary><b><big>Metric interpretation guideline</big></b></summary>
@@ -117,45 +124,94 @@ Although there are various demonstrations of TDA’s potential for interpretabil
   </thead>
   <tbody>
     <tr>
-      <td><a href="quanda/metrics/heuristics/top_k_cardinality.py">TopKCardinalityMetric</a></td>
-      <td>Heuristic</td>
-      <td rowspan="8">Vision</td>
-      <td>mnist_top_k_cardinality (MNIST / LeNet), cifar_top_k_cardinality (CIFAR-10 / ResNet-9)</td>
+      <td rowspan="2"><a href="quanda/metrics/heuristics/top_k_cardinality.py">TopKCardinalityMetric</a></td>
+      <td rowspan="2">Heuristic</td>
+      <td>Vision</td>
+      <td>mnist_top_k_cardinality (MNIST / LeNet), cifar_top_k_cardinality (CIFAR-10 / ResNet-9), awa2_top_k_cardinality (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
-      <td><a href="quanda/metrics/heuristics/model_randomization.py">ModelRandomizationMetric</a></td>
-      <td>Heuristic</td>
-      <td>cifar_model_randomization (CIFAR-10 / ResNet-9)</td>
+      <td>Text</td>
+      <td>qnli_top_k_cardinality (QNLI / BERT)</td>
     </tr>
     <tr>
-      <td><a href="quanda/metrics/heuristics/mixed_datasets.py">MixedDatasetsMetric</a></td>
-      <td>Heuristic</td>
-      <td>mnist_mixed_datasets (MNIST / LeNet), cifar_mixed_datasets (CIFAR-10 / ResNet-9)</td>
+      <td rowspan="2"><a href="quanda/metrics/heuristics/model_randomization.py">ModelRandomizationMetric</a></td>
+      <td rowspan="2">Heuristic</td>
+      <td>Vision</td>
+      <td>mnist_model_randomization (MNIST / LeNet), cifar_model_randomization (CIFAR-10 / ResNet-9), awa2_model_randomization (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
-      <td><a href="quanda/metrics/downstream_eval/class_detection.py">ClassDetectionMetric</a></td>
-      <td>Downstream-Task-Evaluator</td>
-      <td>mnist_class_detection (MNIST / LeNet), cifar_class_detection (CIFAR-10 / ResNet-9)</td>
+      <td>Text</td>
+      <td>qnli_model_randomization (QNLI / BERT)</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><a href="quanda/metrics/heuristics/mixed_datasets.py">MixedDatasetsMetric</a></td>
+      <td rowspan="2">Heuristic</td>
+      <td>Vision</td>
+      <td>mnist_mixed_datasets (MNIST / LeNet), cifar_mixed_datasets (CIFAR-10 / ResNet-9), awa2_mixed_datasets (AWA2 / ResNet-50)</td>
+    </tr>
+    <tr>
+      <td>Text</td>
+      <td>qnli_mixed_datasets (QNLI / BERT)</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><a href="quanda/metrics/downstream_eval/class_detection.py">ClassDetectionMetric</a></td>
+      <td rowspan="2">Downstream-Task-Evaluator</td>
+      <td>Vision</td>
+      <td>mnist_class_detection (MNIST / LeNet), cifar_class_detection (CIFAR-10 / ResNet-9), awa2_class_detection (AWA2 / ResNet-50)</td>
+    </tr>
+    <tr>
+      <td>Text</td>
+      <td>qnli_class_detection (QNLI / BERT)</td>
     </tr>
     <tr>
       <td><a href="quanda/metrics/downstream_eval/subclass_detection.py">SubclassDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
-      <td>mnist_subclass_detection (MNIST / LeNet), cifar_subclass_detection (CIFAR-10 / ResNet-9)</td>
+      <td>Vision</td>
+      <td>mnist_subclass_detection (MNIST / LeNet), cifar_subclass_detection (CIFAR-10 / ResNet-9), awa2_subclass_detection (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
-      <td><a href="quanda/metrics/downstream_eval/mislabeling_detection.py">MislabelingDetectionMetric</a></td>
-      <td>Downstream-Task-Evaluator</td>
-      <td>mnist_mislabeling_detection (MNIST / LeNet), cifar_mislabeling_detection (CIFAR-10 / ResNet-9)</td>
+      <td rowspan="2"><a href="quanda/metrics/downstream_eval/mislabeling_detection.py">MislabelingDetectionMetric</a></td>
+      <td rowspan="2">Downstream-Task-Evaluator</td>
+      <td>Vision</td>
+      <td>mnist_mislabeling_detection (MNIST / LeNet), cifar_mislabeling_detection (CIFAR-10 / ResNet-9), awa2_mislabeling_detection (AWA2 / ResNet-50)</td>
+    </tr>
+    <tr>
+      <td>Text</td>
+      <td>qnli_mislabeling_detection (QNLI / BERT)</td>
     </tr>
     <tr>
       <td><a href="quanda/metrics/downstream_eval/shortcut_detection.py">ShortcutDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
-      <td>mnist_shortcut_detection (MNIST / LeNet), cifar_shortcut_detection (CIFAR-10 / ResNet-9)</td>
+      <td>Vision</td>
+      <td>mnist_shortcut_detection (MNIST / LeNet), cifar_shortcut_detection (CIFAR-10 / ResNet-9), awa2_shortcut_detection (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
-      <td><a href="quanda/metrics/ground_truth/linear_datamodeling.py">LinearDatamodelingMetric</a></td>
-      <td>Ground Truth</td>
-      <td>mnist_linear_datamodeling_score (MNIST / LeNet), cifar_linear_datamodeling (CIFAR-10 / ResNet-9)</td>
+      <td><a href="quanda/metrics/downstream_eval/mrr.py">MRRMetric</a></td>
+      <td>Downstream-Task-Evaluator</td>
+      <td>Causal LM</td>
+      <td>gpt2_trex_openwebtext_ft_mrr (T-REx / GPT-2 fine-tuned on OpenWebText)</td>
+    </tr>
+    <tr>
+      <td><a href="quanda/metrics/downstream_eval/recall_at_k.py">RecallAtKMetric</a></td>
+      <td>Downstream-Task-Evaluator</td>
+      <td>Causal LM</td>
+      <td>gpt2_trex_openwebtext_ft_recall_at_k (T-REx / GPT-2 fine-tuned on OpenWebText)</td>
+    </tr>
+    <tr>
+      <td><a href="quanda/metrics/downstream_eval/tail_patch.py">TailPatchMetric</a></td>
+      <td>Downstream-Task-Evaluator</td>
+      <td>Causal LM</td>
+      <td>gpt2_trex_openwebtext_ft_tail_patch (T-REx / GPT-2 fine-tuned on OpenWebText)</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><a href="quanda/metrics/ground_truth/linear_datamodeling.py">LinearDatamodelingMetric</a></td>
+      <td rowspan="2">Ground Truth</td>
+      <td>Vision</td>
+      <td>mnist_linear_datamodeling (MNIST / LeNet), cifar_linear_datamodeling (CIFAR-10 / ResNet-9), awa2_linear_datamodeling (AWA2 / ResNet-50)</td>
+    </tr>
+    <tr>
+      <td>Text</td>
+      <td>qnli_linear_datamodeling (QNLI / BERT)</td>
     </tr>
   </tbody>
 </table>
@@ -468,11 +524,11 @@ For detailed examples, we refer to the [existing](quanda/explainers/wrappers/cap
 
 - **Controlled Setting Evaluation**: Many metrics require access to ground truth labels for datasets, such as the indices of the "shortcut samples" in the Shortcut Detection metric, or the mislabeling (noisy) label indices for the Mislabeling Detection Metric. However, users often may not have access to these labels. To address this, we recommend either using one of our pre-built benchmark suites (see [Benchmarks](#benchmarks) section) or generating (`train` method) a custom benchmark for comparing explainers. Benchmarks provide a controlled environment for systematic evaluation.
 
-- **Explainer Caching**: Many explainers in our library generate re-usable cache. The `cache_id` and `model_id` parameters passed to various class instances are used to store these intermediary results. Ensure each experiment is assigned a unique combination of these arguments. Failing to do so could lead to incorrect reuse of cached results. If you wish to avoid re-using cached results, you can set the `load_from_disk` parameter to `False`.
+- **Explainer Caching**: Many explainers in our library generate re-usable cache. The `cache_dir` and `model_id` parameters passed to various class instances are used to store these intermediary results. Ensure each experiment is assigned a unique combination of these arguments. Failing to do so could lead to incorrect reuse of cached results. If you wish to avoid re-using cached results, you can set the `load_from_disk` parameter to `False`.
 
 - **Benchmark Dataset Caching**: Benchmark initialization methods involve caching a HuggingFace dataset locally to the `HF_HOME` cache path. We recommend ensuring that the environment variable is set as needed and caching the dataset into the directory in advance of loading the benchmark.
 
-- **Explainers Are Expensive To Calculate**: Certain explainers, such as TracInCPRandomProj, may lead to OutOfMemory (OOM) issues when applied to large models or datasets. In such cases, we recommend adjusting memory usage by either reducing the dataset size or using smaller models to avoid these issues.
+- **Explainers Are Expensive To Calculate**: Certain explainers, such as `CaptumTracInCPFastRandProj`, may lead to OutOfMemory (OOM) issues when applied to large models or datasets. In such cases, we recommend adjusting memory usage by either reducing the dataset size or using smaller models to avoid these issues.
 
 
 ## 📓 Tutorials
