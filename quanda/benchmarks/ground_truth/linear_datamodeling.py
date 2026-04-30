@@ -338,6 +338,34 @@ class LinearDatamodeling(Benchmark):
         return obj
 
     @classmethod
+    def generate_and_push_metadata(
+        cls, config: dict
+    ) -> None:  # pragma: no cover
+        """Regenerate LDS metadata locally and push it to HF Hub.
+
+        Calls ``from_config`` with ``load_meta_from_disk=False, offline=True``
+        to materialize splits and subset_ids under the metadata dir, then
+        uploads that dir to ``meta_id``.
+        """
+        from huggingface_hub import HfApi  # local import; optional dep path
+
+        metadata_dir = BenchConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=config["bench_save_dir"]
+        )
+        meta_id = config.get(
+            "meta_id", f"{config['repo_id']}/{config['id']}_metadata"
+        )
+        cls.from_config(config, load_meta_from_disk=False, offline=True)
+
+        api = HfApi()
+        api.create_repo(repo_id=meta_id, repo_type="dataset", exist_ok=True)
+        api.upload_folder(
+            folder_path=metadata_dir,
+            repo_id=meta_id,
+            repo_type="dataset",
+        )
+
+    @classmethod
     def push_subset(
         cls,
         config: dict,
@@ -692,11 +720,15 @@ class LinearDatamodeling(Benchmark):
             directory (as produced by :meth:`cache_subset_logits`) and
             fed into the metric, bypassing counterfactual inference. By
             default None.
+        bootstrap: bool
+            Whether to return bootstrapped metric score, if available,
+            instead of the single-point estimate.
+            By default False.
 
         Returns
         -------
-        dict
-            Dictionary containing the evaluation results.
+                dict
+                    Dictionary containing the evaluation results.
 
         """
         precomputed = self._resolve_precomputed_explanations(

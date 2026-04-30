@@ -302,7 +302,16 @@ class LinearDatamodelingMetric(Metric):
         subset_model = deepcopy(model)
         subset_model.train()
 
-        subset_loader = DataLoader(subset, batch_size=batch_size, shuffle=True)
+        num_workers = getattr(trainer, "num_workers", 0)
+        pin_memory = device is not None and "cuda" in device
+        subset_loader = DataLoader(
+            subset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=num_workers > 0,
+        )
         trainer_fit_kwargs = trainer_fit_kwargs or {}
         if isinstance(trainer, L.Trainer):
             if not isinstance(subset_model, L.LightningModule):
