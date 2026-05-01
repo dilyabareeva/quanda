@@ -81,16 +81,16 @@ config_map: dict = {
     ).joinpath("5d5968d-awa2_resnet50_ClassDetection.yaml"),
     "awa2_subclass_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("GIT_TAG-awa2_resnet50_SubclassDetection.yaml"),
+    ).joinpath("0ce3d13-awa2_resnet50_SubclassDetection.yaml"),
     "awa2_mixed_datasets": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("GIT_TAG-awa2_resnet50_MixedDatasets.yaml"),
+    ).joinpath("2fc831c-awa2_resnet50_MixedDatasets.yaml"),
     "awa2_shortcut_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("GIT_TAG-awa2_resnet50_ShortcutDetection.yaml"),
+    ).joinpath("2fc831c-awa2_resnet50_ShortcutDetection.yaml"),
     "awa2_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("GIT_TAG-awa2_resnet50_MislabelingDetection.yaml"),
+    ).joinpath("0ce3d13-awa2_resnet50_MislabelingDetection.yaml"),
     "awa2_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("5d5968d-awa2_resnet50_LDS.yaml"),
