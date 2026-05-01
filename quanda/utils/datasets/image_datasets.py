@@ -17,6 +17,7 @@ class HFtoTV(torch.utils.data.Dataset):
         self.dataset = dataset
         self.transform = transform
         self.label_override = label_override
+        self._labels_cache: Optional[list] = None
         sample = dataset[0]
         for key in _IMAGE_KEYS:
             if key in sample:
@@ -46,3 +47,14 @@ class HFtoTV(torch.utils.data.Dataset):
             else int(item["label"])
         )
         return img, label
+
+    def get_label(self, idx):
+        """Return the label at ``idx`` without decoding the image."""
+        if isinstance(idx, torch.Tensor):
+            idx = idx.item()
+        if self.label_override is not None:
+            return self.label_override
+        # Column-only access bypasses HF's lazy Image decoder.
+        if self._labels_cache is None:
+            self._labels_cache = self.dataset["label"]
+        return int(self._labels_cache[idx])
