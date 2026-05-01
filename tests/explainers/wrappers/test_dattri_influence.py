@@ -26,7 +26,6 @@ from quanda.explainers.wrappers import (
 )
 from quanda.explainers.wrappers.dattri_influence import (
     DattriInfluence,
-    _resolve_device,
     _wrap_checkpoints_load_func,
 )
 from quanda.utils.datasets.dataset_handlers import (
@@ -513,14 +512,6 @@ def test_dattri_wrappers_keep_last_checkpoint_when_multiple(cls, simple_setup):
     explainer = cls(**kwargs)
     assert explainer.checkpoints == [ckpt_paths[-1]]
     assert all(p == ckpt_paths[-1] for p in loader_calls)
-
-
-@pytest.mark.explainers
-def test_resolve_device_passthrough_and_param_fallback():
-    model = nn.Linear(2, 2)
-    assert _resolve_device(model, "cuda") == "cuda"
-    # fall back to the param's device
-    assert _resolve_device(model, None) == str(next(model.parameters()).device)
 
 
 @pytest.mark.explainers

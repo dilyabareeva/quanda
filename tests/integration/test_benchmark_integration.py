@@ -94,18 +94,10 @@ def test_benchmark_integration(
     # END5
 
     # START6
-    hessian_num_samples = (
-        500  # number of samples to use for hessian estimation
-    )
-    hessian_ds = torch.utils.data.Subset(
-        benchmark.train_dataset,
-        torch.randint(0, len(benchmark.train_dataset), (hessian_num_samples,)),
-    )
-
     captum_influence_args = {
         "layers": ["fc_3"],
         "batch_size": 8,
-        "hessian_dataset": hessian_ds,
+        "precompute_data_ratio": 0.1,
         "projection_dim": 5,
     }
     # END6
@@ -114,10 +106,6 @@ def test_benchmark_integration(
     captum_influence_args["projection_dim"] = 2
     captum_influence_args["arnoldi_dim"] = 5
     captum_influence_args["arnoldi_tol"] = 1e-10
-    captum_influence_args["hessian_dataset"] = torch.utils.data.Subset(
-        benchmark.train_dataset,
-        torch.randint(0, len(benchmark.train_dataset), (50,)),
-    )
 
     # START7
     captum_tracin_args = {

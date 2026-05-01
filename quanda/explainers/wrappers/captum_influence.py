@@ -569,7 +569,7 @@ class CaptumArnoldi(CaptumInfluence):
         checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layers: Optional[List[str]] = None,
         batch_size: int = 1,
-        hessian_dataset: Optional[torch.utils.data.Dataset] = None,
+        precompute_data_ratio: float = 1.0,
         test_loss_fn: Optional[Union[torch.nn.Module, Callable]] = None,
         sample_wise_grads_per_batch: bool = False,
         projection_dim: int = 50,
@@ -609,10 +609,12 @@ class CaptumArnoldi(CaptumInfluence):
             Defaults to None.
         batch_size : int, optional
             Batch size used for iterating over the dataset. Defaults to 1.
-        hessian_dataset : Optional[torch.utils.data.Dataset], optional
-            Dataset for calculating the Hessian. It should be smaller than
-            train_dataset.
-            If None, the entire train_dataset is used. Defaults to None.
+        precompute_data_ratio : float, optional
+            Fraction of `train_dataset` used to estimate the Hessian during
+            Arnoldi iteration. Must be in (0, 1]. When < 1.0, a random subset
+            of size `int(len(train_dataset) * precompute_data_ratio)` is drawn
+            using `seed`. When 1.0 the full train dataset is used. Defaults
+            to 1.0.
         test_loss_fn : Optional[Union[torch.nn.Module, Callable]], optional
             Loss function which is used for the test samples. If None, loss_fn
             is used. Defaults to None.
@@ -673,6 +675,12 @@ class CaptumArnoldi(CaptumInfluence):
         """
         logger.info("Initializing Captum ArnoldiInfluence explainer...")
 
+        if not 0.0 < precompute_data_ratio <= 1.0:
+            raise ValueError(
+                "precompute_data_ratio must be in (0, 1], got "
+                f"{precompute_data_ratio}"
+            )
+
         unsupported_args = ["k", "proponents"]
         for arg in unsupported_args:
             if arg in explainer_kwargs:
@@ -692,11 +700,16 @@ class CaptumArnoldi(CaptumInfluence):
             checkpoints_load_func=checkpoints_load_func,
         )
 
-        self.hessian_dataset = (
-            OnDeviceDataset(hessian_dataset, self.device)
-            if hessian_dataset is not None
-            else None
-        )
+        self.hessian_dataset: Optional[OnDeviceDataset] = None
+        if precompute_data_ratio < 1.0:
+            n = len(self.train_dataset)
+            k = max(1, int(n * precompute_data_ratio))
+            g = torch.Generator().manual_seed(seed)
+            indices = torch.randperm(n, generator=g)[:k].tolist()
+            hessian_subset = torch.utils.data.Subset(
+                self.train_dataset, indices
+            )
+            self.hessian_dataset = OnDeviceDataset(hessian_subset, self.device)
         explainer_kwargs.update(
             {
                 "model": model,
