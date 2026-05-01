@@ -59,7 +59,7 @@ m: 100
 alpha: 0.5
 subset_ids: lds_subsets.yaml
 ckpt: quanda-bench-test/GIT_TAG-awa2_resnet50_ClassDetection
-explanations_group: GIT_TAG-awa2_resnet50_ClassDetection
+explanations_group: 5d5968d-awa2_resnet50_ClassDetection
 num_checkpoints: 5
 meta_id: quanda-bench-test/GIT_TAG-awa2_resnet50_ClassDetection_metadata
 splits:
