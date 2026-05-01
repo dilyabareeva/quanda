@@ -20,7 +20,7 @@ model:
       pct_start: 0.1
       div_factor: 25.0
     lr: 0.2
-    max_epochs: 96
+    max_epochs: 30
     seed: 42
     num_workers: 8
 train_dataset:
@@ -56,7 +56,7 @@ model_id: '0'
 correlation_fn: spearman
 offline: true
 seed: 42
-device: cuda:1
+device: cuda:0
 batch_size: 128
 m: 100
 alpha: 0.5
@@ -105,7 +105,7 @@ splits:
     ratios:
       train: 0.01
       val: 0.002
-      test: 0.002
+      test: 0.1
     seed: 42
 adv_dataset:
   single_class_dataset: true
