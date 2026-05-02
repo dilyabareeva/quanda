@@ -347,16 +347,14 @@ def load_mnist_mislabeling_config():
 @pytest.fixture
 def load_mnist_subclass_config():
     return _load_mnist_yaml(
-        "tests/assets/mnist_local_bench/"
-        "83edb41-default_SubclassDetection.yaml"
+        "tests/assets/mnist_local_bench/83edb41-default_SubclassDetection.yaml"
     )
 
 
 @pytest.fixture
 def load_mnist_shortcut_config():
     return _load_mnist_yaml(
-        "tests/assets/mnist_local_bench/"
-        "83edb41-default_ShortcutDetection.yaml"
+        "tests/assets/mnist_local_bench/83edb41-default_ShortcutDetection.yaml"
     )
 
 

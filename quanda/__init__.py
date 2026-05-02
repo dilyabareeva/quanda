@@ -20,9 +20,9 @@ from quanda.benchmarks.heuristics import (
     TopKCardinality,
 )
 from quanda.explainers import (
+    Explainer,
     ExplainFunc,
     ExplainFuncMini,
-    Explainer,
     RandomExplainer,
 )
 from quanda.explainers.wrappers import (
@@ -42,8 +42,8 @@ from quanda.explainers.wrappers import (
     DattriIFExplicit,
     DattriIFLiSSA,
     DattriInfluence,
-    DattriTRAK,
     DattriTracInCP,
+    DattriTRAK,
     Kronfluence,
     RepresenterPoints,
 )

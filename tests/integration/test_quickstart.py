@@ -12,8 +12,7 @@ from quanda.benchmarks.downstream_eval import (
     SubclassDetection,
 )
 from quanda.benchmarks.heuristics import TopKCardinality
-from quanda.explainers.wrappers import TRAK, CaptumSimilarity
-from quanda.metrics.downstream_eval import ClassDetectionMetric
+from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.heuristics import ModelRandomizationMetric
 
 

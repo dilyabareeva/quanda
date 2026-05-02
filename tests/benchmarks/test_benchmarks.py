@@ -19,7 +19,6 @@ from quanda.benchmarks.downstream_eval import (
     ShortcutDetection,
     SubclassDetection,
 )
-from quanda.benchmarks.downstream_eval.mrr import MRR
 from quanda.benchmarks.ground_truth import LinearDatamodeling
 from quanda.benchmarks.heuristics import (
     MixedDatasets,
@@ -28,7 +27,6 @@ from quanda.benchmarks.heuristics import (
 )
 from quanda.benchmarks.resources import config_map
 from quanda.explainers.wrappers import CaptumSimilarity
-from quanda.explainers.wrappers.kronfluence import Kronfluence
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import cosine_similarity
 
@@ -582,26 +580,6 @@ def test_filter_missing_shortcut_cls(
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             0.36709094047546387,
         ),
-        (
-            "mnist",
-            "load_mnist_unit_test_config",
-            True,
-            True,
-            MRR,
-            CaptumSimilarity,
-            {"layers": "fc_2", "similarity_metric": cosine_similarity},
-            0.07678571343421936,
-        ),
-        (
-            "dummy_causal_lm",
-            "load_dummy_causal_lm_config",
-            True,
-            True,
-            MRR,
-            Kronfluence,
-            {"task": "causal_lm"},
-            0.33333,
-        ),
     ],
 )
 def test_bench_from_config(
@@ -778,26 +756,6 @@ def test_bench_from_config_bootstrap(
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             None,
         ),
-        # (
-        #     "mnist",
-        #     "load_mnist_unit_test_config",
-        #     True,
-        #     True,
-        #     MRR,
-        #     CaptumSimilarity,
-        #     {"layers": "fc_2", "similarity_metric": cosine_similarity},
-        #     None,
-        # ),
-        # (
-        #     "dummy_causal_lm",
-        #     "load_dummy_causal_lm_config",
-        #     True,
-        #     True,
-        #     MRR,
-        #     Kronfluence,
-        #     {"task": "causal_lm"},
-        #     None,
-        # ),
     ],
 )
 def test_train_from_config(

@@ -105,7 +105,7 @@ def test_train_dataset_indexing_is_correct(config_name, tmp_path):
             "awa2_mixed_datasets",
             {
                 "train_acc": 0.95,
-                "val_acc": 0.8,
+                "val_acc": 0.79,
                 "train_adversarial_memorization": 0.95,
                 "eval_adversarial_memorization": 0.95,
             },

@@ -445,7 +445,7 @@ def test_eval_dataset_is_clean(config_name, tmp_path):
             {
                 "train_acc": 0.83,
                 "val_acc": 0.84,
-                "mislabeling_memorization": 0.15,
+                "mislabeling_memorization": 0.9,
             },
         ),
         (

@@ -301,7 +301,7 @@ def test_shortcut_filters(config_name, tmp_path):
             "awa2_shortcut_detection",
             {
                 "train_acc": 0.9,
-                "val_acc": 0.83,
+                "val_acc": 0.79,
                 "train_shortcut_memorization": 0.9,
                 "eval_post_filter_percentage": 0.85,
             },

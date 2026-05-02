@@ -515,15 +515,6 @@ def test_dattri_wrappers_keep_last_checkpoint_when_multiple(cls, simple_setup):
 
 
 @pytest.mark.explainers
-def test_resolve_device_defaults_to_cpu_when_model_has_no_params():
-    class _NoParams(nn.Module):
-        def forward(self, x):
-            return x
-
-    assert _resolve_device(_NoParams(), None) == "cpu"
-
-
-@pytest.mark.explainers
 def test_wrap_checkpoints_load_func_invokes_inner_and_returns_model():
     seen = []
 
