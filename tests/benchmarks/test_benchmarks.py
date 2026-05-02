@@ -269,6 +269,73 @@ def test_explain_default_explanations_id(
 
 
 @pytest.mark.benchmarks
+def test_default_explanations_id_warns_on_shared_group():
+    from quanda.benchmarks.base import default_explanations_id
+
+    config = {
+        "repo_id": "quanda-bench-test",
+        "id": "bench_a",
+        "explanations_group": "bench_b",
+    }
+    with pytest.warns(UserWarning, match="explanations_group"):
+        out = default_explanations_id(
+            config=config,
+            explainer_cls=CaptumSimilarity,
+            expl_kwargs=None,
+        )
+    assert "bench_b" in out
+    assert "bench_a" not in out
+
+
+@pytest.mark.benchmarks
+def test_default_explanations_id_quiet_when_group_matches_id():
+    import warnings
+
+    from quanda.benchmarks.base import default_explanations_id
+
+    config = {"id": "bench_a", "explanations_group": "bench_a"}
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        default_explanations_id(
+            config=config,
+            explainer_cls=CaptumSimilarity,
+            expl_kwargs=None,
+        )
+
+
+@pytest.mark.benchmarks
+def test_validate_explanations_meta_warns_on_bench_mismatch(tmp_path):
+    bench = ClassDetection.__new__(ClassDetection)
+    bench.name = "Class Detection"
+
+    meta_path = os.path.join(str(tmp_path), "explanations_config.yaml")
+    with open(meta_path, "w") as f:
+        yaml.safe_dump(
+            {
+                "bench_name": "Subclass Detection",
+                "explainer_cls": "CaptumSimilarity",
+                "explanations_group": "shared",
+            },
+            f,
+        )
+
+    with pytest.warns(UserWarning, match="Subclass Detection"):
+        bench._validate_explanations_meta(str(tmp_path))
+
+
+@pytest.mark.benchmarks
+def test_validate_explanations_meta_silent_on_missing_meta(tmp_path):
+    import warnings
+
+    bench = ClassDetection.__new__(ClassDetection)
+    bench.name = "Class Detection"
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        bench._validate_explanations_meta(str(tmp_path))
+
+
+@pytest.mark.benchmarks
 def test_iter_explanations_requires_explainer_when_no_cache():
     """_iter_explanations raises if explainer is None and no precomputed
     explanations were provided."""

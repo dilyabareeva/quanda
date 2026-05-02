@@ -4,6 +4,7 @@ import pytest
 import torch
 from torch.nn.modules.batchnorm import _BatchNorm
 
+from quanda.explainers.random import RandomExplainer
 from quanda.explainers.wrappers import CaptumSimilarity, CaptumTracInCP
 from quanda.metrics.heuristics import (
     ModelRandomizationMetric,
@@ -388,3 +389,40 @@ def test_mixed_datasets_metric(
     else:
         # Validate that the computed score matches expected within tolerance
         assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.heuristic_metrics
+def test_randomization_metric_bumps_seed_when_explainer_takes_one(
+    load_mnist_model, load_mnist_last_checkpoint, load_mnist_dataset, tmp_path
+):
+    """RandomExplainer has a `seed` kwarg; the metric must offset it by +1
+    so the randomized explainer doesn't reuse the same RNG stream."""
+    metric = ModelRandomizationMetric(
+        model=load_mnist_model,
+        model_id="0",
+        checkpoints=load_mnist_last_checkpoint,
+        train_dataset=load_mnist_dataset,
+        explainer_cls=RandomExplainer,
+        cache_dir=str(tmp_path),
+        seed=42,
+    )
+    assert metric.expl_kwargs["seed"] == 43
+
+
+@pytest.mark.heuristic_metrics
+def test_randomization_metric_bumps_user_supplied_seed(
+    load_mnist_model, load_mnist_last_checkpoint, load_mnist_dataset, tmp_path
+):
+    """When the user already passed `seed` in expl_kwargs, the metric
+    bumps that seed (not its own) by +1."""
+    metric = ModelRandomizationMetric(
+        model=load_mnist_model,
+        model_id="0",
+        checkpoints=load_mnist_last_checkpoint,
+        train_dataset=load_mnist_dataset,
+        explainer_cls=RandomExplainer,
+        expl_kwargs={"seed": 100},
+        cache_dir=str(tmp_path),
+        seed=42,
+    )
+    assert metric.expl_kwargs["seed"] == 101

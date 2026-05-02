@@ -218,3 +218,20 @@ def test_captum_similarity_explain_functional(
     assert torch.allclose(explanations, explanations_exp), (
         "Training data attributions are not as expected"
     )
+
+
+@pytest.mark.explainers
+def test_captum_similarity_top_k_warning(
+    load_mnist_model, load_mnist_last_checkpoint, load_mnist_dataset, tmp_path
+):
+    with pytest.warns(UserWarning, match="top_k is not supported"):
+        CaptumSimilarity(
+            model=load_mnist_model,
+            checkpoints=load_mnist_last_checkpoint,
+            model_id="warn_top_k",
+            cache_dir=str(tmp_path),
+            train_dataset=load_mnist_dataset,
+            layers="relu_4",
+            similarity_metric=cosine_similarity,
+            top_k=3,
+        )

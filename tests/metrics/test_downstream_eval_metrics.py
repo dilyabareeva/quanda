@@ -590,3 +590,92 @@ def test_recall_at_k_metric(
     metric.update(explanations=tda, entailment_labels=entailment_labels)
     score = metric.compute()["score"]
     assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.downstream_eval_metrics
+def test_mrr_metric_per_sample_scores(
+    load_mnist_model,
+    load_mnist_last_checkpoint,
+    load_mnist_dataset,
+    load_mnist_explanations_similarity_1,
+):
+    metric = MRRMetric(
+        model=load_mnist_model,
+        checkpoints=load_mnist_last_checkpoint,
+        train_dataset=load_mnist_dataset,
+    )
+    assert torch.equal(metric._per_sample_scores(), torch.empty(0))
+
+    tda = load_mnist_explanations_similarity_1
+    num_q, num_t = tda.shape
+    entailment = torch.zeros((num_q, num_t), dtype=torch.bool)
+    entailment[0, 1] = True
+    entailment[1, 0] = True
+    entailment[2, 2] = True
+
+    metric.update(explanations=tda, entailment_labels=entailment)
+    per_sample = metric._per_sample_scores()
+    assert per_sample.shape == (num_q,)
+    assert torch.isclose(
+        per_sample.mean(), torch.tensor(metric.compute()["score"])
+    )
+
+
+@pytest.mark.downstream_eval_metrics
+def test_recall_at_k_metric_per_sample_scores(
+    load_mnist_model,
+    load_mnist_last_checkpoint,
+    load_mnist_dataset,
+    load_mnist_explanations_similarity_1,
+):
+    k = 2
+    metric = RecallAtKMetric(
+        model=load_mnist_model,
+        checkpoints=load_mnist_last_checkpoint,
+        train_dataset=load_mnist_dataset,
+        k=k,
+    )
+    assert torch.equal(metric._per_sample_scores(), torch.empty(0))
+
+    tda = load_mnist_explanations_similarity_1
+    num_q, num_t = tda.shape
+    entailment = torch.zeros((num_q, num_t), dtype=torch.bool)
+    entailment[0, 1] = True
+    entailment[1, 0] = True
+    entailment[2, k + 1] = True
+
+    metric.update(explanations=tda, entailment_labels=entailment)
+    per_sample = metric._per_sample_scores()
+    assert per_sample.shape == (num_q,)
+    assert ((per_sample == 0.0) | (per_sample == 1.0)).all()
+    assert torch.isclose(
+        per_sample.mean(), torch.tensor(metric.compute()["score"])
+    )
+
+
+@pytest.mark.downstream_eval_metrics
+def test_tail_patch_metric_per_sample_scores():
+    from quanda.metrics.downstream_eval.tail_patch import TailPatchMetric
+
+    model = torch.nn.Linear(2, 2)
+    dataset = torch.utils.data.TensorDataset(
+        torch.zeros(2, 2), torch.zeros(2, dtype=torch.long)
+    )
+
+    metric = TailPatchMetric(
+        model=model,
+        train_dataset=dataset,
+        k=1,
+        learning_rate=1e-3,
+        tokenizer_name="gpt2",
+    )
+
+    empty = metric._per_sample_scores()
+    assert empty.numel() == 0
+
+    metric.scores = [0.25, -0.5, 0.75]
+    per_sample = metric._per_sample_scores()
+    assert torch.equal(per_sample, torch.tensor([0.25, -0.5, 0.75]))
+    assert torch.isclose(
+        per_sample.mean(), torch.tensor(metric.compute()["score"])
+    )

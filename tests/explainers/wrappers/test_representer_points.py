@@ -231,3 +231,22 @@ def test_representer_points_train_triggered(
 
     assert call_count["n"] == 1
     assert explainer.coefficients.shape[0] == len(load_mnist_dataset)
+
+
+@pytest.mark.explainers
+def test_av_samples_warns_about_memory():
+    from quanda.explainers.wrappers.representer_points import av_samples
+
+    class _FakeAVDataset:
+        def __init__(self):
+            self._chunks = [torch.zeros(2, 3), torch.ones(2, 3)]
+
+        def __len__(self):
+            return len(self._chunks)
+
+        def __getitem__(self, i):
+            return self._chunks[i]
+
+    with pytest.warns(UserWarning, match="consume"):
+        out = av_samples(_FakeAVDataset())  # type: ignore[arg-type]
+    assert out.shape == (4, 3)
