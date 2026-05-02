@@ -11,8 +11,8 @@ from quanda.benchmarks.downstream_eval._fact_tracing import (
     FactTracingBenchmark,
 )
 from quanda.metrics.downstream_eval.tail_patch import TailPatchMetric
-from quanda.utils.training.options import optimizers
 from quanda.utils.common import CheckpointLoadFunc
+from quanda.utils.training.options import optimizers
 
 logger = logging.getLogger(__name__)
 

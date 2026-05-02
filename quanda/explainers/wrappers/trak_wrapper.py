@@ -224,9 +224,18 @@ class TRAK(Explainer):
         self.traker.load_checkpoint(self.model.state_dict(), model_id=0)
 
         # Train the TRAK explainer: featurize the training data
-        handler = self._select_handler(self.dataset)
-        self._handler = handler
-        ld = handler.create_dataloader(
+        self._handler = self._select_handler(self.dataset)
+        self._featurize_train_data()
+        self.traker.finalize_features()
+
+        if projector == "basic":
+            self.traker.projector = projector_cls[projector](
+                **projector_kwargs
+            )
+
+    def _featurize_train_data(self) -> None:
+        """Featurize the training data via the TRAKer."""
+        ld = self._handler.create_dataloader(
             self.dataset, batch_size=self.batch_size
         )
         for i, raw_batch in enumerate(ld):
@@ -235,12 +244,6 @@ class TRAK(Explainer):
             self.traker.featurize(
                 batch=batch,
                 inds=torch.tensor([i * self.batch_size + j for j in range(n)]),
-            )
-        self.traker.finalize_features()
-
-        if projector == "basic":
-            self.traker.projector = projector_cls[projector](
-                **projector_kwargs
             )
 
     @staticmethod
