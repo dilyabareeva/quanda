@@ -6,11 +6,11 @@ CONFIG_NAME="awa2_resnet50"
 CONFIG_MAP_PREFIX="awa2"
 
 benchmarks=(
-    ClassDetection
-    SubclassDetection
+    #ClassDetection
+    #SubclassDetection
     MixedDatasets
-    ShortcutDetection
-    MislabelingDetection
+    #ShortcutDetection
+    #MislabelingDetection
 )
 
 source "$(dirname "$0")/../train.sh" "$@"

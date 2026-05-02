@@ -9,7 +9,7 @@
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 PARALLEL=false
-TRAIN_ONLY=false
+TRAIN_ONLY=true
 
 while [[ $# -gt 0 ]]; do
     case $1 in

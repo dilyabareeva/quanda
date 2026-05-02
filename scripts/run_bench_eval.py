@@ -36,7 +36,7 @@ _SUFFIX_TO_CLASS = {
 }
 BENCH_CLASS = {
     f"{prefix}_{suffix}": cls
-    for prefix in ("mnist", "cifar", "qnli")
+    for prefix in ("mnist", "cifar", "awa2", "qnli")
     for suffix, cls in _SUFFIX_TO_CLASS.items()
 }
 BENCH_CLASS.update(

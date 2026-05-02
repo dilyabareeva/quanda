@@ -115,6 +115,65 @@ def _scalar(score):
     return None
 
 
+def _bench_version_from_path(path: str) -> str | None:
+    """Third `__`-separated segment of the filename, e.g.
+    'bdb919e-default_ClassDetection'. Identifies the bench config the
+    result was produced under."""
+    parts = os.path.basename(path).split("__")
+    return parts[2] if len(parts) >= 3 else None
+
+
+def _canonical_bench_versions() -> dict[str, str]:
+    """Map bench_id → canonical version (yaml stem) from config_map.py."""
+    from quanda.benchmarks.resources.config_map import config_map
+
+    out = {}
+    for bench_id, path in config_map.items():
+        stem, _ = os.path.splitext(os.path.basename(str(path)))
+        out[bench_id] = stem
+    return out
+
+
+def _prefer_canonical_versions(
+    df: pd.DataFrame, canonical: dict[str, str]
+) -> pd.DataFrame:
+    """Within each (bench, method, kwargs) group with multiple versions,
+    drop rows whose bench_version doesn't match the canonical one if
+    canonical is present in the group."""
+    drop_mask = pd.Series(False, index=df.index)
+    for (bench, method, kw), grp in df.groupby(
+        ["bench", "method", "kwargs_key"]
+    ):
+        if grp["bench_version"].nunique() <= 1:
+            continue
+        canon = canonical.get(bench)
+        if canon is None or canon not in set(grp["bench_version"]):
+            continue
+        drop_mask.loc[grp.index] = grp["bench_version"] != canon
+    return df[~drop_mask]
+
+
+def _warn_multiple_bench_versions(
+    df: pd.DataFrame, canonical: dict[str, str]
+) -> None:
+    for (bench, method, _), grp in df.groupby(
+        ["bench", "method", "kwargs_key"]
+    ):
+        versions = sorted(set(grp["bench_version"].dropna()))
+        if len(versions) <= 1:
+            continue
+        canon = canonical.get(bench)
+        suffix = (
+            f"; canonical {canon!r} not found"
+            if canon and canon not in versions
+            else ""
+        )
+        print(
+            f"warning: multiple bench versions for "
+            f"bench={bench!r} method={method!r}: {versions}{suffix}"
+        )
+
+
 def load_scores(
     results_dir: str, methods: list[str], benches: list[str]
 ) -> pd.DataFrame:
@@ -133,11 +192,18 @@ def load_scores(
                 "ci_low": _scalar(d.get("ci_low")),
                 "ci_high": _scalar(d.get("ci_high")),
                 "mtime": os.path.getmtime(path),
+                "bench_version": _bench_version_from_path(path),
+                "kwargs_key": json.dumps(
+                    d.get("expl_kwargs") or {}, sort_keys=True
+                ),
             }
         )
     df = pd.DataFrame(rows)
     df = df[df["method"].isin(methods) & df["bench"].isin(benches)]
     df = df.dropna(subset=["score"])
+    canonical = _canonical_bench_versions()
+    df = _prefer_canonical_versions(df, canonical)
+    _warn_multiple_bench_versions(df, canonical)
 
     is_random = df["method"] == "random"
     random_stats = (
@@ -326,25 +392,15 @@ def _draw_bench_bars(
 
     if bench_id in random_stats.index:
         mu = random_stats.loc[bench_id, "mean"]
-        sd = random_stats.loc[bench_id, "std"]
         line_x = (group_start_px, group_start_px + group_w_px)
         ax.hlines(
             mu,
             *line_x,
             colors=random_color,
-            linewidth=0.5,
-            linestyles="solid",
-            zorder=4,
+            linewidth=0.7,
+            linestyles=(0, (5, 2)),
+            zorder=6,
         )
-        if not pd.isna(sd):
-            ax.hlines(
-                [mu - sd, mu + sd],
-                *line_x,
-                colors=random_color,
-                linewidth=0.5,
-                linestyles="dashed",
-                zorder=4,
-            )
 
     return group_start_px + group_w_px / 2
 
@@ -426,7 +482,7 @@ def main():
         **cfg.get("bench_labels", {}),
     }
     colors = [METHOD_COLORS.get(m, _FALLBACK_COLOR) for m in bar_methods]
-    random_color = METHOD_COLORS.get("random", _FALLBACK_COLOR)
+    random_color = "#000000"
 
     df, ci_low_df, ci_high_df, random_stats = load_scores(
         args.results_dir, methods, benches

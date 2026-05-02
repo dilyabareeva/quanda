@@ -1,0 +1,20 @@
+{
+  "methods": [
+    "representer_points",
+    "arnoldi",
+    "tracincpfast",
+    "trak",
+    "random",
+    "similarity"
+  ],
+  "benches": [
+    "awa2_class_detection",
+    "awa2_subclass_detection",
+    "awa2_mislabeling_detection",
+    "awa2_shortcut_detection",
+    "awa2_mixed_datasets",
+    "awa2_top_k_cardinality",
+    "awa2_model_randomization",
+    "awa2_linear_datamodeling"
+  ]
+}
