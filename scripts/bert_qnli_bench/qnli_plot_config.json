@@ -1,12 +1,9 @@
 {
   "methods": [
     "kronfluence",
-    "dattri_ekfac",
-    "dattri_tracin",
-    "dattri_graddot",
-    "dattri_gradcos",
     "trak",
     "similarity",
+    "representer_points",
     "random"
   ],
   "benches": [
@@ -17,32 +14,7 @@
     "qnli_model_randomization",
     "qnli_mixed_datasets"
   ],
-  "method_labels": {
-    "kronfluence": "Kronfluence",
-    "dattri_ekfac": "EK-FAC",
-    "dattri_tracin": "TracIn",
-    "dattri_graddot": "GradDot",
-    "dattri_gradcos": "GradCos",
-    "trak": "TRAK-1",
-    "similarity": "Similarity",
-    "random": "Random"
-  },
   "bench_labels": {
-    "qnli_class_detection": "Class\nDetection",
-    "qnli_mislabeling_detection": "Mislabeling\nDetection",
-    "qnli_top_k_cardinality": "Top-K\nCardinality",
-    "qnli_linear_datamodeling": "Linear\nDatamodeling",
-    "qnli_model_randomization": "Model\nRandomization",
     "qnli_mixed_datasets": "Mixed\nDatasets"
-  },
-  "colors": {
-    "kronfluence":  "#83BA59",
-    "dattri_tracin":   "#EA4E38",
-    "trak":            "#7D53BA",
-    "similarity":      "#3B8FB5",
-    "random":          "#90918B",
-    "dattri_ekfac":    "#EB9C38",
-    "dattri_graddot":  "#D94F8A",
-    "dattri_gradcos":  "#F2C14E"
   }
 }

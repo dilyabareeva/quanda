@@ -1,12 +1,12 @@
 """Class Detection Metric."""
 
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import datasets  # type: ignore
 import torch
 
 from quanda.metrics.base import Metric
-from quanda.utils.common import chunked_logits, get_targets
+from quanda.utils.common import CheckpointLoadFunc, chunked_logits, get_targets
 
 
 class ClassDetectionMetric(Metric):
@@ -37,7 +37,7 @@ class ClassDetectionMetric(Metric):
         model: torch.nn.Module,
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         filter_by_prediction: bool = False,
         inference_batch_size: Optional[int] = None,
     ):
@@ -51,7 +51,7 @@ class ClassDetectionMetric(Metric):
             The training dataset that was used to train `model`.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
         filter_by_prediction : bool, optional
@@ -141,6 +141,10 @@ class ClassDetectionMetric(Metric):
 
         """
         return {"score": torch.cat(self.scores).mean().item()}
+
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample correctness scores."""
+        return torch.cat(self.scores) if self.scores else torch.empty(0)
 
     def reset(self, *args, **kwargs):
         """Reset the metric state."""

@@ -2,6 +2,10 @@
 
 import torch
 from huggingface_hub import PyTorchModelHubMixin
+from torchvision.models.resnet import (  # type: ignore
+    Bottleneck,
+    ResNet,
+)
 from transformers import (  # type: ignore
     AutoConfig,
     AutoModel,
@@ -88,6 +92,40 @@ class ResNet9(torch.nn.Module, PyTorchModelHubMixin):
     def forward(self, x):
         """Forward pass."""
         return self.model(x)
+
+
+class ResNet50(ResNet, PyTorchModelHubMixin):
+    """ResNet-50 with an explicit ``Flatten`` module before the FC head.
+
+    Subclasses ``torchvision``'s ``ResNet`` and overrides ``_forward_impl`` to
+    swap the inline ``torch.flatten`` call for an ``nn.Flatten`` submodule, so
+    activation hooks can target the flattened features (e.g. for
+    ``RepresenterPoints``).
+    """
+
+    def __init__(self, num_classes: int = 50):
+        """Initialize the ResNet50 model."""
+        super().__init__(
+            block=Bottleneck,
+            layers=[3, 4, 6, 3],
+            num_classes=num_classes,
+        )
+        self.flatten = torch.nn.Flatten()
+
+    def _forward_impl(self, x):
+        """Forward pass exposing ``flatten`` as a hookable module."""
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.avgpool(x)
+        x = self.flatten(x)
+        x = self.fc(x)
+        return x
 
 
 class LeNet(torch.nn.Module, PyTorchModelHubMixin):
@@ -251,5 +289,6 @@ pl_modules = {
     "MnistTorch": LeNet,
     "BertClassifier": BertClassifier,
     "ResNet9": ResNet9,
+    "ResNet50": ResNet50,
     "HFGPT2": HFGPT2,
 }

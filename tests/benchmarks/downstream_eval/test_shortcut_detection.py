@@ -161,6 +161,7 @@ def test_shortcut_detection(
     "config_name",
     [
         "mnist_shortcut_detection",
+        "awa2_shortcut_detection",
     ],
 )
 def test_shortcut_transform_indices(config_name, tmp_path):
@@ -203,6 +204,7 @@ def test_shortcut_transform_indices(config_name, tmp_path):
     "config_name",
     [
         "mnist_shortcut_detection",
+        "awa2_shortcut_detection",
     ],
 )
 def test_shortcut_filters(config_name, tmp_path):
@@ -292,6 +294,16 @@ def test_shortcut_filters(config_name, tmp_path):
                 "val_acc": 0.85,
                 "train_shortcut_memorization": 0.85,
                 "eval_post_filter_percentage": 0.5,
+            },
+            {"eval_shortcut_memorization": 1.0},
+        ),
+        (
+            "awa2_shortcut_detection",
+            {
+                "train_acc": 0.9,
+                "val_acc": 0.79,
+                "train_shortcut_memorization": 0.9,
+                "eval_post_filter_percentage": 0.85,
             },
             {"eval_shortcut_memorization": 1.0},
         ),

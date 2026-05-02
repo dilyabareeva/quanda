@@ -9,7 +9,10 @@ import torch
 import yaml
 from omegaconf import OmegaConf
 
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import (
+    LoggerConfigParser,
+    MetadataConfigParser,
+)
 from quanda.benchmarks.downstream_eval import (
     ClassDetection,
     MislabelingDetection,
@@ -263,6 +266,73 @@ def test_explain_default_explanations_id(
     assert out._explanations_id is not None
     assert config["id"] in out._explanations_id
     assert "CaptumSimilarity" in out._explanations_id
+
+
+@pytest.mark.benchmarks
+def test_default_explanations_id_warns_on_shared_group():
+    from quanda.benchmarks.base import default_explanations_id
+
+    config = {
+        "repo_id": "quanda-bench-test",
+        "id": "bench_a",
+        "explanations_group": "bench_b",
+    }
+    with pytest.warns(UserWarning, match="explanations_group"):
+        out = default_explanations_id(
+            config=config,
+            explainer_cls=CaptumSimilarity,
+            expl_kwargs=None,
+        )
+    assert "bench_b" in out
+    assert "bench_a" not in out
+
+
+@pytest.mark.benchmarks
+def test_default_explanations_id_quiet_when_group_matches_id():
+    import warnings
+
+    from quanda.benchmarks.base import default_explanations_id
+
+    config = {"id": "bench_a", "explanations_group": "bench_a"}
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        default_explanations_id(
+            config=config,
+            explainer_cls=CaptumSimilarity,
+            expl_kwargs=None,
+        )
+
+
+@pytest.mark.benchmarks
+def test_validate_explanations_meta_warns_on_bench_mismatch(tmp_path):
+    bench = ClassDetection.__new__(ClassDetection)
+    bench.name = "Class Detection"
+
+    meta_path = os.path.join(str(tmp_path), "explanations_config.yaml")
+    with open(meta_path, "w") as f:
+        yaml.safe_dump(
+            {
+                "bench_name": "Subclass Detection",
+                "explainer_cls": "CaptumSimilarity",
+                "explanations_group": "shared",
+            },
+            f,
+        )
+
+    with pytest.warns(UserWarning, match="Subclass Detection"):
+        bench._validate_explanations_meta(str(tmp_path))
+
+
+@pytest.mark.benchmarks
+def test_validate_explanations_meta_silent_on_missing_meta(tmp_path):
+    import warnings
+
+    bench = ClassDetection.__new__(ClassDetection)
+    bench.name = "Class Detection"
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        bench._validate_explanations_meta(str(tmp_path))
 
 
 @pytest.mark.benchmarks
@@ -577,26 +647,6 @@ def test_filter_missing_shortcut_cls(
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             0.36709094047546387,
         ),
-        # (
-        #     "mnist",
-        #     "load_mnist_unit_test_config",
-        #     True,
-        #     True,
-        #     MRR,
-        #     CaptumSimilarity,
-        #     {"layers": "fc_2", "similarity_metric": cosine_similarity},
-        #     0.07678571343421936,
-        # ),
-        # (
-        #     "dummy_causal_lm",
-        #     "load_dummy_causal_lm_config",
-        #     True,
-        #     True,
-        #     MRR,
-        #     Kronfluence,
-        #     {"task": "causal_lm"},
-        #     0.33333,
-        # ),
     ],
 )
 def test_bench_from_config(
@@ -633,6 +683,69 @@ def test_bench_from_config(
     )["score"]
 
     assert math.isclose(score, expected_score, abs_tol=0.00001)
+
+
+@pytest.mark.benchmarks
+@pytest.mark.parametrize(
+    "test_id, config, bench_cls",
+    [
+        ("class", "load_mnist_unit_test_config", ClassDetection),
+        ("subclass", "load_mnist_subclass_config", SubclassDetection),
+        ("shortcut", "load_mnist_shortcut_config", ShortcutDetection),
+        ("mixed", "load_mnist_mixed_config", MixedDatasets),
+        (
+            "lds",
+            "load_mnist_linear_datamodeling_config",
+            LinearDatamodeling,
+        ),
+        ("rand", "load_mnist_unit_test_config", ModelRandomization),
+    ],
+)
+def test_bench_from_config_bootstrap(
+    test_id,
+    config,
+    bench_cls,
+    tmp_path,
+    request,
+):
+    """evaluate(bootstrap=True) returns a CI dict for each unit benchmark.
+
+    Uses ``max_eval_n=4`` and a tiny batch so the test stays cheap across
+    every benchmark that supports bootstrapping.
+    """
+    config = request.getfixturevalue(config)
+    config["cache_dir"] = "bench_out"
+
+    expl_kwargs = {
+        "layers": "fc_2",
+        "similarity_metric": cosine_similarity,
+        "model_id": "test",
+        "cache_dir": str(tmp_path),
+    }
+
+    dst_eval = bench_cls.from_config(
+        config=config,
+        load_meta_from_disk=True,
+        offline=True,
+    )
+
+    result = dst_eval.evaluate(
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs=expl_kwargs,
+        batch_size=4,
+        max_eval_n=4,
+        bootstrap=True,
+    )
+
+    assert isinstance(result, dict)
+    assert {
+        "score",
+        "ci_low",
+        "ci_high",
+        "ci",
+        "n_bootstrap",
+    } <= set(result.keys())
+    assert result["ci_low"] <= result["score"] <= result["ci_high"]
 
 
 @pytest.mark.tested
@@ -710,26 +823,6 @@ def test_bench_from_config(
             {"layers": "fc_2", "similarity_metric": cosine_similarity},
             None,
         ),
-        # (
-        #     "mnist",
-        #     "load_mnist_unit_test_config",
-        #     True,
-        #     True,
-        #     MRR,
-        #     CaptumSimilarity,
-        #     {"layers": "fc_2", "similarity_metric": cosine_similarity},
-        #     None,
-        # ),
-        # (
-        #     "dummy_causal_lm",
-        #     "load_dummy_causal_lm_config",
-        #     True,
-        #     True,
-        #     MRR,
-        #     Kronfluence,
-        #     {"task": "causal_lm"},
-        #     None,
-        # ),
     ],
 )
 def test_train_from_config(
@@ -759,7 +852,7 @@ def test_train_from_config(
         config["log_dir"] = os.path.join(str(tmp_path), "logs")
         config["logger"] = logger_cfg
         config = OmegaConf.create(config)
-        logger = BenchConfigParser.parse_logger(config)
+        logger = LoggerConfigParser.parse_logger(config)
 
     dst_eval = bench_cls.train(
         config=config,
@@ -842,7 +935,7 @@ def test_save_filtered_indices(
     bench._compute_and_save_indices(config, batch_size=8)
 
     split_filename = config["eval_dataset"]["filter_indices"]["split_filename"]
-    metadata_dir = BenchConfigParser.get_metadata_dir(
+    metadata_dir = MetadataConfigParser.get_metadata_dir(
         cfg=config,
         bench_save_dir=str(tmp_path),
     )
@@ -872,7 +965,7 @@ def test_filter_by_prediction_branches(
     )
 
     split_filename = config["eval_dataset"]["filter_indices"]["split_filename"]
-    metadata_dir = BenchConfigParser.get_metadata_dir(
+    metadata_dir = MetadataConfigParser.get_metadata_dir(
         cfg=config,
         bench_save_dir=str(tmp_path),
     )
@@ -1021,7 +1114,7 @@ def test_logger(
 
     # to hydra object
 
-    logger = BenchConfigParser.parse_logger(config)
+    logger = LoggerConfigParser.parse_logger(config)
     logger.log_metrics({"test": 1})
 
 

@@ -97,6 +97,7 @@ class ModelRandomization(Benchmark):
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
         inference_batch_size: Optional[int] = None,
+        bootstrap: bool = False,
     ):
         """Evaluate the given data attributor.
 
@@ -126,6 +127,10 @@ class ModelRandomization(Benchmark):
             If set, split the per-batch model forward (prediction and any
             forward inside the metric) into sub-batches of this size.
             ``None`` keeps the full ``batch_size`` forward.
+        bootstrap: bool
+            Whether to return bootstrapped metric score, if available,
+            instead of the single-point estimate.
+            By default False.
 
         Returns
         -------
@@ -170,4 +175,5 @@ class ModelRandomization(Benchmark):
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
             inference_batch_size=inference_batch_size,
+            bootstrap=bootstrap,
         )

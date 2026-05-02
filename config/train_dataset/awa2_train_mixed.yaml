@@ -1,0 +1,5 @@
+dataset_str: quanda-bench-test/awa2
+dataset_split: train
+transforms: awa2_train_transforms
+split_ref: awa2_train_mixed
+split_name: train

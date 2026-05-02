@@ -3,7 +3,8 @@
 import copy
 import logging
 import os
-from typing import Any, Callable, Dict, List, Optional, Union
+import warnings
+from typing import Any, Dict, List, Optional, Union
 
 import datasets  # type: ignore
 import torch
@@ -22,7 +23,12 @@ from quanda.explainers.utils import (
     explain_fn_from_explainer,
     self_influence_fn_from_explainer,
 )
-from quanda.utils.common import _replace_conv1d_with_linear, process_targets
+from quanda.utils.common import (
+    CheckpointLoadFunc,
+    _replace_conv1d_with_linear,
+    process_targets,
+    resolve_device,
+)
 from quanda.utils.tasks import TaskLiterals
 
 logger = logging.getLogger(__name__)
@@ -66,16 +72,16 @@ class Kronfluence(Explainer):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         batch_size: int = 1,
-        device: str = "cpu",
+        device: Optional[str] = None,
         analysis_name: str = "kronfluence_analysis",
         factors_name: str = "initial_factor",
         factor_args: FactorArguments = None,
         scores_name: str = "initial_score",
         score_args: ScoreArguments = None,
         dataloader_kwargs: DataLoaderKwargs = None,
-        overwrite_output_dir: bool = False,
+        load_from_disk: bool = True,
         cache_dir: str = "./cache",
         model_id: str = "0",
     ):
@@ -97,13 +103,15 @@ class Kronfluence(Explainer):
         checkpoints : Optional[Union[str, List[str]]], optional
             Ignored. Accepted for API consistency with other
             explainers.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Ignored, for the same reason as ``checkpoints``.
             Defaults to None.
         batch_size : int, optional
             Batch size used for iterating over the dataset. Defaults to 1.
-        device : str, optional
-            Device to run the computation on. Defaults to "cpu".
+        device : Optional[str], optional
+            Device to run the computation on. Defaults to None, which
+            falls back to the device of ``model``'s parameters (or
+            ``"cpu"`` if the model has none).
         analysis_name : str, optional
             Unique identifier for the analysis. Defaults to
             "kronfluence_analysis".
@@ -117,7 +125,7 @@ class Kronfluence(Explainer):
             Arguments for score computation. Defaults to None.
         dataloader_kwargs : DataLoaderKwargs, optional
             DataLoader arguments. Defaults to None.
-        overwrite_output_dir : bool, optional
+        load_from_disk : bool, optional
             Whether to overwrite cached factors. Defaults to False.
         cache_dir : str, optional
             Directory to store the cached results. Defaults to "./cache".
@@ -126,6 +134,15 @@ class Kronfluence(Explainer):
             multiple explainers. Defaults to "0".
 
         """
+        if checkpoints is not None or checkpoints_load_func is not None:
+            warnings.warn(
+                "Kronfluence ignores `checkpoints` and "
+                "`checkpoints_load_func`: factor fitting runs against the "
+                "model's current weights only. Pass a model whose weights "
+                "are already loaded.",
+                UserWarning,
+                stacklevel=2,
+            )
         super().__init__(
             model=model,
             train_dataset=train_dataset,
@@ -134,7 +151,7 @@ class Kronfluence(Explainer):
             checkpoints_load_func=checkpoints_load_func,
         )
         self.batch_size = batch_size
-        self.device = device
+        self.device = resolve_device(model, device)
 
         self.task = task_module
         self.model = self._prepare_model()
@@ -144,7 +161,7 @@ class Kronfluence(Explainer):
         self.factors_name = factors_name
         self.scores_name = scores_name
         self.score_args = score_args
-        self.overwrite_output_dir = overwrite_output_dir
+        self.load_from_disk = load_from_disk
         if cache_dir is None:
             cache_dir = "./kronfluence_cache"
         self.cache_dir = os.path.join(cache_dir, str(model_id))
@@ -172,7 +189,7 @@ class Kronfluence(Explainer):
             factors_name=self.factors_name,
             dataset=self.train_dataset,
             factor_args=self.factor_args,
-            overwrite_output_dir=self.overwrite_output_dir,
+            overwrite_output_dir=not self.load_from_disk,
         )
 
     def _prepare_model(self) -> nn.Module:
@@ -238,7 +255,7 @@ class Kronfluence(Explainer):
         targets: Union[List[int], torch.Tensor],
         scores_name: Optional[str] = None,
         score_args: ScoreArguments = None,
-        overwrite_output_dir: bool = True,
+        load_from_disk: bool = False,
     ) -> torch.Tensor:
         """Compute influence scores for the test samples.
 
@@ -254,7 +271,7 @@ class Kronfluence(Explainer):
         score_args : ScoreArguments, optional
             Arguments for score computation. Overrides the instance variable
             if provided.
-        overwrite_output_dir : bool, optional
+        load_from_disk : bool, optional
             Whether to overwrite stored results. Defaults to True.
 
         Returns
@@ -277,7 +294,7 @@ class Kronfluence(Explainer):
             train_dataset=self.train_dataset,
             per_device_query_batch_size=self.batch_size,
             score_args=score_args,
-            overwrite_output_dir=overwrite_output_dir,
+            overwrite_output_dir=not load_from_disk,
         )
         scores = self.analyzer.load_pairwise_scores(
             scores_name=self.scores_name
@@ -290,7 +307,7 @@ class Kronfluence(Explainer):
         batch_size: int = 1,
         scores_name: Optional[str] = None,
         score_args: ScoreArguments = None,
-        overwrite_output_dir: bool = True,
+        load_from_disk: bool = False,
     ) -> torch.Tensor:
         """Compute self-influence scores.
 
@@ -305,7 +322,7 @@ class Kronfluence(Explainer):
         score_args : ScoreArguments, optional
             Arguments for score computation. Overrides the instance variable
             if provided.
-        overwrite_output_dir : bool, optional
+        load_from_disk : bool, optional
             Whether to overwrite stored results. Defaults to True.
 
         Returns
@@ -323,7 +340,7 @@ class Kronfluence(Explainer):
             factors_name=self.factors_name,
             train_dataset=self.train_dataset,
             score_args=score_args,
-            overwrite_output_dir=overwrite_output_dir,
+            overwrite_output_dir=not load_from_disk,
         )
 
         scores = self.analyzer.load_self_scores(scores_name=self.scores_name)[
@@ -340,7 +357,7 @@ def kronfluence_explain(
     explanation_targets: Union[List[int], torch.Tensor],
     train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
     checkpoints: Optional[Union[str, List[str]]] = None,
-    checkpoints_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """Functional interface for the `Kronfluence` explainer.
@@ -359,7 +376,7 @@ def kronfluence_explain(
         Training dataset to be used for the influence computation.
     checkpoints : Optional[Union[str, List[str]]], optional
         Path to the model checkpoint file(s), defaults to None.
-    checkpoints_load_func : Optional[Callable[..., Any]], optional
+    checkpoints_load_func : Optional[CheckpointLoadFunc], optional
         Function to load the model from the checkpoint file, takes
         (model, checkpoint path) as two arguments, by default None.
     **kwargs : Any
@@ -390,7 +407,7 @@ def kronfluence_self_influence(
     task: Task,
     train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
     checkpoints: Optional[Union[str, List[str]]] = None,
-    checkpoints_load_func: Optional[Callable[..., Any]] = None,
+    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     **kwargs: Any,
 ) -> torch.Tensor:
     """Functional interface for `Kronfluence` explainer.
@@ -405,7 +422,7 @@ def kronfluence_self_influence(
         Training dataset to be used for the influence computation.
     checkpoints : Optional[Union[str, List[str]]], optional
         Path to the model checkpoint file(s), defaults to None.
-    checkpoints_load_func : Optional[Callable[..., Any]], optional
+    checkpoints_load_func : Optional[CheckpointLoadFunc], optional
         Function to load the model from the checkpoint file, takes
         (model, checkpoint path) as two arguments, by default None.
     **kwargs : Any

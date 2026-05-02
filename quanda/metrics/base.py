@@ -1,12 +1,16 @@
 """Base class for metrics."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import datasets  # type: ignore
 import torch
 
-from quanda.utils.common import get_load_state_dict_func, load_last_checkpoint
+from quanda.utils.common import (
+    CheckpointLoadFunc,
+    get_load_state_dict_func,
+    load_last_checkpoint,
+)
 
 
 class Metric(ABC):
@@ -17,7 +21,7 @@ class Metric(ABC):
         model: torch.nn.Module,
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     ):
         """Initialize metric.
 
@@ -29,7 +33,7 @@ class Metric(ABC):
             Training dataset to be used for the influence computation.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
 
@@ -88,8 +92,14 @@ class Metric(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def compute(self) -> Any:
+    def compute(self) -> Dict[str, Any]:
         """Compute the metric score.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Dictionary keyed by metric output names. All quanda metrics
+            return a ``"score"`` entry; some return additional fields.
 
         Raises
         ------
@@ -97,6 +107,65 @@ class Metric(ABC):
 
         """
         raise NotImplementedError
+
+    def compute_bootstrapped(
+        self,
+        n_bootstrap: int = 1000,
+        ci: float = 0.95,
+        seed: Optional[int] = None,
+    ) -> dict:
+        """Bootstrap a test-sample CI around the metric score.
+
+        Parameters
+        ----------
+        n_bootstrap : int, optional
+            Number of bootstrap replicates, by default 1000.
+        ci : float, optional
+            Confidence level, e.g. 0.95 for a 95% CI, by default 0.95.
+        seed : Optional[int], optional
+            Seed for the resampling RNG, by default None.
+
+        Returns
+        -------
+        dict
+            Dictionary with ``score``, ``ci_low``, ``ci_high``, ``ci``
+            and ``n_bootstrap``.
+
+        """
+        scores = self._per_sample_scores()
+        if scores is None:
+            raise NotImplementedError(
+                f"{type(self).__name__} does not support bootstrapping."
+            )
+        scores = scores.detach().to("cpu").float()
+        n = scores.numel()
+        if n == 0:
+            raise ValueError("No scores accumulated; call update() first.")
+
+        gen = torch.Generator()
+        if seed is not None:
+            gen.manual_seed(seed)
+        idx = torch.randint(0, n, (n_bootstrap, n), generator=gen)
+        means = scores[idx].mean(dim=1)
+        alpha = (1 - ci) / 2
+        return {
+            "score": scores.mean().item(),
+            "ci_low": torch.quantile(means, alpha).item(),
+            "ci_high": torch.quantile(means, 1 - alpha).item(),
+            "ci": ci,
+            "n_bootstrap": n_bootstrap,
+        }
+
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return accumulated per-sample scores for bootstrapping.
+
+        Returns
+        -------
+        Optional[torch.Tensor]
+            1-D tensor of per-sample scores, or ``None``.
+
+        """
+        return None
 
     @abstractmethod
     def reset(self):

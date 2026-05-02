@@ -4,7 +4,7 @@ import hydra
 from omegaconf import DictConfig
 
 from quanda.benchmarks import bench_dict
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import LoggerConfigParser
 from quanda.benchmarks.downstream_eval import *
 from quanda.benchmarks.ground_truth import *
 from quanda.benchmarks.heuristics import *
@@ -16,13 +16,14 @@ from quanda.benchmarks.heuristics import *
 def main(cfg: DictConfig) -> Tuple[float]:
     device = cfg.device
     bench_cls = bench_dict[cfg.bench]
-    logger = BenchConfigParser.parse_logger(cfg)
+    logger = LoggerConfigParser.parse_logger(cfg)
     bench = bench_cls.train(
         cfg, logger=logger, device=device, batch_size=cfg.batch_size
     )
     scores = bench.sanity_check()
     print(f"Sanity check scores: {scores}")
-    logger.log_metrics(scores)
+    if logger is not None:
+        logger.log_metrics(scores)
     return bench.overall_objective(scores)
 
 

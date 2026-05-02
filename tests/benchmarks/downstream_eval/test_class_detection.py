@@ -202,6 +202,10 @@ def test_class_detection_kronfluence_qnli(
             "qnli_class_detection",
             {"train_acc": 0.84, "val_acc": 0.84},
         ),
+        (
+            "awa2_class_detection",
+            {"train_acc": 0.95, "val_acc": 0.8},
+        ),
     ],
 )
 def test_class_detection_sanity_check_values(

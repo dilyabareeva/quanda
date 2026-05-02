@@ -304,3 +304,42 @@ def test_captum_tracincp_fast_self_influence(
 
     explainer.captum_explainer.self_influence.assert_called_once()
     assert self_influence.shape == (n_train,)
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize(
+    "explainer_cls,extra_init,bad_kwarg",
+    [
+        (CaptumTracInCP, {}, "k"),
+        (CaptumTracInCP, {}, "proponents"),
+        (CaptumTracInCP, {}, "aggregate"),
+        (CaptumTracInCPFast, {"final_fc_layer": "fc_3"}, "k"),
+        (CaptumTracInCPFastRandProj, {"final_fc_layer": "fc_3"}, "proponents"),
+    ],
+)
+def test_captum_tracincp_warns_and_drops_unsupported_kwargs(
+    explainer_cls,
+    extra_init,
+    bad_kwarg,
+    load_mnist_model,
+    load_mnist_checkpoints,
+    load_mnist_dataset,
+    mocker,
+):
+    extra_init = dict(extra_init)
+    if extra_init.get("final_fc_layer") == "fc_3":
+        extra_init["final_fc_layer"] = load_mnist_model.fc_3
+
+    mocker.patch.object(explainer_cls, "_init_explainer")
+
+    with pytest.warns(UserWarning, match=f"{bad_kwarg} is not supported"):
+        explainer_cls(
+            model=load_mnist_model,
+            train_dataset=load_mnist_dataset,
+            checkpoints=load_mnist_checkpoints[:2],
+            checkpoints_load_func=get_load_state_dict_func("cpu"),
+            device="cpu",
+            batch_size=1,
+            **extra_init,
+            **{bad_kwarg: 5},
+        )

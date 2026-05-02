@@ -20,7 +20,12 @@ from dattri.algorithm.trak import TRAKAttributor  # type: ignore
 from dattri.task import AttributionTask  # type: ignore
 
 from quanda.explainers.base import Explainer
-from quanda.utils.common import get_load_state_dict_func, process_targets
+from quanda.utils.common import (
+    CheckpointLoadFunc,
+    get_load_state_dict_func,
+    process_targets,
+    resolve_device,
+)
 from quanda.utils.datasets.dataset_handlers import (
     HuggingFaceDatasetHandler,
     HuggingFaceSequenceDatasetHandler,
@@ -50,14 +55,6 @@ def _wrap_checkpoints_load_func(
     return _load
 
 
-def _resolve_device(model: torch.nn.Module, device: Optional[str]) -> str:
-    """Fall back to the model's parameter device when ``device`` is unset."""
-    if device is not None:
-        return device
-    param = next(model.parameters(), None)
-    return str(param.device) if param is not None else "cpu"
-
-
 class DattriInfluence(Explainer, ABC):
     """Base class for dattri explainer wrappers."""
 
@@ -77,7 +74,7 @@ class DattriInfluence(Explainer, ABC):
         task: TaskLiterals = "image_classification",
         target_func: Optional[Callable] = None,
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layer_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
@@ -117,7 +114,7 @@ class DattriInfluence(Explainer, ABC):
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s). If None, the current
             `state_dict` of `model` is used. Defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file.
         layer_name : Optional[Union[str, List[str]]], optional
             Layer name(s) to restrict the gradient computation to. If None,
@@ -138,7 +135,7 @@ class DattriInfluence(Explainer, ABC):
             ``("input_ids", "token_type_ids", "attention_mask")``.
 
         """
-        device = _resolve_device(model, device)
+        device = resolve_device(model, device)
 
         if checkpoints_load_func is None:
             checkpoints_load_func = get_load_state_dict_func(device)
@@ -338,7 +335,7 @@ class DattriTRAK(DattriInfluence):
         correct_probability_func: Callable,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layer_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
@@ -351,7 +348,7 @@ class DattriTRAK(DattriInfluence):
         """Initialize the `DattriTRAK` explainer."""
         logger.info("Initializing dattri TRAK explainer...")
 
-        device = _resolve_device(model, device)
+        device = resolve_device(model, device)
         correct_probability_func = _resolve_model_fn(
             correct_probability_func, model
         )
@@ -426,7 +423,7 @@ class DattriTracInCP(DattriInfluence):
         learning_rate: float = 0.001,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layer_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
@@ -438,7 +435,7 @@ class DattriTracInCP(DattriInfluence):
         """Initialize the `DattriTracInCP` explainer."""
         logger.info("Initializing dattri TracInCP explainer...")
 
-        device = _resolve_device(model, device)
+        device = resolve_device(model, device)
         n_ckpts = len(checkpoints) if isinstance(checkpoints, list) else 1
         weight_list = torch.tensor([learning_rate] * n_ckpts, device=device)
 
@@ -483,7 +480,7 @@ class DattriGradDot(DattriTracInCP):
         loss_func: Callable,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layer_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
@@ -528,7 +525,7 @@ class DattriGradCos(DattriTracInCP):
         loss_func: Callable,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layer_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
@@ -579,7 +576,7 @@ class DattriArnoldi(DattriInfluence):
         loss_func: Callable,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layer_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
@@ -645,7 +642,7 @@ class DattriEKFAC(DattriInfluence):
         loss_func: Callable,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         module_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
@@ -710,7 +707,7 @@ class DattriIFExplicit(DattriInfluence):
         loss_func: Callable,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layer_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
@@ -764,7 +761,7 @@ class DattriIFCG(DattriInfluence):
         loss_func: Callable,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layer_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
@@ -827,7 +824,7 @@ class DattriIFLiSSA(DattriInfluence):
         loss_func: Callable,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layer_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
@@ -894,7 +891,7 @@ class DattriIFDataInf(DattriInfluence):
         loss_func: Callable,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         layer_name: Optional[Union[str, List[str]]] = None,
         batch_size: int = 1,
         collate_fn: Optional[Callable] = None,

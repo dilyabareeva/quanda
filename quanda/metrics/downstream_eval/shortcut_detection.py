@@ -1,12 +1,12 @@
 """Shortcut Detection Metric."""
 
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import torch
 from torcheval.metrics.functional import binary_auprc
 
 from quanda.metrics.base import Metric
-from quanda.utils.common import chunked_logits, ds_len
+from quanda.utils.common import CheckpointLoadFunc, chunked_logits, ds_len
 
 
 class ShortcutDetectionMetric(Metric):
@@ -30,7 +30,7 @@ class ShortcutDetectionMetric(Metric):
         shortcut_indices: Union[List[int], torch.Tensor],
         shortcut_cls: int,
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         filter_by_non_shortcut: bool = True,
         filter_by_shortcut_pred: bool = True,
         inference_batch_size: Optional[int] = None,
@@ -52,7 +52,7 @@ class ShortcutDetectionMetric(Metric):
             Class of the shortcut samples.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
         filter_by_non_shortcut : bool, optional
@@ -188,6 +188,10 @@ class ShortcutDetectionMetric(Metric):
         if len(self.auprc_scores) == 0:
             return {"score": 0.0}
         return {"score": torch.tensor(self.auprc_scores).mean().item()}
+
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample AUPRC scores."""
+        return torch.tensor(self.auprc_scores)
 
     def reset(self, *args, **kwargs):
         """Reset the metric state."""

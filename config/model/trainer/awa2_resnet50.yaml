@@ -1,0 +1,22 @@
+# Trainer configuration for ResNet50 on AwA2.
+optimizer: "sgd"
+optimizer_kwargs:
+  momentum: 0.9
+  nesterov: true
+  weight_decay: 1.0e-4
+
+criterion: "cross_entropy"
+criterion_kwargs: {}
+
+scheduler: "one_cycle"
+scheduler_kwargs:
+  interval: "step"
+  max_lr: ${..lr}
+  anneal_strategy: "cos"
+  pct_start: 0.1
+  div_factor: 25.0
+
+lr: 0.1
+max_epochs: 30
+seed: 42
+num_workers: 8

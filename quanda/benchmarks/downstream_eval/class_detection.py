@@ -96,21 +96,22 @@ class ClassDetection(Benchmark):
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
         inference_batch_size: Optional[int] = None,
+        bootstrap: bool = False,
     ):
         """Evaluate the benchmark using a given explanation method.
 
         Parameters
         ----------
         explainer_cls: type
-            The explanation class inheriting from the base Explainer class to
-            be used for evaluation.
+            The explanation class inheriting from the base Explainer
+            class to be used for evaluation.
         expl_kwargs: Optional[dict], optional
             Keyword arguments for the explainer, by default None.
         batch_size: int, optional
             Batch size for the evaluation, by default 8.
         max_eval_n: Optional[int], optional
-            Maximum number of evaluation samples to use. If None, uses the
-            entire evaluation dataset. By default 1000.
+            Maximum number of evaluation samples to use. If None, uses
+            the entire evaluation dataset. By default 1000.
         eval_seed: int, optional
             Random seed for evaluation sampling, by default 42.
         cache_dir: Optional[str], optional
@@ -119,13 +120,18 @@ class ClassDetection(Benchmark):
         use_cached_expl: bool, optional
             Whether to use cached explanations, by default False.
         use_hf_expl: bool, optional
-            Whether to use Hugging Face cached explanations, by default False.
-            If use_cached_expl is also True, will prioritize local cache over
-            HF cache.
+            Whether to use Hugging Face cached explanations,
+            by default False.
+            If use_cached_expl is also True, will prioritize
+            local cache over HF cache.
         inference_batch_size: Optional[int], optional
-            If set, split the per-batch model forward (prediction and any
-            forward inside the metric) into sub-batches of this size.
-            ``None`` keeps the full ``batch_size`` forward.
+            If set, split the per-batch model forward (prediction and
+            any forward inside the metric) into sub-batches of this
+            size. ``None`` keeps the full ``batch_size`` forward.
+        bootstrap: bool
+            Whether to return bootstrapped metric score, if available,
+            instead of the single-point estimate.
+            By default False.
 
         Returns
         -------
@@ -166,4 +172,5 @@ class ClassDetection(Benchmark):
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
             inference_batch_size=inference_batch_size,
+            bootstrap=bootstrap,
         )

@@ -5,10 +5,8 @@ DST="/data2/bareeva/Projects/quanda/cluster_output_new2"
 
 mkdir -p "$DST"
 rsync -au "$SRC/" "$DST/"
+rsync -au "$DST/" "$SRC/"
 
 
-SRC_LOCAL="/data2/bareeva/Projects/quanda/cluster_output_new2/eval_results"
-DST_LOCAL="./local_eval_results"
 
-mkdir -p "$DST_LOCAL"
-rsync -au "$SRC_LOCAL/" "$DST_LOCAL/"
+#before=$(find /data/cluster/users/bareeva/quanda_output_new2/eval_results -type f | wc -l); find /data/cluster/users/bareeva/quanda_output_new2/eval_results -type f -not -newermt 2026-04-29 -delete; after=$(find /data/cluster/users/bareeva/quanda_output_new2/eval_results -type f | wc -l); echo "Files before: $before"; echo "Files after:  $after"; echo "Deleted:      $((before - after))"; echo; echo "Remaining oldest files:"; find /data/cluster/users/bareeva/quanda_output_new2/eval_results -type f -printf '%TY-%Tm-%Td %TH:%TM  %p\n' | sort | head -3

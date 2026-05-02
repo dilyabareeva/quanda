@@ -1,0 +1,79 @@
+defaults:
+  - model: awa2_resnet50_base
+  - train_dataset: awa2_train
+  - eval_dataset: awa2_test
+  - val_dataset: awa2_val
+  - model/trainer: awa2_resnet50
+  - logger: null
+  - override hydra/sweeper: optuna
+  - override hydra/sweeper/sampler: grid
+  - override hydra/launcher: joblib
+  - _self_
+
+hydra:
+  sweep:
+    dir: "${log_dir}/${id}"
+    subdir: hydra_logs
+
+  launcher:
+    n_jobs: 1
+
+  sweeper:
+    direction:
+      - maximize
+    study_name: "${cfg_file_name}"
+    storage: null
+    n_trials: 8
+    n_jobs: 1
+    params:
+      model.trainer.lr: choice(0.03, 0.1, 0.2)
+
+id: "default"
+bench: ClassDetection
+adversarial_label: 0
+bench_save_dir: "bench_out"
+log_dir: hydra_logs
+repo_id: "quanda-bench-test"
+cache_dir: "tmp"
+top_k: 5
+model_id: "0"
+correlation_fn: "spearman"
+offline: true
+seed: 42
+device: "cuda:0"
+batch_size: 128
+
+m: 100
+alpha: 0.5
+
+subset_ids: lds_subsets.yaml
+
+ckpt: "${repo_id}/${id}"
+num_checkpoints: 5
+meta_id: "${repo_id}/${id}_metadata"
+
+splits:
+  awa2_train:
+    filename: awa2_train_split.yaml
+    ratios: {train: 0.8, val: 0.1, test: 0.1}
+    seed: 42
+  awa2_train_subclass:
+    filename: awa2_train_subclass_split.yaml
+    ratios: {train: 0.8, val: 0.1, test: 0.1}
+    seed: 42
+  awa2_train_shortcut:
+    filename: awa2_train_shortcut_split.yaml
+    ratios: {train: 0.8, val: 0.1, test: 0.1}
+    seed: 42
+  awa2_train_mislabeling:
+    filename: awa2_train_mislabeling_split.yaml
+    ratios: {train: 0.8, val: 0.1, test: 0.1}
+    seed: 42
+  awa2_train_mixed:
+    filename: awa2_train_mixed_split.yaml
+    ratios: {train: 0.8, val: 0., test: 0.1}
+    seed: 42
+  imagenet_sketch:
+    filename: imagenet_sketch_split.yaml
+    ratios: {train: 0.01, val: 0.002, test: 0.002}
+    seed: 42

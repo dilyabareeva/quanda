@@ -131,6 +131,7 @@ def test_tail_patch_benchmark_gpt2(
         "task": "causal_lm",
         "batch_size": batch_size,
         "cache_dir": str(tmp_path),
+        "load_from_disk": False,
     }
 
     score = tail_patch_benchmark.evaluate(

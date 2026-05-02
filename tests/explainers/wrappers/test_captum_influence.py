@@ -239,3 +239,21 @@ def test_captum_arnoldi_self_influence(
     assert torch.allclose(explanations, explanations_exp), (
         "Training data attributions are not as expected"
     )
+
+
+@pytest.mark.explainers
+@pytest.mark.parametrize("bad_ratio", [1.2, 0.0, -0.1])
+def test_captum_arnoldi_invalid_precompute_data_ratio(
+    bad_ratio,
+    load_mnist_model,
+    load_mnist_last_checkpoint,
+    load_mnist_dataset,
+):
+    with pytest.raises(ValueError, match="precompute_data_ratio"):
+        CaptumArnoldi(
+            model=load_mnist_model,
+            train_dataset=load_mnist_dataset,
+            checkpoints=load_mnist_last_checkpoint,
+            checkpoints_load_func=get_load_state_dict_func("cpu"),
+            precompute_data_ratio=bad_ratio,
+        )

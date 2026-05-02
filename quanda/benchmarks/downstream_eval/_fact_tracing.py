@@ -6,20 +6,20 @@ skeleton — into a single class so the concrete benchmarks only need
 to declare their metric and metric-specific kwargs.
 """
 
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import datasets  # type: ignore
 import torch
 
 from quanda.benchmarks.base import Benchmark, _resolve_ckpts
 from quanda.benchmarks.config_parser import (
-    BenchConfigParser,
     FactTracingConfigParser,
+    ModelConfigParser,
 )
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.cache import BatchedCachedExplanations
-from quanda.utils.common import _subsample_indices, ds_len
+from quanda.utils.common import CheckpointLoadFunc, _subsample_indices, ds_len
 
 
 class FactTracingBenchmark(Benchmark):
@@ -42,7 +42,7 @@ class FactTracingBenchmark(Benchmark):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: List[str],
-        checkpoints_load_func: Callable[..., Any],
+        checkpoints_load_func: CheckpointLoadFunc,
         device: str = "cpu",
         val_dataset: Optional[
             Union[torch.utils.data.Dataset, datasets.Dataset]
@@ -83,7 +83,7 @@ class FactTracingBenchmark(Benchmark):
         :func:`load_fact_tracing_datasets_from_cfg` (which bypasses the
         generic dataset parser because one HF dataset fans out into
         both splits) and the model via the standard
-        :class:`BenchConfigParser` path.
+        :class:`ModelConfigParser` path.
         """
         if offline and load_fresh:
             raise ValueError(
@@ -97,7 +97,7 @@ class FactTracingBenchmark(Benchmark):
         )
 
         model, checkpoints, checkpoints_load_func = (
-            BenchConfigParser.parse_model_cfg(
+            ModelConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config.get("bench_save_dir", "./tmp"),
                 ckpts=_resolve_ckpts(config),
@@ -145,6 +145,7 @@ class FactTracingBenchmark(Benchmark):
         precomputed_explanations: Optional[BatchedCachedExplanations] = None,
         inference_batch_size: Optional[int] = None,
         subset_logits_dir: Optional[str] = None,
+        bootstrap: bool = False,
     ):
         """Subsample ``entailment_labels`` to align with the eval iteration.
 
@@ -170,6 +171,7 @@ class FactTracingBenchmark(Benchmark):
             precomputed_explanations=precomputed_explanations,
             inference_batch_size=inference_batch_size,
             subset_logits_dir=subset_logits_dir,
+            bootstrap=bootstrap,
         )
 
     def _extra_metric_inputs(
@@ -198,6 +200,7 @@ class FactTracingBenchmark(Benchmark):
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
         inference_batch_size: Optional[int] = None,
+        bootstrap: bool = False,
     ):
         """Evaluate the benchmark using a given explanation method.
 
@@ -229,4 +232,5 @@ class FactTracingBenchmark(Benchmark):
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
             inference_batch_size=inference_batch_size,
+            bootstrap=bootstrap,
         )

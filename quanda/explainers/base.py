@@ -1,7 +1,7 @@
 """Base class for explainers."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import datasets  # type: ignore
 import lightning as L
@@ -9,10 +9,12 @@ import torch
 from tqdm import tqdm
 
 from quanda.utils.common import (
+    CheckpointLoadFunc,
     cache_result,
     ds_len,
     get_load_state_dict_func,
     load_last_checkpoint,
+    resolve_device,
 )
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
@@ -56,7 +58,7 @@ class Explainer(ABC):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         **kwargs,
     ):
         """Initialize the `Explainer` class.
@@ -73,7 +75,7 @@ class Explainer(ABC):
             "causal_lm".
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
         **kwargs : dict
@@ -86,14 +88,8 @@ class Explainer(ABC):
                 f"Supported tasks: {self.accepted_tasks}"
             )
 
-        self.device: str
         self.model = model
-
-        # if model has device attribute, use it, otherwise use the default
-        if next(model.parameters(), None) is not None:
-            self.device = str(next(model.parameters()).device)
-        else:
-            self.device = "cpu"
+        self.device: str = resolve_device(model)
 
         if checkpoints_load_func is None:
             self.checkpoints_load_func = get_load_state_dict_func(self.device)

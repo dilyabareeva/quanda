@@ -7,5 +7,6 @@ kwargs:
   projection_dim: 50
   arnoldi_dim: 100
   batch_size: 256
+  precompute_data_ratio: 1.0
   layers:
     - fc_3

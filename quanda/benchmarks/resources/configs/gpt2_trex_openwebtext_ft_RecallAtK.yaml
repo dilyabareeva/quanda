@@ -16,9 +16,9 @@ fact_tracing:
   tokenizer:
     backend: tiktoken
     encoding: gpt2
-  num_prompts: 20
+  num_prompts: 200
   max_evidence_per_prompt: 5
-  max_length: 64
+  max_length: 128
   seed: 1
 id: gpt2_trex_openwebtext_ft_RecallAtK
 explanations_group: gpt2_trex_openwebtext_ft

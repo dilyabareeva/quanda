@@ -33,6 +33,7 @@ from tqdm import tqdm
 
 from quanda.explainers.base import Explainer
 from quanda.utils.common import (
+    CheckpointLoadFunc,
     default_tensor_type,
     ds_len,
     map_location_context,
@@ -175,7 +176,7 @@ class RepresenterPoints(Explainer):
         classifier_layer: str,
         task: TaskLiterals = "image_classification",
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         cache_dir: str = "./cache",
         features_postprocess: Optional[Callable] = None,
         lmbd: float = 0.003,
@@ -209,7 +210,7 @@ class RepresenterPoints(Explainer):
         checkpoints : Optional[Union[str, List[str]]], optional
             Ignored. Accepted for API consistency with other
             explainers.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Ignored, for the same reason as ``checkpoints``.
             Defaults to None.
         cache_dir : str, optional

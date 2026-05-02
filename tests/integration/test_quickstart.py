@@ -6,6 +6,7 @@ import yaml
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
+import quanda
 from quanda.benchmarks.downstream_eval import (
     MislabelingDetection,
     SubclassDetection,
@@ -61,6 +62,18 @@ def test_quickstart(
     )
     # END2
 
+    # START2_2
+    trak_explainer = quanda.TRAK(
+        model=model,
+        train_dataset=dataset,
+        model_id="trak_model_id",
+        cache_dir=cache_dir,
+        proj_dim=512,
+        batch_size=batch_size,
+        seed=42,
+    )
+    # END2_2
+
     # START3
     explainer_kwargs = {
         "layers": "fc_2",
@@ -82,6 +95,13 @@ def test_quickstart(
     )
     # END3
 
+    # START3_2
+    class_detection = quanda.ClassDetectionMetric(
+        model=model,
+        train_dataset=dataset,
+    )
+    # END3_2
+
     # START4
     test_loader = DataLoader(eval_set, batch_size=batch_size, shuffle=False)
     for test_data, _ in tqdm(test_loader):
@@ -93,6 +113,17 @@ def test_quickstart(
         )
 
     print("Randomization metric output:", model_rand.compute())
+    # END4
+
+    # START4_2
+    test_loader = DataLoader(eval_set, batch_size=batch_size, shuffle=False)
+    for test_data, _ in tqdm(test_loader):
+        test_data = test_data.to(DEVICE)
+        targets = model(test_data).argmax(dim=-1)
+        tda = trak_explainer.explain(test_data=test_data, targets=targets)
+        class_detection.update(explanations=tda, test_targets=targets)
+
+    print("Class Detection metric output:", class_detection.compute())
     # END4
 
     # START6

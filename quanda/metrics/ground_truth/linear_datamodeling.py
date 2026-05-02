@@ -76,7 +76,7 @@ class LinearDatamodelingMetric(Metric):
             Additional keyword arguments for the trainer, by default None.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
         seed : Optional[int], optional
@@ -302,7 +302,16 @@ class LinearDatamodelingMetric(Metric):
         subset_model = deepcopy(model)
         subset_model.train()
 
-        subset_loader = DataLoader(subset, batch_size=batch_size, shuffle=True)
+        num_workers = getattr(trainer, "num_workers", 0)
+        pin_memory = device is not None and "cuda" in device
+        subset_loader = DataLoader(
+            subset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=num_workers > 0,
+        )
         trainer_fit_kwargs = trainer_fit_kwargs or {}
         if isinstance(trainer, L.Trainer):
             if not isinstance(subset_model, L.LightningModule):
@@ -449,9 +458,11 @@ class LinearDatamodelingMetric(Metric):
         model_outputs = torch.stack(model_output_list, dim=1)
         predicted_outputs = torch.stack(predicted_output_list, dim=1)
 
-        batch_lds_scores = self.corr_measure(model_outputs, predicted_outputs)
+        per_sample_lds_scores = self.corr_measure(
+            model_outputs, predicted_outputs
+        )
 
-        self.results["scores"].append(batch_lds_scores)
+        self.results["scores"].append(per_sample_lds_scores)
 
     def reset(self, *args, **kwargs):
         """Reset the LDS score."""
@@ -492,3 +503,9 @@ class LinearDatamodelingMetric(Metric):
 
         """
         return {"score": torch.cat(self.results["scores"]).mean().item()}
+
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample LDS correlations."""
+        if not self.results["scores"]:
+            return torch.empty(0)
+        return torch.cat(self.results["scores"])

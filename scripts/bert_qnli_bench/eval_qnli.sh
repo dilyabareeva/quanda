@@ -14,12 +14,11 @@ benchmarks=(
 )
 
 methods=(
-    #similarity
-    #kronfluence
-    #trak
-    #random
-    #representer_points
-    dattri_if_datainf
+    similarity
+    kronfluence
+    trak
+    random
+    representer_points
 )
 HYDRA_FULL_ERROR=1
 CUDA_LAUNCH_BLOCKING=1 

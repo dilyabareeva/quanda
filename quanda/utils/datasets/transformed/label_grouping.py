@@ -82,6 +82,12 @@ class LabelGroupingDataset(TransformedDataset):
         return sample, self.class_to_group[label]
 
     def get_original_label(self, idx: int):
-        """Get the original label by index."""
-        sample, label = super().__getitem__(idx)
+        """Get the original label by index, skipping the sample pipeline."""
+        inner = self.dataset
+        while isinstance(inner, torch.utils.data.Subset):
+            idx = int(inner.indices[idx])
+            inner = inner.dataset
+        if hasattr(inner, "get_label"):
+            return inner.get_label(idx)
+        _, label = inner[idx]
         return label

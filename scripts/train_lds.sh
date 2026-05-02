@@ -73,16 +73,25 @@ yaml_field() {
     python -c "import yaml; print(yaml.safe_load(open('$1'))['$2'])"
 }
 
-# Cache metadata
+# Cache metadata. If the Hub snapshot is missing, regenerate locally and
+# push it via LinearDatamodeling.generate_and_push_metadata.
 hydrate_metadata() {
-    python -c "
+    python - "${CFG_DIR}/$1.yaml" "${BENCH_SAVE_DIR}" <<'PY'
+import sys, yaml
+from huggingface_hub.utils import HfHubHTTPError, RepositoryNotFoundError
 from quanda.benchmarks.ground_truth import LinearDatamodeling
-LinearDatamodeling.load_pretrained(
-    bench_id='${CFG_DIR}/$1.yaml',
-    cache_dir='${BENCH_SAVE_DIR}',
-    offline=False,
-)
-"
+
+cfg_path, bench_save_dir = sys.argv[1], sys.argv[2]
+try:
+    LinearDatamodeling.load_pretrained(
+        bench_id=cfg_path, cache_dir=bench_save_dir, offline=False,
+    )
+except (RepositoryNotFoundError, HfHubHTTPError):
+    with open(cfg_path) as f:
+        cfg = yaml.safe_load(f)
+    cfg["bench_save_dir"] = bench_save_dir
+    LinearDatamodeling.generate_and_push_metadata(cfg)
+PY
 }
 
 # Train one LDS subset model. Optionally pin to a GPU based on idx parity.

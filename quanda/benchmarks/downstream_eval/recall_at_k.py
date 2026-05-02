@@ -1,7 +1,7 @@
 """Recall@k benchmark."""
 
 import logging
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import datasets  # type: ignore
 import torch
@@ -10,6 +10,7 @@ from quanda.benchmarks.downstream_eval._fact_tracing import (
     FactTracingBenchmark,
 )
 from quanda.metrics.downstream_eval.recall_at_k import RecallAtKMetric
+from quanda.utils.common import CheckpointLoadFunc
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +24,10 @@ class RecallAtK(FactTracingBenchmark):
 
     References
     ----------
-    1) Tyler A. Chang, Dheeraj Rajagopal, Tolga Bolukbasi, Lucas Dixon,
-    and Ian Tenney. (2024) "Scalable Influence and Fact Tracing for
-    Large Language Model Pretraining". The Thirteenth International
-    Conference on Learning Representations.
+    1) Ekin Akyurek, Tolga Bolukbasi, Frederick Liu, Binbin Xiong, Ian Tenney,
+    Jacob Andreas, and Kelvin Guu. (2022) "Towards tracing knowledge in
+    language models back to the training data." In Findings of the
+    Association for Computational Linguistics: EMNLP 2022, pp.  2429–2446
 
     """
 
@@ -38,7 +39,7 @@ class RecallAtK(FactTracingBenchmark):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: List[str],
-        checkpoints_load_func: Callable[..., Any],
+        checkpoints_load_func: CheckpointLoadFunc,
         device: str = "cpu",
         val_dataset: Optional[
             Union[torch.utils.data.Dataset, datasets.Dataset]

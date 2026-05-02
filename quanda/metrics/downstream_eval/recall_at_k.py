@@ -1,11 +1,12 @@
 """Recall@k Metric."""
 
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import datasets  # type: ignore
 import torch
 
 from quanda.metrics.base import Metric
+from quanda.utils.common import CheckpointLoadFunc
 
 
 class RecallAtKMetric(Metric):
@@ -29,7 +30,7 @@ class RecallAtKMetric(Metric):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         k: int = 10,
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
     ):
         """Initialize the Recall@k metric.
 
@@ -43,7 +44,7 @@ class RecallAtKMetric(Metric):
             The k value for Recall@k, by default 10.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
 
@@ -105,6 +106,12 @@ class RecallAtKMetric(Metric):
             return {"score": 0.0}
 
         return {"score": torch.cat(self.recalls).mean().item()}
+
+    def _per_sample_scores(self) -> Optional[torch.Tensor]:
+        """Return per-sample recall@k scores."""
+        if not self.recalls:
+            return torch.empty(0)
+        return torch.cat(self.recalls)
 
     def reset(self, *args, **kwargs):
         """Reset the metric state."""

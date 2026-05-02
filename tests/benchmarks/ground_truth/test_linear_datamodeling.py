@@ -8,7 +8,10 @@ import torch
 import yaml
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import (
+    MetadataConfigParser,
+    TrainerConfigParser,
+)
 from quanda.benchmarks.ground_truth import LinearDatamodeling
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
@@ -101,7 +104,7 @@ def test_lds_subset_checkpoints_are_different(config_name, tmp_path):
 def test_lds_metadata(load_mnist_linear_datamodeling_config, tmp_path):
     cfg = load_mnist_linear_datamodeling_config
 
-    metadata_dir = BenchConfigParser.get_metadata_dir(
+    metadata_dir = MetadataConfigParser.get_metadata_dir(
         cfg=cfg, bench_save_dir=str(tmp_path)
     )
     assert metadata_dir == os.path.join(
@@ -198,7 +201,9 @@ def test_train_without_skip_runs_subset_loop(mocker):
     fake_obj = _make_fake_lds_obj(mocker)
     mocker.patch.object(Benchmark, "train", return_value=fake_obj)
     mocker.patch.object(
-        BenchConfigParser, "parse_trainer_cfg", return_value=mocker.MagicMock()
+        TrainerConfigParser,
+        "parse_trainer_cfg",
+        return_value=mocker.MagicMock(),
     )
     spy = mocker.patch.object(LinearDatamodeling, "_train_subset_models")
 
@@ -221,7 +226,9 @@ def test_train_subset_delegates_to_single_idx(mocker):
         LinearDatamodeling, "from_config", return_value=fake_obj
     )
     mocker.patch.object(
-        BenchConfigParser, "parse_trainer_cfg", return_value=mocker.MagicMock()
+        TrainerConfigParser,
+        "parse_trainer_cfg",
+        return_value=mocker.MagicMock(),
     )
     spy = mocker.patch.object(LinearDatamodeling, "_train_subset_model_by_idx")
 

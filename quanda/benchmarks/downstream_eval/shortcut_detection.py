@@ -220,6 +220,7 @@ class ShortcutDetection(Benchmark):
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
         inference_batch_size: Optional[int] = None,
+        bootstrap: bool = False,
     ):
         """Evaluate the given data attributor.
 
@@ -249,11 +250,15 @@ class ShortcutDetection(Benchmark):
             If set, split the per-batch model forward (prediction and any
             forward inside the metric) into sub-batches of this size.
             ``None`` keeps the full ``batch_size`` forward.
+        bootstrap: bool
+            Whether to return bootstrapped metric score, if available,
+            instead of the single-point estimate.
+            By default False.
 
         Returns
         -------
-        Dict[str, float]
-            Dictionary containing the evaluation results.
+                Dict[str, float]
+                    Dictionary containing the evaluation results.
 
         """
         precomputed = self._resolve_precomputed_explanations(
@@ -295,6 +300,7 @@ class ShortcutDetection(Benchmark):
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
             inference_batch_size=inference_batch_size,
+            bootstrap=bootstrap,
         )
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):

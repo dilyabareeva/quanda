@@ -9,13 +9,26 @@ repos:
     -   id: check-yaml
     -   id: check-added-large-files
 
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.0
+    hooks:
+    -   id: ruff
+        args: ["--fix"]
+    -   id: ruff-format
+
 -   repo: local
     hooks:
-    -   id: clean-format
-        name: clean format
-        entry: make
-        args: ["clean-format"]
+    -   id: ruff-docstrings
+        name: ruff (docstrings + line length on quanda/)
+        entry: ruff check --select D --select E501 quanda
         language: system
+        types: [python]
+        pass_filenames: false
+    -   id: mypy
+        name: mypy
+        entry: python -m mypy --check-untyped-defs --show-traceback quanda
+        language: system
+        types: [python]
         pass_filenames: false
 
 -   repo: https://github.com/commitizen-tools/commitizen

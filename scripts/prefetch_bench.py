@@ -29,7 +29,7 @@ _SUFFIX_TO_CLASS = {
 }
 BENCH_CLASS = {
     f"{prefix}_{suffix}": cls
-    for prefix in ("mnist", "cifar", "qnli")
+    for prefix in ("mnist", "cifar", "awa2", "qnli")
     for suffix, cls in _SUFFIX_TO_CLASS.items()
 }
 BENCH_CLASS.update(
@@ -55,7 +55,7 @@ def main(cfg: DictConfig) -> None:
         bench_id=bench_id,
         cache_dir=cfg.cache_dir,
         device=cfg.device,
-        load_fresh=False,
+        load_fresh=True,
     )
 
     all_ckpts = list(bench.checkpoints) + list(

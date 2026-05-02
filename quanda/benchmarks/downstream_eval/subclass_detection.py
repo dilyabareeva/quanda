@@ -110,6 +110,7 @@ class SubclassDetection(Benchmark):
         use_cached_expl: bool = False,
         use_hf_expl: bool = False,
         inference_batch_size: Optional[int] = None,
+        bootstrap: bool = False,
         *args,
         **kwargs,
     ):
@@ -145,6 +146,10 @@ class SubclassDetection(Benchmark):
             If set, split the per-batch model forward (prediction and any
             forward inside the metric) into sub-batches of this size.
             ``None`` keeps the full ``batch_size`` forward.
+        bootstrap: bool
+            Whether to return bootstrapped metric score, if available,
+            instead of the single-point estimate.
+            By default False.
         args: Any
             Additional arguments.
         kwargs: Any
@@ -152,8 +157,8 @@ class SubclassDetection(Benchmark):
 
         Returns
         -------
-        Dict[str, float]
-            Dictionary containing the metric score.
+                Dict[str, float]
+                    Dictionary containing the metric score.
 
         """
         if not isinstance(self.train_dataset, LabelGroupingDataset):
@@ -207,6 +212,7 @@ class SubclassDetection(Benchmark):
             eval_seed=eval_seed,
             precomputed_explanations=precomputed,
             inference_batch_size=inference_batch_size,
+            bootstrap=bootstrap,
         )
 
     def _compute_and_save_indices(self, config: dict, batch_size: int = 8):

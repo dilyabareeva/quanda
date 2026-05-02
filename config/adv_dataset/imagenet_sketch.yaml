@@ -1,0 +1,6 @@
+single_class_dataset: true
+label: 0
+transforms: awa2_adversarial_transforms
+dataset_str: Huanyiiiii/Imagenet_Sketch
+split_ref: imagenet_sketch
+split_name: train

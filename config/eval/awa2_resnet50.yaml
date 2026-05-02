@@ -1,0 +1,35 @@
+defaults:
+  - explainer: similarity
+  - override hydra/launcher: joblib
+  - override hydra/sweeper: basic
+  - _self_
+
+hydra:
+  sweep:
+    dir: "${results_dir}/${bench}__${explainer.name}"
+    subdir: ${hydra.job.num}
+  launcher:
+    n_jobs: 1
+
+bench: awa2_class_detection
+root_dir: ${cluster_or_local:/data/cluster/users/bareeva/quanda_output_new2,/data2/bareeva/Projects/quanda/cluster_output_new2}
+cache_dir: ${root_dir}/eval_bench/awa2
+results_dir: ${root_dir}/eval_results/awa2
+
+#cache_dir: ./eval_bench/awa2
+#results_dir: ./eval_results/awa2
+device: cuda:0
+batch_size: 16
+inference_batch_size: null
+
+bench_eval:
+  awa2_class_detection: {max_eval_n: 1000, eval_seed: 42}
+  awa2_subclass_detection: {max_eval_n: 1000, eval_seed: 42}
+  awa2_mislabeling_detection: {max_eval_n: null, eval_seed: 42}
+  awa2_shortcut_detection: {max_eval_n: 1000, eval_seed: 42}
+  awa2_mixed_datasets: {max_eval_n: 1000, eval_seed: 42}
+  awa2_linear_datamodeling: {max_eval_n: 1000, eval_seed: 42}
+  awa2_top_k_cardinality: {max_eval_n: 1000, eval_seed: 42}
+  awa2_model_randomization: {max_eval_n: 1000, eval_seed: 42}
+
+final_fc_layer: fc

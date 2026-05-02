@@ -13,7 +13,11 @@ import torch
 import yaml
 
 from quanda.benchmarks.base import Benchmark
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import (
+    MetadataConfigParser,
+    ModelConfigParser,
+    TrainerConfigParser,
+)
 from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
@@ -258,7 +262,7 @@ class LinearDatamodeling(Benchmark):
         if skip_subsets or cls._lds_skip_subsets:
             return obj
 
-        trainer = BenchConfigParser.parse_trainer_cfg(
+        trainer = TrainerConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
         )
 
@@ -316,13 +320,13 @@ class LinearDatamodeling(Benchmark):
         if not isinstance(obj, LinearDatamodeling):
             raise TypeError("Expected a LinearDatamodeling instance.")
 
-        pretrained_base = BenchConfigParser.load_pretrained_base(
+        pretrained_base = ModelConfigParser.load_pretrained_base(
             model_cfg=config["model"], device=device
         )
         if pretrained_base is not None:
             obj.model = pretrained_base
 
-        trainer = BenchConfigParser.parse_trainer_cfg(
+        trainer = TrainerConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
         )
         local_ckpt_dir, repo_id = _subset_ckpt_paths(config, idx)
@@ -336,6 +340,34 @@ class LinearDatamodeling(Benchmark):
             device=device,
         )
         return obj
+
+    @classmethod
+    def generate_and_push_metadata(
+        cls, config: dict
+    ) -> None:  # pragma: no cover
+        """Regenerate LDS metadata locally and push it to HF Hub.
+
+        Calls ``from_config`` with ``load_meta_from_disk=False, offline=True``
+        to materialize splits and subset_ids under the metadata dir, then
+        uploads that dir to ``meta_id``.
+        """
+        from huggingface_hub import HfApi  # local import; optional dep path
+
+        metadata_dir = MetadataConfigParser.get_metadata_dir(
+            cfg=config, bench_save_dir=config["bench_save_dir"]
+        )
+        meta_id = config.get(
+            "meta_id", f"{config['repo_id']}/{config['id']}_metadata"
+        )
+        cls.from_config(config, load_meta_from_disk=False, offline=True)
+
+        api = HfApi()
+        api.create_repo(repo_id=meta_id, repo_type="dataset", exist_ok=True)
+        api.upload_folder(
+            folder_path=metadata_dir,
+            repo_id=meta_id,
+            repo_type="dataset",
+        )
 
     @classmethod
     def push_subset(
@@ -386,7 +418,7 @@ class LinearDatamodeling(Benchmark):
             raise ValueError(
                 "Either ‘trainer’ or ‘model.trainer’ should be set."
             )
-        counterfactual_trainer = BenchConfigParser.parse_trainer_cfg(
+        counterfactual_trainer = TrainerConfigParser.parse_trainer_cfg(
             counterfactual_trainer_cfg
         )
 
@@ -656,6 +688,7 @@ class LinearDatamodeling(Benchmark):
         use_hf_expl: bool = False,
         inference_batch_size: Optional[int] = None,
         subset_logits_dir: Optional[str] = None,
+        bootstrap: bool = False,
     ):
         """Evaluate the given data attributor.
 
@@ -691,11 +724,15 @@ class LinearDatamodeling(Benchmark):
             directory (as produced by :meth:`cache_subset_logits`) and
             fed into the metric, bypassing counterfactual inference. By
             default None.
+        bootstrap: bool
+            Whether to return bootstrapped metric score, if available,
+            instead of the single-point estimate.
+            By default False.
 
         Returns
         -------
-        dict
-            Dictionary containing the evaluation results.
+                dict
+                    Dictionary containing the evaluation results.
 
         """
         precomputed = self._resolve_precomputed_explanations(
@@ -739,4 +776,5 @@ class LinearDatamodeling(Benchmark):
             precomputed_explanations=precomputed,
             inference_batch_size=inference_batch_size,
             subset_logits_dir=subset_logits_dir,
+            bootstrap=bootstrap,
         )

@@ -1,7 +1,7 @@
 """Tail-Patch benchmark."""
 
 import logging
-from typing import Any, Callable, List, Optional, Type, Union
+from typing import Any, List, Optional, Type, Union
 
 import datasets  # type: ignore
 import torch
@@ -11,6 +11,7 @@ from quanda.benchmarks.downstream_eval._fact_tracing import (
     FactTracingBenchmark,
 )
 from quanda.metrics.downstream_eval.tail_patch import TailPatchMetric
+from quanda.utils.common import CheckpointLoadFunc
 from quanda.utils.training.options import optimizers
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class TailPatch(FactTracingBenchmark):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: List[str],
-        checkpoints_load_func: Callable[..., Any],
+        checkpoints_load_func: CheckpointLoadFunc,
         device: str = "cpu",
         val_dataset: Optional[
             Union[torch.utils.data.Dataset, datasets.Dataset]

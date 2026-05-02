@@ -5,7 +5,7 @@ import json
 import os
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any, Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 import datasets  # type: ignore
 import lightning as L
@@ -20,12 +20,18 @@ from huggingface_hub import (
 )
 from tqdm import tqdm
 
-from quanda.benchmarks.config_parser import BenchConfigParser
+from quanda.benchmarks.config_parser import (
+    DatasetConfigParser,
+    MetadataConfigParser,
+    ModelConfigParser,
+    TrainerConfigParser,
+)
 from quanda.benchmarks.resources.config_map import config_map
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
 from quanda.utils.common import (
+    CheckpointLoadFunc,
     DatasetSplit,
     _stable_repr,
     _subsample_dataset,
@@ -78,11 +84,20 @@ def default_explanations_id(
     as the identity segment so multiple benchmarks that share the same
     model + train/eval datasets (e.g. qnli ClassDetection and LDS) can
     reuse a single cached explanations artifact. Only opt in when the
-    grouped benchmarks truly share those inputs — a mismatch will be
-    silent.
+    grouped benchmarks truly share those inputs.
     """
     repo = config.get("repo_id", "quanda-bench-test")
-    group = config.get("explanations_group", config["id"])
+    bench_id = config.get("id")
+    group = config.get("explanations_group", bench_id)
+    if "explanations_group" in config and group != bench_id:
+        warnings.warn(
+            f"Using shared explanations cache: explanations_group="
+            f"{group!r} replaces bench id {bench_id!r}. Only correct if "
+            "grouped benchmarks share model + train/eval datasets — "
+            "mismatches will silently corrupt results.",
+            UserWarning,
+            stacklevel=2,
+        )
     return (
         f"{repo}/{group}__{explainer_cls.__name__}"
         f"__{_hash_expl_kwargs(expl_kwargs)}"
@@ -103,7 +118,7 @@ class Benchmark(ABC):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         checkpoints: List[str],
-        checkpoints_load_func: Callable[..., Any],
+        checkpoints_load_func: CheckpointLoadFunc,
         device: str = "cpu",
         val_dataset: Optional[
             Union[torch.utils.data.Dataset, datasets.Dataset]
@@ -122,8 +137,10 @@ class Benchmark(ABC):
             The evaluation dataset.
         checkpoints : List[str]
             List of checkpoint paths.
-        checkpoints_load_func : Callable[..., Any]
-            Function to load model checkpoints.
+        checkpoints_load_func : CheckpointLoadFunc
+            Function to load model checkpoints. Takes
+            ``(model, checkpoint_path)`` and returns the learning rate or
+            any auxiliary value the checkpoint exposes.
         device : str, optional
             Device to use, by default "cpu".
         val_dataset : Optional[Union[torch.utils.data.Dataset,
@@ -199,10 +216,10 @@ class Benchmark(ABC):
 
         cfg["bench_save_dir"] = cache_dir
 
-        metadata_dir = BenchConfigParser.get_metadata_dir(
+        metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=cfg, bench_save_dir=cache_dir
         )
-        BenchConfigParser.load_metadata(
+        MetadataConfigParser.load_metadata(
             cfg,
             metadata_dir,
             offline=offline,
@@ -234,26 +251,26 @@ class Benchmark(ABC):
                 "offline=True and load_fresh=True are incompatible."
             )
         cache_dir = config.get("bench_save_dir", "./tmp")
-        metadata_dir = BenchConfigParser.get_metadata_dir(
+        metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config,
             bench_save_dir=cache_dir,
             suffix=metadata_suffix,
         )
         splits_cfg = config.get("splits", {})
-        train_dataset = BenchConfigParser.parse_dataset_cfg(
+        train_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
             splits_cfg=splits_cfg,
         )
 
-        val_dataset = BenchConfigParser.parse_dataset_cfg(
+        val_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
             splits_cfg=splits_cfg,
         )
-        eval_dataset = BenchConfigParser.parse_dataset_cfg(
+        eval_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),
             metadata_dir=metadata_dir,
             load_meta_from_disk=load_meta_from_disk,
@@ -261,7 +278,7 @@ class Benchmark(ABC):
         )
 
         model, checkpoints, checkpoints_load_func = (
-            BenchConfigParser.parse_model_cfg(
+            ModelConfigParser.parse_model_cfg(
                 model_cfg=config["model"],
                 bench_save_dir=config["bench_save_dir"],
                 ckpts=_resolve_ckpts(config),
@@ -342,7 +359,7 @@ class Benchmark(ABC):
         ----------
         config : dict
             Dictionary containing the configuration.
-        logger : Optional[Callable], optional
+        logger : Optional[lightning.pytorch.loggers.logger.Logger], optional
             Logger to be used for logging, by default None.
         device : str, optional
             Device to use for training, by default "cpu"
@@ -368,14 +385,14 @@ class Benchmark(ABC):
         )
         obj._pid_suffix = pid_suffix
 
-        pretrained_base = BenchConfigParser.load_pretrained_base(
+        pretrained_base = ModelConfigParser.load_pretrained_base(
             model_cfg=config["model"], device=device
         )
         if pretrained_base is not None:
             obj.model = pretrained_base
 
         # Parse trainer configuration
-        trainer = BenchConfigParser.parse_trainer_cfg(
+        trainer = TrainerConfigParser.parse_trainer_cfg(
             config["model"]["trainer"]
         )
         if logger is not None:
@@ -522,7 +539,7 @@ class Benchmark(ABC):
                 )
 
         pid_suffix = getattr(obj, "_pid_suffix", "")
-        metadata_dir = BenchConfigParser.get_metadata_dir(
+        metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config,
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
             suffix=pid_suffix,
@@ -667,7 +684,7 @@ class Benchmark(ABC):
         """
         cache_dir = config.get("bench_save_dir", "./tmp")
         pid_suffix = getattr(self, "_pid_suffix", "")
-        metadata_dir = BenchConfigParser.get_metadata_dir(
+        metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config,
             bench_save_dir=cache_dir,
             suffix=pid_suffix,
@@ -835,6 +852,7 @@ class Benchmark(ABC):
                 "use_hf_expl is True."
             )
         if use_cached_expl and os.path.exists(cache_dir):
+            self._validate_explanations_meta(cache_dir)
             return ExplanationsCache.load(path=cache_dir, device=self.device)
         if use_hf_expl:
             base = os.path.basename(cache_dir.rstrip("/"))
@@ -849,8 +867,42 @@ class Benchmark(ABC):
                 local_dir=cache_dir,
                 repo_type="dataset",
             )
+            self._validate_explanations_meta(cache_dir)
             return ExplanationsCache.load(path=cache_dir, device=self.device)
         return None
+
+    def _validate_explanations_meta(self, cache_dir: str) -> None:
+        """Warn when cached explanations were produced for a different bench.
+
+        Reads ``explanations_config.yaml`` from ``cache_dir`` (written by
+        :meth:`explain`) and compares ``bench_name`` to ``self.name``. A
+        mismatch is the most common ``explanations_group`` footgun: the
+        cache was produced by another benchmark whose train/eval datasets
+        may differ from this one. Missing meta is silently skipped to
+        preserve backward compatibility with older caches.
+        """
+        meta_path = os.path.join(cache_dir, "explanations_config.yaml")
+        if not os.path.exists(meta_path):
+            return
+        try:
+            with open(meta_path) as f:
+                meta = yaml.safe_load(f) or {}
+        except yaml.YAMLError:
+            return
+        cached_bench = meta.get("bench_name")
+        my_name = getattr(self, "name", self.__class__.__name__)
+        if cached_bench and cached_bench != my_name:
+            warnings.warn(
+                f"Loading cached explanations produced for "
+                f"{cached_bench!r} into a {my_name!r} benchmark. This is "
+                "only safe if both benchmarks were generated with the "
+                "same explanations_group AND share model + train/eval "
+                "datasets. Cache meta: "
+                f"explainer={meta.get('explainer_cls')!r}, "
+                f"explanations_group={meta.get('explanations_group')!r}.",
+                UserWarning,
+                stacklevel=2,
+            )
 
     def _prepare_explainer(
         self,
@@ -968,10 +1020,16 @@ class Benchmark(ABC):
             "explanations_id": explanations_id,
             "bench_id": config.get("id"),
             "bench": config.get("bench"),
+            "bench_name": getattr(cls, "name", cls.__name__),
+            "explanations_group": config.get(
+                "explanations_group", config.get("id")
+            ),
             "explainer_cls": explainer_cls.__name__,
             "expl_kwargs": safe_kwargs,
             "expl_kwargs_hash": _hash_expl_kwargs(expl_kwargs),
             "batch_size": batch_size,
+            "max_eval_n": max_eval_n,
+            "eval_seed": eval_seed,
             "use_predictions": obj.use_predictions,
             "n_batches": n_batches,
         }
@@ -1100,6 +1158,7 @@ class Benchmark(ABC):
         precomputed_explanations: Optional[BatchedCachedExplanations] = None,
         inference_batch_size: Optional[int] = None,
         subset_logits_dir: Optional[str] = None,
+        bootstrap: bool = False,
     ):
         """Evaluate dataset using explainer and metric.
 
@@ -1114,23 +1173,26 @@ class Benchmark(ABC):
         batch_size : int
             Batch size for evaluation
         max_eval_n: Optional[int], optional
-            Maximum number of evaluation samples to use. If None, uses the
-            entire evaluation dataset. By default 1000.
+            Maximum number of evaluation samples to use. If None, uses
+            the entire evaluation dataset. By default 1000.
         eval_seed: int, optional
             Random seed for evaluation sampling, by default 42.
-        precomputed_explanations : Optional[BatchedCachedExplanations],
-            optional
-            If provided, these explanations will be used instead of computing
-            them on the fly. By default None.
+        precomputed_explanations : Optional[BatchedCachedExplanations]
+            Optional. If provided, these explanations will be used
+            instead of computing them on the fly. By default None.
         inference_batch_size : Optional[int], optional
-            Forwarded to :meth:`_iter_explanations` to sub-batch the model
-            forward used for predictions. ``None`` keeps the full
+            Forwarded to :meth:`_iter_explanations` to sub-batch the
+            model forward used for predictions. ``None`` keeps the full
             ``batch_size`` forward.
         subset_logits_dir : Optional[str], optional
             If set, for each batch ``i`` loads ``{dir}/{i}.pt`` (a
-            ``dict[int, Tensor]`` of per-subset counterfactual logits) and
-            passes it to ``metric.update`` as ``subset_logits``. Used by
-            :class:`LinearDatamodeling` to skip counterfactual forwards.
+            ``dict[int, Tensor]`` of per-subset counterfactual logits)
+            and passes it to ``metric.update`` as ``subset_logits``.
+            Used by :class:`LinearDatamodeling` to skip counterfactual
+            forwards.
+        bootstrap: bool
+            Whether to return bootstrapped metric score, if available,
+            instead of the single-point estimate. By default False.
 
         Returns
         -------
@@ -1180,4 +1242,4 @@ class Benchmark(ABC):
                     )
             metric.update(**eval_unit)
 
-        return metric.compute()
+        return metric.compute_bootstrapped() if bootstrap else metric.compute()

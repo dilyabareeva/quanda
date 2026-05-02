@@ -1,0 +1,8 @@
+dataset_str: quanda-bench-test/awa2
+dataset_split: train
+transforms: awa2_transforms
+filter_indices:
+  split_filename: awa2_eval_mixed_main_filter.yaml
+  split_name: default
+split_ref: awa2_train_mixed
+split_name: test

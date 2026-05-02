@@ -1,11 +1,11 @@
 """Random explainer module."""
 
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import torch
 
 from quanda.explainers import Explainer
-from quanda.utils.common import cache_result, ds_len
+from quanda.utils.common import CheckpointLoadFunc, cache_result, ds_len
 from quanda.utils.tasks import TaskLiterals
 
 
@@ -23,7 +23,7 @@ class RandomExplainer(Explainer):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         checkpoints: Optional[Union[str, List[str]]] = None,
-        checkpoints_load_func: Optional[Callable[..., Any]] = None,
+        checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         seed: int = 27,
         device: Optional[str] = None,
     ):
@@ -37,7 +37,7 @@ class RandomExplainer(Explainer):
             Training dataset that was used to train the model.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
-        checkpoints_load_func : Optional[Callable[..., Any]], optional
+        checkpoints_load_func : Optional[CheckpointLoadFunc], optional
             Function to load the model from the checkpoint file, takes
             (model, checkpoint path) as two arguments, by default None.
         seed : int, optional
