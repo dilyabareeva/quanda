@@ -40,20 +40,21 @@ def chunked_logits(
         out = model(**batch) if isinstance(batch, dict) else model(batch)
         return out.logits if hasattr(out, "logits") else out
 
-    if chunk_size is None:
-        return _call(inputs)
-    if isinstance(inputs, dict):
-        total = next(iter(inputs.values())).shape[0]
-        chunks: Any = (
-            {k: v[i : i + chunk_size] for k, v in inputs.items()}
-            for i in range(0, total, chunk_size)
-        )
-    else:
-        chunks = (
-            inputs[i : i + chunk_size]
-            for i in range(0, inputs.shape[0], chunk_size)
-        )
-    return torch.cat([_call(chunk) for chunk in chunks], dim=0)
+    with torch.no_grad():
+        if chunk_size is None:
+            return _call(inputs)
+        if isinstance(inputs, dict):
+            total = next(iter(inputs.values())).shape[0]
+            chunks: Any = (
+                {k: v[i : i + chunk_size] for k, v in inputs.items()}
+                for i in range(0, total, chunk_size)
+            )
+        else:
+            chunks = (
+                inputs[i : i + chunk_size]
+                for i in range(0, inputs.shape[0], chunk_size)
+            )
+        return torch.cat([_call(chunk) for chunk in chunks], dim=0)
 
 
 def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
