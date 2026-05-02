@@ -31,7 +31,7 @@ train_dataset:
     type: SampleTransformationDataset
     metadata:
       metadata_filename: awa2_train_shortcut_transform_indices.yaml
-      p: 0.5
+      p: 0.85
       cls_idx: 0
       seed: 42
     sample_fn: add_pink_frame

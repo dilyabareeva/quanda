@@ -105,7 +105,7 @@ config_map: dict = {
     ).joinpath("e59b08c-bert_qnli_ClassDetection.yaml"),
     "qnli_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("e59b08c-bert_qnli_MislabelingDetection.yaml"),
+    ).joinpath("6d2fd20-bert_qnli_MislabelingDetection.yaml"),
     "qnli_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("e59b08c-bert_qnli_LDS.yaml"),
