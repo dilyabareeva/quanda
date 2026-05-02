@@ -384,9 +384,9 @@ def _draw_bench_bars(
             yerr=yerr,
             fmt="none",
             ecolor="black",
-            elinewidth=0.4,
+            elinewidth=0.7,
             capsize=1,
-            capthick=0.4,
+            capthick=0.7,
             zorder=5,
         )
 
@@ -397,8 +397,8 @@ def _draw_bench_bars(
             mu,
             *line_x,
             colors=random_color,
-            linewidth=0.7,
-            linestyles=(0, (5, 2)),
+            linewidth=1.1,
+            linestyles=(0, (2, 1)),
             zorder=6,
         )
 
