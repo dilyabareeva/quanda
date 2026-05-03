@@ -142,3 +142,4 @@ splits:
     seed: 42
 cfg_output_dir: quanda/benchmarks/resources/configs
 cfg_file_name: GIT_TAG-awa2_resnet50_SubclassDetection.yaml
+detection_s: 5

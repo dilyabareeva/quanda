@@ -101,3 +101,4 @@ splits:
       test: 0.0
     seed: 42
 batch_size: 64
+detection_s: 5

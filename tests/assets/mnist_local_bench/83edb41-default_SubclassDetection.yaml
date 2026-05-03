@@ -82,6 +82,7 @@ log_dir: hydra_logs
 repo_id: quanda-bench-test
 cache_dir: tmp
 top_k: 5
+detection_s: 1
 model_id: '0'
 correlation_fn: kendall
 offline: true

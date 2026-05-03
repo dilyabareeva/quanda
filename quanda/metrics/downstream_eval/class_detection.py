@@ -12,13 +12,12 @@ from quanda.utils.common import CheckpointLoadFunc, chunked_logits, get_targets
 class ClassDetectionMetric(Metric):
     """Class Detection Metric.
 
-    Metric that measures the performance of a given data attribution method
-    in detecting the class of a test sample from its highest attributed
-    training point.
-
-    Intuitively, a good attribution method should assign the highest
-    attribution to the class of the test sample, as argued by Hanawa et al.
-    (2021) and Kwon et al. (2024).
+    For each test sample, the fraction of training points that share the
+    test sample's class among the ``s`` most influential training points
+    (top-``s`` highest attribution scores). The metric returns the average
+    of this fraction across test samples. With ``s=1`` this reduces to the
+    top-1 class detection accuracy of Hanawa et al. (2021); the recall-style
+    formulation follows Kwon et al. (2024).
 
     References
     ----------
@@ -36,6 +35,7 @@ class ClassDetectionMetric(Metric):
         self,
         model: torch.nn.Module,
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
+        s: int = 5,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         filter_by_prediction: bool = False,
@@ -49,6 +49,9 @@ class ClassDetectionMetric(Metric):
             The model associated with the attributions to be evaluated.
         train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
             The training dataset that was used to train `model`.
+        s : int, optional
+            Number of top-attributed training points to consider when
+            computing the same-class fraction, by default 5.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[CheckpointLoadFunc], optional
@@ -70,6 +73,7 @@ class ClassDetectionMetric(Metric):
             checkpoints_load_func=checkpoints_load_func,
         )
 
+        self.s = s
         self.scores: List[torch.Tensor] = []
         self.filter_by_prediction = filter_by_prediction
         self.inference_batch_size = inference_batch_size
@@ -92,11 +96,6 @@ class ClassDetectionMetric(Metric):
             Test samples to used to generate the explanations.
             Only required if `filter_by_prediction` is True during
             initalization.
-
-        Raises
-        ------
-        AssertionError
-            If the number of explanations does not match the number of labels.
 
         """
         if isinstance(test_targets, list):
@@ -121,14 +120,18 @@ class ClassDetectionMetric(Metric):
 
         explanations = explanations[select_idx]
         test_targets = test_targets[select_idx].to(self.device)
-        _, top_one_xpl_indices = explanations.topk(k=1, dim=1)
-        top_one_xpl_targets = torch.tensor(
+        k = min(self.s, explanations.shape[1])
+        _, top_xpl_indices = explanations.topk(k=k, dim=1)
+        top_xpl_targets = torch.tensor(
             [
                 get_targets(self.train_dataset[int(i)])
-                for i in top_one_xpl_indices
-            ]
-        ).to(self.device)
-        scores = (test_targets == top_one_xpl_targets) * 1.0
+                for i in top_xpl_indices.flatten()
+            ],
+            device=self.device,
+        ).reshape(top_xpl_indices.shape)
+        scores = (
+            (top_xpl_targets == test_targets.unsqueeze(1)).float().mean(dim=1)
+        )
         self.scores.append(scores)
 
     def compute(self):
@@ -143,7 +146,7 @@ class ClassDetectionMetric(Metric):
         return {"score": torch.cat(self.scores).mean().item()}
 
     def _per_sample_scores(self) -> Optional[torch.Tensor]:
-        """Return per-sample correctness scores."""
+        """Return per-sample same-class fractions among the top-s."""
         return torch.cat(self.scores) if self.scores else torch.empty(0)
 
     def reset(self, *args, **kwargs):
