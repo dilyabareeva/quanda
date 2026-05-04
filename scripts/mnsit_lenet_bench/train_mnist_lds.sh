@@ -6,4 +6,6 @@ CONFIG_NAME="mnist_lenet"
 
 source "$(dirname "$0")/../train_lds.sh" \
     --n-lds-parallel 16 \
-    --hf-push-sleep 60
+    --hf-push-sleep 60 \
+    --start 0 \
+    --end 100
