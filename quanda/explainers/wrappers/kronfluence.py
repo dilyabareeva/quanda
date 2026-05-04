@@ -188,6 +188,7 @@ class Kronfluence(Explainer):
         self.analyzer.fit_all_factors(
             factors_name=self.factors_name,
             dataset=self.train_dataset,
+            per_device_batch_size=self.batch_size,
             factor_args=self.factor_args,
             overwrite_output_dir=not self.load_from_disk,
         )
