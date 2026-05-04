@@ -4,7 +4,7 @@ Welcome to |quanda|'s documentation!
 |quanda| is a toolkit for **quan**\ titative evaluation of **d**\ ata **a**\ ttribution methods in **PyTorch**.
 
 .. note::
-    |quanda| is currently in development. We are actively working on expanding the library and improving the documentation. If you have any questions, please `open an issue <https://github.com/dilyabareeva/quanda/issues/new/choose>`_ or write us at dilyabareeva@gmail.com or galip.uemit.yolcu@hhi.fraunhofer.de.
+    |quanda| is currently in development. We are actively working on expanding the library and improving the documentation. If you have any questions, please open an issue or write us an e-mail.
 
 .. figure:: _static/fig_1_source.png
    :alt: Figure 1
@@ -225,23 +225,6 @@ Benchmarks
     - Vision / Text
     - mnist_linear_datamodeling, cifar_linear_datamodeling, awa2_linear_datamodeling, qnli_linear_datamodeling
 
-Citation
---------
-If you find |quanda| useful and want to use it in your research, please cite it using the following BibTeX entry:
-
-.. code:: bibtex
-
-  @misc{bareeva2024quandainterpretabilitytoolkittraining,
-        title={Quanda: An Interpretability Toolkit for Training Data Attribution Evaluation and Beyond},
-        author={Dilyara Bareeva and Galip Ümit Yolcu and Anna Hedström and Niklas Schmolenski and Thomas Wiegand and Wojciech Samek and Sebastian Lapuschkin},
-        year={2024},
-        eprint={2410.07158},
-        archivePrefix={arXiv},
-        primaryClass={cs.LG},
-        url={https://arxiv.org/abs/2410.07158},
-  }
-
-If you are using |quanda| for your scientific research, please also make sure to cite the original authors for the implemented metrics and TDA methods.
 
 .. toctree::
    :caption: Usage
