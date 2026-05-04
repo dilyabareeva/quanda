@@ -11,14 +11,11 @@
 </p>
 
 
-![py_versions](https://img.shields.io/badge/python-3.10%20%7C%203.11-3A76A8)
-![PyPI - Version](https://img.shields.io/pypi/v/quanda?color=EB9C38)
+![py_versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-3A76A8)
 ![mypy](https://img.shields.io/badge/mypy-checked-7EAF6E)
 ![ruff](https://img.shields.io/badge/ruff-checked-7D53BA)
-[![codecov](https://codecov.io/gh/dilyabareeva/quanda/graph/badge.svg?token=6SZS1VISQF)](https://codecov.io/gh/dilyabareeva/quanda)
+![codecov](https://img.shields.io/badge/coverage-95%25-4BC51D)
 ![PyPI - License](https://img.shields.io/pypi/l/quanda?color=A20E0C)
-[![Documentation Status](https://readthedocs.org/projects/quanda/badge/?version=latest)](https://quanda.readthedocs.io/en/latest/?badge=latest)
-[![arXiv](https://img.shields.io/badge/arXiv-2410.07158-b31b1b.svg)](https://arxiv.org/abs/2410.07158)
 
 **quanda** _is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
 
@@ -56,24 +53,22 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 - **Metrics**: **quanda** provides a set of metrics to evaluate the effectiveness of TDA methods. These metrics are based on the latest research in the field.
 - **Benchmarking**: **quanda** provides a benchmarking tool to evaluate the performance of TDA methods on a given model, dataset and problem. As many TDA evaluation methods require access to ground truth, our benchmarking tools allow to generate a controlled setting with ground truth, and then compare the performance of different TDA methods on this setting.
 
-### Supported TDA Methods
+### Supported TDA Libraries
 
-| Method Name                | Repository                                                                             | Reference                                                                                                                 |
-|----------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| Similarity Influence        | [Captum](https://github.com/pytorch/captum/tree/master)      | [Caruana et al., 1999](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2232607/) |
-| Arnoldi Influence Function  | [Captum](https://github.com/pytorch/captum/tree/master)    | [Schioppa et al., 2022](https://arxiv.org/abs/2112.03052); [Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html) |
-| TracIn                      | [Captum](https://github.com/pytorch/captum/tree/master)                                | [Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html) |
-| TRAK                        | [TRAK](https://github.com/MadryLab/trak)                                          | [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)             |
-| Representer Point Selection | [Representer Point Selection](https://github.com/chihkuanyeh/Representer_Point_Selection)                 | [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html) |
-| Kronfluence                 | [Kronfluence](https://github.com/pomonam/kronfluence)                                                      | [Grosse et al., 2023](https://arxiv.org/abs/2308.03296)                                                             |
-| Dattri (Influence Functions: Explicit / CG / LiSSA / DataInf, Arnoldi, EK-FAC, TracInCP, Grad-Dot, Grad-Cos, TRAK) | [Dattri](https://github.com/TRAIS-Lab/dattri) | [Deng et al., 2024](https://arxiv.org/abs/2410.04555)                                                          |
+| Library                                                                                       | Reference                                                                                                                                                                                                                                                                                                                          |
+|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Captum](https://github.com/pytorch/captum/tree/master) (Similarity Influence, Arnoldi Influence Function, TracIn) | [Caruana et al., 1999](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2232607/); [Schioppa et al., 2022](https://arxiv.org/abs/2112.03052); [Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html) |
+| [TRAK](https://github.com/MadryLab/trak) (TRAK)                                               | [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)                                                                                                                                                                                                                                                               |
+| [Representer Point Selection](https://github.com/chihkuanyeh/Representer_Point_Selection) (Representer Point Selection) | [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html)                                                                                                                                                                                                                  |
+| [Kronfluence](https://github.com/pomonam/kronfluence) (Kronfluence)                           | [Grosse et al., 2023](https://arxiv.org/abs/2308.03296)                                                                                                                                                                                                                                                                            |
+| [Dattri](https://github.com/TRAIS-Lab/dattri) (Influence Functions: Explicit / CG / LiSSA / DataInf, Arnoldi, EK-FAC, TracInCP, Grad-Dot, Grad-Cos, TRAK) | [Deng et al., 2024](https://arxiv.org/abs/2410.04555)                                                                                                                                                                                                                                                                              |
 
 
 ### Metrics
 
 - **Linear Datamodeling Score** ([Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)): Measures the correlation between the (grouped) attribution scores and the actual output of models trained on different subsets of the training set. For each subset, the linear datamodeling score compares the actual model output to the sum of attribution scores from the subset using Spearman rank correlation.
 
-- **Identical Class / Identical Subclass** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the proportion of identical classes or subclasses in the top-1 training samples over the test dataset. If the attributions are based on similarity, they are expected to be predictive of the class of the test datapoint, as well as different subclasses under a single label.
+- **Class Detection / Subclass Detection** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the proportion of identical classes or subclasses in the top-1 training samples over the test dataset. If the attributions are based on similarity, they are expected to be predictive of the class of the test datapoint, as well as different subclasses under a single label.
 
 - **Model Randomization** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the correlation between the original TDA and the TDA of a model with randomized weights. Since the attributions are expected to depend on model parameters, the correlation between original and randomized attributions should be low.
 
@@ -554,17 +549,3 @@ A detailed guide on how to contribute to **quanda** can be found [here](CONTRIBU
 
 ## ✉️ Contact
 If you have any questions regarding the codebase, please open an issue or contact us via email at [<AUTHOR_1_E_MAIL_ANONYMIZED>](mailto:<AUTHOR_1_E_MAIL_ANONYMIZED>) or [<AUTHOR_2_E_MAIL_ANONYMIZED>](mailto:<AUTHOR_2_E_MAIL_ANONYMIZED>).
-
-## 🔗Citation
-
-```bibtex
-@misc{bareeva2024quandainterpretabilitytoolkittraining,
-      title={Quanda: An Interpretability Toolkit for Training Data Attribution Evaluation and Beyond},
-      author={Author 1 and Author 2 and Anna Hedström and Niklas Schmolenski and Thomas Wiegand and Wojciech Samek and Sebastian Lapuschkin},
-      year={2024},
-      eprint={2410.07158},
-      archivePrefix={arXiv},
-      primaryClass={cs.LG},
-      url={https://arxiv.org/abs/2410.07158},
-}
-```

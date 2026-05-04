@@ -1,5 +1,5 @@
 How to Assess the Quality of Attributions?
-==========
+==========================================
 
 Evaluation of interpretability approaches is a challenging task, as it is often difficult to define a ground truth for interpretability. Although there are various demonstrations of TDA’s potential for interpretability and practical applications, the critical question of how TDA methods should be effectively evaluated remains open. While methods based on estimating counterfactual retraining effects have a well-defined ground truth, this ground truth is computationally demanding and is not feasibly computable for large scale experiments. To address these shortcomings, several approaches have been proposed by the community, which can be categorized into three groups:
 
