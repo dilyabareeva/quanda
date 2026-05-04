@@ -96,3 +96,4 @@ splits:
     seed: 42
 cfg_file_name: e59b08c-bert_qnli_ClassDetection.yaml
 cfg_output_dir: quanda/benchmarks/resources/configs
+detection_s: 5

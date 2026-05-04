@@ -39,11 +39,13 @@ class SubclassDetection(Benchmark):
     ]
     default_use_predictions: bool = True
     default_filter_by_prediction: bool = True
+    default_s: int = 1
 
     def __init__(
         self,
         *args,
         class_to_group: Optional[Dict[int, int]] = None,
+        s: int = 1,
         filter_by_prediction: bool = True,
         **kwargs,
     ):
@@ -55,6 +57,9 @@ class SubclassDetection(Benchmark):
             Positional arguments passed to the base class.
         class_to_group : Optional[Dict[int, int]]
             Mapping from class index to group index.
+        s : int, optional
+            Number of top-attributed training points to consider in the
+            same-subclass fraction computation, by default 1.
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the correct superclass is predicted, by
@@ -65,6 +70,7 @@ class SubclassDetection(Benchmark):
         """
         super().__init__(*args, **kwargs)
         self.class_to_group = class_to_group
+        self.s = s
         self.filter_by_prediction = filter_by_prediction
 
         # Ensure all datasets use the same class_to_group mapping.
@@ -94,6 +100,7 @@ class SubclassDetection(Benchmark):
 
         return {
             "class_to_group": train_dataset.class_to_group,
+            "s": config.get("detection_s", cls.default_s),
             "filter_by_prediction": config.get(
                 "filter_by_prediction", cls.default_filter_by_prediction
             ),
@@ -196,6 +203,7 @@ class SubclassDetection(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
+            s=self.s,
             checkpoints_load_func=self.checkpoints_load_func,
             train_subclass_labels=train_subclass_labels,
             filter_by_prediction=self.filter_by_prediction,

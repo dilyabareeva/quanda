@@ -25,12 +25,12 @@ run_eval() {
 }
 
 # Populate the local cache (metadata + ckpt) once per benchmark 
-for bench in "${benchmarks[@]}"; do
-    python scripts/prefetch_bench.py \
-        --config-name "$EVAL_CONFIG_NAME" \
-        bench="$bench" \
-        >> "${LOG_DIR}/caching.log" 2>&1
-done
+#for bench in "${benchmarks[@]}"; do
+    #python scripts/prefetch_bench.py \
+        #--config-name "$EVAL_CONFIG_NAME" \
+        #bench="$bench" \
+        #>> "${LOG_DIR}/caching.log" 2>&1
+#done
 
 for bench in "${benchmarks[@]}"; do
     for method in "${methods[@]}"; do

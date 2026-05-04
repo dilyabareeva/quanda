@@ -37,10 +37,12 @@ class ClassDetection(Benchmark):
     eval_args = ["test_data", "test_targets", "explanations"]
     default_use_predictions: bool = True
     default_filter_by_prediction: bool = False
+    default_s: int = 1
 
     def __init__(
         self,
         *args,
+        s: int = 1,
         filter_by_prediction: bool = False,
         **kwargs,
     ):
@@ -50,6 +52,9 @@ class ClassDetection(Benchmark):
         ----------
         *args
             Positional arguments passed to the base class.
+        s : int, optional
+            Number of top-attributed training points to consider in the
+            same-class fraction computation, by default 1.
         filter_by_prediction : bool, optional
             Whether to filter the test samples to only calculate the metric on
             those samples, where the correct class is predicted, by
@@ -59,6 +64,7 @@ class ClassDetection(Benchmark):
 
         """
         super().__init__(*args, **kwargs)
+        self.s = s
         self.filter_by_prediction = filter_by_prediction
 
     @classmethod
@@ -72,6 +78,7 @@ class ClassDetection(Benchmark):
     ) -> dict:
         """Extract class detection kwargs from config."""
         return {
+            "s": config.get("detection_s", cls.default_s),
             "filter_by_prediction": config.get(
                 "filter_by_prediction", cls.default_filter_by_prediction
             ),
@@ -158,6 +165,7 @@ class ClassDetection(Benchmark):
             model=self.model,
             checkpoints=self.checkpoints,
             train_dataset=self.train_dataset,
+            s=self.s,
             checkpoints_load_func=self.checkpoints_load_func,
             filter_by_prediction=self.filter_by_prediction,
             inference_batch_size=inference_batch_size,

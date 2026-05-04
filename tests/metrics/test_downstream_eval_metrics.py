@@ -81,6 +81,7 @@ def test_identical_class_metrics(
         model=model,
         checkpoints=checkpoint,
         train_dataset=dataset,
+        s=1,
         filter_by_prediction=filter_by_prediction,
     )
     if isinstance(expected_score, type):
@@ -217,6 +218,7 @@ def test_identical_subclass_metrics(
         checkpoints=checkpoint,
         train_dataset=dataset,
         train_subclass_labels=subclass_labels,
+        s=1,
         filter_by_prediction=filter_by_prediction,
     )
     if isinstance(expected_score, type):

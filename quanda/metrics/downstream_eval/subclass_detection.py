@@ -9,11 +9,14 @@ from quanda.utils.common import CheckpointLoadFunc, chunked_logits, ds_len
 
 
 class SubclassDetectionMetric(ClassDetectionMetric):
-    """Subclass Detection Metric as defined in Hanawa et al. (2021).
+    """Subclass Detection Metric.
 
     A model is trained on a dataset where labels are grouped into superclasses.
-    The metric evaluates the performance of an attribution method in detecting
-    the subclass of a test sample from its highest attributed training point.
+    For each test sample, the fraction of training points that share the test
+    sample's (ungrouped) subclass among the ``s`` most influential training
+    points (top-``s`` highest attribution scores). The metric returns the
+    average of this fraction across test samples. With ``s=1`` this reduces to
+    the original subclass detection accuracy of Hanawa et al. (2021).
 
     References
     ----------
@@ -28,6 +31,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         model: torch.nn.Module,
         train_dataset: torch.utils.data.Dataset,
         train_subclass_labels: torch.Tensor,
+        s: int = 5,
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         filter_by_prediction: bool = False,
@@ -43,6 +47,9 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             The training dataset that was used to train `model`.
         train_subclass_labels : torch.Tensor
             The subclass labels of the training dataset.
+        s : int, optional
+            Number of top-attributed training points to consider when
+            computing the same-subclass fraction, by default 5.
         checkpoints : Optional[Union[str, List[str]]], optional
             Path to the model checkpoint file(s), defaults to None.
         checkpoints_load_func : Optional[CheckpointLoadFunc], optional
@@ -61,6 +68,7 @@ class SubclassDetectionMetric(ClassDetectionMetric):
             model=model,
             checkpoints=checkpoints,
             train_dataset=train_dataset,
+            s=s,
             checkpoints_load_func=checkpoints_load_func,
             inference_batch_size=inference_batch_size,
         )
@@ -134,10 +142,10 @@ class SubclassDetectionMetric(ClassDetectionMetric):
         explanations = explanations[select_idx]
         test_targets = test_targets[select_idx].to(self.device)
 
-        top_one_xpl_indices = explanations.argmax(dim=1)
-        top_one_xpl_targets = torch.stack(
-            [self.subclass_labels[int(i)] for i in top_one_xpl_indices]
-        ).to(self.device)
-
-        score = (test_targets == top_one_xpl_targets) * 1.0
-        self.scores.append(score)
+        k = min(self.s, explanations.shape[1])
+        _, top_xpl_indices = explanations.topk(k=k, dim=1)
+        top_xpl_targets = self.subclass_labels.to(self.device)[top_xpl_indices]
+        scores = (
+            (top_xpl_targets == test_targets.unsqueeze(1)).float().mean(dim=1)
+        )
+        self.scores.append(scores)
