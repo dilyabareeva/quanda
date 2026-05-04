@@ -5,7 +5,7 @@
 
 In this guide, you will get a summary of the main components of **quanda**, as well as best practices for your own contributions.
 
-If you have any questions regarding the codebase, please open an issue or write us at [<AUTHOR_1_E_MAIL_ANONYMIZED>](mailto:<AUTHOR_1_E_MAIL_ANONYMIZED>) or [<AUTHOR_2_E_MAIL_ANONYMIZED>](mailto:<AUTHOR_2_E_MAIL_ANONYMIZED>).
+If you have any questions regarding the codebase, please open an issue or write us.
 
 ## Table of Contents
 

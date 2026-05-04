@@ -546,4 +546,4 @@ We welcome contributions to **quanda**! You could contribute by:
 A detailed guide on how to contribute to **quanda** can be found [here](CONTRIBUTING.md).
 
 ## ✉️ Contact
-If you have any questions regarding the codebase, please open an issue or contact us via email at [<AUTHOR_1_E_MAIL_ANONYMIZED>](mailto:<AUTHOR_1_E_MAIL_ANONYMIZED>) or [<AUTHOR_2_E_MAIL_ANONYMIZED>](mailto:<AUTHOR_2_E_MAIL_ANONYMIZED>).
+If you have any questions regarding the codebase, please open an issue or contact us via email.
