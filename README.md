@@ -217,10 +217,10 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 
 ### Installation
 
-To install the latest release of **quanda** use:
+To install **quanda** from a local clone of this repository, run:
 
 ```setup
-pip install quanda
+pip install -e .
 ```
 
 **quanda** requires Python 3.10 or 3.11. It is recommended to use a virtual environment to install the package.
@@ -537,7 +537,7 @@ We have included a few [tutorials](tutorials) to demonstrate the usage of **quan
 To install the library with tutorial dependencies, run:
 
 ```bash
-pip install quanda[tutorials]
+pip install -e '.[tutorials]'
 ```
 
 ## 👩‍💻Contributing

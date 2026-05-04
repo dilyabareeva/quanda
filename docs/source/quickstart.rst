@@ -4,11 +4,11 @@ Quickstart
 Installation
 ------------
 
-To install the latest release of |quanda|, use the following command in your terminal:
+To install |quanda| from a local clone of the repository, use the following command in your terminal:
 
 .. code-block:: console
 
-   (.venv) $ pip install quanda
+   (.venv) $ pip install -e .
 
 |quanda| requires Python 3.10 or 3.11. It is recommended to use a virtual environment to install the package.
 
