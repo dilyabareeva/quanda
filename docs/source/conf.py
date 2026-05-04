@@ -30,6 +30,9 @@ extensions = [
 ]
 source_suffix = [".rst", ".md"]
 autosummary_generate = True
+numpydoc_class_members_toctree = False
+numpydoc_show_class_members = False
+suppress_warnings = ["ref.python"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 rst_epilog = """
 .. |quanda| raw:: html
