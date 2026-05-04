@@ -1,11 +1,11 @@
 {
   "methods": [
     "representer_points",
-    "arnoldi",
     "tracincpfast",
     "trak",
     "random",
-    "similarity"
+    "similarity",
+    "kronfluence"
   ],
   "benches": [
     "awa2_class_detection",
