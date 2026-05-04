@@ -421,7 +421,7 @@ class HuggingFaceSequenceDatasetHandler(HuggingFaceDatasetHandler):
         self.label_key = label_key
 
     def collate(self, samples: List[Dict[str, Any]]) -> List[torch.Tensor]:
-        """Stack HF dict samples into a list [*input_keys, label_key].
+        """Stack HF dict samples into a list ``[*input_keys, label_key]``.
 
         Projects each sample onto the required keys *before* collation so
         that non-numeric columns (e.g. raw ``"sentence"``/``"hypothesis"``

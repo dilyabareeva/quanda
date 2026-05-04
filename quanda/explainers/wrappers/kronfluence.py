@@ -49,11 +49,11 @@ class Kronfluence(Explainer):
     ----------
     (1) Roger Grosse, Juhan Bae, Cem Anil, Nelson Elhage, Alex Tamkin,
     Amirhossein Tajdini, Benoit Steiner,
-        Dustin Li, Esin Durmus, Ethan Perez, Evan Hubinger, Kamilė Lukošiūtė,
-        Karina Nguyen, Nicholas Joseph,
-        Sam McCandlish, Jared Kaplan, Samuel R. Bowman. (2023).
-        "Studying large language model generalization with influence
-        functions". arXiv preprint arXiv:2308.03296.
+    Dustin Li, Esin Durmus, Ethan Perez, Evan Hubinger, Kamilė Lukošiūtė,
+    Karina Nguyen, Nicholas Joseph,
+    Sam McCandlish, Jared Kaplan, Samuel R. Bowman. (2023).
+    "Studying large language model generalization with influence
+    functions". arXiv preprint arXiv:2308.03296.
 
     (2) https://github.com/pomonam/kronfluence
 

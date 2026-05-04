@@ -1003,7 +1003,7 @@ class CaptumTracInCPFast(CaptumInfluence):
     ----------
     (1) Pruthi, Garima, et al. (2020). "Estimating training data influence by
     tracing gradient descent."
-        Advances in Neural Information Processing Systems 33. (19920-19930).
+    Advances in Neural Information Processing Systems 33. (19920-19930).
 
     (2) https://github.com/pytorch/captum/blob/master/captum/influence/_core/
     tracincp_fast_rand_proj.py
