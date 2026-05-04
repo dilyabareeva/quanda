@@ -89,3 +89,6 @@ scripts/paper_tex/**
 scratch/*
 slurm/get_logs.sh
 scripts/delete_hf.py
+scripts/plot_results_LOCAL.py
+scripts/**/plot_*_LOCAL.sh
+scripts/PLOT_ALL_LOCAL.sh
