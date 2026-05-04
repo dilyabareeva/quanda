@@ -80,7 +80,7 @@ val_dataset:
 id: GIT_TAG-awa2_resnet50_SubclassDetection
 bench: SubclassDetection
 adversarial_label: 0
-bench_save_dir: /data/cluster/users/bareeva/quanda_output_new2/eval_bench/awa2
+bench_save_dir: bench_out/eval_bench/awa2
 log_dir: hydra_logs
 repo_id: quanda-bench-test
 cache_dir: tmp

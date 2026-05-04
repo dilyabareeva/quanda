@@ -5,7 +5,7 @@
 
 In this guide, you will get a summary of the main components of **quanda**, as well as best practices for your own contributions.
 
-If you have any questions regarding the codebase, please [open an issue](https://github.com/dilyabareeva/quanda/issues/new/choose) or write us at [dilyabareeva@gmail.com](mailto:dilyabareeva@gmail.com) or [galip.uemit.yolcu@hhi.fraunhofer.de](mailto:galip.uemit.yolcu@hhi.fraunhofer.de).
+If you have any questions regarding the codebase, please [open an issue](https://github.com/dilyabareeva/quanda/issues/new/choose) or write us at [<AUTHOR_1_E_MAIL_ANONYMIZED>](mailto:<AUTHOR_1_E_MAIL_ANONYMIZED>) or [<AUTHOR_2_E_MAIL_ANONYMIZED>](mailto:<AUTHOR_2_E_MAIL_ANONYMIZED>).
 
 ## Table of Contents
 

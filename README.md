@@ -553,14 +553,14 @@ We welcome contributions to **quanda**! You could contribute by:
 A detailed guide on how to contribute to **quanda** can be found [here](CONTRIBUTING.md).
 
 ## ✉️ Contact
-If you have any questions regarding the codebase, please open an issue or contact us via email at [dilyabareeva@gmail.com](mailto:dilyabareeva@gmail.com) or [galip.uemit.yolcu@hhi.fraunhofer.de](mailto:galip.uemit.yolcu@hhi.fraunhofer.de).
+If you have any questions regarding the codebase, please open an issue or contact us via email at [<AUTHOR_1_E_MAIL_ANONYMIZED>](mailto:<AUTHOR_1_E_MAIL_ANONYMIZED>) or [<AUTHOR_2_E_MAIL_ANONYMIZED>](mailto:<AUTHOR_2_E_MAIL_ANONYMIZED>).
 
 ## 🔗Citation
 
 ```bibtex
 @misc{bareeva2024quandainterpretabilitytoolkittraining,
       title={Quanda: An Interpretability Toolkit for Training Data Attribution Evaluation and Beyond},
-      author={Dilyara Bareeva and Galip Ümit Yolcu and Anna Hedström and Niklas Schmolenski and Thomas Wiegand and Wojciech Samek and Sebastian Lapuschkin},
+      author={Author 1 and Author 2 and Anna Hedström and Niklas Schmolenski and Thomas Wiegand and Wojciech Samek and Sebastian Lapuschkin},
       year={2024},
       eprint={2410.07158},
       archivePrefix={arXiv},

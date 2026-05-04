@@ -2,8 +2,8 @@
 name = "quanda"
 dynamic = ["version"]
 authors = [
-  { name="Dilyara Bareeva", email="dilyabareeva@gmail.com" },
-    {name = "Galip Ümit Yolcu", email = "galip.uemit.yolcu@hhi.fraunhofer.de" },
+  { name="Author 1", email="<AUTHOR_1_E_MAIL_ANONYMIZED>" },
+    {name = "Author 2", email = "<AUTHOR_2_E_MAIL_ANONYMIZED>" },
 ]
 description = "Toolkit for quantitative evaluation of data attribution methods in PyTorch."
 license = { file = "LICENSE" }
