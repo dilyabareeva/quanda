@@ -34,11 +34,7 @@ if [ -z "$START" ] || [ -z "$END" ]; then
     exit 1
 fi
 
-if [ -d "/data/cluster/users/bareeva" ]; then
-    BENCH_SAVE_DIR="/data/cluster/users/bareeva/quanda_output_new2/eval_bench/${CONFIG_MAP_PREFIX}"
-else
-    BENCH_SAVE_DIR="/data2/bareeva/Projects/quanda/cluster_output_new2/eval_bench/${CONFIG_MAP_PREFIX}"
-fi
+BENCH_SAVE_DIR="bench_out/${CONFIG_MAP_KEY}"
 
 CONFIG_PATH=$(python -c "
 from quanda.benchmarks.resources.config_map import config_map

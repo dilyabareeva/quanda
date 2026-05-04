@@ -41,10 +41,6 @@ dependencies = [
 ]
 
 
-[project.urls]
-Homepage = "https://github.com/dilyabareeva/quanda"
-Issues = "https://github.com/dilyabareeva/quanda/issues"
-
 [build-system]
 requires = ["setuptools>=42", "setuptools-scm[toml]>=6.0"]
 build-backend = "setuptools.build_meta"

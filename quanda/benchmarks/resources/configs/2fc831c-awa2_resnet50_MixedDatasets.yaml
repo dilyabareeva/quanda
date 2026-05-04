@@ -47,7 +47,7 @@ val_dataset:
 id: 2fc831c-awa2_resnet50_MixedDatasets
 bench: MixedDatasets
 adversarial_label: 0
-bench_save_dir: /data2/bareeva/Projects/quanda/cluster_output_new2/eval_bench/awa2
+bench_save_dir: bench_out/eval_bench/awa2
 log_dir: hydra_logs
 repo_id: quanda-bench-test
 cache_dir: tmp

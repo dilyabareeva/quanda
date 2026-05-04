@@ -71,7 +71,7 @@ assets/demo/*
 bench_out/*
 fig_1_images/*
 tutorials/*
-scripts/bench_out/*
+scriptsbench_out/*
 CLAUDE.md
 .vscode/
 quanda_benchmark_tutorial_cache/*

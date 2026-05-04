@@ -5,17 +5,9 @@ from __future__ import annotations
 import os
 
 import hydra
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 
 from quanda.benchmarks import bench_dict
-
-OmegaConf.register_new_resolver(
-    "cluster_or_local",
-    lambda cluster, local: (
-        cluster if os.path.isdir("/data/cluster/users/bareeva") else local
-    ),
-    replace=True,
-)
 
 _SUFFIX_TO_CLASS = {
     "class_detection": "ClassDetection",

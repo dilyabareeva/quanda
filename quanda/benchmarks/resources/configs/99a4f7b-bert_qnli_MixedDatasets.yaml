@@ -65,7 +65,7 @@ logger:
   project: quanda-bench
 id: 99a4f7b-bert_qnli_MixedDatasets
 bench: MixedDatasets
-bench_save_dir: /data2/bareeva/Projects/quanda/cluster_output_new2/eval_bench/qnli
+bench_save_dir: bench_out/eval_bench/qnli
 log_dir: hydra_logs
 repo_id: quanda-bench-test
 cache_dir: tmp
