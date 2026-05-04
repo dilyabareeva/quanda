@@ -22,6 +22,7 @@ help:
 
 rst:
 	@sphinx-apidoc -o source/docs_api ../quanda --module-first --separate --force
+	@sed -i '/^\.\. automodule:: quanda$$/,/^$$/ { /:members:/d; /:undoc-members:/d; }' source/docs_api/quanda.rst
 
 
 clean:
