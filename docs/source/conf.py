@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 project = "quanda"
 copyright = f"{str(datetime.utcnow().year)}, Anonymous quanda authors"
 author = "Anonymous quanda authors"
-release = "05.10.2024"
+release = "05.05.2026"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

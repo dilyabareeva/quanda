@@ -137,15 +137,15 @@ In this section, we list the evaluation criteria that are currently available in
     - In a setting where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example.
     - Heuristic
   * - Mean Reciprocal Rank (MRR)
-    - `Chang et al., 2024 <https://openreview.net/forum?id=KIPJKST4gw>`_
+    - `Akyurek et al., 2022 <https://aclanthology.org/2022.findings-emnlp.180>`_
     - For fact-tracing settings, measures the mean reciprocal rank of the highest-ranked entailing proponent across fact queries.
     - Downstream Task Evaluator
   * - Recall@k
-    - `Chang et al., 2024 <https://openreview.net/forum?id=KIPJKST4gw>`_
+    - `Akyurek et al., 2022 <https://aclanthology.org/2022.findings-emnlp.180>`_
     - For fact-tracing settings, measures the proportion of facts for which an entailing proponent appears in the top-k retrievals.
     - Downstream Task Evaluator
   * - Tail Patch
-    - `Chang et al., 2024 <https://openreview.net/forum?id=KIPJKST4gw>`_
+    - `Chang et al., 2024 <https://openreview.net/forum?id=gLa96FlWwn>`_
     - For fact-tracing settings, measures the incremental change in target-sequence probability after taking a single training step on retrieved proponents.
     - Downstream Task Evaluator
 
