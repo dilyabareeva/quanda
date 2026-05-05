@@ -210,7 +210,7 @@ def test_mislabeling_evaluate(
 
         monkeypatch.setattr(
             md,
-            "_subsample_dataset",
+            "subsample_dataset",
             lambda dataset, max_n, seed: torch.utils.data.Subset(
                 dataset, list(range(5))
             ),

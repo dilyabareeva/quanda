@@ -4,10 +4,10 @@ import yaml
 
 from quanda.utils.common import (
     DatasetSplit,
-    resolve_config,
     class_accuracy,
     get_targets,
     make_func,
+    resolve_config,
 )
 
 

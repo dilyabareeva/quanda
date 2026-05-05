@@ -37,6 +37,7 @@ def test_class_detection_kronfluence_vision(
     tmp_path,
     request,
 ):
+    torch.manual_seed(0)
     config = request.getfixturevalue(config)
     config["cache_dir"] = str(tmp_path)
     model = request.getfixturevalue(model)

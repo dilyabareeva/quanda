@@ -532,8 +532,7 @@ def test_lds_cache_subset_logits_writes_per_batch_files(mocker, tmp_path):
     fake.eval_dataset = mocker.MagicMock()
     mocker.patch.object(LinearDatamodeling, "from_config", return_value=fake)
     mocker.patch(
-        "quanda.benchmarks.ground_truth.linear_datamodeling."
-        "_subsample_dataset",
+        "quanda.benchmarks.ground_truth.linear_datamodeling.subsample_dataset",
         side_effect=lambda ds, **kw: ds,
     )
     handler = mocker.MagicMock()
@@ -764,8 +763,7 @@ def test_evaluate_dataset_skips_missing_subset_logits_file(mocker, tmp_path):
 def _patch_lds_cache_dependencies(mocker, batches, fake_logits):
     """Mock the I/O collaborators around cache_subset_logits_per_idx."""
     mocker.patch(
-        "quanda.benchmarks.ground_truth.linear_datamodeling."
-        "_subsample_dataset",
+        "quanda.benchmarks.ground_truth.linear_datamodeling.subsample_dataset",
         side_effect=lambda ds, **kw: ds,
     )
     handler = mocker.MagicMock()
@@ -924,8 +922,7 @@ def test_lds_cache_subset_logits_per_idx_chunked_inference(
 
     batch = torch.randn(5, 4)
     mocker.patch(
-        "quanda.benchmarks.ground_truth.linear_datamodeling."
-        "_subsample_dataset",
+        "quanda.benchmarks.ground_truth.linear_datamodeling.subsample_dataset",
         side_effect=lambda ds, **kw: ds,
     )
     handler = mocker.MagicMock()
@@ -986,8 +983,7 @@ def test_lds_cache_subset_logits_per_idx_chunked_dict_inputs(
         "attention_mask": torch.ones(5, 3),
     }
     mocker.patch(
-        "quanda.benchmarks.ground_truth.linear_datamodeling."
-        "_subsample_dataset",
+        "quanda.benchmarks.ground_truth.linear_datamodeling.subsample_dataset",
         side_effect=lambda ds, **kw: ds,
     )
     handler = mocker.MagicMock()
