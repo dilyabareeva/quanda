@@ -63,7 +63,7 @@ outputs/
 cache/
 /.env
 bin/*
-docs/source/**
+docs/source/docs_api/**
 eval_results/*
 eval_bench/**
 

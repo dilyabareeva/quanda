@@ -278,6 +278,7 @@ Benchmarks
    :maxdepth: 2
 
    quickstart
+   explainers
    tutorials
 
 .. toctree::

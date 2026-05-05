@@ -372,6 +372,7 @@ score = subclass_detect.evaluate(
     explainer_cls=CaptumSimilarity,
     expl_kwargs=explainer_kwargs,
     batch_size=batch_size,
+    max_eval_n=16,
 )["score"]
 print(f"Subclass Detection Score: {score}")
 ```
@@ -448,6 +449,7 @@ score = mislabeling_detection.evaluate(
     explainer_cls=CaptumSimilarity,
     expl_kwargs=explainer_kwargs,
     batch_size=batch_size,
+    max_eval_n=16,
 )["score"]
 print(f"Mislabeling Detection Score: {score}")
 ```

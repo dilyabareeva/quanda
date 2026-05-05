@@ -84,6 +84,12 @@ Currently, the following markers are available to filter tests:
 - benchmarks: Benchmark modules
 - global_ranking: global_ranking modules
 - self_influence: self_influence methods of explainers
+- tasks: task modules
+- integration: integration tests
+- slow: tests marked as slow (excluded by default; run with `pytest -m slow`)
+- production_bench: production benchmark sanity checks, run only when explicitly specified
+
+The authoritative list lives in `pytest.ini`.
 
 Ideally, all contributions should include tests to ensure correctness.
 
@@ -187,7 +193,7 @@ To contribute a new benchmark you generally do not need to override these four c
 1. **A subclass of** `Benchmark` under the appropriate `quanda/benchmarks/{downstream_eval,heuristics,ground_truth}/` subdirectory. Subclasses customize behavior via:
 
    - `__init__` — accept any benchmark-specific fields beyond what the base `__init__` already stores (`model`, `train_dataset`, `eval_dataset`, `checkpoints`, `checkpoints_load_func`, `device`, `val_dataset`, `use_predictions`).
-   - `_extra_kwargs_from_config(cls, config, train_dataset, eval_dataset, metadata_dir, load_meta_from_disk)` — extract any subclass-specific kwargs from the YAML and return them as a dict; they get passed into `__init__` by `from_config`.
+   - `_extra_kwargs_from_config(cls, config, train_dataset, eval_dataset, metadata_dir, load_fresh)` — extract any subclass-specific kwargs from the YAML and return them as a dict; they get passed into `__init__` by `from_config`.
    - `_compute_and_save_indices(self, config, batch_size)` — only override if your benchmark needs to cache extra metadata on the train pass (filtered eval indices, ranking caches, etc.).
    - `evaluate(self, explainer_cls, expl_kwargs, batch_size)` — runs the explainer over `eval_dataset`, feeds the attributions to the corresponding `Metric` via `update`/`compute`, and returns the result dict (must contain `"score"`).
 
