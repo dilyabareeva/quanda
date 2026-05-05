@@ -132,14 +132,25 @@ class DatasetSplit(ABC):
 def resolve_config(config: Union[dict, str]) -> dict:
     """Resolve a benchmark ``config`` into a dict.
 
-    Accepts:
-    - a config dict (passes through unchanged),
-    - a registered ``bench_id`` (resolved via
-      :data:`quanda.benchmarks.resources.config_map.config_map`), or
-    - a path to a benchmark YAML file.
+    Parameters
+    ----------
+    config : Union[dict, str]
+        Either a config dict (passed through unchanged), a registered
+        ``bench_id`` (resolved via
+        :data:`quanda.benchmarks.resources.config_map.config_map`), or
+        a path to a benchmark YAML file.
 
-    Raises ``TypeError`` for any other input, or if the loaded YAML
-    does not parse to a mapping.
+    Returns
+    -------
+    dict
+        The resolved benchmark configuration.
+
+    Raises
+    ------
+    TypeError
+        If ``config`` is not a ``dict`` or ``str``, or if the loaded
+        YAML does not parse to a mapping.
+
     """
     if isinstance(config, dict):
         return config
