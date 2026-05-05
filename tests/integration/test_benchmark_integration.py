@@ -236,7 +236,7 @@ def test_benchmark_integration(
     print(f"Linear Datamodeling Score: {lds_results['score']}")
     # END18
 
-    from quanda.utils.common import _resolve_config as _resolve_lds_cfg
+    from quanda.utils.common import resolve_config as _resolve_lds_cfg
 
     lds_train_config = _resolve_lds_cfg(lds_config)
     lds_train_config["model"]["trainer"]["max_epochs"] = 1

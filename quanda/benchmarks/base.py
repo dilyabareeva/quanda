@@ -33,9 +33,9 @@ from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
 from quanda.utils.common import (
     CheckpointLoadFunc,
     DatasetSplit,
-    _resolve_config,
-    _stable_repr,
-    _subsample_dataset,
+    resolve_config,
+    stable_repr,
+    subsample_dataset,
     chunked_logits,
     class_accuracy,
     load_last_checkpoint,
@@ -48,7 +48,7 @@ from quanda.utils.training.trainer import _EpochSnapshotCallback
 def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
     """Stable short hash of sorted expl_kwargs for explanation repo IDs."""
     payload = json.dumps(
-        expl_kwargs or {}, sort_keys=True, default=_stable_repr
+        expl_kwargs or {}, sort_keys=True, default=stable_repr
     )
     return hashlib.sha1(payload.encode()).hexdigest()[:10]
 
@@ -272,7 +272,7 @@ class Benchmark(ABC):
             missing pieces are generated.
 
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         cache_dir = config.get("bench_save_dir", "./tmp")
         metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config,
@@ -407,7 +407,7 @@ class Benchmark(ABC):
         None
 
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         pid_suffix = f"_pid{os.getpid()}" if use_pid else ""
         obj = cls.from_config(
             config,
@@ -557,7 +557,7 @@ class Benchmark(ABC):
             The trained benchmark instance.
 
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         skip_main_train = bool(config.get("skip_main_train", False))
         if skip_main_train:
             obj = cls.from_config(
@@ -1066,7 +1066,7 @@ class Benchmark(ABC):
             ``_explanations_id`` populated.
 
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         obj = cls.from_config(config, device=device)
         if explanations_id is None:
             explanations_id = default_explanations_id(
@@ -1107,7 +1107,7 @@ class Benchmark(ABC):
             k: (
                 v
                 if isinstance(v, (str, int, float, bool, type(None)))
-                else _stable_repr(v)
+                else stable_repr(v)
             )
             for k, v in (expl_kwargs or {}).items()
         }
@@ -1183,7 +1183,7 @@ class Benchmark(ABC):
             The benchmark instance after upload.
 
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         obj = cls.explain(
             config=config,
             explainer_cls=explainer_cls,
@@ -1227,7 +1227,7 @@ class Benchmark(ABC):
         If ``precomputed_explanations`` is provided, batch ``i`` is read from
         the cache; otherwise ``explainer.explain`` is called.
         """
-        eval_dataset = _subsample_dataset(
+        eval_dataset = subsample_dataset(
             eval_dataset, max_n=max_eval_n, seed=eval_seed
         )
         ds_handler = get_dataset_handler(dataset=eval_dataset)

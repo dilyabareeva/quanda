@@ -25,7 +25,7 @@ from quanda.explainers.utils import (
 )
 from quanda.utils.common import (
     CheckpointLoadFunc,
-    _replace_conv1d_with_linear,
+    replace_conv1d_with_linear,
     process_targets,
     resolve_device,
 )
@@ -204,7 +204,7 @@ class Kronfluence(Explainer):
         """
         model_copy = copy.deepcopy(self.model)
         model_copy.to(self.device)
-        _replace_conv1d_with_linear(model_copy)
+        replace_conv1d_with_linear(model_copy)
         prepared_model = prepare_model(model=model_copy, task=self.task)
         return prepared_model
 

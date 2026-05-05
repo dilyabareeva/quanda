@@ -15,7 +15,7 @@ from quanda.benchmarks.base import (
 from quanda.benchmarks.downstream_eval import ClassDetection
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
-from quanda.utils.common import _stable_repr
+from quanda.utils.common import stable_repr
 from quanda.utils.functions import cosine_similarity
 
 
@@ -30,7 +30,7 @@ def test_hash_expl_kwargs_is_order_invariant():
 
 def test_hash_expl_kwargs_is_stable_for_callables():
     """Callables must hash by module.qualname, not ``id(obj)``."""
-    rep = _stable_repr(cosine_similarity)
+    rep = stable_repr(cosine_similarity)
     assert "at 0x" not in rep
     assert rep == (
         f"{cosine_similarity.__module__}.{cosine_similarity.__qualname__}"

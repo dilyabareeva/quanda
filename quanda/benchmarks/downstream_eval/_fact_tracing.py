@@ -21,8 +21,8 @@ from quanda.metrics import Metric
 from quanda.utils.cache import BatchedCachedExplanations
 from quanda.utils.common import (
     CheckpointLoadFunc,
-    _resolve_config,
-    _subsample_indices,
+    resolve_config,
+    subsample_indices,
     ds_len,
 )
 
@@ -105,7 +105,7 @@ class FactTracingBenchmark(Benchmark):
             missing pieces are generated.
 
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         prompt_ds, evidence_ds, entailment_labels, _ = (
             FactTracingConfigParser.parse_fact_tracing_cfg(
                 config["fact_tracing"],
@@ -173,7 +173,7 @@ class FactTracingBenchmark(Benchmark):
         if self.entailment_labels is None:
             self._entailment_labels_aligned = None
         else:
-            indices = _subsample_indices(
+            indices = subsample_indices(
                 ds_len(eval_dataset), max_eval_n, eval_seed
             )
             self._entailment_labels_aligned = self.entailment_labels[indices]

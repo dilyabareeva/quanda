@@ -15,8 +15,8 @@ from quanda.benchmarks.base import (
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.cache import ExplanationsCache
 from quanda.utils.common import (
-    _resolve_config,
-    _subsample_dataset,
+    resolve_config,
+    subsample_dataset,
     class_accuracy,
     ds_len,
 )
@@ -192,7 +192,7 @@ class MislabelingDetection(Benchmark):
                 "labels."
             )
 
-        train_dataset = _subsample_dataset(
+        train_dataset = subsample_dataset(
             self.train_dataset, max_n=max_eval_n, seed=eval_seed
         )
         if not isinstance(train_dataset, LabelFlippingDataset):
@@ -260,7 +260,7 @@ class MislabelingDetection(Benchmark):
         ``config`` accepts a config dict, a registered ``bench_id``, or
         a path to a benchmark YAML.
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         obj = cls.from_config(config, device=device)
         if explanations_id is None:
             explanations_id = default_explanations_id(
@@ -288,7 +288,7 @@ class MislabelingDetection(Benchmark):
                 "Training dataset in Mislabeling Metric should have "
                 f"flipped labels, got {type(obj.train_dataset).__name__}."
             )
-        train_dataset = _subsample_dataset(
+        train_dataset = subsample_dataset(
             obj.train_dataset, max_n=max_eval_n, seed=eval_seed
         )
         explainer = obj._prepare_explainer(

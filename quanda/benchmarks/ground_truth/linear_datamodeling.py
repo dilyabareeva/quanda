@@ -22,8 +22,8 @@ from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
 from quanda.utils.common import (
-    _resolve_config,
-    _subsample_dataset,
+    resolve_config,
+    subsample_dataset,
     chunked_logits,
     class_accuracy,
 )
@@ -255,7 +255,7 @@ class LinearDatamodeling(Benchmark):
             The trained benchmark instance.
 
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         obj = super().train(
             config=config,
             logger=logger,
@@ -318,7 +318,7 @@ class LinearDatamodeling(Benchmark):
             deterministic. By default False — reuse cached metadata.
 
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         obj = cls.from_config(
             config,
             load_fresh=load_fresh,
@@ -361,7 +361,7 @@ class LinearDatamodeling(Benchmark):
         """
         from huggingface_hub import HfApi  # local import; optional dep path
 
-        config = _resolve_config(config)
+        config = resolve_config(config)
         metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=config["bench_save_dir"]
         )
@@ -390,7 +390,7 @@ class LinearDatamodeling(Benchmark):
         """
         from huggingface_hub import HfApi  # local import; optional dep path
 
-        config = _resolve_config(config)
+        config = resolve_config(config)
         local_ckpt_dir, repo_id = _subset_ckpt_paths(config, idx)
 
         if not os.path.isdir(local_ckpt_dir):
@@ -476,7 +476,7 @@ class LinearDatamodeling(Benchmark):
         use_pid: bool = False,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
-        config = _resolve_config(config)
+        config = resolve_config(config)
         skip_subsets = bool(config.get("skip_subsets", False))
         cls._push_subsets_during_train = not skip_subsets
         cls._lds_skip_subsets = skip_subsets
@@ -550,7 +550,7 @@ class LinearDatamodeling(Benchmark):
         eval_seed: int = 42,
     ) -> str:
         """Return default local cache dir for counterfactual subset logits."""
-        config = _resolve_config(config)
+        config = resolve_config(config)
         repo = config.get("repo_id", "quanda-bench-test")
         group = config.get("explanations_group", config["id"])
         logits_id = (
@@ -577,7 +577,7 @@ class LinearDatamodeling(Benchmark):
         methods batch the eval set identically (same batch boundaries = same
         ``i`` indexing as the ``_iter_explanations`` consumer).
         """
-        eval_dataset = _subsample_dataset(
+        eval_dataset = subsample_dataset(
             obj.eval_dataset, max_n=max_eval_n, seed=eval_seed
         )
         ds_handler = get_dataset_handler(dataset=eval_dataset)
@@ -605,7 +605,7 @@ class LinearDatamodeling(Benchmark):
         ``config`` accepts a config dict, a registered ``bench_id``, or
         a path to a benchmark YAML.
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         obj = cls.from_config(config, device=device)
         if not isinstance(obj, LinearDatamodeling):
             raise TypeError("Expected a LinearDatamodeling instance.")
@@ -659,7 +659,7 @@ class LinearDatamodeling(Benchmark):
         ``config`` accepts a config dict, a registered ``bench_id``, or
         a path to a benchmark YAML.
         """
-        config = _resolve_config(config)
+        config = resolve_config(config)
         obj = cls.from_config(config, device=device)
         if not isinstance(obj, LinearDatamodeling):
             raise TypeError("Expected a LinearDatamodeling instance.")

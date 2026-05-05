@@ -29,7 +29,107 @@ from torch import nn
 CheckpointLoadFunc = Callable[[torch.nn.Module, str], Any]
 
 
-def _resolve_config(config: Union[dict, str]) -> dict:
+@dataclass
+class DatasetSplit(ABC):
+    """Class to store dynamically named splits (e.g., train, val, test)."""
+
+    splits: Dict[str, torch.Tensor]
+
+    def __getitem__(self, key):
+        """Get the indices for the specified key."""
+        if key not in self.splits:
+            raise KeyError(f"Key '{key}' not found in splits.")
+        return self.splits[key]
+
+    def __init__(
+        self,
+        splits: Dict[str, torch.Tensor],
+    ):
+        """Create a DatasetSplit from a dictionary of indices.
+
+        Parameters
+        ----------
+        splits : Dict[str, torch.Tensor]
+            A list of indices for the split.
+
+        Returns
+        -------
+            DatasetSplit: An object with a single split named 'default'.
+
+        """
+        if not splits:
+            raise ValueError("splits cannot be empty.")
+        self.splits = splits
+
+    @classmethod
+    def split(
+        cls, n_indices: int, seed: int, split_ratios: Dict[str, float]
+    ) -> "DatasetSplit":
+        """Split the indices into named sets based on split_ratios.
+
+        Parameters
+        ----------
+        n_indices : int
+            Total number of indices to split.
+        seed : int
+            Random seed for reproducibility.
+        split_ratios : Dict[str, float]
+            A dictionary where keys are split names (e.g., 'train', 'val',
+            'test') and values are the ratios for each split.
+
+        Returns
+        -------
+            DatasetSplit: An object with keys corresponding to split_ratios.
+
+        """
+        if not split_ratios:
+            raise ValueError("split_ratios cannot be empty.")
+
+        total_ratio = sum(split_ratios.values())
+        if total_ratio > 1.0:
+            raise ValueError("Sum of split ratios must not exceed 1.0")
+
+        torch.manual_seed(seed)
+        indices = torch.randperm(n_indices)
+
+        split_indices = {}
+        start = 0
+        for i, (name, ratio) in enumerate(split_ratios.items()):
+            end = start + int(ratio * n_indices)
+            split_indices[name] = indices[start:end]
+            start = end
+
+        return cls(splits=split_indices)
+
+    @classmethod
+    def load(cls, path: str, name: str) -> "DatasetSplit":
+        """Load the split from disk."""
+        with open(os.path.join(path, name), "r") as f:
+            data = yaml.safe_load(f)
+            splits = {k: torch.tensor(v) for k, v in data.items()}
+            return cls(splits=splits)
+
+    def save(self, path: str, name: str) -> None:
+        """Save the split to disk atomically."""
+        os.makedirs(path, exist_ok=True)
+        data = {k: v.tolist() for k, v in self.splits.items()}
+        final_path = os.path.join(path, name)
+        tmp_path = f"{final_path}.tmp.{os.getpid()}"
+        with open(tmp_path, "w") as f:
+            yaml.safe_dump(data, f)
+        os.replace(tmp_path, final_path)
+
+    def to_dict(self) -> Dict[str, torch.Tensor]:
+        """Convert splits to dictionary."""
+        return self.splits
+
+    @staticmethod
+    def exists(path: str, name: str) -> bool:
+        """Check if split file exists."""
+        return os.path.exists(os.path.join(path, name))
+    
+    
+def resolve_config(config: Union[dict, str]) -> dict:
     """Resolve a benchmark ``config`` into a dict.
 
     Accepts:
@@ -88,25 +188,6 @@ def chunked_logits(
                 for i in range(0, inputs.shape[0], chunk_size)
             )
         return torch.cat([_call(chunk) for chunk in chunks], dim=0)
-
-
-def _get_module_from_name(model: torch.nn.Module, layer_name: str) -> Any:
-    """Get a module from a model by name.
-
-    Parameters
-    ----------
-    model : torch.nn.Module
-        The model to extract the module from.
-    layer_name : str
-        The name of the module to extract.
-
-    Returns
-    -------
-    Any
-        The module extracted from the model.
-
-    """
-    return reduce(getattr, layer_name.split("."), model)
 
 
 def get_parent_module_from_name(
@@ -271,11 +352,6 @@ def _load_flexible_state_dict(
     if isinstance(device, str):
         device = torch.device(device)
 
-    # torch.load on the same .pth is called repeatedly by callers like
-    # TracInCPFast (once per test batch). A single transient read error
-    # from the kernel ("PytorchStreamReader ... file read failed") is
-    # enough to kill a multi-hour run, so retry a few times before
-    # giving up.
     last_err: Optional[Exception] = None
     for attempt in range(3):
         try:
@@ -520,110 +596,10 @@ def load_last_checkpoint(
     checkpoints_load_func(model, checkpoints[-1])
 
 
-@dataclass
-class DatasetSplit(ABC):
-    """Class to store dynamically named splits (e.g., train, val, test)."""
-
-    splits: Dict[str, torch.Tensor]
-
-    def __getitem__(self, key):
-        """Get the indices for the specified key."""
-        if key not in self.splits:
-            raise KeyError(f"Key '{key}' not found in splits.")
-        return self.splits[key]
-
-    def __init__(
-        self,
-        splits: Dict[str, torch.Tensor],
-    ):
-        """Create a DatasetSplit from a dictionary of indices.
-
-        Parameters
-        ----------
-        splits : Dict[str, torch.Tensor]
-            A list of indices for the split.
-
-        Returns
-        -------
-            DatasetSplit: An object with a single split named 'default'.
-
-        """
-        if not splits:
-            raise ValueError("splits cannot be empty.")
-        self.splits = splits
-
-    @classmethod
-    def split(
-        cls, n_indices: int, seed: int, split_ratios: Dict[str, float]
-    ) -> "DatasetSplit":
-        """Split the indices into named sets based on split_ratios.
-
-        Parameters
-        ----------
-        n_indices : int
-            Total number of indices to split.
-        seed : int
-            Random seed for reproducibility.
-        split_ratios : Dict[str, float]
-            A dictionary where keys are split names (e.g., 'train', 'val',
-            'test') and values are the ratios for each split.
-
-        Returns
-        -------
-            DatasetSplit: An object with keys corresponding to split_ratios.
-
-        """
-        if not split_ratios:
-            raise ValueError("split_ratios cannot be empty.")
-
-        total_ratio = sum(split_ratios.values())
-        if total_ratio > 1.0:
-            raise ValueError("Sum of split ratios must not exceed 1.0")
-
-        torch.manual_seed(seed)
-        indices = torch.randperm(n_indices)
-
-        split_indices = {}
-        start = 0
-        for i, (name, ratio) in enumerate(split_ratios.items()):
-            end = start + int(ratio * n_indices)
-            split_indices[name] = indices[start:end]
-            start = end
-
-        return cls(splits=split_indices)
-
-    @classmethod
-    def load(cls, path: str, name: str) -> "DatasetSplit":
-        """Load the split from disk."""
-        with open(os.path.join(path, name), "r") as f:
-            data = yaml.safe_load(f)
-            splits = {k: torch.tensor(v) for k, v in data.items()}
-            return cls(splits=splits)
-
-    def save(self, path: str, name: str) -> None:
-        """Save the split to disk atomically."""
-        os.makedirs(path, exist_ok=True)
-        data = {k: v.tolist() for k, v in self.splits.items()}
-        final_path = os.path.join(path, name)
-        tmp_path = f"{final_path}.tmp.{os.getpid()}"
-        with open(tmp_path, "w") as f:
-            yaml.safe_dump(data, f)
-        os.replace(tmp_path, final_path)
-
-    def to_dict(self) -> Dict[str, torch.Tensor]:
-        """Convert splits to dictionary."""
-        return self.splits
-
-    @staticmethod
-    def exists(path: str, name: str) -> bool:
-        """Check if split file exists."""
-        return os.path.exists(os.path.join(path, name))
-
-
 _DEFAULT_REPR_RE = re.compile(r" object at 0x[0-9a-fA-F]+>")
 
 
-def _stable_repr(obj: Any) -> str:
+def stable_repr(obj: Any) -> str:
     """Process-stable string form of ``obj`` for hashing/serialization."""
     if callable(obj) and hasattr(obj, "__qualname__"):
         module = getattr(obj, "__module__", "") or ""
@@ -637,12 +613,12 @@ def _stable_repr(obj: Any) -> str:
     fq = f"{module}.{qualname}" if module else qualname
     attrs = getattr(obj, "__dict__", None)
     if attrs:
-        inner = json.dumps(attrs, sort_keys=True, default=_stable_repr)
+        inner = json.dumps(attrs, sort_keys=True, default=stable_repr)
         return f"{fq}({inner})"
     return fq
 
 
-def _subsample_indices(n: int, max_n: Optional[int], seed: int) -> List[int]:
+def subsample_indices(n: int, max_n: Optional[int], seed: int) -> List[int]:
     """Deterministic subsample of ``range(n)`` matching ``_subsample_dataset``.
 
     Returns the full ``range(n)`` (as a list) when no subsampling is needed.
@@ -652,7 +628,7 @@ def _subsample_indices(n: int, max_n: Optional[int], seed: int) -> List[int]:
     return sorted(random.Random(seed).sample(range(n), max_n))
 
 
-def _subsample_dataset(
+def subsample_dataset(
     dataset: torch.utils.data.Dataset,
     max_n: Optional[int],
     seed: int,
@@ -670,13 +646,13 @@ def _subsample_dataset(
     n = len(dataset)  # type: ignore[arg-type]
     if max_n >= n:
         return dataset
-    indices = _subsample_indices(n, max_n, seed)
+    indices = subsample_indices(n, max_n, seed)
     if hasattr(dataset, "filtered"):
         return dataset.filtered(indices)
     return torch.utils.data.Subset(dataset, indices)
 
 
-def _replace_conv1d_with_linear(model: nn.Module) -> None:
+def replace_conv1d_with_linear(model: nn.Module) -> None:
     """Swap HF ``Conv1D`` modules in-place with ``nn.Linear`` equivalents.
 
     HF GPT-2 uses ``Conv1D`` (a transposed Linear) for attention/MLP
@@ -685,7 +661,7 @@ def _replace_conv1d_with_linear(model: nn.Module) -> None:
     """
     for name, module in model.named_children():
         if len(list(module.children())) > 0:
-            _replace_conv1d_with_linear(module)
+            replace_conv1d_with_linear(module)
         if module.__class__.__name__ == "Conv1D":
             weight = cast(torch.Tensor, module.weight)
             bias = cast(torch.Tensor, module.bias)
