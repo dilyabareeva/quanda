@@ -451,6 +451,18 @@ class RepresenterPoints(Explainer):
         explanations = torch.gather(explanations, dim=-1, index=indices)
         return torch.squeeze(explanations)
 
+    def _train_step(self, model, optimizer, x, y, N):
+        """Run a single optimizer step and return loss, phi_loss, grad_loss."""
+        optimizer.zero_grad()
+        (Phi, L2) = model(x, y)
+        loss = L2 * self.lmbd + Phi / N
+        phi_loss = (Phi / N).detach().cpu().numpy()
+        loss.backward()
+        if model.W.grad is None:
+            raise ValueError("Gradient is None")
+        grad_loss = torch.mean(torch.abs(model.W.grad)).item()
+        return loss, phi_loss, grad_loss
+
     def train(self):
         """Train the model to obtain the representer point coefficients.
 
@@ -502,20 +514,13 @@ class RepresenterPoints(Explainer):
 
         best_W = model.W.data.clone()
         init_grad = float("inf")
+        grad_loss = float("inf")
 
         for epoch in range(self.epoch):
-            phi_loss = 0
-            optimizer.zero_grad()
-            (Phi, L2) = model(x, y)
-            loss = L2 * self.lmbd + Phi / N
-            phi_loss += (Phi / N).detach().cpu().numpy()
-            loss.backward()
+            loss, phi_loss, grad_loss = self._train_step(
+                model, optimizer, x, y, N
+            )
             temp_W = model.W.data
-
-            if model.W.grad is None:
-                raise ValueError("Gradient is None")
-
-            grad_loss = torch.mean(torch.abs(model.W.grad)).item()
 
             if epoch == 0:
                 init_grad = grad_loss
@@ -530,6 +535,7 @@ class RepresenterPoints(Explainer):
                         "Stopping criteria reached in epoch :{}".format(epoch)
                     )
                     break
+            assert model.W.grad is not None
             self.backtracking_line_search(model, model.W.grad, x, y, loss, N)
             if self.show_progress:
                 pbar.set_description(
@@ -542,8 +548,8 @@ class RepresenterPoints(Explainer):
 
         if grad_loss == init_grad:
             raise ValueError(
-                "Gradient did not decrease during training. Consider increasing "
-                "the number of epochs or the learning rate."
+                "Gradient did not decrease during training. Consider "
+                "increasing the number of epochs or the learning rate."
             )
         # calculate w based on the representer theorem's decomposition
         temp = torch.matmul(

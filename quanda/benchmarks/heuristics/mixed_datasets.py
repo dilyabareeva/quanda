@@ -1,7 +1,7 @@
 """Mixed Datasets benchmark module."""
 
 import logging
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import torch
 from torch.utils.data import Subset
@@ -13,7 +13,7 @@ from quanda.benchmarks.config_parser import (
     ModelConfigParser,
 )
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
-from quanda.utils.common import class_accuracy, ds_len
+from quanda.utils.common import _resolve_config, class_accuracy, ds_len
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +88,7 @@ class MixedDatasets(Benchmark):
     @classmethod
     def from_config(
         cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
+        config: Union[dict, str],
         offline: bool = False,
         device: str = "cpu",
         metadata_suffix: str = "",
@@ -101,9 +100,6 @@ class MixedDatasets(Benchmark):
         ----------
         config : dict
             Dictionary containing the configuration.
-        load_meta_from_disk : str
-            Loads dataset metadata from disk if True, otherwise generates
-            it, default True.
         offline : bool, optional
             If True, no HTTP request is issued to the Hub, by default
             False.
@@ -113,15 +109,13 @@ class MixedDatasets(Benchmark):
             Suffix to add to the metadata directory name, by default "".
             User to prevent assets clashing when multiprocessing.
         load_fresh : bool, optional
-            If True, force re-download of the model checkpoints from the
-            Hub, overwriting the local cache. Incompatible with
-            ``offline=True``. By default False.
+            If True, force re-download of the model checkpoints from
+            the Hub and regenerate cached metadata, overwriting the
+            local cache. Incompatible with ``offline=True``.
+            By default False.
 
         """
-        if offline and load_fresh:
-            raise ValueError(
-                "offline=True and load_fresh=True are incompatible."
-            )
+        config = _resolve_config(config)
         metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config,
             bench_save_dir=config.get("bench_save_dir", "./tmp"),
@@ -131,26 +125,26 @@ class MixedDatasets(Benchmark):
         train_base_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config["train_dataset"],
             metadata_dir=metadata_dir,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
             splits_cfg=splits_cfg,
         )
         val_base_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset", None),
             metadata_dir=metadata_dir,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
             splits_cfg=splits_cfg,
         )
         adv_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config["adv_dataset"],
             metadata_dir=metadata_dir,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
             splits_cfg=splits_cfg,
         )
         split_datasets = DatasetConfigParser.split_dataset(
             dataset=adv_dataset,
             ds_config=config["adv_dataset"],
             metadata_dir=metadata_dir,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
             splits_cfg=splits_cfg,
         )
         adv_base_dataset = split_datasets["train"]
@@ -181,7 +175,6 @@ class MixedDatasets(Benchmark):
                 bench_save_dir=config["bench_save_dir"],
                 ckpts=_resolve_ckpts(config),
                 offline=offline,
-                load_fresh=load_fresh,
                 device=device,
             )
         )

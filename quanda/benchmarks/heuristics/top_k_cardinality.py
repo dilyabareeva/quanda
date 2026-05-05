@@ -62,7 +62,7 @@ class TopKCardinality(Benchmark):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         metadata_dir: str,
-        load_meta_from_disk: bool,
+        load_fresh: bool,
     ) -> dict:
         """Extract top_k from config."""
         return {"top_k": config["top_k"]}

@@ -269,7 +269,7 @@ class ClassMapping:
         cls,
         spec: dict,
         metadata_dir: str,
-        load_meta_from_disk: bool,
+        load_fresh: bool = False,
     ) -> "ClassMapping":
         """Resolve a ``class_to_group`` config spec to a ``ClassMapping``.
 
@@ -277,6 +277,8 @@ class ClassMapping:
           - ``{0: g0, 1: g1, ...}`` — direct mapping (integer keys).
           - ``{ctg_filename, n_classes, n_groups, seed?}`` — file-backed;
             load if exists, otherwise generate from ``seed`` and save.
+            ``load_fresh=True`` forces regeneration even if a cached file
+            is present.
         """
         if spec and all(isinstance(k, int) for k in spec.keys()):
             mapping = {int(k): int(v) for k, v in spec.items()}
@@ -291,13 +293,7 @@ class ClassMapping:
         n_groups = int(spec["n_groups"])
         seed = int(spec.get("seed", 42))
 
-        if load_meta_from_disk:
-            if not cls.exists(metadata_dir, ctg_filename):
-                raise FileNotFoundError(
-                    f"Class mapping '{ctg_filename}' not found in "
-                    f"{metadata_dir}. Re-run with "
-                    f"load_meta_from_disk=False to regenerate it."
-                )
+        if not load_fresh and cls.exists(metadata_dir, ctg_filename):
             return cls.load(metadata_dir, ctg_filename)
 
         mapping = cls._generate(n_classes, n_groups, seed)

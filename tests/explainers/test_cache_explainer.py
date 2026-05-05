@@ -96,7 +96,7 @@ def test_benchmark_explain_and_precomputed_evaluate_match(
     }
 
     direct = ClassDetection.from_config(
-        config=config, load_meta_from_disk=True, offline=True
+        config=config, load_fresh=False, offline=True
     )
     baseline = direct.evaluate(
         explainer_cls=CaptumSimilarity,
@@ -132,7 +132,7 @@ def test_benchmark_explain_and_precomputed_evaluate_match(
 
     fresh = ClassDetection.from_config(
         config=config,
-        load_meta_from_disk=True,
+        load_fresh=False,
         offline=True,
     )
     cached_score = fresh.evaluate(

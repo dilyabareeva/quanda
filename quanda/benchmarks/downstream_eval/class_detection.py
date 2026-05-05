@@ -74,7 +74,7 @@ class ClassDetection(Benchmark):
         train_dataset: torch.utils.data.Dataset,
         eval_dataset: torch.utils.data.Dataset,
         metadata_dir: str,
-        load_meta_from_disk: bool,
+        load_fresh: bool,
     ) -> dict:
         """Extract class detection kwargs from config."""
         return {

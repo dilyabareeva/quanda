@@ -2,7 +2,7 @@
 
 import logging
 import os
-from typing import Optional
+from typing import Optional, Union
 
 import torch
 import yaml
@@ -14,7 +14,12 @@ from quanda.benchmarks.base import (
 )
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.cache import ExplanationsCache
-from quanda.utils.common import _subsample_dataset, class_accuracy, ds_len
+from quanda.utils.common import (
+    _resolve_config,
+    _subsample_dataset,
+    class_accuracy,
+    ds_len,
+)
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,
 )
@@ -231,7 +236,7 @@ class MislabelingDetection(Benchmark):
     @classmethod
     def explain(
         cls,
-        config: dict,
+        config: Union[dict, str],
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
@@ -251,7 +256,11 @@ class MislabelingDetection(Benchmark):
         here parameterize the train-dataset subsample over which
         self-influence is computed. ``inference_batch_size`` is ignored
         since there is no eval-time inference pass.
+
+        ``config`` accepts a config dict, a registered ``bench_id``, or
+        a path to a benchmark YAML.
         """
+        config = _resolve_config(config)
         obj = cls.from_config(config, device=device)
         if explanations_id is None:
             explanations_id = default_explanations_id(

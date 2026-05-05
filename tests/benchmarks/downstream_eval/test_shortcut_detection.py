@@ -93,7 +93,7 @@ def test_shortcut_extra_kwargs_missing_cls_idx_raises():
             train_dataset=fake_ds,
             eval_dataset=fake_ds,
             metadata_dir="/tmp",
-            load_meta_from_disk=False,
+            load_fresh=True,
         )
 
 
@@ -135,13 +135,13 @@ def test_shortcut_detection(
         with pytest.raises(expected_score):
             dst_eval = ShortcutDetection.from_config(
                 config=config,
-                load_meta_from_disk=load_from_disk,
+                load_fresh=not load_from_disk,
             )
         return
 
     dst_eval = ShortcutDetection.from_config(
         config=config,
-        load_meta_from_disk=load_from_disk,
+        load_fresh=not load_from_disk,
     )
 
     score = dst_eval.evaluate(

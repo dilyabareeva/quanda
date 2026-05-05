@@ -167,14 +167,7 @@ class Explainer(ABC):
         return influences
 
     def load_last_checkpoint(self):
-        """Load the model from the checkpoint file.
-
-        Parameters
-        ----------
-        checkpoint : str
-            Path to the checkpoint file.
-
-        """
+        """Load the last checkpoint in ``self.checkpoints`` into the model."""
         load_last_checkpoint(
             model=self.model,
             checkpoints=self.checkpoints,

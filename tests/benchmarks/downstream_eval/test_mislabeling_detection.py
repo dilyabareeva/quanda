@@ -85,7 +85,7 @@ def test_mislabeling_detection(
 
     dst_eval = MislabelingDetection.from_config(
         config=config,
-        load_meta_from_disk=False,
+        load_fresh=True,
         offline=True,
         device="cpu",
     )
@@ -154,7 +154,7 @@ def _make_bench(config, tmp_path):
     config["cache_dir"] = str(tmp_path)
     return MislabelingDetection.from_config(
         config=config,
-        load_meta_from_disk=False,
+        load_fresh=True,
         offline=True,
         device="cpu",
     )

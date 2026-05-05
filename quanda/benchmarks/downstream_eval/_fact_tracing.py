@@ -19,7 +19,12 @@ from quanda.benchmarks.config_parser import (
 from quanda.explainers import Explainer
 from quanda.metrics import Metric
 from quanda.utils.cache import BatchedCachedExplanations
-from quanda.utils.common import CheckpointLoadFunc, _subsample_indices, ds_len
+from quanda.utils.common import (
+    CheckpointLoadFunc,
+    _resolve_config,
+    _subsample_indices,
+    ds_len,
+)
 
 
 class FactTracingBenchmark(Benchmark):
@@ -70,29 +75,42 @@ class FactTracingBenchmark(Benchmark):
     @classmethod
     def from_config(
         cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
+        config: Union[dict, str],
         offline: bool = False,
         device: str = "cpu",
         metadata_suffix: str = "",
         load_fresh: bool = False,
     ) -> "FactTracingBenchmark":
-        """Build the benchmark from a YAML-derived config dict.
+        """Initialize the benchmark from a config.
 
-        Loads prompts/evidence/entailment via
-        :func:`load_fact_tracing_datasets_from_cfg` (which bypasses the
-        generic dataset parser because one HF dataset fans out into
-        both splits) and the model via the standard
-        :class:`ModelConfigParser` path.
+        Parameters
+        ----------
+        config : Union[dict, str]
+            The benchmark configuration dictionary, a path to a YAML file
+            or registered ``bench_id``
+            (see :data:`quanda.benchmarks.resources.config_map.config_map`).
+        offline : bool, optional
+            If True, no HTTP request is issued to the Hub; all assets
+            (metadata, model) must already be present under
+            ``config['bench_save_dir']``. By default False.
+        device : str, optional
+            Device to load the model on, by default "cpu".
+        metadata_suffix : str, optional
+            Suffix to disambiguate metadata directories. By default "".
+        load_fresh: bool, False
+            If True, regenerate any cached split/wrapper metadata
+            (overwriting local files) and, when ``offline=False``,
+            re-download metadata/model from the Hub. When False
+            (default), cached metadata is reused if present and only
+            missing pieces are generated.
+
         """
-        if offline and load_fresh:
-            raise ValueError(
-                "offline=True and load_fresh=True are incompatible."
-            )
-
+        config = _resolve_config(config)
         prompt_ds, evidence_ds, entailment_labels, _ = (
             FactTracingConfigParser.parse_fact_tracing_cfg(
-                config["fact_tracing"]
+                config["fact_tracing"],
+                offline=offline,
+                load_fresh=load_fresh,
             )
         )
 
@@ -102,7 +120,6 @@ class FactTracingBenchmark(Benchmark):
                 bench_save_dir=config.get("bench_save_dir", "./tmp"),
                 ckpts=_resolve_ckpts(config),
                 offline=offline,
-                load_fresh=load_fresh,
                 device=device,
             )
         )

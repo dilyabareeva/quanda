@@ -316,29 +316,6 @@ def test_push_subset_missing_ckpt_dir_raises(tmp_path):
 
 
 @pytest.mark.benchmarks
-def test_extra_kwargs_missing_subset_ids_raises(
-    load_mnist_linear_datamodeling_config, tmp_path
-):
-    """Missing subset_ids file + load_meta_from_disk=True raises."""
-    config = load_mnist_linear_datamodeling_config
-    metadata_dir = str(tmp_path / "meta")
-    os.makedirs(metadata_dir, exist_ok=True)
-
-    with pytest.raises(FileNotFoundError, match="Subset ids file not found"):
-        LinearDatamodeling._extra_kwargs_from_config(
-            config=config,
-            train_dataset=torch.utils.data.TensorDataset(
-                torch.randn(4, 1, 28, 28), torch.randint(0, 10, (4,))
-            ),
-            eval_dataset=torch.utils.data.TensorDataset(
-                torch.randn(4, 1, 28, 28), torch.randint(0, 10, (4,))
-            ),
-            metadata_dir=metadata_dir,
-            load_meta_from_disk=True,
-        )
-
-
-@pytest.mark.benchmarks
 @pytest.mark.parametrize("skip_subsets", [False, True])
 def test_train_and_push_to_hub(mocker, skip_subsets):
     """train_and_push_to_hub toggles the push/skip flags around the base

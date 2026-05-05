@@ -176,36 +176,6 @@ def test_resolve_split_recipe_returns_copy():
 
 
 @pytest.mark.utils
-def test_apply_wrapper_missing_metadata_raises(
-    load_mnist_mislabeling_config, tmp_path
-):
-    """load_meta_from_disk=True with missing metadata file raises."""
-    config = load_mnist_mislabeling_config
-    metadata_dir = str(tmp_path / "meta")
-    os.makedirs(metadata_dir, exist_ok=True)
-
-    dummy_ds = torch.utils.data.TensorDataset(
-        torch.randn(4, 1, 28, 28), torch.randint(0, 10, (4,))
-    )
-
-    ds_cfg = config["train_dataset"]
-    wrapper_cfg = dict(ds_cfg["wrapper"])
-    wrapper_cfg["metadata"] = {
-        **wrapper_cfg["metadata"],
-        "metadata_filename": "not_there.yaml",
-    }
-
-    with pytest.raises(FileNotFoundError, match="Wrapper metadata"):
-        DatasetConfigParser._apply_wrapper(
-            dataset=dummy_ds,
-            ds_config=ds_cfg,
-            wrapper_cfg=wrapper_cfg,
-            metadata_dir=metadata_dir,
-            load_meta_from_disk=True,
-        )
-
-
-@pytest.mark.utils
 def test_load_pretrained_base_returns_none_when_key_absent():
     """Without ``pretrained_model_name`` in the cfg, ``load_pretrained_base``
     must short-circuit to ``None`` so train paths keep the empty-architecture

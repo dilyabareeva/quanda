@@ -29,6 +29,39 @@ from torch import nn
 CheckpointLoadFunc = Callable[[torch.nn.Module, str], Any]
 
 
+def _resolve_config(config: Union[dict, str]) -> dict:
+    """Resolve a benchmark ``config`` into a dict.
+
+    Accepts:
+    - a config dict (passes through unchanged),
+    - a registered ``bench_id`` (resolved via
+      :data:`quanda.benchmarks.resources.config_map.config_map`), or
+    - a path to a benchmark YAML file.
+
+    Raises ``TypeError`` for any other input, or if the loaded YAML
+    does not parse to a mapping.
+    """
+    if isinstance(config, dict):
+        return config
+    if isinstance(config, str):
+        # Lazy import to avoid a hard dep from utils → benchmarks.
+        from quanda.benchmarks.resources.config_map import config_map
+
+        path = str(config_map[config]) if config in config_map else config
+        with open(path, "r") as f:
+            cfg = yaml.safe_load(f)
+        if not isinstance(cfg, dict):
+            raise TypeError(
+                f"YAML at {path} did not parse to a dict (got "
+                f"{type(cfg).__name__})."
+            )
+        return cfg
+    raise TypeError(
+        f"config must be a dict, a registered bench_id, or a YAML path; "
+        f"got {type(config).__name__}."
+    )
+
+
 def chunked_logits(
     model: torch.nn.Module,
     inputs: Any,
