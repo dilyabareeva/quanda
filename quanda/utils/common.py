@@ -127,8 +127,8 @@ class DatasetSplit(ABC):
     def exists(path: str, name: str) -> bool:
         """Check if split file exists."""
         return os.path.exists(os.path.join(path, name))
-    
-    
+
+
 def resolve_config(config: Union[dict, str]) -> dict:
     """Resolve a benchmark ``config`` into a dict.
 

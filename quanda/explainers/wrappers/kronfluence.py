@@ -25,8 +25,8 @@ from quanda.explainers.utils import (
 )
 from quanda.utils.common import (
     CheckpointLoadFunc,
-    replace_conv1d_with_linear,
     process_targets,
+    replace_conv1d_with_linear,
     resolve_device,
 )
 from quanda.utils.tasks import TaskLiterals

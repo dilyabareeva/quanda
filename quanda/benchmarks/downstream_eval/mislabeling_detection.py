@@ -15,10 +15,10 @@ from quanda.benchmarks.base import (
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.cache import ExplanationsCache
 from quanda.utils.common import (
-    resolve_config,
-    subsample_dataset,
     class_accuracy,
     ds_len,
+    resolve_config,
+    subsample_dataset,
 )
 from quanda.utils.datasets.transformed.label_flipping import (
     LabelFlippingDataset,

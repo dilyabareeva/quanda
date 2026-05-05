@@ -13,7 +13,7 @@ from quanda.benchmarks.config_parser import (
     ModelConfigParser,
 )
 from quanda.metrics.heuristics.mixed_datasets import MixedDatasetsMetric
-from quanda.utils.common import resolve_config, class_accuracy, ds_len
+from quanda.utils.common import class_accuracy, ds_len, resolve_config
 
 logger = logging.getLogger(__name__)
 

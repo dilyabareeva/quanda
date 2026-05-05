@@ -33,12 +33,12 @@ from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
 from quanda.utils.common import (
     CheckpointLoadFunc,
     DatasetSplit,
-    resolve_config,
-    stable_repr,
-    subsample_dataset,
     chunked_logits,
     class_accuracy,
     load_last_checkpoint,
+    resolve_config,
+    stable_repr,
+    subsample_dataset,
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.base import TransformedDataset

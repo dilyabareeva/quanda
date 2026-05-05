@@ -22,10 +22,10 @@ from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
 from quanda.utils.common import (
-    resolve_config,
-    subsample_dataset,
     chunked_logits,
     class_accuracy,
+    resolve_config,
+    subsample_dataset,
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import correlation_functions

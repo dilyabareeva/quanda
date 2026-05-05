@@ -21,9 +21,9 @@ from quanda.metrics import Metric
 from quanda.utils.cache import BatchedCachedExplanations
 from quanda.utils.common import (
     CheckpointLoadFunc,
+    ds_len,
     resolve_config,
     subsample_indices,
-    ds_len,
 )
 
 

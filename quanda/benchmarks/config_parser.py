@@ -748,6 +748,7 @@ class FactTracingConfigParser:
             If True, force re-download of the HF source dataset,
             overwriting the local cache. Incompatible with
             ``offline=True``. By default False.
+
         """
         if offline and load_fresh:
             raise ValueError(
@@ -772,7 +773,6 @@ class FactTracingConfigParser:
         max_length = cfg.get("max_length", 128)
         max_evidence_per_prompt = cfg.get("max_evidence_per_prompt", 5)
 
-        # Sample prompt entries
         if num_prompts < len(ds):
             random.seed(seed)
             indices = random.sample(range(len(ds)), num_prompts)
@@ -780,7 +780,25 @@ class FactTracingConfigParser:
         else:
             sampled_dataset = ds
 
-        # Tokenize prompt + answer and mask prompt in labels
+        prompt_dataset = cls._build_prompt_dataset(
+            sampled_dataset, tokenize, max_length
+        )
+        evidence_dataset, evidence_map = cls._build_evidence_dataset(
+            sampled_dataset, tokenize, max_length, max_evidence_per_prompt
+        )
+        entailment_labels = cls._build_entailment_matrix(
+            len(prompt_dataset), len(evidence_dataset), evidence_map
+        )
+
+        return prompt_dataset, evidence_dataset, entailment_labels, pad_id
+
+    @staticmethod
+    def _build_prompt_dataset(
+        sampled_dataset: hf_datasets.Dataset,
+        tokenize: Callable,
+        max_length: int,
+    ) -> hf_datasets.Dataset:
+        """Tokenize prompt+answer, masking prompt and padding in labels."""
         input_ids = []
         attention_mask = []
         labels = []
@@ -804,11 +822,8 @@ class FactTracingConfigParser:
             )["input_ids"]
             prompt_len = len(prompt_ids)
 
-            # Mask out prompt from loss
             label_ids = encoded["input_ids"].copy()
             label_ids[:prompt_len] = [-100] * prompt_len
-
-            # Mask out padding tokens in labels
             for i in range(len(encoded["input_ids"])):
                 if encoded["attention_mask"][i] == 0:
                     label_ids[i] = -100
@@ -833,18 +848,24 @@ class FactTracingConfigParser:
             columns=["input_ids", "attention_mask", "labels"],
             output_all_columns=True,
         )
+        return prompt_dataset
 
-        # Gather evidence sentences
+    @staticmethod
+    def _build_evidence_dataset(
+        sampled_dataset: hf_datasets.Dataset,
+        tokenize: Callable,
+        max_length: int,
+        max_evidence_per_prompt: int,
+    ) -> Tuple[hf_datasets.Dataset, List[int]]:
+        """Tokenize evidence sentences and return the evidence→prompt map."""
         evidence_sentences = []
         evidence_map = []
-
         for i, entry in enumerate(sampled_dataset):
             selected = entry["evidence_sentences"][:max_evidence_per_prompt]
             for sentence in selected:
                 evidence_sentences.append(sentence)
                 evidence_map.append(i)
 
-        # Tokenize evidence sentences
         evidence_input_ids = []
         evidence_attention_mask = []
         evidence_labels = []
@@ -858,7 +879,6 @@ class FactTracingConfigParser:
             evidence_input_ids.append(encoded["input_ids"])
             evidence_attention_mask.append(encoded["attention_mask"])
 
-            # Create labels and mask out padding tokens
             label_ids = encoded["input_ids"].copy()
             for i in range(len(encoded["input_ids"])):
                 if encoded["attention_mask"][i] == 0:
@@ -878,13 +898,7 @@ class FactTracingConfigParser:
             columns=["input_ids", "attention_mask", "labels"],
             output_all_columns=True,
         )
-
-        # Create entailment matrix
-        entailment_labels = cls._build_entailment_matrix(
-            len(prompt_dataset), len(evidence_dataset), evidence_map
-        )
-
-        return prompt_dataset, evidence_dataset, entailment_labels, pad_id
+        return evidence_dataset, evidence_map
 
     @staticmethod
     def _build_entailment_matrix(
