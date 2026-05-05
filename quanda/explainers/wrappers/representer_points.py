@@ -178,6 +178,8 @@ class RepresenterPoints(Explainer):
         checkpoints: Optional[Union[str, List[str]]] = None,
         checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         cache_dir: str = "./cache",
+        activations_cache_dir: Optional[str] = None,
+        activations_id: Optional[str] = None,
         features_postprocess: Optional[Callable] = None,
         lmbd: float = 0.003,
         epoch: int = 3000,
@@ -188,6 +190,7 @@ class RepresenterPoints(Explainer):
         batch_size: int = 32,
         load_from_disk: bool = True,
         show_progress: bool = True,
+        random_init: bool = False,
     ):
         """Initialize the RepresenterPoints class.
 
@@ -214,7 +217,21 @@ class RepresenterPoints(Explainer):
             Ignored, for the same reason as ``checkpoints``.
             Defaults to None.
         cache_dir : str, optional
-            The directory to save the cache, defaults to "./cache".
+            Directory for the trained representer coefficients
+            (``*_repr_weights.pt``). Depends on training hyperparameters,
+            so it is safe — and expected — to vary this per run.
+            Defaults to "./cache".
+        activations_cache_dir : Optional[str], optional
+            Directory for cached penultimate-layer activations of the
+            training set. Activations only depend on
+            ``(model checkpoint, train_dataset, features_layer)``, so this
+            can be pointed at a shared location to reuse them across runs
+            with different hyperparameters. Defaults to ``cache_dir``.
+        activations_id : Optional[str], optional
+            Identifier under which activations are stored inside
+            ``activations_cache_dir``. Should encode the model + dataset +
+            ``features_layer`` but NOT the training hyperparameters.
+            Defaults to ``model_id``.
         features_postprocess : Optional[Callable], optional
             A postprocessing function for the features, defaults to None.
         lmbd : float, optional
@@ -236,6 +253,10 @@ class RepresenterPoints(Explainer):
             Whether to load the activations from disk, defaults to True.
         show_progress : bool, optional
             Whether to show the training progress, defaults to True.
+        random_init : bool, optional
+            If True, the initial representer W is initialized randomly
+            instead of from the trained classifier weights. Defaults to
+            False.
 
         """
         logger.info("Initializing Representer Point Selection explainer...")
@@ -249,6 +270,8 @@ class RepresenterPoints(Explainer):
 
         self.model_id = model_id
         self.cache_dir = cache_dir
+        self.activations_cache_dir = activations_cache_dir or cache_dir
+        self.activations_id = activations_id or model_id
         self.normalize = normalize
         self.features_layer = features_layer
         self.classifier_layer = classifier_layer
@@ -259,16 +282,19 @@ class RepresenterPoints(Explainer):
         self.epsilon = epsilon
         self.features_postprocess = features_postprocess
         self.show_progress = show_progress
+        self.random_init = random_init
 
         self.dataloader = torch.utils.data.DataLoader(
             self.train_dataset, batch_size=batch_size, shuffle=False
         )
 
+        os.makedirs(self.cache_dir, exist_ok=True)
+        os.makedirs(self.activations_cache_dir, exist_ok=True)
         with default_tensor_type(self.device):
             act_dataset = AV.generate_dataset_activations(
-                path=cache_dir,
+                path=self.activations_cache_dir,
                 model=model,
-                model_id=model_id,
+                model_id=self.activations_id,
                 layers=[features_layer],
                 dataloader=self.dataloader,
                 load_from_disk=load_from_disk,
@@ -457,6 +483,8 @@ class RepresenterPoints(Explainer):
         w_and_b = torch.concatenate(
             [weight_linear.T, bias_linear.unsqueeze(0)]
         )
+        if self.random_init:
+            w_and_b = torch.randn_like(w_and_b)
         model = RepresenterSoftmax(w_and_b, self.device)
 
         x = nn.Parameter(samples_with_bias.to(self.device))
@@ -512,6 +540,11 @@ class RepresenterPoints(Explainer):
 
                 pbar.update(1)
 
+        if grad_loss == init_grad:
+            raise ValueError(
+                "Gradient did not decrease during training. Consider increasing "
+                "the number of epochs or the learning rate."
+            )
         # calculate w based on the representer theorem's decomposition
         temp = torch.matmul(
             x, nn.Parameter(best_W.to(self.device), requires_grad=True)
