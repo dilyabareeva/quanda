@@ -5,8 +5,7 @@ Explainer Wrappers
 through a single :doc:`Explainer <docs_api/quanda.explainers.base>` interface.
 The tables below list every wrapper class and cite the paper that introduced
 the underlying method. All wrapper sources live under
-`quanda/explainers/wrappers/
-<https://github.com/dilyabareeva/quanda/tree/main/quanda/explainers/wrappers>`_.
+``quanda/explainers/wrappers/``.
 
 All wrappers can be imported directly from ``quanda.explainers.wrappers``,
 for example:
@@ -25,8 +24,7 @@ Captum
 ------
 Wrappers around the influence methods provided by `Captum
 <https://github.com/pytorch/captum/tree/master>`_. Source:
-`captum_influence.py
-<https://github.com/dilyabareeva/quanda/blob/main/quanda/explainers/wrappers/captum_influence.py>`_.
+``quanda/explainers/wrappers/captum_influence.py``.
 
 .. list-table::
    :header-rows: 1
@@ -56,8 +54,7 @@ Wrappers around the influence methods provided by `Captum
 
 Representer Point Selection
 ---------------------------
-Source: `representer_points.py
-<https://github.com/dilyabareeva/quanda/blob/main/quanda/explainers/wrappers/representer_points.py>`_.
+Source: ``quanda/explainers/wrappers/representer_points.py``.
 
 .. list-table::
    :header-rows: 1
@@ -74,8 +71,7 @@ Source: `representer_points.py
 
 TRAK
 ----
-Source: `trak_wrapper.py
-<https://github.com/dilyabareeva/quanda/blob/main/quanda/explainers/wrappers/trak_wrapper.py>`_.
+Source: ``quanda/explainers/wrappers/trak_wrapper.py``.
 
 .. list-table::
    :header-rows: 1
@@ -91,8 +87,7 @@ Source: `trak_wrapper.py
 
 Kronfluence
 -----------
-Source: `kronfluence.py
-<https://github.com/dilyabareeva/quanda/blob/main/quanda/explainers/wrappers/kronfluence.py>`_.
+Source: ``quanda/explainers/wrappers/kronfluence.py``.
 
 .. list-table::
    :header-rows: 1
@@ -112,8 +107,7 @@ Dattri
 Wrappers around the unified TDA family provided by `Dattri
 <https://github.com/TRAIS-Lab/dattri>`_ (Deng et al., 2024,
 `arXiv:2410.04555 <https://arxiv.org/abs/2410.04555>`__). Source:
-`dattri_influence.py
-<https://github.com/dilyabareeva/quanda/blob/main/quanda/explainers/wrappers/dattri_influence.py>`_.
+``quanda/explainers/wrappers/dattri_influence.py``.
 
 .. list-table::
    :header-rows: 1
