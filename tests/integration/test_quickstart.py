@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 import quanda
 from quanda.benchmarks.downstream_eval import (
+    ClassDetection,
     MislabelingDetection,
     SubclassDetection,
 )
@@ -144,14 +145,47 @@ def test_quickstart(
     )
     # END7_1
 
+    # START_TRAK_0
+    class_detect = ClassDetection.load_pretrained(
+        bench_id="mnist_class_detection", cache_dir=cache_dir
+    )
+    # START_TRAK_0
+
+    subclass_detect.train_dataset.dataset = torch.utils.data.Subset(
+        subclass_detect.train_dataset.dataset, range(64)
+    )
+    class_detect.train_dataset = torch.utils.data.Subset(
+        class_detect.train_dataset, range(64)
+    )
+
     # START7_2
     score = subclass_detect.evaluate(
         explainer_cls=CaptumSimilarity,
         expl_kwargs=explainer_kwargs,
         batch_size=batch_size,
+        max_eval_n=16,
     )["score"]
     print(f"Subclass Detection Score: {score}")
     # END7_2
+
+    # START_TRAK_1
+    trak_expl_kwargs = {
+        "model_id": "trak_subclass_detect_model_id",
+        "cache_dir": cache_dir,
+        "proj_dim": 512,
+        "seed": 42,
+    }
+    # END_TRAK_1
+
+    # START_TRAK_2
+    result = class_detect.evaluate(
+        explainer_cls=quanda.TRAK,
+        expl_kwargs=trak_expl_kwargs,
+        batch_size=batch_size,
+        max_eval_n=16,
+    )["score"]
+    print(f"Class Detection Score (TRAK): {result}")
+    # END_TRAK_2
 
     # START9
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -209,11 +243,16 @@ def test_quickstart(
     )
     # END13_2
 
+    mislabeling_detection.train_dataset.dataset = torch.utils.data.Subset(
+        mislabeling_detection.train_dataset.dataset, range(64)
+    )
+
     # START14
     score = mislabeling_detection.evaluate(
         explainer_cls=CaptumSimilarity,
         expl_kwargs=explainer_kwargs,
         batch_size=batch_size,
+        max_eval_n=16,
     )["score"]
     print(f"Mislabeling Detection Score: {score}")
     # END14
