@@ -117,7 +117,7 @@ In this section, we list the evaluation criteria that are currently available in
     - Measures the proportion of identical classes or subclasses in the top-1 training samples over the test dataset. If the attributions are based on similarity, they are expected to be predictive of the class of the test datapoint, as well as different subclasses under a single label.
     - Downstream Task Evaluator
   * - Shortcut Detection
-    - `Yolcu et al., 2024 <https://arxiv.org/abs/2402.12118>`_
+    - `Yolcu et al., 2025 <https://openreview.net/forum?id=qfx81N884A>`_
     - Assuming a known `shortcut <https://www.nature.com/articles/s42256-020-00257-z>`_, or `Clever-Hans <https://www.nature.com/articles/s41467-019-08987-4>`_ effect has been identified in the model, this metric evaluates how effectively a TDA method can identify shortcut samples as the most influential in predicting cases with the shortcut artifact. This process is referred to as **Domain Mismatch Debugging** in the original paper.
     - Downstream Task Evaluator
   * - Mislabeled Data Detection

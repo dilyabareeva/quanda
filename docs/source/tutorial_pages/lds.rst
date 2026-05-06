@@ -10,11 +10,11 @@ Caveats
 
 **2. Counterfactual subset logits should be precomputed once and reused.** During evaluation, each subset model is run over the eval dataset to produce *counterfactual logits*, which are then correlated with the explainer's group attributions. These per-subset logits depend only on the subset checkpoints and the eval subsample — they do **not** depend on the explainer being evaluated. Recomputing them inside every ``evaluate(...)`` call is wasteful, so :class:`LinearDatamodeling` exposes ``cache_subset_logits`` that runs the M forward passes once and writes them to disk; subsequent ``evaluate(...)`` calls pass that directory via ``subset_logits_dir=...`` and skip the recomputation.
 
-For embarrassingly parallel pipelines, ``cache_subset_logits_per_idx`` does the same but for a single subset index, so the M forward passes can be sharded across workers.
+To parallelize computations, you can use ``cache_subset_logits_per_idx`` for a single subset index, so the M forward passes can be split across workers.
 
-**3. Training subset models from scratch.** Calling ``LinearDatamodeling.train(config)`` trains the main model and then iterates through all ``M`` subset models sequentially in the same process — fine for small benchmarks but typically the wrong shape for production runs.
+**3. Training subset models from scratch.** Calling ``LinearDatamodeling.train(config)`` trains the main model and then iterates through all ``M`` subset models sequentially in the same process — fine for small benchmarks, but you will usually want to parallelize for larger runs.
 
-The recommended pattern is to split training into two phases. ``train(config, skip_subsets=True)`` trains and persists the main model and writes the metadata (split ids, plus the subset-id file whose name is set by the ``subset_ids`` field in the config — ``lds_subsets.yaml`` in the shipped configs) but does **not** train any subset models. Then ``train_subset(config, idx=...)`` rebuilds the benchmark from that metadata, trains a single subset ``idx``, and persists its checkpoint. ``train_subset`` is designed to be the unit of work for an array job — call it once per worker / GPU / SLURM task and the M subsets train in parallel rather than back-to-back. Remember that the passed config should contain a ``bench_save_dir`` field that is used to save the main model, the subset checkpoints, and the metadata that links them together.
+The recommended pattern is to split training into two phases. ``train(config, skip_subsets=True)`` trains and persists the main model and writes the metadata (split ids, plus the subset-id file whose name is set by the ``subset_ids`` field in the config — ``lds_subsets.yaml`` in the shipped configs) but does **not** train any subset models. Then ``train_subset(config, idx=...)`` rebuilds the benchmark from that metadata, trains a single subset ``idx``, and persists its checkpoint. ``train_subset`` is designed to be the unit of work for an array job — call it once per worker / GPU / SLURM task and the M subsets train in parallel rather than back-to-back. The passed config must contain a ``bench_save_dir`` field, which is used to save the main model, the subset checkpoints, and the metadata that links them together.
 
 .. literalinclude:: ../../../tests/integration/test_benchmark_integration.py
    :language: python
@@ -35,7 +35,7 @@ Both methods accept either a config dict, a registered ``bench_id``, or a path t
 Precomputing and reusing subset logits
 --------------------------------------
 
-The example below loads the published ``mnist_linear_datamodeling`` benchmark via ``load_pretrained``, then calls ``cache_subset_logits`` and ``explain`` directly on the loaded benchmark to populate both caches. The subsequent ``evaluate`` call reads from both. The same ``subset_logits_dir`` can be passed to every ``evaluate(...)`` call regardless of explainer; the same explanations ``cache_dir`` + ``use_cached_expl=True`` can be reused whenever the explainer / ``expl_kwargs`` / eval-subsample match.
+The example below loads the published ``mnist_linear_datamodeling`` benchmark via ``load_pretrained``, then populates the subset-logits and explanations caches before calling ``evaluate``. The same ``subset_logits_dir`` can be passed to every ``evaluate(...)`` call regardless of explainer; the same explanations ``cache_dir`` + ``use_cached_expl=True`` can be reused whenever the explainer / ``expl_kwargs`` / eval-subsample match.
 
 .. literalinclude:: ../../../tests/integration/test_benchmark_integration.py
    :language: python
@@ -49,6 +49,6 @@ The example below loads the published ``mnist_linear_datamodeling`` benchmark vi
    :end-before: # END18
    :dedent:
 
-When several explainers will be benchmarked against the same LDS setup, call ``cache_subset_logits`` once and feed the returned directory into every ``evaluate(...)``. Likewise, call ``explain`` once per explainer and reuse the returned cache directory across re-evaluations or across sibling benchmarks that share the same model + train/eval datasets via a common ``explanations_group`` in the YAML.
+Likewise, call ``explain`` once per explainer and reuse the returned cache directory across re-evaluations or across sibling benchmarks that share the same model + train/eval datasets via a common ``explanations_group`` in the YAML.
 
 All of the classmethods on this page (``load_pretrained``, ``train``, ``train_subset``, ``explain``, ``cache_subset_logits``, ``cache_subset_logits_per_idx``) accept ``bench_id`` / ``config`` either as a registered string (e.g. ``"mnist_linear_datamodeling"``), a path to a benchmark YAML, or a config dict.
