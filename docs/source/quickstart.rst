@@ -10,7 +10,7 @@ To install |quanda| from a local clone of the repository, use the following comm
 
    (.venv) $ pip install -e .
 
-|quanda| requires Python 3.10 or 3.11. It is recommended to use a virtual environment to install the package.
+|quanda| requires Python 3.10, 3.11 or 3.12. It is recommended to use a virtual environment to install the package.
 
 .. note::
    In the examples that follow, we will demonstrate the generation of explanations generated using ``SimilarityInfluence`` data attributor from ``Captum``.
