@@ -194,7 +194,7 @@ Metric Interpretation Guideline
 
 Benchmarks
 ----------
-|quanda| comes with a number of pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. Currently available benchmarks span vision (MNIST / LeNet, CIFAR-10 / ResNet-9, AWA2 / ResNet-50), text classification (QNLI / BERT), and causal language modeling (T-REx / GPT-2 fine-tuned on OpenWebText).
+|quanda| comes with a number of pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. Currently available benchmarks span vision (MNIST / LeNet, CIFAR-10 / ResNet-9, AWA2 / ResNet-50), text classification (QNLI / BERT), and causal language modeling (T-REx / GPT-2 fine-tuned on OpenWebText). The benchmark IDs listed below are to be passed to ``load_pretrained``.
 
 .. list-table::
   :header-rows: 1
@@ -202,7 +202,7 @@ Benchmarks
   * - Metric
     - Type
     - Modality
-    - Benchmarks (Dataset / Model)
+    - Benchmark_IDs (Dataset / Model)
   * - `TopKCardinalityMetric <docs_api/quanda.metrics.heuristics.top_k_cardinality.html>`_
     - Heuristic
     - Vision

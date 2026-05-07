@@ -105,14 +105,14 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 
 ### Benchmarks
 
-**quanda** comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The following benchmarks are currently available:
+**quanda** comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The benchmark IDs listed below are to be passed to `load_pretrained`. The following benchmarks are currently available:
 <table>
   <thead>
     <tr>
       <th>Metric</th>
       <th>Type</th>
       <th>Modality</th>
-      <th>Benchmarks (Dataset / Model)</th>
+      <th>Benchmark_IDs (Dataset / Model)</th>
     </tr>
   </thead>
   <tbody>
