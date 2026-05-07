@@ -1,10 +1,5 @@
 #!/bin/bash
-# Train and push the M subset models for an LDS benchmark. Subset training
-# fans out up to N_LDS_PARALLEL workers.
-#
-# Required from the caller's env:
-#   CONFIG_MAP_PREFIX   key prefix in benchmarks/resources/config_map.py;
-#                       used to resolve the registered LDS config id.
+# Train and push the M subset models for an LDS benchmark. 
 
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 

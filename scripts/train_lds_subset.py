@@ -1,9 +1,4 @@
-"""Train (or push) a single LDS subset model by index.
-
-Used by parallel orchestration scripts: workers invoke this with
-``--idx I`` to train subset ``I`` locally; a final serial pass invokes
-it with ``--push-only`` to upload each subset checkpoint to HF Hub.
-"""
+"""Train (or push) a single LDS subset model by index."""
 
 import argparse
 import os

@@ -1,5 +1,4 @@
 #!/bin/bash
-# Explainer sweep definitions for CIFAR-10 ResNet9 benchmark evaluation.
 
 declare -A EXPL_SWEEP
 

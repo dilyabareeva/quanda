@@ -1,10 +1,5 @@
 #!/bin/bash
 # Shared benchmark training logic.
-# Dataset-specific scripts should set the following before sourcing this file:
-#   - CONFIG_NAME:        Hydra config name (e.g. "mnist_lenet", "cifar_resnet9")
-#   - CONFIG_MAP_PREFIX:  Prefix for config_map.py keys (e.g. "mnist", "cifar")
-#   - benchmarks:         Array of benchmark names to run
-# and source their own bench_defs.sh (BENCH_PARAMS / BENCH_SWEEP).
 
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 

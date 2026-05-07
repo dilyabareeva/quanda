@@ -1,5 +1,4 @@
 #!/bin/bash
-# Explainer sweep definitions for AwA2 ResNet50 benchmark evaluation.
 
 declare -A EXPL_SWEEP
 

@@ -1,6 +1,5 @@
 #!/bin/bash
 # Benchmark definitions: dataset params and sweep hyperparams.
-# Source this file, then use: ${BENCH_PARAMS[Name]} and ${BENCH_SWEEP[Name]}
 
 declare -A BENCH_PARAMS
 declare -A BENCH_SWEEP

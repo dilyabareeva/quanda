@@ -1,7 +1,5 @@
 #!/bin/bash
 # Explainer sweep definitions for MNIST LeNet benchmark evaluation.
-# Source this file, then use: ${EXPL_SWEEP[method]}
-# Values are Hydra multirun overrides on explainer.kwargs.*
 
 declare -A EXPL_SWEEP
 
