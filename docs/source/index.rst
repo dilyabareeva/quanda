@@ -202,11 +202,13 @@ Benchmarks
   * - Metric
     - Type
     - Modality
-    - Benchmark_IDs (Dataset / Model)
+    - Benchmark IDs (Dataset / Model)
   * - `TopKCardinalityMetric <docs_api/quanda.metrics.heuristics.top_k_cardinality.html>`_
     - Heuristic
     - Vision
-    - mnist_top_k_cardinality (MNIST / LeNet), cifar_top_k_cardinality (CIFAR-10 / ResNet-9), awa2_top_k_cardinality (AWA2 / ResNet-50)
+    - | mnist_top_k_cardinality (MNIST / LeNet)
+      | cifar_top_k_cardinality (CIFAR-10 / ResNet-9)
+      | awa2_top_k_cardinality (AWA2 / ResNet-50)
   * -
     -
     - Text
@@ -214,7 +216,9 @@ Benchmarks
   * - `ModelRandomizationMetric <docs_api/quanda.metrics.heuristics.model_randomization.html>`_
     - Heuristic
     - Vision
-    - mnist_model_randomization (MNIST / LeNet), cifar_model_randomization (CIFAR-10 / ResNet-9), awa2_model_randomization (AWA2 / ResNet-50)
+    - | mnist_model_randomization (MNIST / LeNet)
+      | cifar_model_randomization (CIFAR-10 / ResNet-9)
+      | awa2_model_randomization (AWA2 / ResNet-50)
   * -
     -
     - Text
@@ -222,7 +226,9 @@ Benchmarks
   * - `MixedDatasetsMetric <docs_api/quanda.metrics.heuristics.mixed_datasets.html>`_
     - Heuristic
     - Vision
-    - mnist_mixed_datasets (MNIST / LeNet), cifar_mixed_datasets (CIFAR-10 / ResNet-9), awa2_mixed_datasets (AWA2 / ResNet-50)
+    - | mnist_mixed_datasets (MNIST / LeNet)
+      | cifar_mixed_datasets (CIFAR-10 / ResNet-9)
+      | awa2_mixed_datasets (AWA2 / ResNet-50)
   * -
     -
     - Text
@@ -230,7 +236,9 @@ Benchmarks
   * - `ClassDetectionMetric <docs_api/quanda.metrics.downstream_eval.class_detection.html>`_
     - Downstream Task Evaluator
     - Vision
-    - mnist_class_detection (MNIST / LeNet), cifar_class_detection (CIFAR-10 / ResNet-9), awa2_class_detection (AWA2 / ResNet-50)
+    - | mnist_class_detection (MNIST / LeNet)
+      | cifar_class_detection (CIFAR-10 / ResNet-9)
+      | awa2_class_detection (AWA2 / ResNet-50)
   * -
     -
     - Text
@@ -238,11 +246,15 @@ Benchmarks
   * - `SubclassDetectionMetric <docs_api/quanda.metrics.downstream_eval.subclass_detection.html>`_
     - Downstream Task Evaluator
     - Vision
-    - mnist_subclass_detection (MNIST / LeNet), cifar_subclass_detection (CIFAR-10 / ResNet-9), awa2_subclass_detection (AWA2 / ResNet-50)
+    - | mnist_subclass_detection (MNIST / LeNet)
+      | cifar_subclass_detection (CIFAR-10 / ResNet-9)
+      | awa2_subclass_detection (AWA2 / ResNet-50)
   * - `MislabelingDetectionMetric <docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html>`_
     - Downstream Task Evaluator
     - Vision
-    - mnist_mislabeling_detection (MNIST / LeNet), cifar_mislabeling_detection (CIFAR-10 / ResNet-9), awa2_mislabeling_detection (AWA2 / ResNet-50)
+    - | mnist_mislabeling_detection (MNIST / LeNet)
+      | cifar_mislabeling_detection (CIFAR-10 / ResNet-9)
+      | awa2_mislabeling_detection (AWA2 / ResNet-50)
   * -
     -
     - Text
@@ -250,7 +262,9 @@ Benchmarks
   * - `ShortcutDetectionMetric <docs_api/quanda.metrics.downstream_eval.shortcut_detection.html>`_
     - Downstream Task Evaluator
     - Vision
-    - mnist_shortcut_detection (MNIST / LeNet), cifar_shortcut_detection (CIFAR-10 / ResNet-9), awa2_shortcut_detection (AWA2 / ResNet-50)
+    - | mnist_shortcut_detection (MNIST / LeNet)
+      | cifar_shortcut_detection (CIFAR-10 / ResNet-9)
+      | awa2_shortcut_detection (AWA2 / ResNet-50)
   * - `MRRMetric <docs_api/quanda.metrics.downstream_eval.mrr.html>`_
     - Downstream Task Evaluator
     - Causal LM
@@ -266,7 +280,9 @@ Benchmarks
   * - `LinearDatamodelingMetric <docs_api/quanda.metrics.ground_truth.linear_datamodeling.html>`_
     - Ground Truth
     - Vision
-    - mnist_linear_datamodeling (MNIST / LeNet), cifar_linear_datamodeling (CIFAR-10 / ResNet-9), awa2_linear_datamodeling (AWA2 / ResNet-50)
+    - | mnist_linear_datamodeling (MNIST / LeNet)
+      | cifar_linear_datamodeling (CIFAR-10 / ResNet-9)
+      | awa2_linear_datamodeling (AWA2 / ResNet-50)
   * -
     -
     - Text

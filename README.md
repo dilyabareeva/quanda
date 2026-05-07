@@ -112,7 +112,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <th>Metric</th>
       <th>Type</th>
       <th>Modality</th>
-      <th>Benchmark_IDs (Dataset / Model)</th>
+      <th>Benchmark IDs (Dataset / Model)</th>
     </tr>
   </thead>
   <tbody>
@@ -120,7 +120,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td rowspan="2"><a href="quanda/metrics/heuristics/top_k_cardinality.py">TopKCardinalityMetric</a></td>
       <td rowspan="2">Heuristic</td>
       <td>Vision</td>
-      <td>mnist_top_k_cardinality (MNIST / LeNet), cifar_top_k_cardinality (CIFAR-10 / ResNet-9), awa2_top_k_cardinality (AWA2 / ResNet-50)</td>
+      <td>mnist_top_k_cardinality (MNIST / LeNet)<br>cifar_top_k_cardinality (CIFAR-10 / ResNet-9)<br>awa2_top_k_cardinality (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -130,7 +130,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td rowspan="2"><a href="quanda/metrics/heuristics/model_randomization.py">ModelRandomizationMetric</a></td>
       <td rowspan="2">Heuristic</td>
       <td>Vision</td>
-      <td>mnist_model_randomization (MNIST / LeNet), cifar_model_randomization (CIFAR-10 / ResNet-9), awa2_model_randomization (AWA2 / ResNet-50)</td>
+      <td>mnist_model_randomization (MNIST / LeNet)<br>cifar_model_randomization (CIFAR-10 / ResNet-9)<br>awa2_model_randomization (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -140,7 +140,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td rowspan="2"><a href="quanda/metrics/heuristics/mixed_datasets.py">MixedDatasetsMetric</a></td>
       <td rowspan="2">Heuristic</td>
       <td>Vision</td>
-      <td>mnist_mixed_datasets (MNIST / LeNet), cifar_mixed_datasets (CIFAR-10 / ResNet-9), awa2_mixed_datasets (AWA2 / ResNet-50)</td>
+      <td>mnist_mixed_datasets (MNIST / LeNet)<br>cifar_mixed_datasets (CIFAR-10 / ResNet-9)<br>awa2_mixed_datasets (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -150,7 +150,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td rowspan="2"><a href="quanda/metrics/downstream_eval/class_detection.py">ClassDetectionMetric</a></td>
       <td rowspan="2">Downstream-Task-Evaluator</td>
       <td>Vision</td>
-      <td>mnist_class_detection (MNIST / LeNet), cifar_class_detection (CIFAR-10 / ResNet-9), awa2_class_detection (AWA2 / ResNet-50)</td>
+      <td>mnist_class_detection (MNIST / LeNet)<br>cifar_class_detection (CIFAR-10 / ResNet-9)<br>awa2_class_detection (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -160,13 +160,13 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td><a href="quanda/metrics/downstream_eval/subclass_detection.py">SubclassDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
       <td>Vision</td>
-      <td>mnist_subclass_detection (MNIST / LeNet), cifar_subclass_detection (CIFAR-10 / ResNet-9), awa2_subclass_detection (AWA2 / ResNet-50)</td>
+      <td>mnist_subclass_detection (MNIST / LeNet)<br>cifar_subclass_detection (CIFAR-10 / ResNet-9)<br>awa2_subclass_detection (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td rowspan="2"><a href="quanda/metrics/downstream_eval/mislabeling_detection.py">MislabelingDetectionMetric</a></td>
       <td rowspan="2">Downstream-Task-Evaluator</td>
       <td>Vision</td>
-      <td>mnist_mislabeling_detection (MNIST / LeNet), cifar_mislabeling_detection (CIFAR-10 / ResNet-9), awa2_mislabeling_detection (AWA2 / ResNet-50)</td>
+      <td>mnist_mislabeling_detection (MNIST / LeNet)<br>cifar_mislabeling_detection (CIFAR-10 / ResNet-9)<br>awa2_mislabeling_detection (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -176,7 +176,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td><a href="quanda/metrics/downstream_eval/shortcut_detection.py">ShortcutDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
       <td>Vision</td>
-      <td>mnist_shortcut_detection (MNIST / LeNet), cifar_shortcut_detection (CIFAR-10 / ResNet-9), awa2_shortcut_detection (AWA2 / ResNet-50)</td>
+      <td>mnist_shortcut_detection (MNIST / LeNet)<br>cifar_shortcut_detection (CIFAR-10 / ResNet-9)<br>awa2_shortcut_detection (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td><a href="quanda/metrics/downstream_eval/mrr.py">MRRMetric</a></td>
@@ -200,7 +200,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td rowspan="2"><a href="quanda/metrics/ground_truth/linear_datamodeling.py">LinearDatamodelingMetric</a></td>
       <td rowspan="2">Ground Truth</td>
       <td>Vision</td>
-      <td>mnist_linear_datamodeling (MNIST / LeNet), cifar_linear_datamodeling (CIFAR-10 / ResNet-9), awa2_linear_datamodeling (AWA2 / ResNet-50)</td>
+      <td>mnist_linear_datamodeling (MNIST / LeNet)<br>cifar_linear_datamodeling (CIFAR-10 / ResNet-9)<br>awa2_linear_datamodeling (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
