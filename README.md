@@ -17,7 +17,7 @@
 ![codecov](https://img.shields.io/badge/coverage-95%25-4BC51D)
 ![PyPI - License](https://img.shields.io/pypi/l/quanda?color=A20E0C)
 
-**quanda** _is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
+**quanda** _quanda is under active development. Note the release version to ensure reproducibility of your work. Contributions, bug reports, and feature requests are welcome._
 
 
 ## 🐼 Library overview
@@ -78,9 +78,9 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 
 - **Mixed Datasets** ([Hammoudeh and Lowd, 2022](https://dl.acm.org/doi/abs/10.1145/3548606.3559335)): In a setting where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example.
 
-- **Mean Reciprocal Rank (MRR)** ([Chang et al., 2024](https://aclanthology.org/2022.findings-emnlp.180)): For fact-tracing settings, measures the mean reciprocal rank of the highest-ranked entailing proponent across fact queries.
+- **Mean Reciprocal Rank (MRR)** ([Akyurek et al., 2022](https://aclanthology.org/2022.findings-emnlp.180)): For fact-tracing settings, measures the mean reciprocal rank of the highest-ranked entailing proponent across fact queries.
 
-- **Recall@k** ([Chang et al., 2024](https://aclanthology.org/2022.findings-emnlp.180)): For fact-tracing settings, measures the proportion of facts for which an entailing proponent appears in the top-k retrievals.
+- **Recall@k** ([Akyurek et al., 2022](https://aclanthology.org/2022.findings-emnlp.180)): For fact-tracing settings, measures the proportion of facts for which an entailing proponent appears in the top-k retrievals.
 
 - **Tail Patch** ([Chang et al., 2024](https://openreview.net/forum?id=gLa96FlWwn)): For fact-tracing settings, measures the incremental change in target-sequence probability after taking a single training step on retrieved proponents.
 

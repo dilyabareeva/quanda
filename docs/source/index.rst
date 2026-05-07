@@ -4,7 +4,7 @@ Welcome to |quanda|'s documentation!
 |quanda| is a toolkit for **quan**\ titative evaluation of **d**\ ata **a**\ ttribution methods in **PyTorch**.
 
 .. note::
-    |quanda| is currently in development. We are actively working on expanding the library and improving the documentation. If you have any questions, please open an issue or write us an e-mail.
+    |quanda| is under active development. Note the release version to ensure reproducibility of your work. Contributions, bug reports, and feature requests are welcome.
 
 .. figure:: _static/fig_1_source.png
    :alt: Figure 1
@@ -145,7 +145,7 @@ In this section, we list the evaluation criteria that are currently available in
     - For fact-tracing settings, measures the proportion of facts for which an entailing proponent appears in the top-k retrievals.
     - Downstream Task Evaluator
   * - Tail Patch
-    - `Chang et al., 2024 <https://openreview.net/forum?id=gLa96FlWwn>`_
+    - `Chang et al., 2025 <https://openreview.net/forum?id=gLa96FlWwn>`_
     - For fact-tracing settings, measures the incremental change in target-sequence probability after taking a single training step on retrieved proponents.
     - Downstream Task Evaluator
 
