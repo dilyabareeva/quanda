@@ -56,6 +56,7 @@ def test_class_detection_kronfluence_vision(
         checkpoints=[checkpoint_path],
         checkpoints_load_func=get_load_state_dict_func("cpu"),
         use_predictions=config.get("use_predictions", True),
+        s=1,
     )
 
     expl_kwargs = {"task_module": task, "cache_dir": str(tmp_path)}
