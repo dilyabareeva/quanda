@@ -25,8 +25,8 @@ from quanda.explainers.utils import (
 )
 from quanda.utils.common import (
     CheckpointLoadFunc,
-    _replace_conv1d_with_linear,
     process_targets,
+    replace_conv1d_with_linear,
     resolve_device,
 )
 from quanda.utils.tasks import TaskLiterals
@@ -49,11 +49,11 @@ class Kronfluence(Explainer):
     ----------
     (1) Roger Grosse, Juhan Bae, Cem Anil, Nelson Elhage, Alex Tamkin,
     Amirhossein Tajdini, Benoit Steiner,
-        Dustin Li, Esin Durmus, Ethan Perez, Evan Hubinger, Kamilė Lukošiūtė,
-        Karina Nguyen, Nicholas Joseph,
-        Sam McCandlish, Jared Kaplan, Samuel R. Bowman. (2023).
-        "Studying large language model generalization with influence
-        functions". arXiv preprint arXiv:2308.03296.
+    Dustin Li, Esin Durmus, Ethan Perez, Evan Hubinger, Kamilė Lukošiūtė,
+    Karina Nguyen, Nicholas Joseph,
+    Sam McCandlish, Jared Kaplan, Samuel R. Bowman. (2023).
+    "Studying large language model generalization with influence
+    functions". arXiv preprint arXiv:2308.03296.
 
     (2) https://github.com/pomonam/kronfluence
 
@@ -204,7 +204,7 @@ class Kronfluence(Explainer):
         """
         model_copy = copy.deepcopy(self.model)
         model_copy.to(self.device)
-        _replace_conv1d_with_linear(model_copy)
+        replace_conv1d_with_linear(model_copy)
         prepared_model = prepare_model(model=model_copy, task=self.task)
         return prepared_model
 

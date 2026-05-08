@@ -11,16 +11,14 @@
 </p>
 
 
-![py_versions](https://img.shields.io/badge/python-3.10%20%7C%203.11-3A76A8)
-![PyPI - Version](https://img.shields.io/pypi/v/quanda?color=EB9C38)
+![py_versions](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-3A76A8)
 ![mypy](https://img.shields.io/badge/mypy-checked-7EAF6E)
 ![ruff](https://img.shields.io/badge/ruff-checked-7D53BA)
 [![codecov](https://codecov.io/gh/dilyabareeva/quanda/graph/badge.svg?token=6SZS1VISQF)](https://codecov.io/gh/dilyabareeva/quanda)
 ![PyPI - License](https://img.shields.io/pypi/l/quanda?color=A20E0C)
-[![Documentation Status](https://readthedocs.org/projects/quanda/badge/?version=latest)](https://quanda.readthedocs.io/en/latest/?badge=latest)
 [![arXiv](https://img.shields.io/badge/arXiv-2410.07158-b31b1b.svg)](https://arxiv.org/abs/2410.07158)
 
-**quanda** _is currently under active development. Note the release version to ensure reproducibility of your work. Expect changes to API._
+**quanda** _quanda is under active development. Note the release version to ensure reproducibility of your work. Contributions, bug reports, and feature requests are welcome._
 
 
 [📑 Shortcut to paper!](https://arxiv.org/pdf/2410.07158)
@@ -56,24 +54,22 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 - **Metrics**: **quanda** provides a set of metrics to evaluate the effectiveness of TDA methods. These metrics are based on the latest research in the field.
 - **Benchmarking**: **quanda** provides a benchmarking tool to evaluate the performance of TDA methods on a given model, dataset and problem. As many TDA evaluation methods require access to ground truth, our benchmarking tools allow to generate a controlled setting with ground truth, and then compare the performance of different TDA methods on this setting.
 
-### Supported TDA Methods
+### Supported TDA Libraries
 
-| Method Name                | Repository                                                                             | Reference                                                                                                                 |
-|----------------------------|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
-| Similarity Influence        | [Captum](https://github.com/pytorch/captum/tree/master)      | [Caruana et al., 1999](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2232607/) |
-| Arnoldi Influence Function  | [Captum](https://github.com/pytorch/captum/tree/master)    | [Schioppa et al., 2022](https://arxiv.org/abs/2112.03052); [Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html) |
-| TracIn                      | [Captum](https://github.com/pytorch/captum/tree/master)                                | [Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html) |
-| TRAK                        | [TRAK](https://github.com/MadryLab/trak)                                          | [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)             |
-| Representer Point Selection | [Representer Point Selection](https://github.com/chihkuanyeh/Representer_Point_Selection)                 | [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html) |
-| Kronfluence                 | [Kronfluence](https://github.com/pomonam/kronfluence)                                                      | [Grosse et al., 2023](https://arxiv.org/abs/2308.03296)                                                             |
-| Dattri (Influence Functions: Explicit / CG / LiSSA / DataInf, Arnoldi, EK-FAC, TracInCP, Grad-Dot, Grad-Cos, TRAK) | [Dattri](https://github.com/TRAIS-Lab/dattri) | [Deng et al., 2024](https://arxiv.org/abs/2410.04555)                                                          |
+| Library                                                                                       | Reference                                                                                                                                                                                                                                                                                                                          |
+|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Captum](https://github.com/pytorch/captum/tree/master) (Similarity Influence, Arnoldi Influence Function, TracIn) | [Caruana et al., 1999](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2232607/); [Schioppa et al., 2022](https://arxiv.org/abs/2112.03052); [Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html); [Pruthi et al., 2020](https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html) |
+| [TRAK](https://github.com/MadryLab/trak) (TRAK)                                               | [Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)                                                                                                                                                                                                                                                               |
+| [Representer Point Selection](https://github.com/chihkuanyeh/Representer_Point_Selection) (Representer Point Selection) | [Yeh et al., 2018](https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html)                                                                                                                                                                                                                  |
+| [Kronfluence](https://github.com/pomonam/kronfluence) (Kronfluence)                           | [Grosse et al., 2023](https://arxiv.org/abs/2308.03296)                                                                                                                                                                                                                                                                            |
+| [Dattri](https://github.com/TRAIS-Lab/dattri) (Influence Functions: Explicit / CG / LiSSA / DataInf, Arnoldi, EK-FAC, TracInCP, Grad-Dot, Grad-Cos, TRAK) | [Deng et al., 2024](https://arxiv.org/abs/2410.04555)                                                                                                                                                                                                                                                                              |
 
 
 ### Metrics
 
 - **Linear Datamodeling Score** ([Park et al., 2023](https://proceedings.mlr.press/v202/park23c.html)): Measures the correlation between the (grouped) attribution scores and the actual output of models trained on different subsets of the training set. For each subset, the linear datamodeling score compares the actual model output to the sum of attribution scores from the subset using Spearman rank correlation.
 
-- **Identical Class / Identical Subclass** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the proportion of identical classes or subclasses in the top-1 training samples over the test dataset. If the attributions are based on similarity, they are expected to be predictive of the class of the test datapoint, as well as different subclasses under a single label.
+- **Class Detection / Subclass Detection** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the proportion of identical classes or subclasses in the top-1 training samples over the test dataset. If the attributions are based on similarity, they are expected to be predictive of the class of the test datapoint, as well as different subclasses under a single label.
 
 - **Model Randomization** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the correlation between the original TDA and the TDA of a model with randomized weights. Since the attributions are expected to depend on model parameters, the correlation between original and randomized attributions should be low.
 
@@ -81,13 +77,13 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 
 - **Mislabeled Data Detection** ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html)): Computes the proportion of noisy training labels detected as a function of the percentage of inspected training samples. The samples are inspected in order according to their global TDA ranking, which is computed using local attributions. This produces a cumulative mislabeling detection curve. We expect to see a curve that rapidly increases as we check more of the training data, thus we compute the area under this curve
 
-- **Shortcut Detection** ([Yolcu et al., 2024](https://proceedings.mlr.press/v70/koh17a/koh17a.pdf)): Assuming a known [shortcut](https://www.nature.com/articles/s42256-020-00257-z), or [Clever-Hans](https://www.nature.com/articles/s41467-019-08987-4) effect has been identified in the model, this metric evaluates how effectively a TDA method can identify shortcut samples as the most influential in predicting cases with the shortcut artifact. This process is referred to as _Domain Mismatch Debugging_ in the original paper.
+- **Shortcut Detection** ([Yolcu et al., 2025](https://openreview.net/pdf?id=qfx81N884A)): Assuming a known [shortcut](https://www.nature.com/articles/s42256-020-00257-z), or [Clever-Hans](https://www.nature.com/articles/s41467-019-08987-4) effect has been identified in the model, this metric evaluates how effectively a TDA method can identify shortcut samples as the most influential in predicting cases with the shortcut artifact. This process is referred to as _Domain Mismatch Debugging_ in the original paper.
 
 - **Mixed Datasets** ([Hammoudeh and Lowd, 2022](https://dl.acm.org/doi/abs/10.1145/3548606.3559335)): In a setting where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example.
 
-- **Mean Reciprocal Rank (MRR)** ([Chang et al., 2024](https://aclanthology.org/2022.findings-emnlp.180)): For fact-tracing settings, measures the mean reciprocal rank of the highest-ranked entailing proponent across fact queries.
+- **Mean Reciprocal Rank (MRR)** ([Akyurek et al., 2022](https://aclanthology.org/2022.findings-emnlp.180)): For fact-tracing settings, measures the mean reciprocal rank of the highest-ranked entailing proponent across fact queries.
 
-- **Recall@k** ([Chang et al., 2024](https://aclanthology.org/2022.findings-emnlp.180)): For fact-tracing settings, measures the proportion of facts for which an entailing proponent appears in the top-k retrievals.
+- **Recall@k** ([Akyurek et al., 2022](https://aclanthology.org/2022.findings-emnlp.180)): For fact-tracing settings, measures the proportion of facts for which an entailing proponent appears in the top-k retrievals.
 
 - **Tail Patch** ([Chang et al., 2024](https://openreview.net/forum?id=gLa96FlWwn)): For fact-tracing settings, measures the incremental change in target-sequence probability after taking a single training step on retrieved proponents.
 
@@ -112,14 +108,14 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 
 ### Benchmarks
 
-**quanda** comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The following benchmarks are currently available:
+**quanda** comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The benchmark IDs listed below are to be passed to `load_pretrained`. The following benchmarks are currently available:
 <table>
   <thead>
     <tr>
       <th>Metric</th>
       <th>Type</th>
       <th>Modality</th>
-      <th>Benchmarks (Dataset / Model)</th>
+      <th>Benchmark IDs (Dataset / Model)</th>
     </tr>
   </thead>
   <tbody>
@@ -127,7 +123,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td rowspan="2"><a href="quanda/metrics/heuristics/top_k_cardinality.py">TopKCardinalityMetric</a></td>
       <td rowspan="2">Heuristic</td>
       <td>Vision</td>
-      <td>mnist_top_k_cardinality (MNIST / LeNet), cifar_top_k_cardinality (CIFAR-10 / ResNet-9), awa2_top_k_cardinality (AWA2 / ResNet-50)</td>
+      <td>mnist_top_k_cardinality (MNIST / LeNet)<br>cifar_top_k_cardinality (CIFAR-10 / ResNet-9)<br>awa2_top_k_cardinality (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -137,7 +133,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td rowspan="2"><a href="quanda/metrics/heuristics/model_randomization.py">ModelRandomizationMetric</a></td>
       <td rowspan="2">Heuristic</td>
       <td>Vision</td>
-      <td>mnist_model_randomization (MNIST / LeNet), cifar_model_randomization (CIFAR-10 / ResNet-9), awa2_model_randomization (AWA2 / ResNet-50)</td>
+      <td>mnist_model_randomization (MNIST / LeNet)<br>cifar_model_randomization (CIFAR-10 / ResNet-9)<br>awa2_model_randomization (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -147,7 +143,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td rowspan="2"><a href="quanda/metrics/heuristics/mixed_datasets.py">MixedDatasetsMetric</a></td>
       <td rowspan="2">Heuristic</td>
       <td>Vision</td>
-      <td>mnist_mixed_datasets (MNIST / LeNet), cifar_mixed_datasets (CIFAR-10 / ResNet-9), awa2_mixed_datasets (AWA2 / ResNet-50)</td>
+      <td>mnist_mixed_datasets (MNIST / LeNet)<br>cifar_mixed_datasets (CIFAR-10 / ResNet-9)<br>awa2_mixed_datasets (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -157,7 +153,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td rowspan="2"><a href="quanda/metrics/downstream_eval/class_detection.py">ClassDetectionMetric</a></td>
       <td rowspan="2">Downstream-Task-Evaluator</td>
       <td>Vision</td>
-      <td>mnist_class_detection (MNIST / LeNet), cifar_class_detection (CIFAR-10 / ResNet-9), awa2_class_detection (AWA2 / ResNet-50)</td>
+      <td>mnist_class_detection (MNIST / LeNet)<br>cifar_class_detection (CIFAR-10 / ResNet-9)<br>awa2_class_detection (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -167,13 +163,13 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td><a href="quanda/metrics/downstream_eval/subclass_detection.py">SubclassDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
       <td>Vision</td>
-      <td>mnist_subclass_detection (MNIST / LeNet), cifar_subclass_detection (CIFAR-10 / ResNet-9), awa2_subclass_detection (AWA2 / ResNet-50)</td>
+      <td>mnist_subclass_detection (MNIST / LeNet)<br>cifar_subclass_detection (CIFAR-10 / ResNet-9)<br>awa2_subclass_detection (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td rowspan="2"><a href="quanda/metrics/downstream_eval/mislabeling_detection.py">MislabelingDetectionMetric</a></td>
       <td rowspan="2">Downstream-Task-Evaluator</td>
       <td>Vision</td>
-      <td>mnist_mislabeling_detection (MNIST / LeNet), cifar_mislabeling_detection (CIFAR-10 / ResNet-9), awa2_mislabeling_detection (AWA2 / ResNet-50)</td>
+      <td>mnist_mislabeling_detection (MNIST / LeNet)<br>cifar_mislabeling_detection (CIFAR-10 / ResNet-9)<br>awa2_mislabeling_detection (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -183,7 +179,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td><a href="quanda/metrics/downstream_eval/shortcut_detection.py">ShortcutDetectionMetric</a></td>
       <td>Downstream-Task-Evaluator</td>
       <td>Vision</td>
-      <td>mnist_shortcut_detection (MNIST / LeNet), cifar_shortcut_detection (CIFAR-10 / ResNet-9), awa2_shortcut_detection (AWA2 / ResNet-50)</td>
+      <td>mnist_shortcut_detection (MNIST / LeNet)<br>cifar_shortcut_detection (CIFAR-10 / ResNet-9)<br>awa2_shortcut_detection (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td><a href="quanda/metrics/downstream_eval/mrr.py">MRRMetric</a></td>
@@ -207,7 +203,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
       <td rowspan="2"><a href="quanda/metrics/ground_truth/linear_datamodeling.py">LinearDatamodelingMetric</a></td>
       <td rowspan="2">Ground Truth</td>
       <td>Vision</td>
-      <td>mnist_linear_datamodeling (MNIST / LeNet), cifar_linear_datamodeling (CIFAR-10 / ResNet-9), awa2_linear_datamodeling (AWA2 / ResNet-50)</td>
+      <td>mnist_linear_datamodeling (MNIST / LeNet)<br>cifar_linear_datamodeling (CIFAR-10 / ResNet-9)<br>awa2_linear_datamodeling (AWA2 / ResNet-50)</td>
     </tr>
     <tr>
       <td>Text</td>
@@ -222,13 +218,13 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 
 ### Installation
 
-To install the latest release of **quanda** use:
+To install **quanda** from a local clone of this repository, run:
 
 ```setup
-pip install quanda
+pip install -e .
 ```
 
-**quanda** requires Python 3.10 or 3.11. It is recommended to use a virtual environment to install the package.
+**quanda** requires Python 3.10, 3.11 or 3.12. It is recommended to use a virtual environment to install the package.
 
 ### Basic Usage
 
@@ -379,6 +375,7 @@ score = subclass_detect.evaluate(
     explainer_cls=CaptumSimilarity,
     expl_kwargs=explainer_kwargs,
     batch_size=batch_size,
+    max_eval_n=16,
 )["score"]
 print(f"Subclass Detection Score: {score}")
 ```
@@ -455,6 +452,7 @@ score = mislabeling_detection.evaluate(
     explainer_cls=CaptumSimilarity,
     expl_kwargs=explainer_kwargs,
     batch_size=batch_size,
+    max_eval_n=16,
 )["score"]
 print(f"Mislabeling Detection Score: {score}")
 ```
@@ -542,7 +540,7 @@ We have included a few [tutorials](tutorials) to demonstrate the usage of **quan
 To install the library with tutorial dependencies, run:
 
 ```bash
-pip install quanda[tutorials]
+pip install -e '.[tutorials]'
 ```
 
 ## 👩‍💻Contributing

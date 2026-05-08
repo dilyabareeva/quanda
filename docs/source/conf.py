@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 project = "quanda"
 copyright = f"{str(datetime.utcnow().year)}, Dilyara Bareeva, Galip Ümit Yolcu"
 author = "Dilyara Bareeva, Galip Ümit Yolcu"
-release = "05.10.2024"
+release = "05.05.2026"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -30,6 +30,9 @@ extensions = [
 ]
 source_suffix = [".rst", ".md"]
 autosummary_generate = True
+numpydoc_class_members_toctree = False
+numpydoc_show_class_members = False
+suppress_warnings = ["ref.python"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 rst_epilog = """
 .. |quanda| raw:: html

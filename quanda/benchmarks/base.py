@@ -33,11 +33,12 @@ from quanda.utils.cache import BatchedCachedExplanations, ExplanationsCache
 from quanda.utils.common import (
     CheckpointLoadFunc,
     DatasetSplit,
-    _stable_repr,
-    _subsample_dataset,
     chunked_logits,
     class_accuracy,
     load_last_checkpoint,
+    resolve_config,
+    stable_repr,
+    subsample_dataset,
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.base import TransformedDataset
@@ -47,7 +48,7 @@ from quanda.utils.training.trainer import _EpochSnapshotCallback
 def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
     """Stable short hash of sorted expl_kwargs for explanation repo IDs."""
     payload = json.dumps(
-        expl_kwargs or {}, sort_keys=True, default=_stable_repr
+        expl_kwargs or {}, sort_keys=True, default=stable_repr
     )
     return hashlib.sha1(payload.encode()).hexdigest()[:10]
 
@@ -190,9 +191,13 @@ class Benchmark(ABC):
             (metadata, model) must already be present under
             ``cache_dir``. By default False.
         load_fresh : bool, optional
-            If True, re-download metadata and model from the Hub,
+            If True, re-download the metadata snapshot from the Hub
+            and regenerate any cached split/wrapper metadata,
             overwriting the local cache. Incompatible with
-            ``offline=True``. By default False.
+            ``offline=True``. By default False. Note: model
+            checkpoints are reused from the local cache when present
+            regardless of this flag — delete the ckpt directory to
+            force a re-download.
 
         Returns
         -------
@@ -227,7 +232,6 @@ class Benchmark(ABC):
         )
         obj = cls.from_config(
             cfg,
-            load_meta_from_disk=True,
             offline=offline,
             load_fresh=load_fresh,
             device=device,
@@ -238,18 +242,37 @@ class Benchmark(ABC):
     @classmethod
     def from_config(
         cls,
-        config: dict,
-        load_meta_from_disk: bool = True,
+        config: Union[dict, str],
         offline: bool = False,
         device: str = "cpu",
         metadata_suffix: str = "",
         load_fresh: bool = False,
     ) -> "Benchmark":
-        """Initialize the benchmark from a dictionary."""
-        if offline and load_fresh:
-            raise ValueError(
-                "offline=True and load_fresh=True are incompatible."
-            )
+        """Initialize the benchmark from a config.
+
+        Parameters
+        ----------
+        config : Union[dict, str]
+            The benchmark configuration dictionary, a path to a YAML file
+            or registered ``bench_id``
+            (see :data:`quanda.benchmarks.resources.config_map.config_map`).
+        offline : bool, optional
+            If True, no HTTP request is issued to the Hub; all assets
+            (metadata, model) must already be present under
+            ``config['bench_save_dir']``. By default False.
+        device : str, optional
+            Device to load the model on, by default "cpu".
+        metadata_suffix : str, optional
+            Suffix to disambiguate metadata directories. By default "".
+        load_fresh: bool, False
+            If True, regenerate any cached split/wrapper metadata
+            (overwriting local files) and, when ``offline=False``,
+            re-download metadata/model from the Hub. When False
+            (default), cached metadata is reused if present and only
+            missing pieces are generated.
+
+        """
+        config = resolve_config(config)
         cache_dir = config.get("bench_save_dir", "./tmp")
         metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config,
@@ -260,20 +283,20 @@ class Benchmark(ABC):
         train_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config.get("train_dataset"),
             metadata_dir=metadata_dir,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
             splits_cfg=splits_cfg,
         )
 
         val_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config.get("val_dataset"),
             metadata_dir=metadata_dir,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
             splits_cfg=splits_cfg,
         )
         eval_dataset = DatasetConfigParser.parse_dataset_cfg(
             ds_config=config.get("eval_dataset"),
             metadata_dir=metadata_dir,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
             splits_cfg=splits_cfg,
         )
 
@@ -283,7 +306,6 @@ class Benchmark(ABC):
                 bench_save_dir=config["bench_save_dir"],
                 ckpts=_resolve_ckpts(config),
                 offline=offline,
-                load_fresh=load_fresh,
                 device=device,
             )
         )
@@ -293,7 +315,7 @@ class Benchmark(ABC):
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
             metadata_dir=metadata_dir,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
         )
 
         return cls(
@@ -317,7 +339,7 @@ class Benchmark(ABC):
         train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
         eval_dataset: torch.utils.data.Dataset,
         metadata_dir: str,
-        load_meta_from_disk: bool,
+        load_fresh: bool,
     ) -> dict:
         """Extract subclass-specific kwargs from config.
 
@@ -333,8 +355,9 @@ class Benchmark(ABC):
             The parsed evaluation dataset.
         metadata_dir : str
             Path to the metadata directory.
-        load_meta_from_disk : bool
-            Whether metadata was loaded from disk.
+        load_fresh : bool
+            If True, regenerate any cached subclass-specific metadata
+            instead of reusing it.
 
         Returns
         -------
@@ -347,39 +370,48 @@ class Benchmark(ABC):
     @classmethod
     def train(
         cls,
-        config: dict,
+        config: Union[dict, str],
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 64,
-        load_meta_from_disk: bool = False,
+        load_fresh: bool = True,
+        use_pid: bool = False,
     ) -> "Benchmark":
         """Train a model using the provided configuration.
 
         Parameters
         ----------
-        config : dict
-            Dictionary containing the configuration.
+        config : dict | str
+            Either a configuration dict, a registered ``bench_id`` (see
+            :data:`quanda.benchmarks.resources.config_map.config_map`),
+            or a path to a benchmark YAML. The config must specify
+            ``bench_save_dir``, the directory under which the trained
+            benchmark (checkpoints and metadata) is saved.
         logger : Optional[lightning.pytorch.loggers.logger.Logger], optional
             Logger to be used for logging, by default None.
         device : str, optional
             Device to use for training, by default "cpu"
         batch_size : int, optional
             Batch size for training, by default 8
-        load_meta_from_disk : bool, optional
-            If True, reuse existing metadata (splits, class mappings,
-            etc.) from the cache instead of regenerating. By default
-            False — training regenerates metadata so that a fresh
-            training run is reproducible from the config alone.
+        load_fresh : bool, optional
+            If True (default), regenerate splits/class mappings/etc.
+            so a fresh training run is reproducible from the config
+            alone. Set to False to reuse cached metadata.
+        use_pid : bool, optional
+            If True, suffix checkpoint and metadata directories with
+            the current process id to disambiguate concurrent runs. By
+            default False.
 
         Returns
         -------
         None
 
         """
-        pid_suffix = f"_pid{os.getpid()}"
+        config = resolve_config(config)
+        pid_suffix = f"_pid{os.getpid()}" if use_pid else ""
         obj = cls.from_config(
             config,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
             device=device,
             metadata_suffix=pid_suffix,
         )
@@ -489,18 +521,48 @@ class Benchmark(ABC):
     @classmethod
     def train_and_push_to_hub(
         cls,
-        config: dict,
+        config: Union[dict, str],
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 64,
-        load_meta_from_disk: bool = False,
+        load_fresh: bool = True,
+        use_pid: bool = False,
     ):  # pragma: no cover
-        """Train a model using the provided config and push to HF hub."""
+        """Train a model using the provided config and push to HF hub.
+
+        Parameters
+        ----------
+        config : Union[dict, str]
+            Either a configuration dict, a registered ``bench_id`` (see
+            :data:`quanda.benchmarks.resources.config_map.config_map`),
+            or a path to a benchmark YAML.
+        logger : Optional[lightning.pytorch.loggers.logger.Logger], optional
+            Logger to be used for logging, by default None.
+        device : str, optional
+            Device to use for training, by default "cpu".
+        batch_size : int, optional
+            Batch size for training, by default 64.
+        load_fresh : bool, optional
+            If True (default), regenerate splits/class mappings/etc. so a
+            fresh training run is reproducible from the config alone. Set
+            to False to reuse cached metadata.
+        use_pid : bool, optional
+            If True, suffix checkpoint and metadata directories with the
+            current process id to disambiguate concurrent runs. By default
+            False.
+
+        Returns
+        -------
+        Benchmark
+            The trained benchmark instance.
+
+        """
+        config = resolve_config(config)
         skip_main_train = bool(config.get("skip_main_train", False))
         if skip_main_train:
             obj = cls.from_config(
                 config,
-                load_meta_from_disk=load_meta_from_disk,
+                load_fresh=load_fresh,
                 device=device,
             )
             obj._compute_and_save_indices(config, batch_size)
@@ -510,7 +572,8 @@ class Benchmark(ABC):
                 logger=logger,
                 device=device,
                 batch_size=batch_size,
-                load_meta_from_disk=load_meta_from_disk,
+                load_fresh=load_fresh,
+                use_pid=use_pid,
             )
             if not isinstance(obj.model, PyTorchModelHubMixin):
                 raise TypeError(
@@ -954,7 +1017,7 @@ class Benchmark(ABC):
     @classmethod
     def explain(
         cls,
-        config: dict,
+        config: Union[dict, str],
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
@@ -967,11 +1030,43 @@ class Benchmark(ABC):
     ) -> "Benchmark":
         """Compute and persist explanations for ``eval_dataset`` to disk.
 
-        Mirrors :meth:`train` but produces per-batch explanation tensors
-        plus an ``explanations_config.yaml`` describing how the cache
-        was generated. Returns the benchmark instance with
-        ``self._explanations_dir`` and ``self._explanations_id`` set.
+        Parameters
+        ----------
+        config : Union[dict, str]
+            Benchmark config dict, registered ``bench_id``, or path to a
+            benchmark YAML.
+        explainer_cls : type
+            Explainer subclass to instantiate.
+        expl_kwargs : Optional[dict], optional
+            Extra kwargs forwarded to ``explainer_cls``, by default None.
+        batch_size : int, optional
+            Batch size used when iterating the eval dataset, by default 8.
+        explanations_id : Optional[str], optional
+            HF-style id for the cached explanations. If None, derived from
+            ``config`` via :func:`default_explanations_id`. By default None.
+        cache_dir : Optional[str], optional
+            Directory to write explanations into. If None, derived from
+            ``config['bench_save_dir']`` and ``explanations_id``.
+        device : str, optional
+            Device to load the model on, by default "cpu".
+        max_eval_n : Optional[int], optional
+            Cap on the number of eval samples; ``None`` means all. By
+            default 1000.
+        eval_seed : int, optional
+            Seed used when sampling the eval subset, by default 42.
+        inference_batch_size : Optional[int], optional
+            If set, every model forward run during prediction is split
+            into sub-batches of this size. ``None`` keeps the full
+            ``batch_size`` forward.
+
+        Returns
+        -------
+        Benchmark
+            The benchmark instance with ``_explanations_dir`` and
+            ``_explanations_id`` populated.
+
         """
+        config = resolve_config(config)
         obj = cls.from_config(config, device=device)
         if explanations_id is None:
             explanations_id = default_explanations_id(
@@ -1012,7 +1107,7 @@ class Benchmark(ABC):
             k: (
                 v
                 if isinstance(v, (str, int, float, bool, type(None)))
-                else _stable_repr(v)
+                else stable_repr(v)
             )
             for k, v in (expl_kwargs or {}).items()
         }
@@ -1045,7 +1140,7 @@ class Benchmark(ABC):
     @classmethod
     def explain_and_push_to_hub(
         cls,
-        config: dict,
+        config: Union[dict, str],
         explainer_cls: type,
         expl_kwargs: Optional[dict] = None,
         batch_size: int = 8,
@@ -1055,7 +1150,40 @@ class Benchmark(ABC):
         max_eval_n: Optional[int] = 1000,
         eval_seed: int = 42,
     ):  # pragma: no cover
-        """Compute explanations then upload them as a HF dataset repo."""
+        """Compute explanations then upload them as a HF dataset repo.
+
+        Parameters
+        ----------
+        config : Union[dict, str]
+            Benchmark config dict, registered ``bench_id``, or path to a
+            benchmark YAML.
+        explainer_cls : type
+            Explainer subclass to instantiate.
+        expl_kwargs : Optional[dict], optional
+            Extra kwargs forwarded to ``explainer_cls``, by default None.
+        batch_size : int, optional
+            Batch size used when iterating the eval dataset, by default 8.
+        explanations_id : Optional[str], optional
+            HF repo id under which to upload the explanations. If None,
+            derived from ``config`` via :func:`default_explanations_id`.
+        cache_dir : Optional[str], optional
+            Directory to write explanations into before upload, by
+            default None.
+        device : str, optional
+            Device to load the model on, by default "cpu".
+        max_eval_n : Optional[int], optional
+            Cap on the number of eval samples; ``None`` means all. By
+            default 1000.
+        eval_seed : int, optional
+            Seed used when sampling the eval subset, by default 42.
+
+        Returns
+        -------
+        Benchmark
+            The benchmark instance after upload.
+
+        """
+        config = resolve_config(config)
         obj = cls.explain(
             config=config,
             explainer_cls=explainer_cls,
@@ -1099,7 +1227,7 @@ class Benchmark(ABC):
         If ``precomputed_explanations`` is provided, batch ``i`` is read from
         the cache; otherwise ``explainer.explain`` is called.
         """
-        eval_dataset = _subsample_dataset(
+        eval_dataset = subsample_dataset(
             eval_dataset, max_n=max_eval_n, seed=eval_seed
         )
         ds_handler = get_dataset_handler(dataset=eval_dataset)

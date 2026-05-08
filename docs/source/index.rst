@@ -4,7 +4,7 @@ Welcome to |quanda|'s documentation!
 |quanda| is a toolkit for **quan**\ titative evaluation of **d**\ ata **a**\ ttribution methods in **PyTorch**.
 
 .. note::
-    |quanda| is currently in development. We are actively working on expanding the library and improving the documentation. If you have any questions, please `open an issue <https://github.com/dilyabareeva/quanda/issues/new/choose>`_ or write us at dilyabareeva@gmail.com or galip.uemit.yolcu@hhi.fraunhofer.de.
+    |quanda| is under active development. Note the release version to ensure reproducibility of your work. Contributions, bug reports, and feature requests are welcome.
 
 .. figure:: _static/fig_1_source.png
    :alt: Figure 1
@@ -73,49 +73,29 @@ Here we list the main components of |quanda| along with basic explanations of th
 
    <details><summary><b><big>Benchmarks</big></b></summary>
 
-Note that many metrics require training models in controlled settings, e.g. with mislabeled samples that are known. This means that the corresponding :doc:`Metric <docs_api/quanda.metrics.base>` objects can only be used if the user has prepared this controlled setup. Furthermore, :doc:`Metric <docs_api/quanda.metrics.base>` objects require generating the attributions beforehand. |quanda| provides a benchmarking tool to evaluate the performance of TDA methods on a given model, dataset and problem. For each :doc:`Metric <docs_api/quanda.metrics.base>` object, |quanda| provides a :doc:`Benchmark <docs_api/quanda.benchmarks.base>` object. The :doc:`Benchmark <docs_api/quanda.benchmarks.base>` objects handle the creation of the controlled setup, training the model, generating the attributions and evaluating them using the corresponding :doc:`Metric <docs_api/quanda.metrics.base>` object, if needed. Finally, we provide precomputed benchmarks, which can be used by initializing the object with the ``load`` method. These precomputed benchmarks allow the user to skip the creation of the controlled setup to directly start the evaluation process, while providing a standard benchmark for practitioners and researchers to compare their methods with.
+Note that many metrics require training models in controlled settings, e.g. with mislabeled samples that are known. This means that the corresponding :doc:`Metric <docs_api/quanda.metrics.base>` objects can only be used if the user has prepared this controlled setup. Furthermore, :doc:`Metric <docs_api/quanda.metrics.base>` objects require generating the attributions beforehand. |quanda| provides a benchmarking tool to evaluate the performance of TDA methods on a given model, dataset and problem. For each :doc:`Metric <docs_api/quanda.metrics.base>` object, |quanda| provides a :doc:`Benchmark <docs_api/quanda.benchmarks.base>` object. The :doc:`Benchmark <docs_api/quanda.benchmarks.base>` objects handle the creation of the controlled setup, training the model, generating the attributions and evaluating them using the corresponding :doc:`Metric <docs_api/quanda.metrics.base>` object, if needed. Finally, we provide precomputed benchmarks, which can be used by initializing the object with the ``load_pretrained`` method. These precomputed benchmarks allow the user to skip the creation of the controlled setup to directly start the evaluation process, while providing a standard benchmark for practitioners and researchers to compare their methods with.
 
 .. raw:: html
 
    </details>
 
-Supported TDA Methods
----------------------
+Supported TDA Libraries
+-----------------------
 .. list-table::
    :header-rows: 1
 
-   * - Method
-     - Repository
+   * - Library
      - Reference
-     - Description
-   * - Similarity Influence
-     - `Captum <https://github.com/pytorch/captum/tree/master>`_
-     - `Caruana et al., 1999 <https://captum.ai/api/influence.html#similarityinfluence>`_
-     - Ranks the training samples based on their similarity to the test sample
-   * - Arnoldi Influence Functions
-     - `Captum <https://github.com/pytorch/captum/tree/master>`_
-     - `Schioppa et al., 2022 <https://arxiv.org/abs/2112.03052>`_
-     -  Estimates LOO effects, following (`Koh and Liang, 2017 <https://proceedings.mlr.press/v70/koh17a.html>`_)
-   * - TracIn
-     - `Captum <https://github.com/pytorch/captum/tree/master>`_
-     - `Pruthi et al., 2020 <https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html>`_
-     - Tracks the contribution of training points in the loss reduction throughout training, via a linear approximation
-   * - Representer Point Selection
-     - `Representer Point Selection <https://github.com/chihkuanyeh/Representer_Point_Selection>`_
+   * - `Captum <https://github.com/pytorch/captum/tree/master>`_ (Similarity Influence, Arnoldi Influence Functions, TracIn)
+     - `Caruana et al., 1999 <https://captum.ai/api/influence.html#similarityinfluence>`_; `Schioppa et al., 2022 <https://arxiv.org/abs/2112.03052>`_; `Koh and Liang, 2017 <https://proceedings.mlr.press/v70/koh17a.html>`_; `Pruthi et al., 2020 <https://proceedings.neurips.cc/paper/2020/hash/e6385d39ec9394f2f3a354d9d2b88eec-Abstract.html>`_
+   * - `Representer Point Selection <https://github.com/chihkuanyeh/Representer_Point_Selection>`_ (Representer Point Selection)
      - `Yeh et al., 2018 <https://proceedings.neurips.cc/paper/2018/hash/8a7129b8f3edd95b7d969dfc2c8e9d9d-Abstract.html>`_
-     - Trains the model with L2 regularization on the final layer, which produces an interpretable surrogate model
-   * - TRAK
-     - `TRAK <https://github.com/MadryLab/trak>`_
+   * - `TRAK <https://github.com/MadryLab/trak>`_ (TRAK)
      - `Park et al., 2023 <https://proceedings.mlr.press/v202/park23c.html>`_
-     - Uses an empirical Neural Tangent Kernel surrogate model for which a theoretical TDA formula exists
-   * - Kronfluence
-     - `Kronfluence <https://github.com/pomonam/kronfluence>`_
+   * - `Kronfluence <https://github.com/pomonam/kronfluence>`_ (Kronfluence)
      - `Grosse et al., 2023 <https://arxiv.org/abs/2308.03296>`_
-     - Estimates LOO effects with EK-FAC-based approximations to the inverse Hessian
-   * - Dattri (Influence Functions: Explicit / CG / LiSSA / DataInf, Arnoldi, EK-FAC, TracInCP, Grad-Dot, Grad-Cos, TRAK)
-     - `Dattri <https://github.com/TRAIS-Lab/dattri>`_
+   * - `Dattri <https://github.com/TRAIS-Lab/dattri>`_ (Influence Functions: Explicit / CG / LiSSA / DataInf, Arnoldi, EK-FAC, TracInCP, Grad-Dot, Grad-Cos, TRAK)
      - `Deng et al., 2024 <https://arxiv.org/abs/2410.04555>`_
-     - Provides a unified family of TDA methods (influence functions, TracIn, gradient similarity, TRAK) via the ``Dattri`` library.
 
 Evaluation Metrics
 ------------------
@@ -132,12 +112,12 @@ In this section, we list the evaluation criteria that are currently available in
     - `Park et al., 2023 <https://proceedings.mlr.press/v202/park23c.html>`_
     - Measures the correlation between the (grouped) attribution scores and the actual output of models trained on different subsets of the training set. For each subset, the linear datamodeling score compares the actual model output with the sum of attribution scores from the subset using Spearman rank correlation.
     - Ground Truth
-  * - Identical Class / Identical Subclass
+  * - Class Detection / Subclass Detection
     - `Hanawa et al., 2021 <https://openreview.net/forum?id=9uvhpyQwzM_>`_
     - Measures the proportion of identical classes or subclasses in the top-1 training samples over the test dataset. If the attributions are based on similarity, they are expected to be predictive of the class of the test datapoint, as well as different subclasses under a single label.
     - Downstream Task Evaluator
   * - Shortcut Detection
-    - `Yolcu et al., 2024 <https://arxiv.org/abs/2402.12118>`_
+    - `Yolcu et al., 2025 <https://openreview.net/forum?id=qfx81N884A>`_
     - Assuming a known `shortcut <https://www.nature.com/articles/s42256-020-00257-z>`_, or `Clever-Hans <https://www.nature.com/articles/s41467-019-08987-4>`_ effect has been identified in the model, this metric evaluates how effectively a TDA method can identify shortcut samples as the most influential in predicting cases with the shortcut artifact. This process is referred to as **Domain Mismatch Debugging** in the original paper.
     - Downstream Task Evaluator
   * - Mislabeled Data Detection
@@ -157,21 +137,64 @@ In this section, we list the evaluation criteria that are currently available in
     - In a setting where a model has been trained on two datasets: a clean dataset (e.g. CIFAR-10) and an adversarial (e.g. zeros from MNIST), this metric evaluates how well the model ranks the importance (attribution) of adversarial samples compared to clean samples when making predictions on an adversarial example.
     - Heuristic
   * - Mean Reciprocal Rank (MRR)
-    - `Chang et al., 2024 <https://openreview.net/forum?id=KIPJKST4gw>`_
+    - `Akyurek et al., 2022 <https://aclanthology.org/2022.findings-emnlp.180>`_
     - For fact-tracing settings, measures the mean reciprocal rank of the highest-ranked entailing proponent across fact queries.
     - Downstream Task Evaluator
   * - Recall@k
-    - `Chang et al., 2024 <https://openreview.net/forum?id=KIPJKST4gw>`_
+    - `Akyurek et al., 2022 <https://aclanthology.org/2022.findings-emnlp.180>`_
     - For fact-tracing settings, measures the proportion of facts for which an entailing proponent appears in the top-k retrievals.
     - Downstream Task Evaluator
   * - Tail Patch
-    - `Chang et al., 2024 <https://openreview.net/forum?id=KIPJKST4gw>`_
+    - `Chang et al., 2025 <https://openreview.net/forum?id=gLa96FlWwn>`_
     - For fact-tracing settings, measures the incremental change in target-sequence probability after taking a single training step on retrieved proponents.
     - Downstream Task Evaluator
 
+Metric Interpretation Guideline
++++++++++++++++++++++++++++++++
+
+.. list-table::
+  :header-rows: 1
+
+  * - Metric
+    - Output range
+    - Better
+  * - `ClassDetection <docs_api/quanda.metrics.downstream_eval.class_detection.html>`_
+    - ``[0, 1]``
+    - higher
+  * - `SubclassDetection <docs_api/quanda.metrics.downstream_eval.subclass_detection.html>`_
+    - ``[0, 1]``
+    - higher
+  * - `MislabelingDetection <docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html>`_
+    - ``[0, 1]``
+    - higher
+  * - `ShortcutDetection <docs_api/quanda.metrics.downstream_eval.shortcut_detection.html>`_
+    - ``[0, 1]``
+    - higher
+  * - `MixedDatasets <docs_api/quanda.metrics.heuristics.mixed_datasets.html>`_
+    - ``[0, 1]``
+    - higher
+  * - `TopKCardinality <docs_api/quanda.metrics.heuristics.top_k_cardinality.html>`_
+    - ``[0, 1]``
+    - higher
+  * - `ModelRandomization <docs_api/quanda.metrics.heuristics.model_randomization.html>`_
+    - ``[-1, 1]``
+    - closer to 0
+  * - `LinearDatamodelingScore <docs_api/quanda.metrics.ground_truth.linear_datamodeling.html>`_
+    - ``[-1, 1]``
+    - higher
+  * - `MRR <docs_api/quanda.metrics.downstream_eval.mrr.html>`_
+    - ``[0, 1]``
+    - higher
+  * - `RecallAtK <docs_api/quanda.metrics.downstream_eval.recall_at_k.html>`_
+    - ``[0, 1]``
+    - higher
+  * - `TailPatch <docs_api/quanda.metrics.downstream_eval.tail_patch.html>`_
+    - ``[-1, 1]``
+    - higher
+
 Benchmarks
 ----------
-|quanda| comes with a number of pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. Currently available benchmarks span vision (MNIST / LeNet, CIFAR-10 / ResNet-9, AWA2 / ResNet-50), text classification (QNLI / BERT), and causal language modeling (T-REx / GPT-2 fine-tuned on OpenWebText).
+|quanda| comes with a number of pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. Currently available benchmarks span vision (MNIST / LeNet, CIFAR-10 / ResNet-9, AWA2 / ResNet-50), text classification (QNLI / BERT), and causal language modeling (T-REx / GPT-2 fine-tuned on OpenWebText). The benchmark IDs listed below are to be passed to ``load_pretrained``.
 
 .. list-table::
   :header-rows: 1
@@ -179,51 +202,91 @@ Benchmarks
   * - Metric
     - Type
     - Modality
-    - Benchmarks (Dataset / Model)
+    - Benchmark IDs (Dataset / Model)
   * - `TopKCardinalityMetric <docs_api/quanda.metrics.heuristics.top_k_cardinality.html>`_
     - Heuristic
-    - Vision / Text
-    - mnist_top_k_cardinality, cifar_top_k_cardinality, awa2_top_k_cardinality, qnli_top_k_cardinality
+    - Vision
+    - | mnist_top_k_cardinality (MNIST / LeNet)
+      | cifar_top_k_cardinality (CIFAR-10 / ResNet-9)
+      | awa2_top_k_cardinality (AWA2 / ResNet-50)
+  * -
+    -
+    - Text
+    - qnli_top_k_cardinality (QNLI / BERT)
   * - `ModelRandomizationMetric <docs_api/quanda.metrics.heuristics.model_randomization.html>`_
     - Heuristic
-    - Vision / Text
-    - mnist_model_randomization, cifar_model_randomization, awa2_model_randomization, qnli_model_randomization
+    - Vision
+    - | mnist_model_randomization (MNIST / LeNet)
+      | cifar_model_randomization (CIFAR-10 / ResNet-9)
+      | awa2_model_randomization (AWA2 / ResNet-50)
+  * -
+    -
+    - Text
+    - qnli_model_randomization (QNLI / BERT)
   * - `MixedDatasetsMetric <docs_api/quanda.metrics.heuristics.mixed_datasets.html>`_
     - Heuristic
-    - Vision / Text
-    - mnist_mixed_datasets, cifar_mixed_datasets, awa2_mixed_datasets, qnli_mixed_datasets
+    - Vision
+    - | mnist_mixed_datasets (MNIST / LeNet)
+      | cifar_mixed_datasets (CIFAR-10 / ResNet-9)
+      | awa2_mixed_datasets (AWA2 / ResNet-50)
+  * -
+    -
+    - Text
+    - qnli_mixed_datasets (QNLI / BERT)
   * - `ClassDetectionMetric <docs_api/quanda.metrics.downstream_eval.class_detection.html>`_
     - Downstream Task Evaluator
-    - Vision / Text
-    - mnist_class_detection, cifar_class_detection, awa2_class_detection, qnli_class_detection
+    - Vision
+    - | mnist_class_detection (MNIST / LeNet)
+      | cifar_class_detection (CIFAR-10 / ResNet-9)
+      | awa2_class_detection (AWA2 / ResNet-50)
+  * -
+    -
+    - Text
+    - qnli_class_detection (QNLI / BERT)
   * - `SubclassDetectionMetric <docs_api/quanda.metrics.downstream_eval.subclass_detection.html>`_
     - Downstream Task Evaluator
     - Vision
-    - mnist_subclass_detection, cifar_subclass_detection, awa2_subclass_detection
+    - | mnist_subclass_detection (MNIST / LeNet)
+      | cifar_subclass_detection (CIFAR-10 / ResNet-9)
+      | awa2_subclass_detection (AWA2 / ResNet-50)
   * - `MislabelingDetectionMetric <docs_api/quanda.metrics.downstream_eval.mislabeling_detection.html>`_
     - Downstream Task Evaluator
-    - Vision / Text
-    - mnist_mislabeling_detection, cifar_mislabeling_detection, awa2_mislabeling_detection, qnli_mislabeling_detection
+    - Vision
+    - | mnist_mislabeling_detection (MNIST / LeNet)
+      | cifar_mislabeling_detection (CIFAR-10 / ResNet-9)
+      | awa2_mislabeling_detection (AWA2 / ResNet-50)
+  * -
+    -
+    - Text
+    - qnli_mislabeling_detection (QNLI / BERT)
   * - `ShortcutDetectionMetric <docs_api/quanda.metrics.downstream_eval.shortcut_detection.html>`_
     - Downstream Task Evaluator
     - Vision
-    - mnist_shortcut_detection, cifar_shortcut_detection, awa2_shortcut_detection
+    - | mnist_shortcut_detection (MNIST / LeNet)
+      | cifar_shortcut_detection (CIFAR-10 / ResNet-9)
+      | awa2_shortcut_detection (AWA2 / ResNet-50)
   * - `MRRMetric <docs_api/quanda.metrics.downstream_eval.mrr.html>`_
     - Downstream Task Evaluator
     - Causal LM
-    - gpt2_trex_openwebtext_ft_mrr
+    - gpt2_trex_openwebtext_ft_mrr (T-REx / GPT-2 fine-tuned on OpenWebText)
   * - `RecallAtKMetric <docs_api/quanda.metrics.downstream_eval.recall_at_k.html>`_
     - Downstream Task Evaluator
     - Causal LM
-    - gpt2_trex_openwebtext_ft_recall_at_k
+    - gpt2_trex_openwebtext_ft_recall_at_k (T-REx / GPT-2 fine-tuned on OpenWebText)
   * - `TailPatchMetric <docs_api/quanda.metrics.downstream_eval.tail_patch.html>`_
     - Downstream Task Evaluator
     - Causal LM
-    - gpt2_trex_openwebtext_ft_tail_patch
+    - gpt2_trex_openwebtext_ft_tail_patch (T-REx / GPT-2 fine-tuned on OpenWebText)
   * - `LinearDatamodelingMetric <docs_api/quanda.metrics.ground_truth.linear_datamodeling.html>`_
     - Ground Truth
-    - Vision / Text
-    - mnist_linear_datamodeling, cifar_linear_datamodeling, awa2_linear_datamodeling, qnli_linear_datamodeling
+    - Vision
+    - | mnist_linear_datamodeling (MNIST / LeNet)
+      | cifar_linear_datamodeling (CIFAR-10 / ResNet-9)
+      | awa2_linear_datamodeling (AWA2 / ResNet-50)
+  * -
+    -
+    - Text
+    - qnli_linear_datamodeling (QNLI / BERT)
 
 Citation
 --------
@@ -248,6 +311,7 @@ If you are using |quanda| for your scientific research, please also make sure to
    :maxdepth: 2
 
    quickstart
+   explainers
    tutorials
 
 .. toctree::

@@ -106,9 +106,7 @@ def test_metadata_validate_raises(test_id, kwargs, error_match):
 def test_class_mapping_resolve_integer_keys(tmp_path):
     """A spec with int keys is returned as a direct ClassMapping."""
     spec = {0: 0, 1: 1, 2: 0, 3: 1}
-    mapping = ClassMapping.resolve(
-        spec=spec, metadata_dir=str(tmp_path), load_meta_from_disk=False
-    )
+    mapping = ClassMapping.resolve(spec=spec, metadata_dir=str(tmp_path))
     assert mapping.class_to_group == spec
     assert mapping.n_classes == 4
     assert mapping.n_groups == 2

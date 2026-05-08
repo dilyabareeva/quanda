@@ -1,6 +1,5 @@
 """Contains tests common to all benchmarks."""
 
-import functools
 import math
 import os
 
@@ -180,58 +179,20 @@ def test_load_pretrained_offline_after_download(tmp_path, monkeypatch):
 
 
 @pytest.mark.benchmarks
-@pytest.mark.parametrize(
-    "test_id, entrypoint, bench_cls, fixture_or_bench_id",
-    [
-        (
-            "load_pretrained",
-            "load_pretrained",
-            ClassDetection,
-            "mnist_class_detection_unit",
-        ),
-        (
-            "from_config_class",
-            "from_config",
-            ClassDetection,
-            "load_mnist_unit_test_config",
-        ),
-        (
-            "from_config_mixed",
-            "from_config",
-            MixedDatasets,
-            "load_mnist_mixed_config",
-        ),
-    ],
-)
-def test_offline_and_fresh_incompatible(
-    test_id,
-    entrypoint,
-    bench_cls,
-    fixture_or_bench_id,
-    tmp_path,
-    request,
-):
-    """offline=True and load_fresh=True must raise on every entrypoint."""
-    if entrypoint == "load_pretrained":
-        call = functools.partial(
-            bench_cls.load_pretrained,
-            bench_id=fixture_or_bench_id,
+def test_load_pretrained_offline_and_fresh_incompatible(tmp_path):
+    """offline=True and load_fresh=True must raise in load_pretrained.
+
+    For from_config the combination is meaningful (regenerate cached
+    metadata locally without hitting the Hub), so it is allowed.
+    """
+    with pytest.raises(ValueError, match="incompatible"):
+        ClassDetection.load_pretrained(
+            bench_id="mnist_class_detection_unit",
             cache_dir=str(tmp_path),
             offline=True,
             load_fresh=True,
             device="cpu",
         )
-    else:
-        config = request.getfixturevalue(fixture_or_bench_id)
-        config["bench_save_dir"] = str(tmp_path)
-        call = functools.partial(
-            bench_cls.from_config,
-            config=config,
-            offline=True,
-            load_fresh=True,
-        )
-    with pytest.raises(ValueError, match="incompatible"):
-        call()
 
 
 @pytest.mark.benchmarks
@@ -359,21 +320,6 @@ def test_iter_explanations_requires_explainer_when_no_cache():
                 eval_seed=0,
                 precomputed_explanations=None,
             )
-        )
-
-
-@pytest.mark.benchmarks
-def test_load_meta_from_disk_missing_raises(
-    load_mnist_shortcut_config, tmp_path
-):
-    """load_meta_from_disk=True must raise when metadata is missing."""
-    config = load_mnist_shortcut_config
-    config["bench_save_dir"] = str(tmp_path)
-    with pytest.raises(FileNotFoundError):
-        ShortcutDetection.from_config(
-            config=config,
-            load_meta_from_disk=True,
-            offline=True,
         )
 
 
@@ -672,7 +618,7 @@ def test_bench_from_config(
     config["cache_dir"] = "bench_out"
     dst_eval = bench_cls.from_config(
         config=config,
-        load_meta_from_disk=load_from_disk,
+        load_fresh=not load_from_disk,
         offline=offline,
     )
 
@@ -725,7 +671,7 @@ def test_bench_from_config_bootstrap(
 
     dst_eval = bench_cls.from_config(
         config=config,
-        load_meta_from_disk=True,
+        load_fresh=False,
         offline=True,
     )
 
@@ -857,7 +803,7 @@ def test_train_from_config(
     dst_eval = bench_cls.train(
         config=config,
         logger=logger,
-        # load_meta_from_disk=load_from_disk,
+        # load_fresh=not load_from_disk,
     )
 
     score = dst_eval.evaluate(
@@ -918,7 +864,7 @@ def test_save_filtered_indices(
 
     bench = ShortcutDetection.from_config(
         config=config,
-        load_meta_from_disk=False,
+        load_fresh=True,
         offline=True,
     )
 
@@ -954,7 +900,7 @@ def test_filter_by_prediction_branches(
 
     bench = ShortcutDetection.from_config(
         config=config,
-        load_meta_from_disk=False,
+        load_fresh=True,
         offline=True,
     )
 
@@ -1068,7 +1014,7 @@ def test_sanity_from_config(
     config["cache_dir"] = str(tmp_path)
     dst_eval = bench_cls.from_config(
         config=config,
-        load_meta_from_disk=load_from_disk,
+        load_fresh=not load_from_disk,
     )
     sanity_results = dst_eval.sanity_check()
 

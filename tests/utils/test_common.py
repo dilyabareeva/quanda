@@ -1,12 +1,62 @@
 import pytest
 import torch
+import yaml
 
 from quanda.utils.common import (
     DatasetSplit,
     class_accuracy,
     get_targets,
     make_func,
+    resolve_config,
 )
+
+
+@pytest.mark.utils
+def test_resolve_config_dict_passes_through():
+    cfg = {"id": "x", "bench": "ClassDetection"}
+    assert resolve_config(cfg) is cfg
+
+
+@pytest.mark.utils
+def test_resolve_config_registered_bench_id():
+    """A registered ``bench_id`` resolves via ``config_map`` and parses."""
+    cfg = resolve_config("mnist_class_detection_unit")
+    assert isinstance(cfg, dict)
+    assert cfg.get("id")
+    assert cfg.get("bench")
+
+
+@pytest.mark.utils
+def test_resolve_config_yaml_path(tmp_path):
+    """An unregistered string is treated as a path to a YAML file."""
+    path = tmp_path / "cfg.yaml"
+    path.write_text(yaml.safe_dump({"id": "from-disk", "k": 7}))
+    cfg = resolve_config(str(path))
+    assert cfg == {"id": "from-disk", "k": 7}
+
+
+@pytest.mark.utils
+def test_resolve_config_rejects_non_mapping_yaml(tmp_path):
+    """A YAML file that doesn't parse to a dict raises ``TypeError``."""
+    path = tmp_path / "list.yaml"
+    path.write_text(yaml.safe_dump([1, 2, 3]))
+    with pytest.raises(TypeError, match="did not parse to a dict"):
+        resolve_config(str(path))
+
+
+@pytest.mark.utils
+@pytest.mark.parametrize("bad", [None, 42, 3.14, ["x"], object()])
+def test_resolve_config_rejects_other_types(bad):
+    with pytest.raises(TypeError, match="must be a dict"):
+        resolve_config(bad)
+
+
+@pytest.mark.utils
+def test_resolve_config_missing_path_raises(tmp_path):
+    """An unregistered string that isn't a real file raises ``FileNotFoundError``."""
+    missing = str(tmp_path / "does_not_exist.yaml")
+    with pytest.raises(FileNotFoundError):
+        resolve_config(missing)
 
 
 @pytest.mark.utils

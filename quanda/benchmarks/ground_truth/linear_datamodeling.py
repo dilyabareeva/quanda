@@ -6,7 +6,7 @@ import os
 import random
 import warnings
 from copy import deepcopy
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Union
 
 import lightning as L
 import torch
@@ -22,9 +22,10 @@ from quanda.metrics.ground_truth.linear_datamodeling import (
     LinearDatamodelingMetric,
 )
 from quanda.utils.common import (
-    _subsample_dataset,
     chunked_logits,
     class_accuracy,
+    resolve_config,
+    subsample_dataset,
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import correlation_functions
@@ -213,12 +214,13 @@ class LinearDatamodeling(Benchmark):
     @classmethod
     def train(  # type: ignore[override]
         cls,
-        config: dict,
+        config: Union[dict, str],
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 64,
         skip_subsets: bool = False,
-        load_meta_from_disk: bool = False,
+        load_fresh: bool = True,
+        use_pid: bool = False,
     ) -> "LinearDatamodeling":
         """Train main model and subset models.
 
@@ -239,9 +241,13 @@ class LinearDatamodeling(Benchmark):
             If True, skip the subset training loop. Used when subsets
             are trained out-of-band (e.g. one-by-one in parallel
             workers via :meth:`train_subset`).
-        load_meta_from_disk : bool, optional
-            If True, reuse existing metadata (splits, subset_ids, etc.)
-            from the cache instead of regenerating. By default False.
+        load_fresh : bool, optional
+            If True (default), regenerate splits/subset_ids/etc.
+            instead of reusing the cache.
+        use_pid : bool, optional
+            If True, suffix checkpoint and metadata directories with
+            the current process id to disambiguate concurrent runs. By
+            default False.
 
         Returns
         -------
@@ -249,12 +255,14 @@ class LinearDatamodeling(Benchmark):
             The trained benchmark instance.
 
         """
+        config = resolve_config(config)
         obj = super().train(
             config=config,
             logger=logger,
             device=device,
             batch_size=batch_size,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
+            use_pid=use_pid,
         )
         if not isinstance(obj, LinearDatamodeling):
             raise TypeError("Expected a LinearDatamodeling instance.")
@@ -278,12 +286,12 @@ class LinearDatamodeling(Benchmark):
     @classmethod
     def train_subset(
         cls,
-        config: dict,
+        config: Union[dict, str],
         idx: int,
         device: str = "cpu",
         batch_size: int = 64,
         push_to_hub: bool = False,
-        load_meta_from_disk: bool = True,
+        load_fresh: bool = False,
     ) -> "LinearDatamodeling":
         """Train and save a single subset model by index.
 
@@ -304,16 +312,16 @@ class LinearDatamodeling(Benchmark):
             Batch size.
         push_to_hub : bool, optional
             If True, push the resulting subset checkpoint to HF Hub.
-        load_meta_from_disk : bool, optional
-            Whether to load existing metadata (subset_ids, etc.) from disk.
-            If False, will regenerate metadata from the main model and
-            which may lead to different subset splits if the generation is
-            not deterministic (e.g. if the seed is not fixed). By default True.
+        load_fresh : bool, optional
+            If True, regenerate cached metadata (subset_ids, etc.).
+            Doing so can change the subset splits if generation is not
+            deterministic. By default False — reuse cached metadata.
 
         """
+        config = resolve_config(config)
         obj = cls.from_config(
             config,
-            load_meta_from_disk=load_meta_from_disk,
+            load_fresh=load_fresh,
             offline=True,
             device=device,
         )
@@ -343,23 +351,24 @@ class LinearDatamodeling(Benchmark):
 
     @classmethod
     def generate_and_push_metadata(
-        cls, config: dict
+        cls, config: Union[dict, str]
     ) -> None:  # pragma: no cover
         """Regenerate LDS metadata locally and push it to HF Hub.
 
-        Calls ``from_config`` with ``load_meta_from_disk=False, offline=True``
-        to materialize splits and subset_ids under the metadata dir, then
+        Calls ``from_config`` with ``load_fresh=True, offline=True`` to
+        materialize splits and subset_ids under the metadata dir, then
         uploads that dir to ``meta_id``.
         """
         from huggingface_hub import HfApi  # local import; optional dep path
 
+        config = resolve_config(config)
         metadata_dir = MetadataConfigParser.get_metadata_dir(
             cfg=config, bench_save_dir=config["bench_save_dir"]
         )
         meta_id = config.get(
             "meta_id", f"{config['repo_id']}/{config['id']}_metadata"
         )
-        cls.from_config(config, load_meta_from_disk=False, offline=True)
+        cls.from_config(config, load_fresh=True, offline=True)
 
         api = HfApi()
         api.create_repo(repo_id=meta_id, repo_type="dataset", exist_ok=True)
@@ -372,7 +381,7 @@ class LinearDatamodeling(Benchmark):
     @classmethod
     def push_subset(
         cls,
-        config: dict,
+        config: Union[dict, str],
         idx: int,
     ) -> None:
         """Push an already-trained subset checkpoint to HF Hub.
@@ -381,6 +390,7 @@ class LinearDatamodeling(Benchmark):
         """
         from huggingface_hub import HfApi  # local import; optional dep path
 
+        config = resolve_config(config)
         local_ckpt_dir, repo_id = _subset_ckpt_paths(config, idx)
 
         if not os.path.isdir(local_ckpt_dir):
@@ -400,7 +410,7 @@ class LinearDatamodeling(Benchmark):
         train_dataset: torch.utils.data.Dataset,
         eval_dataset: torch.utils.data.Dataset,
         metadata_dir: str,
-        load_meta_from_disk: bool,
+        load_fresh: bool,
     ) -> dict:
         """Extract linear datamodeling kwargs from config."""
         m = config.get("m", 100)
@@ -428,13 +438,7 @@ class LinearDatamodeling(Benchmark):
         generator.manual_seed(seed)
 
         subset_meta = f"{metadata_dir}/{config['subset_ids']}"
-        if load_meta_from_disk:
-            if not os.path.exists(subset_meta):
-                raise FileNotFoundError(
-                    f"Subset ids file not found at {subset_meta}. "
-                    f"Re-run with load_meta_from_disk=False to "
-                    f"regenerate it."
-                )
+        if not load_fresh and os.path.exists(subset_meta):
             with open(subset_meta, "r") as f:
                 subset_ids = yaml.safe_load(f)
         else:
@@ -464,13 +468,15 @@ class LinearDatamodeling(Benchmark):
     @classmethod
     def train_and_push_to_hub(
         cls,
-        config: dict,
+        config: Union[dict, str],
         logger: Optional[L.pytorch.loggers.logger.Logger] = None,
         device: str = "cpu",
         batch_size: int = 64,
-        load_meta_from_disk: bool = False,
+        load_fresh: bool = True,
+        use_pid: bool = False,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
+        config = resolve_config(config)
         skip_subsets = bool(config.get("skip_subsets", False))
         cls._push_subsets_during_train = not skip_subsets
         cls._lds_skip_subsets = skip_subsets
@@ -480,7 +486,8 @@ class LinearDatamodeling(Benchmark):
                 logger=logger,
                 device=device,
                 batch_size=batch_size,
-                load_meta_from_disk=load_meta_from_disk,
+                load_fresh=load_fresh,
+                use_pid=use_pid,
             )
         finally:
             cls._push_subsets_during_train = False
@@ -537,12 +544,13 @@ class LinearDatamodeling(Benchmark):
     @classmethod
     def subset_logits_cache_dir(
         cls,
-        config: dict,
+        config: Union[dict, str],
         batch_size: int = 8,
         max_eval_n: Optional[int] = 1000,
         eval_seed: int = 42,
     ) -> str:
         """Return default local cache dir for counterfactual subset logits."""
+        config = resolve_config(config)
         repo = config.get("repo_id", "quanda-bench-test")
         group = config.get("explanations_group", config["id"])
         logits_id = (
@@ -569,7 +577,7 @@ class LinearDatamodeling(Benchmark):
         methods batch the eval set identically (same batch boundaries = same
         ``i`` indexing as the ``_iter_explanations`` consumer).
         """
-        eval_dataset = _subsample_dataset(
+        eval_dataset = subsample_dataset(
             obj.eval_dataset, max_n=max_eval_n, seed=eval_seed
         )
         ds_handler = get_dataset_handler(dataset=eval_dataset)
@@ -583,7 +591,7 @@ class LinearDatamodeling(Benchmark):
     @classmethod
     def cache_subset_logits_per_idx(
         cls,
-        config: dict,
+        config: Union[dict, str],
         idx: int,
         batch_size: int = 8,
         cache_dir: Optional[str] = None,
@@ -592,7 +600,12 @@ class LinearDatamodeling(Benchmark):
         eval_seed: int = 42,
         inference_batch_size: Optional[int] = None,
     ) -> str:
-        """Cache counterfactual logits for a **single** subset index."""
+        """Cache counterfactual logits for a **single** subset index.
+
+        ``config`` accepts a config dict, a registered ``bench_id``, or
+        a path to a benchmark YAML.
+        """
+        config = resolve_config(config)
         obj = cls.from_config(config, device=device)
         if not isinstance(obj, LinearDatamodeling):
             raise TypeError("Expected a LinearDatamodeling instance.")
@@ -633,7 +646,7 @@ class LinearDatamodeling(Benchmark):
     @classmethod
     def cache_subset_logits(
         cls,
-        config: dict,
+        config: Union[dict, str],
         batch_size: int = 8,
         cache_dir: Optional[str] = None,
         device: str = "cpu",
@@ -641,7 +654,12 @@ class LinearDatamodeling(Benchmark):
         eval_seed: int = 42,
         inference_batch_size: Optional[int] = None,
     ) -> str:
-        """Cache counterfactual logits for every (subset, eval batch)."""
+        """Cache counterfactual logits for every (subset, eval batch).
+
+        ``config`` accepts a config dict, a registered ``bench_id``, or
+        a path to a benchmark YAML.
+        """
+        config = resolve_config(config)
         obj = cls.from_config(config, device=device)
         if not isinstance(obj, LinearDatamodeling):
             raise TypeError("Expected a LinearDatamodeling instance.")

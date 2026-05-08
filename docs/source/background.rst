@@ -1,5 +1,5 @@
 What is Training Data Attribution?
-==========
+==================================
 
 The interpretability of neural network decisions is an active area of research which has seen a variety of approaches over time. Most of the initial focus was on feature attribution methods, which highlight features in the input space that are responsible for a specific prediction (`Simonyan et al., 2014 <https://arxiv.org/abs/1312.6034>`_; `Bach et al., 2015 <https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0130140>`_; `Lundberg and Lee, 2017 <https://proceedings.neurips.cc/paper_files/paper/2017/file/8a20a8621978632d76c43dfd28b67767-Paper.pdf>`_). These methods were often criticized for being unreliable and difficult to understand (`Adebayo et al., 2018 <https://proceedings.neurips.cc/paper_files/paper/2018/file/294a8ed24b1ad22ec2e7efea049b8737-Paper.pdf>`_; `Ghorbani et al., 2019 <https://ojs.aaai.org/index.php/AAAI/article/view/4252>`_). In response, researchers explored new directions, such as concept-based (`Poeta et al., 2023 <https://arxiv.org/abs/2312.12936>`_) and mechanistic interpretability (`Bereska and Gavves <https://openreview.net/forum?id=ePUVetPKu6>`_) methods. Recently, **Training Data Attribution** (TDA) has gained attention as a promising approach for enhancing the interpretability of neural networks.
 

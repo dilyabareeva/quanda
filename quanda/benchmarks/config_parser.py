@@ -91,7 +91,7 @@ class DatasetConfigParser:
         cls,
         ds_config: Optional[dict],
         metadata_dir: str = ".tmp/meta",
-        load_meta_from_disk: bool = True,
+        load_fresh: bool = False,
         splits_cfg: Optional[dict] = None,
     ):
         """Return the dataset using the given parameters.
@@ -102,9 +102,10 @@ class DatasetConfigParser:
             Dataset configuration dictionary.
         metadata_dir : str
             Directory used for on-disk split and wrapper metadata.
-        load_meta_from_disk : bool
-            If True, load pre-existing split/wrapper metadata from disk
-            instead of regenerating.
+        load_fresh : bool
+            If False (default), reuse cached split/wrapper metadata from
+            disk when present and only generate what's missing. If True,
+            regenerate everything and overwrite any cached files.
         splits_cfg : Optional[dict]
             Top-level ``splits:`` registry mapping split names to their
             recipes (``{filename, ratios, seed}``). Datasets reference an
@@ -116,13 +117,13 @@ class DatasetConfigParser:
 
         splits_cfg = splits_cfg or {}
         dataset = cls._load_dataset_from_cfg(
-            ds_config, metadata_dir, load_meta_from_disk, splits_cfg
+            ds_config, metadata_dir, load_fresh, splits_cfg
         )
 
         wrapper = copy.deepcopy(ds_config.get("wrapper", None))
         if wrapper is not None:
             return cls._apply_wrapper(
-                dataset, ds_config, wrapper, metadata_dir, load_meta_from_disk
+                dataset, ds_config, wrapper, metadata_dir, load_fresh
             )
         return dataset
 
@@ -132,7 +133,7 @@ class DatasetConfigParser:
         dataset: torch.utils.data.Dataset,
         ds_config: dict,
         metadata_dir: str,
-        load_meta_from_disk: bool = True,
+        load_fresh: bool = False,
         splits_cfg: Optional[dict] = None,
     ):
         """Split the dataset using the given parameters.
@@ -145,8 +146,8 @@ class DatasetConfigParser:
             The dataset configuration dictionary.
         metadata_dir: str
             Directory to store the metadata.
-        load_meta_from_disk: bool
-            Whether to load metadata from disk.
+        load_fresh: bool
+            If True, regenerate the split even if a cached file exists.
         splits_cfg: Optional[dict]
             Top-level splits registry (name -> recipe).
 
@@ -163,7 +164,7 @@ class DatasetConfigParser:
         recipe = cls._resolve_split_recipe(split_ref, splits_cfg or {})
         splits = cls._load_split_if_exists_or_generate(
             dataset,
-            load_meta_from_disk,
+            load_fresh,
             metadata_dir,
             recipe["filename"],
             split_ratios=recipe["ratios"],
@@ -186,13 +187,13 @@ class DatasetConfigParser:
         cls,
         ds_config: dict,
         metadata_dir: str,
-        load_meta_from_disk: bool = True,
+        load_fresh: bool = False,
         splits_cfg: Optional[dict] = None,
     ) -> torch.utils.data.Dataset:
         """Load dataset based on configuration."""
         if "single_class_dataset" not in ds_config:
             return cls._load_hf_dataset_from_config(
-                ds_config, metadata_dir, load_meta_from_disk, splits_cfg
+                ds_config, metadata_dir, load_fresh, splits_cfg
             )
         elif ds_config["single_class_dataset"]:
             return cls._load_single_class_dataset(
@@ -206,7 +207,7 @@ class DatasetConfigParser:
         cls,
         ds_config: dict,
         metadata_dir: str,
-        load_meta_from_disk: bool = True,
+        load_fresh: bool = False,
         splits_cfg: Optional[dict] = None,
     ) -> Union[torch.utils.data.Dataset, hf_datasets.Dataset]:
         """Load a HuggingFace dataset based on configuration."""
@@ -223,7 +224,7 @@ class DatasetConfigParser:
             base_dataset,
             ds_config,
             metadata_dir,
-            load_meta_from_disk,
+            load_fresh,
             splits_cfg or {},
         )
 
@@ -273,7 +274,7 @@ class DatasetConfigParser:
         base_dataset: Union[torch.utils.data.Dataset, hf_datasets.Dataset],
         ds_config: dict,
         metadata_dir: str,
-        load_meta_from_disk: bool = True,
+        load_fresh: bool = False,
         splits_cfg: Optional[dict] = None,
     ) -> Union[torch.utils.data.Dataset, hf_datasets.Dataset]:
         """Apply indices to the dataset based on configuration."""
@@ -284,7 +285,7 @@ class DatasetConfigParser:
             split_name = ds_config.get("split_name", "train")
             split = cls._load_split_if_exists_or_generate(
                 base_dataset,
-                load_meta_from_disk,
+                load_fresh,
                 metadata_dir,
                 split_recipe["filename"],
                 split_ratios=split_recipe["ratios"],
@@ -321,7 +322,7 @@ class DatasetConfigParser:
         dataset: torch.utils.data.Dataset,
         ds_config: dict,
         metadata_dir: str,
-        load_meta_from_disk: bool = True,
+        load_fresh: bool = False,
     ):
         """Apply the filter to the dataset.
 
@@ -329,12 +330,14 @@ class DatasetConfigParser:
         produced by ``_compute_and_save_indices`` only when a
         ``filter_by_*`` flag is set. Its absence is treated as "no
         filter applied" rather than a strict error — configs commonly
-        declare a filename without ever producing the file.
+        declare a filename without ever producing the file. When
+        ``load_fresh`` is True, any existing filter is skipped (the
+        post-training step will regenerate it).
         """
         filter_indices_cfg = ds_config.get("filter_indices", None)
         if filter_indices_cfg is None:
             return dataset
-        if not load_meta_from_disk:
+        if load_fresh:
             return dataset
         filter_filename = filter_indices_cfg.get(
             "split_filename", "DOESNT_EXIST"
@@ -357,9 +360,14 @@ class DatasetConfigParser:
         ds_config: dict,
         wrapper_cfg: dict,
         metadata_dir: str,
-        load_meta_from_disk: bool,
+        load_fresh: bool,
     ) -> torch.utils.data.Dataset:
-        """Apply a wrapper to the dataset based on configuration."""
+        """Apply a wrapper to the dataset based on configuration.
+
+        Wrapper metadata is auto-resolved: cached files are reused when
+        present and ``load_fresh`` is False; otherwise metadata is
+        generated and saved.
+        """
         wrapper_cfg = dict(wrapper_cfg)
         wrapper_cls = transform_wrappers[wrapper_cfg.pop("type")]
         # check if wrapper_cls is a subclass of TransformedDataset
@@ -369,24 +377,20 @@ class DatasetConfigParser:
             )
 
         kwargs = wrapper_cfg
+        meta_filename = "DOESNT_EXIST"
+        loaded_from_disk = False
         if "metadata" in kwargs:
             metadata_args = dict(kwargs.pop("metadata", {}))
             meta_filename = metadata_args.pop(
                 "metadata_filename", "DOESNT_EXIST"
             )
-            if load_meta_from_disk:
-                if not wrapper_cls.metadata_cls.exists(
-                    metadata_dir, meta_filename
-                ):
-                    raise FileNotFoundError(
-                        f"Wrapper metadata '{meta_filename}' not found in "
-                        f"{metadata_dir}. Re-run with "
-                        f"load_meta_from_disk=False to regenerate it."
-                    )
-                loaded_meta = wrapper_cls.metadata_cls.load(
+            if not load_fresh and wrapper_cls.metadata_cls.exists(
+                metadata_dir, meta_filename
+            ):
+                kwargs["metadata"] = wrapper_cls.metadata_cls.load(
                     metadata_dir, meta_filename
                 )
-                kwargs["metadata"] = loaded_meta
+                loaded_from_disk = True
             else:
                 kwargs["metadata"] = wrapper_cls.metadata_cls(**metadata_args)
 
@@ -394,7 +398,7 @@ class DatasetConfigParser:
             mapping = ClassMapping.resolve(
                 kwargs.pop("class_to_group"),
                 metadata_dir,
-                load_meta_from_disk,
+                load_fresh=load_fresh,
             )
             kwargs["class_to_group"] = mapping.class_to_group
             kwargs["n_classes"] = mapping.n_classes
@@ -411,9 +415,9 @@ class DatasetConfigParser:
             wrapped_dataset,
             ds_config,
             metadata_dir,
-            load_meta_from_disk,
+            load_fresh,
         )
-        if not load_meta_from_disk:
+        if not loaded_from_disk and meta_filename != "DOESNT_EXIST":
             filtered_dataset.metadata.save(metadata_dir, meta_filename)
         return filtered_dataset
 
@@ -421,28 +425,22 @@ class DatasetConfigParser:
     def _load_split_if_exists_or_generate(
         cls,
         dataset,
-        load_meta_from_disk,
+        load_fresh,
         metadata_dir,
         split_filename,
         split_ratios: Optional[dict] = None,
     ):
         """Load the split from disk or generate it.
 
-        When ``load_meta_from_disk=True``, the split file must already
-        exist; a ``FileNotFoundError`` is raised if it does not. When
-        ``load_meta_from_disk=False``, a new split is generated and
-        saved to disk.
+        When ``load_fresh=False`` (default), reuses the cached split if
+        present; otherwise generates a new split and saves it. When
+        ``load_fresh=True``, always regenerates and overwrites.
         """
         if split_ratios is None:
             split_ratios = {"train": 0.9, "test": 0.1}
-        if load_meta_from_disk:
-            if not DatasetSplit.exists(metadata_dir, split_filename):
-                raise FileNotFoundError(
-                    f"Split file '{split_filename}' not found in "
-                    f"{metadata_dir}. Re-run with "
-                    f"load_meta_from_disk=False to regenerate it, or "
-                    f"populate the cache first."
-                )
+        if not load_fresh and DatasetSplit.exists(
+            metadata_dir, split_filename
+        ):
             return DatasetSplit.load(metadata_dir, split_filename)
         split = DatasetSplit.split(len(dataset), 42, split_ratios)
         split.save(metadata_dir, split_filename)
@@ -732,12 +730,42 @@ class FactTracingConfigParser:
 
     @classmethod
     def parse_fact_tracing_cfg(
-        cls, cfg: dict
+        cls,
+        cfg: dict,
+        offline: bool = False,
+        load_fresh: bool = False,
     ) -> Tuple[hf_datasets.Dataset, hf_datasets.Dataset, torch.Tensor, int]:
-        """Build ``(prompt_ds, evidence_ds, entailment_labels, pad_id)``."""
+        """Build ``(prompt_ds, evidence_ds, entailment_labels, pad_id)``.
+
+        Parameters
+        ----------
+        cfg : dict
+            Fact-tracing configuration dictionary.
+        offline : bool, optional
+            If True, no HTTP request is issued; the HF source dataset
+            must already be present in the local cache. By default False.
+        load_fresh : bool, optional
+            If True, force re-download of the HF source dataset,
+            overwriting the local cache. Incompatible with
+            ``offline=True``. By default False.
+
+        """
+        if offline and load_fresh:
+            raise ValueError(
+                "offline=True and load_fresh=True are incompatible: "
+                "cannot refresh the cache without network access."
+            )
         tokenize, pad_id = resolve_tokenizer(cfg["tokenizer"])
+        if load_fresh:
+            download_mode = "force_redownload"
+        elif offline:
+            download_mode = "reuse_cache_if_exists"
+        else:
+            download_mode = "reuse_dataset_if_exists"
         ds = load_dataset(
-            cfg["dataset_str"], split=cfg.get("dataset_split", "train")
+            cfg["dataset_str"],
+            split=cfg.get("dataset_split", "train"),
+            download_mode=download_mode,
         )
 
         num_prompts = cfg.get("num_prompts", 20)
@@ -745,7 +773,6 @@ class FactTracingConfigParser:
         max_length = cfg.get("max_length", 128)
         max_evidence_per_prompt = cfg.get("max_evidence_per_prompt", 5)
 
-        # Sample prompt entries
         if num_prompts < len(ds):
             random.seed(seed)
             indices = random.sample(range(len(ds)), num_prompts)
@@ -753,7 +780,25 @@ class FactTracingConfigParser:
         else:
             sampled_dataset = ds
 
-        # Tokenize prompt + answer and mask prompt in labels
+        prompt_dataset = cls._build_prompt_dataset(
+            sampled_dataset, tokenize, max_length
+        )
+        evidence_dataset, evidence_map = cls._build_evidence_dataset(
+            sampled_dataset, tokenize, max_length, max_evidence_per_prompt
+        )
+        entailment_labels = cls._build_entailment_matrix(
+            len(prompt_dataset), len(evidence_dataset), evidence_map
+        )
+
+        return prompt_dataset, evidence_dataset, entailment_labels, pad_id
+
+    @staticmethod
+    def _build_prompt_dataset(
+        sampled_dataset: hf_datasets.Dataset,
+        tokenize: Callable,
+        max_length: int,
+    ) -> hf_datasets.Dataset:
+        """Tokenize prompt+answer, masking prompt and padding in labels."""
         input_ids = []
         attention_mask = []
         labels = []
@@ -777,11 +822,8 @@ class FactTracingConfigParser:
             )["input_ids"]
             prompt_len = len(prompt_ids)
 
-            # Mask out prompt from loss
             label_ids = encoded["input_ids"].copy()
             label_ids[:prompt_len] = [-100] * prompt_len
-
-            # Mask out padding tokens in labels
             for i in range(len(encoded["input_ids"])):
                 if encoded["attention_mask"][i] == 0:
                     label_ids[i] = -100
@@ -806,18 +848,24 @@ class FactTracingConfigParser:
             columns=["input_ids", "attention_mask", "labels"],
             output_all_columns=True,
         )
+        return prompt_dataset
 
-        # Gather evidence sentences
+    @staticmethod
+    def _build_evidence_dataset(
+        sampled_dataset: hf_datasets.Dataset,
+        tokenize: Callable,
+        max_length: int,
+        max_evidence_per_prompt: int,
+    ) -> Tuple[hf_datasets.Dataset, List[int]]:
+        """Tokenize evidence sentences and return the evidence→prompt map."""
         evidence_sentences = []
         evidence_map = []
-
         for i, entry in enumerate(sampled_dataset):
             selected = entry["evidence_sentences"][:max_evidence_per_prompt]
             for sentence in selected:
                 evidence_sentences.append(sentence)
                 evidence_map.append(i)
 
-        # Tokenize evidence sentences
         evidence_input_ids = []
         evidence_attention_mask = []
         evidence_labels = []
@@ -831,7 +879,6 @@ class FactTracingConfigParser:
             evidence_input_ids.append(encoded["input_ids"])
             evidence_attention_mask.append(encoded["attention_mask"])
 
-            # Create labels and mask out padding tokens
             label_ids = encoded["input_ids"].copy()
             for i in range(len(encoded["input_ids"])):
                 if encoded["attention_mask"][i] == 0:
@@ -851,13 +898,7 @@ class FactTracingConfigParser:
             columns=["input_ids", "attention_mask", "labels"],
             output_all_columns=True,
         )
-
-        # Create entailment matrix
-        entailment_labels = cls._build_entailment_matrix(
-            len(prompt_dataset), len(evidence_dataset), evidence_map
-        )
-
-        return prompt_dataset, evidence_dataset, entailment_labels, pad_id
+        return evidence_dataset, evidence_map
 
     @staticmethod
     def _build_entailment_matrix(

@@ -90,7 +90,7 @@ class SubclassDetection(Benchmark):
         train_dataset: torch.utils.data.Dataset,
         eval_dataset: torch.utils.data.Dataset,
         metadata_dir: str,
-        load_meta_from_disk: bool,
+        load_fresh: bool,
     ) -> dict:
         """Extract subclass detection kwargs from config."""
         if not isinstance(train_dataset, LabelGroupingDataset):
@@ -132,9 +132,6 @@ class SubclassDetection(Benchmark):
             Keyword arguments for the explainer, by default None.
         batch_size: int, optional
             Batch size for the evaluation, by default 8.
-                max_eval_n: Optional[int], optional
-            Maximum number of evaluation samples to use. If None, uses the
-            entire evaluation dataset. By default 1000.
         max_eval_n: Optional[int], optional
             Maximum number of evaluation samples to use. If None, uses the
             entire evaluation dataset. By default 1000.

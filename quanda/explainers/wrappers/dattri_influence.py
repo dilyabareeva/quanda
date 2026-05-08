@@ -91,16 +91,18 @@ class DattriInfluence(Explainer, ABC):
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         loss_func : Callable
-            Builder for dattri's `AttributionTask` loss, with signature:
-            ```
-            def loss_func(
-                model: torch.nn.Module,
-            ) -> Callable[[Dict[str, torch.Tensor], Tuple], torch.Tensor]:
-                ...
-            ```
-            The returned callable takes `(params, batch)` and returns a
+            Builder for dattri's ``AttributionTask`` loss, with signature::
+
+                def loss_func(
+                    model: torch.nn.Module,
+                ) -> Callable[
+                    [Dict[str, torch.Tensor], Tuple], torch.Tensor
+                ]:
+                    ...
+
+            The returned callable takes ``(params, batch)`` and returns a
             per-sample loss tensor (compatible with
-            `torch.func.functional_call`).
+            ``torch.func.functional_call``).
         attributor_cls : type
             The dattri attributor class.
         attributor_kwargs : Dict[str, Any]

@@ -3,6 +3,10 @@ Benchmarks Tutorial
 
 Welcome to the benchmark tutorial of |quanda|. This tutorial walks you through the process of using the benchmarking tools in |quanda| to evaluate a data attribution method. This tutorial covers 3 different examples of benchmarks. It includes all different initialization schemes: training a benchmark from scratch using ``train()``, loading a benchmark from a YAML configuration using ``from_config()``, and downloading a precomputed benchmark using ``load_pretrained()``.
 
+.. seealso::
+
+   The :doc:`Linear Datamodeling Score (LDS) <lds>` page covers caveats specific to the most expensive benchmark in |quanda|, including how to precompute and reuse counterfactual subset logits across explainers.
+
 To install the library with tutorial dependencies, run:
 
 .. code:: bash
@@ -122,6 +126,12 @@ The YAML configuration file specifies all required components:
 
 The class grouping can be set to ``random`` in the configuration to randomly assign classes into superclasses, which is the approach we will take in this tutorial.
 
+.. important::
+
+    The configuration must specify ``bench_save_dir``: the directory under which the trained benchmark (model checkpoints and metadata) is saved. There should be enough disk space to save the main model and M subset models for LDS (if applicable) under this directory. If training multiple benchmarks from scratch, make sure to set different ``bench_save_dir`` for each to avoid overwriting.
+
+    If multiple training jobs must share a ``bench_save_dir`` (e.g. concurrent runs of the same benchmark), pass ``use_pid=True`` to ``train`` (or ``train_and_push_to_hub``) to suffix checkpoint and metadata directories with the current process id and avoid clobbering each other's outputs. By default ``use_pid=False``.
+
 .. note::
 
     Please note that calling ``SubclassDetection.train`` will initiate model training, therefore it will potentially take a long time.
@@ -151,3 +161,20 @@ Now that we have trained the model on the MNIST dataset with grouped classes as 
    :start-after: # START15
    :end-before: # END15
    :dedent:
+
+Caching and Sharing Explanations
+--------------------------------
+Computing attributions is typically the most expensive step in TDA evaluation. To avoid recomputing them every time, every ``Benchmark`` exposes an ``explain`` classmethod that precomputes attributions over the evaluation dataset and writes them to disk together with an ``explanations_config.yaml`` describing how they were generated. A subsequent call to ``benchmark.evaluate(..., cache_dir=<path>, use_cached_expl=True)`` reads from that cache instead of recomputing.
+
+The cache directory is keyed on:
+
+- the benchmark id (or its ``explanations_group``, see below),
+- the explainer class name,
+- a stable hash of ``expl_kwargs``,
+- the eval-subsample parameters ``max_eval_n`` and ``eval_seed``.
+
+Changing any of these produces a different cache key, so cached explanations stay coupled to the exact setup they were computed on.
+
+**Sharing across benchmarks.** Several benchmarks (e.g. ``ClassDetection`` and ``LinearDatamodelingMetric``) can be defined on top of the same model + train/eval datasets. Setting a common ``explanations_group`` in their YAML configs replaces the per-benchmark id segment of the cache key with a shared one, so a single attribution pass can drive multiple evaluations. Only opt in when the grouped benchmarks really share those inputs — mismatched inputs under a shared group will silently corrupt results.
+
+See :doc:`lds` for the analogous mechanism that caches counterfactual subset logits across explainers in the LDS benchmark.

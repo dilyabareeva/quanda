@@ -9,4 +9,5 @@ source "$(dirname "$0")/../train_lds.sh" \
     --n-lds-parallel 1 \
     --hf-push-sleep 10 \
     --gpu-split false \
-    "$@"
+    --start 0 \
+    --end 100

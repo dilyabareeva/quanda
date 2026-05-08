@@ -89,7 +89,7 @@ class ShortcutDetection(Benchmark):
         train_dataset: torch.utils.data.Dataset,
         eval_dataset: torch.utils.data.Dataset,
         metadata_dir: str,
-        load_meta_from_disk: bool,
+        load_fresh: bool,
     ) -> dict:
         """Extract shortcut detection kwargs from config."""
         if not isinstance(eval_dataset, SampleTransformationDataset):

@@ -1,10 +1,5 @@
 #!/bin/bash
 # Shared benchmark training logic.
-# Dataset-specific scripts should set the following before sourcing this file:
-#   - CONFIG_NAME:        Hydra config name (e.g. "mnist_lenet", "cifar_resnet9")
-#   - CONFIG_MAP_PREFIX:  Prefix for config_map.py keys (e.g. "mnist", "cifar")
-#   - benchmarks:         Array of benchmark names to run
-# and source their own bench_defs.sh (BENCH_PARAMS / BENCH_SWEEP).
 
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
@@ -23,11 +18,7 @@ cfg_output_dir="quanda/benchmarks/resources/configs"
 commit_tag=$(git rev-parse --short HEAD 2>/dev/null || echo "GIT_TAG")
 mkdir -p logs
 
-if [ -d "/data/cluster/users/bareeva" ]; then
-    bench_save_dir_override="bench_save_dir=/data/cluster/users/bareeva/quanda_output_new2/eval_bench/${CONFIG_MAP_PREFIX}"
-else
-    bench_save_dir_override="bench_save_dir=/data2/bareeva/Projects/quanda/cluster_output_new2/eval_bench/${CONFIG_MAP_PREFIX}"
-fi
+bench_save_dir_override="bench_save_dir=bench_out/${CONFIG_MAP_PREFIX}"
 
 # Map benchmark names to config_map.py keys
 declare -A BENCH_CONFIG_MAP_KEY

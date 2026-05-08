@@ -10,6 +10,7 @@ from quanda.benchmarks.downstream_eval import (
     ShortcutDetection,
     SubclassDetection,
 )
+from quanda.benchmarks.ground_truth import LinearDatamodeling
 
 # END1
 # START14_1
@@ -139,7 +140,7 @@ def test_benchmark_integration(
     # END9
 
     # Override for faster testing
-    representer_points_args["epoch"] = 1
+    representer_points_args["epoch"] = 5
 
     # START10
     attributors = {
@@ -187,3 +188,72 @@ def test_benchmark_integration(
         },
     )
     # END15
+
+    lds_cache = os.path.join(cache_dir, "lds_bench")
+
+    # START17
+    lds_config = "mnist_linear_datamodeling_unit"
+
+    lds_bench = LinearDatamodeling.load_pretrained(
+        bench_id=lds_config,
+        cache_dir=lds_cache,
+        device=device,
+    )
+    # END17
+
+    # START18
+    expl_kwargs = {
+        "model_id": "mnist_lds_tutorial",
+        "layers": "fc_2",
+        "cache_dir": os.path.join(cache_dir, "lds_captum_similarity"),
+    }
+    expl_cache_dir = os.path.join(cache_dir, "lds_explanations")
+
+    LinearDatamodeling.explain(
+        config=lds_config,
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs=expl_kwargs,
+        cache_dir=expl_cache_dir,
+        device=device,
+        batch_size=8,
+    )
+
+    subset_logits_dir = LinearDatamodeling.cache_subset_logits(
+        config=lds_config,
+        cache_dir=os.path.join(cache_dir, "lds_subset_logits"),
+        device=device,
+        batch_size=8,
+    )
+
+    lds_results = lds_bench.evaluate(
+        explainer_cls=CaptumSimilarity,
+        expl_kwargs=expl_kwargs,
+        cache_dir=expl_cache_dir,
+        use_cached_expl=True,
+        subset_logits_dir=subset_logits_dir,
+        batch_size=8,
+    )
+    print(f"Linear Datamodeling Score: {lds_results['score']}")
+    # END18
+
+    from quanda.utils.common import resolve_config as _resolve_lds_cfg
+
+    lds_train_config = _resolve_lds_cfg(lds_config)
+    lds_train_config["model"]["trainer"]["max_epochs"] = 1
+
+    # START19
+    LinearDatamodeling.train(
+        lds_train_config,
+        device=device,
+        skip_subsets=True,
+    )
+    # END19
+
+    # START20
+    for idx in range(3):
+        LinearDatamodeling.train_subset(
+            lds_train_config,
+            idx=idx,
+            device=device,
+        )
+    # END20

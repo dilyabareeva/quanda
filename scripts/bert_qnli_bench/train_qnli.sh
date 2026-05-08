@@ -6,7 +6,10 @@ CONFIG_NAME="bert_qnli"
 CONFIG_MAP_PREFIX="qnli"
 
 benchmarks=(
+    ClassDetection
     MixedDatasets
+    MislabelingDetection
+    LDS
 )
 
 source "$(dirname "$0")/../train.sh" --parallel false --train-only false "$@"

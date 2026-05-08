@@ -1,10 +1,5 @@
 #!/bin/bash
-# Train and push the M subset models for an LDS benchmark. Subset training
-# fans out up to N_LDS_PARALLEL workers.
-#
-# Required from the caller's env:
-#   CONFIG_MAP_PREFIX   key prefix in benchmarks/resources/config_map.py;
-#                       used to resolve the registered LDS config id.
+# Train and push the M subset models for an LDS benchmark. 
 
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
@@ -50,11 +45,7 @@ resolve_indices() {
 CFG_DIR="quanda/benchmarks/resources/configs"
 mkdir -p logs
 
-if [ -d "/data/cluster/users/bareeva" ]; then
-    BENCH_SAVE_DIR="/data/cluster/users/bareeva/quanda_output_new2/eval_bench/${CONFIG_MAP_PREFIX}"
-else
-    BENCH_SAVE_DIR="/data2/bareeva/Projects/quanda/cluster_output_new2/eval_bench/${CONFIG_MAP_PREFIX}"
-fi
+BENCH_SAVE_DIR="bench_out/${CONFIG_MAP_PREFIX}"
 SAVE_OVERRIDE="bench_save_dir=${BENCH_SAVE_DIR}"
 
 # ---------- helpers ----------

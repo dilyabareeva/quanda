@@ -63,7 +63,7 @@ outputs/
 cache/
 /.env
 bin/*
-docs/source/**
+docs/source/docs_api/**
 eval_results/*
 eval_bench/**
 
@@ -71,7 +71,7 @@ assets/demo/*
 bench_out/*
 fig_1_images/*
 tutorials/*
-scripts/bench_out/*
+scriptsbench_out/*
 CLAUDE.md
 .vscode/
 quanda_benchmark_tutorial_cache/*
@@ -89,3 +89,7 @@ scripts/paper_tex/**
 scratch/*
 slurm/get_logs.sh
 scripts/delete_hf.py
+scripts/plot_results_LOCAL.py
+scripts/**/plot_*_LOCAL.sh
+scripts/PLOT_ALL_LOCAL.sh
+slurm_LOCAL/*

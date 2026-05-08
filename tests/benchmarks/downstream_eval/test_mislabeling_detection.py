@@ -12,7 +12,7 @@ from quanda.benchmarks.downstream_eval.mislabeling_detection import (
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.metrics.downstream_eval import MislabelingDetectionMetric
 from quanda.utils.cache import ExplanationsCache
-from quanda.utils.common import _subsample_dataset
+from quanda.utils.common import subsample_dataset
 from quanda.utils.datasets.transformed import LabelFlippingDataset
 from quanda.utils.functions import cosine_similarity
 
@@ -85,7 +85,7 @@ def test_mislabeling_detection(
 
     dst_eval = MislabelingDetection.from_config(
         config=config,
-        load_meta_from_disk=False,
+        load_fresh=True,
         offline=True,
         device="cpu",
     )
@@ -110,7 +110,7 @@ def test_mislabeling_detection(
         # so evaluate(use_cached_expl=True) loads it from disk.
         cache_dir = str(tmp_path / "expl_cache")
         os.makedirs(cache_dir, exist_ok=True)
-        train_subset = _subsample_dataset(
+        train_subset = subsample_dataset(
             train_dataset, max_n=max_eval_n, seed=eval_seed
         )
         precomputed_si = torch.arange(len(train_subset), dtype=torch.float32)
@@ -133,7 +133,7 @@ def test_mislabeling_detection(
         # MislabelingDetectionMetric call using the same precomputed
         # tensor + remapped indices. This pins down the cache-load +
         # subset-remap path without depending on a magic number.
-        train_subset = _subsample_dataset(
+        train_subset = subsample_dataset(
             train_dataset, max_n=max_eval_n, seed=eval_seed
         )
         reference_si = torch.arange(len(train_subset), dtype=torch.float32)
@@ -154,7 +154,7 @@ def _make_bench(config, tmp_path):
     config["cache_dir"] = str(tmp_path)
     return MislabelingDetection.from_config(
         config=config,
-        load_meta_from_disk=False,
+        load_fresh=True,
         offline=True,
         device="cpu",
     )
@@ -210,7 +210,7 @@ def test_mislabeling_evaluate(
 
         monkeypatch.setattr(
             md,
-            "_subsample_dataset",
+            "subsample_dataset",
             lambda dataset, max_n, seed: torch.utils.data.Subset(
                 dataset, list(range(5))
             ),
