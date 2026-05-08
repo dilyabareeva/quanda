@@ -15,7 +15,7 @@ To install the library with tutorial dependencies, run:
 
 .. note::
 
-   This tutorial is also available as a `notebook <https://anonymous.4open.science/r/quanda/tutorials/demo_benchmarks.ipynb>`_.
+   This tutorial is also available as a `notebook <https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_benchmarks.ipynb>`_.
 
 Throughout this tutorial, we will be using a LeNet model trained on the MNIST dataset. Let's start the tutorial by importing the necessary libraries and components:
 

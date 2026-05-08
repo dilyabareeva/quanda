@@ -288,6 +288,23 @@ Benchmarks
     - Text
     - qnli_linear_datamodeling (QNLI / BERT)
 
+Citation
+--------
+If you find |quanda| useful and want to use it in your research, please cite it using the following BibTeX entry:
+
+.. code:: bibtex
+
+  @misc{bareeva2024quandainterpretabilitytoolkittraining,
+        title={Quanda: An Interpretability Toolkit for Training Data Attribution Evaluation and Beyond},
+        author={Dilyara Bareeva and Galip Ümit Yolcu and Anna Hedström and Niklas Schmolenski and Thomas Wiegand and Wojciech Samek and Sebastian Lapuschkin},
+        year={2024},
+        eprint={2410.07158},
+        archivePrefix={arXiv},
+        primaryClass={cs.LG},
+        url={https://arxiv.org/abs/2410.07158},
+  }
+
+If you are using |quanda| for your scientific research, please also make sure to cite the original authors for the implemented metrics and TDA methods.
 
 .. toctree::
    :caption: Usage

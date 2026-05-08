@@ -8,8 +8,10 @@ to report any bugs you encounter while using |quanda|.
 In this guide, you will get a summary of the main components of
 |quanda|, as well as best practices for your own contributions.
 
-If you have any questions regarding the codebase, please open an
-issue or write us an e-mail.
+If you have any questions regarding the codebase, please `open an
+issue <https://github.com/dilyabareeva/quanda/issues/new/choose>`__ or write us
+at `dilyabareeva@gmail.com <mailto:dilyabareeva@gmail.com>`__ or
+`galip.uemit.yolcu@hhi.fraunhofer.de <mailto:galip.uemit.yolcu@hhi.fraunhofer.de>`__.
 
 Table of Contents
 -----------------
@@ -35,10 +37,10 @@ Reporting Bugs
 --------------
 
 If you come across a bug in the software, please check the repository
-Issues to see if
+`Issues <https://github.com/dilyabareeva/quanda/issues>`__ to see if
 this bug has already been reported. If the bug is not yet reported,
-please report the bug by opening an
-issue. Please pay
+please report the bug by `opening an
+issue <https://github.com/dilyabareeva/quanda/issues/new>`__. Please pay
 attention to add a descriptive title for the bug. Briefly explain
 the bug in the issue body, and add details on how to reproduce the faulty
 behaviour whenever possible.
@@ -188,11 +190,13 @@ ensure a seamless review process:
    python3 -m tox run -e coverage
 
 Once you are done with your contributions, and have went through the
-above checklist: - Create a pull request. - Provide a
+above checklist: - Create a `pull
+request <https://github.com/dilyabareeva/quanda/compare>`__ - Provide a
 summary of the changes you are introducing, give details on points which
 might not be easily understandable. - If the contribution is concerning
 an existing issue, refer to it in the body of the pull request. -
-Request a review from the main contributors.
+Request a review from `dilyabareeva <https://github.com/dilyabareeva>`__
+or `gumityolcu <https://github.com/gumityolcu>`__.
 
 Contributing Metrics and Benchmarks
 -----------------------------------

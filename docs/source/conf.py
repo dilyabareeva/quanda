@@ -13,8 +13,8 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath("../.."))
 
 project = "quanda"
-copyright = f"{str(datetime.utcnow().year)}, Anonymous quanda authors"
-author = "Anonymous quanda authors"
+copyright = f"{str(datetime.utcnow().year)}, Dilyara Bareeva, Galip Ümit Yolcu"
+author = "Dilyara Bareeva, Galip Ümit Yolcu"
 release = "05.05.2026"
 
 # -- General configuration ---------------------------------------------------
