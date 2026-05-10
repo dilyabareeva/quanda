@@ -26,14 +26,11 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install --upgrade build setuptools setuptools_scm
+          python3 -m pip install --upgrade build setuptools
 
       - name: Setup | Force correct release branch on workflow sha
         run: |
           git checkout -B ${{ github.ref_name }} ${{ github.sha }}
-
-      - name: Verify dynamic version
-        run: python -m setuptools_scm
 
       - name: Use Python Semantic Release to prepare release
         id: release
@@ -66,10 +63,10 @@ jobs:
           git checkout -b version-bump-${{ steps.release.outputs.tag }}
 
           # Add the changes made by semantic-release (version update and changelog)
-          git add CHANGELOG.md
+          git add CHANGELOG.md pyproject.toml
 
           # Commit the changes (version bump and changelog update)
-          git commit -m "chore: Update changelog after version bump ${{ steps.release.outputs.tag }}"
+          git commit -m "chore: bump version to ${{ steps.release.outputs.tag }} and update changelog"
 
           # Push changes to the new branch
           git push origin version-bump-${{ steps.release.outputs.tag }}

@@ -1,6 +1,6 @@
 [project]
 name = "quanda"
-dynamic = ["version"]
+version = "0.4.0"
 authors = [
   { name="Dilyara Bareeva", email="dilyabareeva@gmail.com" },
     {name = "Galip Ümit Yolcu", email = "galip.uemit.yolcu@hhi.fraunhofer.de" },
@@ -46,12 +46,8 @@ Homepage = "https://github.com/dilyabareeva/quanda"
 Issues = "https://github.com/dilyabareeva/quanda/issues"
 
 [build-system]
-requires = ["setuptools>=42", "setuptools-scm[toml]>=6.0"]
+requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
-
-[tool.setuptools_scm]
-version_scheme = "post-release"
-local_scheme = "node-and-date"
 
 [tool.isort]
 profile = "black"
