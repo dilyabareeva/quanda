@@ -79,6 +79,106 @@ def test_randomization_metric_score(
 
 @pytest.mark.heuristic_metrics
 @pytest.mark.parametrize(
+    "test_id, model, checkpoint, dataset, test_data, "
+    "explainer_cls, expl_kwargs, explanations, test_labels, n_rand_models",
+    [
+        (
+            "randomization_metric_multi_model",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_test_labels_1",
+            3,
+        ),
+        (
+            "randomization_metric_single_model",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_test_labels_1",
+            1,
+        ),
+    ],
+)
+def test_randomization_metric_mean_std(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_data,
+    explainer_cls,
+    expl_kwargs,
+    explanations,
+    test_labels,
+    n_rand_models,
+    tmp_path,
+    request,
+):
+    model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
+    test_data = request.getfixturevalue(test_data)
+    dataset = request.getfixturevalue(dataset)
+    test_labels = request.getfixturevalue(test_labels)
+    tda = request.getfixturevalue(explanations)
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
+
+    metric = ModelRandomizationMetric(
+        model=model,
+        model_id="0",
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
+        cache_dir=str(tmp_path),
+        n_rand_models=n_rand_models,
+        seed=42,
+    )
+    assert len(metric.rand_explainers) == n_rand_models
+    metric.update(
+        test_data=test_data, explanations=tda, test_targets=test_labels
+    )
+
+    out = metric.compute()
+    per_model_means = torch.stack(
+        [torch.cat(scores).mean() for scores in metric.results["scores"]]
+    )
+    assert len(per_model_means) == n_rand_models
+
+    assert out["per_model_scores"] == pytest.approx(
+        per_model_means.tolist(), rel=1e-6
+    )
+    assert out["score"] == out["mean"]
+    assert math.isclose(
+        out["mean"], per_model_means.mean().item(), rel_tol=1e-6
+    )
+    if n_rand_models == 1:
+        assert out["std"] == 0.0
+    else:
+        assert math.isclose(
+            out["std"],
+            per_model_means.std(unbiased=False).item(),
+            rel_tol=1e-6,
+        )
+        # Independently randomized models must not collapse onto one score.
+        assert out["std"] > 0.0
+
+
+@pytest.mark.heuristic_metrics
+@pytest.mark.parametrize(
     "test_id, model, checkpoint, checkpoints_load_func, dataset, input_shape, "
     "test_data, batch_size, explainer_cls",
     [
