@@ -79,6 +79,106 @@ def test_randomization_metric_score(
 
 @pytest.mark.heuristic_metrics
 @pytest.mark.parametrize(
+    "test_id, model, checkpoint, dataset, test_data, "
+    "explainer_cls, expl_kwargs, explanations, test_labels, n_rand_models",
+    [
+        (
+            "randomization_metric_multi_model",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_test_labels_1",
+            3,
+        ),
+        (
+            "randomization_metric_single_model",
+            "load_mnist_model",
+            "load_mnist_last_checkpoint",
+            "load_mnist_dataset",
+            "load_mnist_test_samples_1",
+            CaptumSimilarity,
+            {
+                "layers": "fc_2",
+                "similarity_metric": cosine_similarity,
+            },
+            "load_mnist_explanations_similarity_1",
+            "load_mnist_test_labels_1",
+            1,
+        ),
+    ],
+)
+def test_randomization_metric_mean_std(
+    test_id,
+    model,
+    checkpoint,
+    dataset,
+    test_data,
+    explainer_cls,
+    expl_kwargs,
+    explanations,
+    test_labels,
+    n_rand_models,
+    tmp_path,
+    request,
+):
+    model = request.getfixturevalue(model)
+    checkpoint = request.getfixturevalue(checkpoint)
+    test_data = request.getfixturevalue(test_data)
+    dataset = request.getfixturevalue(dataset)
+    test_labels = request.getfixturevalue(test_labels)
+    tda = request.getfixturevalue(explanations)
+    expl_kwargs = {"model_id": "0", "cache_dir": str(tmp_path), **expl_kwargs}
+
+    metric = ModelRandomizationMetric(
+        model=model,
+        model_id="0",
+        checkpoints=checkpoint,
+        train_dataset=dataset,
+        explainer_cls=explainer_cls,
+        expl_kwargs=expl_kwargs,
+        cache_dir=str(tmp_path),
+        n_rand_models=n_rand_models,
+        seed=42,
+    )
+    assert len(metric.rand_explainers) == n_rand_models
+    metric.update(
+        test_data=test_data, explanations=tda, test_targets=test_labels
+    )
+
+    out = metric.compute()
+    per_model_means = torch.stack(
+        [torch.cat(scores).mean() for scores in metric.results["scores"]]
+    )
+    assert len(per_model_means) == n_rand_models
+
+    assert out["per_model_scores"] == pytest.approx(
+        per_model_means.tolist(), rel=1e-6
+    )
+    assert out["score"] == out["mean"]
+    assert math.isclose(
+        out["mean"], per_model_means.mean().item(), rel_tol=1e-6
+    )
+    if n_rand_models == 1:
+        assert out["std"] == 0.0
+    else:
+        assert math.isclose(
+            out["std"],
+            per_model_means.std(unbiased=False).item(),
+            rel_tol=1e-6,
+        )
+        # Independently randomized models must not collapse onto one score.
+        assert out["std"] > 0.0
+
+
+@pytest.mark.heuristic_metrics
+@pytest.mark.parametrize(
     "test_id, model, checkpoint, checkpoints_load_func, dataset, input_shape, "
     "test_data, batch_size, explainer_cls",
     [
@@ -407,6 +507,54 @@ def test_randomization_metric_bumps_seed_when_explainer_takes_one(
         seed=42,
     )
     assert metric.expl_kwargs["seed"] == 43
+
+
+@pytest.mark.heuristic_metrics
+@pytest.mark.parametrize("nan_side", ["original", "randomized"])
+def test_randomization_metric_rejects_non_finite_explanations(
+    nan_side,
+    load_mnist_model,
+    load_mnist_last_checkpoint,
+    load_mnist_dataset,
+    load_mnist_test_samples_1,
+    load_mnist_test_labels_1,
+    tmp_path,
+):
+    """NaN attributions must raise instead of scoring a meaningless ~0.
+
+    Ranking all-NaN attributions yields an arbitrary permutation, so the
+    rank correlation silently comes out near zero, i.e. a perfect
+    randomization score for a broken explainer.
+    """
+    n_test = len(load_mnist_test_labels_1)
+    n_train = len(load_mnist_dataset)
+
+    class _NaNExplainer(RandomExplainer):
+        def explain(self, test_data, targets=None):
+            return torch.full((n_test, n_train), float("nan"))
+
+    metric = ModelRandomizationMetric(
+        model=load_mnist_model,
+        model_id="0",
+        checkpoints=load_mnist_last_checkpoint,
+        train_dataset=load_mnist_dataset,
+        explainer_cls=RandomExplainer
+        if nan_side == "original"
+        else _NaNExplainer,
+        cache_dir=str(tmp_path),
+    )
+
+    if nan_side == "original":
+        explanations = torch.full((n_test, n_train), float("nan"))
+    else:
+        explanations = torch.rand(n_test, n_train)
+
+    with pytest.raises(ValueError, match="non-finite"):
+        metric.update(
+            explanations=explanations,
+            test_data=load_mnist_test_samples_1,
+            test_targets=load_mnist_test_labels_1,
+        )
 
 
 @pytest.mark.heuristic_metrics
