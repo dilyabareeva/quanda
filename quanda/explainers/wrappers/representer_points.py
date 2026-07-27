@@ -370,7 +370,12 @@ class RepresenterPoints(Explainer):
             The normalized features
 
         """
-        return (features - self.mean) / self.std_dev
+        constant = self.std_dev == 0
+        std_dev = torch.where(
+            constant, torch.ones_like(self.std_dev), self.std_dev
+        )
+        normalized = (features - self.mean) / std_dev
+        return normalized.masked_fill(constant, 0.0)
 
     def _get_activations(
         self,
@@ -402,7 +407,8 @@ class RepresenterPoints(Explainer):
         hook_handle = target_layer.register_forward_hook(hook_fn)
 
         # Forward pass
-        self.model(x)
+        with torch.no_grad():
+            self.model(x)
 
         # Remove the hook
         hook_handle.remove()
