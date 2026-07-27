@@ -1,0 +1,109 @@
+model:
+  pretrained_model_name: null
+  module:
+    name: ResNet50
+    args:
+      num_classes: 50
+  trainer:
+    optimizer: sgd
+    optimizer_kwargs:
+      momentum: 0.9
+      nesterov: true
+      weight_decay: 0.0001
+    criterion: cross_entropy
+    criterion_kwargs: {}
+    scheduler: one_cycle
+    scheduler_kwargs:
+      interval: step
+      max_lr: 0.2
+      anneal_strategy: cos
+      pct_start: 0.1
+      div_factor: 25.0
+    lr: 0.2
+    max_epochs: 30
+    seed: 42
+    num_workers: 8
+train_dataset:
+  dataset_str: quanda-bench-test/awa2
+  dataset_split: train
+  transforms: awa2_train_transforms
+  split_ref: awa2_train
+  split_name: train
+eval_dataset:
+  dataset_str: quanda-bench-test/awa2
+  dataset_split: train
+  transforms: awa2_transforms
+  split_ref: awa2_train
+  split_name: test
+val_dataset:
+  dataset_str: quanda-bench-test/awa2
+  dataset_split: train
+  transforms: awa2_transforms
+  split_ref: awa2_train
+  split_name: val
+id: 5d5968d-awa2_resnet50_LDS_alpha075
+bench: LDS
+adversarial_label: 0
+bench_save_dir: /data/cluster/users/bareeva/quanda_output_new2/eval_bench/awa2
+log_dir: hydra_logs
+repo_id: quanda-bench-test
+cache_dir: tmp
+top_k: 5
+model_id: '0'
+correlation_fn: spearman
+offline: true
+seed: 42
+device: cuda:0
+batch_size: 64
+m: 100
+alpha: 0.75
+subset_ids: lds_subsets.yaml
+ckpt: quanda-bench-test/GIT_TAG-awa2_resnet50_ClassDetection
+subset_ckpt: quanda-bench-test/5d5968d-awa2_resnet50_LDS_alpha075
+num_checkpoints: 5
+meta_id: quanda-bench-test/5d5968d-awa2_resnet50_LDS_alpha075_metadata
+splits:
+  awa2_train:
+    filename: awa2_train_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.1
+      test: 0.1
+    seed: 42
+  awa2_train_subclass:
+    filename: awa2_train_subclass_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.1
+      test: 0.1
+    seed: 42
+  awa2_train_shortcut:
+    filename: awa2_train_shortcut_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.1
+      test: 0.1
+    seed: 42
+  awa2_train_mislabeling:
+    filename: awa2_train_mislabeling_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.1
+      test: 0.1
+    seed: 42
+  awa2_train_mixed:
+    filename: awa2_train_mixed_split.yaml
+    ratios:
+      train: 0.8
+      val: 0.0
+      test: 0.1
+    seed: 42
+  imagenet_sketch:
+    filename: imagenet_sketch_split.yaml
+    ratios:
+      train: 0.01
+      val: 0.002
+      test: 0.002
+    seed: 42
+cfg_file_name: 5d5968d-awa2_resnet50_LDS_alpha075.yaml
+cfg_output_dir: quanda/benchmarks/resources/configs
