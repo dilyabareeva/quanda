@@ -123,6 +123,10 @@ class ModelRandomizationMetric(Metric):
                     self.expl_kwargs.get("seed", self.seed) + 1 + model_idx
                 )
 
+            # Never reuse cached artifacts for randomized models.
+            if "load_from_disk" in explainer_params:
+                expl_kwargs["load_from_disk"] = False
+
             resolved_expl_kwargs.append(expl_kwargs)
             self.rand_explainers.append(
                 explainer_cls(
@@ -175,16 +179,35 @@ class ModelRandomizationMetric(Metric):
         test_targets : Optional[torch.Tensor], optional
             The target values for the explanations, by default None.
 
+        Raises
+        ------
+        ValueError
+            If the original or the randomized explanations contain
+            non-finite values.
+
         """
         explanations = explanations.to(self.device)
         test_data = move_ds_item_to_device(test_data, self.device)
         if test_targets is not None:
             test_targets = test_targets.to(self.device)
 
+        if not torch.isfinite(explanations).all():
+            raise ValueError(
+                "The explanations of the original model contain non-finite "
+                "values; the rank correlation would be meaningless."
+            )
+
         for model_idx, rand_explainer in enumerate(self.rand_explainers):
             rand_explanations = rand_explainer.explain(
                 test_data=test_data, targets=test_targets
             ).to(self.device)
+
+            if not torch.isfinite(rand_explanations).all():
+                raise ValueError(
+                    f"Randomized model {model_idx} produced non-finite "
+                    "explanations; the rank correlation would be "
+                    "meaningless."
+                )
 
             corrs = self.corr_measure(explanations, rand_explanations)
             self.results["scores"][model_idx].append(corrs)
