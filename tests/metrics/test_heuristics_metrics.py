@@ -510,6 +510,54 @@ def test_randomization_metric_bumps_seed_when_explainer_takes_one(
 
 
 @pytest.mark.heuristic_metrics
+@pytest.mark.parametrize("nan_side", ["original", "randomized"])
+def test_randomization_metric_rejects_non_finite_explanations(
+    nan_side,
+    load_mnist_model,
+    load_mnist_last_checkpoint,
+    load_mnist_dataset,
+    load_mnist_test_samples_1,
+    load_mnist_test_labels_1,
+    tmp_path,
+):
+    """NaN attributions must raise instead of scoring a meaningless ~0.
+
+    Ranking all-NaN attributions yields an arbitrary permutation, so the
+    rank correlation silently comes out near zero, i.e. a perfect
+    randomization score for a broken explainer.
+    """
+    n_test = len(load_mnist_test_labels_1)
+    n_train = len(load_mnist_dataset)
+
+    class _NaNExplainer(RandomExplainer):
+        def explain(self, test_data, targets=None):
+            return torch.full((n_test, n_train), float("nan"))
+
+    metric = ModelRandomizationMetric(
+        model=load_mnist_model,
+        model_id="0",
+        checkpoints=load_mnist_last_checkpoint,
+        train_dataset=load_mnist_dataset,
+        explainer_cls=RandomExplainer
+        if nan_side == "original"
+        else _NaNExplainer,
+        cache_dir=str(tmp_path),
+    )
+
+    if nan_side == "original":
+        explanations = torch.full((n_test, n_train), float("nan"))
+    else:
+        explanations = torch.rand(n_test, n_train)
+
+    with pytest.raises(ValueError, match="non-finite"):
+        metric.update(
+            explanations=explanations,
+            test_data=load_mnist_test_samples_1,
+            test_targets=load_mnist_test_labels_1,
+        )
+
+
+@pytest.mark.heuristic_metrics
 def test_randomization_metric_bumps_user_supplied_seed(
     load_mnist_model, load_mnist_last_checkpoint, load_mnist_dataset, tmp_path
 ):
