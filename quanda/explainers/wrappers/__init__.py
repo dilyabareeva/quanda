@@ -35,14 +35,10 @@ from quanda.explainers.wrappers.dattri_losses import (
 )
 from quanda.explainers.wrappers.kronfluence import (
     Kronfluence,
-    kronfluence_explain,
-    kronfluence_self_influence,
 )
 from quanda.explainers.wrappers.representer_points import RepresenterPoints
 from quanda.explainers.wrappers.trak_wrapper import (
     TRAK,
-    trak_explain,
-    trak_self_influence,
 )
 
 __all__ = [
@@ -57,8 +53,6 @@ __all__ = [
     "captum_tracincp_explain",
     "captum_tracincp_self_influence",
     "TRAK",
-    "trak_explain",
-    "trak_self_influence",
     "CaptumTracInCPFast",
     "captum_tracincp_fast_explain",
     "captum_tracincp_fast_self_influence",
@@ -67,8 +61,6 @@ __all__ = [
     "captum_tracincp_fast_rand_proj_self_influence",
     "RepresenterPoints",
     "Kronfluence",
-    "kronfluence_explain",
-    "kronfluence_self_influence",
     "DattriInfluence",
     "DattriTRAK",
     "DattriTracInCP",
