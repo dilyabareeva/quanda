@@ -58,9 +58,8 @@ batch_size: 64
 m: 100
 alpha: 0.75
 subset_ids: lds_subsets.yaml
-ckpt: quanda-bench-test/5d5968d-awa2_resnet50_ClassDetection
+ckpt: quanda-bench-test/GIT_TAG-awa2_resnet50_ClassDetection
 subset_ckpt: quanda-bench-test/5d5968d-awa2_resnet50_LDS_alpha075
-explanations_group: 5d5968d-awa2_resnet50_ClassDetection
 num_checkpoints: 5
 meta_id: quanda-bench-test/5d5968d-awa2_resnet50_LDS_alpha075_metadata
 splits:

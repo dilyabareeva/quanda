@@ -7,5 +7,6 @@ wrapper:
     metadata_filename: awa2_train_mislabeling_transform_indices.yaml
     p: 0.1
     seed: 43
+    n_classes: 50
 split_ref: awa2_train_mislabeling
 split_name: train
