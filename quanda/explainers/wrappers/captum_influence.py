@@ -63,7 +63,19 @@ class CaptumInfluence(Explainer, ABC):
         Parameters
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
-            The model to be used for the influence computation.
+            The model for attributions. It is called as ``model(inputs)`` for
+            the ``image_classification`` task, where ``inputs`` is a batched
+            input tensor, and as ``model(**inputs)`` for the
+            ``text_classification`` and ``causal_lm`` tasks, where ``inputs``
+            is a dictionary of tokenized inputs following the Hugging Face
+            convention: ``input_ids``, ``attention_mask`` and, optionally,
+            ``token_type_ids``, each of shape ``(batch, seq_len)``. Targets
+            are under the ``labels`` key, and are not passed
+            to the model. The forward pass is expected to return raw,
+            unnormalized logits, either as a tensor or as an object exposing
+            a ``.logits`` attribute, as returned by Hugging Face models, of
+            shape ``(batch, n_classes)`` for the classification tasks and
+            ``(batch, seq_len, vocab_size)`` for ``causal_lm``.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         explainer_cls : type
@@ -217,8 +229,19 @@ class CaptumSimilarity(CaptumInfluence):
         Parameters
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
-            The model to be used for the influence computation
-            with loaded weights.
+            The model for attributions with loaded weights. It is called as 
+            ``model(inputs)`` for the ``image_classification`` task, where 
+            ``inputs`` is a batched input tensor, and as ``model(**inputs)`` 
+            for the ``text_classification`` and ``causal_lm`` tasks, where 
+            ``inputs`` is a dictionary of tokenized inputs following the 
+            Hugging Face convention: ``input_ids``, ``attention_mask`` and, 
+            optionally, ``token_type_ids``, each of shape ``(batch, 
+            seq_len)``. Targets are under the ``labels`` key, and are not 
+            passed to the model. The forward pass is expected to return raw,
+            unnormalized logits, either as a tensor or as an object exposing
+            a ``.logits`` attribute, as returned by Hugging Face models, of
+            shape ``(batch, n_classes)`` for the classification tasks and
+            ``(batch, seq_len, vocab_size)`` for ``causal_lm``.
         checkpoints : Union[str, List[str]]
             Ignored. Accepted for API consistency with other
             explainers.
@@ -450,8 +473,19 @@ def captum_similarity_explain(
     Parameters
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation
-        with loaded weights.
+        The model for attributions with loaded weights. It is called as 
+        ``model(inputs)`` for the ``image_classification`` task, where 
+        ``inputs`` is a batched input tensor, and as ``model(**inputs)`` 
+        for the ``text_classification`` and ``causal_lm`` tasks, where 
+        ``inputs`` is a dictionary of tokenized inputs following the 
+        Hugging Face convention: ``input_ids``, ``attention_mask`` and, 
+        optionally, ``token_type_ids``, each of shape ``(batch, 
+        seq_len)``. Targets are under the ``labels`` key, and are not 
+        passed to the model. The forward pass is expected to return raw,
+        unnormalized logits, either as a tensor or as an object exposing
+        a ``.logits`` attribute, as returned by Hugging Face models, of
+        shape ``(batch, n_classes)`` for the classification tasks and
+        ``(batch, seq_len, vocab_size)`` for ``causal_lm``.
     checkpoints : Union[str, List[str]]
         Ignored. Accepted for API consistency with other
         explainers.
@@ -502,7 +536,19 @@ def captum_similarity_self_influence(
     Parameters
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation.
+        The model for attributions. It is called as ``model(inputs)`` for
+        the ``image_classification`` task, where ``inputs`` is a batched
+        input tensor, and as ``model(**inputs)`` for the
+        ``text_classification`` and ``causal_lm`` tasks, where ``inputs``
+        is a dictionary of tokenized inputs following the Hugging Face
+        convention: ``input_ids``, ``attention_mask`` and, optionally,
+        ``token_type_ids``, each of shape ``(batch, seq_len)``. Targets
+        are under the ``labels`` key, and are not passed
+        to the model. The forward pass is expected to return raw,
+        unnormalized logits, either as a tensor or as an object exposing
+        a ``.logits`` attribute, as returned by Hugging Face models, of
+        shape ``(batch, n_classes)`` for the classification tasks and
+        ``(batch, seq_len, vocab_size)`` for ``causal_lm``.
     model_id : str
         Identifier for the model.
     train_dataset : torch.utils.data.Dataset
@@ -587,8 +633,20 @@ class CaptumArnoldi(CaptumInfluence):
 
         Parameters
         ----------
-        model : Union[torch.nn.Module, pl.LightningModule]
-            The model to be used for the influence computation.
+         model : Union[torch.nn.Module, pl.LightningModule]
+            The model for attributions. It is called as ``model(inputs)`` for
+            the ``image_classification`` task, where ``inputs`` is a batched
+            input tensor, and as ``model(**inputs)`` for the
+            ``text_classification`` and ``causal_lm`` tasks, where ``inputs``
+            is a dictionary of tokenized inputs following the Hugging Face
+            convention: ``input_ids``, ``attention_mask`` and, optionally,
+            ``token_type_ids``, each of shape ``(batch, seq_len)``. Targets
+            are under the ``labels`` key, and are not passed
+            to the model. The forward pass is expected to return raw,
+            unnormalized logits, either as a tensor or as an object exposing
+            a ``.logits`` attribute, as returned by Hugging Face models, of
+            shape ``(batch, n_classes)`` for the classification tasks and
+            ``(batch, seq_len, vocab_size)`` for ``causal_lm``.
         checkpoints : Union[str, List[str]]
             Checkpoint paths by epochs, sorted from the earlier
             to last epoch. Only last checkpoint ([-1]) is used.
@@ -771,7 +829,19 @@ def captum_arnoldi_explain(
     Parameters
     ----------
     model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation.
+        The model for attributions. It is called as ``model(inputs)`` for
+        the ``image_classification`` task, where ``inputs`` is a batched
+        input tensor, and as ``model(**inputs)`` for the
+        ``text_classification`` and ``causal_lm`` tasks, where ``inputs``
+        is a dictionary of tokenized inputs following the Hugging Face
+        convention: ``input_ids``, ``attention_mask`` and, optionally,
+        ``token_type_ids``, each of shape ``(batch, seq_len)``. Targets
+        are under the ``labels`` key, and are not passed
+        to the model. The forward pass is expected to return raw,
+        unnormalized logits, either as a tensor or as an object exposing
+        a ``.logits`` attribute, as returned by Hugging Face models, of
+        shape ``(batch, n_classes)`` for the classification tasks and
+        ``(batch, seq_len, vocab_size)`` for ``causal_lm``.
     checkpoints : Union[str, List[str]]
         Checkpoint paths by epochs, sorted from the earlier
         to last epoch.  Only last checkpoint ([-1]) is used.
@@ -887,7 +957,19 @@ class CaptumTracInCP(CaptumInfluence):
         Parameters
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
-            The model to be used for the influence computation.
+            The model for attributions. It is called as ``model(inputs)`` for
+            the ``image_classification`` task, where ``inputs`` is a batched
+            input tensor, and as ``model(**inputs)`` for the
+            ``text_classification`` and ``causal_lm`` tasks, where ``inputs``
+            is a dictionary of tokenized inputs following the Hugging Face
+            convention: ``input_ids``, ``attention_mask`` and, optionally,
+            ``token_type_ids``, each of shape ``(batch, seq_len)``. Targets
+            are under the ``labels`` key, and are not passed
+            to the model. The forward pass is expected to return raw,
+            unnormalized logits, either as a tensor or as an object exposing
+            a ``.logits`` attribute, as returned by Hugging Face models, of
+            shape ``(batch, n_classes)`` for the classification tasks and
+            ``(batch, seq_len, vocab_size)`` for ``causal_lm``.
         train_dataset : torch.utils.data.Dataset
             Training dataset to be used for the influence computation.
         checkpoints : Union[str, List[str]]
@@ -1174,7 +1256,19 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
         Parameters
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
-            The model to be used for the influence computation.
+            The model for attributions. It is called as ``model(inputs)`` for
+            the ``image_classification`` task, where ``inputs`` is a batched
+            input tensor, and as ``model(**inputs)`` for the
+            ``text_classification`` and ``causal_lm`` tasks, where ``inputs``
+            is a dictionary of tokenized inputs following the Hugging Face
+            convention: ``input_ids``, ``attention_mask`` and, optionally,
+            ``token_type_ids``, each of shape ``(batch, seq_len)``. Targets
+            are under the ``labels`` key, and are not passed
+            to the model. The forward pass is expected to return raw,
+            unnormalized logits, either as a tensor or as an object exposing
+            a ``.logits`` attribute, as returned by Hugging Face models, of
+            shape ``(batch, n_classes)`` for the classification tasks and
+            ``(batch, seq_len, vocab_size)`` for ``causal_lm``.
         final_fc_layer : torch.nn.Module
             Final fully connected layer of the model.
         train_dataset : torch.utils.data.Dataset

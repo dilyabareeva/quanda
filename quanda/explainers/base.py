@@ -66,7 +66,19 @@ class Explainer(ABC):
         Parameters
         ----------
         model : Union[torch.nn.Module, pl.LightningModule]
-            The model to be used for the influence computation.
+            The model to be explained. It is called as ``model(inputs)`` for
+            the ``image_classification`` task, where ``inputs`` is a batched
+            input tensor, and as ``model(**inputs)`` for the
+            ``text_classification`` and ``causal_lm`` tasks, where ``inputs``
+            is a dictionary of tokenized inputs following the Hugging Face
+            convention: ``input_ids``, ``attention_mask`` and, optionally,
+            ``token_type_ids``, each of shape ``(batch, seq_len)``. Targets
+            are under the ``labels`` key, and are not passed
+            to the model. The forward pass is expected to return raw,
+            unnormalized logits, either as a tensor or as an object exposing
+            a ``.logits`` attribute, as returned by Hugging Face models, of
+            shape ``(batch, n_classes)`` for the classification tasks and
+            ``(batch, seq_len, vocab_size)`` for ``causal_lm``.
         train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
             Training dataset to be used for the influence computation.
         task: TaskLiterals, optional
