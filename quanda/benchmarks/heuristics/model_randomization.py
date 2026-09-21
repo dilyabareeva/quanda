@@ -35,6 +35,7 @@ class ModelRandomization(Benchmark):
     name: str = "Model Randomization"
     eval_args: list = ["explanations", "test_data", "test_targets"]
     default_use_predictions: bool = False
+    default_n_rand_models: int = 1
 
     def __init__(
         self,
@@ -42,6 +43,7 @@ class ModelRandomization(Benchmark):
         correlation_fn: Callable,
         model_id: str = "0",
         cache_dir: str = "./tmp",
+        n_rand_models: int = 1,
         seed: int = 42,
         **kwargs,
     ):
@@ -57,6 +59,10 @@ class ModelRandomization(Benchmark):
             Model identifier, by default "0".
         cache_dir : str, optional
             Cache directory, by default "./tmp".
+        n_rand_models : int, optional
+            Number of independently randomized models to average the metric
+            over, by default 1. When greater than 1, ``evaluate`` returns the
+            mean and standard deviation across the random models.
         seed : int, optional
             Random seed, by default 42.
         **kwargs
@@ -67,6 +73,7 @@ class ModelRandomization(Benchmark):
         self.correlation_fn = correlation_fn
         self.model_id = model_id
         self.cache_dir = cache_dir
+        self.n_rand_models = n_rand_models
         self.seed = seed
 
     @classmethod
@@ -83,6 +90,9 @@ class ModelRandomization(Benchmark):
             "correlation_fn": correlation_functions[config["correlation_fn"]],
             "model_id": config.get("model_id", "0"),
             "cache_dir": config.get("bench_save_dir", "./tmp"),
+            "n_rand_models": config.get(
+                "n_rand_models", cls.default_n_rand_models
+            ),
             "seed": config["seed"],
         }
 
@@ -163,6 +173,7 @@ class ModelRandomization(Benchmark):
             explainer_cls=explainer_cls,
             expl_kwargs=expl_kwargs,
             correlation_fn=self.correlation_fn,
+            n_rand_models=self.n_rand_models,
             seed=self.seed,
         )
 

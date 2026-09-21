@@ -55,6 +55,9 @@ def main(cfg: DictConfig) -> float:
         bench_cfg = yaml.safe_load(f)
     bench_cfg["bench_save_dir"] = cfg.cache_dir
 
+    if cfg.get("n_rand_models", None) is not None:
+        bench_cfg["n_rand_models"] = int(cfg.n_rand_models)
+
     bench_cls = bench_dict[BENCH_CLASS[bench_id]]
 
     max_eval_n = cfg.bench_eval[bench_id].max_eval_n
@@ -137,10 +140,12 @@ def main(cfg: DictConfig) -> float:
         score_value = score["score"]
         ci_low = score.get("ci_low")
         ci_high = score.get("ci_high")
+        std = score.get("std")
     else:
         score_value = score
         ci_low = None
         ci_high = None
+        std = None
 
     os.makedirs(cfg.results_dir, exist_ok=True)
     bench_name = BENCH_CLASS[bench_id]
@@ -153,6 +158,7 @@ def main(cfg: DictConfig) -> float:
                 "method": cfg.explainer.name,
                 "expl_kwargs": {k: repr(v) for k, v in expl_kwargs.items()},
                 "score": score_value,
+                "std": std,
                 "ci_low": ci_low,
                 "ci_high": ci_high,
                 "resolved": resolved,
