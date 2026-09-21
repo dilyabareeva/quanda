@@ -34,6 +34,12 @@ config_map: dict = {
     "mnist_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("124627f-default_MislabelingDetection.yaml"),
+    "mnist_mislabeling_detection_p05": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("124627f-default_MislabelingDetection_p05.yaml"),
+    "mnist_mislabeling_detection_p15": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("124627f-default_MislabelingDetection_p15.yaml"),
     "mnist_shortcut_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("124627f-default_ShortcutDetection.yaml"),
@@ -79,6 +85,12 @@ config_map: dict = {
     "cifar_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("bdb919e-default_MislabelingDetection.yaml"),
+    "cifar_mislabeling_detection_p05": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("bdb919e-default_MislabelingDetection_p05.yaml"),
+    "cifar_mislabeling_detection_p15": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("bdb919e-default_MislabelingDetection_p15.yaml"),
     "cifar_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("a701608-default_LDS.yaml"),
@@ -115,9 +127,18 @@ config_map: dict = {
     "awa2_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("5d5968d-awa2_resnet50_MislabelingDetection.yaml"),
+    "awa2_mislabeling_detection_p05": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("5d5968d-awa2_resnet50_MislabelingDetection_p05.yaml"),
+    "awa2_mislabeling_detection_p15": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("5d5968d-awa2_resnet50_MislabelingDetection_p15.yaml"),
     "awa2_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("5d5968d-awa2_resnet50_LDS.yaml"),
+    "awa2_alpha075_linear_datamodeling": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("5d5968d-awa2_resnet50_LDS_alpha075.yaml"),
     "qnli_class_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("e59b08c-bert_qnli_ClassDetection.yaml"),
@@ -130,6 +151,12 @@ config_map: dict = {
     "qnli_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("6d2fd20-bert_qnli_MislabelingDetection.yaml"),
+    "qnli_mislabeling_detection_p05": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("6d2fd20-bert_qnli_MislabelingDetection_p05.yaml"),
+    "qnli_mislabeling_detection_p15": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("6d2fd20-bert_qnli_MislabelingDetection_p15.yaml"),
     "qnli_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("e59b08c-bert_qnli_LDS.yaml"),
