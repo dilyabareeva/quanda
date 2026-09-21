@@ -21,6 +21,7 @@ from typing import (
     Union,
     cast,
 )
+from omegaconf import DictConfig, OmegaConf
 
 import torch
 import yaml
@@ -91,7 +92,6 @@ class DatasetSplit(ABC):
 
         torch.manual_seed(seed)
         indices = torch.randperm(n_indices)
-
         split_indices = {}
         start = 0
         for i, (name, ratio) in enumerate(split_ratios.items()):
@@ -167,6 +167,8 @@ def resolve_config(config: Union[dict, str]) -> dict:
                 f"{type(cfg).__name__})."
             )
         return cfg
+    if isinstance(config, DictConfig):
+        return OmegaConf.to_container(config)
     raise TypeError(
         f"config must be a dict, a registered bench_id, or a YAML path; "
         f"got {type(config).__name__}."
