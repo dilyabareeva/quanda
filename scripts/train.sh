@@ -4,7 +4,7 @@
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 PARALLEL=false
-TRAIN_ONLY=true
+TRAIN_ONLY=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -38,6 +38,8 @@ path = str(config_map['$key'])
 print(os.path.splitext(os.path.basename(path))[0])
 "
 }
+
+echo "Config save dir: $cfg_output_dir"
 
 run_bench() {
     local bench=$1 params=$2 sweep=$3 id=$4

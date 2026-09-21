@@ -168,7 +168,7 @@ def resolve_config(config: Union[dict, str]) -> dict:
             )
         return cfg
     if isinstance(config, DictConfig):
-        return OmegaConf.to_container(config)
+        return OmegaConf.to_container(config, resolve=True)
     raise TypeError(
         f"config must be a dict, a registered bench_id, or a YAML path; "
         f"got {type(config).__name__}."
