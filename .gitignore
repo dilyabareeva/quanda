@@ -94,3 +94,4 @@ scripts/**/plot_*_LOCAL.sh
 scripts/PLOT_ALL_LOCAL.sh
 slurm_LOCAL/*
 .pypirc
+scripts/rebuttal/**
