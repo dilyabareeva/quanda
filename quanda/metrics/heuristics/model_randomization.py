@@ -195,9 +195,10 @@ class ModelRandomizationMetric(Metric):
         Returns
         -------
             dict: A dictionary with ``"score"`` and ``"mean"`` (both equal to
-            the mean per-model correlation) and ``"std"`` (the standard
+            the mean per-model correlation), ``"std"`` (the standard
             deviation of the per-model correlations, ``0.0`` for a single
-            random model).
+            random model) and ``"per_model_scores"`` (the individual
+            correlation of each randomized model, in model order).
 
         """
         per_model_means = torch.stack(
@@ -212,7 +213,12 @@ class ModelRandomizationMetric(Metric):
             if self.n_rand_models > 1
             else 0.0
         )
-        return {"score": mean, "mean": mean, "std": std}
+        return {
+            "score": mean,
+            "mean": mean,
+            "std": std,
+            "per_model_scores": per_model_means.tolist(),
+        }
 
     def _per_sample_scores(self) -> Optional[torch.Tensor]:
         """Return per-sample correlations against the randomized models."""

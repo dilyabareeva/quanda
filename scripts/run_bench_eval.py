@@ -141,11 +141,13 @@ def main(cfg: DictConfig) -> float:
         ci_low = score.get("ci_low")
         ci_high = score.get("ci_high")
         std = score.get("std")
+        per_model_scores = score.get("per_model_scores")
     else:
         score_value = score
         ci_low = None
         ci_high = None
         std = None
+        per_model_scores = None
 
     os.makedirs(cfg.results_dir, exist_ok=True)
     bench_name = BENCH_CLASS[bench_id]
@@ -159,6 +161,7 @@ def main(cfg: DictConfig) -> float:
                 "expl_kwargs": {k: repr(v) for k, v in expl_kwargs.items()},
                 "score": score_value,
                 "std": std,
+                "per_model_scores": per_model_scores,
                 "ci_low": ci_low,
                 "ci_high": ci_high,
                 "resolved": resolved,
