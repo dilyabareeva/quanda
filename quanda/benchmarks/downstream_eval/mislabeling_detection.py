@@ -269,6 +269,7 @@ class MislabelingDetection(Benchmark):
                 expl_kwargs,
                 max_eval_n=max_eval_n,
                 eval_seed=eval_seed,
+                batch_size=batch_size,
             )
 
         save_dir = cache_dir or os.path.join(

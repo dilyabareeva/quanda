@@ -50,11 +50,16 @@ def test_hash_expl_kwargs_is_stable_for_callables():
 def test_default_explanations_id_format():
     cfg = {"id": "bench-x", "repo_id": "owner"}
     out = default_explanations_id(
-        cfg, CaptumSimilarity, {"k": 1}, max_eval_n=1000, eval_seed=42
+        cfg,
+        CaptumSimilarity,
+        {"k": 1},
+        max_eval_n=1000,
+        eval_seed=42,
+        batch_size=16,
     )
     h = _hash_expl_kwargs({"k": 1})
     assert out == (
-        f"owner/bench-x__CaptumSimilarity__{h}__n1000_s42_explanations"
+        f"owner/bench-x__CaptumSimilarity__{h}__n1000_s42_b16_explanations"
     )
 
     cfg2 = {"id": "bench-y"}

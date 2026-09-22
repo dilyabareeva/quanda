@@ -16,6 +16,7 @@ from quanda.benchmarks import bench_dict
 from quanda.benchmarks.base import default_explanations_id
 from quanda.benchmarks.resources.config_map import config_map
 
+
 _SUFFIX_TO_CLASS = {
     "class_detection": "ClassDetection",
     "subclass_detection": "SubclassDetection",
@@ -69,6 +70,7 @@ def main(cfg: DictConfig) -> float:
         expl_kwargs,
         max_eval_n=max_eval_n,
         eval_seed=eval_seed,
+        batch_size=cfg.batch_size,
     )
     tag = explanations_id.replace("/", "__")
     expl_params = inspect.signature(expl_cls).parameters

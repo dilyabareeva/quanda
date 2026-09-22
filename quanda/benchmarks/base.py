@@ -72,6 +72,7 @@ def default_explanations_id(
     expl_kwargs: Optional[dict],
     max_eval_n: Optional[int] = 1000,
     eval_seed: int = 42,
+    batch_size: int = 8,
 ) -> str:
     """Build the default HF repo_id for cached explanations.
 
@@ -79,7 +80,8 @@ def default_explanations_id(
     explanations stay coupled to the exact eval-dataset subsample they
     were computed on. For benchmarks driven by training-data
     self-influence (e.g. MislabelingDetection), these same parameters
-    describe the train-dataset subsample instead.
+    describe the train-dataset subsample instead. ``batch_size`` is
+    encoded too because explanations are persisted one file per batch.
 
     If ``config['explanations_group']`` is set, it replaces ``config['id']``
     as the identity segment so multiple benchmarks that share the same
@@ -102,7 +104,7 @@ def default_explanations_id(
     return (
         f"{repo}/{group}__{explainer_cls.__name__}"
         f"__{_hash_expl_kwargs(expl_kwargs)}"
-        f"__n{max_eval_n}_s{eval_seed}_explanations"
+        f"__n{max_eval_n}_s{eval_seed}_b{batch_size}_explanations"
     )
 
 
@@ -712,7 +714,7 @@ class Benchmark(ABC):
 
         self.model.eval()
         self.model.to(self.device)
-        
+
         select_indices: list = []
         for batch in expl_dl:
             inputs, labels = ds_handler.process_batch(
@@ -1090,6 +1092,7 @@ class Benchmark(ABC):
                 expl_kwargs,
                 max_eval_n=max_eval_n,
                 eval_seed=eval_seed,
+                batch_size=batch_size,
             )
 
         save_dir = cache_dir or os.path.join(
