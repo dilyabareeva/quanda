@@ -30,8 +30,8 @@ train_dataset:
   wrapper:
     type: LabelFlippingDataset
     metadata:
-      metadata_filename: awa2_train_mislabeling_transform_indices.yaml
-      p: 0.1
+      metadata_filename: awa2_train_mislabeling_p05_transform_indices.yaml
+      p: 0.05
       seed: 43
       n_classes: 50
   split_ref: awa2_train_mislabeling
@@ -48,10 +48,10 @@ val_dataset:
   transforms: awa2_transforms
   split_ref: awa2_train
   split_name: val
-id: GIT_TAG-awa2_resnet50_MislabelingDetection
+id: 5d5968d-awa2_resnet50_MislabelingDetection_p05
 bench: MislabelingDetection
 adversarial_label: 0
-bench_save_dir: bench_out/eval_bench/awa2
+bench_save_dir: /data/cluster/users/bareeva/quanda_output_new2/eval_bench/awa2
 log_dir: hydra_logs
 repo_id: quanda-bench-test
 cache_dir: tmp
@@ -65,9 +65,9 @@ batch_size: 64
 m: 100
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpt: quanda-bench-test/GIT_TAG-awa2_resnet50_MislabelingDetection
+ckpt: quanda-bench-test/5d5968d-awa2_resnet50_MislabelingDetection_p05
 num_checkpoints: 5
-meta_id: quanda-bench-test/GIT_TAG-awa2_resnet50_MislabelingDetection_metadata
+meta_id: quanda-bench-test/5d5968d-awa2_resnet50_MislabelingDetection_p05_metadata
 splits:
   awa2_train:
     filename: awa2_train_split.yaml
@@ -111,5 +111,5 @@ splits:
       val: 0.002
       test: 0.002
     seed: 42
-cfg_file_name: GIT_TAG-awa2_resnet50_MislabelingDetection.yaml
+cfg_file_name: 5d5968d-awa2_resnet50_MislabelingDetection_p05.yaml
 cfg_output_dir: quanda/benchmarks/resources/configs
