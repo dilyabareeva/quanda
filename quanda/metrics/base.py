@@ -52,6 +52,7 @@ class Metric(ABC):
         """
         self.device: str
         self.model: torch.nn.Module = model
+        self.model.eval()  # type: ignore
 
         def _model_device() -> str:
             first_param = next(model.parameters(), None)
