@@ -3,7 +3,7 @@
 import copy
 import os
 import random
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
 import datasets as hf_datasets  # type: ignore
 import torch
@@ -856,15 +856,25 @@ class FactTracingConfigParser:
         tokenize: Callable,
         max_length: int,
         max_evidence_per_prompt: int,
-    ) -> Tuple[hf_datasets.Dataset, List[int]]:
-        """Tokenize evidence sentences and return the evidence→prompt map."""
-        evidence_sentences = []
-        evidence_map = []
+    ) -> Tuple[hf_datasets.Dataset, List[Set[int]]]:
+        """Tokenize evidence sentences and return the evidence→prompts map.
+
+        Identical sentences (within or across prompts) collapse into a
+        single corpus row that entails every prompt they appear under.
+        """
+        evidence_sentences: List[str] = []
+        evidence_map: List[Set[int]] = []
+        column_of: Dict[str, int] = {}
         for i, entry in enumerate(sampled_dataset):
             selected = entry["evidence_sentences"][:max_evidence_per_prompt]
             for sentence in selected:
-                evidence_sentences.append(sentence)
-                evidence_map.append(i)
+                j = column_of.get(sentence)
+                if j is None:
+                    j = len(evidence_sentences)
+                    column_of[sentence] = j
+                    evidence_sentences.append(sentence)
+                    evidence_map.append(set())
+                evidence_map[j].add(i)
 
         evidence_input_ids = []
         evidence_attention_mask = []
@@ -902,10 +912,11 @@ class FactTracingConfigParser:
 
     @staticmethod
     def _build_entailment_matrix(
-        num_queries: int, num_evidence: int, evidence_map: List[int]
+        num_queries: int, num_evidence: int, evidence_map: List[Set[int]]
     ) -> torch.Tensor:
-        """Binary entailment matrix from an evidence → query index map."""
+        """Binary entailment matrix from an evidence → query indices map."""
         labels = torch.zeros((num_queries, num_evidence), dtype=torch.long)
-        for j, query_idx in enumerate(evidence_map):
-            labels[query_idx, j] = 1
+        for j, query_indices in enumerate(evidence_map):
+            for query_idx in query_indices:
+                labels[query_idx, j] = 1
         return labels

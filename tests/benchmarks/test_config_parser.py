@@ -373,15 +373,70 @@ def test_parse_fact_tracing_cfg_samples_when_num_prompts_lt_len(monkeypatch):
 
 
 @pytest.mark.utils
+def test_parse_fact_tracing_cfg_dedups_shared_evidence(monkeypatch):
+    """Identical evidence collapses to one row entailing every prompt."""
+    rows = [
+        {
+            "prompt": "Q1?",
+            "answer": ["A1"],
+            "evidence_sentences": ["shared", "E1", "E1"],
+        },
+        {
+            "prompt": "Q2?",
+            "answer": ["A2"],
+            "evidence_sentences": ["E2", "shared"],
+        },
+        {
+            "prompt": "Q3?",
+            "answer": ["A3"],
+            "evidence_sentences": ["shared"],
+        },
+    ]
+    monkeypatch.setattr(
+        cp_module, "load_dataset", lambda *a, **kw: _fake_hf_dataset(rows)
+    )
+    monkeypatch.setattr(
+        cp_module, "resolve_tokenizer", lambda cfg: (_FakeTokenizer(), 0)
+    )
+    cfg = {
+        "dataset_str": "fake/ds",
+        "tokenizer": {"backend": "hf", "name": "x"},
+        "num_prompts": 5,
+        "max_length": 8,
+        "max_evidence_per_prompt": 5,
+    }
+
+    _, evidence_ds, labels, _ = FactTracingConfigParser.parse_fact_tracing_cfg(
+        cfg
+    )
+
+    # Rows are unique sentences in first-seen order.
+    assert evidence_ds["sentence"] == ["shared", "E1", "E2"]
+    # A shared sentence is positive for every prompt it appears under;
+    # a within-prompt duplicate is not double counted.
+    expected = torch.tensor(
+        [
+            [1, 1, 0],
+            [1, 0, 1],
+            [1, 0, 0],
+        ],
+        dtype=torch.long,
+    )
+    assert torch.equal(labels, expected)
+
+
+@pytest.mark.utils
 def test_build_entailment_matrix_basic():
     labels = FactTracingConfigParser._build_entailment_matrix(
-        num_queries=3, num_evidence=5, evidence_map=[0, 0, 1, 2, 2]
+        num_queries=3,
+        num_evidence=5,
+        evidence_map=[{0}, {0, 2}, {1}, {2}, {2}],
     )
     expected = torch.tensor(
         [
             [1, 1, 0, 0, 0],
             [0, 0, 1, 0, 0],
-            [0, 0, 0, 1, 1],
+            [0, 1, 0, 1, 1],
         ],
         dtype=torch.long,
     )
