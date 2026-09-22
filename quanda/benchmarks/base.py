@@ -710,6 +710,9 @@ class Benchmark(ABC):
                 "filter_by_non_shortcut is True."
             )
 
+        self.model.eval()
+        self.model.to(self.device)
+        
         select_indices: list = []
         for batch in expl_dl:
             inputs, labels = ds_handler.process_batch(

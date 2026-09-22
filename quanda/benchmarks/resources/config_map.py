@@ -27,7 +27,7 @@ config_map: dict = {
     ).joinpath("ad1b983-default_ClassDetection.yaml"),
     "mnist_subclass_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("ad1b983-default_SubclassDetection.yaml"),
+    ).joinpath("ad1b983f-default_SubclassDetection.yaml"),
     "mnist_mixed_datasets": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("ad1b983-default_MixedDatasets.yaml"),
@@ -75,7 +75,7 @@ config_map: dict = {
     ).joinpath("bdb919e-default_ClassDetection.yaml"),
     "cifar_subclass_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("bdb919e-default_SubclassDetection.yaml"),
+    ).joinpath("bdb919ef-default_SubclassDetection.yaml"),
     "cifar_mixed_datasets": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("bdb919e-default_MixedDatasets.yaml"),
@@ -117,7 +117,7 @@ config_map: dict = {
     ).joinpath("5d5968d-awa2_resnet50_ClassDetection.yaml"),
     "awa2_subclass_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("5d5968d-awa2_resnet50_SubclassDetection.yaml"),
+    ).joinpath("5d5968df-awa2_resnet50_SubclassDetection.yaml"),
     "awa2_mixed_datasets": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("2fc831c-awa2_resnet50_MixedDatasets.yaml"),
@@ -125,6 +125,9 @@ config_map: dict = {
         "quanda.benchmarks.resources.configs"
     ).joinpath("2fc831c-awa2_resnet50_ShortcutDetection.yaml"),
     "awa2_mislabeling_detection": files(
+        "quanda.benchmarks.resources.configs"
+    ).joinpath("5d5968d-awa2_resnet50_MislabelingDetection_p05.yaml"),
+    "awa2_mislabeling_detection_p05": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("5d5968d-awa2_resnet50_MislabelingDetection_p05.yaml"),
     "awa2_linear_datamodeling": files(
