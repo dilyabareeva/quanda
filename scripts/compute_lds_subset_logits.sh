@@ -2,7 +2,6 @@
 
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
-N_PARALLEL=1
 START=""
 END=""
 BATCH_SIZE=8
@@ -13,7 +12,7 @@ DEVICE="cuda:0"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --n-parallel) N_PARALLEL=$2; shift 2 ;;
+        --config-map-key) CONFIG_MAP_KEY=$2; shift 2 ;;
         --start) START=$2; shift 2 ;;
         --end) END=$2; shift 2 ;;
         --batch-size) BATCH_SIZE=$2; shift 2 ;;
@@ -26,7 +25,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [ -z "$CONFIG_MAP_KEY" ]; then
-    echo "Error: CONFIG_MAP_KEY must be set before sourcing this script." >&2
+    echo "Error: --config-map-key (or CONFIG_MAP_KEY) required." >&2
     exit 1
 fi
 if [ -z "$START" ] || [ -z "$END" ]; then
@@ -34,7 +33,7 @@ if [ -z "$START" ] || [ -z "$END" ]; then
     exit 1
 fi
 
-BENCH_SAVE_DIR="bench_out/${CONFIG_MAP_KEY}"
+BENCH_SAVE_DIR="/data/cluster/users/bareeva/quanda_output_final/eval_bench/${CONFIG_MAP_KEY%_linear_datamodeling}"
 
 CONFIG_PATH=$(python -c "
 from quanda.benchmarks.resources.config_map import config_map
@@ -57,13 +56,8 @@ for i in $(seq "$START" "$((END - 1))"); do
     [ -n "$INFERENCE_BATCH_SIZE" ] && \
         args+=(--inference-batch-size "$INFERENCE_BATCH_SIZE")
 
-    if [ "$N_PARALLEL" -gt 1 ]; then
-        while [ "$(jobs -rp | wc -l)" -ge "$N_PARALLEL" ]; do wait -n; done
-        python scripts/precompute_subset_logits_subset.py "${args[@]}" \
-            > "${log_dir}/subset_${i}.log" 2>&1 &
-    else
-        python scripts/precompute_subset_logits_subset.py "${args[@]}" \
+    python scripts/precompute_subset_logits_subset.py "${args[@]}" \
             > "${log_dir}/subset_${i}.log" 2>&1
-    fi
+
 done
 wait
