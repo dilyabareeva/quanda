@@ -1,0 +1,19 @@
+{
+  "folder": "awa2",
+  "methods": [
+    "representer_points",
+    "tracincpfast",
+    "trak",
+    "random",
+    "similarity",
+    "kronfluence"
+  ],
+  "benches": [
+    "awa2_linear_datamodeling",
+    "awa2_alpha075_linear_datamodeling"
+  ],
+  "bench_labels": {
+    "awa2_linear_datamodeling": "LDS\nα=0.5",
+    "awa2_alpha075_linear_datamodeling": "LDS\nα=0.75"
+  }
+}

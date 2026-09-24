@@ -8,14 +8,11 @@
     "random"
   ],
   "benches": [
-    "qnli_class_detection",
-    "qnli_mislabeling_detection",
-    "qnli_top_k_cardinality",
     "qnli_linear_datamodeling",
-    "qnli_model_randomization",
-    "qnli_mixed_datasets"
+    "qnli_alpha075_linear_datamodeling"
   ],
   "bench_labels": {
-    "qnli_mixed_datasets": "Mixed\nDatasets"
+    "qnli_linear_datamodeling": "LDS\nα=0.5",
+    "qnli_alpha075_linear_datamodeling": "LDS\nα=0.75"
   }
 }

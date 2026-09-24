@@ -1,4 +1,5 @@
 {
+  "folder": "mnist",
   "methods": [
     "representer_points",
     "arnoldi",

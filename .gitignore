@@ -95,3 +95,4 @@ scripts/PLOT_ALL_LOCAL.sh
 slurm_LOCAL/*
 .pypirc
 scripts/rebuttal/**
+scripts/plot_results_OLD.py

@@ -1,0 +1,25 @@
+{
+  "folder": "mnist",
+  "methods": [
+    "representer_points",
+    "arnoldi",
+    "tracincpfast",
+    "trak",
+    "random",
+    "similarity"
+  ],
+  "benches": [
+    "mnist_linear_datamodeling",
+    "mnist_alpha075_linear_datamodeling",
+    "mnist_alpha09_linear_datamodeling",
+    "mnist_alpha095_linear_datamodeling",
+    "mnist_alpha0999_linear_datamodeling"
+  ],
+  "bench_labels": {
+    "mnist_linear_datamodeling": "LDS\nα=0.5",
+    "mnist_alpha075_linear_datamodeling": "LDS\nα=0.75",
+    "mnist_alpha09_linear_datamodeling": "LDS\nα=0.9",
+    "mnist_alpha095_linear_datamodeling": "LDS\nα=0.95",
+    "mnist_alpha0999_linear_datamodeling": "LDS\nα=0.999"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "folder": "cifar",
+  "methods": [
+    "representer_points",
+    "arnoldi",
+    "tracincpfast",
+    "trak",
+    "random",
+    "similarity"
+  ],
+  "benches": [
+    "cifar_linear_datamodeling",
+    "cifar_alpha075_linear_datamodeling",
+    "cifar_alpha09_linear_datamodeling",
+    "cifar_alpha095_linear_datamodeling",
+    "cifar_alpha0999_linear_datamodeling"
+  ],
+  "bench_labels": {
+    "cifar_linear_datamodeling": "LDS\nα=0.5",
+    "cifar_alpha075_linear_datamodeling": "LDS\nα=0.75",
+    "cifar_alpha09_linear_datamodeling": "LDS\nα=0.9",
+    "cifar_alpha095_linear_datamodeling": "LDS\nα=0.95",
+    "cifar_alpha0999_linear_datamodeling": "LDS\nα=0.999"
+  }
+}

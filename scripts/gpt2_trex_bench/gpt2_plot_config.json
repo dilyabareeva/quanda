@@ -1,4 +1,5 @@
 {
+  "folder": "gpt2_trex",
   "methods": [
     "random",
     "kronfluence_gpt2",
