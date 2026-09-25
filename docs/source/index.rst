@@ -4,7 +4,7 @@ Welcome to |quanda|'s documentation!
 |quanda| is a toolkit for **quan**\ titative evaluation of **d**\ ata **a**\ ttribution methods in **PyTorch**.
 
 .. note::
-    |quanda| is under active development. Note the release version to ensure reproducibility of your work. Contributions, bug reports, and feature requests are welcome.
+    |quanda| is currently under development. Note the release version to ensure reproducibility of your work. If you have any questions, please `open an issue <https://github.com/dilyabareeva/quanda/issues/new/choose>`_ or write us at dilyabareeva@gmail.com or galip.uemit.yolcu@hhi.fraunhofer.de.
 
 .. figure:: _static/fig_1_source.png
    :alt: Figure 1
