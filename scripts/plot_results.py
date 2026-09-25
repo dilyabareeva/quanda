@@ -64,8 +64,10 @@ BENCH_LABEL_SUFFIXES = {
 BENCH_ORDER = (
     "class_detection",
     "subclass_detection",
-    "mislabeling_detection",
     "mislabeling_detection_p05",
+    "mislabeling_detection",
+    "mislabeling_detection_p10",
+    "mislabeling_detection_p15",
     "shortcut_detection",
     "mixed_datasets",
     "top_k_cardinality",
@@ -92,7 +94,7 @@ def _ci_exempt(bench_id: str) -> bool:
     return any(s in bench_id for s in NO_CI_EXEMPT_SUBSTRINGS)
 
 
-def _is_min_abs(bench_id: str) -> bool:
+def is_min_abs(bench_id: str) -> bool:
     return any(s in bench_id for s in MIN_ABS_BENCH_SUBSTRINGS)
 
 
@@ -115,11 +117,13 @@ def _detect_setting(benches: list[str]) -> str | None:
     if all(b.startswith(prefix + "_") for b in benches):
         if any(b.startswith(prefix + "_alpha") for b in benches):
             prefix = prefix + "_alpha"
+        if all(b.startswith(prefix + "_mislabel") for b in benches):
+            prefix = prefix + "_mislabel"
         return prefix
     return None
 
 
-def _scalar(score):
+def scalar(score):
     if isinstance(score, (int, float)):
         return float(score)
     if isinstance(score, dict):
@@ -276,7 +280,7 @@ def draw_plot(
 
         xticks, xlabels = [], []
         for j, b in enumerate(panel):
-            min_abs = _is_min_abs(b)
+            min_abs = is_min_abs(b)
             x0 = panel_pad_px + j * (bench_w_px + bench_gap_px)
             xticks.append(x0 + bench_w_px / 2)
             xlabels.append(bench_labels[b] + ("↓" if min_abs else "↑"))
@@ -424,8 +428,8 @@ def plot_results(args):
         result_path = os.path.join(results_dir, result_file)
         result = json.load(open(result_path, "r"))
         result["method"] = result["resolved"]["explainer"]["name"]
-        result["ci_low"] = _scalar(result["ci_low"])
-        result["ci_high"] = _scalar(result["ci_high"])
+        result["ci_low"] = scalar(result["ci_low"])
+        result["ci_high"] = scalar(result["ci_high"])
         result["kwargs_key"] = json.dumps(
                             result.get("expl_kwargs") or {}, sort_keys=True
                         )
@@ -460,7 +464,7 @@ def plot_results(args):
 
     non_random = results_df[~is_random].copy()
     non_random["__rank"] = non_random.apply(
-        lambda r: abs(r.score) if _is_min_abs(r.bench_id) else -r.score,
+        lambda r: abs(r.score) if is_min_abs(r.bench_id) else -r.score,
         axis=1,
     )
     best = non_random.loc[
@@ -477,7 +481,7 @@ def plot_results(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--results_dir", type=str, default=RESULTS_DIR)
-    parser.add_argument("--results_config", type=str, default="scripts/cifar_resnet9_bench/cifar_lds_alpha_plot_config.json")
+    parser.add_argument("--results_config", type=str, default="scripts/cifar_resnet9_bench/cifar_plot_config.json")
     
     args = parser.parse_args()
     
