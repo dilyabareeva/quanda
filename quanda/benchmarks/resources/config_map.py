@@ -126,10 +126,7 @@ config_map: dict = {
     ).joinpath("2fc831c-awa2_resnet50_ShortcutDetection.yaml"),
     "awa2_mislabeling_detection": files(
         "quanda.benchmarks.resources.configs"
-    ).joinpath("5d5968d-awa2_resnet50_MislabelingDetection_p05.yaml"),
-    "awa2_mislabeling_detection_p05": files(
-        "quanda.benchmarks.resources.configs"
-    ).joinpath("5d5968d-awa2_resnet50_MislabelingDetection_p05.yaml"),
+    ).joinpath("5d5968d-awa2_resnet50_MislabelingDetection.yaml"),
     "awa2_linear_datamodeling": files(
         "quanda.benchmarks.resources.configs"
     ).joinpath("5d5968d-awa2_resnet50_LDS.yaml"),
