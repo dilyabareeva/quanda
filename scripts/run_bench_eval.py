@@ -9,6 +9,7 @@ import shutil
 
 import hydra
 import yaml
+from dotenv import load_dotenv
 from hydra.utils import get_class, instantiate
 from omegaconf import DictConfig, OmegaConf
 
@@ -16,6 +17,7 @@ from quanda.benchmarks import bench_dict
 from quanda.benchmarks.base import default_explanations_id
 from quanda.benchmarks.resources.config_map import config_map
 
+load_dotenv()
 
 _SUFFIX_TO_CLASS = {
     "class_detection": "ClassDetection",
@@ -37,9 +39,18 @@ BENCH_CLASS.update(
         "gpt2_trex_openwebtext_ft_mrr": "MRR",
         "gpt2_trex_openwebtext_ft_recall_at_k": "RecallAtK",
         "gpt2_trex_openwebtext_ft_tail_patch": "TailPatch",
+        "awa2_alpha075_linear_datamodeling": "LDS",
+        "qnli_alpha075_linear_datamodeling": "LDS"
     }
 )
 
+BENCH_CLASS.update(
+    {
+       f"{prefix}_{suffix}_linear_datamodeling": "LDS"
+           for prefix in ("mnist", "cifar")
+           for suffix in ("alpha075", "alpha09", "alpha095", "alpha0999")
+    }
+)
 
 @hydra.main(
     version_base=None,

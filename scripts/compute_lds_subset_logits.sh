@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -a; source "$(dirname "${BASH_SOURCE[0]}")/../.env"; set +a
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 START=""
@@ -33,7 +34,7 @@ if [ -z "$START" ] || [ -z "$END" ]; then
     exit 1
 fi
 
-BENCH_SAVE_DIR="/data/cluster/users/bareeva/quanda_output_final/eval_bench/${CONFIG_MAP_KEY%_linear_datamodeling}"
+BENCH_SAVE_DIR="${QUANDA_ROOT_DIR:?set in .env}/eval_bench/${CONFIG_MAP_KEY%_linear_datamodeling}"
 
 CONFIG_PATH=$(python -c "
 from quanda.benchmarks.resources.config_map import config_map

@@ -7,7 +7,7 @@ import os
 import argparse
 import json
 import yaml
-import re
+from dotenv import load_dotenv
 import glob
 import numpy as np
 
@@ -16,9 +16,11 @@ from matplotlib import rcParams
 
 from quanda.benchmarks.resources.config_map import config_map
 
-# specify the folder where the evaluation results are stored
-RESULTS_DIR = "/data2/bareeva/Projects/quanda/cluster_output_final/eval_results"
 
+load_dotenv()
+# specify the folder where the evaluation results are stored
+RESULTS_DIR = str(os.environ.get("QUANDA_ROOT_DIR")) + "/eval_results"
+print("Reading results from", RESULTS_DIR)
 
 METHOD_COLORS = {
     "representer_points": "#EB9C38",
