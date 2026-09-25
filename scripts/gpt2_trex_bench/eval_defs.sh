@@ -13,4 +13,4 @@ EXPL_SWEEP[similarity]="explainer.kwargs.layers=transformer.ln_f explainer.kwarg
 EXPL_SWEEP[kronfluence_gpt2]="device=cuda:0 batch_size=1"
 EXPL_SWEEP[dattri_trak]="device=cuda:0 +explainer.kwargs.layer_name=['transformer.h.11.mlp.c_fc.weight','transformer.h.11.mlp.c_proj.weight'] explainer.kwargs.projector_kwargs.proj_dim=1024"
 
-EXPL_SWEEP[dattri_if_datainf]="device=cuda:0 +explainer.kwargs.layer_name=['transformer.h.11.mlp.c_fc.weight','transformer.h.11.mlp.c_proj.weight'] explainer.kwargs.batch_size=8 explainer.kwargs.fim_estimate_data_ratio=0.2"
+EXPL_SWEEP[dattri_if_datainf]="device=cuda:0 +explainer.kwargs.layer_name=['transformer.h.11.mlp.c_fc.weight','transformer.h.11.mlp.c_proj.weight'] explainer.kwargs.batch_size=4 explainer.kwargs.fim_estimate_data_ratio=0.2"
