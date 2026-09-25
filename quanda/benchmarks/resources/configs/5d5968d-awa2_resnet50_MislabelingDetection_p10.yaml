@@ -48,7 +48,7 @@ val_dataset:
   transforms: awa2_transforms
   split_ref: awa2_train
   split_name: val
-id: 5d5968d-awa2_resnet50_MislabelingDetection_p05
+id: 5d5968d-awa2_resnet50_MislabelingDetection_p10
 bench: MislabelingDetection
 adversarial_label: 0
 bench_save_dir: /data/cluster/users/bareeva/quanda_output_new2/eval_bench/awa2
@@ -65,9 +65,9 @@ batch_size: 64
 m: 100
 alpha: 0.5
 subset_ids: lds_subsets.yaml
-ckpt: quanda-bench-test/5d5968d-awa2_resnet50_MislabelingDetection_p05
+ckpt: quanda-bench-test/5d5968d-awa2_resnet50_MislabelingDetection_p10
 num_checkpoints: 5
-meta_id: quanda-bench-test/5d5968d-awa2_resnet50_MislabelingDetection_p05_metadata
+meta_id: quanda-bench-test/5d5968d-awa2_resnet50_MislabelingDetection_p10_metadata
 splits:
   awa2_train:
     filename: awa2_train_split.yaml
