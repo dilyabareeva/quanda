@@ -34,6 +34,14 @@ for m in similarity representer_points tracincpfast arnoldi trak random; do
     done
 done
 
+# MNIST/CIFAR Mislabeling Detection Percentages
+for m in similarity representer_points tracincpfast arnoldi trak random; do
+    for b in mislabeling_detection_p05 mislabeling_detection_p15; do
+        eval mnsit_lenet_bench   mnist_lenet   mnist_$b $m
+        eval cifar_resnet9_bench cifar_resnet9 cifar_$b $m
+    done
+done
+
 
 # AwA2 STEP 1 Eval
 for m in similarity representer_points tracincpfast arnoldi trak random kronfluence; do
@@ -76,5 +84,3 @@ done
 for m in similarity kronfluence trak random representer_points; do
     eval bert_qnli_bench bert_qnli qnli_alpha075_linear_datamodeling  $m
 done
-
-

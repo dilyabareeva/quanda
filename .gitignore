@@ -96,3 +96,4 @@ slurm_LOCAL/*
 .pypirc
 scripts/rebuttal/**
 scripts/plot_results_OLD.py
+scripts/sweep_plots/**

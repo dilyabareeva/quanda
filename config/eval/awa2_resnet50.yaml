@@ -26,6 +26,8 @@ bench_eval:
   awa2_class_detection: {max_eval_n: 1000, eval_seed: 42}
   awa2_subclass_detection: {max_eval_n: 1000, eval_seed: 42}
   awa2_mislabeling_detection: {max_eval_n: null, eval_seed: 42}
+  awa2_mislabeling_detection_p10: {max_eval_n: null, eval_seed: 42}
+  awa2_mislabeling_detection_p15: {max_eval_n: null, eval_seed: 42}
   awa2_shortcut_detection: {max_eval_n: 1000, eval_seed: 42}
   awa2_mixed_datasets: {max_eval_n: 1000, eval_seed: 42}
   awa2_linear_datamodeling: {max_eval_n: 1000, eval_seed: 42}

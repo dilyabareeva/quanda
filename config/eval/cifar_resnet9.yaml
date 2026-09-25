@@ -26,6 +26,8 @@ bench_eval:
   cifar_class_detection: {max_eval_n: 1000, eval_seed: 42}
   cifar_subclass_detection: {max_eval_n: 1000, eval_seed: 42}
   cifar_mislabeling_detection: {max_eval_n: null, eval_seed: 42}
+  cifar_mislabeling_detection_p05: {max_eval_n: null, eval_seed: 42}
+  cifar_mislabeling_detection_p15: {max_eval_n: null, eval_seed: 42}
   cifar_shortcut_detection: {max_eval_n: 1000, eval_seed: 42}
   cifar_mixed_datasets: {max_eval_n: 1000, eval_seed: 42}
   cifar_linear_datamodeling: {max_eval_n: 1000, eval_seed: 42}

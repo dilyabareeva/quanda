@@ -26,6 +26,8 @@ bench_eval:
   mnist_class_detection: {max_eval_n: 1000, eval_seed: 42}
   mnist_subclass_detection: {max_eval_n: 1000, eval_seed: 42}
   mnist_mislabeling_detection: {max_eval_n: null, eval_seed: 42}
+  mnist_mislabeling_detection_p05: {max_eval_n: null, eval_seed: 42}
+  mnist_mislabeling_detection_p15: {max_eval_n: null, eval_seed: 42}
   mnist_shortcut_detection: {max_eval_n: 1000, eval_seed: 42}
   mnist_mixed_datasets: {max_eval_n: 1000, eval_seed: 42}
   mnist_linear_datamodeling: {max_eval_n: 1000, eval_seed: 42}

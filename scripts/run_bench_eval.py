@@ -51,6 +51,20 @@ BENCH_CLASS.update(
            for suffix in ("alpha075", "alpha09", "alpha095", "alpha0999")
     }
 )
+BENCH_CLASS.update(
+    {
+       f"{prefix}_mislabeling_detection_{suffix}": "MislabelingDetection"
+           for prefix in ("mnist", "cifar")
+           for suffix in ("p05", "p15")
+    }
+)
+BENCH_CLASS.update(
+    {
+       f"{prefix}_mislabeling_detection_{suffix}": "MislabelingDetection"
+           for prefix in ("awa2",)
+           for suffix in ("p10", "p15")
+    }
+)
 
 @hydra.main(
     version_base=None,
