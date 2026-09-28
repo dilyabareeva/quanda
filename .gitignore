@@ -85,7 +85,7 @@ scripts/bert_qnli_bench/train_qnli_lds_*
 scripts/nanoGPT-master/*
 scripts/sanity_check.tex
 tmp_*/*
-scripts/paper_tex/**
+scripts/appendix_collect_values/**
 scratch/*
 slurm/get_logs.sh
 scripts/delete_hf.py
@@ -97,3 +97,4 @@ slurm_LOCAL/*
 scripts/rebuttal/**
 scripts/plot_results_OLD.py
 scripts/sweep_plots/**
+scripts/auxiliary/m_sweep/**
