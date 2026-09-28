@@ -98,3 +98,6 @@ scripts/rebuttal/**
 scripts/plot_results_OLD.py
 scripts/sweep_plots/**
 scripts/auxiliary/m_sweep/**
+scripts/auxiliary/*.md
+scripts/auxiliary/*.tex
+slurm/**
