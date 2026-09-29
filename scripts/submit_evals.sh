@@ -84,3 +84,14 @@ done
 for m in similarity kronfluence trak random representer_points; do
     eval bert_qnli_bench bert_qnli qnli_alpha075_linear_datamodeling  $m
 done
+
+mrand() { sbatch --job-name="${3}_mrand_n20__$4" --partition="${PART[$2]}" --export=ALL,METHOD="$4" slurm/slurm_job.sbatch "scripts/$1/eval_${3}_model_randomization.sh" "${ARGS[@]}"; }
+
+for m in similarity representer_points trak tracincpfast arnoldi; do
+    mrand mnsit_lenet_bench   mnist_lenet   mnist $m
+    mrand cifar_resnet9_bench cifar_resnet9 cifar $m
+done
+
+for m in similarity representer_points tracincpfast trak kronfluence; do
+    mrand awa2_resnet50_bench awa2_resnet50 awa2 $m
+done
