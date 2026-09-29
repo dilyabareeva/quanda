@@ -579,6 +579,7 @@ class Benchmark(ABC):
                 load_fresh=load_fresh,
                 device=device,
             )
+            obj.load_last_checkpoint()
             obj._compute_and_save_indices(config, batch_size)
         else:
             obj = cls.train(
