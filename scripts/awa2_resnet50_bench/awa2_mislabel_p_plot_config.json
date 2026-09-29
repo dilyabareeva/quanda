@@ -14,8 +14,8 @@
     "awa2_mislabeling_detection_p15"
   ],
   "bench_labels": {
-    "awa2_mislabeling_detection": "Mislabeling\nDetection 5%",
-    "awa2_mislabeling_detection_p10": "Mislabeling\nDetection 10%",
-    "awa2_mislabeling_detection_p15": "Mislabeling\nDetection 15%"
+    "awa2_mislabeling_detection": "5%",
+    "awa2_mislabeling_detection_p10": "10%",
+    "awa2_mislabeling_detection_p15": "15%"
   }
 }

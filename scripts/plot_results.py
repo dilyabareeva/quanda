@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
-# 
+#
 # Evaluate the results produced by scripts/submit_evals.sh.
 
-import pandas as pd
-import os
 import argparse
-import json
-import yaml
-from dotenv import load_dotenv
 import glob
-import numpy as np
+import json
+import os
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import yaml
+from dotenv import load_dotenv
 from matplotlib import rcParams
 
 from quanda.benchmarks.resources.config_map import config_map
-
 
 load_dotenv()
 # specify the folder where the evaluation results are stored
@@ -53,7 +52,6 @@ BENCH_LABEL_SUFFIXES = {
     "class_detection": "Class\nDetection",
     "subclass_detection": "Subclass\nDetection",
     "mislabeling_detection": "Mislabeling\nDetection",
-    "mislabeling_detection_p05": "Mislabeling\nDetection",
     "shortcut_detection": "Shortcut\nDetection",
     "mixed_datasets": "Mixed Dataset\nSeparation",
     "top_k_cardinality": "Top-K\nCardinality",
@@ -90,6 +88,7 @@ CANONICAL_BENCH_VERSIONS = {}
 
 NO_CI_EXEMPT_SUBSTRINGS = ("mislabeling_detection", "top_k_cardinality")
 
+
 def _ci_exempt(bench_id: str) -> bool:
     return any(s in bench_id for s in NO_CI_EXEMPT_SUBSTRINGS)
 
@@ -107,6 +106,7 @@ def _bench_rank(bench_id: str) -> int:
         if bench_id == suffix or bench_id.endswith("_" + suffix):
             return i
     return len(BENCH_ORDER)
+
 
 def _detect_setting(benches: list[str]) -> str | None:
     """Common dataset prefix from bench ids (e.g. 'cifar' from
@@ -145,7 +145,9 @@ def _is_canonical_bench_versions(bench_id: str, bench_version: str):
     if bench_id not in CANONICAL_BENCH_VERSIONS:
         with open(config_map[bench_id]) as f:
             cfg = yaml.safe_load(f)
-        CANONICAL_BENCH_VERSIONS[bench_id] = cfg.get("explanations_group", cfg["id"])
+        CANONICAL_BENCH_VERSIONS[bench_id] = cfg.get(
+            "explanations_group", cfg["id"]
+        )
     return CANONICAL_BENCH_VERSIONS[bench_id] == bench_version
 
 
@@ -260,10 +262,7 @@ def draw_plot(
         for p in panels
     ]
     fig_w_px = (
-        left_px
-        + sum(panel_w_px)
-        + (len(panels) - 1) * panel_gap_px
-        + right_px
+        left_px + sum(panel_w_px) + (len(panels) - 1) * panel_gap_px + right_px
     )
 
     rcParams.update({"font.family": "DejaVu Sans", "font.size": 6})
@@ -410,17 +409,16 @@ def draw_plot(
     )
 
 
-        
 def plot_results(args):
     results_config = args.results_config
-    
+
     config = json.load(open(results_config, "r"))
     results_dir = os.path.join(args.results_dir, config["folder"])
     # find all the result files in the results_dir
     result_files = [f for f in os.listdir(results_dir) if f.endswith(".json")]
     # get folder of config file to save the plot
     out_dir = os.path.join(os.path.dirname(results_config), "bar_rank.png")
-    
+
     # read the results file into a pandas dataframe
     results = []
 
@@ -431,27 +429,37 @@ def plot_results(args):
         result["ci_low"] = scalar(result["ci_low"])
         result["ci_high"] = scalar(result["ci_high"])
         result["kwargs_key"] = json.dumps(
-                            result.get("expl_kwargs") or {}, sort_keys=True
-                        )
+            result.get("expl_kwargs") or {}, sort_keys=True
+        )
         results.append(result)
 
     results_df = pd.DataFrame(results)
     results_df["file"] = result_files
-    results_df["bench_version"] = results_df["file"].apply(_bench_version_from_path)
-    results_df["is_canonical"] = results_df.apply(lambda row: _is_canonical_bench_versions(row["bench_id"], row["bench_version"]), axis=1)
-    
+    results_df["bench_version"] = results_df["file"].apply(
+        _bench_version_from_path
+    )
+    results_df["is_canonical"] = results_df.apply(
+        lambda row: _is_canonical_bench_versions(
+            row["bench_id"], row["bench_version"]
+        ),
+        axis=1,
+    )
+
     # filter out non-canonical bench versions
-    assert len(results) == int(results_df["is_canonical"].sum()), "Some results are not canonical"
+    assert len(results) == int(results_df["is_canonical"].sum()), (
+        "Some results are not canonical"
+    )
     results_df = results_df[results_df["is_canonical"]]
-    
+
     results_df = results_df.dropna(subset=["score"])
-    
-    
+
     is_random = results_df["method"] == "random"
-    
+
     # create statistics for random explainer
     random_stats = (
-        results_df[is_random].groupby("bench_id")["score"].agg(["mean", "std", "count"])
+        results_df[is_random]
+        .groupby("bench_id")["score"]
+        .agg(["mean", "std", "count"])
     )
 
     # list of tried hyperparameters for each method and bench
@@ -472,17 +480,31 @@ def plot_results(args):
     ].drop(columns="__rank")
     bars_df = best.pivot(index="method", columns="bench_id", values="score")
     ci_low_df = best.pivot(index="method", columns="bench_id", values="ci_low")
-    ci_high_df = best.pivot(index="method", columns="bench_id", values="ci_high")
-    
-    draw_plot(config, results_dir, out_dir, bars_df, ci_low_df, ci_high_df, random_stats, tried_hparams)
+    ci_high_df = best.pivot(
+        index="method", columns="bench_id", values="ci_high"
+    )
 
+    draw_plot(
+        config,
+        results_dir,
+        out_dir,
+        bars_df,
+        ci_low_df,
+        ci_high_df,
+        random_stats,
+        tried_hparams,
+    )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--results_dir", type=str, default=RESULTS_DIR)
-    parser.add_argument("--results_config", type=str, default="scripts/cifar_resnet9_bench/cifar_plot_config.json")
-    
+    parser.add_argument(
+        "--results_config",
+        type=str,
+        default="scripts/cifar_resnet9_bench/cifar_plot_config.json",
+    )
+
     args = parser.parse_args()
-    
+
     plot_results(args)

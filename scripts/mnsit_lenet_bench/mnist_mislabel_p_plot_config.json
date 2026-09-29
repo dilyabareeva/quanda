@@ -14,8 +14,8 @@
     "mnist_mislabeling_detection_p15"
   ],
   "bench_labels": {
-    "mnist_mislabeling_detection_p05": "Mislabeling\nDetection 5%",
-    "mnist_mislabeling_detection": "Mislabeling\nDetection 10%",
-    "mnist_mislabeling_detection_p15": "Mislabeling\nDetection 15%"
+    "mnist_mislabeling_detection_p05": "5%",
+    "mnist_mislabeling_detection": "10%",
+    "mnist_mislabeling_detection_p15": "15%"
   }
 }
