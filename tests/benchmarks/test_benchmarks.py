@@ -1121,11 +1121,13 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
             total += batch_len
             continue
         model_inputs = ds_handler.get_model_inputs(inputs=inputs)
-        outputs = (
-            bench.model(**model_inputs)
-            if isinstance(model_inputs, dict)
-            else bench.model(model_inputs)
-        )
+        bench.model.eval()
+        with torch.no_grad():
+            outputs = (
+                bench.model(**model_inputs)
+                if isinstance(model_inputs, dict)
+                else bench.model(model_inputs)
+            )
         pred_cls = ds_handler.get_predictions(outputs=outputs)
         correct_idx *= pred_cls == labels
 
