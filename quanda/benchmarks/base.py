@@ -42,7 +42,10 @@ from quanda.utils.common import (
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.base import TransformedDataset
-from quanda.utils.training.trainer import _EpochSnapshotCallback
+from quanda.utils.training.trainer import (
+    BaseTrainer,
+    _EpochSnapshotCallback,
+)
 from quanda.utils.warnings import (
     QuandaAdvisoryWarning,
     QuandaCriticalWarning,
@@ -55,6 +58,46 @@ def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
         expl_kwargs or {}, sort_keys=True, default=stable_repr
     )
     return hashlib.sha1(payload.encode()).hexdigest()[:10]
+
+
+def _fit_benchmark_model(
+    trainer: Union[L.Trainer, BaseTrainer],
+    model: torch.nn.Module,
+    train_dl: torch.utils.data.DataLoader,
+    val_dl: Optional[torch.utils.data.DataLoader],
+    accelerator: str,
+    devices: int,
+    callbacks: Optional[List[L.Callback]],
+):
+    """Fit ``model`` with a ``lightning.Trainer`` or a ``BaseTrainer``."""
+    if isinstance(trainer, L.Trainer):
+        if not isinstance(model, L.LightningModule):
+            raise ValueError(
+                "Model should be a LightningModule if Trainer is a "
+                "Lightning Trainer"
+            )
+        if callbacks is not None:
+            trainer.callbacks.extend(  # type: ignore[attr-defined]
+                callbacks
+            )
+        trainer.fit(
+            model=model,
+            train_dataloaders=train_dl,
+            val_dataloaders=val_dl,
+        )
+    elif isinstance(trainer, BaseTrainer):
+        trainer.fit(
+            model=model,
+            train_dataloaders=train_dl,
+            val_dataloaders=val_dl,
+            accelerator=accelerator,
+            devices=devices,
+            callbacks=callbacks,
+        )
+    else:
+        raise ValueError(
+            "Trainer should be either a Lightning Trainer or a BaseTrainer."
+        )
 
 
 def _resolve_ckpts(config: dict) -> List[str]:
@@ -394,6 +437,7 @@ class Benchmark(ABC):
         batch_size: int = 64,
         load_fresh: bool = True,
         use_pid: bool = False,
+        trainer: Optional[Union[L.Trainer, BaseTrainer]] = None,
     ) -> "Benchmark":
         """Train a model using the provided configuration.
 
@@ -419,6 +463,12 @@ class Benchmark(ABC):
             If True, suffix checkpoint and metadata directories with
             the current process id to disambiguate concurrent runs. By
             default False.
+        trainer : Optional[Union[L.Trainer, BaseTrainer]], optional
+            Trainer to use instead of the one parsed from the
+            ``model.trainer`` config section. A ``lightning.Trainer``
+            requires the benchmark model to be a ``LightningModule``;
+            a ``BaseTrainer`` requires a plain ``torch.nn.Module``. By
+            default None.
 
         Returns
         -------
@@ -441,19 +491,21 @@ class Benchmark(ABC):
         if pretrained_base is not None:
             obj.model = pretrained_base
 
-        # Parse trainer configuration
-        trainer = TrainerConfigParser.parse_trainer_cfg(
-            config["model"]["trainer"]
-        )
+        # Parse trainer configuration unless a trainer was passed
+        if trainer is None:
+            trainer = TrainerConfigParser.parse_trainer_cfg(
+                config["model"]["trainer"]
+            )
         if logger is not None:
-            trainer.logger = logger
+            trainer.logger = logger  # type: ignore[union-attr]
 
+        num_workers = getattr(trainer, "num_workers", 0)
         ds_handler = get_dataset_handler(dataset=obj.train_dataset)
         train_dl = ds_handler.create_dataloader(
             dataset=obj.train_dataset,
             batch_size=batch_size,
             shuffle=True,
-            num_workers=trainer.num_workers,
+            num_workers=num_workers,
         )
         if obj.val_dataset is not None:
             val_ds_handler = get_dataset_handler(dataset=obj.val_dataset)
@@ -461,7 +513,7 @@ class Benchmark(ABC):
                 dataset=obj.val_dataset,
                 batch_size=batch_size,
                 shuffle=False,
-                num_workers=trainer.num_workers,
+                num_workers=num_workers,
             )
         else:
             val_dl = None
@@ -496,7 +548,10 @@ class Benchmark(ABC):
         snapshot_dirs: List[str] = []
         callbacks: Optional[List[L.Callback]] = None
         if num_checkpoints > 1:
-            max_epochs = config["model"]["trainer"]["max_epochs"]
+            max_epochs = (
+                getattr(trainer, "max_epochs", None)
+                or config["model"]["trainer"]["max_epochs"]
+            )
             snapshot_epochs = sorted(
                 {
                     min(
@@ -514,10 +569,11 @@ class Benchmark(ABC):
                 _EpochSnapshotCallback(snapshot_epochs, snapshot_dirs)
             ]
 
-        trainer.fit(
+        _fit_benchmark_model(
+            trainer=trainer,
             model=obj.model,
-            train_dataloaders=train_dl,
-            val_dataloaders=val_dl,
+            train_dl=train_dl,
+            val_dl=val_dl,
             accelerator=accelerator,
             devices=devices,
             callbacks=callbacks,
@@ -547,6 +603,7 @@ class Benchmark(ABC):
         batch_size: int = 64,
         load_fresh: bool = True,
         use_pid: bool = False,
+        trainer: Optional[Union[L.Trainer, BaseTrainer]] = None,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub.
 
@@ -570,6 +627,9 @@ class Benchmark(ABC):
             If True, suffix checkpoint and metadata directories with the
             current process id to disambiguate concurrent runs. By default
             False.
+        trainer : Optional[Union[L.Trainer, BaseTrainer]], optional
+            Trainer to use instead of the one parsed from the
+            ``model.trainer`` config section, by default None.
 
         Returns
         -------
@@ -595,6 +655,7 @@ class Benchmark(ABC):
                 batch_size=batch_size,
                 load_fresh=load_fresh,
                 use_pid=use_pid,
+                trainer=trainer,
             )
             if not isinstance(obj.model, PyTorchModelHubMixin):
                 raise TypeError(

@@ -145,7 +145,7 @@ class TRAK(Explainer):
             and projector tensor footprints. Defaults to False.
 
         """
-        logging.info("Initializing TRAK explainer...")
+        logger.info("Initializing TRAK explainer...")
 
         if checkpoints is not None or checkpoints_load_func is not None:
             warnings.warn(

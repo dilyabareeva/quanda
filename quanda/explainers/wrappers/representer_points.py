@@ -607,7 +607,7 @@ class RepresenterPoints(Explainer):
         """
         t = 10.0
         beta = 0.5
-        W_O = torch.tensor(model.W).detach().cpu().numpy()
+        W_O = model.W.detach().cpu().numpy()
         grad_np = grad.detach().cpu().numpy()
 
         while True:

@@ -227,4 +227,7 @@ class _EpochSnapshotCallback(L.Callback):
         if target is None:
             return
         os.makedirs(target, exist_ok=True)
-        pl_module.model.save_pretrained(target, safe_serialization=True)
+        # When a user-provided lightning.Trainer fits the benchmark
+        # model directly, pl_module is the model itself.
+        model = getattr(pl_module, "model", pl_module)
+        model.save_pretrained(target, safe_serialization=True)
