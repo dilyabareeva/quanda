@@ -161,6 +161,7 @@ dev = [ # Install wtih pip install .[dev] or pip install -e '.[dev]' in zsh
 ]
 tutorials = [
     "torchvision>=0.10.0",
+    "ipywidgets>=8.0.0",
     "matplotlib>=3.4.0",
     "pillow>=8.3.0",
     "python-dotenv>=1.0.0",
