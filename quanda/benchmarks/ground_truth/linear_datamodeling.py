@@ -30,6 +30,7 @@ from quanda.utils.common import (
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import correlation_functions
 from quanda.utils.training import Trainer
+from quanda.utils.warnings import QuandaAdvisoryWarning
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +186,9 @@ class LinearDatamodeling(Benchmark):
             warnings.warn(
                 f"Directory {local_ckpt_dir} already exists "
                 "and is not empty. Checkpoints will be "
-                "overwritten."
+                "overwritten.",
+                QuandaAdvisoryWarning,
+                stacklevel=2,
             )
         subset_model.save_pretrained(local_ckpt_dir, safe_serialization=True)
 

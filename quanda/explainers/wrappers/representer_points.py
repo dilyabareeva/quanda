@@ -41,6 +41,7 @@ from quanda.utils.common import (
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.tasks import TaskLiterals
+from quanda.utils.warnings import QuandaAdvisoryWarning
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +134,9 @@ def av_samples(av_dataset: AV.AVDataset) -> torch.Tensor:
     warnings.warn(
         "This method is only a good idea for small datasets and small "
         "architectures. Otherwise, this will consume "
-        "a lot of memory."
+        "a lot of memory.",
+        QuandaAdvisoryWarning,
+        stacklevel=2,
     )
     samples = []
 

@@ -63,6 +63,11 @@ from quanda.metrics.heuristics import (
     ModelRandomizationMetric,
     TopKCardinalityMetric,
 )
+from quanda.utils.warnings import (
+    QuandaAdvisoryWarning,
+    QuandaCriticalWarning,
+    QuandaWarning,
+)
 
 __all__ = [
     # Subpackages
@@ -129,6 +134,10 @@ __all__ = [
     "LinearDatamodeling",
     # Benchmark registry
     "bench_dict",
+    # Warning categories
+    "QuandaWarning",
+    "QuandaAdvisoryWarning",
+    "QuandaCriticalWarning",
 ]
 
 

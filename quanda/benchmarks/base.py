@@ -43,6 +43,10 @@ from quanda.utils.common import (
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.base import TransformedDataset
 from quanda.utils.training.trainer import _EpochSnapshotCallback
+from quanda.utils.warnings import (
+    QuandaAdvisoryWarning,
+    QuandaCriticalWarning,
+)
 
 
 def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
@@ -98,7 +102,7 @@ def default_explanations_id(
             f"{group!r} replaces bench id {bench_id!r}. Only correct if "
             "grouped benchmarks share model + train/eval datasets — "
             "mismatches will silently corrupt results.",
-            UserWarning,
+            QuandaCriticalWarning,
             stacklevel=2,
         )
     return (
@@ -483,7 +487,9 @@ class Benchmark(ABC):
         if len(os.listdir(ckpt_dir)) > 0:
             warnings.warn(
                 f"Directory {ckpt_dir} already exists and is not empty. "
-                "Checkpoints will be overwritten."
+                "Checkpoints will be overwritten.",
+                QuandaAdvisoryWarning,
+                stacklevel=2,
             )
 
         num_checkpoints = int(config.get("num_checkpoints", 1))
@@ -981,7 +987,7 @@ class Benchmark(ABC):
                 "datasets. Cache meta: "
                 f"explainer={meta.get('explainer_cls')!r}, "
                 f"explanations_group={meta.get('explanations_group')!r}.",
-                UserWarning,
+                QuandaCriticalWarning,
                 stacklevel=2,
             )
 

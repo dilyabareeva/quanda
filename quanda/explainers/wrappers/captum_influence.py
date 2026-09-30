@@ -39,6 +39,7 @@ from quanda.utils.common import (
 from quanda.utils.datasets import OnDeviceDataset
 from quanda.utils.functions import cosine_similarity
 from quanda.utils.tasks import TaskLiterals
+from quanda.utils.warnings import QuandaAdvisoryWarning
 
 logger = logging.getLogger(__name__)
 
@@ -375,7 +376,9 @@ class CaptumSimilarity(CaptumInfluence):
         if "top_k" in explainer_kwargs:
             warnings.warn(
                 "top_k is not supported by CaptumSimilarity explainer. "
-                "Ignoring the argument."
+                "Ignoring the argument.",
+                QuandaAdvisoryWarning,
+                stacklevel=2,
             )
 
     @property
@@ -745,7 +748,9 @@ class CaptumArnoldi(CaptumInfluence):
                 explainer_kwargs.pop(arg)
                 warnings.warn(
                     f"{arg} is not supported by CaptumArnoldi explainer. "
-                    f"Ignoring the argument."
+                    f"Ignoring the argument.",
+                    QuandaAdvisoryWarning,
+                    stacklevel=2,
                 )
 
         super().__init__(
@@ -1013,7 +1018,9 @@ class CaptumTracInCP(CaptumInfluence):
                 explainer_kwargs.pop(arg)
                 warnings.warn(
                     f"{arg} is not supported by CaptumTraceInCP explainer. "
-                    f"Ignoring the argument."
+                    f"Ignoring the argument.",
+                    QuandaAdvisoryWarning,
+                    stacklevel=2,
                 )
 
         self.outer_loop_by_checkpoints = explainer_kwargs.pop(
@@ -1152,7 +1159,9 @@ class CaptumTracInCPFast(CaptumInfluence):
                 explainer_kwargs.pop(arg)
                 warnings.warn(
                     f"{arg} is not supported by CaptumTraceInCPFast "
-                    f"explainer. Ignoring the argument."
+                    f"explainer. Ignoring the argument.",
+                    QuandaAdvisoryWarning,
+                    stacklevel=2,
                 )
 
         self.outer_loop_by_checkpoints = explainer_kwargs.pop(
@@ -1332,7 +1341,9 @@ class CaptumTracInCPFastRandProj(CaptumInfluence):
                 explainer_kwargs.pop(arg)
                 warnings.warn(
                     f"{arg} is not supported by CaptumTraceInCPFastRandProj "
-                    f"explainer. Ignoring the argument."
+                    f"explainer. Ignoring the argument.",
+                    QuandaAdvisoryWarning,
+                    stacklevel=2,
                 )
 
         self.outer_loop_by_checkpoints = explainer_kwargs.pop(

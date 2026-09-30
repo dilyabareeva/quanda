@@ -31,6 +31,10 @@ from quanda.utils.datasets.dataset_handlers import (
     get_dataset_handler,
 )
 from quanda.utils.tasks import TaskLiterals
+from quanda.utils.warnings import (
+    QuandaAdvisoryWarning,
+    QuandaCriticalWarning,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +152,7 @@ class TRAK(Explainer):
                 "TRAK ignores `checkpoints` and `checkpoints_load_func`: "
                 "featurization runs against `model.state_dict()` only. Pass "
                 "a model whose weights are already loaded.",
-                UserWarning,
+                QuandaCriticalWarning,
                 stacklevel=2,
             )
 
@@ -185,7 +189,9 @@ class TRAK(Explainer):
             else:
                 warnings.warn(
                     "Could not find cuda installation of TRAK. Defaulting to "
-                    "BasicProjector."
+                    "BasicProjector.",
+                    QuandaAdvisoryWarning,
+                    stacklevel=2,
                 )
                 projector = "basic"
 

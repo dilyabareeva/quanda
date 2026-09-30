@@ -7,6 +7,7 @@ from typing import Optional
 import torch
 
 from quanda.explainers.base import Explainer
+from quanda.utils.warnings import QuandaAdvisoryWarning
 
 
 class SelfInfluenceRanking:
@@ -95,7 +96,9 @@ class SelfInfluenceRanking:
         """Print a warning message for unsupported methods."""
         warnings.warn(
             f"{method_name} method is not supported for "
-            "`MislabelingDetectionMetric`. "
+            "`MislabelingDetectionMetric`. ",
+            QuandaAdvisoryWarning,
+            stacklevel=3,
         )
 
     def reset(self, *args, **kwargs):

@@ -26,6 +26,7 @@ from quanda.utils.common import (
     resolve_device,
 )
 from quanda.utils.tasks import TaskLiterals
+from quanda.utils.warnings import QuandaCriticalWarning
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +137,7 @@ class Kronfluence(Explainer):
                 "`checkpoints_load_func`: factor fitting runs against the "
                 "model's current weights only. Pass a model whose weights "
                 "are already loaded.",
-                UserWarning,
+                QuandaCriticalWarning,
                 stacklevel=2,
             )
         super().__init__(
