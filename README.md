@@ -73,7 +73,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 
 - **Model Randomization** ([Hanawa et al., 2021](https://openreview.net/forum?id=9uvhpyQwzM_)): Measures the correlation between the original TDA and the TDA of a model with randomized weights. Since the attributions are expected to depend on model parameters, the correlation between original and randomized attributions should be low.
 
--  **Top-K Cardinality**  ([Barshan et al., 2020](http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf)): Measures the cardinality of the union of the top-K training samples. Since the attributions are expected to be dependent on the test input, they are expected to vary heavily for different test points, resulting in a low overlap (high metric value).
+-  **Top-K Cardinality**  ([Barshan et al., 2020](http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf)): Measures the cardinality of the union of the top-K training samples over the test set. A low value uncovers a specific failure mode: a limited pool of top attributions shared across many test samples. Note that only a very low score is suspicious: a low score need not indicate poor attribution quality (a model may legitimately rely on few training samples), and a medium score is not necessarily better than a high one.
 
 - **Mislabeled Data Detection** ([Koh and Liang, 2017](https://proceedings.mlr.press/v70/koh17a.html)): Computes the proportion of noisy training labels detected as a function of the percentage of inspected training samples. The samples are inspected in order according to their global TDA ranking, which is computed using local attributions. This produces a cumulative mislabeling detection curve. We expect to see a curve that rapidly increases as we check more of the training data, thus we compute the area under this curve
 
@@ -97,7 +97,7 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 | [MislabelingDetection](quanda/metrics/downstream_eval/mislabeling_detection.py)                      | `[0, 1]`     | higher       |
 | [ShortcutDetection](quanda/metrics/downstream_eval/shortcut_detection.py)                            | `[0, 1]`     | higher       |
 | [MixedDatasets](quanda/metrics/heuristics/mixed_datasets.py)                                         | `[0, 1]`     | higher       |
-| [TopKCardinality](quanda/metrics/heuristics/top_k_cardinality.py)                                    | `[0, 1]`     | higher       |
+| [TopKCardinality](quanda/metrics/heuristics/top_k_cardinality.py)                                    | `[0, 1]`     | only very low is suspicious |
 | [ModelRandomization](quanda/metrics/heuristics/model_randomization.py)                               | `[-1, 1]`    | closer to 0  |
 | [LinearDatamodelingScore](quanda/metrics/ground_truth/linear_datamodeling.py)                        | `[-1, 1]`    | higher       |
 | [MRR](quanda/metrics/downstream_eval/mrr.py)                                                         | `[0, 1]`     | higher       |
@@ -109,6 +109,9 @@ Although there are various demonstrations of TDA’s potential for interpretabil
 ### Benchmarks
 
 **quanda** comes with a few pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. The benchmark IDs listed below are to be passed to `load_pretrained`. The following benchmarks are currently available:
+
+Some settings additionally come with hyperparameter variants, such as LDS at different retraining subset sizes `alpha`. See [Available Benchmarks](https://quanda.readthedocs.io/en/latest/benchmarks.html) for the full list of benchmark IDs.
+
 <table>
   <thead>
     <tr>
