@@ -580,7 +580,7 @@ class RepresenterPoints(Explainer):
 
     def backtracking_line_search(
         self,
-        model: torch.nn.Module,
+        model: RepresenterSoftmax,
         grad: torch.Tensor,
         x: torch.Tensor,
         y: torch.Tensor,
@@ -591,7 +591,7 @@ class RepresenterPoints(Explainer):
 
         Parameters
         ----------
-        model : torch.nn.Module
+        model : RepresenterSoftmax
             The model to be trained.
         grad : torch.Tensor
             The gradient of the model.
