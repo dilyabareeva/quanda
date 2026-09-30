@@ -1,25 +1,4 @@
-"""Tables: ModelRandomization with 1 vs N randomized models.
-
-One row per explainer, two columns:
-
-* ``1 model``  — the single-model score reported in the paper: among
-  the swept configs in ``eval_results/<dataset>`` the one with the
-  smallest |correlation| (the min-abs rule ``scripts/plot_results.py``
-  applies to ``model_randomization``).
-* ``N models`` — ``mean +/- std`` across the ``n_rand_models``
-  independently randomized models, read from
-  ``eval_results/<dataset>_mrand_n<N>`` (the results_dir override in
-  the ``eval_*_model_randomization.sh`` scripts).
-
-Cells with no result yet render as ``-``, so this can run while jobs
-are still landing and be re-run as results arrive.
-
-Run from the repo root::
-
-    python scripts/rebuttal/model_randomization.py                 # local root
-    python scripts/rebuttal/model_randomization.py --results-root \\
-        /data/cluster/users/bareeva/quanda_output_new2/eval_results  # cluster
-"""
+"""Tables: ModelRandomization with 1 vs N randomized models."""
 
 from __future__ import annotations
 
