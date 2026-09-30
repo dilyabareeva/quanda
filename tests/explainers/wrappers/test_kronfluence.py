@@ -212,7 +212,6 @@ def test_kronfluence_self_influence_with_optional_args(
     )
 
 
-
 @pytest.mark.explainers
 @pytest.mark.parametrize(
     "test_id, model, dataset, task, batch_size",

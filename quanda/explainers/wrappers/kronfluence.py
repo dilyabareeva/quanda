@@ -4,7 +4,7 @@ import copy
 import logging
 import os
 import warnings
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import datasets  # type: ignore
 import torch
@@ -19,10 +19,6 @@ from torch import nn
 from transformers import default_data_collator  # type: ignore
 
 from quanda.explainers.base import Explainer
-from quanda.explainers.utils import (
-    explain_fn_from_explainer,
-    self_influence_fn_from_explainer,
-)
 from quanda.utils.common import (
     CheckpointLoadFunc,
     process_targets,

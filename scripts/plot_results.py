@@ -198,6 +198,22 @@ def _discover(results_dir: str) -> tuple[list[str], list[str]]:
     return sorted(methods), sorted(benches)
 
 
+def _warn_missing_ci(
+    scores: pd.DataFrame,
+    ci_low: pd.DataFrame,
+    ci_high: pd.DataFrame,
+    benches: list[str],
+) -> None:
+    no_ci = scores.notna() & ci_low.isna() & ci_high.isna()
+    for b in benches:
+        if not _ci_exempt(b):
+            for m in no_ci.index[no_ci[b]]:
+                print(
+                    f"warning: benchmark {b!r} is missing error bars "
+                    f"for explainer {m!r}"
+                )
+
+
 def draw_plot(
     cfg: dict,
     results_dir: str,
@@ -233,14 +249,7 @@ def draw_plot(
     )
 
     # warn about scores that should come with a CI but don't
-    no_ci = scores.notna() & ci_low.isna() & ci_high.isna()
-    for b in benches:
-        if not _ci_exempt(b):
-            for m in no_ci.index[no_ci[b]]:
-                print(
-                    f"warning: benchmark {b!r} is missing error bars "
-                    f"for explainer {m!r}"
-                )
+    _warn_missing_ci(scores, ci_low, ci_high, benches)
 
     # skip benches without any score, split the rest into two panels
     shown = [b for b in benches if scores[b].notna().any()]

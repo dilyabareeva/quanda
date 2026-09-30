@@ -21,10 +21,10 @@ from typing import (
     Union,
     cast,
 )
-from omegaconf import DictConfig, OmegaConf
 
 import torch
 import yaml
+from omegaconf import DictConfig, OmegaConf
 from torch import nn
 
 CheckpointLoadFunc = Callable[[torch.nn.Module, str], Any]

@@ -5,7 +5,6 @@ import os
 import warnings
 from importlib.util import find_spec
 from typing import (
-    Any,
     List,
     Literal,
     Optional,
@@ -24,10 +23,6 @@ from trak.projectors import (
 from trak.utils import get_matrix_mult
 
 from quanda.explainers.base import Explainer
-from quanda.explainers.utils import (
-    explain_fn_from_explainer,
-    self_influence_fn_from_explainer,
-)
 from quanda.utils.common import CheckpointLoadFunc, ds_len, process_targets
 from quanda.utils.datasets.dataset_handlers import (
     HuggingFaceDatasetHandler,
@@ -308,4 +303,3 @@ class TRAK(Explainer):
         )
 
         return explanations.T
-

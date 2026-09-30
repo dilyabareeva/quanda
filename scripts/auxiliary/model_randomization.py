@@ -249,7 +249,7 @@ def _tex_table(datas: dict, n: int) -> str:
     caption = (
         rf"ModelRandomization computed with a single randomized model,"
         rf" as used in the benchmarks evaluations reported in \cref{{fig:eval-image-classification,fig:eval-text-classification,fig:eval-image-classification-mnist,fig:eval-image-classification-cifar}}, versus {n} independently"
-        rf" randomized models (mean $\pm$ std over the per-model scores)."
+        rf" randomized models (mean $\pm$ std over the scores per random model."
     )
     return "\n".join(
         [
