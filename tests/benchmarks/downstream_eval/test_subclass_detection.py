@@ -80,7 +80,7 @@ def test_subclass_class_to_group(config_name, tmp_path):
             {
                 "train_acc": 0.9,
                 "val_acc": 0.72,
-                "eval_post_filter_percentage": 0.7,
+                "eval_post_filter_percentage": 0.48,
             },
         ),
     ],

@@ -12,7 +12,7 @@ hydra:
     n_jobs: 1
 
 bench: awa2_class_detection
-root_dir: bench_out
+root_dir: ${oc.env:QUANDA_ROOT_DIR}
 cache_dir: ${root_dir}/eval_bench/awa2
 results_dir: ${root_dir}/eval_results/awa2
 
@@ -26,9 +26,12 @@ bench_eval:
   awa2_class_detection: {max_eval_n: 1000, eval_seed: 42}
   awa2_subclass_detection: {max_eval_n: 1000, eval_seed: 42}
   awa2_mislabeling_detection: {max_eval_n: null, eval_seed: 42}
+  awa2_mislabeling_detection_p10: {max_eval_n: null, eval_seed: 42}
+  awa2_mislabeling_detection_p15: {max_eval_n: null, eval_seed: 42}
   awa2_shortcut_detection: {max_eval_n: 1000, eval_seed: 42}
   awa2_mixed_datasets: {max_eval_n: 1000, eval_seed: 42}
   awa2_linear_datamodeling: {max_eval_n: 1000, eval_seed: 42}
+  awa2_alpha075_linear_datamodeling: {max_eval_n: 1000, eval_seed: 42}
   awa2_top_k_cardinality: {max_eval_n: 1000, eval_seed: 42}
   awa2_model_randomization: {max_eval_n: 1000, eval_seed: 42}
 

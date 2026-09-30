@@ -1,0 +1,18 @@
+{
+  "folder": "qnli",
+  "methods": [
+    "kronfluence",
+    "trak",
+    "similarity",
+    "representer_points",
+    "random"
+  ],
+  "benches": [
+    "qnli_linear_datamodeling",
+    "qnli_alpha075_linear_datamodeling"
+  ],
+  "bench_labels": {
+    "qnli_linear_datamodeling": "LDS\nα=0.5",
+    "qnli_alpha075_linear_datamodeling": "LDS\nα=0.75"
+  }
+}

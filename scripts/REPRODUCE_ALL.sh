@@ -19,12 +19,14 @@ bash "$DIR/bert_qnli_bench/train_qnli_lds.sh"
 # 3) Collect LDS submodel logits
 bash "$DIR/awa2_resnet50_bench/compute_lds_subset_logits_awa2.sh" \
     --start 0 --end 100 \
-    --batch-size 64 --max-eval-n 1000 --eval-seed 42 \
-    --inference-batch-size 64 --device cuda:0
-bash "$DIR/bert_qnli_bench/compute_lds_subset_logits_qnli.sh" \
+    --batch-size 16 --max-eval-n 1000 --eval-seed 42 \
+    --inference-batch-size 64 --device cuda:0 \
+    --config-map-key awa2_linear_datamodeling
+bash "$DIR/compute_lds_subset_logits.sh" \
     --start 0 --end 100 \
     --batch-size 8 --max-eval-n 1000 --eval-seed 42 \
-    --inference-batch-size 32 --device cuda:0
+    --inference-batch-size 32 --device cuda:0 \
+    --config-map-key qnli_linear_datamodeling
 
 # 4) Run eval
 bash "$DIR/mnsit_lenet_bench/eval_mnist_pt1.sh"

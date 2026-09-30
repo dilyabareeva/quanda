@@ -3,6 +3,7 @@
 import math
 import os
 
+import lightning as L
 import pytest
 import torch
 import yaml
@@ -28,6 +29,7 @@ from quanda.benchmarks.resources import config_map
 from quanda.explainers.wrappers import CaptumSimilarity
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import cosine_similarity
+from quanda.utils.training import BaseTrainer
 
 
 @pytest.mark.benchmarks
@@ -841,6 +843,58 @@ def test_train_snapshot_dirs(
 
 
 @pytest.mark.benchmarks
+def test_train_custom_trainer(
+    load_mnist_unit_test_config,
+    tmp_path,
+    monkeypatch,
+):
+    """train() uses a user-passed BaseTrainer instead of the config one."""
+    config = load_mnist_unit_test_config
+    config["bench_save_dir"] = str(tmp_path)
+
+    monkeypatch.setattr(
+        ClassDetection,
+        "_compute_and_save_indices",
+        lambda self, config, batch_size=8: None,
+    )
+
+    class DummyTrainer(BaseTrainer):
+        def __init__(self):
+            self.fitted = False
+
+        def fit(
+            self,
+            model,
+            train_dataloaders,
+            val_dataloaders=None,
+            *args,
+            **kwargs,
+        ):
+            self.fitted = True
+            return model
+
+    trainer = DummyTrainer()
+    bench = ClassDetection.train(config=config, trainer=trainer)
+
+    assert trainer.fitted
+    assert len(bench.checkpoints) == 1
+
+
+@pytest.mark.benchmarks
+def test_train_lightning_trainer_requires_lightning_module(
+    load_mnist_unit_test_config,
+    tmp_path,
+):
+    """train() rejects a lightning.Trainer for a plain nn.Module model."""
+    config = load_mnist_unit_test_config
+    config["bench_save_dir"] = str(tmp_path)
+
+    trainer = L.Trainer(max_epochs=1, accelerator="cpu", logger=False)
+    with pytest.raises(ValueError, match="LightningModule"):
+        ClassDetection.train(config=config, trainer=trainer)
+
+
+@pytest.mark.benchmarks
 @pytest.mark.parametrize(
     "test_id, extra_config, expect_error",
     [
@@ -1121,11 +1175,13 @@ def test_benchmark_filters(config_name, bench_cls, tmp_path):
             total += batch_len
             continue
         model_inputs = ds_handler.get_model_inputs(inputs=inputs)
-        outputs = (
-            bench.model(**model_inputs)
-            if isinstance(model_inputs, dict)
-            else bench.model(model_inputs)
-        )
+        bench.model.eval()
+        with torch.no_grad():
+            outputs = (
+                bench.model(**model_inputs)
+                if isinstance(model_inputs, dict)
+                else bench.model(model_inputs)
+            )
         pred_cls = ds_handler.get_predictions(outputs=outputs)
         correct_idx *= pred_cls == labels
 

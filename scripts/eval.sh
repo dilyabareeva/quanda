@@ -5,8 +5,6 @@ export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 set -o noglob
 
-PARALLEL="${PARALLEL:-true}"
-
 REGEN_OVERRIDE=""
 [ "$1" = "--regenerate-explanations" ] && REGEN_OVERRIDE="+regenerate_explanations=true"
 
@@ -17,11 +15,14 @@ run_eval() {
     local bench=$1 method=$2 sweep=$3
     local multirun=""
     [ -n "$sweep" ] && multirun="--multirun"
+    # for alpha LDS variants
+    local cache_override=""
+    [[ "$bench" == *_alpha* ]] && cache_override="cache_dir=\${root_dir}/eval_bench/${bench%_linear_datamodeling}"
     env HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
         python scripts/run_bench_eval.py \
         --config-name "$EVAL_CONFIG_NAME" $multirun \
         bench="$bench" explainer="$method" \
-        $sweep $REGEN_OVERRIDE
+        $sweep $REGEN_OVERRIDE $cache_override
 }
 
 # Populate the local cache (metadata + ckpt) once per benchmark 
@@ -36,9 +37,6 @@ for bench in "${benchmarks[@]}"; do
     for method in "${methods[@]}"; do
         sweep="${EXPL_SWEEP[$method]}"
         log="${LOG_DIR}/${bench}__${method}.log"
-        run_eval "$bench" "$method" "$sweep" > "$log" 2>&1 &
+        run_eval "$bench" "$method" "$sweep" > "$log" 2>&1
     done
-    [ "$PARALLEL" = true ] || wait
 done
-
-wait

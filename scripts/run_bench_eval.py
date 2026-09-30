@@ -9,12 +9,15 @@ import shutil
 
 import hydra
 import yaml
+from dotenv import load_dotenv
 from hydra.utils import get_class, instantiate
 from omegaconf import DictConfig, OmegaConf
 
 from quanda.benchmarks import bench_dict
 from quanda.benchmarks.base import default_explanations_id
 from quanda.benchmarks.resources.config_map import config_map
+
+load_dotenv()
 
 _SUFFIX_TO_CLASS = {
     "class_detection": "ClassDetection",
@@ -36,6 +39,30 @@ BENCH_CLASS.update(
         "gpt2_trex_openwebtext_ft_mrr": "MRR",
         "gpt2_trex_openwebtext_ft_recall_at_k": "RecallAtK",
         "gpt2_trex_openwebtext_ft_tail_patch": "TailPatch",
+        "awa2_alpha075_linear_datamodeling": "LDS",
+        "qnli_alpha075_linear_datamodeling": "LDS",
+    }
+)
+
+BENCH_CLASS.update(
+    {
+        f"{prefix}_{suffix}_linear_datamodeling": "LDS"
+        for prefix in ("mnist", "cifar")
+        for suffix in ("alpha075", "alpha09", "alpha095", "alpha0999")
+    }
+)
+BENCH_CLASS.update(
+    {
+        f"{prefix}_mislabeling_detection_{suffix}": "MislabelingDetection"
+        for prefix in ("mnist", "cifar")
+        for suffix in ("p05", "p15")
+    }
+)
+BENCH_CLASS.update(
+    {
+        f"{prefix}_mislabeling_detection_{suffix}": "MislabelingDetection"
+        for prefix in ("awa2",)
+        for suffix in ("p10", "p15")
     }
 )
 
@@ -55,6 +82,9 @@ def main(cfg: DictConfig) -> float:
         bench_cfg = yaml.safe_load(f)
     bench_cfg["bench_save_dir"] = cfg.cache_dir
 
+    if cfg.get("n_rand_models", None) is not None:
+        bench_cfg["n_rand_models"] = int(cfg.n_rand_models)
+
     bench_cls = bench_dict[BENCH_CLASS[bench_id]]
 
     max_eval_n = cfg.bench_eval[bench_id].max_eval_n
@@ -66,6 +96,7 @@ def main(cfg: DictConfig) -> float:
         expl_kwargs,
         max_eval_n=max_eval_n,
         eval_seed=eval_seed,
+        batch_size=cfg.batch_size,
     )
     tag = explanations_id.replace("/", "__")
     expl_params = inspect.signature(expl_cls).parameters
@@ -137,10 +168,14 @@ def main(cfg: DictConfig) -> float:
         score_value = score["score"]
         ci_low = score.get("ci_low")
         ci_high = score.get("ci_high")
+        std = score.get("std")
+        per_model_scores = score.get("per_model_scores")
     else:
         score_value = score
         ci_low = None
         ci_high = None
+        std = None
+        per_model_scores = None
 
     os.makedirs(cfg.results_dir, exist_ok=True)
     bench_name = BENCH_CLASS[bench_id]
@@ -153,6 +188,8 @@ def main(cfg: DictConfig) -> float:
                 "method": cfg.explainer.name,
                 "expl_kwargs": {k: repr(v) for k, v in expl_kwargs.items()},
                 "score": score_value,
+                "std": std,
+                "per_model_scores": per_model_scores,
                 "ci_low": ci_low,
                 "ci_high": ci_high,
                 "resolved": resolved,

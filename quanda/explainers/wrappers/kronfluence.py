@@ -4,7 +4,7 @@ import copy
 import logging
 import os
 import warnings
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import datasets  # type: ignore
 import torch
@@ -19,10 +19,6 @@ from torch import nn
 from transformers import default_data_collator  # type: ignore
 
 from quanda.explainers.base import Explainer
-from quanda.explainers.utils import (
-    explain_fn_from_explainer,
-    self_influence_fn_from_explainer,
-)
 from quanda.utils.common import (
     CheckpointLoadFunc,
     process_targets,
@@ -30,6 +26,7 @@ from quanda.utils.common import (
     resolve_device,
 )
 from quanda.utils.tasks import TaskLiterals
+from quanda.utils.warnings import QuandaCriticalWarning
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +137,7 @@ class Kronfluence(Explainer):
                 "`checkpoints_load_func`: factor fitting runs against the "
                 "model's current weights only. Pass a model whose weights "
                 "are already loaded.",
-                UserWarning,
+                QuandaCriticalWarning,
                 stacklevel=2,
             )
         super().__init__(
@@ -349,98 +346,3 @@ class Kronfluence(Explainer):
         ]
 
         return scores
-
-
-def kronfluence_explain(
-    model: nn.Module,
-    task_module: Task,
-    test_data: Union[torch.Tensor, Dict[str, torch.Tensor], List[dict]],
-    explanation_targets: Union[List[int], torch.Tensor],
-    train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
-    checkpoints: Optional[Union[str, List[str]]] = None,
-    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
-    **kwargs: Any,
-) -> torch.Tensor:
-    """Functional interface for the `Kronfluence` explainer.
-
-    Parameters
-    ----------
-    model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation.
-    task_module : kronfluence.task.Task
-        The task associated with the model.
-    test_data : Union[torch.Tensor, Dict[str, torch.Tensor], List[dict]]
-        Test samples for which influence scores are computed.
-    explanation_targets : Union[List[int], torch.Tensor]
-        Labels for the test samples.
-    train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
-        Training dataset to be used for the influence computation.
-    checkpoints : Optional[Union[str, List[str]]], optional
-        Path to the model checkpoint file(s), defaults to None.
-    checkpoints_load_func : Optional[CheckpointLoadFunc], optional
-        Function to load the model from the checkpoint file, takes
-        (model, checkpoint path) as two arguments, by default None.
-    **kwargs : Any
-        Additional keyword arguments passed to the explainer.
-
-    Returns
-    -------
-    torch.Tensor
-        2D Tensor of shape (test_samples, train_dataset_size) containing the
-        influence scores.
-
-    """
-    return explain_fn_from_explainer(
-        explainer_cls=Kronfluence,
-        model=model,
-        task_module=task_module,
-        test_data=test_data,
-        targets=explanation_targets,
-        train_dataset=train_dataset,
-        checkpoints=checkpoints,
-        checkpoints_load_func=checkpoints_load_func,
-        **kwargs,
-    )
-
-
-def kronfluence_self_influence(
-    model: nn.Module,
-    task: Task,
-    train_dataset: Union[torch.utils.data.Dataset, datasets.Dataset],
-    checkpoints: Optional[Union[str, List[str]]] = None,
-    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
-    **kwargs: Any,
-) -> torch.Tensor:
-    """Functional interface for `Kronfluence` explainer.
-
-    Parameters
-    ----------
-    model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be used for the influence computation.
-    task : kronfluence.task.Task
-        The task associated with the model.
-    train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
-        Training dataset to be used for the influence computation.
-    checkpoints : Optional[Union[str, List[str]]], optional
-        Path to the model checkpoint file(s), defaults to None.
-    checkpoints_load_func : Optional[CheckpointLoadFunc], optional
-        Function to load the model from the checkpoint file, takes
-        (model, checkpoint path) as two arguments, by default None.
-    **kwargs : Any
-        Additional keyword arguments passed to the explainer.
-
-    Returns
-    -------
-    torch.Tensor
-        Self-influence scores for each datapoint in train_dataset.
-
-    """
-    return self_influence_fn_from_explainer(
-        explainer_cls=Kronfluence,
-        model=model,
-        task_module=task,
-        train_dataset=train_dataset,
-        checkpoints=checkpoints,
-        checkpoints_load_func=checkpoints_load_func,
-        **kwargs,
-    )

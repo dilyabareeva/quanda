@@ -185,6 +185,93 @@ def test_representer_points_normalize_features(
 
 
 @pytest.mark.explainers
+def test_representer_points_explain_retains_no_graph(
+    load_mnist_model,
+    load_mnist_last_checkpoint,
+    load_mnist_dataset,
+    load_mnist_test_samples_1,
+    load_mnist_test_labels_1,
+    tmp_path,
+):
+    """explain() must not keep an autograd graph alive.
+
+    `current_acts` outlives the call, so a grad-enabled forward would pin
+    every tensor saved for backward (tens of GB for a ResNet50 at batch
+    128, which is enough to OOM a 24 GB card).
+    """
+    explainer = RepresenterPoints(
+        model=load_mnist_model,
+        checkpoints=load_mnist_last_checkpoint,
+        cache_dir=str(tmp_path),
+        train_dataset=load_mnist_dataset,
+        model_id="nograd",
+        batch_size=8,
+        features_layer="relu_4",
+        classifier_layer="fc_3",
+        show_progress=False,
+        epoch=2,
+    )
+
+    assert explainer.coefficients.grad_fn is None
+    assert not explainer.coefficients.requires_grad
+
+    explanations = explainer.explain(
+        test_data=load_mnist_test_samples_1,
+        targets=load_mnist_test_labels_1,
+    )
+
+    assert explainer.current_acts.grad_fn is None
+    assert explanations.grad_fn is None
+    assert not explanations.requires_grad
+
+
+@pytest.mark.explainers
+def test_representer_points_normalize_constant_features(
+    load_mnist_model,
+    load_mnist_last_checkpoint,
+    load_mnist_dataset,
+    tmp_path,
+    monkeypatch,
+):
+    """Zero-variance feature dimensions normalize to 0, not to NaN.
+
+    Units that never activate over the training set (common for a
+    randomized model) have std_dev == 0. Dividing by it used to produce
+    NaN features, NaN representer coefficients and NaN attributions.
+    """
+    monkeypatch.setattr(
+        RepresenterPoints,
+        "train",
+        lambda self: setattr(
+            self, "coefficients", torch.zeros(len(load_mnist_dataset), 10)
+        ),
+    )
+
+    explainer = RepresenterPoints(
+        model=load_mnist_model,
+        checkpoints=load_mnist_last_checkpoint,
+        cache_dir=str(tmp_path),
+        train_dataset=load_mnist_dataset,
+        model_id="const",
+        batch_size=8,
+        features_layer="relu_4",
+        classifier_layer="fc_3",
+        show_progress=False,
+        normalize=True,
+        load_from_disk=False,
+    )
+
+    # Force a constant dimension regardless of the fixture's activations.
+    explainer.std_dev[0] = 0.0
+    probe = explainer.mean.clone().unsqueeze(0) + 3.0
+    normalized = explainer._normalize_features(probe)
+
+    assert torch.isfinite(normalized).all()
+    assert normalized[0, 0] == 0.0
+    assert torch.isfinite(explainer.samples).all()
+
+
+@pytest.mark.explainers
 @pytest.mark.parametrize(
     "test_id, load_from_disk, seed_bogus_cache",
     [

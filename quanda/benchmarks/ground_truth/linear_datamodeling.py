@@ -29,7 +29,8 @@ from quanda.utils.common import (
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.functions import correlation_functions
-from quanda.utils.training import Trainer
+from quanda.utils.training import BaseTrainer, Trainer
+from quanda.utils.warnings import QuandaAdvisoryWarning
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +162,7 @@ class LinearDatamodeling(Benchmark):
     def _train_subset_model_by_idx(
         self,
         i: int,
-        trainer: "Trainer",
+        trainer: Union[L.Trainer, BaseTrainer],
         local_ckpt_dir: str,
         repo_id: str,
         batch_size: int = 8,
@@ -185,7 +186,9 @@ class LinearDatamodeling(Benchmark):
             warnings.warn(
                 f"Directory {local_ckpt_dir} already exists "
                 "and is not empty. Checkpoints will be "
-                "overwritten."
+                "overwritten.",
+                QuandaAdvisoryWarning,
+                stacklevel=2,
             )
         subset_model.save_pretrained(local_ckpt_dir, safe_serialization=True)
 
@@ -194,7 +197,7 @@ class LinearDatamodeling(Benchmark):
 
     def _train_subset_models(
         self,
-        trainer: "Trainer",
+        trainer: Union[L.Trainer, BaseTrainer],
         config: dict,
         batch_size: int = 8,
         push_to_hub: bool = False,
@@ -221,6 +224,7 @@ class LinearDatamodeling(Benchmark):
         skip_subsets: bool = False,
         load_fresh: bool = True,
         use_pid: bool = False,
+        trainer: Optional[Union[L.Trainer, BaseTrainer]] = None,
     ) -> "LinearDatamodeling":
         """Train main model and subset models.
 
@@ -248,6 +252,10 @@ class LinearDatamodeling(Benchmark):
             If True, suffix checkpoint and metadata directories with
             the current process id to disambiguate concurrent runs. By
             default False.
+        trainer : Optional[Union[L.Trainer, BaseTrainer]], optional
+            Trainer to use for both the main model and the subset
+            models, instead of the one parsed from the
+            ``model.trainer`` config section. By default None.
 
         Returns
         -------
@@ -263,6 +271,7 @@ class LinearDatamodeling(Benchmark):
             batch_size=batch_size,
             load_fresh=load_fresh,
             use_pid=use_pid,
+            trainer=trainer,
         )
         if not isinstance(obj, LinearDatamodeling):
             raise TypeError("Expected a LinearDatamodeling instance.")
@@ -270,9 +279,10 @@ class LinearDatamodeling(Benchmark):
         if skip_subsets or cls._lds_skip_subsets:
             return obj
 
-        trainer = TrainerConfigParser.parse_trainer_cfg(
-            config["model"]["trainer"]
-        )
+        if trainer is None:
+            trainer = TrainerConfigParser.parse_trainer_cfg(
+                config["model"]["trainer"]
+            )
 
         obj._train_subset_models(
             trainer=trainer,
@@ -292,6 +302,7 @@ class LinearDatamodeling(Benchmark):
         batch_size: int = 64,
         push_to_hub: bool = False,
         load_fresh: bool = False,
+        trainer: Optional[Union[L.Trainer, BaseTrainer]] = None,
     ) -> "LinearDatamodeling":
         """Train and save a single subset model by index.
 
@@ -316,6 +327,9 @@ class LinearDatamodeling(Benchmark):
             If True, regenerate cached metadata (subset_ids, etc.).
             Doing so can change the subset splits if generation is not
             deterministic. By default False — reuse cached metadata.
+        trainer : Optional[Union[L.Trainer, BaseTrainer]], optional
+            Trainer to use instead of the one parsed from the
+            ``model.trainer`` config section. By default None.
 
         """
         config = resolve_config(config)
@@ -334,9 +348,10 @@ class LinearDatamodeling(Benchmark):
         if pretrained_base is not None:
             obj.model = pretrained_base
 
-        trainer = TrainerConfigParser.parse_trainer_cfg(
-            config["model"]["trainer"]
-        )
+        if trainer is None:
+            trainer = TrainerConfigParser.parse_trainer_cfg(
+                config["model"]["trainer"]
+            )
         local_ckpt_dir, repo_id = _subset_ckpt_paths(config, idx)
         obj._train_subset_model_by_idx(
             i=idx,
@@ -474,6 +489,7 @@ class LinearDatamodeling(Benchmark):
         batch_size: int = 64,
         load_fresh: bool = True,
         use_pid: bool = False,
+        trainer: Optional[Union[L.Trainer, BaseTrainer]] = None,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub."""
         config = resolve_config(config)
@@ -488,6 +504,7 @@ class LinearDatamodeling(Benchmark):
                 batch_size=batch_size,
                 load_fresh=load_fresh,
                 use_pid=use_pid,
+                trainer=trainer,
             )
         finally:
             cls._push_subsets_during_train = False

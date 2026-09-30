@@ -42,7 +42,14 @@ from quanda.utils.common import (
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.datasets.transformed.base import TransformedDataset
-from quanda.utils.training.trainer import _EpochSnapshotCallback
+from quanda.utils.training.trainer import (
+    BaseTrainer,
+    _EpochSnapshotCallback,
+)
+from quanda.utils.warnings import (
+    QuandaAdvisoryWarning,
+    QuandaCriticalWarning,
+)
 
 
 def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
@@ -51,6 +58,46 @@ def _hash_expl_kwargs(expl_kwargs: Optional[dict]) -> str:
         expl_kwargs or {}, sort_keys=True, default=stable_repr
     )
     return hashlib.sha1(payload.encode()).hexdigest()[:10]
+
+
+def _fit_benchmark_model(
+    trainer: Union[L.Trainer, BaseTrainer],
+    model: torch.nn.Module,
+    train_dl: torch.utils.data.DataLoader,
+    val_dl: Optional[torch.utils.data.DataLoader],
+    accelerator: str,
+    devices: int,
+    callbacks: Optional[List[L.Callback]],
+):
+    """Fit ``model`` with a ``lightning.Trainer`` or a ``BaseTrainer``."""
+    if isinstance(trainer, L.Trainer):
+        if not isinstance(model, L.LightningModule):
+            raise ValueError(
+                "Model should be a LightningModule if Trainer is a "
+                "Lightning Trainer"
+            )
+        if callbacks is not None:
+            trainer.callbacks.extend(  # type: ignore[attr-defined]
+                callbacks
+            )
+        trainer.fit(
+            model=model,
+            train_dataloaders=train_dl,
+            val_dataloaders=val_dl,
+        )
+    elif isinstance(trainer, BaseTrainer):
+        trainer.fit(
+            model=model,
+            train_dataloaders=train_dl,
+            val_dataloaders=val_dl,
+            accelerator=accelerator,
+            devices=devices,
+            callbacks=callbacks,
+        )
+    else:
+        raise ValueError(
+            "Trainer should be either a Lightning Trainer or a BaseTrainer."
+        )
 
 
 def _resolve_ckpts(config: dict) -> List[str]:
@@ -72,6 +119,7 @@ def default_explanations_id(
     expl_kwargs: Optional[dict],
     max_eval_n: Optional[int] = 1000,
     eval_seed: int = 42,
+    batch_size: int = 8,
 ) -> str:
     """Build the default HF repo_id for cached explanations.
 
@@ -79,7 +127,8 @@ def default_explanations_id(
     explanations stay coupled to the exact eval-dataset subsample they
     were computed on. For benchmarks driven by training-data
     self-influence (e.g. MislabelingDetection), these same parameters
-    describe the train-dataset subsample instead.
+    describe the train-dataset subsample instead. ``batch_size`` is
+    encoded too because explanations are persisted one file per batch.
 
     If ``config['explanations_group']`` is set, it replaces ``config['id']``
     as the identity segment so multiple benchmarks that share the same
@@ -96,13 +145,13 @@ def default_explanations_id(
             f"{group!r} replaces bench id {bench_id!r}. Only correct if "
             "grouped benchmarks share model + train/eval datasets — "
             "mismatches will silently corrupt results.",
-            UserWarning,
+            QuandaCriticalWarning,
             stacklevel=2,
         )
     return (
         f"{repo}/{group}__{explainer_cls.__name__}"
         f"__{_hash_expl_kwargs(expl_kwargs)}"
-        f"__n{max_eval_n}_s{eval_seed}_explanations"
+        f"__n{max_eval_n}_s{eval_seed}_b{batch_size}_explanations"
     )
 
 
@@ -130,8 +179,20 @@ class Benchmark(ABC):
 
         Parameters
         ----------
-        model : torch.nn.Module
-            The model to evaluate.
+        model : Union[torch.nn.Module, pl.LightningModule]
+            The model for attributions. It is called as ``model(inputs)`` for
+            the ``image_classification`` task, where ``inputs`` is a batched
+            input tensor, and as ``model(**inputs)`` for the
+            ``text_classification`` and ``causal_lm`` tasks, where ``inputs``
+            is a dictionary of tokenized inputs following the Hugging Face
+            convention: ``input_ids``, ``attention_mask`` and, optionally,
+            ``token_type_ids``, each of shape ``(batch, seq_len)``. Targets
+            are under the ``labels`` key, and are not passed
+            to the model. The forward pass is expected to return raw,
+            unnormalized logits, either as a tensor or as an object exposing
+            a ``.logits`` attribute, as returned by Hugging Face models, of
+            shape ``(batch, n_classes)`` for the classification tasks and
+            ``(batch, seq_len, vocab_size)`` for ``causal_lm``.
         train_dataset : Union[torch.utils.data.Dataset, datasets.Dataset]
             The training dataset.
         eval_dataset : torch.utils.data.Dataset
@@ -376,6 +437,7 @@ class Benchmark(ABC):
         batch_size: int = 64,
         load_fresh: bool = True,
         use_pid: bool = False,
+        trainer: Optional[Union[L.Trainer, BaseTrainer]] = None,
     ) -> "Benchmark":
         """Train a model using the provided configuration.
 
@@ -401,6 +463,12 @@ class Benchmark(ABC):
             If True, suffix checkpoint and metadata directories with
             the current process id to disambiguate concurrent runs. By
             default False.
+        trainer : Optional[Union[L.Trainer, BaseTrainer]], optional
+            Trainer to use instead of the one parsed from the
+            ``model.trainer`` config section. A ``lightning.Trainer``
+            requires the benchmark model to be a ``LightningModule``;
+            a ``BaseTrainer`` requires a plain ``torch.nn.Module``. By
+            default None.
 
         Returns
         -------
@@ -423,19 +491,21 @@ class Benchmark(ABC):
         if pretrained_base is not None:
             obj.model = pretrained_base
 
-        # Parse trainer configuration
-        trainer = TrainerConfigParser.parse_trainer_cfg(
-            config["model"]["trainer"]
-        )
+        # Parse trainer configuration unless a trainer was passed
+        if trainer is None:
+            trainer = TrainerConfigParser.parse_trainer_cfg(
+                config["model"]["trainer"]
+            )
         if logger is not None:
-            trainer.logger = logger
+            trainer.logger = logger  # type: ignore[union-attr]
 
+        num_workers = getattr(trainer, "num_workers", 0)
         ds_handler = get_dataset_handler(dataset=obj.train_dataset)
         train_dl = ds_handler.create_dataloader(
             dataset=obj.train_dataset,
             batch_size=batch_size,
             shuffle=True,
-            num_workers=trainer.num_workers,
+            num_workers=num_workers,
         )
         if obj.val_dataset is not None:
             val_ds_handler = get_dataset_handler(dataset=obj.val_dataset)
@@ -443,7 +513,7 @@ class Benchmark(ABC):
                 dataset=obj.val_dataset,
                 batch_size=batch_size,
                 shuffle=False,
-                num_workers=trainer.num_workers,
+                num_workers=num_workers,
             )
         else:
             val_dl = None
@@ -469,14 +539,19 @@ class Benchmark(ABC):
         if len(os.listdir(ckpt_dir)) > 0:
             warnings.warn(
                 f"Directory {ckpt_dir} already exists and is not empty. "
-                "Checkpoints will be overwritten."
+                "Checkpoints will be overwritten.",
+                QuandaAdvisoryWarning,
+                stacklevel=2,
             )
 
         num_checkpoints = int(config.get("num_checkpoints", 1))
         snapshot_dirs: List[str] = []
         callbacks: Optional[List[L.Callback]] = None
         if num_checkpoints > 1:
-            max_epochs = config["model"]["trainer"]["max_epochs"]
+            max_epochs = (
+                getattr(trainer, "max_epochs", None)
+                or config["model"]["trainer"]["max_epochs"]
+            )
             snapshot_epochs = sorted(
                 {
                     min(
@@ -494,10 +569,11 @@ class Benchmark(ABC):
                 _EpochSnapshotCallback(snapshot_epochs, snapshot_dirs)
             ]
 
-        trainer.fit(
+        _fit_benchmark_model(
+            trainer=trainer,
             model=obj.model,
-            train_dataloaders=train_dl,
-            val_dataloaders=val_dl,
+            train_dl=train_dl,
+            val_dl=val_dl,
             accelerator=accelerator,
             devices=devices,
             callbacks=callbacks,
@@ -527,6 +603,7 @@ class Benchmark(ABC):
         batch_size: int = 64,
         load_fresh: bool = True,
         use_pid: bool = False,
+        trainer: Optional[Union[L.Trainer, BaseTrainer]] = None,
     ):  # pragma: no cover
         """Train a model using the provided config and push to HF hub.
 
@@ -550,6 +627,9 @@ class Benchmark(ABC):
             If True, suffix checkpoint and metadata directories with the
             current process id to disambiguate concurrent runs. By default
             False.
+        trainer : Optional[Union[L.Trainer, BaseTrainer]], optional
+            Trainer to use instead of the one parsed from the
+            ``model.trainer`` config section, by default None.
 
         Returns
         -------
@@ -565,6 +645,7 @@ class Benchmark(ABC):
                 load_fresh=load_fresh,
                 device=device,
             )
+            obj.load_last_checkpoint()
             obj._compute_and_save_indices(config, batch_size)
         else:
             obj = cls.train(
@@ -574,6 +655,7 @@ class Benchmark(ABC):
                 batch_size=batch_size,
                 load_fresh=load_fresh,
                 use_pid=use_pid,
+                trainer=trainer,
             )
             if not isinstance(obj.model, PyTorchModelHubMixin):
                 raise TypeError(
@@ -697,6 +779,9 @@ class Benchmark(ABC):
                 "shortcut_cls must be provided if "
                 "filter_by_non_shortcut is True."
             )
+
+        self.model.eval()
+        self.model.to(self.device)
 
         select_indices: list = []
         for batch in expl_dl:
@@ -963,7 +1048,7 @@ class Benchmark(ABC):
                 "datasets. Cache meta: "
                 f"explainer={meta.get('explainer_cls')!r}, "
                 f"explanations_group={meta.get('explanations_group')!r}.",
-                UserWarning,
+                QuandaCriticalWarning,
                 stacklevel=2,
             )
 
@@ -1075,6 +1160,7 @@ class Benchmark(ABC):
                 expl_kwargs,
                 max_eval_n=max_eval_n,
                 eval_seed=eval_seed,
+                batch_size=batch_size,
             )
 
         save_dir = cache_dir or os.path.join(

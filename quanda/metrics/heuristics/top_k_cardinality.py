@@ -17,6 +17,12 @@ class TopKCardinalityMetric(Metric):
     attributions should depend on the input data, and thus should have low
     overlap between test points.
 
+    Note that only a very low score is suspicious, flagging a limited pool
+    of top attributions shared across many test samples. A low score need
+    not indicate poor attribution quality (a model may legitimately rely on
+    few training samples), and a medium score is not necessarily better
+    than a high one.
+
     References
     ----------
     1) Barshan, Elnaz, Marc-Etienne Brunet, and Gintare Karolina Dziugaite.

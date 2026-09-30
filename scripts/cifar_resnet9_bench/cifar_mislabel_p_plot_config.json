@@ -1,0 +1,21 @@
+{
+  "folder": "cifar",
+  "methods": [
+    "representer_points",
+    "arnoldi",
+    "tracincpfast",
+    "trak",
+    "random",
+    "similarity"
+  ],
+  "benches": [
+    "cifar_mislabeling_detection_p05",
+    "cifar_mislabeling_detection",
+    "cifar_mislabeling_detection_p15"
+  ],
+  "bench_labels": {
+    "cifar_mislabeling_detection_p05": "5%",
+    "cifar_mislabeling_detection": "10%",
+    "cifar_mislabeling_detection_p15": "15%"
+  }
+}

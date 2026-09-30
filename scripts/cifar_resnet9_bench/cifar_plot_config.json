@@ -1,4 +1,5 @@
 {
+  "folder": "cifar",
   "methods": [
     "representer_points",
     "arnoldi",

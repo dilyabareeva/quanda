@@ -5,7 +5,6 @@ import os
 import warnings
 from importlib.util import find_spec
 from typing import (
-    Any,
     List,
     Literal,
     Optional,
@@ -24,10 +23,6 @@ from trak.projectors import (
 from trak.utils import get_matrix_mult
 
 from quanda.explainers.base import Explainer
-from quanda.explainers.utils import (
-    explain_fn_from_explainer,
-    self_influence_fn_from_explainer,
-)
 from quanda.utils.common import CheckpointLoadFunc, ds_len, process_targets
 from quanda.utils.datasets.dataset_handlers import (
     HuggingFaceDatasetHandler,
@@ -36,6 +31,10 @@ from quanda.utils.datasets.dataset_handlers import (
     get_dataset_handler,
 )
 from quanda.utils.tasks import TaskLiterals
+from quanda.utils.warnings import (
+    QuandaAdvisoryWarning,
+    QuandaCriticalWarning,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -146,14 +145,14 @@ class TRAK(Explainer):
             and projector tensor footprints. Defaults to False.
 
         """
-        logging.info("Initializing TRAK explainer...")
+        logger.info("Initializing TRAK explainer...")
 
         if checkpoints is not None or checkpoints_load_func is not None:
             warnings.warn(
                 "TRAK ignores `checkpoints` and `checkpoints_load_func`: "
                 "featurization runs against `model.state_dict()` only. Pass "
                 "a model whose weights are already loaded.",
-                UserWarning,
+                QuandaCriticalWarning,
                 stacklevel=2,
             )
 
@@ -190,7 +189,9 @@ class TRAK(Explainer):
             else:
                 warnings.warn(
                     "Could not find cuda installation of TRAK. Defaulting to "
-                    "BasicProjector."
+                    "BasicProjector.",
+                    QuandaAdvisoryWarning,
+                    stacklevel=2,
                 )
                 projector = "basic"
 
@@ -308,109 +309,3 @@ class TRAK(Explainer):
         )
 
         return explanations.T
-
-
-def trak_explain(
-    model: torch.nn.Module,
-    model_id: str,
-    test_data: torch.Tensor,
-    train_dataset: torch.utils.data.Dataset,
-    explanation_targets: Union[List[int], torch.Tensor],
-    checkpoints: Optional[Union[str, List[str]]] = None,
-    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
-    cache_dir: str = "./cache",
-    **kwargs: Any,
-) -> torch.Tensor:
-    """Functional interface for the `TRAK` explainer.
-
-    Parameters
-    ----------
-    model : Union[torch.nn.Module, pl.LightningModule]
-            The model to be explained with loaded weights.
-    model_id : Optional[str], optional
-        Identifier for the model, by default None.
-    test_data : torch.Tensor
-        The test inputs for which explanations are generated.
-    train_dataset : torch.utils.data.Dataset
-        The training dataset used to train the model.
-    explanation_targets : Union[List[int], torch.Tensor]
-        The target model outputs to explain.
-    checkpoints : Optional[Union[str, List[str]]], optional
-        Ignored. Accepted for API consistency with other
-        explainers.
-    checkpoints_load_func : Optional[CheckpointLoadFunc], optional
-        Ignored, for the same reason as ``checkpoints``.
-        Defaults to None.
-    cache_dir : Optional[str], optional
-        The directory to use for caching, by default None.
-    kwargs : Any
-        Additional keyword arguments for the explainer.
-
-    Returns
-    -------
-    torch.Tensor
-        The attributions for the test inputs.
-
-    """
-    return explain_fn_from_explainer(
-        explainer_cls=TRAK,
-        model=model,
-        checkpoints=checkpoints,
-        model_id=model_id,
-        cache_dir=cache_dir,
-        test_data=test_data,
-        targets=explanation_targets,
-        train_dataset=train_dataset,
-        checkpoints_load_func=checkpoints_load_func,
-        **kwargs,
-    )
-
-
-def trak_self_influence(
-    model: torch.nn.Module,
-    model_id: str,
-    train_dataset: torch.utils.data.Dataset,
-    checkpoints: Optional[Union[str, List[str]]] = None,
-    checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
-    cache_dir: str = "./cache",
-    batch_size: int = 32,
-    **kwargs: Any,
-) -> torch.Tensor:
-    """Functional interface for the `TRAK` self-influence explainer.
-
-    Parameters
-    ----------
-    model : Union[torch.nn.Module, pl.LightningModule]
-        The model to be explained with loaded weights.
-    model_id : str
-        Identifier for the model.
-    train_dataset : torch.utils.data.Dataset
-        The training dataset used to train the model.
-    checkpoints : Optional[Union[str, List[str]]], optional
-        Ignored. Accepted for API consistency with other explainers .
-    checkpoints_load_func : Optional[CheckpointLoadFunc], optional
-        Ignored, for the same reason as ``checkpoints``. Defaults to None.
-    cache_dir : Optional[str]
-        The directory to use for caching.
-    batch_size : int, optional
-        The batch size, by default 32.
-    kwargs : Any
-        Additional keyword arguments for the explainer.
-
-    Returns
-    -------
-    torch.Tensor
-        The self-influence scores.
-
-    """
-    return self_influence_fn_from_explainer(
-        explainer_cls=TRAK,
-        model=model,
-        checkpoints=checkpoints,
-        model_id=model_id,
-        cache_dir=cache_dir,
-        train_dataset=train_dataset,
-        checkpoints_load_func=checkpoints_load_func,
-        batch_size=batch_size,
-        **kwargs,
-    )

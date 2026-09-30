@@ -12,10 +12,12 @@ The tutorials currently included in |quanda| are:
 - `Metrics <https://github.com/dilyabareeva/quanda/blob/main/tutorials/demo_metrics.ipynb>`_: shows how to use the metrics in |quanda| to evaluate the performance of a method. This tutorial goes through all the metrics that are included in |quanda| and walks through the steps of initializing the metric and evaluating the performance of a TDA method.
 - :doc:`Benchmarks <tutorial_pages/benchmarks>`: shows how to use the benchmarking tools in |quanda| to evaluate a data attribution method. This tutorial includes 3 different examples of benchmarks.
 - :doc:`Linear Datamodeling Score (LDS) <tutorial_pages/lds>`: caveats and best practices for the LDS benchmark, including how to precompute and reuse counterfactual subset logits across explainers.
+- :doc:`Training Configuration <tutorial_pages/training>`: how the components that retrain models are configured through trainer instances — using the built-in ``Trainer``, a ``lightning.Trainer`` (including multi-GPU and multi-node setups), or a custom ``BaseTrainer`` implementation.
 
 .. toctree::
    :hidden:
 
    tutorial_pages/benchmarks
    tutorial_pages/lds
+   tutorial_pages/training
 

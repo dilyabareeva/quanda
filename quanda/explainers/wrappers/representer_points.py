@@ -41,6 +41,7 @@ from quanda.utils.common import (
 )
 from quanda.utils.datasets.dataset_handlers import get_dataset_handler
 from quanda.utils.tasks import TaskLiterals
+from quanda.utils.warnings import QuandaAdvisoryWarning
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +134,9 @@ def av_samples(av_dataset: AV.AVDataset) -> torch.Tensor:
     warnings.warn(
         "This method is only a good idea for small datasets and small "
         "architectures. Otherwise, this will consume "
-        "a lot of memory."
+        "a lot of memory.",
+        QuandaAdvisoryWarning,
+        stacklevel=2,
     )
     samples = []
 
@@ -370,7 +373,12 @@ class RepresenterPoints(Explainer):
             The normalized features
 
         """
-        return (features - self.mean) / self.std_dev
+        constant = self.std_dev == 0
+        std_dev = torch.where(
+            constant, torch.ones_like(self.std_dev), self.std_dev
+        )
+        normalized = (features - self.mean) / std_dev
+        return normalized.masked_fill(constant, 0.0)
 
     def _get_activations(
         self,
@@ -402,7 +410,8 @@ class RepresenterPoints(Explainer):
         hook_handle = target_layer.register_forward_hook(hook_fn)
 
         # Forward pass
-        self.model(x)
+        with torch.no_grad():
+            self.model(x)
 
         # Remove the hook
         hook_handle.remove()
@@ -561,17 +570,17 @@ class RepresenterPoints(Explainer):
         weight_matrix = softmax_value - y
         weight_matrix = torch.div(weight_matrix, (-2.0 * self.lmbd * N))
 
-        self.coefficients = weight_matrix
+        self.coefficients = weight_matrix.detach()
 
         # save weight matrix to cache
         torch.save(
-            weight_matrix,
+            self.coefficients,
             os.path.join(self.cache_dir, f"{self.model_id}_repr_weights.pt"),
         )
 
     def backtracking_line_search(
         self,
-        model: torch.nn.Module,
+        model: RepresenterSoftmax,
         grad: torch.Tensor,
         x: torch.Tensor,
         y: torch.Tensor,
@@ -582,7 +591,7 @@ class RepresenterPoints(Explainer):
 
         Parameters
         ----------
-        model : torch.nn.Module
+        model : RepresenterSoftmax
             The model to be trained.
         grad : torch.Tensor
             The gradient of the model.
@@ -598,7 +607,7 @@ class RepresenterPoints(Explainer):
         """
         t = 10.0
         beta = 0.5
-        W_O = torch.tensor(model.W).detach().cpu().numpy()
+        W_O = model.W.detach().cpu().numpy()
         grad_np = grad.detach().cpu().numpy()
 
         while True:

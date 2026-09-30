@@ -111,3 +111,4 @@ splits:
     seed: 42
 batch_size: 64
 detection_s: 5
+skip_main_train: true

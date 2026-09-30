@@ -4,7 +4,7 @@ Welcome to |quanda|'s documentation!
 |quanda| is a toolkit for **quan**\ titative evaluation of **d**\ ata **a**\ ttribution methods in **PyTorch**.
 
 .. note::
-    |quanda| is under active development. Note the release version to ensure reproducibility of your work. Contributions, bug reports, and feature requests are welcome.
+    |quanda| is currently under development. Note the release version to ensure reproducibility of your work. If you have any questions, please `open an issue <https://github.com/dilyabareeva/quanda/issues/new/choose>`_ or write us at dilyabareeva@gmail.com or galip.uemit.yolcu@hhi.fraunhofer.de.
 
 .. figure:: _static/fig_1_source.png
    :alt: Figure 1
@@ -126,7 +126,7 @@ In this section, we list the evaluation criteria that are currently available in
     - Downstream Task Evaluator
   * - Top-K Cardinality
     - `Barshan et al., 2020 <http://proceedings.mlr.press/v108/barshan20a/barshan20a.pdf>`_
-    - Measures the cardinality of the union of the top-K training samples. Since the attributions are expected to be dependent on the test input, they are expected to vary heavily for different test points, resulting in a low overlap (high metric value).
+    - Measures the cardinality of the union of the top-K training samples over the test set. A low value uncovers a specific failure mode: a limited pool of top attributions shared across many test samples. Note that only a very low score is suspicious: a low score need not indicate poor attribution quality (a model may legitimately rely on few training samples), and a medium score is not necessarily better than a high one.
     - Heuristic
   * - Model Randomization
     - `Hanawa et al., 2021 <https://openreview.net/forum?id=9uvhpyQwzM_>`_
@@ -175,7 +175,7 @@ Metric Interpretation Guideline
     - higher
   * - `TopKCardinality <docs_api/quanda.metrics.heuristics.top_k_cardinality.html>`_
     - ``[0, 1]``
-    - higher
+    - only very low is suspicious
   * - `ModelRandomization <docs_api/quanda.metrics.heuristics.model_randomization.html>`_
     - ``[-1, 1]``
     - closer to 0
@@ -195,6 +195,9 @@ Metric Interpretation Guideline
 Benchmarks
 ----------
 |quanda| comes with a number of pre-computed benchmarks that can be conveniently used for evaluation in a plug-and-play manner. We are planning to significantly expand the number of benchmarks in the future. Currently available benchmarks span vision (MNIST / LeNet, CIFAR-10 / ResNet-9, AWA2 / ResNet-50), text classification (QNLI / BERT), and causal language modeling (T-REx / GPT-2 fine-tuned on OpenWebText). The benchmark IDs listed below are to be passed to ``load_pretrained``.
+
+.. note::
+    Some settings additionally come with hyperparameter variants, such as LDS at different retraining subset sizes ``alpha``. See :doc:`Available Benchmarks <./benchmarks>` for the full list of benchmark IDs.
 
 .. list-table::
   :header-rows: 1
@@ -312,6 +315,7 @@ If you are using |quanda| for your scientific research, please also make sure to
 
    quickstart
    explainers
+   benchmarks
    tutorials
 
 .. toctree::

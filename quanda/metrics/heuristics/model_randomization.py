@@ -42,6 +42,7 @@ class ModelRandomizationMetric(Metric):
         expl_kwargs: Optional[dict] = None,
         checkpoints_load_func: Optional[CheckpointLoadFunc] = None,
         correlation_fn: Union[Callable, CorrelationFnLiterals] = "spearman",
+        n_rand_models: int = 1,
         seed: int = 42,
     ):
         """Initialize the ModelRandomizationMetric.
@@ -73,6 +74,11 @@ class ModelRandomizationMetric(Metric):
             optional. The correlation function to use,
             by default "spearman".
             Can be "spearman", "kendall" or a callable.
+        n_rand_models : int, optional
+            Number of independently randomized models to average the
+            metric over, by default 1. Each model uses a distinct random
+            seed; ``compute`` returns the mean and standard deviation of
+            the per-model scores.
         seed : int, optional
             The random seed, by default 42.
 
@@ -91,32 +97,55 @@ class ModelRandomizationMetric(Metric):
         os.makedirs(self.cache_dir, exist_ok=True)
 
         self.seed = seed
-
-        self.generator = torch.Generator(device=self.device)
-        self.generator.manual_seed(self.seed)
-        self.rand_model, self.rand_checkpoint = self._randomize_model()
+        self.n_rand_models = n_rand_models
 
         explainer_params = inspect.signature(explainer_cls.__init__).parameters
-        if "model_id" in explainer_params:
-            if "model_id" in self.expl_kwargs:
-                self.expl_kwargs["model_id"] += "_rand"
-            else:
-                self.expl_kwargs["model_id"] = self.model_id + "_rand"
 
-        # this is needed for random explainer: otherwise the correlation is 1.0
-        if "seed" in explainer_params:
-            self.expl_kwargs["seed"] = (
-                self.expl_kwargs.get("seed", self.seed) + 1
+        # Build one randomized model + explainer per requested random model.
+        self.rand_models: List[torch.nn.Module] = []
+        self.rand_checkpoints: List[List[str]] = []
+        self.rand_explainers: List = []
+        resolved_expl_kwargs: List[dict] = []
+        for model_idx in range(self.n_rand_models):
+            rand_model, rand_checkpoint = self._randomize_model(model_idx)
+            self.rand_models.append(rand_model)
+            self.rand_checkpoints.append(rand_checkpoint)
+
+            expl_kwargs = copy.copy(self.expl_kwargs)
+            if "model_id" in explainer_params:
+                base_id = self.expl_kwargs.get("model_id", self.model_id)
+                expl_kwargs["model_id"] = f"{base_id}_rand_{model_idx}"
+
+            # this is needed for the random explainer: otherwise the
+            # correlation is 1.0
+            if "seed" in explainer_params:
+                expl_kwargs["seed"] = (
+                    self.expl_kwargs.get("seed", self.seed) + 1 + model_idx
+                )
+
+            # Never reuse cached artifacts for randomized models.
+            if "load_from_disk" in explainer_params:
+                expl_kwargs["load_from_disk"] = False
+
+            resolved_expl_kwargs.append(expl_kwargs)
+            self.rand_explainers.append(
+                explainer_cls(
+                    model=rand_model,
+                    checkpoints=rand_checkpoint,
+                    train_dataset=train_dataset,
+                    **expl_kwargs,
+                )
             )
 
-        self.rand_explainer = explainer_cls(
-            model=self.rand_model,
-            checkpoints=self.rand_checkpoint,
-            train_dataset=train_dataset,
-            **self.expl_kwargs,
-        )
+        # Backward-compatible handles to the first randomized model.
+        self.expl_kwargs = resolved_expl_kwargs[0]
+        self.rand_model = self.rand_models[0]
+        self.rand_checkpoint = self.rand_checkpoints[0]
+        self.rand_explainer = self.rand_explainers[0]
 
-        self.results: Dict[str, List] = {"scores": []}
+        self.results: Dict[str, List] = {
+            "scores": [[] for _ in range(self.n_rand_models)]
+        }
 
         # TODO: create a validation utility function
         if (
@@ -150,47 +179,98 @@ class ModelRandomizationMetric(Metric):
         test_targets : Optional[torch.Tensor], optional
             The target values for the explanations, by default None.
 
+        Raises
+        ------
+        ValueError
+            If the original or the randomized explanations contain
+            non-finite values.
+
         """
         explanations = explanations.to(self.device)
         test_data = move_ds_item_to_device(test_data, self.device)
         if test_targets is not None:
             test_targets = test_targets.to(self.device)
 
-        rand_explanations = self.rand_explainer.explain(
-            test_data=test_data, targets=test_targets
-        ).to(self.device)
+        if not torch.isfinite(explanations).all():
+            raise ValueError(
+                "The explanations of the original model contain non-finite "
+                "values; the rank correlation would be meaningless."
+            )
 
-        corrs = self.corr_measure(explanations, rand_explanations)
-        self.results["scores"].append(corrs)
+        for model_idx, rand_explainer in enumerate(self.rand_explainers):
+            rand_explanations = rand_explainer.explain(
+                test_data=test_data, targets=test_targets
+            ).to(self.device)
+
+            if not torch.isfinite(rand_explanations).all():
+                raise ValueError(
+                    f"Randomized model {model_idx} produced non-finite "
+                    "explanations; the rank correlation would be "
+                    "meaningless."
+                )
+
+            corrs = self.corr_measure(explanations, rand_explanations)
+            self.results["scores"][model_idx].append(corrs)
 
     def compute(self):
-        """Compute and return the mean score.
+        """Compute and return the mean and std score across random models.
 
         Returns
         -------
-            dict: A dictionary containing the mean score.
+            dict: A dictionary with ``"score"`` and ``"mean"`` (both equal to
+            the mean per-model correlation), ``"std"`` (the standard
+            deviation of the per-model correlations, ``0.0`` for a single
+            random model) and ``"per_model_scores"`` (the individual
+            correlation of each randomized model, in model order).
 
         """
-        return {"score": torch.cat(self.results["scores"]).mean().item()}
+        per_model_means = torch.stack(
+            [
+                torch.cat(model_scores).mean()
+                for model_scores in self.results["scores"]
+            ]
+        )
+        mean = per_model_means.mean().item()
+        std = (
+            per_model_means.std(unbiased=False).item()
+            if self.n_rand_models > 1
+            else 0.0
+        )
+        return {
+            "score": mean,
+            "mean": mean,
+            "std": std,
+            "per_model_scores": per_model_means.tolist(),
+        }
 
     def _per_sample_scores(self) -> Optional[torch.Tensor]:
-        """Return per-sample correlations against the randomized model."""
-        if not self.results["scores"]:
+        """Return per-sample correlations against the randomized models."""
+        all_scores = [
+            torch.cat(model_scores)
+            for model_scores in self.results["scores"]
+            if model_scores
+        ]
+        if not all_scores:
             return torch.empty(0)
-        return torch.cat(self.results["scores"])
+        return torch.cat(all_scores)
 
     def reset(self):
         """Reset the state of the model randomization.
 
         This method resets the state of the model randomization by clearing the
-        results and reseeding the random number generator. It also randomizes
-        the model using the
-        `_randomize_model` method.
+        results and re-randomizing the models using the `_randomize_model`
+        method.
 
         """
-        self.results = {"scores": []}
-        self.generator.manual_seed(self.seed)
-        self.rand_model, self.rand_checkpoint = self._randomize_model()
+        self.results = {"scores": [[] for _ in range(self.n_rand_models)]}
+        self.rand_models = []
+        self.rand_checkpoints = []
+        for model_idx in range(self.n_rand_models):
+            rand_model, rand_checkpoint = self._randomize_model(model_idx)
+            self.rand_models.append(rand_model)
+            self.rand_checkpoints.append(rand_checkpoint)
+        self.rand_model = self.rand_models[0]
+        self.rand_checkpoint = self.rand_checkpoints[0]
 
     def state_dict(self) -> Dict:
         """Return the state of the metric.
@@ -203,7 +283,7 @@ class ModelRandomizationMetric(Metric):
         """
         state_dict = {
             "results_dict": self.results,
-            "rnd_model": self.rand_model.state_dict(),
+            "rnd_models": [m.state_dict() for m in self.rand_models],
         }
         return state_dict
 
@@ -217,9 +297,12 @@ class ModelRandomizationMetric(Metric):
 
         """
         self.results = state_dict["results_dict"]
-        self.rand_model.load_state_dict(state_dict["rnd_model"])
+        for rand_model, model_state in zip(
+            self.rand_models, state_dict["rnd_models"]
+        ):
+            rand_model.load_state_dict(model_state)
 
-    def _randomize_parameter(self, param, parent, param_name):
+    def _randomize_parameter(self, param, parent, param_name, generator, seed):
         """Reset or randomize a parameter.
 
         Parameters
@@ -230,17 +313,31 @@ class ModelRandomizationMetric(Metric):
             The parent module of the parameter.
         param_name : str
             The name of the parameter.
+        generator : torch.Generator
+            The random generator used to draw new parameter values.
+        seed : int
+            The seed used to reset parameters of modules exposing
+            ``reset_parameters``.
 
         """
         if hasattr(parent, "reset_parameters"):
-            torch.manual_seed(self.seed)
+            torch.manual_seed(seed)
             parent.reset_parameters()
         else:
-            torch.nn.init.normal_(param, generator=self.generator)
+            torch.nn.init.normal_(param, generator=generator)
             parent.__setattr__(param_name, torch.nn.Parameter(param))
 
-    def _randomize_model(self) -> Tuple[torch.nn.Module, List[str]]:
+    def _randomize_model(
+        self, model_idx: int = 0
+    ) -> Tuple[torch.nn.Module, List[str]]:
         """Randomize the model parameters.
+
+        Parameters
+        ----------
+        model_idx : int, optional
+            Index of the random model being built, by default 0. It offsets
+            the random seed so that each of the ``n_rand_models`` models is
+            randomized independently.
 
         Returns
         -------
@@ -248,6 +345,10 @@ class ModelRandomizationMetric(Metric):
             The randomized model.
 
         """
+        seed = self.seed + model_idx
+        generator = torch.Generator(device=self.device)
+        generator.manual_seed(seed)
+
         rand_model = copy.deepcopy(self.model)
         rand_checkpoints = []
 
@@ -257,11 +358,13 @@ class ModelRandomizationMetric(Metric):
             for name, param in list(rand_model.named_parameters()):
                 parent = get_parent_module_from_name(rand_model, name)
                 param_name = name.split(".")[-1]
-                self._randomize_parameter(param, parent, param_name)
+                self._randomize_parameter(
+                    param, parent, param_name, generator, seed
+                )
 
             # Save randomized checkpoint
             chckpt_path = os.path.join(
-                self.cache_dir, f"{self.model_id}_rand_{i}.pth"
+                self.cache_dir, f"{self.model_id}_rand_{model_idx}_{i}.pth"
             )
             torch.save(rand_model.state_dict(), chckpt_path)
             rand_checkpoints.append(chckpt_path)

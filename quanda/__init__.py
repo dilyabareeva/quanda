@@ -63,6 +63,11 @@ from quanda.metrics.heuristics import (
     ModelRandomizationMetric,
     TopKCardinalityMetric,
 )
+from quanda.utils.warnings import (
+    QuandaAdvisoryWarning,
+    QuandaCriticalWarning,
+    QuandaWarning,
+)
 
 __all__ = [
     # Subpackages
@@ -129,10 +134,19 @@ __all__ = [
     "LinearDatamodeling",
     # Benchmark registry
     "bench_dict",
+    # Warning categories
+    "QuandaWarning",
+    "QuandaAdvisoryWarning",
+    "QuandaCriticalWarning",
 ]
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+# Configure only quanda's own logger
+_handler = logging.StreamHandler()
+_handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 )
+_logger = logging.getLogger(__name__)
+_logger.addHandler(_handler)
+_logger.setLevel(logging.INFO)
+_logger.propagate = False

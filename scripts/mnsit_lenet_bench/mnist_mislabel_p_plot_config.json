@@ -1,0 +1,21 @@
+{
+  "folder": "mnist",
+  "methods": [
+    "representer_points",
+    "arnoldi",
+    "tracincpfast",
+    "trak",
+    "random",
+    "similarity"
+  ],
+  "benches": [
+    "mnist_mislabeling_detection_p05",
+    "mnist_mislabeling_detection",
+    "mnist_mislabeling_detection_p15"
+  ],
+  "bench_labels": {
+    "mnist_mislabeling_detection_p05": "5%",
+    "mnist_mislabeling_detection": "10%",
+    "mnist_mislabeling_detection_p15": "15%"
+  }
+}

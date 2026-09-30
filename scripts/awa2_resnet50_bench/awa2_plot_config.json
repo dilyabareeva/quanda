@@ -1,4 +1,5 @@
 {
+  "folder": "awa2",
   "methods": [
     "representer_points",
     "tracincpfast",

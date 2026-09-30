@@ -1,6 +1,7 @@
 #!/bin/bash
 # Train and push the M subset models for an LDS benchmark. 
 
+set -a; source "$(dirname "${BASH_SOURCE[0]}")/../.env"; set +a
 export PYTHONPATH="$PYTHONPATH:$(dirname $(dirname $(realpath $0)))"
 
 # ---------- defaults ----------
@@ -45,7 +46,7 @@ resolve_indices() {
 CFG_DIR="quanda/benchmarks/resources/configs"
 mkdir -p logs
 
-BENCH_SAVE_DIR="bench_out/${CONFIG_MAP_PREFIX}"
+BENCH_SAVE_DIR="${QUANDA_ROOT_DIR:?set in .env}/eval_bench/${CONFIG_MAP_PREFIX}"
 SAVE_OVERRIDE="bench_save_dir=${BENCH_SAVE_DIR}"
 
 # ---------- helpers ----------
