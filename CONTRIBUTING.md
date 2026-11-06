@@ -137,7 +137,8 @@ Once you are done with your contributions, and have went through the above check
 - Create a [pull request](https://github.com/dilyabareeva/quanda/compare)
 - Provide a summary of the changes you are introducing, give details on points which might not be easily understandable.
 - If the contribution is concerning an existing issue, refer to it in the body of the pull request.
-- Request a review from [dilyabareeva](https://github.com/dilyabareeva) or [gumityolcu](https://github.com/gumityolcu).
+- If you used LLM assistance to a substantial degree, disclose this in the pull request description. 
+- Request a review from [dilyabareeva](https://github.com/dilyabareeva) or [gumityolcu](https://github.com/gumityolcu). No PR is merged without a thorough review by at least one human maintainer.
 
 ## Contributing Metrics and Benchmarks
 
