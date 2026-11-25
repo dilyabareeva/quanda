@@ -37,7 +37,8 @@ dependencies = [
     "Pillow>=10.0.0",
     "pyarrow>=18.0.0",
     "dattri>=0.3.0",
-    "tiktoken>=0.10.0"
+    "tiktoken>=0.10.0",
+    "omegaconf>=2.1.0"
 ]
 
 
